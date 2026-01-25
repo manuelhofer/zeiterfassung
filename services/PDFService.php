@@ -635,23 +635,26 @@ class PDFService
         $rightBlockValueX = $rightX;
 
         // Unterer Bereich: Summenblock + Zusatzblock visuell mittig platzieren.
-        // Wir zentrieren die beiden Bloecke als gemeinsame Gruppe zwischen tableRightX und rightX.
-        $sumGroupLeft = $sumLabelX;
-        $sumGroupRight = $sumValueX + 5.0;
-        $rightGroupLeft = $rightBlockLabelX;
-        $rightGroupRight = $rightBlockValueX + 5.0;
+        // Wir zentrieren die beiden Bloecke als gemeinsame Gruppe zwischen tableRightX und rightX,
+        // allerdings nur, wenn der rechte Zusatzblock auch sichtbar ist.
+        if ($urlaubAbzglBfText !== '') {
+            $sumGroupLeft = $sumLabelX;
+            $sumGroupRight = $sumValueX + 5.0;
+            $rightGroupLeft = $rightBlockLabelX;
+            $rightGroupRight = $rightBlockValueX + 5.0;
 
-        $groupLeft = min($sumGroupLeft, $rightGroupLeft);
-        $groupRight = max($sumGroupRight, $rightGroupRight);
-        $groupWidth = $groupRight - $groupLeft;
-        $availableWidth = $rightX - $tableRightX;
-        $groupOffset = ($availableWidth > $groupWidth) ? (($availableWidth - $groupWidth) / 2.0) : 0.0;
+            $groupLeft = min($sumGroupLeft, $rightGroupLeft);
+            $groupRight = max($sumGroupRight, $rightGroupRight);
+            $groupWidth = $groupRight - $groupLeft;
+            $availableWidth = $rightX - $tableRightX;
+            $groupOffset = ($availableWidth > $groupWidth) ? (($availableWidth - $groupWidth) / 2.0) : 0.0;
 
-        if ($groupOffset > 0.1) {
-            $sumLabelX += $groupOffset;
-            $sumValueX += $groupOffset;
-            $rightBlockLabelX += $groupOffset;
-            $rightBlockValueX += $groupOffset;
+            if ($groupOffset > 0.1) {
+                $sumLabelX += $groupOffset;
+                $sumValueX += $groupOffset;
+                $rightBlockLabelX += $groupOffset;
+                $rightBlockValueX += $groupOffset;
+            }
         }
 
         // Seitenaufteilung: Tabelle kann durch Mehrfach-Kommen/Gehen deutlich mehr Zeilen haben.

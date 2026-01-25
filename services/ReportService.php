@@ -370,6 +370,31 @@ class ReportService
             return $out;
         };
 
+        $sortBlocks = function (array $blocks): array {
+            if (count($blocks) < 2) {
+                return $blocks;
+            }
+
+            usort($blocks, static function (array $a, array $b): int {
+                $aStart = (string)($a['kommen_roh'] ?? $a['gehen_roh'] ?? '');
+                $bStart = (string)($b['kommen_roh'] ?? $b['gehen_roh'] ?? '');
+                $aTs = $aStart !== '' ? strtotime($aStart) : false;
+                $bTs = $bStart !== '' ? strtotime($bStart) : false;
+                if ($aTs !== false && $bTs !== false) {
+                    return $aTs <=> $bTs;
+                }
+                if ($aTs !== false) {
+                    return -1;
+                }
+                if ($bTs !== false) {
+                    return 1;
+                }
+                return 0;
+            });
+
+            return $blocks;
+        };
+
         foreach ($tage as $ymd) {
             $dayBookings = $proTag[$ymd] ?? [];
             // Defensiv sortieren
@@ -527,10 +552,6 @@ class ReportService
                 if (!is_array($blocks) || $blocks === []) {
                     continue;
                 }
-                if (isset($result[$ymd])) {
-                    continue;
-                }
-
                 $bloecke = $blocks;
                 if (count($bloecke) > 1) {
                     usort($bloecke, static function (array $a, array $b): int {
@@ -549,9 +570,14 @@ class ReportService
                     });
                 }
 
-                $out = $convertBlocks($bloecke);
-                if ($out !== []) {
-                    $result[$ymd] = $out;
+                $outExtra = $convertBlocks($bloecke);
+                if ($outExtra !== []) {
+                    if (isset($result[$ymd]) && is_array($result[$ymd])) {
+                        $merged = array_merge($result[$ymd], $outExtra);
+                        $result[$ymd] = $sortBlocks($merged);
+                    } else {
+                        $result[$ymd] = $outExtra;
+                    }
                 }
             }
         }
