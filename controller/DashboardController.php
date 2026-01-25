@@ -201,9 +201,9 @@ class DashboardController
                         . "WHERE m.aktiv = 1\n"
                         . "  AND z.typ IN ('kommen','gehen')\n"
                         . "  AND z.zeitstempel >= '" . $startDate . " 00:00:00'\n"
+                        . "  AND z.zeitstempel < '" . $todayIso . " 00:00:00'\n"
                         . "GROUP BY m.id, m.vorname, m.nachname, DATE(z.zeitstempel)\n"
                         . "HAVING anzahl_kommen <> anzahl_gehen\n"
-                        . "   AND datum < '" . $todayIso . "'\n"
                         . "ORDER BY datum DESC, m.nachname ASC, m.vorname ASC\n"
                         . "LIMIT 20";
 
