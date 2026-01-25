@@ -363,14 +363,23 @@ if (!function_exists('report_calc_block_ist_dez2')) {
         $start = '';
         $ende  = '';
 
-        // 1) Roh-Paar
-        if ($kRaw !== '' && $gRaw !== '' && substr($kRaw, 0, 10) != '0000-00-00' && substr($gRaw, 0, 10) !== '0000-00-00') {
+        $kCorrValid = ($kK !== '' && substr($kK, 0, 10) !== '0000-00-00');
+        $gCorrValid = ($gK !== '' && substr($gK, 0, 10) !== '0000-00-00');
+        $kRawValid = ($kRaw !== '' && substr($kRaw, 0, 10) !== '0000-00-00');
+        $gRawValid = ($gRaw !== '' && substr($gRaw, 0, 10) !== '0000-00-00');
+
+        // 1) Korrigiertes Paar bevorzugen (soll zur Anzeige passen).
+        if ($kCorrValid && $gCorrValid) {
+            $start = $kK;
+            $ende  = $gK;
+        } elseif ($kRawValid && $gRawValid) {
+            // 2) Roh-Paar, wenn keine vollstaendige Korrektur vorliegt.
             $start = $kRaw;
             $ende  = $gRaw;
         } else {
-            // 2) Main-Paar (korr bevorzugt, sonst roh)
-            $kMain = ($kK !== '' && substr($kK, 0, 10) !== '0000-00-00') ? $kK : $kRaw;
-            $gMain = ($gK !== '' && substr($gK, 0, 10) !== '0000-00-00') ? $gK : $gRaw;
+            // 3) Fallback: Main-Paar (korr bevorzugt, sonst roh).
+            $kMain = $kCorrValid ? $kK : ($kRawValid ? $kRaw : '');
+            $gMain = $gCorrValid ? $gK : ($gRawValid ? $gRaw : '');
 
             if ($kMain !== '' && $gMain !== '') {
                 $start = $kMain;
@@ -430,14 +439,23 @@ if (!function_exists('report_calc_block_seconds')) {
         $start = '';
         $ende  = '';
 
-        // 1) Roh-Paar
-        if ($kRaw !== '' && $gRaw !== '' && substr($kRaw, 0, 10) !== '0000-00-00' && substr($gRaw, 0, 10) !== '0000-00-00') {
+        $kCorrValid = ($kK !== '' && substr($kK, 0, 10) !== '0000-00-00');
+        $gCorrValid = ($gK !== '' && substr($gK, 0, 10) !== '0000-00-00');
+        $kRawValid = ($kRaw !== '' && substr($kRaw, 0, 10) !== '0000-00-00');
+        $gRawValid = ($gRaw !== '' && substr($gRaw, 0, 10) !== '0000-00-00');
+
+        // 1) Korrigiertes Paar bevorzugen (soll zur Anzeige passen).
+        if ($kCorrValid && $gCorrValid) {
+            $start = $kK;
+            $ende  = $gK;
+        } elseif ($kRawValid && $gRawValid) {
+            // 2) Roh-Paar, wenn keine vollstaendige Korrektur vorliegt.
             $start = $kRaw;
             $ende  = $gRaw;
         } else {
-            // 2) Main-Paar (korr bevorzugt, sonst roh)
-            $kMain = ($kK !== '' && substr($kK, 0, 10) !== '0000-00-00') ? $kK : $kRaw;
-            $gMain = ($gK !== '' && substr($gK, 0, 10) !== '0000-00-00') ? $gK : $gRaw;
+            // 3) Fallback: Main-Paar (korr bevorzugt, sonst roh).
+            $kMain = $kCorrValid ? $kK : ($kRawValid ? $kRaw : '');
+            $gMain = $gCorrValid ? $gK : ($gRawValid ? $gRaw : '');
 
             if ($kMain !== '' && $gMain !== '') {
                 $start = $kMain;
@@ -905,7 +923,7 @@ if (is_array($tageswerte) && $tageswerte !== []) {
                 <th>Datum</th>
                 <th>An</th>
                 <th>Ab</th>
-                <th>Ist (gesamt)</th>
+                <th>Ist (Block)</th>
                 <th>Pausen</th>
 	                <th>Kurzarbeit</th>
                 <th>Feiertag</th>
@@ -1064,40 +1082,7 @@ if (is_array($tageswerte) && $tageswerte !== []) {
                     // Optional: einzelne Zellen noch deutlicher markieren.
                     $tdManuellStyle = $istManuell ? ' style="background:#ffcdd2;"' : '';
 
-                    // Anzeige-Wunsch: In der Monatsübersicht soll man auf einen Blick sehen,
-                    // ob ein Tag (z. B. Urlaub/Betriebsferien, Krank, Feiertag) mit Stunden in die IST-Summe eingeht.
-                    // Wichtig: Kurzarbeit reduziert das SOLL und wird separat angezeigt – sie zählt **nicht** als IST.
-                    // Daher zeigen wir hier zusätzlich ein "Ist (gesamt)" pro Tag (Arbeitszeit + bezahlte Abwesenheiten).
-                    $toFloat = static function ($v): float {
-                        if ($v === null) {
-                            return 0.0;
-                        }
-                        $s = trim((string)$v);
-                        if ($s === '' || $s === '-') {
-                            return 0.0;
-                        }
-                        return (float)str_replace(',', '.', $s);
-                    };
-
                     $istMicroIgnoriert = ((int)($t['micro_arbeitszeit_ignoriert'] ?? 0) === 1);
-                    $arbeitszeitF = $toFloat($t['arbeitszeit_stunden'] ?? 0);
-                    $istGesamtF = $arbeitszeitF
-                        + $toFloat($t['arzt_stunden'] ?? 0)
-                        + $toFloat($t['krank_lfz_stunden'] ?? 0)
-                        + $toFloat($t['krank_kk_stunden'] ?? 0)
-                        + $toFloat($t['feiertag_stunden'] ?? 0)
-                        + $toFloat($t['urlaub_stunden'] ?? 0)
-                        + $toFloat($t['sonstige_stunden'] ?? 0);
-                    $istGesamtShow = sprintf('%.2f', $istGesamtF);
-                    $arbeitszeitShow = sprintf('%.2f', $arbeitszeitF);
-                    $zeigeArbeitszeitExtra = (abs($istGesamtF - $arbeitszeitF) > 0.01 && $arbeitszeitF > 0.01);
-
-                    if ($istMicroIgnoriert) {
-                        // Mikro-Buchungen sollen im Monatsreport nicht als 0,00 "auftauchen".
-                        $istGesamtShow = '-';
-                        $arbeitszeitShow = '-';
-                        $zeigeArbeitszeitExtra = false;
-                    }
                     // Standard: ohne show_micro zeigen wir alle NICHT-Mikro-Arbeitsbloecke.
                     // (Mehrfach-Kommen/Gehen bleibt sichtbar; Mikro-Bloecke wurden oben bereits gefiltert.)
 
@@ -1195,12 +1180,7 @@ if (is_array($tageswerte) && $tageswerte !== []) {
                             <?php
                                 $blockIstShow = report_calc_block_ist_dez2($b);
                             ?>
-                            <?php if ($istErsteZeile): ?>
-                                <?php echo htmlspecialchars($istGesamtShow, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>
-                                <?php if ($zeigeArbeitszeitExtra): ?><br><small>Arbeit: <?php echo htmlspecialchars($arbeitszeitShow, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></small><?php endif; ?>
-                            <?php else: ?>
-                                <?php echo htmlspecialchars($blockIstShow !== '' ? $blockIstShow : '-', ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>
-                            <?php endif; ?>
+                            <?php echo htmlspecialchars($blockIstShow !== '' ? $blockIstShow : '-', ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>
                         </td>
                         <td<?php echo $tdManuellStyle; ?>>
                             <?php

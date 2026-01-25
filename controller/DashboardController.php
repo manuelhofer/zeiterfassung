@@ -179,6 +179,7 @@ class DashboardController
                     // CURDATE() kann je nach DB-Server/Session-Zeitzone (z. B. UTC) noch "gestern" liefern
                     // und wuerde dann den Vortag faelschlich als "heute" behandeln.
                     $tz = new DateTimeZone('Europe/Berlin');
+                    $now = new DateTimeImmutable('now', $tz);
                     $todayIso = (new DateTimeImmutable('today', $tz))->format('Y-m-d');
                     $startDate = (new DateTimeImmutable('today', $tz))
                         ->modify('-' . $zeitUnstimmigkeitenTage . ' days')
@@ -201,7 +202,7 @@ class DashboardController
                         . "  AND z.zeitstempel >= '" . $startDate . " 00:00:00'\n"
                         . "GROUP BY m.id, m.vorname, m.nachname, DATE(z.zeitstempel)\n"
                         . "HAVING anzahl_kommen <> anzahl_gehen\n"
-                        . "   AND DATE(z.zeitstempel) < '" . $todayIso . "'\n"
+                        . "   AND datum < '" . $todayIso . "'\n"
                         . "ORDER BY datum DESC, m.nachname ASC, m.vorname ASC\n"
                         . "LIMIT 20";
 
@@ -279,11 +280,11 @@ class DashboardController
                                 return false;
                             }
                             $t2 = substr($z2, 11, 8);
-                            return ($t2 >= '00:00:00' && $t2 <= '06:00:00');
+                            return ($t2 >= '00:00:00' && $t2 <= '08:00:00');
                         }
 
                         // Fall B: Tag hat nur Gehen frueh, Vortag hat nur Kommen am Abend
-                        if (!($t >= '00:00:00' && $t <= '06:00:00')) {
+                        if (!($t >= '00:00:00' && $t <= '08:00:00')) {
                             return false;
                         }
                         $r1 = $db->fetchEine(
@@ -327,6 +328,29 @@ class DashboardController
                         return ($t1 >= '18:00:00' && $t1 <= '23:59:59');
                     };
 
+                    $istAktiveNachtschicht = function (array $r) use ($now): bool {
+                        $anz = (int)($r['anzahl_buchungen'] ?? 0);
+                        $k = (int)($r['anzahl_kommen'] ?? 0);
+                        $g = (int)($r['anzahl_gehen'] ?? 0);
+                        if ($anz !== 1 || $k !== 1 || $g !== 0) {
+                            return false;
+                        }
+
+                        $zeit = (string)($r['letzter_stempel'] ?? '');
+                        if ($zeit === '' || strlen($zeit) < 19) {
+                            return false;
+                        }
+
+                        try {
+                            $stamp = new DateTimeImmutable($zeit, new DateTimeZone('Europe/Berlin'));
+                        } catch (Throwable $e) {
+                            return false;
+                        }
+
+                        $diff = $now->getTimestamp() - $stamp->getTimestamp();
+                        return ($diff > 0 && $diff <= 12 * 3600);
+                    };
+
                     foreach ($rows as $r) {
                         $mid = (int)($r['mitarbeiter_id'] ?? 0);
                         $datum = (string)($r['datum'] ?? '');
@@ -334,9 +358,10 @@ class DashboardController
                             continue;
                         }
 
-                        // Nachtschicht-Grenzfaelle NICHT mehr unterdruecken:
-                        // sonst verschwinden echte Warnungen (z. B. wenn der Monatsreport „FEHLT“ zeigt).
                         $nachtshiftGrenzfall = $istNachtschichtGrenzfall($mid, $datum, $r);
+                        if ($nachtshiftGrenzfall || $istAktiveNachtschicht($r)) {
+                            continue;
+                        }
 
                         $zeitUnstimmigkeiten[] = [
                             'mitarbeiter_id' => $mid,
@@ -389,6 +414,9 @@ class DashboardController
 
                                 // optional: gleiche Nachtschicht-Heuristik anwenden (nur wenn wir genug Rohdaten haben)
                                 $nachtshiftGrenzfall = $istNachtschichtGrenzfall($mid, $datum, $r);
+                                if ($nachtshiftGrenzfall || $istAktiveNachtschicht($r)) {
+                                    continue;
+                                }
 
                                 $zeitUnstimmigkeiten[] = [
                                     'mitarbeiter_id' => $mid,
