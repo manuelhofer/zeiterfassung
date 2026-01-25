@@ -8,7 +8,8 @@ SET @fk_abteilung_parent = (
   FROM information_schema.KEY_COLUMN_USAGE
   WHERE TABLE_SCHEMA = DATABASE()
     AND TABLE_NAME = 'abteilung'
-    AND CONSTRAINT_NAME = 'fk_abteilung_parent'
+    AND COLUMN_NAME = 'parent_id'
+    AND REFERENCED_TABLE_NAME = 'abteilung'
   LIMIT 1
 );
 SET @sql_drop_fk_abteilung_parent = IF(
@@ -25,7 +26,8 @@ SET @fk_betriebsferien_abteilung = (
   FROM information_schema.KEY_COLUMN_USAGE
   WHERE TABLE_SCHEMA = DATABASE()
     AND TABLE_NAME = 'betriebsferien'
-    AND CONSTRAINT_NAME = 'fk_betriebsferien_abteilung'
+    AND COLUMN_NAME = 'abteilung_id'
+    AND REFERENCED_TABLE_NAME = 'abteilung'
   LIMIT 1
 );
 SET @sql_drop_fk_betriebsferien_abteilung = IF(
@@ -42,7 +44,8 @@ SET @fk_maschine_abteilung = (
   FROM information_schema.KEY_COLUMN_USAGE
   WHERE TABLE_SCHEMA = DATABASE()
     AND TABLE_NAME = 'maschine'
-    AND CONSTRAINT_NAME = 'fk_maschine_abteilung'
+    AND COLUMN_NAME = 'abteilung_id'
+    AND REFERENCED_TABLE_NAME = 'abteilung'
   LIMIT 1
 );
 SET @sql_drop_fk_maschine_abteilung = IF(
@@ -59,7 +62,8 @@ SET @fk_mitarbeiter_hat_abteilung_abteilung = (
   FROM information_schema.KEY_COLUMN_USAGE
   WHERE TABLE_SCHEMA = DATABASE()
     AND TABLE_NAME = 'mitarbeiter_hat_abteilung'
-    AND CONSTRAINT_NAME = 'fk_mitarbeiter_hat_abteilung_abteilung'
+    AND COLUMN_NAME = 'abteilung_id'
+    AND REFERENCED_TABLE_NAME = 'abteilung'
   LIMIT 1
 );
 SET @sql_drop_fk_mitarbeiter_hat_abteilung_abteilung = IF(
@@ -76,7 +80,8 @@ SET @fk_terminal_abteilung = (
   FROM information_schema.KEY_COLUMN_USAGE
   WHERE TABLE_SCHEMA = DATABASE()
     AND TABLE_NAME = 'terminal'
-    AND CONSTRAINT_NAME = 'fk_terminal_abteilung'
+    AND COLUMN_NAME = 'abteilung_id'
+    AND REFERENCED_TABLE_NAME = 'abteilung'
   LIMIT 1
 );
 SET @sql_drop_fk_terminal_abteilung = IF(
@@ -87,21 +92,6 @@ SET @sql_drop_fk_terminal_abteilung = IF(
 PREPARE stmt_drop_fk_terminal_abteilung FROM @sql_drop_fk_terminal_abteilung;
 EXECUTE stmt_drop_fk_terminal_abteilung;
 DEALLOCATE PREPARE stmt_drop_fk_terminal_abteilung;
-
-ALTER TABLE abteilung
-  DROP FOREIGN KEY fk_abteilung_parent;
-
-ALTER TABLE betriebsferien
-  DROP FOREIGN KEY fk_betriebsferien_abteilung;
-
-ALTER TABLE maschine
-  DROP FOREIGN KEY fk_maschine_abteilung;
-
-ALTER TABLE mitarbeiter_hat_abteilung
-  DROP FOREIGN KEY fk_mitarbeiter_hat_abteilung_abteilung;
-
-ALTER TABLE terminal
-  DROP FOREIGN KEY fk_terminal_abteilung;
 
 ALTER TABLE abteilung
   MODIFY id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
