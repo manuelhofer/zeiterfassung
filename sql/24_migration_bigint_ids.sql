@@ -6,6 +6,18 @@ SET FOREIGN_KEY_CHECKS = 0;
 ALTER TABLE abteilung
   DROP FOREIGN KEY fk_abteilung_parent;
 
+ALTER TABLE betriebsferien
+  DROP FOREIGN KEY fk_betriebsferien_abteilung;
+
+ALTER TABLE maschine
+  DROP FOREIGN KEY fk_maschine_abteilung;
+
+ALTER TABLE mitarbeiter_hat_abteilung
+  DROP FOREIGN KEY fk_mitarbeiter_hat_abteilung_abteilung;
+
+ALTER TABLE terminal
+  DROP FOREIGN KEY fk_terminal_abteilung;
+
 ALTER TABLE abteilung
   MODIFY id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
   MODIFY parent_id BIGINT UNSIGNED NULL;
@@ -145,5 +157,25 @@ ALTER TABLE auftragszeit
   MODIFY auftrag_id BIGINT UNSIGNED NULL,
   MODIFY maschine_id BIGINT UNSIGNED NULL,
   MODIFY terminal_id BIGINT UNSIGNED NULL;
+
+ALTER TABLE abteilung
+  ADD CONSTRAINT fk_abteilung_parent
+    FOREIGN KEY (parent_id) REFERENCES abteilung(id) ON DELETE SET NULL ON UPDATE CASCADE;
+
+ALTER TABLE betriebsferien
+  ADD CONSTRAINT fk_betriebsferien_abteilung
+    FOREIGN KEY (abteilung_id) REFERENCES abteilung(id) ON DELETE SET NULL ON UPDATE CASCADE;
+
+ALTER TABLE maschine
+  ADD CONSTRAINT fk_maschine_abteilung
+    FOREIGN KEY (abteilung_id) REFERENCES abteilung(id) ON DELETE SET NULL ON UPDATE CASCADE;
+
+ALTER TABLE mitarbeiter_hat_abteilung
+  ADD CONSTRAINT fk_mitarbeiter_hat_abteilung_abteilung
+    FOREIGN KEY (abteilung_id) REFERENCES abteilung(id) ON UPDATE CASCADE;
+
+ALTER TABLE terminal
+  ADD CONSTRAINT fk_terminal_abteilung
+    FOREIGN KEY (abteilung_id) REFERENCES abteilung(id) ON DELETE SET NULL ON UPDATE CASCADE;
 
 SET FOREIGN_KEY_CHECKS = 1;
