@@ -1,7 +1,79 @@
 -- Migration: Alle ID-Spalten auf BIGINT UNSIGNED umstellen
 -- Datum: 2026-01-??
 
+DROP PROCEDURE IF EXISTS drop_all_foreign_keys;
+DROP PROCEDURE IF EXISTS restore_all_foreign_keys;
 SET FOREIGN_KEY_CHECKS = 0;
+
+DROP TEMPORARY TABLE IF EXISTS tmp_fk_def;
+CREATE TEMPORARY TABLE tmp_fk_def (
+  table_name VARCHAR(64) NOT NULL,
+  constraint_name VARCHAR(64) NOT NULL,
+  columns_list TEXT NOT NULL,
+  referenced_table_name VARCHAR(64) NOT NULL,
+  referenced_columns_list TEXT NOT NULL,
+  update_rule VARCHAR(32) NOT NULL,
+  delete_rule VARCHAR(32) NOT NULL
+);
+
+INSERT INTO tmp_fk_def (
+  table_name,
+  constraint_name,
+  columns_list,
+  referenced_table_name,
+  referenced_columns_list,
+  update_rule,
+  delete_rule
+)
+SELECT
+  kcu.TABLE_NAME,
+  kcu.CONSTRAINT_NAME,
+  GROUP_CONCAT(CONCAT('`', kcu.COLUMN_NAME, '`') ORDER BY kcu.ORDINAL_POSITION SEPARATOR ', '),
+  kcu.REFERENCED_TABLE_NAME,
+  GROUP_CONCAT(CONCAT('`', kcu.REFERENCED_COLUMN_NAME, '`') ORDER BY kcu.ORDINAL_POSITION SEPARATOR ', '),
+  rc.UPDATE_RULE,
+  rc.DELETE_RULE
+FROM information_schema.KEY_COLUMN_USAGE kcu
+JOIN information_schema.REFERENTIAL_CONSTRAINTS rc
+  ON rc.CONSTRAINT_SCHEMA = kcu.CONSTRAINT_SCHEMA
+  AND rc.CONSTRAINT_NAME = kcu.CONSTRAINT_NAME
+WHERE kcu.CONSTRAINT_SCHEMA = DATABASE()
+  AND kcu.REFERENCED_TABLE_NAME IS NOT NULL
+GROUP BY
+  kcu.TABLE_NAME,
+  kcu.CONSTRAINT_NAME,
+  kcu.REFERENCED_TABLE_NAME,
+  rc.UPDATE_RULE,
+  rc.DELETE_RULE;
+
+DROP PROCEDURE IF EXISTS drop_all_foreign_keys;
+DELIMITER $$
+CREATE PROCEDURE drop_all_foreign_keys()
+BEGIN
+  DECLARE done INT DEFAULT 0;
+  DECLARE fk_table VARCHAR(64);
+  DECLARE fk_name VARCHAR(64);
+  DECLARE fk_cursor CURSOR FOR
+    SELECT table_name, constraint_name FROM tmp_fk_def;
+  DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = 1;
+
+  OPEN fk_cursor;
+  fk_loop: LOOP
+    FETCH fk_cursor INTO fk_table, fk_name;
+    IF done = 1 THEN
+      LEAVE fk_loop;
+    END IF;
+    SET @sql_drop_fk = CONCAT('ALTER TABLE `', fk_table, '` DROP FOREIGN KEY `', fk_name, '`');
+    PREPARE stmt_drop_fk FROM @sql_drop_fk;
+    EXECUTE stmt_drop_fk;
+    DEALLOCATE PREPARE stmt_drop_fk;
+  END LOOP;
+  CLOSE fk_cursor;
+END$$
+DELIMITER ;
+
+CALL drop_all_foreign_keys();
+DROP PROCEDURE drop_all_foreign_keys;
 
 ALTER TABLE abteilung
   MODIFY id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -138,5 +210,51 @@ ALTER TABLE auftragszeit
   MODIFY auftrag_id BIGINT UNSIGNED NULL,
   MODIFY maschine_id BIGINT UNSIGNED NULL,
   MODIFY terminal_id BIGINT UNSIGNED NULL;
+
+DROP PROCEDURE IF EXISTS restore_all_foreign_keys;
+DELIMITER $$
+CREATE PROCEDURE restore_all_foreign_keys()
+BEGIN
+  DECLARE done INT DEFAULT 0;
+  DECLARE fk_table VARCHAR(64);
+  DECLARE fk_columns TEXT;
+  DECLARE fk_ref_table VARCHAR(64);
+  DECLARE fk_ref_columns TEXT;
+  DECLARE fk_update_rule VARCHAR(32);
+  DECLARE fk_delete_rule VARCHAR(32);
+  DECLARE fk_cursor CURSOR FOR
+    SELECT
+      table_name,
+      columns_list,
+      referenced_table_name,
+      referenced_columns_list,
+      update_rule,
+      delete_rule
+    FROM tmp_fk_def;
+  DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = 1;
+
+  OPEN fk_cursor;
+  fk_loop: LOOP
+    FETCH fk_cursor INTO fk_table, fk_columns, fk_ref_table, fk_ref_columns, fk_update_rule, fk_delete_rule;
+    IF done = 1 THEN
+      LEAVE fk_loop;
+    END IF;
+    SET @sql_add_fk = CONCAT(
+      'ALTER TABLE `', fk_table, '` ADD CONSTRAINT FOREIGN KEY (',
+      fk_columns, ') REFERENCES `', fk_ref_table, '` (', fk_ref_columns, ') ',
+      'ON UPDATE ', fk_update_rule, ' ON DELETE ', fk_delete_rule
+    );
+    PREPARE stmt_add_fk FROM @sql_add_fk;
+    EXECUTE stmt_add_fk;
+    DEALLOCATE PREPARE stmt_add_fk;
+  END LOOP;
+  CLOSE fk_cursor;
+END$$
+DELIMITER ;
+
+CALL restore_all_foreign_keys();
+DROP PROCEDURE restore_all_foreign_keys;
+
+DROP TEMPORARY TABLE tmp_fk_def;
 
 SET FOREIGN_KEY_CHECKS = 1;
