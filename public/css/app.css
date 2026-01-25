@@ -1,0 +1,48 @@
+/* Basis-Stylesheet für das Zeiterfassungssystem (Platzhalter).
+   Kann später nach Bedarf erweitert/angepasst werden. */
+
+body {
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    margin: 0;
+    padding: 0;
+    background: #f5f5f5;
+    color: #222;
+}
+
+header, footer {
+    background: #333;
+    color: #fff;
+    padding: 0.75rem 1rem;
+}
+
+main {
+    padding: 1rem;
+}
+
+h1, h2 {
+    margin-top: 0;
+}
+
+table {
+    border-collapse: collapse;
+    width: 100%;
+    max-width: 100%;
+    background: #fff;
+}
+
+th, td {
+    border: 1px solid #ccc;
+    padding: 0.5rem;
+    text-align: left;
+}
+
+th {
+    background: #eee;
+}
+
+section {
+    background: #fff;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}

@@ -1,0 +1,3 @@
+<?php
+// Rollen & Rechte, Genehmigerverwaltung
+?>

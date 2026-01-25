@@ -1,0 +1,512 @@
+/*
+ * Terminal UI – zentrales Stylesheet für alle Terminal-Views.
+ *
+ * Hinweis:
+ * - Dieses File sammelt bewusst nur Terminal-spezifische Styles.
+ * - Keine Design-Experimente in diesem File; Änderungen nur, wenn funktional nötig.
+ */
+
+/* Grundlayout */
+body {
+    font-family: Arial, sans-serif;
+    background-color: #222;
+    color: #f5f5f5;
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+main {
+    width: 97vw;
+    height: 97vh;
+    max-width: none;
+    margin: 0;
+    padding: 1.5rem;
+    /* Platz für unten angedockte Panels (Systemstatus / Mitarbeiter etc.) */
+    padding-bottom: 8.0rem;
+    background-color: #333;
+    border-radius: 8px;
+    box-sizing: border-box;
+    overflow: auto;
+}
+
+/* Login-Screen: Anmelde-Button soll den restlichen Bildschirmplatz nach unten ausfuellen */
+body.terminal-login main {
+    display: flex;
+    flex-direction: column;
+}
+
+body.terminal-login form.terminal-login-form {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    min-height: 0;
+}
+
+body.terminal-login form.terminal-login-form .terminal-login-buttonrow {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+}
+
+body.terminal-login form.terminal-login-form .terminal-login-buttonrow button {
+    flex: 1 1 auto;
+    width: 100%;
+    height: 100%;
+    font-size: 1.35rem;
+    padding-top: 1.25rem;
+    padding-bottom: 1.25rem;
+}
+
+/* Kiosk/Touch: Titel oben ist redundant und nimmt Platz weg */
+main > h1 {
+    display: none;
+}
+
+p.hinweis {
+    font-size: 0.95rem;
+    color: #cccccc;
+    margin-bottom: 1.5rem;
+}
+
+p.hinweis.center {
+    text-align: center;
+    margin-top: 1.25rem;
+}
+
+/* Kopfzeile (Uhr etc.) */
+.terminal-topbar {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 0.75rem;
+}
+
+.terminal-uhr {
+    font-size: 1.1rem;
+    font-weight: bold;
+    letter-spacing: 0.02em;
+    color: #f5f5f5;
+}
+
+/* Kleines Topbar-Signal (Offline/Störung) */
+.terminal-pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.2rem 0.6rem;
+    border-radius: 999px;
+    font-weight: 700;
+    font-size: 0.95rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.terminal-pill.warn {
+    background-color: #f9a825;
+    color: #111;
+}
+
+.terminal-pill.error {
+    background-color: #c62828;
+    color: #fff;
+}
+
+/* Meldungen / Status */
+.meldung {
+    padding: 0.75rem 1rem;
+    margin-bottom: 1rem;
+    border-radius: 4px;
+    background-color: #2e7d32;
+}
+
+.fehler {
+    padding: 0.75rem 1rem;
+    margin-bottom: 1rem;
+    border-radius: 4px;
+    background-color: #c62828;
+}
+
+.status-box {
+    padding: 0.75rem 1rem;
+    margin-bottom: 1rem;
+    border-radius: 4px;
+    background-color: #424242;
+    font-size: 0.95rem;
+}
+
+.status-box.ok {
+    border-left: 6px solid #2e7d32;
+}
+
+.status-box.warn {
+    border-left: 6px solid #f9a825;
+}
+
+.status-box.error {
+    border-left: 6px solid #c62828;
+}
+
+.status-title {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    align-items: baseline;
+    font-weight: bold;
+    margin-bottom: 0.25rem;
+}
+
+.status-small {
+    font-size: 0.85rem;
+    color: #dddddd;
+}
+
+.status-small strong {
+    color: #ffffff;
+}
+
+.status-small.mt {
+    margin-top: 0.75rem;
+}
+
+.status-hint {
+    margin-top: 0.35rem;
+}
+
+.status-details-label {
+    margin-top: 0.5rem;
+}
+
+details {
+    margin-top: 0.5rem;
+}
+
+.status-box details summary {
+    cursor: pointer;
+}
+
+pre {
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    background: #2b2b2b;
+    border-radius: 4px;
+    padding: 0.5rem;
+    margin: 0.5rem 0 0 0;
+    font-size: 0.85rem;
+    color: #fff;
+}
+
+/* Unten angedockte Panels (platzsparend, aufklappbar) */
+.status-box.terminal-systemstatus {
+    position: fixed;
+    left: 1.5rem;
+    right: 1.5rem;
+    /* etwas höher, damit der Auto-Logout-Hinweis unten rechts nicht überlappt */
+    bottom: 3.2rem;
+    margin: 0;
+    z-index: 9000;
+}
+
+/* Unten angedocktes Mitarbeiter-Panel (platzsparend, aufklappbar) */
+.status-box.terminal-mitarbeiterpanel {
+    position: fixed;
+    left: 1.5rem;
+    right: 1.5rem;
+    /* über Systemstatus (und über dem Auto-Logout Badge) */
+    bottom: 6.7rem;
+    margin: 0;
+    z-index: 8900;
+    padding: 0.55rem 0.9rem;
+    font-size: 0.9rem;
+}
+
+.status-box.terminal-mitarbeiterpanel > summary.status-title {
+    cursor: pointer;
+    margin-bottom: 0;
+}
+
+@media (max-width: 780px) {
+    .status-box.terminal-mitarbeiterpanel > summary.status-title > .status-small {
+        display: none;
+    }
+}
+
+.status-box.terminal-systemstatus > summary.status-title {
+    cursor: pointer;
+    margin-bottom: 0;
+    flex-wrap: wrap;
+}
+
+.status-box.terminal-systemstatus .terminal-systemstatus-meta {
+    font-weight: normal;
+    opacity: 0.9;
+}
+
+/* Übersicht (heute) soll wie die Bottom-Panels aussehen: volle Breite klickbar */
+.status-box.terminal-uebersichtheute > summary.status-title {
+    cursor: pointer;
+    margin-bottom: 0;
+}
+
+@media (max-width: 780px) {
+    .status-box.terminal-systemstatus .terminal-systemstatus-meta {
+        display: none;
+    }
+}
+
+.mitarbeiter-box {
+    padding: 0.75rem 1rem;
+    margin-bottom: 1rem;
+    border-radius: 4px;
+    background-color: #424242;
+    font-size: 0.95rem;
+}
+
+/* Formulare */
+form.login-form label {
+    display: block;
+    margin-top: 0.75rem;
+    margin-bottom: 0.25rem;
+    text-align: left;
+}
+
+form.login-form input[type="text"],
+form.login-form input[type="number"],
+form.login-form input[type="date"],
+form.login-form select,
+form.login-form textarea {
+    width: 100%;
+    padding: 0.5rem;
+    border-radius: 4px;
+    border: 1px solid #555;
+    background-color: #444;
+    color: #f5f5f5;
+    box-sizing: border-box;
+}
+
+form.login-form textarea {
+    min-height: 90px;
+    resize: vertical;
+}
+
+/* Buttons */
+.button-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-top: 1.5rem;
+}
+
+/* Primäraktionen am Terminal (Kommen/Gehen): größer und immer alleine in der Zeile */
+.button-row.primary-action {
+    margin-top: 1rem;
+}
+
+.button-row.primary-action form {
+    flex: 1 1 100%;
+}
+
+.button-row.primary-action a.button-link,
+.button-row.primary-action button {
+    flex: 1 1 100%;
+}
+
+.terminal-primary-action {
+    padding-top: 1.6rem;
+    padding-bottom: 1.6rem;
+    font-size: 1.25rem;
+}
+
+/* Statusbox: keine zweite Uhrzeit/Datum im Titel anzeigen (Header-Uhr ist die einzige Quelle) */
+.status-box .status-title > .status-small {
+    display: none;
+}
+
+/* Wenn Buttons als <form> gerendert werden (POST-Aktionen), soll das Layout identisch bleiben */
+.button-row form {
+    flex: 1 1 45%;
+    margin: 0;
+}
+
+.button-row form button {
+    width: 100%;
+}
+
+a.button-link,
+button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.9rem 1.25rem;
+    border-radius: 4px;
+    text-decoration: none;
+    font-size: 1.05rem;
+    background-color: #1976d2;
+    color: #fff;
+    border: none;
+    cursor: pointer;
+    flex: 1 1 45%;
+    text-align: center;
+    box-sizing: border-box;
+}
+
+a.button-link.secondary,
+button.secondary {
+    background-color: #555;
+}
+
+.button-small,
+.small-button {
+    padding: 0.55rem 0.75rem;
+    font-size: 0.9rem;
+    flex: 0 0 auto;
+    width: auto;
+}
+
+.button-danger,
+.small-button.danger {
+    background-color: #c62828;
+}
+
+a.button-link.disabled,
+span.button-link.disabled {
+    background-color: #666;
+    opacity: 0.55;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+/* Logout-Link */
+.logout-link {
+    margin-top: 1rem;
+    font-size: 0.9rem;
+    text-align: center;
+}
+
+.logout-link a,
+.logout-link button.logout-button {
+    color: #ffab91;
+    text-decoration: none;
+}
+
+.logout-link button.logout-button {
+    background: none;
+    border: none;
+    padding: 0;
+    font: inherit;
+    cursor: pointer;
+    /* Override auf globales button-Layout */
+    flex: 0 0 auto;
+}
+
+/* Urlaub */
+.urlaub-liste {
+    margin-top: 1rem;
+}
+
+.urlaub-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    align-items: flex-start;
+    padding: 0.6rem 0.75rem;
+    border-top: 1px solid #555;
+    border-radius: 4px;
+    background: #2b2b2b;
+    margin-top: 0.5rem;
+}
+
+.urlaub-meta {
+    font-size: 0.9rem;
+    color: #e0e0e0;
+}
+
+.status-label {
+    display: inline-block;
+    padding: 0.15rem 0.45rem;
+    border-radius: 3px;
+    background: #555;
+    color: #fff;
+    font-size: 0.85rem;
+    margin-left: 0.25rem;
+}
+
+.status-label.offen {
+    background: #f9a825;
+    color: #000;
+}
+
+.status-label.genehmigt {
+    background: #2e7d32;
+}
+
+.status-label.abgelehnt {
+    background: #c62828;
+}
+
+.status-label.storniert {
+    background: #616161;
+}
+
+/* Zusatz: kompakte Aktionsleiste (z.B. Urlaub-Ansicht oben) */
+.top-actions {
+    display: flex;
+    gap: 0.75rem;
+    margin-bottom: 0.75rem;
+}
+
+.top-actions a.button-link,
+.top-actions button {
+    flex: 1 1 auto;
+    padding: 0.65rem 0.9rem;
+    font-size: 0.95rem;
+}
+
+
+/* Auto-Logout Countdown */
+.terminal-countdown {
+    position: fixed;
+    right: 10px;
+    bottom: 10px;
+    padding: 6px 10px;
+    border-radius: 10px;
+    background: rgba(0, 0, 0, 0.75);
+    color: #fff;
+    font-size: 14px;
+    font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+    z-index: 9999;
+    user-select: none;
+}
+
+/* Layout-Varianten */
+body.terminal-wide main {
+    max-width: none;
+}
+
+body.terminal-center main {
+    max-width: 520px;
+    text-align: center;
+}
+
+body.terminal-center .button-row {
+    justify-content: center;
+}
+
+/* Utility-Klassen (Terminal-Views: keine Inline-Styles) */
+.mt-0 { margin-top: 0; }
+.mt-015 { margin-top: 0.15rem; }
+.mt-025 { margin-top: 0.25rem; }
+.mt-035 { margin-top: 0.35rem; }
+.mt-05 { margin-top: 0.5rem; }
+.mt-075 { margin-top: 0.75rem; }
+.mt-1 { margin-top: 1rem; }
+
+.mb-0 { margin-bottom: 0; }
+.mb-1 { margin-bottom: 1rem; }
+
+.is-hidden { display: none !important; }

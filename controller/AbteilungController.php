@@ -1,0 +1,3 @@
+<?php
+// Abteilungen & Zuordnungen
+?>

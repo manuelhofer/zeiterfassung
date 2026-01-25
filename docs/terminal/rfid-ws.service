@@ -1,0 +1,30 @@
+[Unit]
+Description=Zeiterfassung Terminal - RFID WebSocket Bridge
+After=network.target
+
+[Service]
+Type=simple
+
+# HINWEIS:
+# - Dieses Service-File ist als Vorlage gedacht.
+# - Passe ggf. User/Group und Pfade an deine Installation an.
+# - Das Web-Frontend nutzt nur die in config/config.php gesetzte WS-URL.
+
+User=www-data
+Group=www-data
+
+# Standard-Installationspfad (Beispiel aus Probe-Terminal):
+#   /opt/rfid-ws/rfid_ws.py
+#   /opt/rfid-ws/venv/bin/python
+WorkingDirectory=/opt/rfid-ws
+ExecStart=/opt/rfid-ws/venv/bin/python /opt/rfid-ws/rfid_ws.py
+
+Restart=always
+RestartSec=2
+
+# Logging geht ins Journal (journalctl -u rfid-ws.service)
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
