@@ -73,10 +73,18 @@ $loginErlaubt       = $id === null
     : (isset($mitarbeiter['ist_login_berechtigt']) ? (bool)$mitarbeiter['ist_login_berechtigt'] : false);
 
 $ueberschrift = $id === null ? 'Neuen Mitarbeiter anlegen' : 'Mitarbeiter bearbeiten';
+$stundenkontoStealthMode = $stundenkontoStealthMode ?? false;
+$stealthStyle = $stundenkontoStealthMode ? ' style="border: 3px solid #c00; padding: 12px;"' : '';
 ?>
 
-<section>
+<section<?php echo $stealthStyle; ?>>
     <h2><?php echo htmlspecialchars($ueberschrift, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></h2>
+
+    <?php if ($stundenkontoStealthMode): ?>
+        <p style="color: #c00; font-weight: bold;">
+            Stealth-Modus aktiv: Stundenkonto-Buchungen werden nicht in den Listen angezeigt.
+        </p>
+    <?php endif; ?>
 
     <?php if ($fehlermeldung !== null): ?>
         <p class="error">
@@ -802,6 +810,8 @@ $ueberschrift = $id === null ? 'Neuen Mitarbeiter anlegen' : 'Mitarbeiter bearbe
             <?php echo htmlspecialchars($stundenkontoSaldoAktuellText ?? '—', ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>
         </p>
 
+        <h4>Letzte Verteilbuchungen / manuelle Korrekturbuchungen</h4>
+
         <?php if (is_array($stundenkontoLetzteKorrekturen) && count($stundenkontoLetzteKorrekturen) > 0): ?>
             <table>
                 <thead>
@@ -843,7 +853,7 @@ $ueberschrift = $id === null ? 'Neuen Mitarbeiter anlegen' : 'Mitarbeiter bearbe
             <p><small>Noch keine Stundenkonto-Korrekturen vorhanden.</small></p>
         <?php endif; ?>
 
-        <h4>Letzte Verteilbuchungen</h4>
+        <h4>Letzte Verteilbuchungen (Batch)</h4>
 
         <?php if (is_array($stundenkontoLetzteBatches) && count($stundenkontoLetzteBatches) > 0): ?>
             <table>
@@ -920,6 +930,9 @@ $ueberschrift = $id === null ? 'Neuen Mitarbeiter anlegen' : 'Mitarbeiter bearbe
             <form method="post" action="?seite=mitarbeiter_admin_speichern">
                 <input type="hidden" name="stundenkonto_only" value="1">
                 <input type="hidden" name="id" value="<?php echo (int)$id; ?>">
+                <?php if ($stundenkontoStealthMode): ?>
+                    <input type="hidden" name="stundenkonto_stealth" value="1">
+                <?php endif; ?>
 
                 <div>
                     <label>
@@ -951,6 +964,9 @@ $ueberschrift = $id === null ? 'Neuen Mitarbeiter anlegen' : 'Mitarbeiter bearbe
             <form method="post" action="?seite=mitarbeiter_admin_speichern">
                 <input type="hidden" name="stundenkonto_batch_only" value="1">
                 <input type="hidden" name="id" value="<?php echo (int)$id; ?>">
+                <?php if ($stundenkontoStealthMode): ?>
+                    <input type="hidden" name="stundenkonto_stealth" value="1">
+                <?php endif; ?>
 
                 <div>
                     <label>
