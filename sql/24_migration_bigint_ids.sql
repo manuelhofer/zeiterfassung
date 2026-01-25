@@ -3,6 +3,96 @@
 
 SET FOREIGN_KEY_CHECKS = 0;
 
+SET @fk_abteilung_parent = (
+  SELECT CONSTRAINT_NAME
+  FROM information_schema.KEY_COLUMN_USAGE
+  WHERE TABLE_SCHEMA = DATABASE()
+    AND TABLE_NAME = 'abteilung'
+    AND COLUMN_NAME = 'parent_id'
+    AND REFERENCED_TABLE_NAME = 'abteilung'
+  LIMIT 1
+);
+SET @sql_drop_fk_abteilung_parent = IF(
+  @fk_abteilung_parent IS NULL,
+  'SELECT 1',
+  CONCAT('ALTER TABLE abteilung DROP FOREIGN KEY ', @fk_abteilung_parent)
+);
+PREPARE stmt_drop_fk_abteilung_parent FROM @sql_drop_fk_abteilung_parent;
+EXECUTE stmt_drop_fk_abteilung_parent;
+DEALLOCATE PREPARE stmt_drop_fk_abteilung_parent;
+
+SET @fk_betriebsferien_abteilung = (
+  SELECT CONSTRAINT_NAME
+  FROM information_schema.KEY_COLUMN_USAGE
+  WHERE TABLE_SCHEMA = DATABASE()
+    AND TABLE_NAME = 'betriebsferien'
+    AND COLUMN_NAME = 'abteilung_id'
+    AND REFERENCED_TABLE_NAME = 'abteilung'
+  LIMIT 1
+);
+SET @sql_drop_fk_betriebsferien_abteilung = IF(
+  @fk_betriebsferien_abteilung IS NULL,
+  'SELECT 1',
+  CONCAT('ALTER TABLE betriebsferien DROP FOREIGN KEY ', @fk_betriebsferien_abteilung)
+);
+PREPARE stmt_drop_fk_betriebsferien_abteilung FROM @sql_drop_fk_betriebsferien_abteilung;
+EXECUTE stmt_drop_fk_betriebsferien_abteilung;
+DEALLOCATE PREPARE stmt_drop_fk_betriebsferien_abteilung;
+
+SET @fk_maschine_abteilung = (
+  SELECT CONSTRAINT_NAME
+  FROM information_schema.KEY_COLUMN_USAGE
+  WHERE TABLE_SCHEMA = DATABASE()
+    AND TABLE_NAME = 'maschine'
+    AND COLUMN_NAME = 'abteilung_id'
+    AND REFERENCED_TABLE_NAME = 'abteilung'
+  LIMIT 1
+);
+SET @sql_drop_fk_maschine_abteilung = IF(
+  @fk_maschine_abteilung IS NULL,
+  'SELECT 1',
+  CONCAT('ALTER TABLE maschine DROP FOREIGN KEY ', @fk_maschine_abteilung)
+);
+PREPARE stmt_drop_fk_maschine_abteilung FROM @sql_drop_fk_maschine_abteilung;
+EXECUTE stmt_drop_fk_maschine_abteilung;
+DEALLOCATE PREPARE stmt_drop_fk_maschine_abteilung;
+
+SET @fk_mitarbeiter_hat_abteilung_abteilung = (
+  SELECT CONSTRAINT_NAME
+  FROM information_schema.KEY_COLUMN_USAGE
+  WHERE TABLE_SCHEMA = DATABASE()
+    AND TABLE_NAME = 'mitarbeiter_hat_abteilung'
+    AND COLUMN_NAME = 'abteilung_id'
+    AND REFERENCED_TABLE_NAME = 'abteilung'
+  LIMIT 1
+);
+SET @sql_drop_fk_mitarbeiter_hat_abteilung_abteilung = IF(
+  @fk_mitarbeiter_hat_abteilung_abteilung IS NULL,
+  'SELECT 1',
+  CONCAT('ALTER TABLE mitarbeiter_hat_abteilung DROP FOREIGN KEY ', @fk_mitarbeiter_hat_abteilung_abteilung)
+);
+PREPARE stmt_drop_fk_mitarbeiter_hat_abteilung_abteilung FROM @sql_drop_fk_mitarbeiter_hat_abteilung_abteilung;
+EXECUTE stmt_drop_fk_mitarbeiter_hat_abteilung_abteilung;
+DEALLOCATE PREPARE stmt_drop_fk_mitarbeiter_hat_abteilung_abteilung;
+
+SET @fk_terminal_abteilung = (
+  SELECT CONSTRAINT_NAME
+  FROM information_schema.KEY_COLUMN_USAGE
+  WHERE TABLE_SCHEMA = DATABASE()
+    AND TABLE_NAME = 'terminal'
+    AND COLUMN_NAME = 'abteilung_id'
+    AND REFERENCED_TABLE_NAME = 'abteilung'
+  LIMIT 1
+);
+SET @sql_drop_fk_terminal_abteilung = IF(
+  @fk_terminal_abteilung IS NULL,
+  'SELECT 1',
+  CONCAT('ALTER TABLE terminal DROP FOREIGN KEY ', @fk_terminal_abteilung)
+);
+PREPARE stmt_drop_fk_terminal_abteilung FROM @sql_drop_fk_terminal_abteilung;
+EXECUTE stmt_drop_fk_terminal_abteilung;
+DEALLOCATE PREPARE stmt_drop_fk_terminal_abteilung;
+
 ALTER TABLE abteilung
   MODIFY id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
   MODIFY parent_id BIGINT UNSIGNED NULL;
@@ -138,5 +228,25 @@ ALTER TABLE auftragszeit
   MODIFY auftrag_id BIGINT UNSIGNED NULL,
   MODIFY maschine_id BIGINT UNSIGNED NULL,
   MODIFY terminal_id BIGINT UNSIGNED NULL;
+
+ALTER TABLE abteilung
+  ADD CONSTRAINT fk_abteilung_parent
+    FOREIGN KEY (parent_id) REFERENCES abteilung(id) ON DELETE SET NULL ON UPDATE CASCADE;
+
+ALTER TABLE betriebsferien
+  ADD CONSTRAINT fk_betriebsferien_abteilung
+    FOREIGN KEY (abteilung_id) REFERENCES abteilung(id) ON DELETE SET NULL ON UPDATE CASCADE;
+
+ALTER TABLE maschine
+  ADD CONSTRAINT fk_maschine_abteilung
+    FOREIGN KEY (abteilung_id) REFERENCES abteilung(id) ON DELETE SET NULL ON UPDATE CASCADE;
+
+ALTER TABLE mitarbeiter_hat_abteilung
+  ADD CONSTRAINT fk_mitarbeiter_hat_abteilung_abteilung
+    FOREIGN KEY (abteilung_id) REFERENCES abteilung(id) ON UPDATE CASCADE;
+
+ALTER TABLE terminal
+  ADD CONSTRAINT fk_terminal_abteilung
+    FOREIGN KEY (abteilung_id) REFERENCES abteilung(id) ON DELETE SET NULL ON UPDATE CASCADE;
 
 SET FOREIGN_KEY_CHECKS = 1;
