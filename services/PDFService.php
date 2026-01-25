@@ -482,7 +482,7 @@ class PDFService
                     $kommenKor,
                     $istMetaZeile ? $pause : '',
                     $gehenKor,
-                    $istErsteZeile ? $ist : $this->calcBlockIstDez2($b),
+                    $this->calcBlockIstDez2($b),
                     $istErsteZeile ? $arzt : '',
                     $istErsteZeile ? $krankKk : '',
                     $istErsteZeile ? $krankLfz : '',
@@ -1240,8 +1240,9 @@ class PDFService
      * Block-IST (Dezimalstunden) fuer die Anzeige in Folgezeilen.
      *
      * WICHTIG: Nur UI-Anzeige. Summen bleiben unveraendert aus den Tageswerten.
-     * Logik analog zur Mikro-Erkennung:
-     * - bevorzugt Roh-Paar (kommen_roh/gehen_roh)
+     * Logik analog zur Monatsübersicht:
+     * - bevorzugt korrigiertes Paar (kommen_korr/gehen_korr)
+     * - sonst Roh-Paar
      * - sonst Main-Paar (korr bevorzugt, sonst roh)
      * - bei Rundung->0 (gehen_korr <= kommen_korr) wird 0.00 geliefert
      * - sonst diff = ende-start (kein abs)
@@ -1265,14 +1266,23 @@ class PDFService
         $start = '';
         $ende  = '';
 
-        // 1) Roh-Paar
-        if ($kRaw !== '' && $gRaw !== '' && substr($kRaw, 0, 10) !== '0000-00-00' && substr($gRaw, 0, 10) !== '0000-00-00') {
+        $kCorrValid = ($kK !== '' && substr($kK, 0, 10) !== '0000-00-00');
+        $gCorrValid = ($gK !== '' && substr($gK, 0, 10) !== '0000-00-00');
+        $kRawValid = ($kRaw !== '' && substr($kRaw, 0, 10) !== '0000-00-00');
+        $gRawValid = ($gRaw !== '' && substr($gRaw, 0, 10) !== '0000-00-00');
+
+        // 1) Korrigiertes Paar bevorzugen (soll zur Anzeige passen).
+        if ($kCorrValid && $gCorrValid) {
+            $start = $kK;
+            $ende  = $gK;
+        } elseif ($kRawValid && $gRawValid) {
+            // 2) Roh-Paar, wenn keine vollstaendige Korrektur vorliegt.
             $start = $kRaw;
             $ende  = $gRaw;
         } else {
-            // 2) Main-Paar (korr bevorzugt, sonst roh)
-            $kMain = ($kK !== '' && substr($kK, 0, 10) !== '0000-00-00') ? $kK : $kRaw;
-            $gMain = ($gK !== '' && substr($gK, 0, 10) !== '0000-00-00') ? $gK : $gRaw;
+            // 3) Fallback: Main-Paar (korr bevorzugt, sonst roh).
+            $kMain = $kCorrValid ? $kK : ($kRawValid ? $kRaw : '');
+            $gMain = $gCorrValid ? $gK : ($gRawValid ? $gRaw : '');
 
             if ($kMain !== '' && $gMain !== '') {
                 $start = $kMain;
@@ -1323,14 +1333,23 @@ class PDFService
         $start = '';
         $ende  = '';
 
-        // 1) Roh-Paar
-        if ($kRaw !== '' && $gRaw !== '' && substr($kRaw, 0, 10) !== '0000-00-00' && substr($gRaw, 0, 10) !== '0000-00-00') {
+        $kCorrValid = ($kK !== '' && substr($kK, 0, 10) !== '0000-00-00');
+        $gCorrValid = ($gK !== '' && substr($gK, 0, 10) !== '0000-00-00');
+        $kRawValid = ($kRaw !== '' && substr($kRaw, 0, 10) !== '0000-00-00');
+        $gRawValid = ($gRaw !== '' && substr($gRaw, 0, 10) !== '0000-00-00');
+
+        // 1) Korrigiertes Paar bevorzugen (soll zur Anzeige passen).
+        if ($kCorrValid && $gCorrValid) {
+            $start = $kK;
+            $ende  = $gK;
+        } elseif ($kRawValid && $gRawValid) {
+            // 2) Roh-Paar, wenn keine vollstaendige Korrektur vorliegt.
             $start = $kRaw;
             $ende  = $gRaw;
         } else {
-            // 2) Main-Paar (korr bevorzugt, sonst roh)
-            $kMain = ($kK !== '' && substr($kK, 0, 10) !== '0000-00-00') ? $kK : $kRaw;
-            $gMain = ($gK !== '' && substr($gK, 0, 10) !== '0000-00-00') ? $gK : $gRaw;
+            // 3) Fallback: Main-Paar (korr bevorzugt, sonst roh).
+            $kMain = $kCorrValid ? $kK : ($kRawValid ? $kRaw : '');
+            $gMain = $gCorrValid ? $gK : ($gRawValid ? $gRaw : '');
 
             if ($kMain !== '' && $gMain !== '') {
                 $start = $kMain;
