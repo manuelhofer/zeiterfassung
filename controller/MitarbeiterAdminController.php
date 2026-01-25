@@ -610,6 +610,7 @@ class MitarbeiterAdminController
         $stundenkontoSaldoAktuellText = null;
         $stundenkontoLetzteKorrekturen = [];
         $stundenkontoLetzteBatches = [];
+        $stundenkontoStealthMode = isset($_GET['mode']) && (string)$_GET['mode'] === 'stealth';
 
         if ($id > 0 && $mitarbeiter !== null) {
             $formatMinuten = static function (?int $minuten): string {
@@ -639,6 +640,7 @@ class MitarbeiterAdminController
                      FROM stundenkonto_korrektur k
                      LEFT JOIN mitarbeiter m ON m.id = k.erstellt_von_mitarbeiter_id
                      WHERE k.mitarbeiter_id = :mid
+                       AND k.stealth = 0
                      ORDER BY k.wirksam_datum DESC, k.id DESC
                      LIMIT 10",
                     ['mid' => $id]
@@ -647,10 +649,11 @@ class MitarbeiterAdminController
                 $stundenkontoLetzteBatches = $db->fetchAlle(
                     "SELECT b.id, b.modus, b.von_datum, b.bis_datum, b.gesamt_minuten, b.minuten_pro_tag, b.nur_arbeitstage, b.begruendung, b.erstellt_am,
                             m.vorname AS erstellt_von_vorname, m.nachname AS erstellt_von_nachname,
-                            (SELECT COUNT(1) FROM stundenkonto_korrektur k2 WHERE k2.batch_id = b.id) AS anzahl_tage
+                            (SELECT COUNT(1) FROM stundenkonto_korrektur k2 WHERE k2.batch_id = b.id AND k2.stealth = 0) AS anzahl_tage
                      FROM stundenkonto_batch b
                      LEFT JOIN mitarbeiter m ON m.id = b.erstellt_von_mitarbeiter_id
                      WHERE b.mitarbeiter_id = :mid
+                       AND b.stealth = 0
                      ORDER BY b.erstellt_am DESC, b.id DESC
                      LIMIT 10",
                     ['mid' => $id]
@@ -1636,17 +1639,20 @@ class MitarbeiterAdminController
             exit;
         }
 
+        $stealth = isset($_POST['stundenkonto_stealth']) && (string)$_POST['stundenkonto_stealth'] === '1';
+
         try {
             $db = Database::getInstanz();
             $db->ausfuehren(
-                'INSERT INTO stundenkonto_korrektur (mitarbeiter_id, wirksam_datum, delta_minuten, typ, batch_id, begruendung, erstellt_von_mitarbeiter_id)
-                 VALUES (:mid, :wirksam, :delta, \'manuell\', NULL, :begr, :von)',
+                'INSERT INTO stundenkonto_korrektur (mitarbeiter_id, wirksam_datum, delta_minuten, typ, batch_id, begruendung, erstellt_von_mitarbeiter_id, stealth)
+                 VALUES (:mid, :wirksam, :delta, \'manuell\', NULL, :begr, :von, :stealth)',
                 [
                     'mid'     => $mid,
                     'wirksam' => $wirksam,
                     'delta'   => $deltaMinuten,
                     'begr'    => $begruendung,
                     'von'     => $erstelltVon,
+                    'stealth' => $stealth ? 1 : 0,
                 ]
             );
 
@@ -1666,6 +1672,7 @@ class MitarbeiterAdminController
                     'begruendung'    => $begruendung,
                     'erstellt_von'   => $erstelltVon,
                     'typ'            => 'manuell',
+                    'stealth'        => $stealth ? 1 : 0,
                 ], $mid, null, 'stundenkonto');
             }
 
@@ -1782,6 +1789,8 @@ class MitarbeiterAdminController
             exit;
         }
 
+        $stealth = isset($_POST['stundenkonto_stealth']) && (string)$_POST['stundenkonto_stealth'] === '1';
+
         // Ziel-Tage ermitteln
         $tage = [];
         $period = new \DatePeriod(
@@ -1857,8 +1866,8 @@ class MitarbeiterAdminController
             $pdo->beginTransaction();
 
             $db->ausfuehren(
-                'INSERT INTO stundenkonto_batch (mitarbeiter_id, modus, von_datum, bis_datum, gesamt_minuten, minuten_pro_tag, nur_arbeitstage, begruendung, erstellt_von_mitarbeiter_id)
-                 VALUES (:mid, :modus, :von, :bis, :gesamt, :mpt, :nur, :begr, :vonmid)',
+                'INSERT INTO stundenkonto_batch (mitarbeiter_id, modus, von_datum, bis_datum, gesamt_minuten, minuten_pro_tag, nur_arbeitstage, begruendung, erstellt_von_mitarbeiter_id, stealth)
+                 VALUES (:mid, :modus, :von, :bis, :gesamt, :mpt, :nur, :begr, :vonmid, :stealth)',
                 [
                     'mid'   => $mid,
                     'modus' => $modus,
@@ -1869,14 +1878,15 @@ class MitarbeiterAdminController
                     'nur'   => $nurArbeitstage ? 1 : 0,
                     'begr'  => $begruendung,
                     'vonmid'=> $erstelltVon,
+                    'stealth' => $stealth ? 1 : 0,
                 ]
             );
 
             $batchId = (int)$db->letzteInsertId();
 
             $stmt = $pdo->prepare(
-                'INSERT INTO stundenkonto_korrektur (mitarbeiter_id, wirksam_datum, delta_minuten, typ, batch_id, begruendung, erstellt_von_mitarbeiter_id)
-                 VALUES (:mid, :datum, :delta, \'verteilung\', :bid, :begr, :von)'
+                'INSERT INTO stundenkonto_korrektur (mitarbeiter_id, wirksam_datum, delta_minuten, typ, batch_id, begruendung, erstellt_von_mitarbeiter_id, stealth)
+                 VALUES (:mid, :datum, :delta, \'verteilung\', :bid, :begr, :von, :stealth)'
             );
 
             foreach ($tage as $idx => $dt) {
@@ -1887,6 +1897,7 @@ class MitarbeiterAdminController
                     ':bid'   => $batchId,
                     ':begr'  => $begruendung,
                     ':von'   => $erstelltVon,
+                    ':stealth' => $stealth ? 1 : 0,
                 ]);
             }
 
@@ -1913,6 +1924,7 @@ class MitarbeiterAdminController
                     'begruendung'     => $begruendung,
                     'erstellt_von'    => $erstelltVon,
                     'typ'             => 'verteilung',
+                    'stealth'         => $stealth ? 1 : 0,
                 ], $mid, null, 'stundenkonto');
             }
 
