@@ -3971,12 +3971,13 @@ $urlaubSaldo = null;
         $dupZeit = $this->pruefeTerminalDoppelteBuchung('kommen', 5, (int)$mitarbeiter['id'], null);
 
         $id = null;
+        $nachtshift = ((int)($_POST['nachtshift'] ?? 0) === 1) ? 1 : 0;
         if ($dupZeit !== null) {
             $nachricht = 'Kommen wurde bereits um ' . $dupZeit . ' gebucht (Doppelklick/Scan ignoriert).';
         } else {
             // WICHTIG (Projektentscheidung): Rohzeit buchen.
             // Rundung erfolgt später nur in Auswertungen/Export/PDF.
-            $id = $this->zeitService->bucheKommen((int)$mitarbeiter['id'], $zeitpunkt, 'terminal', null, null);
+            $id = $this->zeitService->bucheKommen((int)$mitarbeiter['id'], $zeitpunkt, 'terminal', null, null, $nachtshift);
 
             if ($id === null) {
                 $fehlerText = 'Kommen konnte nicht gebucht werden. Bitte erneut versuchen oder Vorgesetzten informieren.';

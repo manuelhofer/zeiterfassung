@@ -159,7 +159,8 @@ class ZeitService
         ?\DateTimeImmutable $zeitpunkt = null,
         string $quelle = 'terminal',
         ?int $terminalId = null,
-        ?string $kommentar = null
+        ?string $kommentar = null,
+        ?int $nachtshift = null
     ): ?int {
         $mitarbeiterId = (int)$mitarbeiterId;
         if ($mitarbeiterId <= 0) {
@@ -209,14 +210,17 @@ class ZeitService
             $zeitStr = $zeitpunkt->format('Y-m-d H:i:s');
             $terminalSql = ($terminalId !== null) ? (string)(int)$terminalId : 'NULL';
 
-            $sql = 'INSERT INTO zeitbuchung (mitarbeiter_id, typ, zeitstempel, quelle, manuell_geaendert, kommentar, terminal_id) VALUES ('
+            $nachtshiftVal = ($typ === 'kommen' && (int)$nachtshift === 1) ? 1 : 0;
+
+            $sql = 'INSERT INTO zeitbuchung (mitarbeiter_id, typ, zeitstempel, quelle, manuell_geaendert, kommentar, terminal_id, nachtshift) VALUES ('
                 . (int)$mitarbeiterId . ', '
                 . $this->sqlQuote($typ) . ', '
                 . $this->sqlQuote($zeitStr) . ', '
                 . $this->sqlQuote($quelle) . ', '
                 . '0, '
                 . $this->sqlNullableString($kommentar) . ', '
-                . $terminalSql
+                . $terminalSql . ', '
+                . $nachtshiftVal
                 . ')';
 
             try {
@@ -249,7 +253,9 @@ class ZeitService
                 $zeitpunkt,
                 $quelle,
                 $terminalId,
-                $kommentar
+                $kommentar,
+                false,
+                $nachtshift
             );
         } catch (\Throwable $e) {
             if (class_exists('Logger')) {
@@ -276,9 +282,10 @@ class ZeitService
         ?\DateTimeImmutable $zeitpunkt = null,
         string $quelle = 'terminal',
         ?int $terminalId = null,
-        ?string $kommentar = null
+        ?string $kommentar = null,
+        ?int $nachtshift = null
     ): ?int {
-        return $this->bucheZeit($mitarbeiterId, 'kommen', $zeitpunkt, $quelle, $terminalId, $kommentar);
+        return $this->bucheZeit($mitarbeiterId, 'kommen', $zeitpunkt, $quelle, $terminalId, $kommentar, $nachtshift);
     }
 
     /**
@@ -293,7 +300,7 @@ class ZeitService
         ?int $terminalId = null,
         ?string $kommentar = null
     ): ?int {
-        return $this->bucheZeit($mitarbeiterId, 'gehen', $zeitpunkt, $quelle, $terminalId, $kommentar);
+        return $this->bucheZeit($mitarbeiterId, 'gehen', $zeitpunkt, $quelle, $terminalId, $kommentar, null);
     }
 
     /**

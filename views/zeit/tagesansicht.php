@@ -177,6 +177,12 @@ foreach ($buchungen as $b) {
                     $quelle = (string)($b['quelle'] ?? '');
                     $kommentar = (string)($b['kommentar'] ?? '');
                     $manuell = (int)($b['manuell_geaendert'] ?? 0);
+                    $nachtshift = (int)($b['nachtshift'] ?? 0);
+
+                    $typAnzeige = $typ;
+                    if ($typ === 'kommen' && $nachtshift === 1) {
+                        $typAnzeige = 'kommen (Nacht)';
+                    }
 
                     $editUrl = '?seite=zeit_heute&datum=' . urlencode($datum)
                         . '&mitarbeiter_id=' . urlencode((string)$zielMitarbeiterId)
@@ -193,7 +199,7 @@ foreach ($buchungen as $b) {
                     <?php else: ?>
                         <td><?php echo htmlspecialchars(zeit_format_uhrzeit((string)($b['zeitstempel'] ?? '')), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></td>
                     <?php endif; ?>
-                    <td><?php echo htmlspecialchars($typ, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></td>
+                    <td><?php echo htmlspecialchars($typAnzeige, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></td>
                     <td><?php echo htmlspecialchars($quelle, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></td>
                     <td><?php echo htmlspecialchars($kommentar, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></td>
 
@@ -224,6 +230,7 @@ foreach ($buchungen as $b) {
     $editTyp = (string)($editBuchung['typ'] ?? 'kommen');
     $editZeit = zeit_format_uhrzeit((string)($editBuchung['zeitstempel'] ?? ''));
     $editKommentar = (string)($editBuchung['kommentar'] ?? '');
+    $editNachtshift = (int)($editBuchung['nachtshift'] ?? 0);
     // HTML time input erwartet i.d.R. HH:MM (Sekunden optional je nach Browser)
     $editZeitInput = substr($editZeit, 0, 5);
 ?>
@@ -250,6 +257,11 @@ foreach ($buchungen as $b) {
             <label style="margin-left: 8px;">
                 Begründung (Pflicht):
                 <input type="text" name="begruendung" maxlength="255" required style="width: 320px;" value="<?php echo htmlspecialchars($editKommentar, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>">
+            </label>
+
+            <label style="margin-left: 8px;">
+                <input type="checkbox" name="nachtshift" value="1" <?php echo ($editTyp === 'kommen' && $editNachtshift === 1) ? 'checked' : ''; ?>>
+                Nachtschicht (nur für „kommen“)
             </label>
 
             <button type="submit" style="margin-left: 8px;">Speichern</button>
@@ -583,6 +595,11 @@ foreach ($buchungen as $b) {
             <label style="margin-left: 8px;">
                 Begründung (Pflicht):
                 <input type="text" name="begruendung" maxlength="255" required style="width: 320px;">
+            </label>
+
+            <label style="margin-left: 8px;">
+                <input type="checkbox" name="nachtshift" value="1">
+                Nachtschicht (nur für „kommen“)
             </label>
 
             <button type="submit" style="margin-left: 8px;">Hinzufügen</button>

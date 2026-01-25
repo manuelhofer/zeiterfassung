@@ -620,6 +620,21 @@ require __DIR__ . '/_layout_top.php';
                 <form method="post" action="terminal.php?aktion=kommen" class="terminal-button-form" style="margin-top:18px;">
                     <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($csrfToken, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>">
                     <input type="hidden" name="rfid_code" value="<?php echo htmlspecialchars($offlineRfid, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>">
+                    <?php
+                        $nachtshiftOption = false;
+                        try {
+                            $nowTime = (new DateTimeImmutable('now'))->format('H:i:s');
+                            $nachtshiftOption = ($nowTime >= '18:00:00');
+                        } catch (Throwable $e) {
+                            $nachtshiftOption = false;
+                        }
+                    ?>
+                    <?php if ($nachtshiftOption): ?>
+                        <label style="display:block; margin-bottom:6px;">
+                            <input type="checkbox" name="nachtshift" value="1">
+                            Nachtschicht (Kommen nach 18:00)
+                        </label>
+                    <?php endif; ?>
                     <button type="submit" class="primary <?php echo htmlspecialchars($offlineKommenCls, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>">Kommen</button>
                 </form>
 
@@ -995,6 +1010,21 @@ require __DIR__ . '/_layout_top.php';
 				<div class="button-row primary-action">
                     <form method="post" action="terminal.php?aktion=kommen">
                         <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($csrfToken, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>">
+                        <?php
+                            $nachtshiftOption = false;
+                            try {
+                                $nowTime = (new DateTimeImmutable('now'))->format('H:i:s');
+                                $nachtshiftOption = ($nowTime >= '18:00:00');
+                            } catch (Throwable $e) {
+                                $nachtshiftOption = false;
+                            }
+                        ?>
+                        <?php if ($nachtshiftOption): ?>
+                            <label style="display:block; margin-bottom:6px;">
+                                <input type="checkbox" name="nachtshift" value="1">
+                                Nachtschicht (Kommen nach 18:00)
+                            </label>
+                        <?php endif; ?>
 						<button type="submit" class="terminal-primary-action">Kommen</button>
                     </form>
 				</div>

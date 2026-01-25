@@ -309,16 +309,30 @@ class ReportService
 
         $result = [];
 
-        foreach ($proTag as $ymd => $dayBookings) {
+        $tage = array_keys($proTag);
+        sort($tage);
+        $overnightMaxSeconds = 12 * 3600;
+
+        foreach ($tage as $ymd) {
+            $dayBookings = $proTag[$ymd] ?? [];
             // Defensiv sortieren
             usort($dayBookings, static function (array $a, array $b): int {
                 return strcmp((string)($a['zeitstempel'] ?? ''), (string)($b['zeitstempel'] ?? ''));
             });
 
-            /** @var array<int,array{0:\DateTimeImmutable,1:(\DateTimeImmutable|null),2:int,3:int}> $bloecke */
+            /** @var array<int,array{0:(\DateTimeImmutable|null),1:(\DateTimeImmutable|null),2:int,3:int,4:int}> $bloecke */
             $bloecke = [];
             $blockStart = null; // \DateTimeImmutable|null
             $blockStartManuell = 0;
+            $blockStartNachtshift = 0;
+
+            $nextYmd = '';
+            try {
+                $dtDay = new \DateTimeImmutable($ymd, $tz);
+                $nextYmd = $dtDay->modify('+1 day')->format('Y-m-d');
+            } catch (\Throwable $e) {
+                $nextYmd = '';
+            }
 
             foreach ($dayBookings as $b) {
                 $typ = (string)($b['typ'] ?? '');
@@ -328,6 +342,7 @@ class ReportService
                 }
 
                 $istManuell = ((int)($b['manuell_geaendert'] ?? 0) === 1) ? 1 : 0;
+                $istNachtshift = ((int)($b['nachtshift'] ?? 0) === 1) ? 1 : 0;
 
                 try {
                     $dt = new \DateTimeImmutable($ts, $tz);
@@ -339,27 +354,79 @@ class ReportService
                     if ($blockStart === null) {
                         $blockStart = $dt;
                         $blockStartManuell = $istManuell;
+                        $blockStartNachtshift = $istNachtshift;
                     } else {
                         // Wenn mehrfach "kommen" hintereinander gestempelt wird (z. B. doppelter Scan
                         // oder manuell nachgetragen), darf der spätere Stempel nicht unsichtbar werden.
                         // Wir schließen den bisherigen offenen Block als "unvollständig" ab (ohne Gehen)
                         // und starten einen neuen Block.
-                        $bloecke[] = [$blockStart, null, $blockStartManuell, 0];
+                        $bloecke[] = [$blockStart, null, $blockStartManuell, 0, $blockStartNachtshift];
                         $blockStart = $dt;
                         $blockStartManuell = $istManuell;
+                        $blockStartNachtshift = $istNachtshift;
                     }
                 } elseif ($typ === 'gehen') {
                     if ($blockStart !== null && $dt > $blockStart) {
-                        $bloecke[] = [$blockStart, $dt, $blockStartManuell, $istManuell];
+                        $bloecke[] = [$blockStart, $dt, $blockStartManuell, $istManuell, $blockStartNachtshift];
                         $blockStart = null;
                         $blockStartManuell = 0;
+                        $blockStartNachtshift = 0;
+                    } elseif ($blockStart === null) {
+                        // Gehen ohne Kommen: als unvollständigen Block ablegen
+                        $bloecke[] = [null, $dt, 0, $istManuell, 0];
                     }
                 }
             }
 
             // Offener Block (Kommen ohne Gehen)
             if ($blockStart !== null) {
-                $bloecke[] = [$blockStart, null, $blockStartManuell, 0];
+                $overnightClosed = false;
+                if ($blockStartNachtshift === 1 && $nextYmd !== '' && isset($proTag[$nextYmd])) {
+                    $nextDayBookings = $proTag[$nextYmd];
+                    if (is_array($nextDayBookings) && $nextDayBookings !== []) {
+                        usort($nextDayBookings, static function (array $a, array $b): int {
+                            return strcmp((string)($a['zeitstempel'] ?? ''), (string)($b['zeitstempel'] ?? ''));
+                        });
+
+                        $firstGoIndex = null;
+                        $firstGoDt = null;
+                        foreach ($nextDayBookings as $idx => $nb) {
+                            $nTyp = (string)($nb['typ'] ?? '');
+                            $nTs = (string)($nb['zeitstempel'] ?? '');
+                            if ($nTs === '') {
+                                continue;
+                            }
+                            try {
+                                $nDt = new \DateTimeImmutable($nTs, $tz);
+                            } catch (\Throwable $e) {
+                                continue;
+                            }
+
+                            if ($nTyp === 'gehen') {
+                                $firstGoIndex = (int)$idx;
+                                $firstGoDt = $nDt;
+                                break;
+                            }
+                            if ($nTyp === 'kommen') {
+                                break;
+                            }
+                        }
+
+                        if ($firstGoDt instanceof \DateTimeImmutable) {
+                            $diff = $firstGoDt->getTimestamp() - $blockStart->getTimestamp();
+                            if ($diff > 0 && $diff <= $overnightMaxSeconds) {
+                                $bloecke[] = [$blockStart, $firstGoDt, $blockStartManuell, 0, $blockStartNachtshift];
+                                unset($nextDayBookings[$firstGoIndex]);
+                                $proTag[$nextYmd] = array_values($nextDayBookings);
+                                $overnightClosed = true;
+                            }
+                        }
+                    }
+                }
+
+                if (!$overnightClosed) {
+                    $bloecke[] = [$blockStart, null, $blockStartManuell, 0, $blockStartNachtshift];
+                }
             }
 
             $out = [];
@@ -368,21 +435,24 @@ class ReportService
                 $gRoh = $blk[1];
                 $manStart = (int)($blk[2] ?? 0);
                 $manEnd   = (int)($blk[3] ?? 0);
+                $nachtshift = (int)($blk[4] ?? 0);
                 $zeitManuell = (($manStart === 1) || ($manEnd === 1)) ? 1 : 0;
 
-                $kommenRohStr = $kRoh->format('Y-m-d H:i:s');
+                $kommenRohStr = ($kRoh instanceof \DateTimeImmutable) ? $kRoh->format('Y-m-d H:i:s') : null;
                 $gehenRohStr  = ($gRoh instanceof \DateTimeImmutable) ? $gRoh->format('Y-m-d H:i:s') : null;
 
                 $kommenKorrStr = null;
                 $gehenKorrStr  = null;
 
-                try {
-                    $kKorr = $this->rundungsService->rundeZeitstempel($kRoh, 'kommen');
-                    if ($kKorr instanceof \DateTimeImmutable) {
-                        $kommenKorrStr = $kKorr->format('Y-m-d H:i:s');
+                if ($kRoh instanceof \DateTimeImmutable) {
+                    try {
+                        $kKorr = $this->rundungsService->rundeZeitstempel($kRoh, 'kommen');
+                        if ($kKorr instanceof \DateTimeImmutable) {
+                            $kommenKorrStr = $kKorr->format('Y-m-d H:i:s');
+                        }
+                    } catch (\Throwable $e) {
+                        $kommenKorrStr = null;
                     }
-                } catch (\Throwable $e) {
-                    $kommenKorrStr = null;
                 }
 
                 if ($gRoh instanceof \DateTimeImmutable) {
@@ -402,6 +472,7 @@ class ReportService
                     'kommen_korr'            => $kommenKorrStr,
                     'gehen_korr'             => $gehenKorrStr,
                     'zeit_manuell_geaendert' => $zeitManuell,
+                    'nachtshift'             => $nachtshift,
                 ];
             }
 

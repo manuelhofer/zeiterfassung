@@ -550,6 +550,7 @@ CREATE TABLE `zeitbuchung` (
   `quelle` ENUM('terminal','web','import') NOT NULL DEFAULT 'terminal',
   `manuell_geaendert` TINYINT(1) NOT NULL DEFAULT 0,
   `kommentar` VARCHAR(255) NULL,
+  `nachtshift` TINYINT(1) NOT NULL DEFAULT 0,
   `terminal_id` INT UNSIGNED NULL,
   `erstellt_am` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `geaendert_am` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
