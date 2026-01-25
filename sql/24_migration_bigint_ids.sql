@@ -1,8 +1,11 @@
 -- Migration: Alle ID-Spalten auf BIGINT UNSIGNED umstellen
 -- Datum: 2026-01-??
 
+DROP PROCEDURE IF EXISTS drop_all_foreign_keys;
+DROP PROCEDURE IF EXISTS restore_all_foreign_keys;
 SET FOREIGN_KEY_CHECKS = 0;
 
+DROP TEMPORARY TABLE IF EXISTS tmp_fk_def;
 CREATE TEMPORARY TABLE tmp_fk_def (
   table_name VARCHAR(64) NOT NULL,
   constraint_name VARCHAR(64) NOT NULL,
@@ -43,6 +46,7 @@ GROUP BY
   rc.UPDATE_RULE,
   rc.DELETE_RULE;
 
+DROP PROCEDURE IF EXISTS drop_all_foreign_keys;
 DELIMITER $$
 CREATE PROCEDURE drop_all_foreign_keys()
 BEGIN
@@ -211,6 +215,7 @@ ALTER TABLE auftragszeit
   MODIFY maschine_id BIGINT UNSIGNED NULL,
   MODIFY terminal_id BIGINT UNSIGNED NULL;
 
+DROP PROCEDURE IF EXISTS restore_all_foreign_keys;
 DELIMITER $$
 CREATE PROCEDURE restore_all_foreign_keys()
 BEGIN
