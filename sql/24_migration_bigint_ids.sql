@@ -48,6 +48,7 @@ CREATE PROCEDURE drop_all_foreign_keys()
 BEGIN
   DECLARE done INT DEFAULT 0;
   DECLARE fk_table VARCHAR(64);
+  DECLARE fk_name VARCHAR(64);
   DECLARE fk_cursor CURSOR FOR
     SELECT table_name, constraint_name FROM tmp_fk_def;
   DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = 1;
