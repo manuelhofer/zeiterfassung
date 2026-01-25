@@ -3,95 +3,73 @@
 
 SET FOREIGN_KEY_CHECKS = 0;
 
-SET @fk_abteilung_parent = (
-  SELECT CONSTRAINT_NAME
-  FROM information_schema.KEY_COLUMN_USAGE
-  WHERE TABLE_SCHEMA = DATABASE()
-    AND TABLE_NAME = 'abteilung'
-    AND COLUMN_NAME = 'parent_id'
-    AND REFERENCED_TABLE_NAME = 'abteilung'
-  LIMIT 1
+CREATE TEMPORARY TABLE tmp_fk_def (
+  table_name VARCHAR(64) NOT NULL,
+  constraint_name VARCHAR(64) NOT NULL,
+  columns_list TEXT NOT NULL,
+  referenced_table_name VARCHAR(64) NOT NULL,
+  referenced_columns_list TEXT NOT NULL,
+  update_rule VARCHAR(32) NOT NULL,
+  delete_rule VARCHAR(32) NOT NULL
 );
-SET @sql_drop_fk_abteilung_parent = IF(
-  @fk_abteilung_parent IS NULL,
-  'SELECT 1',
-  CONCAT('ALTER TABLE abteilung DROP FOREIGN KEY ', @fk_abteilung_parent)
-);
-PREPARE stmt_drop_fk_abteilung_parent FROM @sql_drop_fk_abteilung_parent;
-EXECUTE stmt_drop_fk_abteilung_parent;
-DEALLOCATE PREPARE stmt_drop_fk_abteilung_parent;
 
-SET @fk_betriebsferien_abteilung = (
-  SELECT CONSTRAINT_NAME
-  FROM information_schema.KEY_COLUMN_USAGE
-  WHERE TABLE_SCHEMA = DATABASE()
-    AND TABLE_NAME = 'betriebsferien'
-    AND COLUMN_NAME = 'abteilung_id'
-    AND REFERENCED_TABLE_NAME = 'abteilung'
-  LIMIT 1
-);
-SET @sql_drop_fk_betriebsferien_abteilung = IF(
-  @fk_betriebsferien_abteilung IS NULL,
-  'SELECT 1',
-  CONCAT('ALTER TABLE betriebsferien DROP FOREIGN KEY ', @fk_betriebsferien_abteilung)
-);
-PREPARE stmt_drop_fk_betriebsferien_abteilung FROM @sql_drop_fk_betriebsferien_abteilung;
-EXECUTE stmt_drop_fk_betriebsferien_abteilung;
-DEALLOCATE PREPARE stmt_drop_fk_betriebsferien_abteilung;
+INSERT INTO tmp_fk_def (
+  table_name,
+  constraint_name,
+  columns_list,
+  referenced_table_name,
+  referenced_columns_list,
+  update_rule,
+  delete_rule
+)
+SELECT
+  kcu.TABLE_NAME,
+  kcu.CONSTRAINT_NAME,
+  GROUP_CONCAT(CONCAT('`', kcu.COLUMN_NAME, '`') ORDER BY kcu.ORDINAL_POSITION SEPARATOR ', '),
+  kcu.REFERENCED_TABLE_NAME,
+  GROUP_CONCAT(CONCAT('`', kcu.REFERENCED_COLUMN_NAME, '`') ORDER BY kcu.ORDINAL_POSITION SEPARATOR ', '),
+  rc.UPDATE_RULE,
+  rc.DELETE_RULE
+FROM information_schema.KEY_COLUMN_USAGE kcu
+JOIN information_schema.REFERENTIAL_CONSTRAINTS rc
+  ON rc.CONSTRAINT_SCHEMA = kcu.CONSTRAINT_SCHEMA
+  AND rc.CONSTRAINT_NAME = kcu.CONSTRAINT_NAME
+WHERE kcu.CONSTRAINT_SCHEMA = DATABASE()
+  AND kcu.REFERENCED_TABLE_NAME IS NOT NULL
+GROUP BY
+  kcu.TABLE_NAME,
+  kcu.CONSTRAINT_NAME,
+  kcu.REFERENCED_TABLE_NAME,
+  rc.UPDATE_RULE,
+  rc.DELETE_RULE;
 
-SET @fk_maschine_abteilung = (
-  SELECT CONSTRAINT_NAME
-  FROM information_schema.KEY_COLUMN_USAGE
-  WHERE TABLE_SCHEMA = DATABASE()
-    AND TABLE_NAME = 'maschine'
-    AND COLUMN_NAME = 'abteilung_id'
-    AND REFERENCED_TABLE_NAME = 'abteilung'
-  LIMIT 1
-);
-SET @sql_drop_fk_maschine_abteilung = IF(
-  @fk_maschine_abteilung IS NULL,
-  'SELECT 1',
-  CONCAT('ALTER TABLE maschine DROP FOREIGN KEY ', @fk_maschine_abteilung)
-);
-PREPARE stmt_drop_fk_maschine_abteilung FROM @sql_drop_fk_maschine_abteilung;
-EXECUTE stmt_drop_fk_maschine_abteilung;
-DEALLOCATE PREPARE stmt_drop_fk_maschine_abteilung;
+DELIMITER $$
+CREATE PROCEDURE drop_all_foreign_keys()
+BEGIN
+  DECLARE done INT DEFAULT 0;
+  DECLARE fk_table VARCHAR(64);
+  DECLARE fk_name VARCHAR(64);
+  DECLARE fk_cursor CURSOR FOR
+    SELECT table_name, constraint_name FROM tmp_fk_def;
+  DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = 1;
 
-SET @fk_mitarbeiter_hat_abteilung_abteilung = (
-  SELECT CONSTRAINT_NAME
-  FROM information_schema.KEY_COLUMN_USAGE
-  WHERE TABLE_SCHEMA = DATABASE()
-    AND TABLE_NAME = 'mitarbeiter_hat_abteilung'
-    AND COLUMN_NAME = 'abteilung_id'
-    AND REFERENCED_TABLE_NAME = 'abteilung'
-  LIMIT 1
-);
-SET @sql_drop_fk_mitarbeiter_hat_abteilung_abteilung = IF(
-  @fk_mitarbeiter_hat_abteilung_abteilung IS NULL,
-  'SELECT 1',
-  CONCAT('ALTER TABLE mitarbeiter_hat_abteilung DROP FOREIGN KEY ', @fk_mitarbeiter_hat_abteilung_abteilung)
-);
-PREPARE stmt_drop_fk_mitarbeiter_hat_abteilung_abteilung FROM @sql_drop_fk_mitarbeiter_hat_abteilung_abteilung;
-EXECUTE stmt_drop_fk_mitarbeiter_hat_abteilung_abteilung;
-DEALLOCATE PREPARE stmt_drop_fk_mitarbeiter_hat_abteilung_abteilung;
+  OPEN fk_cursor;
+  fk_loop: LOOP
+    FETCH fk_cursor INTO fk_table, fk_name;
+    IF done = 1 THEN
+      LEAVE fk_loop;
+    END IF;
+    SET @sql_drop_fk = CONCAT('ALTER TABLE `', fk_table, '` DROP FOREIGN KEY `', fk_name, '`');
+    PREPARE stmt_drop_fk FROM @sql_drop_fk;
+    EXECUTE stmt_drop_fk;
+    DEALLOCATE PREPARE stmt_drop_fk;
+  END LOOP;
+  CLOSE fk_cursor;
+END$$
+DELIMITER ;
 
-SET @fk_terminal_abteilung = (
-  SELECT CONSTRAINT_NAME
-  FROM information_schema.KEY_COLUMN_USAGE
-  WHERE TABLE_SCHEMA = DATABASE()
-    AND TABLE_NAME = 'terminal'
-    AND COLUMN_NAME = 'abteilung_id'
-    AND REFERENCED_TABLE_NAME = 'abteilung'
-  LIMIT 1
-);
-SET @sql_drop_fk_terminal_abteilung = IF(
-  @fk_terminal_abteilung IS NULL,
-  'SELECT 1',
-  CONCAT('ALTER TABLE terminal DROP FOREIGN KEY ', @fk_terminal_abteilung)
-);
-PREPARE stmt_drop_fk_terminal_abteilung FROM @sql_drop_fk_terminal_abteilung;
-EXECUTE stmt_drop_fk_terminal_abteilung;
-DEALLOCATE PREPARE stmt_drop_fk_terminal_abteilung;
+CALL drop_all_foreign_keys();
+DROP PROCEDURE drop_all_foreign_keys;
 
 ALTER TABLE abteilung
   MODIFY id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -233,24 +211,51 @@ ALTER TABLE auftragszeit
   MODIFY maschine_id BIGINT UNSIGNED NULL,
   MODIFY terminal_id BIGINT UNSIGNED NULL;
 
-ALTER TABLE abteilung
-  ADD CONSTRAINT fk_abteilung_parent
-    FOREIGN KEY (parent_id) REFERENCES abteilung(id) ON DELETE SET NULL ON UPDATE CASCADE;
+DELIMITER $$
+CREATE PROCEDURE restore_all_foreign_keys()
+BEGIN
+  DECLARE done INT DEFAULT 0;
+  DECLARE fk_table VARCHAR(64);
+  DECLARE fk_name VARCHAR(64);
+  DECLARE fk_columns TEXT;
+  DECLARE fk_ref_table VARCHAR(64);
+  DECLARE fk_ref_columns TEXT;
+  DECLARE fk_update_rule VARCHAR(32);
+  DECLARE fk_delete_rule VARCHAR(32);
+  DECLARE fk_cursor CURSOR FOR
+    SELECT
+      table_name,
+      constraint_name,
+      columns_list,
+      referenced_table_name,
+      referenced_columns_list,
+      update_rule,
+      delete_rule
+    FROM tmp_fk_def;
+  DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = 1;
 
-ALTER TABLE betriebsferien
-  ADD CONSTRAINT fk_betriebsferien_abteilung
-    FOREIGN KEY (abteilung_id) REFERENCES abteilung(id) ON DELETE SET NULL ON UPDATE CASCADE;
+  OPEN fk_cursor;
+  fk_loop: LOOP
+    FETCH fk_cursor INTO fk_table, fk_name, fk_columns, fk_ref_table, fk_ref_columns, fk_update_rule, fk_delete_rule;
+    IF done = 1 THEN
+      LEAVE fk_loop;
+    END IF;
+    SET @sql_add_fk = CONCAT(
+      'ALTER TABLE `', fk_table, '` ADD CONSTRAINT `', fk_name, '` FOREIGN KEY (',
+      fk_columns, ') REFERENCES `', fk_ref_table, '` (', fk_ref_columns, ') ',
+      'ON UPDATE ', fk_update_rule, ' ON DELETE ', fk_delete_rule
+    );
+    PREPARE stmt_add_fk FROM @sql_add_fk;
+    EXECUTE stmt_add_fk;
+    DEALLOCATE PREPARE stmt_add_fk;
+  END LOOP;
+  CLOSE fk_cursor;
+END$$
+DELIMITER ;
 
-ALTER TABLE maschine
-  ADD CONSTRAINT fk_maschine_abteilung
-    FOREIGN KEY (abteilung_id) REFERENCES abteilung(id) ON DELETE SET NULL ON UPDATE CASCADE;
+CALL restore_all_foreign_keys();
+DROP PROCEDURE restore_all_foreign_keys;
 
-ALTER TABLE mitarbeiter_hat_abteilung
-  ADD CONSTRAINT fk_mitarbeiter_hat_abteilung_abteilung
-    FOREIGN KEY (abteilung_id) REFERENCES abteilung(id) ON UPDATE CASCADE;
-
-ALTER TABLE terminal
-  ADD CONSTRAINT fk_terminal_abteilung
-    FOREIGN KEY (abteilung_id) REFERENCES abteilung(id) ON DELETE SET NULL ON UPDATE CASCADE;
+DROP TEMPORARY TABLE tmp_fk_def;
 
 SET FOREIGN_KEY_CHECKS = 1;
