@@ -73,10 +73,18 @@ $loginErlaubt       = $id === null
     : (isset($mitarbeiter['ist_login_berechtigt']) ? (bool)$mitarbeiter['ist_login_berechtigt'] : false);
 
 $ueberschrift = $id === null ? 'Neuen Mitarbeiter anlegen' : 'Mitarbeiter bearbeiten';
+$stundenkontoStealthMode = $stundenkontoStealthMode ?? false;
+$stealthStyle = $stundenkontoStealthMode ? ' style="border: 3px solid #c00; padding: 12px;"' : '';
 ?>
 
-<section>
+<section<?php echo $stealthStyle; ?>>
     <h2><?php echo htmlspecialchars($ueberschrift, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></h2>
+
+    <?php if ($stundenkontoStealthMode): ?>
+        <p style="color: #c00; font-weight: bold;">
+            Stealth-Modus aktiv: Stundenkonto-Buchungen werden nicht in den Listen angezeigt.
+        </p>
+    <?php endif; ?>
 
     <?php if ($fehlermeldung !== null): ?>
         <p class="error">
