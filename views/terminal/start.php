@@ -1,0 +1,1199 @@
+<?php
+declare(strict_types=1);
+
+/** @var array|null  $mitarbeiter */
+/** @var string|null $nachricht */
+/** @var string|null $fehlerText */
+/** @var string|null $heuteDatum */
+/** @var array<int,array<string,mixed>> $heuteBuchungen */
+/** @var string|null $heuteFehler */
+/** @var array<int,array<string,mixed>> $laufendeAuftraege */
+/** @var array<string,mixed>|null $letzterAuftrag */
+/** @var int|null $terminalTimeoutSekunden */
+/** @var array<int,array<string,mixed>> $urlaubsantraege */
+/** @var string|null $csrfToken */
+/** @var array<int,array<string,mixed>>|null $zeitWarnungen */
+/** @var array<string,string|int>|null $urlaubSaldo */
+/** @var string|null $urlaubSaldoFehler */
+/** @var int|null $urlaubJahr */
+/** @var array<string,string>|null $urlaubVorschau */
+/** @var array<string,mixed>|null $stundenkontoSaldo */
+/** @var string|null $stundenkontoSaldoFehler */
+
+$heuteDatum = $heuteDatum ?? null;
+$heuteBuchungen = $heuteBuchungen ?? [];
+$heuteFehler = $heuteFehler ?? null;
+$laufendeAuftraege = $laufendeAuftraege ?? [];
+$terminalTimeoutSekunden = $terminalTimeoutSekunden ?? null;
+$zeitWarnungen = (isset($zeitWarnungen) && is_array($zeitWarnungen)) ? $zeitWarnungen : null;
+
+$letzterAuftrag = (isset($letzterAuftrag) && is_array($letzterAuftrag)) ? $letzterAuftrag : ($_SESSION['terminal_letzter_auftrag'] ?? null);
+if (!is_array($letzterAuftrag)) {
+    $letzterAuftrag = null;
+}
+
+
+$urlaubsantraege = $urlaubsantraege ?? [];
+if (!is_array($urlaubsantraege)) {
+    $urlaubsantraege = [];
+}
+
+$csrfToken = isset($csrfToken) && is_string($csrfToken) ? $csrfToken : '';
+// Defensive: einige Controller-Pfade rendern den Startscreen ohne explizit
+// $csrfToken zu setzen. Wenn der Token bereits in der Session existiert,
+// nutzen wir ihn, damit POST-Formulare weiterhin funktionieren.
+if ($csrfToken === '' && isset($_SESSION['terminal_csrf_token']) && is_string($_SESSION['terminal_csrf_token'])) {
+    $csrfToken = (string)$_SESSION['terminal_csrf_token'];
+}
+
+$zeigeUrlaubFormular = (bool)($zeigeUrlaubFormular ?? false);
+$zeigeUrlaubUebersicht = (bool)($zeigeUrlaubUebersicht ?? false);
+$zeigeArbeitszeitUebersichtSeite = (bool)($zeigeArbeitszeitUebersichtSeite ?? false);
+$urlaubModus = isset($urlaubModus) ? (string)$urlaubModus : '';
+$betriebsferienListe = $betriebsferienListe ?? [];
+if (!is_array($betriebsferienListe)) {
+    $betriebsferienListe = [];
+}
+$zeigeNebenauftragStartFormular = (bool)($zeigeNebenauftragStartFormular ?? false);
+$zeigeNebenauftragStopFormular  = (bool)($zeigeNebenauftragStopFormular ?? false);
+$nebenauftragStopOfflineModus   = (bool)($nebenauftragStopOfflineModus ?? false);
+
+$zeigeRfidZuweisenFormular = (bool)($zeigeRfidZuweisenFormular ?? false);
+$rfidZuweisenFormular = is_array($rfidZuweisenFormular ?? null) ? (array)$rfidZuweisenFormular : [];
+$rfidZuweisenMitarbeiterListe = $rfidZuweisenMitarbeiterListe ?? [];
+if (!is_array($rfidZuweisenMitarbeiterListe)) {
+    $rfidZuweisenMitarbeiterListe = [];
+}
+
+$darfRfidZuweisen = false;
+if (is_array($mitarbeiter) && array_key_exists('darf_rfid_zuweisen', $mitarbeiter)) {
+    $darfRfidZuweisen = (bool)$mitarbeiter['darf_rfid_zuweisen'];
+} elseif (isset($_SESSION['terminal_darf_rfid_zuweisen'])) {
+    $darfRfidZuweisen = (bool)$_SESSION['terminal_darf_rfid_zuweisen'];
+}
+
+$nebenauftragFormular = is_array($nebenauftragFormular ?? null) ? (array)$nebenauftragFormular : [];
+$laufendeNebenauftraege = $laufendeNebenauftraege ?? [];
+if (!is_array($laufendeNebenauftraege)) {
+    $laufendeNebenauftraege = [];
+}
+
+$urlaubFormular = is_array($urlaubFormular ?? null) ? (array)$urlaubFormular : [];
+
+$urlaubSaldo = (isset($urlaubSaldo) && is_array($urlaubSaldo)) ? $urlaubSaldo : null;
+$urlaubSaldoFehler = (isset($urlaubSaldoFehler) && is_string($urlaubSaldoFehler) && $urlaubSaldoFehler !== '') ? $urlaubSaldoFehler : null;
+$urlaubJahr = isset($urlaubJahr) ? (int)$urlaubJahr : (int)(new DateTimeImmutable('now'))->format('Y');
+$urlaubVorschau = (isset($urlaubVorschau) && is_array($urlaubVorschau)) ? $urlaubVorschau : null;
+
+$stundenkontoSaldo = (isset($stundenkontoSaldo) && is_array($stundenkontoSaldo)) ? $stundenkontoSaldo : null;
+$stundenkontoSaldoFehler = (isset($stundenkontoSaldoFehler) && is_string($stundenkontoSaldoFehler) && $stundenkontoSaldoFehler !== "") ? (string)$stundenkontoSaldoFehler : null;
+
+
+// Debug (T-069 Helper):
+// Aktivieren über URL: terminal.php?aktion=start&debug=1
+//
+// v8.1: Debug-Status kann in der Session persistieren (Controller setzt $_SESSION['terminal_debug_aktiv']).
+$debugAktiv = isset($debugAktiv) ? (bool)$debugAktiv : false;
+if (!$debugAktiv && isset($_SESSION['terminal_debug_aktiv'])) {
+    $debugAktiv = (bool)$_SESSION['terminal_debug_aktiv'];
+}
+
+$fmtTage = static function ($val): string {
+    $f = 0.0;
+    if (is_numeric($val)) {
+        $f = (float)$val;
+    }
+    return number_format($f, 2, ',', '.');
+};
+
+$fmtDatumDE = static function (string $ymd): string {
+    $ymd = trim($ymd);
+    if ($ymd === '') {
+        return '';
+    }
+    try {
+        return (new DateTimeImmutable($ymd))->format('d-m-Y');
+    } catch (Throwable $e) {
+        return $ymd;
+    }
+};
+
+$fmtDatum = static function (string $ymd): string {
+    $ymd = trim($ymd);
+    if ($ymd === '') {
+        return '';
+    }
+    try {
+        return (new DateTimeImmutable($ymd))->format('d-m-Y');
+    } catch (Throwable $e) {
+        return $ymd;
+    }
+};
+
+
+// Haupt-DB Status (für "nur online" Bereiche)
+// Queue-Details/Anzeige erfolgt über views/terminal/_statusbox.php
+$queueStatus = $_SESSION['terminal_queue_status'] ?? null;
+$hauptdbOk = null;
+if (is_array($queueStatus) && array_key_exists('hauptdb_verfuegbar', $queueStatus)) {
+    $hauptdbOk = $queueStatus['hauptdb_verfuegbar'];
+}
+
+
+// Anwesenheit (Kommen/Gehen-Status):
+// - Online: heute mehr "kommen" als "gehen" => anwesend
+// - Offline-Fallback: Session-Merker (wird in TerminalController bei Kommen/Gehen gesetzt)
+//
+// Zusätzlich für T-069 Debug: Wir merken uns die Kommen/Gehen-Zähler, um Anomalien leichter zu sehen.
+$kommenAnzahl = null;
+$gehenAnzahl  = null;
+
+$istAnwesend = false;
+if (!empty($mitarbeiter) && isset($mitarbeiter['id'])) {
+    if ($hauptdbOk === true) {
+        $kommen = 0;
+        $gehen  = 0;
+
+        if (isset($heuteBuchungen) && is_array($heuteBuchungen)) {
+            foreach ($heuteBuchungen as $b) {
+                $typ = $b['typ'] ?? null;
+                if ($typ === 'kommen') {
+                    $kommen++;
+                } elseif ($typ === 'gehen') {
+                    $gehen++;
+                }
+            }
+        }
+
+        $kommenAnzahl = $kommen;
+        $gehenAnzahl  = $gehen;
+        $istAnwesend = ($kommen > $gehen);
+    } else {
+        $istAnwesend = isset($_SESSION['terminal_anwesend']) ? (bool)$_SESSION['terminal_anwesend'] : false;
+    }
+}
+
+// Laufende Auftraege (nur fuer Button-Logik am Startscreen):
+// - Online: aus DB via $laufendeAuftraege
+// - Offline: Hauptauftrag-Fallback via Session-Merker (terminal_letzter_auftrag)
+$hatLaufenderHauptauftrag = false;
+$hatLaufenderNebenauftrag = false;
+
+if ($hauptdbOk === true && is_array($laufendeAuftraege) && count($laufendeAuftraege) > 0) {
+    foreach ($laufendeAuftraege as $az) {
+        if (!is_array($az)) {
+            continue;
+        }
+        $typ = (string)($az['typ'] ?? '');
+        if ($typ === 'haupt') {
+            $hatLaufenderHauptauftrag = true;
+        } elseif ($typ === 'neben') {
+            $hatLaufenderNebenauftrag = true;
+        }
+    }
+} elseif (is_array($letzterAuftrag)) {
+    $typ = (string)($letzterAuftrag['typ'] ?? '');
+    $status = (string)($letzterAuftrag['status'] ?? '');
+    if ($typ === 'haupt' && $status === 'laufend' && !empty($letzterAuftrag['auftragscode'])) {
+        $hatLaufenderHauptauftrag = true;
+    }
+}
+
+// Offline-Fallback fuer Nebenauftraege: Terminal merkt lokal, ob mindestens ein Nebenauftrag gestartet wurde.
+if ($hauptdbOk !== true) {
+    $cnt = $_SESSION['terminal_nebenauftrag_laufend_count'] ?? 0;
+    if (is_numeric($cnt) && (int)$cnt > 0) {
+        $hatLaufenderNebenauftrag = true;
+    }
+}
+
+	// Layout-Variante: Beim Login soll der Anmelde-Button den restlichen Platz nach unten fuellen.
+	$bodyKlasse = 'terminal-wide';
+	if (empty($mitarbeiter)) {
+		$bodyKlasse .= ' terminal-login';
+	}
+
+if ($zeigeArbeitszeitUebersichtSeite) {
+	$seitenTitel = 'Arbeitszeit-Übersicht – Terminal';
+	$seitenUeberschrift = 'Arbeitszeit-Übersicht';
+} else {
+	$seitenTitel = 'Terminal – Zeiterfassung';
+	$seitenUeberschrift = 'Terminal – Zeiterfassung';
+}
+require __DIR__ . '/_layout_top.php';
+?>
+
+<?php require __DIR__ . '/_statusbox.php'; ?>
+
+<?php if ($debugAktiv): ?>
+<?php
+    $debugZeilen = [];
+    $debugZeilen[] = 'Zeit: ' . (new DateTimeImmutable('now'))->format('Y-m-d H:i:s');
+    $debugZeilen[] = 'Aktion: ' . (string)($_GET['aktion'] ?? 'start');
+
+    $debugZeilen[] = 'Haupt-DB: ' . ($hauptdbOk === true ? 'OK' : ($hauptdbOk === false ? 'OFFLINE' : 'unbekannt'));
+
+    $qs = is_array($queueStatus) ? $queueStatus : [];
+    $debugZeilen[] = 'Queue-Speicherort: ' . (string)($qs['queue_speicherort'] ?? '');
+    $debugZeilen[] = 'Queue offen: ' . (string)($qs['offen'] ?? '');
+    $debugZeilen[] = 'Queue fehler: ' . (string)($qs['fehler'] ?? '');
+    if (isset($qs['letzter_fehler']) && is_array($qs['letzter_fehler']) && !empty($qs['letzter_fehler']['id'])) {
+        $debugZeilen[] = 'Letzter Queue-Fehler-ID: ' . (int)$qs['letzter_fehler']['id'];
+        if (!empty($qs['letzter_fehler']['letzte_ausfuehrung'])) {
+            $debugZeilen[] = 'Letzter Queue-Fehler-Zeit: ' . (string)$qs['letzter_fehler']['letzte_ausfuehrung'];
+        }
+    }
+
+    $debugZeilen[] = 'Session terminal_mitarbeiter_id: ' . (string)($_SESSION['terminal_mitarbeiter_id'] ?? '');
+    $debugZeilen[] = 'Session terminal_anwesend: ' . (string)($_SESSION['terminal_anwesend'] ?? '') . ' (seit: ' . (string)($_SESSION['terminal_anwesend_zeit'] ?? '') . ')';
+    $debugZeilen[] = 'Berechnet anwesend: ' . ($istAnwesend ? '1' : '0');
+    if ($kommenAnzahl !== null || $gehenAnzahl !== null) {
+        $debugZeilen[] = 'Zähler (heute): kommen=' . (string)($kommenAnzahl ?? '') . ', gehen=' . (string)($gehenAnzahl ?? '');
+    }
+    $debugZeilen[] = 'Heutige Buchungen: ' . (string)(is_array($heuteBuchungen) ? count($heuteBuchungen) : 0);
+    $debugZeilen[] = 'CSRF Token Länge: ' . (string)(is_string($csrfToken) ? strlen($csrfToken) : 0);
+    // Serverseitiges Idle-Timeout (Fallback aus public/terminal.php)
+    $idleTimeout = null;
+    if (isset($_SESSION['terminal_session_idle_timeout'])) {
+        $idleTimeout = (int)$_SESSION['terminal_session_idle_timeout'];
+    }
+    $lastActivity = $_SESSION['terminal_last_activity_ts'] ?? null;
+    $lastActivityTs = null;
+    if (is_int($lastActivity)) {
+        $lastActivityTs = $lastActivity;
+    } elseif (is_string($lastActivity) && ctype_digit($lastActivity)) {
+        $lastActivityTs = (int)$lastActivity;
+    }
+
+    if ($idleTimeout !== null && $idleTimeout > 0) {
+        $debugZeilen[] = 'Server Idle-Timeout: ' . (int)$idleTimeout . 's';
+    }
+    if ($lastActivityTs !== null) {
+        $debugZeilen[] = 'Letzte Aktivität (server): ' . date('Y-m-d H:i:s', $lastActivityTs);
+        if ($idleTimeout !== null && $idleTimeout > 0) {
+            $seit = max(time() - $lastActivityTs, 0);
+            $rest = max($idleTimeout - $seit, 0);
+            $debugZeilen[] = 'Idle: seit ' . (int)$seit . 's, verbleibend ' . (int)$rest . 's';
+        }
+    }
+?>
+<details class="status-box mt-05">
+    <summary class="status-title"><span>Debug (T-069)</span></summary>
+    <div class="status-small">
+        <pre id="terminal-debug-dump"><?php echo htmlspecialchars(implode("
+", $debugZeilen), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></pre>
+
+        <div class="button-row mt-035">
+            <button type="button" id="terminal-debug-copy" class="secondary">Debug-Info kopieren</button>
+        </div>
+        <div class="status-small" id="terminal-debug-copy-status" aria-live="polite"></div>
+
+        <div class="status-details-label mt-035">RFID WebSocket</div>
+        <div class="status-small" id="terminal-debug-ws-status" aria-live="polite">RFID WS: (warte auf Verbindung)</div>
+
+        <div class="status-details-label mt-035">T-069 Mini-Checkliste</div>
+        <div class="status-small">
+            <ul class="status-small">
+                <li>Login via RFID (nicht anwesend): nur „Kommen“ + „Urlaub Übersicht“ sichtbar.</li>
+                <li>Kommen: danach „Gehen“ + Auftrag/Nebenauftrag sichtbar; Übersicht (heute) aufklappbar.</li>
+                <li>Gehen: danach Logout/Startscreen; Auto-Logout/Idle prüfen.</li>
+            </ul>
+        </div>
+
+        <form method="post" action="terminal.php?aktion=start&amp;debug=1" class="login-form">
+            <label for="bugreport_id">Bug-ID (optional)</label>
+            <input type="text" id="bugreport_id" name="bugreport_id" autocomplete="off" placeholder="B-069x">
+
+            <label for="bugreport_text">Bug-Notiz (ins LOG)</label>
+            <textarea id="bugreport_text" name="bugreport_text" rows="4" placeholder="Kurze Beschreibung + Schritte (welcher Screen/Aktion)"></textarea>
+
+            <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($csrfToken, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>">
+
+            <div class="button-row">
+                <button type="submit" name="bugreport_submit" value="1">Bug-Notiz speichern</button>
+            </div>
+        </form>
+
+
+        <?php
+            $qr = $_SESSION['terminal_debug_queue_report'] ?? null;
+            if (!is_array($qr)) {
+                $qr = null;
+            }
+        ?>
+        <div class="status-details-label mt-035">Offline-Queue (manuell)</div>
+
+        <?php
+            // Kurzstatus (für Feldtest / Debug)
+            $qs = $_SESSION['terminal_queue_status'] ?? null;
+            $dbTxt = 'unbekannt';
+            $qTxt = 'unbekannt';
+            $qOffenTxt = '';
+            $qFehlerTxt = '';
+            $qOrtTxt = '';
+
+            if (is_array($qs)) {
+                if (array_key_exists('hauptdb_verfuegbar', $qs)) {
+                    $dbTxt = ($qs['hauptdb_verfuegbar'] === true) ? 'OK' : (($qs['hauptdb_verfuegbar'] === false) ? 'offline' : 'unbekannt');
+                }
+
+                $qv = null;
+                if (array_key_exists('queue_verfuegbar', $qs)) {
+                    $qv = $qs['queue_verfuegbar'];
+                } elseif (array_key_exists('offline_queue_verfuegbar', $qs)) {
+                    $qv = $qs['offline_queue_verfuegbar'];
+                }
+
+                if ($qv === true) {
+                    $qTxt = 'verfügbar';
+                } elseif ($qv === false) {
+                    $qTxt = 'nicht verfügbar';
+                }
+
+                if (isset($qs['queue_speicherort']) && is_string($qs['queue_speicherort']) && trim((string)$qs['queue_speicherort']) !== '') {
+                    $qOrtTxt = ' (' . trim((string)$qs['queue_speicherort']) . ')';
+                }
+
+                if (array_key_exists('offen', $qs) && $qs['offen'] !== null) {
+                    $qOffenTxt = ' · Offen: ' . (int)$qs['offen'];
+                }
+                if (array_key_exists('fehler', $qs) && $qs['fehler'] !== null) {
+                    $qFehlerTxt = ' · Fehler: ' . (int)$qs['fehler'];
+                }
+            }
+
+            $debugQueueStatusLine = 'Haupt-DB: ' . $dbTxt . ' · Queue: ' . $qTxt . $qOrtTxt . $qOffenTxt . $qFehlerTxt;
+        ?>
+
+        <div class="status-small"><?php echo htmlspecialchars($debugQueueStatusLine, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></div>
+
+        <details class="status-details mt-035">
+            <summary class="status-small"><strong>Feldtest-Checkliste (Offline-Queue)</strong></summary>
+            <div class="status-small">
+                <ol class="status-small">
+                    <li>Online stempeln (Kommen/Gehen).</li>
+                    <li>Haupt-DB offline machen (DB stoppen / Netzwerk blocken).</li>
+                    <li>Offline mehrfach stempeln (mind. 2 RFIDs, auch kurz hintereinander).</li>
+                    <li>Haupt-DB wieder online.</li>
+                    <li>Hier: „Queue jetzt verarbeiten“ drücken und Report prüfen.</li>
+                </ol>
+                <div class="status-small">Health JSON: <code>terminal.php?aktion=health</code> · Backend: <code>index.php?seite=queue_admin</code></div>
+            </div>
+        </details>
+        <?php if ($qr !== null): ?>
+            <?php
+                $zeit = isset($qr['zeit']) ? (string)$qr['zeit'] : '';
+                $bo = array_key_exists('before_offen', $qr) ? $qr['before_offen'] : null;
+                $bf = array_key_exists('before_fehler', $qr) ? $qr['before_fehler'] : null;
+                $ao = array_key_exists('after_offen', $qr) ? $qr['after_offen'] : null;
+                $af = array_key_exists('after_fehler', $qr) ? $qr['after_fehler'] : null;
+                $ms = array_key_exists('dauer_ms', $qr) ? $qr['dauer_ms'] : null;
+                $nf = array_key_exists('new_fehler', $qr) ? (int)$qr['new_fehler'] : 0;
+
+                $line = 'Letzter Replay: ' . $zeit;
+                if ($bo !== null && $ao !== null) {
+                    $line .= ' | Offen ' . (int)$bo . ' → ' . (int)$ao;
+                }
+                if ($bf !== null && $af !== null) {
+                    $line .= ' | Fehler ' . (int)$bf . ' → ' . (int)$af;
+                }
+                if ($nf > 0) {
+                    $line .= ' | neue Fehler ' . (int)$nf;
+                }
+                if ($ms !== null) {
+                    $line .= ' | ' . (int)$ms . 'ms';
+                }
+            ?>
+            <div class="status-small"><?php echo htmlspecialchars($line, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></div>
+        <?php else: ?>
+            <div class="status-small">Noch kein manueller Replay ausgefuehrt.</div>
+        <?php endif; ?>
+
+        <form method="post" action="terminal.php?aktion=start&amp;debug=1" class="login-form mt-035">
+            <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($csrfToken, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>">
+            <div class="button-row">
+                <button type="submit" name="debug_queue_verarbeiten" value="1" class="secondary">Queue jetzt verarbeiten</button>
+            </div>
+            <div class="status-small">Hinweis: Nur mit Recht <code>QUEUE_VERWALTEN</code> (sonst Fehlermeldung).</div>
+        </form>
+        <details class="status-details mt-035">
+            <summary class="status-small"><strong>Letzte Queue-Einträge (Top 10)</strong></summary>
+            <?php if (isset($debugQueueEintraege) && is_array($debugQueueEintraege) && count($debugQueueEintraege) > 0): ?>
+                <?php
+                    $qlines = [];
+                    foreach ($debugQueueEintraege as $qe) {
+                        $qlines[] = sprintf(
+                            '#%s %s v=%s erstellt=%s letzte=%s aktion=%s mid=%s tid=%s fehler=%s',
+                            (string)($qe['id'] ?? ''),
+                            (string)($qe['status'] ?? ''),
+                            (string)($qe['versuche'] ?? ''),
+                            (string)($qe['erstellt_am'] ?? ''),
+                            (string)($qe['letzte_ausfuehrung'] ?? ''),
+                            (string)($qe['meta_aktion'] ?? ''),
+                            (string)($qe['meta_mitarbeiter_id'] ?? ''),
+                            (string)($qe['meta_terminal_id'] ?? ''),
+                            (string)($qe['fehler_kurz'] ?? '')
+                        );
+                    }
+                ?>
+                <pre><?php echo htmlspecialchars(implode("\n", $qlines), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></pre>
+            <?php else: ?>
+                <div class="status-small">Keine Einträge gefunden (oder DB nicht erreichbar).</div>
+            <?php endif; ?>
+        </details>
+    </div>
+</details>
+<?php endif; ?>
+
+
+
+
+
+    <?php if (!empty($nachricht)):
+        // B-078: "Angemeldet als ..." soll nicht doppelt erscheinen.
+        // Login-Hinweis wird über die Mitarbeiter-Box abgedeckt.
+        $n = trim((string)$nachricht);
+        $unterdruecken = (!empty($mitarbeiter) && stripos($n, 'Angemeldet als') === 0);
+    ?>
+        <?php if (!$unterdruecken): ?>
+            <div class="meldung">
+                <?php echo htmlspecialchars($n, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>
+            </div>
+        <?php endif; ?>
+    <?php endif; ?>
+
+    <?php if (!empty($fehlerText)): ?>
+        <div class="fehler">
+            <?php echo htmlspecialchars($fehlerText, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>
+        </div>
+    <?php endif; ?>
+
+	<?php
+		$qsOffen  = isset($queueStatus) && is_array($queueStatus) ? (int)($queueStatus['offen'] ?? 0) : 0;
+		$qsFehler = isset($queueStatus) && is_array($queueStatus) ? (int)($queueStatus['fehler'] ?? 0) : 0;
+		$qsKurz   = isset($queueStatus) && is_array($queueStatus) ? (string)($queueStatus['letzter_fehler_kurz'] ?? '') : '';
+	?>
+	<?php if ($qsFehler > 0 || $qsOffen > 0): ?>
+		<div class="status-box <?php echo ($qsFehler > 0) ? 'error' : 'warn'; ?>">
+			<div class="status-title">
+				<span>Offline-Queue: <?php echo ($qsFehler > 0) ? 'FEHLER' : 'Offen'; ?></span>
+			</div>
+			<div class="status-small">
+				<?php if ($qsFehler > 0): ?>
+					Es gibt <strong><?php echo (int)$qsFehler; ?></strong> fehlerhafte Queue-Eintraege. Bitte Debug oeffnen / Admin informieren.
+					<?php if (trim($qsKurz) !== ''): ?>
+						<div class="status-small mt">Letzter Fehler: <?php echo htmlspecialchars(trim($qsKurz), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></div>
+					<?php endif; ?>
+				<?php else: ?>
+					Es gibt <strong><?php echo (int)$qsOffen; ?></strong> offene Queue-Eintraege. Sobald die Haupt-DB wieder erreichbar ist, werden diese nachgezogen.
+				<?php endif; ?>
+			</div>
+		</div>
+	<?php endif; ?>
+
+	<?php if (!empty($mitarbeiter) && $hauptdbOk === true && is_array($zeitWarnungen) && count($zeitWarnungen) > 0): ?>
+		<div class="status-box error">
+			<div class="status-title"><span>Achtung: Unvollständige Zeitstempel</span></div>
+			<div class="status-small">
+				Es gibt offene/unklare Kommen/Gehen-Buchungen. Bitte Personalbüro/Vorgesetzten informieren.
+				<div class="status-small mt">
+					<?php foreach ($zeitWarnungen as $w):
+						$wDatum = $fmtDatumDE((string)($w['datum'] ?? ''));
+						$wK = (int)($w['anzahl_kommen'] ?? 0);
+						$wG = (int)($w['anzahl_gehen'] ?? 0);
+					?>
+						<div><strong><?php echo htmlspecialchars($wDatum, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></strong>: kommen=<?php echo (int)$wK; ?>, gehen=<?php echo (int)$wG; ?></div>
+					<?php endforeach; ?>
+				</div>
+			</div>
+		</div>
+	<?php endif; ?>
+
+    <?php if (empty($mitarbeiter)): ?>
+        <?php if ($hauptdbOk === false): ?>
+            <?php
+                // Offline-Mode (Master-Prompt v9):
+                // Ohne Hauptdatenbank kein Login, aber Kommen/Gehen per RFID darf weiterhin angenommen werden.
+                $offlineRfid = '';
+                if (isset($_SESSION['terminal_offline_rfid_code']) && is_string($_SESSION['terminal_offline_rfid_code'])) {
+                    $offlineRfid = trim((string)$_SESSION['terminal_offline_rfid_code']);
+                }
+
+                // UX (Offline): Wenn vorhanden, zeigen wir einen Vorschlag an,
+                // basierend auf der letzten lokalen Offline-Buchung fuer diesen RFID.
+                $offlineHint = null;
+                if ($offlineRfid !== '' && isset($_SESSION['terminal_offline_rfid_hint']) && is_array($_SESSION['terminal_offline_rfid_hint'])) {
+                    $h = $_SESSION['terminal_offline_rfid_hint'];
+                    if (isset($h['rfid_code']) && is_string($h['rfid_code']) && trim((string)$h['rfid_code']) === $offlineRfid) {
+                        $offlineHint = $h;
+                    }
+                }
+            ?>
+
+            <div class="fehler">
+                Hauptdatenbank offline – Offline-Modus aktiv.
+                <div class="status-small" style="margin-top:6px;">
+                    Kommen/Gehen wird lokal gespeichert und später synchronisiert.
+                </div>
+            </div>
+
+            <p class="hinweis">
+                Bitte RFID-Chip an das Lesegerät halten.<br>
+                Danach „Kommen“ oder „Gehen“ auswählen.
+            </p>
+
+            <form method="post" action="terminal.php?aktion=start" class="login-form terminal-login-form">
+                <label for="rfid_code">RFID</label>
+                <input type="text" id="rfid_code" name="rfid_code" autocomplete="off" autofocus>
+
+                <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($csrfToken, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>">
+
+                <div class="button-row terminal-login-buttonrow">
+                    <button type="submit">Weiter</button>
+                </div>
+            </form>
+
+            <?php if ($offlineRfid !== ''): ?>
+                <div class="status-box" style="margin-top:16px;">
+                    <div class="status-title"><span>RFID erfasst</span></div>
+                    <div class="status-small">Code: <strong><?php echo htmlspecialchars($offlineRfid, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></strong></div>
+
+                    <?php
+                        $offlineVorschlag = '';
+                        $offlineLetzteTyp = '';
+                        $offlineLetzteZeit = '';
+
+                        if (is_array($offlineHint)) {
+                            if (isset($offlineHint['vorschlag_typ']) && is_string($offlineHint['vorschlag_typ'])) {
+                                $offlineVorschlag = trim((string)$offlineHint['vorschlag_typ']);
+                            }
+                            if (isset($offlineHint['letzte_typ']) && is_string($offlineHint['letzte_typ'])) {
+                                $offlineLetzteTyp = trim((string)$offlineHint['letzte_typ']);
+                            }
+                            if (isset($offlineHint['letzte_zeit']) && is_string($offlineHint['letzte_zeit'])) {
+                                $offlineLetzteZeit = trim((string)$offlineHint['letzte_zeit']);
+                            }
+                        }
+
+                        $labelTyp = static function (string $t): string {
+                            if ($t === 'kommen') return 'Kommen';
+                            if ($t === 'gehen') return 'Gehen';
+                            return $t;
+                        };
+
+                        $fmtZeitpunktDE = static function (string $dt): string {
+                            $dt = trim($dt);
+                            if ($dt === '') return '';
+                            try {
+                                return (new DateTimeImmutable($dt))->format('H:i:s d-m-Y');
+                            } catch (Throwable $e) {
+                                return $dt;
+                            }
+                        };
+
+                        $offlineKommenCls = '';
+                        $offlineGehenCls = '';
+                        if ($offlineVorschlag === 'kommen') {
+                            $offlineGehenCls = 'secondary';
+                        } elseif ($offlineVorschlag === 'gehen') {
+                            $offlineKommenCls = 'secondary';
+                        }
+                    ?>
+
+                    <?php if ($offlineVorschlag !== ''): ?>
+                        <div class="status-small" style="margin-top:6px;">
+                            Vorschlag: <strong><?php echo htmlspecialchars($labelTyp($offlineVorschlag), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></strong>
+                        </div>
+                    <?php endif; ?>
+
+                    <?php if ($offlineLetzteTyp !== '' || $offlineLetzteZeit !== ''): ?>
+                        <div class="status-small" style="margin-top:4px;">
+                            Letzte Offline-Buchung:
+                            <strong><?php echo htmlspecialchars($labelTyp($offlineLetzteTyp), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></strong>
+                            <?php if ($offlineLetzteZeit !== ''): ?>
+                                um <?php echo htmlspecialchars($fmtZeitpunktDE($offlineLetzteZeit), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>
+                            <?php endif; ?>
+                        </div>
+                    <?php endif; ?>
+                </div>
+
+                <form method="post" action="terminal.php?aktion=kommen" class="terminal-button-form" style="margin-top:18px;">
+                    <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($csrfToken, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>">
+                    <input type="hidden" name="rfid_code" value="<?php echo htmlspecialchars($offlineRfid, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>">
+                    <button type="submit" class="primary <?php echo htmlspecialchars($offlineKommenCls, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>">Kommen</button>
+                </form>
+
+                <form method="post" action="terminal.php?aktion=gehen" class="terminal-button-form" style="margin-top:12px;">
+                    <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($csrfToken, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>">
+                    <input type="hidden" name="rfid_code" value="<?php echo htmlspecialchars($offlineRfid, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>">
+                    <button type="submit" class="primary <?php echo htmlspecialchars($offlineGehenCls, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>">Gehen</button>
+                </form>
+            <?php endif; ?>
+        <?php else: ?>
+            <p class="hinweis">
+				Bitte RFID-Chip an das Lesegerät halten.<br>
+                Der RFID-Leser „tippt“ den Code meist automatisch in das Feld und bestätigt mit Enter.
+            </p>
+
+				<form method="post" action="terminal.php?aktion=start" class="login-form terminal-login-form">
+				<label for="rfid_code">RFID</label>
+                <input type="text" id="rfid_code" name="rfid_code" autocomplete="off" autofocus>
+
+                <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($csrfToken, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>">
+
+					<div class="button-row terminal-login-buttonrow">
+                    <button type="submit">Anmelden</button>
+                </div>
+            </form>
+        <?php endif; ?>
+    <?php else: ?>
+        <?php
+            $mitarbeiterName = '';
+            $mitarbeiterId = 0;
+            if (is_array($mitarbeiter)) {
+                $mitarbeiterName = trim((string)($mitarbeiter['vorname'] ?? '') . ' ' . (string)($mitarbeiter['nachname'] ?? ''));
+                $mitarbeiterId = (int)($mitarbeiter['id'] ?? 0);
+            }
+        ?>
+
+        <?php if ($zeigeArbeitszeitUebersichtSeite): ?>
+            <div class="status-box">
+                <div class="status-title"><span>Arbeitszeit-Übersicht</span></div>
+                <div class="status-small">
+                    Mitarbeiter:
+                    <strong><?php echo htmlspecialchars($mitarbeiterName, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></strong>
+                    (ID: <?php echo (int)$mitarbeiterId; ?>)
+                </div>
+
+                <?php if ($hauptdbOk !== true): ?>
+                    <div class="status-small mt-05"><strong>Nur im Online-Modus verfügbar.</strong></div>
+                <?php elseif (isset($monatsStatus) && is_array($monatsStatus)): ?>
+                    <div class="status-small mt-05">Soll-Stunden (Monat gesamt): <strong><?php echo htmlspecialchars((string)($monatsStatus['soll_monat_gesamt'] ?? '0.00'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?> h</strong></div>
+                    <div class="status-small">Soll-Stunden (bis heute): <strong><?php echo htmlspecialchars((string)($monatsStatus['soll_bis_heute'] ?? '0.00'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?> h</strong></div>
+                    <div class="status-small">Ist-Stunden (bis heute): <strong><?php echo htmlspecialchars((string)($monatsStatus['ist_bisher'] ?? '0.00'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?> h</strong></div>
+
+                    <?php if (!empty($stundenkontoSaldoFehler)): ?>
+                        <div class="status-small mt-025"><strong><?php echo htmlspecialchars((string)$stundenkontoSaldoFehler, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></strong></div>
+                    <?php elseif (is_array($stundenkontoSaldo) && isset($stundenkontoSaldo['saldo_stunden_bis_vormonat'])): ?>
+                        <div class="status-small mt-025">Gutstunden/Minusstunden (Stand bis Vormonat): <strong><?php echo htmlspecialchars((string)($stundenkontoSaldo['saldo_stunden_bis_vormonat'] ?? '0.00'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?> h</strong></div>
+                    <?php endif; ?>
+                <?php else: ?>
+                    <div class="status-small mt-05">Daten aktuell nicht verfügbar. Bitte Seite neu laden.</div>
+                <?php endif; ?>
+            </div>
+
+            <div class="button-row">
+                <a href="terminal.php?aktion=start" class="button-link secondary terminal-primary-action">Zurück</a>
+            </div>
+
+            <?php require __DIR__ . '/_layout_bottom.php'; return; ?>
+        <?php endif; ?>
+
+        <details class="status-box terminal-mitarbeiterpanel">
+            <summary class="status-title">
+                <a href="terminal.php?aktion=start&amp;view=arbeitszeit" style="display:flex; justify-content:space-between; width:100%; color:inherit; text-decoration:none;">
+                    <span>
+                        Mitarbeiter:
+                        <strong><?php echo htmlspecialchars($mitarbeiterName, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></strong>
+                        (ID: <?php echo (int)$mitarbeiterId; ?>)
+                    </span>
+                    <span class="status-small">Arbeitszeit</span>
+                </a>
+            </summary>
+        </details>
+
+
+        <?php if ($zeigeUrlaubUebersicht): ?>
+            <p class="hinweis">
+                <strong>Urlaub Übersicht</strong><br>
+                Überblick über Urlaubssaldo, Anträge und Betriebsferien.
+            </p>
+
+            <?php if ($hauptdbOk !== true): ?>
+                <div class="status-box">
+                    <div class="status-title"><span>Hinweis</span></div>
+                    <div class="status-small"><strong>Nur im Online-Modus verfügbar.</strong></div>
+                </div>
+            <?php elseif (!empty($urlaubSaldoFehler)): ?>
+                <div class="status-box">
+                    <div class="status-title"><span>Urlaub</span></div>
+                    <div class="status-small"><strong><?php echo htmlspecialchars((string)$urlaubSaldoFehler, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></strong></div>
+                </div>
+            <?php elseif (is_array($urlaubSaldo)): ?>
+                <div class="status-box">
+                    <div class="status-title"><span>Urlaubssaldo</span></div>
+                    <div class="status-small">
+                        Verfügbar gesamt: <strong><?php echo htmlspecialchars($fmtTage($urlaubSaldo['verbleibend'] ?? 0), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></strong>
+                        &nbsp;|&nbsp; Genehmigt: <strong><?php echo htmlspecialchars($fmtTage($urlaubSaldo['genommen'] ?? 0), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></strong>
+                        &nbsp;|&nbsp; Offen: <strong><?php echo htmlspecialchars($fmtTage($urlaubSaldo['beantragt'] ?? 0), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></strong>
+                    </div>
+                    <div class="status-small mt-025">
+						<?php
+							$anspruchBasis = (float)($urlaubSaldo['anspruch'] ?? 0);
+							$korrekturTage = (float)($urlaubSaldo['korrektur'] ?? 0);
+							$anspruchEffektiv = $anspruchBasis + $korrekturTage;
+						?>
+						Jahresanspruch (<?php echo (int)$urlaubJahr; ?>): <strong><?php echo htmlspecialchars($fmtTage($anspruchBasis), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></strong>
+						&nbsp;|&nbsp; Übertrag (<?php echo (int)($urlaubJahr - 1); ?>): <strong><?php echo htmlspecialchars($fmtTage($urlaubSaldo['uebertrag'] ?? 0), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></strong>
+						<?php if (abs($korrekturTage) > 0.0001): ?>
+							&nbsp;|&nbsp; Korrektur: <strong><?php echo htmlspecialchars($fmtTage($korrekturTage), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></strong>
+							&nbsp;|&nbsp; Effektiv: <strong><?php echo htmlspecialchars($fmtTage($anspruchEffektiv), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></strong>
+						<?php endif; ?>
+                    </div>
+                    <?php if (!empty($urlaubSaldo['hinweis'])): ?>
+                        <div class="status-small mt-025">
+                            <?php echo htmlspecialchars((string)$urlaubSaldo['hinweis'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>
+                        </div>
+                    <?php endif; ?>
+                </div>
+            <?php else: ?>
+                <div class="status-box">
+                    <div class="status-title"><span>Urlaub</span></div>
+                    <div class="status-small">Urlaub: Daten aktuell nicht verfügbar. Bitte Seite neu laden.</div>
+                </div>
+            <?php endif; ?>
+
+            <?php if ($hauptdbOk === true && !empty($betriebsferienListe)): ?>
+                <div class="status-box">
+                    <div class="status-title"><span>Betriebsferien</span></div>
+                    <?php foreach ($betriebsferienListe as $bf): ?>
+                        <?php
+                            $bfVon = isset($bf['von_datum']) ? (string)$bf['von_datum'] : '';
+                            $bfBis = isset($bf['bis_datum']) ? (string)$bf['bis_datum'] : '';
+                            $bfText = isset($bf['beschreibung']) ? trim((string)$bf['beschreibung']) : '';
+                            $bfTage = null;
+                            if (isset($bf['benoetigte_tage']) && is_numeric($bf['benoetigte_tage'])) {
+                                $bfTage = (float)$bf['benoetigte_tage'];
+                            }
+
+                        ?>
+                        <div class="status-small mt-025">
+                            <strong><?php echo htmlspecialchars($fmtDatum($bfVon), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></strong>
+                            bis
+                            <strong><?php echo htmlspecialchars($fmtDatum($bfBis), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></strong>
+                            <?php if ($bfText !== ''): ?>
+                                &nbsp;–&nbsp;<?php echo htmlspecialchars($bfText, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>
+                            <?php endif; ?>
+                            <?php if ($bfTage !== null && $bfTage > 0.0001): ?>
+                                &nbsp;|&nbsp;benötigte Urlaubstage: <strong><?php echo htmlspecialchars($fmtTage($bfTage), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></strong>
+                            <?php endif; ?>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+            <?php endif; ?>
+
+            <?php
+                $urlaubListeOpen = true;
+                $urlaubListeTitel = 'Meine Urlaubsanträge (letzte 12)';
+                require __DIR__ . '/_urlaub_antraege_liste.php';
+            ?>
+
+            <div class="button-row">
+                <a href="terminal.php?aktion=urlaub_beantragen&amp;modus=antrag" class="button-link terminal-primary-action">Urlaub beantragen</a>
+                <a href="terminal.php?aktion=start" class="button-link secondary terminal-primary-action">Zurück</a>
+            </div>
+        <?php elseif ($zeigeUrlaubFormular): ?>
+            <p class="hinweis">
+                <strong>Urlaub beantragen</strong><br>
+                Datum wählen, optional Kommentar hinzufügen.
+            </p>
+
+            <form method="post" action="terminal.php?aktion=urlaub_beantragen" class="login-form">
+                <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($csrfToken, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>">
+                <label for="von_datum">Von</label>
+                <input type="date" id="von_datum" name="von_datum" value="<?php echo htmlspecialchars((string)($urlaubFormular['von_datum'] ?? ''), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>" required autofocus>
+
+                <label for="bis_datum">Bis</label>
+                <input type="date" id="bis_datum" name="bis_datum" value="<?php echo htmlspecialchars((string)($urlaubFormular['bis_datum'] ?? ''), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>" required>
+
+                <label for="kommentar_mitarbeiter">Kommentar (optional)</label>
+                <textarea id="kommentar_mitarbeiter" name="kommentar_mitarbeiter"><?php echo htmlspecialchars((string)($urlaubFormular['kommentar_mitarbeiter'] ?? ''), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></textarea>
+
+                <div class="button-row">
+                    <button type="submit" class="terminal-primary-action">Antrag speichern</button>
+                    <a href="terminal.php?aktion=urlaub_beantragen" class="button-link secondary terminal-primary-action">Abbrechen</a>
+                </div>
+            </form>
+        <?php elseif ($zeigeRfidZuweisenFormular): ?>
+            <p class="hinweis">
+                <strong>RFID-Chip zu Mitarbeiter zuweisen</strong><br>
+                Mitarbeiter auswählen und RFID-Chip an das Lesegerät halten.
+            </p>
+
+            <form method="post" action="terminal.php?aktion=rfid_zuweisen" class="login-form">
+                <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($csrfToken, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>">
+
+                <label for="ziel_mitarbeiter_id">Mitarbeiter</label>
+                <select id="ziel_mitarbeiter_id" name="ziel_mitarbeiter_id" required>
+                    <option value="">Bitte wählen...</option>
+                    <?php foreach ($rfidZuweisenMitarbeiterListe as $m): ?>
+                        <?php
+                            $mid = (int)($m['id'] ?? 0);
+                            $pn = (string)($m['personalnummer'] ?? '');
+                            $label = trim((string)($m['nachname'] ?? '')) . ', ' . trim((string)($m['vorname'] ?? ''));
+                            if ($pn !== '') {
+                                $label .= ' (PN: ' . $pn . ')';
+                            }
+                            $selected = ((string)$mid !== '' && (string)$mid === (string)($rfidZuweisenFormular['ziel_mitarbeiter_id'] ?? '')) ? 'selected' : '';
+                        ?>
+                        <option value="<?php echo htmlspecialchars((string)$mid, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>" <?php echo $selected; ?>>
+                            <?php echo htmlspecialchars($label, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
+
+                <label for="rfid_code">RFID-Code</label>
+                <input type="text" id="rfid_code" name="rfid_code" value="<?php echo htmlspecialchars((string)($rfidZuweisenFormular['rfid_code'] ?? ''), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>" required autofocus>
+
+                <div class="button-row">
+                    <button type="submit" class="terminal-primary-action">Speichern</button>
+                    <a href="terminal.php?aktion=start" class="button-link secondary terminal-primary-action">Abbrechen</a>
+                </div>
+
+                <p class="status-small mt-05">
+                    Hinweis: Diese Funktion ist nur im Online-Modus verfügbar und wird im System-Log protokolliert.
+                </p>
+            </form>
+        <?php elseif ($zeigeNebenauftragStartFormular): ?>
+            <p class="hinweis">
+                <strong>Nebenauftrag starten</strong><br>
+                Bitte erst den Auftragscode scannen oder eingeben und danach den Arbeitsschritt-Code.
+                (Maschine ist optional.) Ein Nebenauftrag läuft parallel zum Hauptauftrag.
+            </p>
+
+            <form method="post" action="terminal.php?aktion=nebenauftrag_starten" class="login-form">
+                <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($csrfToken, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>">
+
+                <label for="neben_auftragscode">Auftragscode</label>
+                <input type="text" id="neben_auftragscode" name="auftragscode" value="<?php echo htmlspecialchars((string)($nebenauftragFormular['auftragscode'] ?? ''), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>" required autofocus>
+
+                <label for="neben_arbeitsschritt_code">Arbeitsschritt-Code</label>
+                <input type="text" id="neben_arbeitsschritt_code" name="arbeitsschritt_code" value="<?php echo htmlspecialchars((string)($nebenauftragFormular['arbeitsschritt_code'] ?? ''), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>" autocomplete="off" required>
+
+                <label for="neben_maschine_id">Maschine (optional)</label>
+                <input type="text" id="neben_maschine_id" name="maschine_id" value="<?php echo htmlspecialchars((string)($nebenauftragFormular['maschine_id'] ?? ''), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>" inputmode="numeric" autocomplete="off" placeholder="z.B. 12">
+
+                <div class="button-row">
+                    <button type="submit" class="terminal-primary-action">Nebenauftrag starten</button>
+                    <a href="terminal.php?aktion=start" class="button-link secondary terminal-primary-action">Abbrechen</a>
+                </div>
+            </form>
+
+            <script>
+            (function () {
+              const auftrag = document.getElementById('neben_auftragscode');
+              const schritt = document.getElementById('neben_arbeitsschritt_code');
+              const maschine = document.getElementById('neben_maschine_id');
+
+              // Barcode-Scanner senden meistens ein "Enter" nach dem Scan.
+              // Wir springen dann bequem ins naechste Feld.
+              if (auftrag && schritt) {
+                auftrag.addEventListener('keydown', (ev) => {
+                  if (ev.key === 'Enter') {
+                    ev.preventDefault();
+                    schritt.focus();
+                    schritt.select?.();
+                  }
+                });
+              }
+
+              if (schritt && maschine) {
+                schritt.addEventListener('keydown', (ev) => {
+                  if (ev.key === 'Enter') {
+                    ev.preventDefault();
+                    maschine.focus();
+                    maschine.select?.();
+                  }
+                });
+              }
+
+              if (maschine) {
+                maschine.addEventListener('keydown', (ev) => {
+                  if (ev.key === 'Enter') {
+                    // Maschine ist optional: Enter startet/submit.
+                    ev.preventDefault();
+                    const form = maschine.closest('form');
+                    if (form) {
+                      form.submit();
+                    }
+                  }
+                });
+              }
+            })();
+            </script>
+
+        <?php elseif ($zeigeNebenauftragStopFormular): ?>
+            <p class="hinweis">
+                <strong>Nebenauftrag stoppen</strong><br>
+                Nebenauftrag auswählen oder Auftragscode scannen.
+            </p>
+
+            <?php if ($nebenauftragStopOfflineModus): ?>
+                <div class="status-small mt-05">
+                    Hauptdatenbank offline – Nebenauftrag kann nur per Auftragscode gestoppt werden.
+                </div>
+
+                <form method="post" action="terminal.php?aktion=nebenauftrag_stoppen" class="login-form">
+                    <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($csrfToken, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>">
+
+                    <label for="auftragscode">Auftragscode</label>
+                    <input type="text" id="auftragscode" name="auftragscode" value="" placeholder="Scan" autocomplete="off" required autofocus>
+
+                    <div class="button-row">
+                        <button type="submit" class="terminal-primary-action">Nebenauftrag stoppen</button>
+                        <a href="terminal.php?aktion=start" class="button-link secondary terminal-primary-action">Abbrechen</a>
+                    </div>
+                </form>
+
+            <?php elseif (empty($laufendeNebenauftraege)): ?>
+                <div class="status-small mt-05">
+                    Es läuft aktuell kein Nebenauftrag.
+                </div>
+                <div class="button-row">
+                    <a href="terminal.php?aktion=start" class="button-link secondary terminal-primary-action">Zurück</a>
+                </div>
+            <?php else: ?>
+                <form method="post" action="terminal.php?aktion=nebenauftrag_stoppen" class="login-form">
+                    <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($csrfToken, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>">
+
+                    <label for="auftragszeit_id">Laufender Nebenauftrag</label>
+                    <select id="auftragszeit_id" name="auftragszeit_id" autofocus>
+                        <?php foreach ($laufendeNebenauftraege as $na): ?>
+                            <?php
+                                $naId = isset($na['id']) ? (int)$na['id'] : 0;
+                                $naCode = isset($na['auftragscode']) ? (string)$na['auftragscode'] : '';
+                                $naStart = isset($na['startzeit']) ? (string)$na['startzeit'] : '';
+                                $naStartFmt = $naStart;
+                                try {
+                                    if ($naStart !== '') { $naStartFmt = (new DateTimeImmutable($naStart))->format('d.m.Y H:i'); }
+                                } catch (Throwable $e) {
+                                    $naStartFmt = $naStart;
+                                }
+                                $naLabel = '#' . $naId . ' – ' . $naCode . ' (Start: ' . $naStartFmt . ')';
+                            ?>
+                            <option value="<?php echo (int)$naId; ?>"><?php echo htmlspecialchars($naLabel, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></option>
+                        <?php endforeach; ?>
+                    </select>
+
+                    <label for="auftragscode">Auftragscode (optional)</label>
+                    <input type="text" id="auftragscode" name="auftragscode" value="" placeholder="Scan" autocomplete="off">
+
+                    <div class="button-row">
+                        <button type="submit" class="terminal-primary-action">Nebenauftrag stoppen</button>
+                        <a href="terminal.php?aktion=start" class="button-link secondary terminal-primary-action">Abbrechen</a>
+                    </div>
+                </form>
+            <?php endif; ?>
+
+        <?php else: ?>
+            <?php if (!$istAnwesend): ?>
+                <p class="hinweis">
+                    Du bist aktuell <strong>nicht als anwesend</strong> erfasst. Bitte zuerst <strong>"Kommen"</strong> buchen.
+                    <br>(Urlaub kann auch ohne Kommen beantragt werden.)
+                </p>
+
+				<div class="button-row primary-action">
+                    <form method="post" action="terminal.php?aktion=kommen">
+                        <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($csrfToken, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>">
+						<button type="submit" class="terminal-primary-action">Kommen</button>
+                    </form>
+				</div>
+
+				<div class="button-row">
+                    <?php if ($hauptdbOk === true): ?>
+                        <a href="terminal.php?aktion=urlaub_beantragen" class="button-link">Urlaub Übersicht</a>
+                    <?php else: ?>
+                        <span class="button-link disabled">Urlaub Übersicht</span>
+                    <?php endif; ?>
+                </div>
+
+                <?php if ($darfRfidZuweisen): ?>
+				<div class="button-row">
+                    <?php if ($hauptdbOk === true): ?>
+                        <a href="terminal.php?aktion=rfid_zuweisen" class="button-link secondary">RFID-Chip zu Mitarbeiter zuweisen</a>
+                    <?php else: ?>
+                        <span class="button-link disabled">RFID-Chip zu Mitarbeiter zuweisen</span>
+                    <?php endif; ?>
+                </div>
+                <?php endif; ?>
+
+            <?php else: ?>
+                <p class="hinweis">
+                    Bitte gewünschte Aktion wählen. Kommen/Gehen bucht unmittelbar eine Zeit, die Auftragsfunktionen arbeiten mit laufenden Aufträgen.
+                </p>
+
+				<div class="button-row primary-action">
+                    <form method="post" action="terminal.php?aktion=gehen">
+                        <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($csrfToken, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>">
+						<button type="submit" class="secondary terminal-primary-action">Gehen</button>
+                    </form>
+                </div>
+
+	                <?php if (!$hatLaufenderHauptauftrag): ?>
+	                    <div class="button-row primary-action">
+	                        <a href="terminal.php?aktion=auftrag_starten" class="button-link terminal-primary-action">Auftrag starten</a>
+	                    </div>
+	                <?php else: ?>
+	                    <div class="button-row primary-action">
+                        <form method="post" action="terminal.php?aktion=auftrag_stoppen_quick">
+                            <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($csrfToken, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>">
+                            <button type="submit" class="secondary terminal-primary-action">Auftrag stoppen</button>
+                        </form>
+	                    </div>
+	                <?php endif; ?>
+
+                <?php if ($hatLaufenderHauptauftrag || $hatLaufenderNebenauftrag): ?>
+                    <div class="button-row">
+                        <?php if ($hatLaufenderHauptauftrag): ?>
+                            <a href="terminal.php?aktion=nebenauftrag_starten" class="button-link">Nebenauftrag starten</a>
+                        <?php endif; ?>
+
+                        <?php if ($hatLaufenderNebenauftrag): ?>
+                            <a href="terminal.php?aktion=nebenauftrag_stoppen" class="button-link secondary">Nebenauftrag stoppen</a>
+                        <?php endif; ?>
+                    </div>
+                <?php endif; ?>
+
+                <?php if ($darfRfidZuweisen): ?>
+                    <div class="button-row">
+                        <?php if ($hauptdbOk === true): ?>
+                            <a href="terminal.php?aktion=urlaub_beantragen" class="button-link">Urlaub Übersicht</a>
+                            <a href="terminal.php?aktion=rfid_zuweisen" class="button-link secondary">RFID-Chip zu Mitarbeiter zuweisen</a>
+                        <?php else: ?>
+                            <a href="#" class="button-link disabled">Urlaub Übersicht</a>
+                            <a href="#" class="button-link secondary disabled">RFID-Chip zu Mitarbeiter zuweisen</a>
+                        <?php endif; ?>
+                    </div>
+                <?php else: ?>
+                    <div class="button-row">
+                        <?php if ($hauptdbOk === true): ?>
+                            <a href="terminal.php?aktion=urlaub_beantragen" class="button-link">Urlaub Übersicht</a>
+                        <?php else: ?>
+                            <a href="#" class="button-link disabled">Urlaub Übersicht</a>
+                        <?php endif; ?>
+                    </div>
+                <?php endif; ?>
+            <?php endif; ?>
+
+            <?php
+            // Logout-Form als hidden einbinden, Button bleibt im Layout wie bisher (T-046).
+            $logoutFormHidden = true;
+            require __DIR__ . '/_logout_form.php';
+        ?>
+        <div class="button-row primary-action">
+            <button type="submit" form="logout-form" class="secondary terminal-primary-action">Abbrechen</button>
+        </div>
+
+<?php if ($istAnwesend): ?>
+
+            <details id="uebersicht_details" class="status-box terminal-uebersichtheute mt-1">
+            <summary class="status-title"><span>Übersicht (heute)</span></summary>
+            <?php if ($hauptdbOk !== true): ?>
+                <div class="status-small mt-05">
+                    <strong>Hauptdatenbank offline – Übersicht ist nur online verfügbar.</strong>
+                </div>
+
+                <div class="status-small mt-05">
+                    Datum: <strong><?php echo htmlspecialchars((string)($heuteDatum ?? ''), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></strong>
+                </div>
+
+                <?php if (is_array($letzterAuftrag) && (($letzterAuftrag['status'] ?? '') === 'laufend') && !empty($letzterAuftrag['auftragscode'])): ?>
+                    <div class="status-small mt-035">Letzter Auftrag (lokal): <strong><?php echo htmlspecialchars((string)$letzterAuftrag['auftragscode'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></strong></div>
+                <?php endif; ?>
+            <?php else: ?>
+
+            <?php if (!empty($heuteFehler)): ?>
+                <div class="status-small mt-05">
+                    <strong><?php echo htmlspecialchars((string)$heuteFehler, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></strong>
+                </div>
+            <?php endif; ?>
+
+            <?php if (isset($monatsStatus) && is_array($monatsStatus) && isset($monatsStatus['ist_bisher'])): ?>
+                <div class="status-small mt-05"><strong>Monatsstatus (<?php echo htmlspecialchars(sprintf('%02d/%04d', (int)$monatsStatus['monat'], (int)$monatsStatus['jahr']), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>)</strong></div>
+		        <?php if (isset($monatsStatus['rest_bis_monatsende'])): ?>
+		            <div class="status-small">Noch zu arbeiten bis Monatsende: <strong><?php echo htmlspecialchars((string)$monatsStatus['rest_bis_monatsende'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?> h</strong></div>
+		        <?php endif; ?>
+                <?php if (isset($monatsStatus['soll_bis_heute'])): ?>
+                    <div class="status-small">Arbeitsstunden in diesem Monat bis heute: <strong><?php echo htmlspecialchars((string)$monatsStatus['soll_bis_heute'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?> h</strong></div>
+                <?php endif; ?>
+                <div class="status-small">Geleistete Arbeitsstunden bis heute: <strong><?php echo htmlspecialchars((string)$monatsStatus['ist_bisher'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?> h</strong></div>
+            <?php if (isset($monatsStatus['saldo_bis_heute'], $monatsStatus['saldo_label'], $monatsStatus['saldo_ampel'])): ?>
+                    <?php
+                        $saldoAmpel = ((string)($monatsStatus['saldo_ampel'] ?? '')) === 'ok' ? 'ok' : 'error';
+                        $saldoFarbe = $saldoAmpel === 'ok' ? '#2e7d32' : '#c62828';
+                    ?>
+                    <div class="status-small">Saldo (bis heute): <strong style="color: <?php echo $saldoFarbe; ?>;"><?php echo htmlspecialchars((string)$monatsStatus['saldo_bis_heute'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?> h</strong> <span style="opacity:0.9">(<?php echo htmlspecialchars((string)$monatsStatus['saldo_label'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>)</span></div>
+                <?php endif; ?>
+
+            <?php endif; ?>
+
+            <div class="status-small mt-05">
+                Datum: <strong><?php echo htmlspecialchars((string)($heuteDatum ?? ''), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></strong>
+            </div>
+
+            <div class="status-small mt-05"><strong>Heutige Buchungen</strong></div>
+            <?php if (empty($heuteBuchungen)): ?>
+                <div class="status-small">Keine Buchungen vorhanden.</div>
+            <?php else: ?>
+                <pre><?php
+                    foreach ($heuteBuchungen as $row) {
+                        $typ = isset($row['typ']) ? (string)$row['typ'] : '';
+                        $ts  = isset($row['zeitstempel']) ? (string)$row['zeitstempel'] : '';
+                        $zeit = '';
+                        if ($ts !== '') {
+                            try {
+                                $zeit = (new DateTimeImmutable($ts))->format('H:i:s');
+                            } catch (Throwable $e) {
+                                $zeit = $ts;
+                            }
+                        }
+
+                        $quelle = isset($row['quelle']) ? (string)$row['quelle'] : '';
+                        $terminalBez = isset($row['terminal_bezeichnung']) ? (string)$row['terminal_bezeichnung'] : '';
+
+                        $line = sprintf('%s  %-6s  (%s%s)', $zeit, $typ, $quelle, $terminalBez !== '' ? ', ' . $terminalBez : '');
+                        echo htmlspecialchars(trim($line), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') . "\n";
+                    }
+                ?></pre>
+            <?php endif; ?>
+
+            <div class="status-small mt-075"><strong>Laufende Aufträge</strong></div>
+            <?php if (empty($laufendeAuftraege)): ?>
+                <div class="status-small">Keine laufenden Aufträge.</div>
+                <?php if (is_array($letzterAuftrag) && (($letzterAuftrag['status'] ?? '') === 'laufend') && !empty($letzterAuftrag['auftragscode'])): ?>
+                    <div class="status-small mt-035">Letzter Auftrag (lokal): <strong><?php echo htmlspecialchars((string)$letzterAuftrag['auftragscode'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></strong></div>
+                <?php endif; ?>
+            <?php else: ?>
+                <pre><?php
+                    foreach ($laufendeAuftraege as $row) {
+                        $start = isset($row['startzeit']) ? (string)$row['startzeit'] : '';
+                        $startZeit = $start;
+                        if ($start !== '') {
+                            try {
+                                $startZeit = (new DateTimeImmutable($start))->format('H:i');
+                            } catch (Throwable $e) {
+                                $startZeit = $start;
+                            }
+                        }
+
+                        $code = isset($row['auftragscode']) ? (string)$row['auftragscode'] : '';
+                        $typ  = isset($row['typ']) ? (string)$row['typ'] : '';
+                        $maschine = isset($row['maschine_id']) && $row['maschine_id'] !== null ? 'M' . (int)$row['maschine_id'] : '';
+
+                        $line = trim(sprintf('%s  %s  %s %s', $startZeit, $code, $typ, $maschine));
+                        echo htmlspecialchars($line, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') . "\n";
+                    }
+                ?></pre>
+            <?php endif; ?>
+        <?php endif; ?>
+            </details>
+            <?php endif; ?>
+
+
+        
+
+
+    <?php endif; ?>
+<?php endif; ?>
+
+<?php require __DIR__ . '/_layout_bottom.php'; ?>
