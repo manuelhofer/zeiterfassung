@@ -783,6 +783,7 @@ $ueberschrift = $id === null ? 'Neuen Mitarbeiter anlegen' : 'Mitarbeiter bearbe
     $stundenkontoSaldoAktuellText = $stundenkontoSaldoAktuellText ?? null;
     $stundenkontoLetzteKorrekturen = $stundenkontoLetzteKorrekturen ?? [];
     $stundenkontoLetzteBatches = $stundenkontoLetzteBatches ?? [];
+    $stundenkontoStealthMode = $stundenkontoStealthMode ?? false;
 
     $fmtMin = static function (int $minuten): string {
         $sign = $minuten < 0 ? '-' : '+';
@@ -801,6 +802,8 @@ $ueberschrift = $id === null ? 'Neuen Mitarbeiter anlegen' : 'Mitarbeiter bearbe
             <strong>Saldo Stand heute:</strong>
             <?php echo htmlspecialchars($stundenkontoSaldoAktuellText ?? '—', ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>
         </p>
+
+        <h4>Letzte Verteilbuchungen / manuelle Korrekturbuchungen</h4>
 
         <?php if (is_array($stundenkontoLetzteKorrekturen) && count($stundenkontoLetzteKorrekturen) > 0): ?>
             <table>
@@ -843,7 +846,7 @@ $ueberschrift = $id === null ? 'Neuen Mitarbeiter anlegen' : 'Mitarbeiter bearbe
             <p><small>Noch keine Stundenkonto-Korrekturen vorhanden.</small></p>
         <?php endif; ?>
 
-        <h4>Letzte Verteilbuchungen</h4>
+        <h4>Letzte Verteilbuchungen (Batch)</h4>
 
         <?php if (is_array($stundenkontoLetzteBatches) && count($stundenkontoLetzteBatches) > 0): ?>
             <table>
@@ -920,6 +923,9 @@ $ueberschrift = $id === null ? 'Neuen Mitarbeiter anlegen' : 'Mitarbeiter bearbe
             <form method="post" action="?seite=mitarbeiter_admin_speichern">
                 <input type="hidden" name="stundenkonto_only" value="1">
                 <input type="hidden" name="id" value="<?php echo (int)$id; ?>">
+                <?php if ($stundenkontoStealthMode): ?>
+                    <input type="hidden" name="stundenkonto_stealth" value="1">
+                <?php endif; ?>
 
                 <div>
                     <label>
@@ -951,6 +957,9 @@ $ueberschrift = $id === null ? 'Neuen Mitarbeiter anlegen' : 'Mitarbeiter bearbe
             <form method="post" action="?seite=mitarbeiter_admin_speichern">
                 <input type="hidden" name="stundenkonto_batch_only" value="1">
                 <input type="hidden" name="id" value="<?php echo (int)$id; ?>">
+                <?php if ($stundenkontoStealthMode): ?>
+                    <input type="hidden" name="stundenkonto_stealth" value="1">
+                <?php endif; ?>
 
                 <div>
                     <label>

@@ -707,6 +707,7 @@ CREATE TABLE `stundenkonto_batch` (
   `nur_arbeitstage` tinyint(1) NOT NULL DEFAULT 1,
   `begruendung` varchar(255) NOT NULL,
   `erstellt_von_mitarbeiter_id` int(10) UNSIGNED DEFAULT NULL,
+  `stealth` tinyint(1) NOT NULL DEFAULT 0,
   `erstellt_am` datetime NOT NULL DEFAULT current_timestamp(),
   `geaendert_am` datetime NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -726,6 +727,7 @@ CREATE TABLE `stundenkonto_korrektur` (
   `batch_id` int(10) UNSIGNED DEFAULT NULL,
   `begruendung` varchar(255) NOT NULL,
   `erstellt_von_mitarbeiter_id` int(10) UNSIGNED DEFAULT NULL,
+  `stealth` tinyint(1) NOT NULL DEFAULT 0,
   `erstellt_am` datetime NOT NULL DEFAULT current_timestamp(),
   `geaendert_am` datetime NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -734,8 +736,8 @@ CREATE TABLE `stundenkonto_korrektur` (
 -- Daten für Tabelle `stundenkonto_korrektur`
 --
 
-INSERT INTO `stundenkonto_korrektur` (`id`, `mitarbeiter_id`, `wirksam_datum`, `delta_minuten`, `typ`, `batch_id`, `begruendung`, `erstellt_von_mitarbeiter_id`, `erstellt_am`, `geaendert_am`) VALUES
-(1, 2, '2025-12-31', -9405, 'manuell', NULL, 'Monatsabschluss 2025-12', 2, '2026-01-18 07:58:51', '2026-01-18 07:58:51');
+INSERT INTO `stundenkonto_korrektur` (`id`, `mitarbeiter_id`, `wirksam_datum`, `delta_minuten`, `typ`, `batch_id`, `begruendung`, `erstellt_von_mitarbeiter_id`, `stealth`, `erstellt_am`, `geaendert_am`) VALUES
+(1, 2, '2025-12-31', -9405, 'manuell', NULL, 'Monatsabschluss 2025-12', 2, 0, '2026-01-18 07:58:51', '2026-01-18 07:58:51');
 
 -- --------------------------------------------------------
 
