@@ -363,14 +363,23 @@ if (!function_exists('report_calc_block_ist_dez2')) {
         $start = '';
         $ende  = '';
 
-        // 1) Roh-Paar
-        if ($kRaw !== '' && $gRaw !== '' && substr($kRaw, 0, 10) != '0000-00-00' && substr($gRaw, 0, 10) !== '0000-00-00') {
+        $kCorrValid = ($kK !== '' && substr($kK, 0, 10) !== '0000-00-00');
+        $gCorrValid = ($gK !== '' && substr($gK, 0, 10) !== '0000-00-00');
+        $kRawValid = ($kRaw !== '' && substr($kRaw, 0, 10) !== '0000-00-00');
+        $gRawValid = ($gRaw !== '' && substr($gRaw, 0, 10) !== '0000-00-00');
+
+        // 1) Korrigiertes Paar bevorzugen (soll zur Anzeige passen).
+        if ($kCorrValid && $gCorrValid) {
+            $start = $kK;
+            $ende  = $gK;
+        } elseif ($kRawValid && $gRawValid) {
+            // 2) Roh-Paar, wenn keine vollstaendige Korrektur vorliegt.
             $start = $kRaw;
             $ende  = $gRaw;
         } else {
-            // 2) Main-Paar (korr bevorzugt, sonst roh)
-            $kMain = ($kK !== '' && substr($kK, 0, 10) !== '0000-00-00') ? $kK : $kRaw;
-            $gMain = ($gK !== '' && substr($gK, 0, 10) !== '0000-00-00') ? $gK : $gRaw;
+            // 3) Fallback: Main-Paar (korr bevorzugt, sonst roh).
+            $kMain = $kCorrValid ? $kK : ($kRawValid ? $kRaw : '');
+            $gMain = $gCorrValid ? $gK : ($gRawValid ? $gRaw : '');
 
             if ($kMain !== '' && $gMain !== '') {
                 $start = $kMain;
@@ -430,14 +439,23 @@ if (!function_exists('report_calc_block_seconds')) {
         $start = '';
         $ende  = '';
 
-        // 1) Roh-Paar
-        if ($kRaw !== '' && $gRaw !== '' && substr($kRaw, 0, 10) !== '0000-00-00' && substr($gRaw, 0, 10) !== '0000-00-00') {
+        $kCorrValid = ($kK !== '' && substr($kK, 0, 10) !== '0000-00-00');
+        $gCorrValid = ($gK !== '' && substr($gK, 0, 10) !== '0000-00-00');
+        $kRawValid = ($kRaw !== '' && substr($kRaw, 0, 10) !== '0000-00-00');
+        $gRawValid = ($gRaw !== '' && substr($gRaw, 0, 10) !== '0000-00-00');
+
+        // 1) Korrigiertes Paar bevorzugen (soll zur Anzeige passen).
+        if ($kCorrValid && $gCorrValid) {
+            $start = $kK;
+            $ende  = $gK;
+        } elseif ($kRawValid && $gRawValid) {
+            // 2) Roh-Paar, wenn keine vollstaendige Korrektur vorliegt.
             $start = $kRaw;
             $ende  = $gRaw;
         } else {
-            // 2) Main-Paar (korr bevorzugt, sonst roh)
-            $kMain = ($kK !== '' && substr($kK, 0, 10) !== '0000-00-00') ? $kK : $kRaw;
-            $gMain = ($gK !== '' && substr($gK, 0, 10) !== '0000-00-00') ? $gK : $gRaw;
+            // 3) Fallback: Main-Paar (korr bevorzugt, sonst roh).
+            $kMain = $kCorrValid ? $kK : ($kRawValid ? $kRaw : '');
+            $gMain = $gCorrValid ? $gK : ($gRawValid ? $gRaw : '');
 
             if ($kMain !== '' && $gMain !== '') {
                 $start = $kMain;
