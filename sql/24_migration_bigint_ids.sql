@@ -48,7 +48,6 @@ CREATE PROCEDURE drop_all_foreign_keys()
 BEGIN
   DECLARE done INT DEFAULT 0;
   DECLARE fk_table VARCHAR(64);
-  DECLARE fk_name VARCHAR(64);
   DECLARE fk_cursor CURSOR FOR
     SELECT table_name, constraint_name FROM tmp_fk_def;
   DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = 1;
@@ -216,7 +215,6 @@ CREATE PROCEDURE restore_all_foreign_keys()
 BEGIN
   DECLARE done INT DEFAULT 0;
   DECLARE fk_table VARCHAR(64);
-  DECLARE fk_name VARCHAR(64);
   DECLARE fk_columns TEXT;
   DECLARE fk_ref_table VARCHAR(64);
   DECLARE fk_ref_columns TEXT;
@@ -225,7 +223,6 @@ BEGIN
   DECLARE fk_cursor CURSOR FOR
     SELECT
       table_name,
-      constraint_name,
       columns_list,
       referenced_table_name,
       referenced_columns_list,
@@ -236,12 +233,12 @@ BEGIN
 
   OPEN fk_cursor;
   fk_loop: LOOP
-    FETCH fk_cursor INTO fk_table, fk_name, fk_columns, fk_ref_table, fk_ref_columns, fk_update_rule, fk_delete_rule;
+    FETCH fk_cursor INTO fk_table, fk_columns, fk_ref_table, fk_ref_columns, fk_update_rule, fk_delete_rule;
     IF done = 1 THEN
       LEAVE fk_loop;
     END IF;
     SET @sql_add_fk = CONCAT(
-      'ALTER TABLE `', fk_table, '` ADD CONSTRAINT `', fk_name, '` FOREIGN KEY (',
+      'ALTER TABLE `', fk_table, '` ADD CONSTRAINT FOREIGN KEY (',
       fk_columns, ') REFERENCES `', fk_ref_table, '` (', fk_ref_columns, ') ',
       'ON UPDATE ', fk_update_rule, ' ON DELETE ', fk_delete_rule
     );
