@@ -7,14 +7,14 @@
 --            Dieses Skript ist optional (z. B. für vorbereitete Terminals/Images).
 
 CREATE TABLE IF NOT EXISTS db_injektionsqueue (
-  id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
   status VARCHAR(20) NOT NULL DEFAULT 'offen',
   sql_befehl MEDIUMTEXT NOT NULL,
   fehlernachricht TEXT NULL,
   versuche INT UNSIGNED NOT NULL DEFAULT 0,
   letzte_ausfuehrung DATETIME NULL,
-  meta_mitarbeiter_id INT UNSIGNED NULL,
-  meta_terminal_id INT UNSIGNED NULL,
+  meta_mitarbeiter_id BIGINT UNSIGNED NULL,
+  meta_terminal_id BIGINT UNSIGNED NULL,
   meta_aktion VARCHAR(100) NULL,
   erstellt_am DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (id),

@@ -97,7 +97,8 @@ class ZeitbuchungModel
         string $quelle = 'terminal',
         ?int $terminalId = null,
         ?string $kommentar = null,
-        bool $manuellGeaendert = false
+        bool $manuellGeaendert = false,
+        ?int $nachtshift = null
     ): ?int {
         $mitarbeiterId = max(1, (int)$mitarbeiterId);
         if ($mitarbeiterId <= 0) {
@@ -121,6 +122,11 @@ class ZeitbuchungModel
             }
         }
 
+        $nachtshiftVal = ($nachtshift === null) ? 0 : (int)$nachtshift;
+        if ($typ !== 'kommen') {
+            $nachtshiftVal = 0;
+        }
+
         $sql = 'INSERT INTO zeitbuchung (
                     mitarbeiter_id,
                     typ,
@@ -128,7 +134,8 @@ class ZeitbuchungModel
                     quelle,
                     manuell_geaendert,
                     kommentar,
-                    terminal_id
+                    terminal_id,
+                    nachtshift
                 ) VALUES (
                     :mitarbeiter_id,
                     :typ,
@@ -136,7 +143,8 @@ class ZeitbuchungModel
                     :quelle,
                     :manuell_geaendert,
                     :kommentar,
-                    :terminal_id
+                    :terminal_id,
+                    :nachtshift
                 )';
 
         $params = [
@@ -147,6 +155,7 @@ class ZeitbuchungModel
             'manuell_geaendert'=> $manuellGeaendert ? 1 : 0,
             'kommentar'        => $kommentar,
             'terminal_id'      => $terminalId,
+            'nachtshift'       => $nachtshiftVal,
         ];
 
         try {
@@ -176,7 +185,8 @@ class ZeitbuchungModel
         string $typ,
         \DateTimeImmutable $zeitpunkt,
         ?string $kommentar = null,
-        bool $manuellGeaendert = true
+        bool $manuellGeaendert = true,
+        ?int $nachtshift = null
     ): bool {
         $id = (int)$id;
         if ($id <= 0) {
@@ -196,11 +206,17 @@ class ZeitbuchungModel
             }
         }
 
+        $nachtshiftVal = ($nachtshift === null) ? 0 : (int)$nachtshift;
+        if ($typ !== 'kommen') {
+            $nachtshiftVal = 0;
+        }
+
         $sql = 'UPDATE zeitbuchung
                 SET typ = :typ,
                     zeitstempel = :zeitstempel,
                     kommentar = :kommentar,
-                    manuell_geaendert = :manuell
+                    manuell_geaendert = :manuell,
+                    nachtshift = :nachtshift
                 WHERE id = :id';
 
         try {
@@ -209,6 +225,7 @@ class ZeitbuchungModel
                 'zeitstempel'=> $zeitpunkt->format('Y-m-d H:i:s'),
                 'kommentar'  => $kommentar,
                 'manuell'    => $manuellGeaendert ? 1 : 0,
+                'nachtshift' => $nachtshiftVal,
                 'id'         => $id,
             ]);
             return true;

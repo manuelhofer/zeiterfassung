@@ -791,7 +791,8 @@ class ZeitController
                 // direkt angezeigt werden kann.
                 $kommentar = $begruendung;
 
-                $ok = $this->korrigiereUpdateBuchung($zbModel, $angemeldeteId, $zielMitarbeiterId, $datumYmd, $id, $typ, $zeit, $kommentar, $begruendung);
+                $nachtshift = ((int)($_POST['nachtshift'] ?? 0) === 1) ? 1 : 0;
+                $ok = $this->korrigiereUpdateBuchung($zbModel, $angemeldeteId, $zielMitarbeiterId, $datumYmd, $id, $typ, $zeit, $kommentar, $begruendung, $nachtshift);
 
                 $_SESSION['zeit_korrektur_flash_ok'] = $ok ? 'Buchung wurde aktualisiert.' : null;
                 $_SESSION['zeit_korrektur_flash_fehler'] = $ok ? null : 'Buchung konnte nicht aktualisiert werden.';
@@ -818,7 +819,8 @@ class ZeitController
                 // Siehe oben: Begründung (Pflicht) wird als Kommentar gespeichert.
                 $kommentar = $begruendung;
 
-                $ok = $this->korrigiereAddBuchung($zbModel, $angemeldeteId, $zielMitarbeiterId, $datumYmd, $typ, $zeit, $kommentar, $begruendung);
+                $nachtshift = ((int)($_POST['nachtshift'] ?? 0) === 1) ? 1 : 0;
+                $ok = $this->korrigiereAddBuchung($zbModel, $angemeldeteId, $zielMitarbeiterId, $datumYmd, $typ, $zeit, $kommentar, $begruendung, $nachtshift);
 
                 $_SESSION['zeit_korrektur_flash_ok'] = $ok ? 'Buchung wurde hinzugefügt.' : null;
                 $_SESSION['zeit_korrektur_flash_fehler'] = $ok ? null : 'Buchung konnte nicht hinzugefügt werden.';
@@ -1242,7 +1244,8 @@ class ZeitController
         string $typ,
         string $zeit,
         ?string $kommentar,
-        string $begruendung
+        string $begruendung,
+        ?int $nachtshift = null
     ): bool {
         if ($buchungId <= 0) {
             return false;
@@ -1273,7 +1276,8 @@ class ZeitController
             $typ = 'kommen';
         }
 
-        $ok = $zbModel->aktualisiereBuchung($buchungId, $typ, $dt, $kommentar, true);
+        $nachtshiftVal = ($typ === 'kommen' && (int)$nachtshift === 1) ? 1 : 0;
+        $ok = $zbModel->aktualisiereBuchung($buchungId, $typ, $dt, $kommentar, true, $nachtshiftVal);
         if ($ok) {
             $this->synchronisiereTageswerteNachKorrektur($zielMitarbeiterId, $datumYmd);
 
@@ -1290,6 +1294,7 @@ class ZeitController
                 'kommentar'  => $kommentar,
                 'quelle'     => (string)($alt['quelle'] ?? ''),
                 'manuell_geaendert' => 1,
+                'nachtshift' => $nachtshiftVal,
             ];
 
             $this->loggeZeitbuchungAudit('update', $actorMitarbeiterId, $zielMitarbeiterId, $datumYmd, $buchungId, $altAudit, $neuAudit, $begruendung);
@@ -1345,7 +1350,8 @@ class ZeitController
         string $typ,
         string $zeit,
         ?string $kommentar,
-        string $begruendung
+        string $begruendung,
+        ?int $nachtshift = null
     ): bool {
         $zeitNorm = $this->parseUhrzeit($zeit);
         if ($zeitNorm === null) {
@@ -1361,7 +1367,8 @@ class ZeitController
             $typ = 'kommen';
         }
 
-        $id = $zbModel->erstelleBuchung($zielMitarbeiterId, $typ, $dt, 'web', null, $kommentar, true);
+        $nachtshiftVal = ($typ === 'kommen' && (int)$nachtshift === 1) ? 1 : 0;
+        $id = $zbModel->erstelleBuchung($zielMitarbeiterId, $typ, $dt, 'web', null, $kommentar, true, $nachtshiftVal);
         if ($id === null) {
             return false;
         }
@@ -1375,6 +1382,7 @@ class ZeitController
             'kommentar'  => $kommentar,
             'quelle'     => 'web',
             'manuell_geaendert' => 1,
+            'nachtshift' => $nachtshiftVal,
         ];
 
         $this->loggeZeitbuchungAudit('add', $actorMitarbeiterId, $zielMitarbeiterId, $datumYmd, $id, null, $neuAudit, $begruendung);
