@@ -315,6 +315,61 @@ class ReportService
         sort($tage);
         $overnightMaxSeconds = 12 * 3600;
 
+        $convertBlocks = function (array $bloecke): array {
+            if ($bloecke === []) {
+                return [];
+            }
+
+            $out = [];
+            foreach ($bloecke as $blk) {
+                $kRoh = $blk[0] ?? null;
+                $gRoh = $blk[1] ?? null;
+                $manStart = (int)($blk[2] ?? 0);
+                $manEnd   = (int)($blk[3] ?? 0);
+                $nachtshift = (int)($blk[4] ?? 0);
+                $zeitManuell = (($manStart === 1) || ($manEnd === 1)) ? 1 : 0;
+
+                $kommenRohStr = ($kRoh instanceof \DateTimeImmutable) ? $kRoh->format('Y-m-d H:i:s') : null;
+                $gehenRohStr  = ($gRoh instanceof \DateTimeImmutable) ? $gRoh->format('Y-m-d H:i:s') : null;
+
+                $kommenKorrStr = null;
+                $gehenKorrStr  = null;
+
+                if ($kRoh instanceof \DateTimeImmutable) {
+                    try {
+                        $kKorr = $this->rundungsService->rundeZeitstempel($kRoh, 'kommen');
+                        if ($kKorr instanceof \DateTimeImmutable) {
+                            $kommenKorrStr = $kKorr->format('Y-m-d H:i:s');
+                        }
+                    } catch (\Throwable $e) {
+                        $kommenKorrStr = null;
+                    }
+                }
+
+                if ($gRoh instanceof \DateTimeImmutable) {
+                    try {
+                        $gKorr = $this->rundungsService->rundeZeitstempel($gRoh, 'gehen');
+                        if ($gKorr instanceof \DateTimeImmutable) {
+                            $gehenKorrStr = $gKorr->format('Y-m-d H:i:s');
+                        }
+                    } catch (\Throwable $e) {
+                        $gehenKorrStr = null;
+                    }
+                }
+
+                $out[] = [
+                    'kommen_roh'             => $kommenRohStr,
+                    'gehen_roh'              => $gehenRohStr,
+                    'kommen_korr'            => $kommenKorrStr,
+                    'gehen_korr'             => $gehenKorrStr,
+                    'zeit_manuell_geaendert' => $zeitManuell,
+                    'nachtshift'             => $nachtshift,
+                ];
+            }
+
+            return $out;
+        };
+
         foreach ($tage as $ymd) {
             $dayBookings = $proTag[$ymd] ?? [];
             // Defensiv sortieren
@@ -460,55 +515,44 @@ class ReportService
                 });
             }
 
-            $out = [];
-            foreach ($bloecke as $blk) {
-                $kRoh = $blk[0];
-                $gRoh = $blk[1];
-                $manStart = (int)($blk[2] ?? 0);
-                $manEnd   = (int)($blk[3] ?? 0);
-                $nachtshift = (int)($blk[4] ?? 0);
-                $zeitManuell = (($manStart === 1) || ($manEnd === 1)) ? 1 : 0;
-
-                $kommenRohStr = ($kRoh instanceof \DateTimeImmutable) ? $kRoh->format('Y-m-d H:i:s') : null;
-                $gehenRohStr  = ($gRoh instanceof \DateTimeImmutable) ? $gRoh->format('Y-m-d H:i:s') : null;
-
-                $kommenKorrStr = null;
-                $gehenKorrStr  = null;
-
-                if ($kRoh instanceof \DateTimeImmutable) {
-                    try {
-                        $kKorr = $this->rundungsService->rundeZeitstempel($kRoh, 'kommen');
-                        if ($kKorr instanceof \DateTimeImmutable) {
-                            $kommenKorrStr = $kKorr->format('Y-m-d H:i:s');
-                        }
-                    } catch (\Throwable $e) {
-                        $kommenKorrStr = null;
-                    }
-                }
-
-                if ($gRoh instanceof \DateTimeImmutable) {
-                    try {
-                        $gKorr = $this->rundungsService->rundeZeitstempel($gRoh, 'gehen');
-                        if ($gKorr instanceof \DateTimeImmutable) {
-                            $gehenKorrStr = $gKorr->format('Y-m-d H:i:s');
-                        }
-                    } catch (\Throwable $e) {
-                        $gehenKorrStr = null;
-                    }
-                }
-
-                $out[] = [
-                    'kommen_roh'             => $kommenRohStr,
-                    'gehen_roh'              => $gehenRohStr,
-                    'kommen_korr'            => $kommenKorrStr,
-                    'gehen_korr'             => $gehenKorrStr,
-                    'zeit_manuell_geaendert' => $zeitManuell,
-                    'nachtshift'             => $nachtshift,
-                ];
-            }
+            $out = $convertBlocks($bloecke);
 
             if ($out !== []) {
                 $result[$ymd] = $out;
+            }
+        }
+
+        if ($extraBlocks !== []) {
+            foreach ($extraBlocks as $ymd => $blocks) {
+                if (!is_array($blocks) || $blocks === []) {
+                    continue;
+                }
+                if (isset($result[$ymd])) {
+                    continue;
+                }
+
+                $bloecke = $blocks;
+                if (count($bloecke) > 1) {
+                    usort($bloecke, static function (array $a, array $b): int {
+                        $aStart = $a[0] instanceof \DateTimeImmutable ? $a[0] : $a[1];
+                        $bStart = $b[0] instanceof \DateTimeImmutable ? $b[0] : $b[1];
+                        if ($aStart instanceof \DateTimeImmutable && $bStart instanceof \DateTimeImmutable) {
+                            return $aStart <=> $bStart;
+                        }
+                        if ($aStart instanceof \DateTimeImmutable) {
+                            return -1;
+                        }
+                        if ($bStart instanceof \DateTimeImmutable) {
+                            return 1;
+                        }
+                        return 0;
+                    });
+                }
+
+                $out = $convertBlocks($bloecke);
+                if ($out !== []) {
+                    $result[$ymd] = $out;
+                }
             }
         }
 
