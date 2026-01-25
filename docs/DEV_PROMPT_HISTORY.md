@@ -31,6 +31,7 @@ Webbasierte Zeiterfassung inkl. Mitarbeiter-/Rollen-/Genehmiger-Verwaltung, Urla
 - Terminal: `public/terminal.php` (Routing über `?aktion=...`)
 
 ## Zuletzt erledigt
+- **P-2026-01-25-02:** Dashboard: Zeitwarnungen-Query als Derived-Table (ONLY_FULL_GROUP_BY/SQLMODE-sicher) + Bind-Parameter (start_ts, today); Debug-Fehlertext nur für Legacy-Admin im UI.
 - **P-2026-01-24-08:** Dashboard: Zeitwarnungen-Query nutzt keine PDO-Parameter mehr (Inline-ISO-Datum), weil MariaDB/PDO in der Praxis trotz vorhandener Daten leere Resultsets lieferte; Query entspricht dem phpMyAdmin-Test und Zeitwarnungen werden wieder sichtbar.
 - **P-2026-01-25-01:** Dashboard: Zeitwarnungen-Query GROUP BY erweitert (MariaDB/ONLY_FULL_GROUP_BY kompatibel) + Sortierung ueber m.nachname/m.vorname; bei Fehlern wird jetzt ins error_log geschrieben und im Dashboard ein kurzer Hinweis angezeigt.
 - **P-2026-01-24-07:** Dashboard: Zeitwarnungen waren trotz vorhandener Daten unsichtbar, weil `DashboardController` versehentlich `fetchEinzel(...)` (nicht existent) aufruft und dadurch in den Catch faellt → Fix auf `fetchEine(...)`.
@@ -193,11 +194,43 @@ Webbasierte Zeiterfassung inkl. Mitarbeiter-/Rollen-/Genehmiger-Verwaltung, Urla
 - Praxis-Test: naechster Bug/Anomalie-Report (Micro-Patch).
 
 ## Letzter Patch (P-ID)
-**P-2026-01-23-01:** Urlaub (Betriebsferien + Urlaubsantraege): Heiligabend (24.12) und Silvester (31.12) werden als 0.5 Urlaubstage gewertet.
+P-2026-01-25-02_dashboard-zeitwarnungen-derived-table.zip
 
 
 
 
+
+## P-2026-01-25-02_dashboard-zeitwarnungen-derived-table.zip
+
+### EINGELESEN (SHA256)
+- 120428_gesammt.zip: 9d22b48346afced2758bf065f42fdecedb55a832ef6ab50132a7d9129a50939e
+- docs/master_prompt_zeiterfassung_v12.md: 7327e0896cc71d2aabd55d8d8ec3882428f83bc72fec7ebd2cbd97f78dea4bdf
+- docs/dev_prompt_zeiterfassung_v12.md: 8d424e3bc18d9db2bc6402cfe8bc54e1fc8bbf937d169343b6f52904e499497e
+- docs/rechte_prompt.md: 446da183245ed18087648d9f03e3a2ce4d08db9927d588455b2eeb2e396e4122
+- docs/report_mehrfachbloecke_prompt_v1.md: 86e8c376bdbe962aa838cb113bd004624bf4440835e259c82e8bbe5de8c3655c
+- sql/zeiterfassung_aktuell.sql: 9c62b1709c4729cca8a3b59e7a700c25ef23907592b9cc5256e5d78649e29cee
+- sql/offline_db_schema.sql: 165bd68e62f4a776d2425d108fbf0775497ade28f5a1e8242069c1cf084177c9
+- docs/DEV_PROMPT_HISTORY.md: 1f155d3df824a8f937cadeb890fa5131715d3fe50a99b798a08ec59ce732bc16
+
+### DUPLIKAT-CHECK
+- Kein Duplikat: neuer Derived-Table Query-Ansatz für Zeitwarnungen (robust gegen ONLY_FULL_GROUP_BY).
+
+### DATEIEN
+- controller/DashboardController.php
+- views/dashboard/index.php
+- docs/DEV_PROMPT_HISTORY.md
+
+### DONE
+- Zeitwarnungen-Query als Derived-Table umgesetzt (SQLMODE/ONLY_FULL_GROUP_BY robust) + Bind-Params (start_ts, today).
+- Bei Fehlern wird die PDO-Fehlermeldung im UI nur für Legacy-Admin zusätzlich angezeigt.
+
+### AKZEPTANZKRITERIEN
+- Dashboard lädt Zeitwarnungen ohne Fehlermeldung und zeigt die Tabelle (oder leer, wenn nichts offen).
+- Wenn DB-Fehler auftreten: roter Hinweis zeigt Debug-Fehlertext nur für Legacy-Admin.
+
+### TEST
+1. Dashboard als Chef/LegacyAdmin öffnen → Zeitwarnungen-Tabelle sichtbar.
+2. Optional: SQLMODE ONLY_FULL_GROUP_BY aktivieren → Dashboard lädt weiterhin.
 
 ## P-2026-01-23-01
 - ZIP: `P-2026-01-23-01_urlaub-halbtage-heiligabend-silvester.zip`
@@ -1818,6 +1851,7 @@ Diesen Block 1:1 in einen neuen Chat mit ChatGPT einfügen, um an genau diesem P
   - Offline: Start/Stop erzeugen passende SQL-Statements in `db_injektionsqueue` (INSERT/UPDATE mit Filter `typ='neben'`) und zeigen die bekannte „Offline gespeichert“-Meldung.
 - **NEXT:**
   - **T-026:** Hauptauftrag-Stop sauber auf `typ='haupt'` begrenzen (UI/Service/Offline-Queue-Update), damit Nebenaufträge nicht versehentlich mitgestoppt werden.
+
 
 ## P-2025-12-31-04_terminal-kommen-gehen-post-csrf
 - **EINGELESEN (SHA256):**

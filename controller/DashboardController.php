@@ -181,6 +181,7 @@ class DashboardController
                     $tz = new DateTimeZone('Europe/Berlin');
                     $now = new DateTimeImmutable('now', $tz);
                     $todayIso = (new DateTimeImmutable('today', $tz))->format('Y-m-d');
+
                     $startDate = (new DateTimeImmutable('today', $tz))
                         ->modify('-' . $zeitUnstimmigkeitenTage . ' days')
                         ->format('Y-m-d');
@@ -206,9 +207,66 @@ class DashboardController
                         . ") AS t\n"
                         . "WHERE t.anzahl_kommen <> t.anzahl_gehen\n"
                         . "ORDER BY t.datum DESC, t.name ASC\n"
+                    $sqlZeitwarnungen = "SELECT\n"
+                        . "  m.id AS mitarbeiter_id,\n"
+                        . "  CONCAT(TRIM(COALESCE(m.vorname,'')), ' ', TRIM(COALESCE(m.nachname,''))) AS name,\n"
+                        . "  DATE(z.zeitstempel) AS datum,\n"
+                        . "  SUM(CASE WHEN z.typ = 'kommen' THEN 1 ELSE 0 END) AS anzahl_kommen,\n"
+                        . "  SUM(CASE WHEN z.typ = 'gehen' THEN 1 ELSE 0 END) AS anzahl_gehen,\n"
+                        . "  COUNT(*) AS anzahl_buchungen,\n"
+                        . "  MAX(z.zeitstempel) AS letzter_stempel\n"
+                        . "FROM zeitbuchung z\n"
+                        . "JOIN mitarbeiter m ON m.id = z.mitarbeiter_id\n"
+                        . "WHERE m.aktiv = 1\n"
+                        . "  AND z.typ IN ('kommen','gehen')\n"
+                        . "  AND z.zeitstempel >= '" . $startDate . " 00:00:00'\n"
+                        . "  AND z.zeitstempel < '" . $todayIso . " 00:00:00'\n"
+                        . "GROUP BY m.id, m.vorname, m.nachname, DATE(z.zeitstempel)\n"
+                        . "HAVING anzahl_kommen <> anzahl_gehen\n"
+                        . "ORDER BY datum DESC, m.nachname ASC, m.vorname ASC\n"
                         . "LIMIT 20";
 
                     $rows = $db->fetchAlle($sqlZeitwarnungen);
+                    $startTs = (new DateTimeImmutable($todayIso . ' 00:00:00', $tz))
+                        ->modify('-' . $zeitUnstimmigkeitenTage . ' days')
+                        ->format('Y-m-d H:i:s');
+
+
+                // Robust gegen ONLY_FULL_GROUP_BY: Aggregation in Subquery, dann Join auf mitarbeiter
+                $sqlZeitwarnungen = "
+                    SELECT
+                        t.mitarbeiter_id,
+                        CONCAT(TRIM(COALESCE(m.vorname, '')), ' ', TRIM(COALESCE(m.nachname, ''))) AS name,
+                        t.datum,
+                        t.anzahl_buchungen,
+                        t.anzahl_kommen,
+                        t.anzahl_gehen,
+                        t.letzter_stempel
+                    FROM (
+                        SELECT
+                            z.mitarbeiter_id,
+                            DATE(z.zeitstempel) AS datum,
+                            COUNT(*) AS anzahl_buchungen,
+                            SUM(CASE WHEN z.typ = 'kommen' THEN 1 ELSE 0 END) AS anzahl_kommen,
+                            SUM(CASE WHEN z.typ = 'gehen' THEN 1 ELSE 0 END) AS anzahl_gehen,
+                            MAX(z.zeitstempel) AS letzter_stempel
+                        FROM zeitbuchung z
+                        WHERE z.zeitstempel >= :start_ts
+                          AND z.typ IN ('kommen', 'gehen')
+                        GROUP BY z.mitarbeiter_id, DATE(z.zeitstempel)
+                        HAVING SUM(CASE WHEN z.typ = 'kommen' THEN 1 ELSE 0 END) <> SUM(CASE WHEN z.typ = 'gehen' THEN 1 ELSE 0 END)
+                           AND DATE(z.zeitstempel) < :today
+                    ) t
+                    JOIN mitarbeiter m ON m.id = t.mitarbeiter_id
+                    WHERE m.aktiv = 1
+                    ORDER BY t.datum DESC, m.nachname ASC, m.vorname ASC
+                    LIMIT 20
+                ";
+
+                $rows = $db->fetchAlle($sqlZeitwarnungen, [
+                    'start_ts' => $startTs,
+                    'today'    => $todayIso,
+                ]);
 
                     $zeitUnstimmigkeiten = [];
 
