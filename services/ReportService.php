@@ -308,6 +308,8 @@ class ReportService
         }
 
         $result = [];
+        /** @var array<string,array<int,array{0:(\DateTimeImmutable|null),1:(\DateTimeImmutable|null),2:int,3:int,4:int}>> $extraBlocks */
+        $extraBlocks = [];
 
         $tage = array_keys($proTag);
         sort($tage);
@@ -390,6 +392,7 @@ class ReportService
 
                         $firstGoIndex = null;
                         $firstGoDt = null;
+                        $firstGoManuell = 0;
                         foreach ($nextDayBookings as $idx => $nb) {
                             $nTyp = (string)($nb['typ'] ?? '');
                             $nTs = (string)($nb['zeitstempel'] ?? '');
@@ -405,6 +408,7 @@ class ReportService
                             if ($nTyp === 'gehen') {
                                 $firstGoIndex = (int)$idx;
                                 $firstGoDt = $nDt;
+                                $firstGoManuell = ((int)($nb['manuell_geaendert'] ?? 0) === 1) ? 1 : 0;
                                 break;
                             }
                             if ($nTyp === 'kommen') {
@@ -415,7 +419,13 @@ class ReportService
                         if ($firstGoDt instanceof \DateTimeImmutable) {
                             $diff = $firstGoDt->getTimestamp() - $blockStart->getTimestamp();
                             if ($diff > 0 && $diff <= $overnightMaxSeconds) {
-                                $bloecke[] = [$blockStart, $firstGoDt, $blockStartManuell, 0, $blockStartNachtshift];
+                                $midnight = $blockStart->setTime(0, 0, 0)->modify('+1 day');
+                                if ($midnight < $firstGoDt) {
+                                    $bloecke[] = [$blockStart, $midnight, $blockStartManuell, 0, $blockStartNachtshift];
+                                    $extraBlocks[$nextYmd][] = [$midnight, $firstGoDt, $blockStartManuell, $firstGoManuell, $blockStartNachtshift];
+                                } else {
+                                    $bloecke[] = [$blockStart, $firstGoDt, $blockStartManuell, $firstGoManuell, $blockStartNachtshift];
+                                }
                                 unset($nextDayBookings[$firstGoIndex]);
                                 $proTag[$nextYmd] = array_values($nextDayBookings);
                                 $overnightClosed = true;
@@ -427,6 +437,27 @@ class ReportService
                 if (!$overnightClosed) {
                     $bloecke[] = [$blockStart, null, $blockStartManuell, 0, $blockStartNachtshift];
                 }
+            }
+
+            if (isset($extraBlocks[$ymd]) && $extraBlocks[$ymd] !== []) {
+                $bloecke = array_merge($bloecke, $extraBlocks[$ymd]);
+            }
+
+            if (count($bloecke) > 1) {
+                usort($bloecke, static function (array $a, array $b): int {
+                    $aStart = $a[0] instanceof \DateTimeImmutable ? $a[0] : $a[1];
+                    $bStart = $b[0] instanceof \DateTimeImmutable ? $b[0] : $b[1];
+                    if ($aStart instanceof \DateTimeImmutable && $bStart instanceof \DateTimeImmutable) {
+                        return $aStart <=> $bStart;
+                    }
+                    if ($aStart instanceof \DateTimeImmutable) {
+                        return -1;
+                    }
+                    if ($bStart instanceof \DateTimeImmutable) {
+                        return 1;
+                    }
+                    return 0;
+                });
             }
 
             $out = [];
