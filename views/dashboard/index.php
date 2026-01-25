@@ -41,6 +41,10 @@ $mitarbeiterName = $mitarbeiterName ?? 'Unbekannt';
         <div style="border: 2px solid #b00020; border-radius: 10px; padding: 0.9rem 1rem; background: #fff5f5;">
             <strong style="color:#b00020;">Zeitwarnungen konnten nicht geladen werden.</strong>
             <div style="margin-top: 0.45rem; color:#333;">Bitte error_log prüfen (DashboardController).</div>
+
+            <?php if (!empty($zeitUnstimmigkeitenFehler) && ($legacyAdmin ?? false)): ?>
+                <div style="margin-top: 0.35rem; color:#333;"><small><strong>Debug:</strong> <?= htmlspecialchars($zeitUnstimmigkeitenFehler) ?></small></div>
+            <?php endif; ?>
         </div>
     </section>
 <?php endif; ?>

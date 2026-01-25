@@ -181,6 +181,7 @@ class DashboardController
                     $tz = new DateTimeZone('Europe/Berlin');
                     $now = new DateTimeImmutable('now', $tz);
                     $todayIso = (new DateTimeImmutable('today', $tz))->format('Y-m-d');
+
                     $startDate = (new DateTimeImmutable('today', $tz))
                         ->modify('-' . $zeitUnstimmigkeitenTage . ' days')
                         ->format('Y-m-d');
