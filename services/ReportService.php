@@ -358,12 +358,14 @@ class ReportService
                 }
 
                 $out[] = [
-                    'kommen_roh'             => $kommenRohStr,
-                    'gehen_roh'              => $gehenRohStr,
-                    'kommen_korr'            => $kommenKorrStr,
-                    'gehen_korr'             => $gehenKorrStr,
-                    'zeit_manuell_geaendert' => $zeitManuell,
-                    'nachtshift'             => $nachtshift,
+                    'kommen_roh'               => $kommenRohStr,
+                    'gehen_roh'                => $gehenRohStr,
+                    'kommen_korr'              => $kommenKorrStr,
+                    'gehen_korr'               => $gehenKorrStr,
+                    'zeit_manuell_geaendert'   => $zeitManuell,
+                    'kommen_manuell_geaendert' => $manStart === 1 ? 1 : 0,
+                    'gehen_manuell_geaendert'  => $manEnd === 1 ? 1 : 0,
+                    'nachtshift'               => $nachtshift,
                 ];
             }
 
@@ -501,8 +503,9 @@ class ReportService
                             if ($diff > 0 && $diff <= $overnightMaxSeconds) {
                                 $midnight = $blockStart->setTime(0, 0, 0)->modify('+1 day');
                                 if ($midnight < $firstGoDt) {
-                                    $bloecke[] = [$blockStart, $midnight, $blockStartManuell, 0, $blockStartNachtshift];
-                                    $extraBlocks[$nextYmd][] = [$midnight, $firstGoDt, $blockStartManuell, $firstGoManuell, $blockStartNachtshift];
+                                    $manuellGrenze = ($blockStartManuell === 1 || $firstGoManuell === 1) ? 1 : 0;
+                                    $bloecke[] = [$blockStart, $midnight, $blockStartManuell, $manuellGrenze, $blockStartNachtshift];
+                                    $extraBlocks[$nextYmd][] = [$midnight, $firstGoDt, $manuellGrenze, $firstGoManuell, $blockStartNachtshift];
                                 } else {
                                     $bloecke[] = [$blockStart, $firstGoDt, $blockStartManuell, $firstGoManuell, $blockStartNachtshift];
                                 }
@@ -643,6 +646,7 @@ class ReportService
 
             // Manuell geänderte Zeitbuchungen (Kommen/Gehen) – getrennt von Tageskennzeichen.
             'zeit_manuell_geaendert'   => 0,
+            'pause_override_aktiv'     => 0,
 
             // Arbeitszeit / Kernwerte
             'arbeitszeit_stunden' => sprintf('%.2f', 0.0),
@@ -1396,6 +1400,7 @@ private function holeBetriebsferienTageFuerMitarbeiterUndMonat(int $mitarbeiterI
                 'kommentar'           => null,
                 'felder_manuell_geaendert' => 0,
                 'zeit_manuell_geaendert'   => $zeitManuell ? 1 : 0,
+                'pause_override_aktiv'     => 0,
                 'arbeitszeit_stunden' => sprintf('%.2f', $istStd),
                 'pausen_stunden'      => sprintf('%.2f', $pauseStd),
                 'pause_entscheidung_noetig' => $pauseEntscheidungNoetig ? 1 : 0,
@@ -1660,6 +1665,7 @@ private function holeBetriebsferienTageFuerMitarbeiterUndMonat(int $mitarbeiterI
 
                 // Manuell geänderte Zeitbuchungen (Kommen/Gehen)
                 'zeit_manuell_geaendert'   => $zeitManuell ? 1 : 0,
+                'pause_override_aktiv'     => $pauseOverrideAktiv ? 1 : 0,
 
                 // Arbeitszeit / Kernwerte (Ist/Pause)
                 // - Ist wird ggf. aus gerundeten Zeiten abgeleitet (Kommen/Gehen korrigiert)
