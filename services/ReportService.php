@@ -310,6 +310,8 @@ class ReportService
         $result = [];
         /** @var array<string,array<int,array{0:(\DateTimeImmutable|null),1:(\DateTimeImmutable|null),2:int,3:int,4:int}>> $extraBlocks */
         $extraBlocks = [];
+        /** @var array<string,array<int,int>> $overnightGehenIgnorieren */
+        $overnightGehenIgnorieren = [];
 
         $tage = array_keys($proTag);
         sort($tage);
@@ -456,6 +458,14 @@ class ReportService
                         $blockStartManuell = 0;
                         $blockStartNachtshift = 0;
                     } elseif ($blockStart === null) {
+                        if (isset($overnightGehenIgnorieren[$ymd])) {
+                            $idxIgnore = array_search($dt->getTimestamp(), $overnightGehenIgnorieren[$ymd], true);
+                            if ($idxIgnore !== false) {
+                                unset($overnightGehenIgnorieren[$ymd][$idxIgnore]);
+                                $overnightGehenIgnorieren[$ymd] = array_values($overnightGehenIgnorieren[$ymd]);
+                                continue;
+                            }
+                        }
                         // Gehen ohne Kommen: als unvollständigen Block ablegen
                         $bloecke[] = [null, $dt, 0, $istManuell, 0];
                     }
@@ -510,6 +520,7 @@ class ReportService
                                 } else {
                                     $bloecke[] = [$blockStart, $firstGoDt, $blockStartManuell, $firstGoManuell, $blockStartNachtshift];
                                 }
+                                $overnightGehenIgnorieren[$nextYmd][] = $firstGoDt->getTimestamp();
                                 unset($nextDayBookings[$firstGoIndex]);
                                 $proTag[$nextYmd] = array_values($nextDayBookings);
                                 $overnightClosed = true;
