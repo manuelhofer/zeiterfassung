@@ -643,6 +643,7 @@ class ReportService
 
             // Manuell geänderte Zeitbuchungen (Kommen/Gehen) – getrennt von Tageskennzeichen.
             'zeit_manuell_geaendert'   => 0,
+            'pause_override_aktiv'     => 0,
 
             // Arbeitszeit / Kernwerte
             'arbeitszeit_stunden' => sprintf('%.2f', 0.0),
@@ -1396,6 +1397,7 @@ private function holeBetriebsferienTageFuerMitarbeiterUndMonat(int $mitarbeiterI
                 'kommentar'           => null,
                 'felder_manuell_geaendert' => 0,
                 'zeit_manuell_geaendert'   => $zeitManuell ? 1 : 0,
+                'pause_override_aktiv'     => 0,
                 'arbeitszeit_stunden' => sprintf('%.2f', $istStd),
                 'pausen_stunden'      => sprintf('%.2f', $pauseStd),
                 'pause_entscheidung_noetig' => $pauseEntscheidungNoetig ? 1 : 0,
@@ -1660,6 +1662,7 @@ private function holeBetriebsferienTageFuerMitarbeiterUndMonat(int $mitarbeiterI
 
                 // Manuell geänderte Zeitbuchungen (Kommen/Gehen)
                 'zeit_manuell_geaendert'   => $zeitManuell ? 1 : 0,
+                'pause_override_aktiv'     => $pauseOverrideAktiv ? 1 : 0,
 
                 // Arbeitszeit / Kernwerte (Ist/Pause)
                 // - Ist wird ggf. aus gerundeten Zeiten abgeleitet (Kommen/Gehen korrigiert)
