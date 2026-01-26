@@ -547,41 +547,6 @@ class ReportService
             }
         }
 
-        if ($extraBlocks !== []) {
-            foreach ($extraBlocks as $ymd => $blocks) {
-                if (!is_array($blocks) || $blocks === []) {
-                    continue;
-                }
-                $bloecke = $blocks;
-                if (count($bloecke) > 1) {
-                    usort($bloecke, static function (array $a, array $b): int {
-                        $aStart = $a[0] instanceof \DateTimeImmutable ? $a[0] : $a[1];
-                        $bStart = $b[0] instanceof \DateTimeImmutable ? $b[0] : $b[1];
-                        if ($aStart instanceof \DateTimeImmutable && $bStart instanceof \DateTimeImmutable) {
-                            return $aStart <=> $bStart;
-                        }
-                        if ($aStart instanceof \DateTimeImmutable) {
-                            return -1;
-                        }
-                        if ($bStart instanceof \DateTimeImmutable) {
-                            return 1;
-                        }
-                        return 0;
-                    });
-                }
-
-                $outExtra = $convertBlocks($bloecke);
-                if ($outExtra !== []) {
-                    if (isset($result[$ymd]) && is_array($result[$ymd])) {
-                        $merged = array_merge($result[$ymd], $outExtra);
-                        $result[$ymd] = $sortBlocks($merged);
-                    } else {
-                        $result[$ymd] = $outExtra;
-                    }
-                }
-            }
-        }
-
         return $result;
     }
 
