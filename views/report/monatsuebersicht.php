@@ -1105,6 +1105,14 @@ if (is_array($tageswerte) && $tageswerte !== []) {
                         $kommenMain = $kommenKorrAnzeige !== '' ? $kommenKorrAnzeige : $kommenRohAnzeige;
                         $gehenMain  = $gehenKorrAnzeige !== '' ? $gehenKorrAnzeige : $gehenRohAnzeige;
 
+                        $istNachtshiftBlock = ((int)($b['nachtshift'] ?? 0) === 1);
+                        if ($istNachtshiftBlock && $kommenMain === '' && $gehenMain !== '') {
+                            $kommenMain = '00:00';
+                        }
+                        if ($istNachtshiftBlock && $gehenMain === '' && $kommenMain !== '') {
+                            $gehenMain = '00:00';
+                        }
+
                         $kommenRohExtra = ($kommenRohAnzeige !== '' && $kommenMain !== $kommenRohAnzeige) ? $kommenRohAnzeige : '';
                         $gehenRohExtra  = ($gehenRohAnzeige !== '' && $gehenMain !== $gehenRohAnzeige) ? $gehenRohAnzeige : '';
 

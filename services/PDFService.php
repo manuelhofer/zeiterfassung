@@ -476,6 +476,14 @@ class PDFService
                 $kommenKor = $this->formatUhrzeit((string)($b['kommen_korr'] ?? ''));
                 $gehenKor  = $this->formatUhrzeit((string)($b['gehen_korr'] ?? ''));
 
+                $istNachtshiftBlock = ((int)($b['nachtshift'] ?? 0) === 1);
+                if ($istNachtshiftBlock && $kommenRoh === '' && $gehenRoh !== '') {
+                    $kommenRoh = '00:00';
+                }
+                if ($istNachtshiftBlock && $gehenRoh === '' && $kommenRoh !== '') {
+                    $gehenRoh = '00:00';
+                }
+
                 $rows[] = [
                     $istErsteZeile ? $tagKw : '',
                     $istErsteZeile ? $flagNotiz : '',
