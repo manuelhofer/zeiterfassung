@@ -22,6 +22,10 @@ ALTER TABLE abteilung
   MODIFY id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
   MODIFY parent_id BIGINT UNSIGNED NULL;
 
+ALTER TABLE abteilung
+  ADD CONSTRAINT fk_abteilung_parent
+    FOREIGN KEY (parent_id) REFERENCES abteilung(id) ON DELETE SET NULL ON UPDATE CASCADE;
+
 ALTER TABLE mitarbeiter
   MODIFY id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT;
 
@@ -153,10 +157,6 @@ ALTER TABLE auftragszeit
   MODIFY auftrag_id BIGINT UNSIGNED NULL,
   MODIFY maschine_id BIGINT UNSIGNED NULL,
   MODIFY terminal_id BIGINT UNSIGNED NULL;
-
-ALTER TABLE abteilung
-  ADD CONSTRAINT fk_abteilung_parent
-    FOREIGN KEY (parent_id) REFERENCES abteilung(id) ON DELETE SET NULL ON UPDATE CASCADE;
 
 ALTER TABLE betriebsferien
   ADD CONSTRAINT fk_betriebsferien_abteilung
