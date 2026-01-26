@@ -19,16 +19,18 @@ if (is_file($lokaleConfig)) {
     return $cfg;
 }
 
-/**
- * Liest Umgebungsvariablen mit Fallback.
- */
-function config_env(string $key, string $default = ''): string
-{
-    $value = getenv($key);
-    if ($value === false) {
-        return $default;
+if (!function_exists('config_env')) {
+    /**
+     * Liest Umgebungsvariablen mit Fallback.
+     */
+    function config_env(string $key, string $default = ''): string
+    {
+        $value = getenv($key);
+        if ($value === false) {
+            return $default;
+        }
+        return (string)$value;
     }
-    return (string)$value;
 }
 
 return [
