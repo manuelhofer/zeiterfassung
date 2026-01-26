@@ -503,8 +503,9 @@ class ReportService
                             if ($diff > 0 && $diff <= $overnightMaxSeconds) {
                                 $midnight = $blockStart->setTime(0, 0, 0)->modify('+1 day');
                                 if ($midnight < $firstGoDt) {
-                                    $bloecke[] = [$blockStart, $midnight, $blockStartManuell, 0, $blockStartNachtshift];
-                                    $extraBlocks[$nextYmd][] = [$midnight, $firstGoDt, $blockStartManuell, $firstGoManuell, $blockStartNachtshift];
+                                    $manuellGrenze = ($blockStartManuell === 1 || $firstGoManuell === 1) ? 1 : 0;
+                                    $bloecke[] = [$blockStart, $midnight, $blockStartManuell, $manuellGrenze, $blockStartNachtshift];
+                                    $extraBlocks[$nextYmd][] = [$midnight, $firstGoDt, $manuellGrenze, $firstGoManuell, $blockStartNachtshift];
                                 } else {
                                     $bloecke[] = [$blockStart, $firstGoDt, $blockStartManuell, $firstGoManuell, $blockStartNachtshift];
                                 }
