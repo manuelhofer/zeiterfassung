@@ -15,3 +15,10 @@ Verzeichnisse (Überblick):
 - `docs/`     – Dokumentation, Master-Prompt, Notizen
 
 Diese Datei dient nur als kurze Orientierung und kann bei Bedarf erweitert werden.
+
+## Konfiguration (Zugangsdaten)
+
+Die Datei `config/config.php` enthält **keine** echten Zugangsdaten mehr. Lege
+deine produktiven Werte stattdessen in `config/config.local.php` (nicht
+versioniert) oder per Umgebungsvariablen ab. Eine Vorlage findest du in
+`config/config.php.example`.
