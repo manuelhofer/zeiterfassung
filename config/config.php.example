@@ -1,0 +1,45 @@
+<?php
+declare(strict_types=1);
+
+/**
+ * Beispiel-Konfiguration (Dummy-Werte).
+ *
+ * Nutzung:
+ * - Datei nach `config/config.local.php` kopieren.
+ * - Zugangsdaten anpassen.
+ */
+
+return [
+    'app' => [
+        'name' => 'Zeiterfassung',
+        'base_url' => '',
+        'debug' => false,
+        'installation_typ' => 'backend',
+    ],
+
+    'timezone' => 'Europe/Berlin',
+
+    'db' => [
+        'host'    => 'localhost',
+        'dbname'  => 'zeiterfassung',
+        'charset' => 'utf8mb4',
+        'user'    => 'db_user',
+        'pass'    => 'db_passwort',
+    ],
+
+    'offline_db' => [
+        'enabled' => true,
+        'host'    => 'localhost',
+        'dbname'  => 'zeiterfassung_offline',
+        'charset' => 'utf8mb4',
+        'user'    => 'db_user',
+        'pass'    => 'db_passwort',
+    ],
+
+    'terminal' => [
+        'rfid_ws' => [
+            'enabled' => true,
+            'url' => 'ws://127.0.0.1:8765',
+        ],
+    ],
+];
