@@ -942,8 +942,9 @@ if (is_array($tageswerte) && $tageswerte !== []) {
                     $datumIso = report_normalize_datum_iso((string)($t['datum'] ?? ''));
                     $istBetriebsferien = !empty($t['ist_betriebsferien']);
 
-                    // Rot markieren: nur manuell geänderte Kommen/Gehen (Zeitbuchungen), nicht Tageskennzeichen.
-                    $istManuell = ((int)($t['zeit_manuell_geaendert'] ?? 0) === 1);
+                    // Manuelle Zeitbuchungen und Tagesfelder separat behandeln (nur betroffene Zellen markieren).
+                    $felderManuell = ((int)($t['felder_manuell_geaendert'] ?? 0) === 1);
+                    $pauseOverrideAktiv = ((int)($t['pause_override_aktiv'] ?? 0) === 1);
 
                     // Arbeitsblöcke (Mehrfach-Kommen/Gehen): falls vorhanden, Tag mehrfach anzeigen.
                     $bloecke = [];
@@ -1071,16 +1072,11 @@ if (is_array($tageswerte) && $tageswerte !== []) {
                         }
                     }
 
-                    // Betriebsferien = gelb, manuelle Korrektur = rot (hat Vorrang).
+                    // Betriebsferien = gelb (manuelle Markierung erfolgt pro Zelle).
                     $trStyle = '';
-                    if ($istManuell) {
-                        $trStyle = ' style="background:#ffebee;"';
-                    } elseif ($istBetriebsferien) {
+                    if ($istBetriebsferien) {
                         $trStyle = ' style="background:#fffde7;"';
                     }
-
-                    // Optional: einzelne Zellen noch deutlicher markieren.
-                    $tdManuellStyle = $istManuell ? ' style="background:#ffcdd2;"' : '';
 
                     $istMicroIgnoriert = ((int)($t['micro_arbeitszeit_ignoriert'] ?? 0) === 1);
                     // Standard: ohne show_micro zeigen wir alle NICHT-Mikro-Arbeitsbloecke.
@@ -1092,6 +1088,8 @@ if (is_array($tageswerte) && $tageswerte !== []) {
                     <?php
                         $istErsteZeile = ($idx === 0);
                         $istMetaZeile = ($idx === $metaPrimaryIndex);
+                        $istKommenManuell = ((int)($b['kommen_manuell_geaendert'] ?? 0) === 1);
+                        $istGehenManuell = ((int)($b['gehen_manuell_geaendert'] ?? 0) === 1);
 
                         // Anzeige: Rohzeiten bleiben gespeichert, korrigierte Zeiten werden nur berechnet.
                         $kommenRoh  = isset($b['kommen_roh'])  ? (string)$b['kommen_roh']  : '';
@@ -1109,6 +1107,9 @@ if (is_array($tageswerte) && $tageswerte !== []) {
 
                         $kommenRohExtra = ($kommenRohAnzeige !== '' && $kommenMain !== $kommenRohAnzeige) ? $kommenRohAnzeige : '';
                         $gehenRohExtra  = ($gehenRohAnzeige !== '' && $gehenMain !== $gehenRohAnzeige) ? $gehenRohAnzeige : '';
+
+                        $tdKommenStyle = ($istKommenManuell && $kommenMain !== '') ? ' style="background:#ffcdd2;"' : '';
+                        $tdGehenStyle = ($istGehenManuell && $gehenMain !== '') ? ' style="background:#ffcdd2;"' : '';
 
                         $hatStempel = ($kommenRoh !== '' || $gehenRoh !== '' || $kommenKorr !== '' || $gehenKorr !== '');
 
@@ -1158,7 +1159,7 @@ if (is_array($tageswerte) && $tageswerte !== []) {
                             <?php endif; ?>
                         </td>
 
-                        <td<?php echo $tdManuellStyle; ?>>
+                        <td<?php echo $tdKommenStyle; ?>>
                             <?php if ($kommenFehlt): ?>
                                 <span style="color:#b71c1c; font-weight:bold;">FEHLT</span>
                             <?php else: ?>
@@ -1167,7 +1168,7 @@ if (is_array($tageswerte) && $tageswerte !== []) {
                                 <?php if ($istMicroIgnoriert && $showMicro): ?><br><small style="color:#777;">micro</small><?php endif; ?>
                             <?php endif; ?>
                         </td>
-                        <td<?php echo $tdManuellStyle; ?>>
+                        <td<?php echo $tdGehenStyle; ?>>
                             <?php if ($gehenFehlt): ?>
                                 <span style="color:#b71c1c; font-weight:bold;">FEHLT</span>
                             <?php else: ?>
@@ -1176,62 +1177,90 @@ if (is_array($tageswerte) && $tageswerte !== []) {
                             <?php endif; ?>
                         </td>
 
-                        <td<?php echo $tdManuellStyle; ?>>
+                        <td>
                             <?php
                                 $blockIstShow = report_calc_block_ist_dez2($b);
                             ?>
                             <?php echo htmlspecialchars($blockIstShow !== '' ? $blockIstShow : '-', ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>
                         </td>
-                        <td<?php echo $tdManuellStyle; ?>>
+                        <?php
+                            $pauseShow = '';
+                            $pauseManuell = false;
+                            if ($istMetaZeile) {
+                                $pauseShow = $istMicroIgnoriert ? '-' : (string)($t['pausen_stunden'] ?? '');
+                                $pauseManuell = $pauseOverrideAktiv;
+                            }
+                            $tdPauseStyle = $pauseManuell ? ' style="background:#ffcdd2;"' : '';
+                        ?>
+                        <td<?php echo $tdPauseStyle; ?>>
                             <?php
                                 if ($istMetaZeile) {
-                                    $pauseShow = $istMicroIgnoriert ? '-' : (string)($t['pausen_stunden'] ?? '');
                                     echo htmlspecialchars($pauseShow, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
                                 }
                             ?>
                         </td>
 
-                        <td>
+                        <?php
+                            $kaShow = '-';
+                            $kaManuell = false;
+                            if ($istMetaZeile) {
+                                $ka = isset($t['kurzarbeit_stunden']) ? trim((string)$t['kurzarbeit_stunden']) : '';
+                                if ($ka !== '' && $ka !== '0' && $ka !== '0.0' && $ka !== '0.00') {
+                                    $kaShow = $ka;
+                                }
+                                $kaManuell = $felderManuell && $kaShow !== '-';
+                            }
+                            $tdKurzStyle = $kaManuell ? ' style="background:#ffcdd2;"' : '';
+                        ?>
+                        <td<?php echo $tdKurzStyle; ?>>
                             <?php if ($istMetaZeile): ?>
                                 <?php
-                                    $ka = isset($t['kurzarbeit_stunden']) ? trim((string)$t['kurzarbeit_stunden']) : '';
-                                    $kaShow = '-';
-                                    if ($ka !== '' && $ka !== '0' && $ka !== '0.0' && $ka !== '0.00') {
-                                        $kaShow = $ka;
-                                    }
                                     echo htmlspecialchars($kaShow, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
                                 ?>
                             <?php endif; ?>
                         </td>
-                        <td>
+                        <?php
+                            $ftShow = '-';
+                            $ftManuell = false;
+                            if ($istMetaZeile) {
+                                $ft = isset($t['feiertag_stunden']) ? trim((string)$t['feiertag_stunden']) : '';
+                                $ftF = 0.0;
+                                if ($ft !== '') {
+                                    $ftF = (float)str_replace(',', '.', $ft);
+                                }
+                                if ($ftF > 0.01) {
+                                    $ftShow = $ft;
+                                }
+                                $ftManuell = $felderManuell && $ftShow !== '-';
+                            }
+                            $tdFeiertagStyle = $ftManuell ? ' style="background:#ffcdd2;"' : '';
+                        ?>
+                        <td<?php echo $tdFeiertagStyle; ?>>
                             <?php if ($istMetaZeile): ?>
                                 <?php
-                                    $ft = isset($t['feiertag_stunden']) ? trim((string)$t['feiertag_stunden']) : '';
-                                    $ftF = 0.0;
-                                    if ($ft !== '') {
-                                        $ftF = (float)str_replace(',', '.', $ft);
-                                    }
-                                    $ftShow = '-';
-                                    if ($ftF > 0.01) {
-                                        $ftShow = $ft;
-                                    }
                                     echo htmlspecialchars($ftShow, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
                                 ?>
                             <?php endif; ?>
                         </td>
-
-                        <td>
+                        <?php
+                            $uShow = '-';
+                            $uManuell = false;
+                            if ($istMetaZeile) {
+                                $u = isset($t['urlaub_stunden']) ? trim((string)$t['urlaub_stunden']) : '';
+                                $uF = 0.0;
+                                if ($u !== '') {
+                                    $uF = (float)str_replace(',', '.', $u);
+                                }
+                                if ($uF > 0.01) {
+                                    $uShow = $u;
+                                }
+                                $uManuell = $felderManuell && $uShow !== '-';
+                            }
+                            $tdUrlaubStyle = $uManuell ? ' style="background:#ffcdd2;"' : '';
+                        ?>
+                        <td<?php echo $tdUrlaubStyle; ?>>
                             <?php if ($istMetaZeile): ?>
                                 <?php
-                                    $u = isset($t['urlaub_stunden']) ? trim((string)$t['urlaub_stunden']) : '';
-                                    $uF = 0.0;
-                                    if ($u !== '') {
-                                        $uF = (float)str_replace(',', '.', $u);
-                                    }
-                                    $uShow = '-';
-                                    if ($uF > 0.01) {
-                                        $uShow = $u;
-                                    }
                                     echo htmlspecialchars($uShow, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
                                 ?>
                             <?php endif; ?>

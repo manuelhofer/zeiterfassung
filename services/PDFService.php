@@ -218,7 +218,7 @@ class PDFService
 
         // Header + Datenzeilen (Mehrfach-Kommen/Gehen: je Arbeitsblock eine Zeile)
         $rows = [];
-        $rowManuell = [];
+        $zellMarkierungen = [];
         $rows[] = [
             'Tag / KW',
             'Kürzel',
@@ -237,7 +237,7 @@ class PDFService
             'Sonst',
         ];
         // Kopfzeile nie farblich markieren
-        $rowManuell[] = false;
+        $zellMarkierungen[] = array_fill(0, 15, false);
 
         // Summen für Block unten
         $sumIst = 0.0;
@@ -275,7 +275,8 @@ class PDFService
             $sonst = '';
 
             $flagNotiz = '';
-            $istManuellTag = false;
+            $felderManuell = false;
+            $pauseOverrideAktiv = false;
 
             // Arbeitsblöcke (Mehrfach-Kommen/Gehen): je Block eine Zeile.
             // Wenn keine Blöcke vorhanden sind, fällt der Tag auf eine Zeile aus den Tageswerten zurück.
@@ -284,7 +285,8 @@ class PDFService
             if (is_array($t)) {
                 // Rot-Markierung im Monats-PDF soll nur bei manuell geänderten Kommen/Gehen greifen
                 // (nicht bei Tageskennzeichen wie Kurzarbeit/Urlaub/Krank etc.)
-                $istManuellTag = ((int)($t['zeit_manuell_geaendert'] ?? 0) === 1);
+                $felderManuell = ((int)($t['felder_manuell_geaendert'] ?? 0) === 1);
+                $pauseOverrideAktiv = ((int)($t['pause_override_aktiv'] ?? 0) === 1);
 
                 $pauseF = $this->parseFloat((string)($t['pausen_stunden'] ?? '0.00'));
                 $istF   = $this->parseFloat((string)($t['arbeitszeit_stunden'] ?? '0.00'));
@@ -492,14 +494,65 @@ class PDFService
                     $istErsteZeile ? $sonst : '',
                 ];
 
-                // Rot-Markierung: Tag-Flag gilt für alle Block-Zeilen (wie in der Monatsübersicht)
-                $rowManuell[] = $istManuellTag;
+                $istKommenManuell = ((int)($b['kommen_manuell_geaendert'] ?? 0) === 1);
+                $istGehenManuell = ((int)($b['gehen_manuell_geaendert'] ?? 0) === 1);
+                $zellenManuell = array_fill(0, 15, false);
+                if ($istKommenManuell) {
+                    if ($kommenRoh !== '') {
+                        $zellenManuell[2] = true; // An
+                    }
+                    if ($kommenKor !== '') {
+                        $zellenManuell[4] = true; // An.Korr
+                    }
+                }
+                if ($istGehenManuell) {
+                    if ($gehenRoh !== '') {
+                        $zellenManuell[3] = true; // Ab
+                    }
+                    if ($gehenKor !== '') {
+                        $zellenManuell[6] = true; // Ab.Korr
+                    }
+                }
+
+                $pauseZelle = $istMetaZeile ? $pause : '';
+                if ($pauseOverrideAktiv && $pauseZelle !== '') {
+                    $zellenManuell[5] = true;
+                }
+
+                if ($felderManuell && $istErsteZeile) {
+                    if ($arzt !== '') {
+                        $zellenManuell[8] = true;
+                    }
+                    if ($krankKk !== '') {
+                        $zellenManuell[9] = true;
+                    }
+                    if ($krankLfz !== '') {
+                        $zellenManuell[10] = true;
+                    }
+                    if ($sonst !== '') {
+                        $zellenManuell[14] = true;
+                    }
+                }
+
+                if ($felderManuell && $istMetaZeile) {
+                    if ($feiertag !== '') {
+                        $zellenManuell[11] = true;
+                    }
+                    if ($kurz !== '') {
+                        $zellenManuell[12] = true;
+                    }
+                    if ($urlaub !== '') {
+                        $zellenManuell[13] = true;
+                    }
+                }
+
+                $zellMarkierungen[] = $zellenManuell;
             }
         }
 
         // Abschluss-Zeile wie in der Vorlage ("/")
         $rows[] = ['/', '', '', '', '', '', '', '', '', '', '', '', '', '', ''];
-        $rowManuell[] = false;
+        $zellMarkierungen[] = array_fill(0, 15, false);
 
         // Sollstunden
         $soll = 0.0;
@@ -668,7 +721,7 @@ class PDFService
         $dataRowsPerPage = $maxRowsInclHeader - 1;
 
         $dataRows = array_slice($rows, 1);
-        $dataManuell = array_slice($rowManuell, 1);
+        $dataManuell = array_slice($zellMarkierungen, 1);
 
         $chunks = array_chunk($dataRows, $dataRowsPerPage);
         $chunksManuell = array_chunk($dataManuell, $dataRowsPerPage);
@@ -683,7 +736,7 @@ class PDFService
 
         for ($p = 0; $p < $seitenGesamt; $p++) {
             $pageRows = array_merge([$rows[0]], $chunks[$p]);
-            $pageManuell = array_merge([false], $chunksManuell[$p] ?? []);
+            $pageManuell = array_merge([array_fill(0, 15, false)], $chunksManuell[$p] ?? []);
 
             $istLetzteSeite = ($p === ($seitenGesamt - 1));
 
@@ -694,15 +747,24 @@ class PDFService
             $c = "q\n";
             $c .= "0 0 0 RG\n0 0 0 rg\n0.6 w\n";
 
-            // Hintergrund: Manuell geänderte Zeiten rot hinterlegen
+            // Hintergrund: Manuell geänderte Zellen rot hinterlegen
             // (muss vor Gitterlinien erfolgen, damit Linien darüber sichtbar bleiben)
             $rects = '';
             for ($r = 1; $r < $rowCount; $r++) {
-                if (($pageManuell[$r] ?? false) !== true) {
+                $markierungen = $pageManuell[$r] ?? [];
+                if (!is_array($markierungen) || $markierungen === []) {
                     continue;
                 }
                 $yBottom = $tableTopY - (($r + 1) * $rowH);
-                $rects .= $this->pdfRectFill($tableX, $yBottom, $tableW, $rowH);
+                for ($ci = 0; $ci < 15; $ci++) {
+                    if (!($markierungen[$ci] ?? false)) {
+                        continue;
+                    }
+                    $xLeft = (float)$colX[$ci];
+                    $xRight = (float)$colX[$ci + 1];
+                    $width = $xRight - $xLeft;
+                    $rects .= $this->pdfRectFill($xLeft, $yBottom, $width, $rowH);
+                }
             }
             if ($rects !== '') {
                 // Helles Rot
