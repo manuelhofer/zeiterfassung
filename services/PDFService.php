@@ -494,18 +494,20 @@ class PDFService
                     $istErsteZeile ? $sonst : '',
                 ];
 
-                $istZeitManuellBlock = ((int)($b['zeit_manuell_geaendert'] ?? 0) === 1);
+                $istKommenManuell = ((int)($b['kommen_manuell_geaendert'] ?? 0) === 1);
+                $istGehenManuell = ((int)($b['gehen_manuell_geaendert'] ?? 0) === 1);
                 $zellenManuell = array_fill(0, 15, false);
-                if ($istZeitManuellBlock) {
+                if ($istKommenManuell) {
                     $zellenManuell[2] = true; // An
-                    $zellenManuell[3] = true; // Ab
                     $zellenManuell[4] = true; // An.Korr
+                }
+                if ($istGehenManuell) {
+                    $zellenManuell[3] = true; // Ab
                     $zellenManuell[6] = true; // Ab.Korr
-                    $zellenManuell[7] = true; // Ist
                 }
 
                 $pauseZelle = $istMetaZeile ? $pause : '';
-                if ($pauseOverrideAktiv || ($felderManuell && $pauseZelle !== '')) {
+                if ($pauseOverrideAktiv && $pauseZelle !== '') {
                     $zellenManuell[5] = true;
                 }
 

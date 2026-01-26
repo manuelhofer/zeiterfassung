@@ -358,12 +358,14 @@ class ReportService
                 }
 
                 $out[] = [
-                    'kommen_roh'             => $kommenRohStr,
-                    'gehen_roh'              => $gehenRohStr,
-                    'kommen_korr'            => $kommenKorrStr,
-                    'gehen_korr'             => $gehenKorrStr,
-                    'zeit_manuell_geaendert' => $zeitManuell,
-                    'nachtshift'             => $nachtshift,
+                    'kommen_roh'               => $kommenRohStr,
+                    'gehen_roh'                => $gehenRohStr,
+                    'kommen_korr'              => $kommenKorrStr,
+                    'gehen_korr'               => $gehenKorrStr,
+                    'zeit_manuell_geaendert'   => $zeitManuell,
+                    'kommen_manuell_geaendert' => $manStart === 1 ? 1 : 0,
+                    'gehen_manuell_geaendert'  => $manEnd === 1 ? 1 : 0,
+                    'nachtshift'               => $nachtshift,
                 ];
             }
 

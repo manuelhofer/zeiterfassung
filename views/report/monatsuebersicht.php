@@ -1088,8 +1088,10 @@ if (is_array($tageswerte) && $tageswerte !== []) {
                     <?php
                         $istErsteZeile = ($idx === 0);
                         $istMetaZeile = ($idx === $metaPrimaryIndex);
-                        $istZeitManuellBlock = ((int)($b['zeit_manuell_geaendert'] ?? 0) === 1);
-                        $tdZeitStyle = $istZeitManuellBlock ? ' style="background:#ffcdd2;"' : '';
+                        $istKommenManuell = ((int)($b['kommen_manuell_geaendert'] ?? 0) === 1);
+                        $istGehenManuell = ((int)($b['gehen_manuell_geaendert'] ?? 0) === 1);
+                        $tdKommenStyle = $istKommenManuell ? ' style="background:#ffcdd2;"' : '';
+                        $tdGehenStyle = $istGehenManuell ? ' style="background:#ffcdd2;"' : '';
 
                         // Anzeige: Rohzeiten bleiben gespeichert, korrigierte Zeiten werden nur berechnet.
                         $kommenRoh  = isset($b['kommen_roh'])  ? (string)$b['kommen_roh']  : '';
@@ -1156,7 +1158,7 @@ if (is_array($tageswerte) && $tageswerte !== []) {
                             <?php endif; ?>
                         </td>
 
-                        <td<?php echo $tdZeitStyle; ?>>
+                        <td<?php echo $tdKommenStyle; ?>>
                             <?php if ($kommenFehlt): ?>
                                 <span style="color:#b71c1c; font-weight:bold;">FEHLT</span>
                             <?php else: ?>
@@ -1165,7 +1167,7 @@ if (is_array($tageswerte) && $tageswerte !== []) {
                                 <?php if ($istMicroIgnoriert && $showMicro): ?><br><small style="color:#777;">micro</small><?php endif; ?>
                             <?php endif; ?>
                         </td>
-                        <td<?php echo $tdZeitStyle; ?>>
+                        <td<?php echo $tdGehenStyle; ?>>
                             <?php if ($gehenFehlt): ?>
                                 <span style="color:#b71c1c; font-weight:bold;">FEHLT</span>
                             <?php else: ?>
@@ -1174,7 +1176,7 @@ if (is_array($tageswerte) && $tageswerte !== []) {
                             <?php endif; ?>
                         </td>
 
-                        <td<?php echo $tdZeitStyle; ?>>
+                        <td>
                             <?php
                                 $blockIstShow = report_calc_block_ist_dez2($b);
                             ?>
@@ -1185,7 +1187,7 @@ if (is_array($tageswerte) && $tageswerte !== []) {
                             $pauseManuell = false;
                             if ($istMetaZeile) {
                                 $pauseShow = $istMicroIgnoriert ? '-' : (string)($t['pausen_stunden'] ?? '');
-                                $pauseManuell = $pauseOverrideAktiv || ($felderManuell && $pauseShow !== '' && $pauseShow !== '-');
+                                $pauseManuell = $pauseOverrideAktiv;
                             }
                             $tdPauseStyle = $pauseManuell ? ' style="background:#ffcdd2;"' : '';
                         ?>
