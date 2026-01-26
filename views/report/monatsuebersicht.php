@@ -1090,8 +1090,6 @@ if (is_array($tageswerte) && $tageswerte !== []) {
                         $istMetaZeile = ($idx === $metaPrimaryIndex);
                         $istKommenManuell = ((int)($b['kommen_manuell_geaendert'] ?? 0) === 1);
                         $istGehenManuell = ((int)($b['gehen_manuell_geaendert'] ?? 0) === 1);
-                        $tdKommenStyle = $istKommenManuell ? ' style="background:#ffcdd2;"' : '';
-                        $tdGehenStyle = $istGehenManuell ? ' style="background:#ffcdd2;"' : '';
 
                         // Anzeige: Rohzeiten bleiben gespeichert, korrigierte Zeiten werden nur berechnet.
                         $kommenRoh  = isset($b['kommen_roh'])  ? (string)$b['kommen_roh']  : '';
@@ -1109,6 +1107,9 @@ if (is_array($tageswerte) && $tageswerte !== []) {
 
                         $kommenRohExtra = ($kommenRohAnzeige !== '' && $kommenMain !== $kommenRohAnzeige) ? $kommenRohAnzeige : '';
                         $gehenRohExtra  = ($gehenRohAnzeige !== '' && $gehenMain !== $gehenRohAnzeige) ? $gehenRohAnzeige : '';
+
+                        $tdKommenStyle = ($istKommenManuell && $kommenMain !== '') ? ' style="background:#ffcdd2;"' : '';
+                        $tdGehenStyle = ($istGehenManuell && $gehenMain !== '') ? ' style="background:#ffcdd2;"' : '';
 
                         $hatStempel = ($kommenRoh !== '' || $gehenRoh !== '' || $kommenKorr !== '' || $gehenKorr !== '');
 

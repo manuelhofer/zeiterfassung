@@ -498,12 +498,20 @@ class PDFService
                 $istGehenManuell = ((int)($b['gehen_manuell_geaendert'] ?? 0) === 1);
                 $zellenManuell = array_fill(0, 15, false);
                 if ($istKommenManuell) {
-                    $zellenManuell[2] = true; // An
-                    $zellenManuell[4] = true; // An.Korr
+                    if ($kommenRoh !== '') {
+                        $zellenManuell[2] = true; // An
+                    }
+                    if ($kommenKor !== '') {
+                        $zellenManuell[4] = true; // An.Korr
+                    }
                 }
                 if ($istGehenManuell) {
-                    $zellenManuell[3] = true; // Ab
-                    $zellenManuell[6] = true; // Ab.Korr
+                    if ($gehenRoh !== '') {
+                        $zellenManuell[3] = true; // Ab
+                    }
+                    if ($gehenKor !== '') {
+                        $zellenManuell[6] = true; // Ab.Korr
+                    }
                 }
 
                 $pauseZelle = $istMetaZeile ? $pause : '';

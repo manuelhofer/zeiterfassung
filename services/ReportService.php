@@ -465,7 +465,8 @@ class ReportService
             // Offener Block (Kommen ohne Gehen)
             if ($blockStart !== null) {
                 $overnightClosed = false;
-                if ($blockStartNachtshift === 1 && $nextYmd !== '' && isset($proTag[$nextYmd])) {
+                $overnightCheckAktiv = ($blockStartNachtshift === 1 || $blockStartManuell === 1);
+                if ($overnightCheckAktiv && $nextYmd !== '' && isset($proTag[$nextYmd])) {
                     $nextDayBookings = $proTag[$nextYmd];
                     if (is_array($nextDayBookings) && $nextDayBookings !== []) {
                         usort($nextDayBookings, static function (array $a, array $b): int {
