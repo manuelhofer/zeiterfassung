@@ -535,13 +535,10 @@ class ReportService
                                 $midnight = $blockStart->setTime(0, 0, 0)->modify('+1 day');
                                 if ($midnight < $firstGoDt) {
                                     $manuellGrenze = ($blockStartManuell === 1 || $firstGoManuell === 1) ? 1 : 0;
-                                    if ($blockStartNachtshift === 1) {
-                                        // Nachtschicht: kompletten Block am Starttag lassen (keine Aufteilung um Mitternacht).
-                                        $bloecke[] = [$blockStart, $firstGoDt, $blockStartManuell, $firstGoManuell, $blockStartNachtshift];
-                                    } else {
-                                        $bloecke[] = [$blockStart, $midnight, $blockStartManuell, $manuellGrenze, $blockStartNachtshift];
-                                        $extraBlocks[$nextYmd][] = [$midnight, $firstGoDt, $manuellGrenze, $firstGoManuell, $blockStartNachtshift];
-                                    }
+                                    // Nachtschicht soll im Report immer an Mitternacht getrennt werden:
+                                    // Starttag zeigt bis 00:00, Folgetag startet um 00:00.
+                                    $bloecke[] = [$blockStart, $midnight, $blockStartManuell, $manuellGrenze, $blockStartNachtshift];
+                                    $extraBlocks[$nextYmd][] = [$midnight, $firstGoDt, $manuellGrenze, $firstGoManuell, $blockStartNachtshift];
                                 } else {
                                     $bloecke[] = [$blockStart, $firstGoDt, $blockStartManuell, $firstGoManuell, $blockStartNachtshift];
                                 }
