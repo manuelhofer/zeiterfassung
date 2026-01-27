@@ -475,8 +475,10 @@ class ReportService
             // Offener Block (Kommen ohne Gehen)
             if ($blockStart !== null) {
                 $overnightClosed = false;
-                $overnightCheckAktiv = ($blockStartNachtshift === 1 || $blockStartManuell === 1);
-                if ($overnightCheckAktiv && $nextYmd !== '' && isset($proTag[$nextYmd])) {
+                // Nachtschicht-Logik auch ohne explizites Flag nutzen:
+                // Wenn am Folgetag ein fruehes "Gehen" vor dem ersten "Kommen" steht,
+                // behandeln wir es als Schichtende des Vortags.
+                if ($nextYmd !== '' && isset($proTag[$nextYmd])) {
                     $nextDayBookings = $proTag[$nextYmd];
                     if (is_array($nextDayBookings) && $nextDayBookings !== []) {
                         usort($nextDayBookings, static function (array $a, array $b): int {
@@ -515,8 +517,13 @@ class ReportService
                                 $midnight = $blockStart->setTime(0, 0, 0)->modify('+1 day');
                                 if ($midnight < $firstGoDt) {
                                     $manuellGrenze = ($blockStartManuell === 1 || $firstGoManuell === 1) ? 1 : 0;
-                                    $bloecke[] = [$blockStart, $midnight, $blockStartManuell, $manuellGrenze, $blockStartNachtshift];
-                                    $extraBlocks[$nextYmd][] = [$midnight, $firstGoDt, $manuellGrenze, $firstGoManuell, $blockStartNachtshift];
+                                    if ($blockStartNachtshift === 1) {
+                                        // Nachtschicht: kompletten Block am Starttag lassen (keine Aufteilung um Mitternacht).
+                                        $bloecke[] = [$blockStart, $firstGoDt, $blockStartManuell, $firstGoManuell, $blockStartNachtshift];
+                                    } else {
+                                        $bloecke[] = [$blockStart, $midnight, $blockStartManuell, $manuellGrenze, $blockStartNachtshift];
+                                        $extraBlocks[$nextYmd][] = [$midnight, $firstGoDt, $manuellGrenze, $firstGoManuell, $blockStartNachtshift];
+                                    }
                                 } else {
                                     $bloecke[] = [$blockStart, $firstGoDt, $blockStartManuell, $firstGoManuell, $blockStartNachtshift];
                                 }
