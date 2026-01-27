@@ -1139,14 +1139,6 @@ if (is_array($tageswerte) && $tageswerte !== []) {
 
                         $hatStempel = ($kommenRoh !== '' || $gehenRoh !== '' || $kommenKorr !== '' || $gehenKorr !== '');
 
-                        if ($istMicroIgnoriert && !$showMicro) {
-                            // Mikro-Buchung: in der Monatsübersicht komplett ausblenden (keine Zeiten, keine FEHLT-Markierung).
-                            $kommenMain = '';
-                            $gehenMain = '';
-                            $kommenRohExtra = '';
-                            $gehenRohExtra = '';
-                            $hatStempel = false;
-                        }
                         // Nachtschicht-Exception pro Block (Kommen gestern, Gehen heute).
                         $blockIstUebernachtOk = false;
                         if ($tagIstVergangen && $hatStempel && ($kMainRaw === '' || $gMainRaw === '')) {
@@ -1181,6 +1173,14 @@ if (is_array($tageswerte) && $tageswerte !== []) {
                                     $blockIstUebernachtAnzeige = true;
                                 }
                             }
+                        }
+                        if ($istMicroIgnoriert && !$showMicro && !($blockIstUebernachtOk || $blockIstUebernachtAnzeige)) {
+                            // Mikro-Buchung: in der Monatsübersicht komplett ausblenden (keine Zeiten, keine FEHLT-Markierung).
+                            $kommenMain = '';
+                            $gehenMain = '';
+                            $kommenRohExtra = '';
+                            $gehenRohExtra = '';
+                            $hatStempel = false;
                         }
                         if ($blockIstUebernachtOk || $blockIstUebernachtAnzeige) {
                             if ($kommenMain === '' && $gehenMain !== '') {
