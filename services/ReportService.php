@@ -457,6 +457,24 @@ class ReportService
                         $blockStart = null;
                         $blockStartManuell = 0;
                         $blockStartNachtshift = 0;
+                    } elseif ($blockStart !== null) {
+                        // Gehen liegt am selben Datum vor dem Kommen (z. B. Nachtschicht mit falschem Datum).
+                        // Wir behandeln das als Schichtende am Folgetag und trennen an Mitternacht.
+                        $gehenNaechsterTag = $dt->modify('+1 day');
+                        $diff = $gehenNaechsterTag->getTimestamp() - $blockStart->getTimestamp();
+                        if ($diff > 0 && $diff <= $overnightMaxSeconds) {
+                            $midnight = $blockStart->setTime(0, 0, 0)->modify('+1 day');
+                            $manuellGrenze = ($blockStartManuell === 1 || $istManuell === 1) ? 1 : 0;
+                            if ($midnight < $gehenNaechsterTag) {
+                                $bloecke[] = [$blockStart, $midnight, $blockStartManuell, $manuellGrenze, $blockStartNachtshift];
+                                $extraBlocks[$nextYmd][] = [$midnight, $gehenNaechsterTag, $manuellGrenze, $istManuell, $blockStartNachtshift];
+                            } else {
+                                $bloecke[] = [$blockStart, $gehenNaechsterTag, $blockStartManuell, $istManuell, $blockStartNachtshift];
+                            }
+                            $blockStart = null;
+                            $blockStartManuell = 0;
+                            $blockStartNachtshift = 0;
+                        }
                     } elseif ($blockStart === null) {
                         if (isset($overnightGehenIgnorieren[$ymd])) {
                             $idxIgnore = array_search($dt->getTimestamp(), $overnightGehenIgnorieren[$ymd], true);
