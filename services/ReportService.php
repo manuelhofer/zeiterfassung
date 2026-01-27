@@ -536,6 +536,7 @@ class ReportService
 
             if (isset($extraBlocks[$ymd]) && $extraBlocks[$ymd] !== []) {
                 $bloecke = array_merge($bloecke, $extraBlocks[$ymd]);
+                unset($extraBlocks[$ymd]);
             }
 
             if (count($bloecke) > 1) {
