@@ -1102,6 +1102,9 @@ if (is_array($tageswerte) && $tageswerte !== []) {
                         $kommenKorrAnzeige = report_format_uhrzeit($kommenKorr !== '' ? $kommenKorr : null);
                         $gehenKorrAnzeige  = report_format_uhrzeit($gehenKorr !== '' ? $gehenKorr : null);
 
+                        $kMainRaw = trim(($kommenKorr !== '' ? $kommenKorr : $kommenRoh));
+                        $gMainRaw = trim(($gehenKorr !== '' ? $gehenKorr : $gehenRoh));
+
                         $kommenMain = $kommenKorrAnzeige !== '' ? $kommenKorrAnzeige : $kommenRohAnzeige;
                         $gehenMain  = $gehenKorrAnzeige !== '' ? $gehenKorrAnzeige : $gehenRohAnzeige;
 
@@ -1111,6 +1114,21 @@ if (is_array($tageswerte) && $tageswerte !== []) {
                         }
                         if ($istNachtshiftBlock && $gehenMain === '' && $kommenMain !== '') {
                             $gehenMain = '00:00';
+                        }
+                        if ($kommenMain === '' && $gehenMain !== '' && ($overnightThisGo instanceof \DateTimeImmutable)) {
+                            $gDt = report_parse_dt_berlin($gMainRaw);
+                            if (report_dt_is_close($gDt, $overnightThisGo, 60)) {
+                                $kommenMain = '00:00';
+                            }
+                        }
+                        if ($gehenMain === '' && $kommenMain !== '' && ($overnightNextGo instanceof \DateTimeImmutable)) {
+                            $kDt = report_parse_dt_berlin($kMainRaw);
+                            if ($kDt !== null) {
+                                $diff = $overnightNextGo->getTimestamp() - $kDt->getTimestamp();
+                                if ($diff > 0 && $diff <= $reportOvernightMaxSeconds) {
+                                    $gehenMain = '00:00';
+                                }
+                            }
                         }
 
                         $kommenRohExtra = ($kommenRohAnzeige !== '' && $kommenMain !== $kommenRohAnzeige) ? $kommenRohAnzeige : '';
@@ -1130,8 +1148,6 @@ if (is_array($tageswerte) && $tageswerte !== []) {
                             $hatStempel = false;
                         }
                         // Nachtschicht-Exception pro Block (Kommen gestern, Gehen heute).
-                        $kMainRaw = trim(($kommenKorr !== '' ? $kommenKorr : $kommenRoh));
-                        $gMainRaw = trim(($gehenKorr !== '' ? $gehenKorr : $gehenRoh));
                         $blockIstUebernachtOk = false;
                         if ($tagIstVergangen && $hatStempel && ($kMainRaw === '' || $gMainRaw === '')) {
                             if ($kMainRaw !== '' && $gMainRaw === '' && ($overnightNextGo instanceof \DateTimeImmutable)) {
@@ -1147,6 +1163,14 @@ if (is_array($tageswerte) && $tageswerte !== []) {
                                 if (report_dt_is_close($gDt, $overnightThisGo, 60)) {
                                     $blockIstUebernachtOk = true;
                                 }
+                            }
+                        }
+                        if ($blockIstUebernachtOk) {
+                            if ($kommenMain === '' && $gehenMain !== '') {
+                                $kommenMain = '00:00';
+                            }
+                            if ($gehenMain === '' && $kommenMain !== '') {
+                                $gehenMain = '00:00';
                             }
                         }
                         $blockUnvollstaendig = ($tagIstVergangen && $hatStempel && ($kommenMain === '' || $gehenMain === '') && !$blockIstUebernachtOk);
