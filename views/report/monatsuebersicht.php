@@ -1165,6 +1165,14 @@ if (is_array($tageswerte) && $tageswerte !== []) {
                                 }
                             }
                         }
+                        if ($blockIstUebernachtOk) {
+                            if ($kommenMain === '' && $gehenMain !== '') {
+                                $kommenMain = '00:00';
+                            }
+                            if ($gehenMain === '' && $kommenMain !== '') {
+                                $gehenMain = '00:00';
+                            }
+                        }
                         $blockUnvollstaendig = ($tagIstVergangen && $hatStempel && ($kommenMain === '' || $gehenMain === '') && !$blockIstUebernachtOk);
                         $kommenFehlt = ($blockUnvollstaendig && $kommenMain === '');
                         $gehenFehlt  = ($blockUnvollstaendig && $gehenMain === '');
