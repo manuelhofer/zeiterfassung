@@ -475,8 +475,10 @@ class ReportService
             // Offener Block (Kommen ohne Gehen)
             if ($blockStart !== null) {
                 $overnightClosed = false;
-                $overnightCheckAktiv = ($blockStartNachtshift === 1 || $blockStartManuell === 1);
-                if ($overnightCheckAktiv && $nextYmd !== '' && isset($proTag[$nextYmd])) {
+                // Nachtschicht-Logik auch ohne explizites Flag nutzen:
+                // Wenn am Folgetag ein fruehes "Gehen" vor dem ersten "Kommen" steht,
+                // behandeln wir es als Schichtende des Vortags.
+                if ($nextYmd !== '' && isset($proTag[$nextYmd])) {
                     $nextDayBookings = $proTag[$nextYmd];
                     if (is_array($nextDayBookings) && $nextDayBookings !== []) {
                         usort($nextDayBookings, static function (array $a, array $b): int {
