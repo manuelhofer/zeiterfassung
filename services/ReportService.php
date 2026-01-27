@@ -457,6 +457,24 @@ class ReportService
                         $blockStart = null;
                         $blockStartManuell = 0;
                         $blockStartNachtshift = 0;
+                    } elseif ($blockStart !== null) {
+                        // Gehen liegt am selben Datum vor dem Kommen (z. B. Nachtschicht mit falschem Datum).
+                        // Wir behandeln das als Schichtende am Folgetag und trennen an Mitternacht.
+                        $gehenNaechsterTag = $dt->modify('+1 day');
+                        $diff = $gehenNaechsterTag->getTimestamp() - $blockStart->getTimestamp();
+                        if ($diff > 0 && $diff <= $overnightMaxSeconds) {
+                            $midnight = $blockStart->setTime(0, 0, 0)->modify('+1 day');
+                            $manuellGrenze = ($blockStartManuell === 1 || $istManuell === 1) ? 1 : 0;
+                            if ($midnight < $gehenNaechsterTag) {
+                                $bloecke[] = [$blockStart, $midnight, $blockStartManuell, $manuellGrenze, $blockStartNachtshift];
+                                $extraBlocks[$nextYmd][] = [$midnight, $gehenNaechsterTag, $manuellGrenze, $istManuell, $blockStartNachtshift];
+                            } else {
+                                $bloecke[] = [$blockStart, $gehenNaechsterTag, $blockStartManuell, $istManuell, $blockStartNachtshift];
+                            }
+                            $blockStart = null;
+                            $blockStartManuell = 0;
+                            $blockStartNachtshift = 0;
+                        }
                     } elseif ($blockStart === null) {
                         if (isset($overnightGehenIgnorieren[$ymd])) {
                             $idxIgnore = array_search($dt->getTimestamp(), $overnightGehenIgnorieren[$ymd], true);
@@ -475,8 +493,10 @@ class ReportService
             // Offener Block (Kommen ohne Gehen)
             if ($blockStart !== null) {
                 $overnightClosed = false;
-                $overnightCheckAktiv = ($blockStartNachtshift === 1 || $blockStartManuell === 1);
-                if ($overnightCheckAktiv && $nextYmd !== '' && isset($proTag[$nextYmd])) {
+                // Nachtschicht-Logik auch ohne explizites Flag nutzen:
+                // Wenn am Folgetag ein fruehes "Gehen" vor dem ersten "Kommen" steht,
+                // behandeln wir es als Schichtende des Vortags.
+                if ($nextYmd !== '' && isset($proTag[$nextYmd])) {
                     $nextDayBookings = $proTag[$nextYmd];
                     if (is_array($nextDayBookings) && $nextDayBookings !== []) {
                         usort($nextDayBookings, static function (array $a, array $b): int {
