@@ -1165,7 +1165,24 @@ if (is_array($tageswerte) && $tageswerte !== []) {
                                 }
                             }
                         }
-                        if ($blockIstUebernachtOk) {
+                        $blockIstUebernachtAnzeige = false;
+                        if ($hatStempel && ($kMainRaw === '' || $gMainRaw === '')) {
+                            if ($kMainRaw !== '' && $gMainRaw === '' && ($overnightNextGo instanceof \DateTimeImmutable)) {
+                                $kDt = report_parse_dt_berlin($kMainRaw);
+                                if ($kDt !== null) {
+                                    $diff = $overnightNextGo->getTimestamp() - $kDt->getTimestamp();
+                                    if ($diff > 0 && $diff <= $reportOvernightMaxSeconds) {
+                                        $blockIstUebernachtAnzeige = true;
+                                    }
+                                }
+                            } elseif ($kMainRaw === '' && $gMainRaw !== '' && ($overnightThisGo instanceof \DateTimeImmutable)) {
+                                $gDt = report_parse_dt_berlin($gMainRaw);
+                                if (report_dt_is_close($gDt, $overnightThisGo, 60)) {
+                                    $blockIstUebernachtAnzeige = true;
+                                }
+                            }
+                        }
+                        if ($blockIstUebernachtOk || $blockIstUebernachtAnzeige) {
                             if ($kommenMain === '' && $gehenMain !== '') {
                                 $kommenMain = '00:00';
                             }
