@@ -923,6 +923,7 @@ if (is_array($tageswerte) && $tageswerte !== []) {
                 <th>Datum</th>
                 <th>An</th>
                 <th>Ab</th>
+                <th>Ist (Block)</th>
                 <th>Ist (Netto)</th>
                 <th>Pausen</th>
 	                <th>Kurzarbeit</th>
@@ -1226,6 +1227,17 @@ if (is_array($tageswerte) && $tageswerte !== []) {
                             <?php endif; ?>
                         </td>
 
+                        <td>
+                            <?php
+                                $istNettoShow = '';
+                                if ($istMetaZeile) {
+                                    $istNettoShow = $istMicroIgnoriert ? '-' : (string)($t['arbeitszeit_stunden'] ?? '');
+                                }
+                            ?>
+                            <?php if ($istMetaZeile): ?>
+                                <?php echo htmlspecialchars($istNettoShow !== '' ? $istNettoShow : '-', ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>
+                            <?php endif; ?>
+                        </td>
                         <td>
                             <?php
                                 $istNettoShow = '';
