@@ -290,12 +290,13 @@ class PDFService
 
                 $pauseF = $this->parseFloat((string)($t['pausen_stunden'] ?? '0.00'));
                 $istF   = $this->parseFloat((string)($t['arbeitszeit_stunden'] ?? '0.00'));
+                $istNettoF = max($istF - $pauseF, 0.0);
 
                 if ($pauseF > 0.0001) {
                     $pause = $this->formatDez2($pauseF);
                 }
-                if ($istF > 0.0001) {
-                    $ist = $this->formatDez2($istF);
+                if ($istNettoF > 0.0001) {
+                    $ist = $this->formatDez2($istNettoF);
                 }
 
                 $arztF = $this->parseFloat((string)($t['arzt_stunden'] ?? '0.00'));
@@ -329,7 +330,7 @@ class PDFService
                 }
 
                 // Summen (nur einmal pro Tag!)
-                $sumIst += $istF;
+                $sumIst += $istNettoF;
                 $sumArzt += $arztF;
                 $sumKrankLfz += $krankLfzF;
                 $sumKrankKk += $krankKkF;
@@ -492,7 +493,7 @@ class PDFService
                     $kommenKor,
                     $istMetaZeile ? $pause : '',
                     $gehenKor,
-                    $this->calcBlockIstDez2($b),
+                    $istMetaZeile ? $ist : '',
                     $istErsteZeile ? $arzt : '',
                     $istErsteZeile ? $krankKk : '',
                     $istErsteZeile ? $krankLfz : '',
@@ -1330,81 +1331,7 @@ class PDFService
 
     
     /**
-     * Block-IST (Dezimalstunden) fuer die Anzeige in Folgezeilen.
-     *
-     * WICHTIG: Nur UI-Anzeige. Summen bleiben unveraendert aus den Tageswerten.
-     * Logik analog zur Monatsübersicht:
-     * - bevorzugt korrigiertes Paar (kommen_korr/gehen_korr)
-     * - sonst Roh-Paar
-     * - sonst Main-Paar (korr bevorzugt, sonst roh)
-     * - bei Rundung->0 (gehen_korr <= kommen_korr) wird 0.00 geliefert
-     * - sonst diff = ende-start (kein abs)
-     */
-    private function calcBlockIstDez2(array $block): string
-    {
-        $kRaw = isset($block['kommen_roh']) ? trim((string)($block['kommen_roh'])) : '';
-        $gRaw = isset($block['gehen_roh']) ? trim((string)($block['gehen_roh'])) : '';
-        $kK   = isset($block['kommen_korr']) ? trim((string)($block['kommen_korr'])) : '';
-        $gK   = isset($block['gehen_korr']) ? trim((string)($block['gehen_korr'])) : '';
-
-        // Rundung->0 (korr Paar dreht/egalisiert)
-        if ($kK !== '' && $gK !== '' && substr($kK, 0, 10) !== '0000-00-00' && substr($gK, 0, 10) !== '0000-00-00') {
-            $kDt = $this->parseDtBerlin($kK);
-            $gDt = $this->parseDtBerlin($gK);
-            if ($kDt !== null && $gDt !== null && $gDt->getTimestamp() <= $kDt->getTimestamp()) {
-                return '0.00';
-            }
-        }
-
-        $start = '';
-        $ende  = '';
-
-        $kCorrValid = ($kK !== '' && substr($kK, 0, 10) !== '0000-00-00');
-        $gCorrValid = ($gK !== '' && substr($gK, 0, 10) !== '0000-00-00');
-        $kRawValid = ($kRaw !== '' && substr($kRaw, 0, 10) !== '0000-00-00');
-        $gRawValid = ($gRaw !== '' && substr($gRaw, 0, 10) !== '0000-00-00');
-
-        // 1) Korrigiertes Paar bevorzugen (soll zur Anzeige passen).
-        if ($kCorrValid && $gCorrValid) {
-            $start = $kK;
-            $ende  = $gK;
-        } elseif ($kRawValid && $gRawValid) {
-            // 2) Roh-Paar, wenn keine vollstaendige Korrektur vorliegt.
-            $start = $kRaw;
-            $ende  = $gRaw;
-        } else {
-            // 3) Fallback: Main-Paar (korr bevorzugt, sonst roh).
-            $kMain = $kCorrValid ? $kK : ($kRawValid ? $kRaw : '');
-            $gMain = $gCorrValid ? $gK : ($gRawValid ? $gRaw : '');
-
-            if ($kMain !== '' && $gMain !== '') {
-                $start = $kMain;
-                $ende  = $gMain;
-            }
-        }
-
-        if ($start === '' || $ende === '') {
-            return '';
-        }
-
-        $kDt = $this->parseDtBerlin($start);
-        $gDt = $this->parseDtBerlin($ende);
-        if ($kDt === null || $gDt === null) {
-            return '';
-        }
-
-        $diff = $gDt->getTimestamp() - $kDt->getTimestamp();
-        if ($diff <= 0) {
-            return '0.00';
-        }
-
-        $hours = $diff / 3600.0;
-        return $this->formatDez2((float)$hours);
-    }
-
-
-    /**
-     * Block-Dauer in Sekunden (wie calcBlockIstDez2, aber als int).
+     * Block-Dauer in Sekunden.
      * Wird genutzt, um bei Mehrfach-Bloecken eine Primaer-Zeile fuer Meta-Felder zu bestimmen.
      */
     private function calcBlockSeconds(array $block): int
