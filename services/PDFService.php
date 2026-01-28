@@ -658,7 +658,8 @@ class PDFService
         // versuchen wir zuerst die Zeilenhoehe minimal zu reduzieren. Falls das nicht reicht, kann (nur im 2-Seiten-Grenzfall)
         // der Summen-/Bemerkungsbereich minimal nach unten geschoben werden, um eine zusätzliche Tabellenzeile auf 1 Seite zu gewinnen.
         // Lesbarkeit bleibt dabei erhalten (kein aggressives Shrinking fuer echte Mehrseiten-Monate).
-        $bottomLimitY = 210.0; // Standard: Reserve fuer Summen/Bemerkungen
+        $bottomLimitY = 210.0; // Standard: Reserve fuer Summen/Bemerkungen (Letzte Seite)
+        $bottomLimitYOhneSummary = 90.0; // Reserve fuer Seiten ohne Summenblock (mehr Tabellenzeilen moeglich)
         $sumGapY      = 20.0;  // Abstand zwischen Tabellenende und Summenblock-Start (wie in der Vorlage-Annäherung)
 
         $calcSeiten = function (float $testRowH, float $testBottomLimitY) use ($tableTopY, $rows): int {
@@ -718,24 +719,32 @@ class PDFService
         // Unterer Bereich: Summenblock + Zusatzblock visuell mittig platzieren.
         // Wir zentrieren die beiden Bloecke als gemeinsame Gruppe zwischen tableRightX und rightX,
         // allerdings nur, wenn der rechte Zusatzblock auch sichtbar ist.
+        $sumBlockBreite = $sumValueX - $sumLabelX;
+        $rightBlockBreite = $rightBlockValueX - $rightBlockLabelX;
+        $blockAbstand = 20.0;
+
         if ($urlaubAbzglBfText !== '') {
-            $sumGroupLeft = $sumLabelX;
-            $sumGroupRight = $sumValueX + 5.0;
-            $rightGroupLeft = $rightBlockLabelX;
-            $rightGroupRight = $rightBlockValueX + 5.0;
-
-            $groupLeft = min($sumGroupLeft, $rightGroupLeft);
-            $groupRight = max($sumGroupRight, $rightGroupRight);
-            $groupWidth = $groupRight - $groupLeft;
-            $availableWidth = $rightX - $tableRightX;
-            $groupOffset = ($availableWidth > $groupWidth) ? (($availableWidth - $groupWidth) / 2.0) : 0.0;
-
-            if ($groupOffset > 0.1) {
-                $sumLabelX += $groupOffset;
-                $sumValueX += $groupOffset;
-                $rightBlockLabelX += $groupOffset;
-                $rightBlockValueX += $groupOffset;
+            $gruppenBreite = $sumBlockBreite + $blockAbstand + $rightBlockBreite;
+            $gruppenLinks = $centerX - ($gruppenBreite / 2.0);
+            if ($gruppenLinks < $marginL) {
+                $gruppenLinks = $marginL;
             }
+            $gruppenRechts = $gruppenLinks + $gruppenBreite;
+            if ($gruppenRechts > $rightX) {
+                $gruppenLinks = max($marginL, $rightX - $gruppenBreite);
+            }
+
+            $sumLabelX = $gruppenLinks;
+            $sumValueX = $sumLabelX + $sumBlockBreite;
+            $rightBlockLabelX = $sumValueX + $blockAbstand;
+            $rightBlockValueX = $rightBlockLabelX + $rightBlockBreite;
+        } else {
+            $sumBlockBreite = $sumValueX - $sumLabelX;
+            $sumLabelX = $centerX - ($sumBlockBreite / 2.0);
+            if ($sumLabelX < $marginL) {
+                $sumLabelX = $marginL;
+            }
+            $sumValueX = $sumLabelX + $sumBlockBreite;
         }
 
         // Seitenaufteilung: Tabelle kann durch Mehrfach-Kommen/Gehen deutlich mehr Zeilen haben.
@@ -747,12 +756,36 @@ class PDFService
             $maxRowsInclHeader = 6;
         }
         $dataRowsPerPage = $maxRowsInclHeader - 1;
+        $maxRowsInclHeaderOhneSummary = (int)floor(($tableTopY - $bottomLimitYOhneSummary) / $rowH);
+        if ($maxRowsInclHeaderOhneSummary < 6) {
+            $maxRowsInclHeaderOhneSummary = 6;
+        }
+        $dataRowsPerPageOhneSummary = $maxRowsInclHeaderOhneSummary - 1;
 
         $dataRows = array_slice($rows, 1);
         $dataManuell = array_slice($zellMarkierungen, 1);
 
-        $chunks = array_chunk($dataRows, $dataRowsPerPage);
-        $chunksManuell = array_chunk($dataManuell, $dataRowsPerPage);
+        $dataRowsCount = count($dataRows);
+        $chunks = [];
+        $chunksManuell = [];
+
+        if ($dataRowsCount <= $dataRowsPerPage) {
+            $chunks = [$dataRows];
+            $chunksManuell = [$dataManuell];
+        } else {
+            $restNachLetzter = $dataRowsCount - $dataRowsPerPage;
+            $seitenVorher = (int)ceil($restNachLetzter / $dataRowsPerPageOhneSummary);
+            $offset = 0;
+
+            for ($i = 0; $i < $seitenVorher; $i++) {
+                $chunks[] = array_slice($dataRows, $offset, $dataRowsPerPageOhneSummary);
+                $chunksManuell[] = array_slice($dataManuell, $offset, $dataRowsPerPageOhneSummary);
+                $offset += $dataRowsPerPageOhneSummary;
+            }
+
+            $chunks[] = array_slice($dataRows, $offset);
+            $chunksManuell[] = array_slice($dataManuell, $offset);
+        }
 
         if ($chunks === []) {
             $chunks = [[]];
@@ -874,10 +907,30 @@ class PDFService
             // Summenblock unten (Positionen) – Werte werden oberhalb dynamisch ermittelt (Auto-Compact).
 
             if ($istLetzteSeite) {
+                $sumStartYPage = $sumStartY;
+                $freieOberkante = $tableBottomY - $sumGapY;
+                $freieUnterkante = 80.0;
+                $sumBlockHoehe = max((count($sumLines) - 1) * $sumLineH, $sumLineH);
+                $rightLines = ($urlaubAbzglBfText !== '') ? [
+                    ['Urlaubtage (abzgl. BF)', $urlaubAbzglBfText],
+                    ['BF (Rest Jahr)', $bfRestArbeitstageText],
+                ] : [];
+                $rightBlockHoehe = ($rightLines !== []) ? max((count($rightLines) - 1) * $sumLineH, $sumLineH) : 0.0;
+                $gruppenHoehe = max($sumBlockHoehe, $rightBlockHoehe);
+                $freieHoehe = $freieOberkante - $freieUnterkante;
+
+                if ($freieHoehe > ($gruppenHoehe + 10.0)) {
+                    $sumStartYPage = $freieUnterkante + (($freieHoehe + $gruppenHoehe) / 2.0);
+                }
+
+                if ($sumStartYPage > ($freieOberkante - 18.0)) {
+                    $sumStartYPage = $freieOberkante - 18.0;
+                }
+
                 // Bemerkungen (Kürzel/Begründung aus tageswerte_mitarbeiter.kommentar)
                 if ($bemerkungen !== []) {
                     $notesX = $marginL;
-                    $notesY = $sumStartY + 18.0;
+                    $notesY = $sumStartYPage + 18.0;
 
                     $c .= $this->pdfTextCmd('F2', 9.0, $notesX, $notesY, 'Bemerkungen:', 'left');
                     $notesY -= 11.0;
@@ -904,7 +957,7 @@ class PDFService
 
                 // Summenblock unten
                 for ($i = 0; $i < count($sumLines); $i++) {
-                    $y = $sumStartY - ($i * $sumLineH);
+                    $y = $sumStartYPage - ($i * $sumLineH);
                     $label = (string)$sumLines[$i][0];
                     $value = (string)$sumLines[$i][1];
 
@@ -922,14 +975,9 @@ class PDFService
                 }
 
                 // Zusatzblock rechts: Urlaubstage (abzgl. geplante Betriebsferien)
-                if ($urlaubAbzglBfText !== '') {
-                    $rightLines = [
-                        ['Urlaubtage (abzgl. BF)', $urlaubAbzglBfText],
-                        ['BF (Rest Jahr)', $bfRestArbeitstageText],
-                    ];
-
+                if ($rightLines !== []) {
                     for ($j = 0; $j < count($rightLines); $j++) {
-                        $y = $sumStartY - ($j * $sumLineH);
+                        $y = $sumStartYPage - ($j * $sumLineH);
                         $label = (string)$rightLines[$j][0];
                         $value = (string)$rightLines[$j][1];
 
