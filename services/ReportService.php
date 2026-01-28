@@ -383,6 +383,11 @@ class ReportService
                             $pauseMinuten = 0;
                         }
                         $pauseStunden = sprintf('%.2f', $pauseMinuten / 60);
+                        $istNetto = ($diffSekunden / 3600.0) - ($pauseMinuten / 60.0);
+                        if ($istNetto < 0) {
+                            $istNetto = 0.0;
+                        }
+                        $istStunden = sprintf('%.2f', $istNetto);
                     }
                 }
 
@@ -700,7 +705,6 @@ class ReportService
             }
 
             $diffSek = $g->getTimestamp() - $k->getTimestamp();
-            $block['ist_stunden'] = sprintf('%.2f', $diffSek / 3600.0);
 
             $pauseMinuten = 0;
             try {
@@ -715,6 +719,11 @@ class ReportService
             }
 
             $block['pause_stunden'] = sprintf('%.2f', $pauseMinuten / 60.0);
+            $istNetto = ($diffSek / 3600.0) - ($pauseMinuten / 60.0);
+            if ($istNetto < 0) {
+                $istNetto = 0.0;
+            }
+            $block['ist_stunden'] = sprintf('%.2f', $istNetto);
             $bloecke[$idx] = $block;
         }
 

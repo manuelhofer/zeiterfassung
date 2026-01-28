@@ -510,9 +510,9 @@ class PDFService
                     $kommenRoh,
                     $gehenRoh,
                     $kommenKor,
-                    $istMetaZeile ? $pauseBlock : '',
+                    $pauseBlock,
                     $gehenKor,
-                    $istMetaZeile ? $istBlock : '',
+                    $istBlock,
                     $istErsteZeile ? $arzt : '',
                     $istErsteZeile ? $krankKk : '',
                     $istErsteZeile ? $krankLfz : '',
@@ -542,7 +542,7 @@ class PDFService
                     }
                 }
 
-                $pauseZelle = $istMetaZeile ? $pauseBlock : '';
+                $pauseZelle = $pauseBlock;
                 if ($pauseOverrideAktiv && $pauseZelle !== '') {
                     $zellenManuell[5] = true;
                 }
