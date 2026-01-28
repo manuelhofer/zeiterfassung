@@ -336,15 +336,19 @@ class ReportService
 
                 $kommenKorrStr = null;
                 $gehenKorrStr  = null;
+                $kommenKorrDt = null;
+                $gehenKorrDt = null;
 
                 if ($kRoh instanceof \DateTimeImmutable) {
                     try {
                         $kKorr = $this->rundungsService->rundeZeitstempel($kRoh, 'kommen');
                         if ($kKorr instanceof \DateTimeImmutable) {
                             $kommenKorrStr = $kKorr->format('Y-m-d H:i:s');
+                            $kommenKorrDt = $kKorr;
                         }
                     } catch (\Throwable $e) {
                         $kommenKorrStr = null;
+                        $kommenKorrDt = null;
                     }
                 }
 
@@ -353,9 +357,23 @@ class ReportService
                         $gKorr = $this->rundungsService->rundeZeitstempel($gRoh, 'gehen');
                         if ($gKorr instanceof \DateTimeImmutable) {
                             $gehenKorrStr = $gKorr->format('Y-m-d H:i:s');
+                            $gehenKorrDt = $gKorr;
                         }
                     } catch (\Throwable $e) {
                         $gehenKorrStr = null;
+                        $gehenKorrDt = null;
+                    }
+                }
+
+                $istStunden = null;
+                $startDt = null;
+                $endDt = null;
+                $startDt = $kommenKorrDt instanceof \DateTimeImmutable ? $kommenKorrDt : $kRoh;
+                $endDt = $gehenKorrDt instanceof \DateTimeImmutable ? $gehenKorrDt : $gRoh;
+                if ($startDt instanceof \DateTimeImmutable && $endDt instanceof \DateTimeImmutable) {
+                    $diffSekunden = $endDt->getTimestamp() - $startDt->getTimestamp();
+                    if ($diffSekunden >= 0) {
+                        $istStunden = sprintf('%.2f', $diffSekunden / 3600);
                     }
                 }
 
@@ -364,6 +382,7 @@ class ReportService
                     'gehen_roh'                => $gehenRohStr,
                     'kommen_korr'              => $kommenKorrStr,
                     'gehen_korr'               => $gehenKorrStr,
+                    'ist_stunden'              => $istStunden,
                     'zeit_manuell_geaendert'   => $zeitManuell,
                     'kommen_manuell_geaendert' => $manStart === 1 ? 1 : 0,
                     'gehen_manuell_geaendert'  => $manEnd === 1 ? 1 : 0,

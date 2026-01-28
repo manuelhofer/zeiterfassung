@@ -924,7 +924,6 @@ if (is_array($tageswerte) && $tageswerte !== []) {
                 <th>An</th>
                 <th>Ab</th>
                 <th>Ist (Block)</th>
-                <th>Ist (Netto)</th>
                 <th>Pausen</th>
 	                <th>Kurzarbeit</th>
                 <th>Feiertag</th>
@@ -1229,25 +1228,10 @@ if (is_array($tageswerte) && $tageswerte !== []) {
 
                         <td>
                             <?php
-                                $istNettoShow = '';
-                                if ($istMetaZeile) {
-                                    $istNettoShow = $istMicroIgnoriert ? '-' : (string)($t['arbeitszeit_stunden'] ?? '');
-                                }
+                                $istBlockRoh = isset($b['ist_stunden']) ? trim((string)$b['ist_stunden']) : '';
+                                $istBlockShow = $istBlockRoh !== '' ? $istBlockRoh : '-';
                             ?>
-                            <?php if ($istMetaZeile): ?>
-                                <?php echo htmlspecialchars($istNettoShow !== '' ? $istNettoShow : '-', ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>
-                            <?php endif; ?>
-                        </td>
-                        <td>
-                            <?php
-                                $istNettoShow = '';
-                                if ($istMetaZeile) {
-                                    $istNettoShow = $istMicroIgnoriert ? '-' : (string)($t['arbeitszeit_stunden'] ?? '');
-                                }
-                            ?>
-                            <?php if ($istMetaZeile): ?>
-                                <?php echo htmlspecialchars($istNettoShow !== '' ? $istNettoShow : '-', ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>
-                            <?php endif; ?>
+                            <?php echo htmlspecialchars($istBlockShow, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>
                         </td>
                         <?php
                             $pauseShow = '';
