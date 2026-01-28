@@ -254,7 +254,7 @@ class ReportService
      * Liefert Arbeitsblöcke (Kommen->Gehen) pro Tag für einen Monat, basierend auf `zeitbuchung`.
      * Für offene Blöcke (Kommen ohne Gehen) wird `gehen_*` als null gesetzt.
      *
-     * @return array<string,array<int,array<string,mixed>>> Map: 'Y-m-d' => [ ['kommen_roh'=>..., 'gehen_roh'=>..., 'kommen_korr'=>..., 'gehen_korr'=>..., 'zeit_manuell_geaendert'=>0|1], ...]
+     * @return array<string,array<int,array<string,mixed>>> Map: 'Y-m-d' => [ ['kommen_roh'=>..., 'gehen_roh'=>..., 'kommen_korr'=>..., 'gehen_korr'=>..., 'ist_stunden'=>..., 'pause_stunden'=>..., 'zeit_manuell_geaendert'=>0|1], ...]
      */
     private function holeArbeitsbloeckeProTagFuerMonat(int $mitarbeiterId, \DateTimeImmutable $monatStart): array
     {
@@ -650,6 +650,75 @@ class ReportService
         }
 
         return $result;
+    }
+
+    /**
+     * Ergänzt fehlende Ist-/Pausenwerte in Arbeitsblöcken (defensiv).
+     *
+     * @param array<int,array<string,mixed>> $bloecke
+     * @return array<int,array<string,mixed>>
+     */
+    private function ergaenzeIstUndPauseInArbeitsbloecken(array $bloecke): array
+    {
+        if ($bloecke === []) {
+            return $bloecke;
+        }
+
+        foreach ($bloecke as $idx => $block) {
+            if (!is_array($block)) {
+                continue;
+            }
+
+            $hatIst = array_key_exists('ist_stunden', $block);
+            $hatPause = array_key_exists('pause_stunden', $block);
+            if ($hatIst && $hatPause) {
+                continue;
+            }
+
+            $kStr = (string)($block['kommen_korr'] ?? $block['kommen_roh'] ?? '');
+            $gStr = (string)($block['gehen_korr'] ?? $block['gehen_roh'] ?? '');
+
+            if ($kStr === '' || $gStr === '') {
+                $block['ist_stunden'] = $block['ist_stunden'] ?? null;
+                $block['pause_stunden'] = $block['pause_stunden'] ?? null;
+                $bloecke[$idx] = $block;
+                continue;
+            }
+
+            try {
+                $k = new \DateTimeImmutable($kStr);
+                $g = new \DateTimeImmutable($gStr);
+            } catch (\Throwable $e) {
+                continue;
+            }
+
+            if ($g <= $k) {
+                $block['ist_stunden'] = $block['ist_stunden'] ?? null;
+                $block['pause_stunden'] = $block['pause_stunden'] ?? null;
+                $bloecke[$idx] = $block;
+                continue;
+            }
+
+            $diffSek = $g->getTimestamp() - $k->getTimestamp();
+            $block['ist_stunden'] = sprintf('%.2f', $diffSek / 3600.0);
+
+            $pauseMinuten = 0;
+            try {
+                $pauseRes = $this->pausenService->berechnePausenMinutenUndEntscheidungFuerBlock($k, $g);
+                $pauseMinuten = (int)($pauseRes['pause_minuten'] ?? 0);
+            } catch (\Throwable $e) {
+                $pauseMinuten = 0;
+            }
+
+            if ($pauseMinuten < 0) {
+                $pauseMinuten = 0;
+            }
+
+            $block['pause_stunden'] = sprintf('%.2f', $pauseMinuten / 60.0);
+            $bloecke[$idx] = $block;
+        }
+
+        return $bloecke;
     }
 
     /**
@@ -1788,6 +1857,7 @@ private function holeBetriebsferienTageFuerMitarbeiterUndMonat(int $mitarbeiterI
         foreach ($tageswerte as $i => $row) {
             $datum = (string)($row['datum'] ?? '');
             $bloecke = ($datum !== '' && isset($arbeitsBloeckeProTag[$datum])) ? $arbeitsBloeckeProTag[$datum] : [];
+            $bloecke = $this->ergaenzeIstUndPauseInArbeitsbloecken($bloecke);
             $tageswerte[$i]['arbeitsbloecke'] = $bloecke;
 
             // Wenn der Tag zuvor als "Mikro-Arbeitszeit" komplett ignoriert wurde, ueberschreiben wir nichts.
