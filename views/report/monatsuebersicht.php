@@ -924,6 +924,7 @@ if (is_array($tageswerte) && $tageswerte !== []) {
                 <th>An</th>
                 <th>Ab</th>
                 <th>Ist (Block)</th>
+                <th>Ist (Netto)</th>
                 <th>Pausen</th>
 	                <th>Kurzarbeit</th>
                 <th>Feiertag</th>
@@ -1231,6 +1232,17 @@ if (is_array($tageswerte) && $tageswerte !== []) {
                                 $blockIstShow = report_calc_block_ist_dez2($b);
                             ?>
                             <?php echo htmlspecialchars($blockIstShow !== '' ? $blockIstShow : '-', ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>
+                        </td>
+                        <td>
+                            <?php
+                                $istNettoShow = '';
+                                if ($istMetaZeile) {
+                                    $istNettoShow = $istMicroIgnoriert ? '-' : (string)($t['arbeitszeit_stunden'] ?? '');
+                                }
+                            ?>
+                            <?php if ($istMetaZeile): ?>
+                                <?php echo htmlspecialchars($istNettoShow !== '' ? $istNettoShow : '-', ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>
+                            <?php endif; ?>
                         </td>
                         <?php
                             $pauseShow = '';
