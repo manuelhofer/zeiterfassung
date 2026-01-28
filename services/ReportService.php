@@ -366,6 +366,7 @@ class ReportService
                 }
 
                 $istStunden = null;
+                $pauseStunden = null;
                 $startDt = null;
                 $endDt = null;
                 $startDt = $kommenKorrDt instanceof \DateTimeImmutable ? $kommenKorrDt : $kRoh;
@@ -375,6 +376,14 @@ class ReportService
                     if ($diffSekunden >= 0) {
                         $istStunden = sprintf('%.2f', $diffSekunden / 3600);
                     }
+                    if ($diffSekunden > 0) {
+                        $pauseRes = $this->pausenService->berechnePausenMinutenUndEntscheidungFuerBlock($startDt, $endDt);
+                        $pauseMinuten = (int)($pauseRes['pause_minuten'] ?? 0);
+                        if ($pauseMinuten < 0) {
+                            $pauseMinuten = 0;
+                        }
+                        $pauseStunden = sprintf('%.2f', $pauseMinuten / 60);
+                    }
                 }
 
                 $out[] = [
@@ -383,6 +392,7 @@ class ReportService
                     'kommen_korr'              => $kommenKorrStr,
                     'gehen_korr'               => $gehenKorrStr,
                     'ist_stunden'              => $istStunden,
+                    'pause_stunden'            => $pauseStunden,
                     'zeit_manuell_geaendert'   => $zeitManuell,
                     'kommen_manuell_geaendert' => $manStart === 1 ? 1 : 0,
                     'gehen_manuell_geaendert'  => $manEnd === 1 ? 1 : 0,
