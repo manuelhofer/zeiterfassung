@@ -1800,9 +1800,67 @@ private function holeBetriebsferienTageFuerMitarbeiterUndMonat(int $mitarbeiterI
                 continue;
             }
 
+            $pauseOverrideAktiv = ((int)($row['pause_override_aktiv'] ?? 0) === 1);
             $pauseStd = (float)str_replace(',', '.', (string)($row['pausen_stunden'] ?? '0'));
             if ($pauseStd < 0) {
                 $pauseStd = 0.0;
+            }
+
+            $sollPauseNeuBerechnen = (!$pauseOverrideAktiv && $pauseStd <= 0.0001);
+            if ($sollPauseNeuBerechnen) {
+                $pauseMinutenSumme = 0;
+                $pauseEntscheidungNoetig = false;
+                $pauseAutoMinuten = 0;
+
+                foreach ($bloecke as $b) {
+                    $kStr = (string)($b['kommen_korr'] ?? $b['kommen_roh'] ?? '');
+                    $gStr = (string)($b['gehen_korr'] ?? $b['gehen_roh'] ?? '');
+                    if ($kStr === '' || $gStr === '') {
+                        continue;
+                    }
+
+                    try {
+                        $k = new DateTimeImmutable($kStr);
+                        $g = new DateTimeImmutable($gStr);
+                    } catch (Throwable $e) {
+                        continue;
+                    }
+
+                    if ($g <= $k) {
+                        continue;
+                    }
+
+                    $durSek = $g->getTimestamp() - $k->getTimestamp();
+                    $durStd = $durSek / 3600.0;
+                    if ($durStd < self::MICRO_ARBEITSZEIT_GRENZE_STUNDEN) {
+                        continue;
+                    }
+
+                    $res = $this->pausenService->berechnePausenMinutenUndEntscheidungFuerBlock($k, $g);
+                    $pMin = (int)($res['pause_minuten'] ?? 0);
+                    $autoMin = (int)($res['auto_pause_minuten'] ?? $pMin);
+                    $entscheidungNoetig = (bool)($res['entscheidung_noetig'] ?? false);
+
+                    if ($pMin > 0) {
+                        $pauseMinutenSumme += $pMin;
+                    }
+                    if ($entscheidungNoetig) {
+                        $pauseEntscheidungNoetig = true;
+                        $pauseAutoMinuten += max(0, $autoMin);
+                    }
+                }
+
+                if ($pauseEntscheidungNoetig) {
+                    $pauseStd = 0.0;
+                    $row['pause_entscheidung_noetig'] = 1;
+                    $row['pause_entscheidung_auto_minuten'] = max(0, (int)$pauseAutoMinuten);
+                } else {
+                    $pauseStd = max(0.0, $pauseMinutenSumme / 60.0);
+                    $row['pause_entscheidung_noetig'] = 0;
+                    $row['pause_entscheidung_auto_minuten'] = 0;
+                }
+
+                $row['pausen_stunden'] = sprintf('%.2f', $pauseStd);
             }
 
             $istStd = $sumSek / 3600.0;
@@ -1813,6 +1871,9 @@ private function holeBetriebsferienTageFuerMitarbeiterUndMonat(int $mitarbeiterI
 
             $tageswerte[$i]['arbeitszeit_stunden'] = sprintf('%.2f', round($istNet, 2));
             $tageswerte[$i]['ist_aus_bloecken'] = 1;
+            $tageswerte[$i]['pausen_stunden'] = $row['pausen_stunden'] ?? $tageswerte[$i]['pausen_stunden'];
+            $tageswerte[$i]['pause_entscheidung_noetig'] = $row['pause_entscheidung_noetig'] ?? $tageswerte[$i]['pause_entscheidung_noetig'];
+            $tageswerte[$i]['pause_entscheidung_auto_minuten'] = $row['pause_entscheidung_auto_minuten'] ?? $tageswerte[$i]['pause_entscheidung_auto_minuten'];
         }
 
 
