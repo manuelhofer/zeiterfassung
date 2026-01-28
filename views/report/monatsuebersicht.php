@@ -1234,20 +1234,18 @@ if (is_array($tageswerte) && $tageswerte !== []) {
                             <?php echo htmlspecialchars($istBlockShow, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>
                         </td>
                         <?php
-                            $pauseShow = '';
-                            $pauseManuell = false;
-                            if ($istMetaZeile) {
-                                $pauseShow = $istMicroIgnoriert ? '-' : (string)($t['pausen_stunden'] ?? '');
-                                $pauseManuell = $pauseOverrideAktiv;
+                            $pauseShow = '-';
+                            $pauseManuell = $pauseOverrideAktiv;
+                            if (!$blockUnvollstaendig) {
+                                $pauseBlock = isset($b['pause_stunden']) ? trim((string)$b['pause_stunden']) : '';
+                                if (!$istMicroIgnoriert && $pauseBlock !== '') {
+                                    $pauseShow = $pauseBlock;
+                                }
                             }
                             $tdPauseStyle = $pauseManuell ? ' style="background:#ffcdd2;"' : '';
                         ?>
                         <td<?php echo $tdPauseStyle; ?>>
-                            <?php
-                                if ($istMetaZeile) {
-                                    echo htmlspecialchars($pauseShow, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
-                                }
-                            ?>
+                            <?php echo htmlspecialchars($pauseShow, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>
                         </td>
 
                         <?php
