@@ -1229,9 +1229,14 @@ if (is_array($tageswerte) && $tageswerte !== []) {
 
                         <td>
                             <?php
-                                $blockIstShow = report_calc_block_ist_dez2($b);
+                                $istNettoShow = '';
+                                if ($istMetaZeile) {
+                                    $istNettoShow = $istMicroIgnoriert ? '-' : (string)($t['arbeitszeit_stunden'] ?? '');
+                                }
                             ?>
-                            <?php echo htmlspecialchars($blockIstShow !== '' ? $blockIstShow : '-', ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>
+                            <?php if ($istMetaZeile): ?>
+                                <?php echo htmlspecialchars($istNettoShow !== '' ? $istNettoShow : '-', ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>
+                            <?php endif; ?>
                         </td>
                         <td>
                             <?php
