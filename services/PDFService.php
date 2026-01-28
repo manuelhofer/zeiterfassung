@@ -385,28 +385,34 @@ class PDFService
                 } else {
                     // Fallback: eine Zeile aus den Tageswerten
                     $bloecke = [[
-                        'kommen_roh'  => $t['kommen_roh'] ?? null,
-                        'gehen_roh'   => $t['gehen_roh'] ?? null,
-                        'kommen_korr' => $t['kommen_korr'] ?? null,
-                        'gehen_korr'  => $t['gehen_korr'] ?? null,
+                        'kommen_roh'   => $t['kommen_roh'] ?? null,
+                        'gehen_roh'    => $t['gehen_roh'] ?? null,
+                        'kommen_korr'  => $t['kommen_korr'] ?? null,
+                        'gehen_korr'   => $t['gehen_korr'] ?? null,
+                        'ist_stunden'  => $t['arbeitszeit_stunden'] ?? null,
+                        'pause_stunden' => $t['pausen_stunden'] ?? null,
                     ]];
                 }
             } else {
                 // Kein Tageswert: leere Zeile
                 $bloecke = [[
-                    'kommen_roh'  => null,
-                    'gehen_roh'   => null,
-                    'kommen_korr' => null,
-                    'gehen_korr'  => null,
+                    'kommen_roh'   => null,
+                    'gehen_roh'    => null,
+                    'kommen_korr'  => null,
+                    'gehen_korr'   => null,
+                    'ist_stunden'  => null,
+                    'pause_stunden' => null,
                 ]];
             }
 
             if ($bloecke === []) {
                 $bloecke = [[
-                    'kommen_roh'  => null,
-                    'gehen_roh'   => null,
-                    'kommen_korr' => null,
-                    'gehen_korr'  => null,
+                    'kommen_roh'   => null,
+                    'gehen_roh'    => null,
+                    'kommen_korr'  => null,
+                    'gehen_korr'   => null,
+                    'ist_stunden'  => null,
+                    'pause_stunden' => null,
                 ]];
             }
 
@@ -440,10 +446,12 @@ class PDFService
 
                     if ($filtered === []) {
                         $filtered = [[
-                            'kommen_roh'  => null,
-                            'gehen_roh'   => null,
-                            'kommen_korr' => null,
-                            'gehen_korr'  => null,
+                            'kommen_roh'   => null,
+                            'gehen_roh'    => null,
+                            'kommen_korr'  => null,
+                            'gehen_korr'   => null,
+                            'ist_stunden'  => null,
+                            'pause_stunden' => null,
                         ]];
                     }
 
@@ -485,15 +493,26 @@ class PDFService
                     $gehenRoh = '00:00';
                 }
 
+                $pauseBlock = '';
+                $istBlock = '';
+                $pauseBlockF = $this->parseFloat((string)($b['pause_stunden'] ?? '0'));
+                if ($pauseBlockF > 0.0001) {
+                    $pauseBlock = $this->formatDez2($pauseBlockF);
+                }
+                $istBlockF = $this->parseFloat((string)($b['ist_stunden'] ?? '0'));
+                if ($istBlockF > 0.0001) {
+                    $istBlock = $this->formatDez2($istBlockF);
+                }
+
                 $rows[] = [
                     $istErsteZeile ? $tagKw : '',
                     $istErsteZeile ? $flagNotiz : '',
                     $kommenRoh,
                     $gehenRoh,
                     $kommenKor,
-                    $istMetaZeile ? $pause : '',
+                    $pauseBlock,
                     $gehenKor,
-                    $istMetaZeile ? $ist : '',
+                    $istBlock,
                     $istErsteZeile ? $arzt : '',
                     $istErsteZeile ? $krankKk : '',
                     $istErsteZeile ? $krankLfz : '',
@@ -523,7 +542,7 @@ class PDFService
                     }
                 }
 
-                $pauseZelle = $istMetaZeile ? $pause : '';
+                $pauseZelle = $pauseBlock;
                 if ($pauseOverrideAktiv && $pauseZelle !== '') {
                     $zellenManuell[5] = true;
                 }
