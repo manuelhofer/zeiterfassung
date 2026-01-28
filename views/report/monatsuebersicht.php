@@ -928,7 +928,6 @@ if (is_array($tageswerte) && $tageswerte !== []) {
 	                <th>Kurzarbeit</th>
                 <th>Feiertag</th>
                 <th>Urlaub</th>
-                <th>Saldo</th>
                 <th>Typ</th>
                 <th>Kürzel</th>
                 <?php if ($darfZeitBearbeiten): ?>
@@ -1312,9 +1311,6 @@ if (is_array($tageswerte) && $tageswerte !== []) {
                                     echo htmlspecialchars($uShow, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
                                 ?>
                             <?php endif; ?>
-                        </td>
-                        <td>
-                            <?php echo $istErsteZeile ? htmlspecialchars(($istMicroIgnoriert ? '-' : (string)($t['saldo_stunden'] ?? '')), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') : ''; ?>
                         </td>
                         <td>
                             <?php echo $istErsteZeile ? htmlspecialchars((string)($t['tagestyp'] ?? ''), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') : ''; ?>
