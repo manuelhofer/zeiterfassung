@@ -329,6 +329,7 @@ class ReportController
         $monatWert       = $daten['monat'] ?? $monat;
         $monatswerte     = $daten['monatswerte'] ?? null;
         $tageswerte      = $daten['tageswerte'] ?? [];
+        $monatszusammenfassung = $daten['monatszusammenfassung'] ?? null;
 
         $jahr  = (int)$jahrWert;
         $monat = (int)$monatWert;

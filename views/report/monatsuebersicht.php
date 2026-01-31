@@ -15,6 +15,7 @@ $jahr        = $jahr ?? (int)date('Y');
 $monat       = $monat ?? (int)date('n');
 $monatswerte = $monatswerte ?? null;
 $tageswerte  = $tageswerte ?? [];
+$monatszusammenfassung = $monatszusammenfassung ?? null;
 
 $mitarbeiterId = isset($mitarbeiterId) ? (int)$mitarbeiterId : 0;
 $hatReportMonatViewAll = !empty($hatReportMonatViewAll);
@@ -697,9 +698,6 @@ if (is_array($tageswerte) && $tageswerte !== []) {
             Sollstunden: <?php echo htmlspecialchars((string)($monatswerte['sollstunden'] ?? ''), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>,
             Iststunden: <?php echo htmlspecialchars((string)($monatswerte['iststunden'] ?? ''), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>,
             Differenz: <?php echo htmlspecialchars((string)($monatswerte['differenzstunden'] ?? ''), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>
-            <?php if (!empty($monatswerte['ist_fallback'])): ?>
-                <em>(berechnet)</em>
-            <?php endif; ?>
 
             <?php if ($stundenkontoSaldoText !== ''): ?>
                 <br>
@@ -1341,6 +1339,63 @@ if (is_array($tageswerte) && $tageswerte !== []) {
             <?php endforeach; ?>
             </tbody>
         </table>
+        <?php if (is_array($monatszusammenfassung)): ?>
+            <div style="margin-top: 12px; padding: 10px; border: 1px solid #ccc; background: #fafafa; max-width: 520px;">
+                <strong>Monatszusammenfassung (wie PDF)</strong>
+                <table style="width: 100%; margin-top: 6px;">
+                    <tbody>
+                    <tr>
+                        <td>Sollstunden</td>
+                        <td style="text-align: right;"><?php echo htmlspecialchars((string)($monatszusammenfassung['sollstunden'] ?? ''), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></td>
+                    </tr>
+                    <tr>
+                        <td>Iststunden (IST-Spalte)</td>
+                        <td style="text-align: right;"><?php echo htmlspecialchars((string)($monatszusammenfassung['iststunden'] ?? ''), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></td>
+                    </tr>
+                    <tr>
+                        <td>Arzt</td>
+                        <td style="text-align: right;"><?php echo htmlspecialchars((string)($monatszusammenfassung['arzt'] ?? ''), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></td>
+                    </tr>
+                    <tr>
+                        <td>Krank LFZ</td>
+                        <td style="text-align: right;"><?php echo htmlspecialchars((string)($monatszusammenfassung['krank_lfz'] ?? ''), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></td>
+                    </tr>
+                    <tr>
+                        <td>Krank KK</td>
+                        <td style="text-align: right;"><?php echo htmlspecialchars((string)($monatszusammenfassung['krank_kk'] ?? ''), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></td>
+                    </tr>
+                    <tr>
+                        <td>Urlaub</td>
+                        <td style="text-align: right;"><?php echo htmlspecialchars((string)($monatszusammenfassung['urlaub'] ?? ''), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></td>
+                    </tr>
+                    <tr>
+                        <td>Kurzarbeit</td>
+                        <td style="text-align: right;"><?php echo htmlspecialchars((string)($monatszusammenfassung['kurzarbeit'] ?? ''), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></td>
+                    </tr>
+                    <tr>
+                        <td>Feiertag</td>
+                        <td style="text-align: right;"><?php echo htmlspecialchars((string)($monatszusammenfassung['feiertag'] ?? ''), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></td>
+                    </tr>
+                    <tr>
+                        <td>Sonst</td>
+                        <td style="text-align: right;"><?php echo htmlspecialchars((string)($monatszusammenfassung['sonst'] ?? ''), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Summen</strong></td>
+                        <td style="text-align: right;"><strong><?php echo htmlspecialchars((string)($monatszusammenfassung['summen'] ?? ''), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></strong></td>
+                    </tr>
+                    <tr>
+                        <td>Differenz</td>
+                        <td style="text-align: right;"><?php echo htmlspecialchars((string)($monatszusammenfassung['differenz'] ?? ''), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></td>
+                    </tr>
+                    <tr>
+                        <td>Stundenkonto (bis Vormonat)</td>
+                        <td style="text-align: right;"><?php echo htmlspecialchars((string)($monatszusammenfassung['stundenkonto_bis_vormonat'] ?? ''), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        <?php endif; ?>
     <?php endif; ?>
 </section>
 
