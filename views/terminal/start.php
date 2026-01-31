@@ -687,6 +687,24 @@ require __DIR__ . '/_layout_top.php';
                     <div class="status-small">Soll-Stunden (bis heute): <strong><?php echo htmlspecialchars((string)($monatsStatus['soll_bis_heute'] ?? '0.00'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?> h</strong></div>
                     <div class="status-small">Ist-Stunden (bis heute): <strong><?php echo htmlspecialchars((string)($monatsStatus['ist_bisher'] ?? '0.00'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?> h</strong></div>
 
+                    <?php if (isset($monatsStatus['zusammenfassung']) && is_array($monatsStatus['zusammenfassung'])): ?>
+                        <?php $zusammenfassung = $monatsStatus['zusammenfassung']; ?>
+                        <div class="status-small mt-05"><strong>Monatsübersicht (PDF)</strong></div>
+                        <div class="status-small">IST: <strong><?php echo htmlspecialchars((string)($zusammenfassung['ist'] ?? '0,00'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?> h</strong></div>
+                        <div class="status-small">Arzt: <strong><?php echo htmlspecialchars((string)($zusammenfassung['arzt'] ?? '0,00'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?> h</strong></div>
+                        <div class="status-small">Krank LFZ: <strong><?php echo htmlspecialchars((string)($zusammenfassung['krank_lfz'] ?? '0,00'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?> h</strong></div>
+                        <div class="status-small">Krank KK: <strong><?php echo htmlspecialchars((string)($zusammenfassung['krank_kk'] ?? '0,00'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?> h</strong></div>
+                        <div class="status-small">Urlaub: <strong><?php echo htmlspecialchars((string)($zusammenfassung['urlaub'] ?? '0,00'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?> h</strong></div>
+                        <div class="status-small">Feiertag: <strong><?php echo htmlspecialchars((string)($zusammenfassung['feiertag'] ?? '0,00'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?> h</strong></div>
+                        <div class="status-small">Kurzarbeit: <strong><?php echo htmlspecialchars((string)($zusammenfassung['kurzarbeit'] ?? '0,00'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?> h</strong></div>
+                        <div class="status-small">Sonst: <strong><?php echo htmlspecialchars((string)($zusammenfassung['sonst'] ?? '0,00'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?> h</strong></div>
+                        <div class="status-small">Summen: <strong><?php echo htmlspecialchars((string)($zusammenfassung['summen'] ?? '0,00'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?> h</strong></div>
+                        <div class="status-small">Differenz: <strong><?php echo htmlspecialchars((string)($zusammenfassung['differenz'] ?? '0,00'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?> h</strong></div>
+                        <?php if (!empty($zusammenfassung['stundenkonto'])): ?>
+                            <div class="status-small">Stundenkonto (bis Vormonat): <strong><?php echo htmlspecialchars((string)$zusammenfassung['stundenkonto'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?> h</strong></div>
+                        <?php endif; ?>
+                    <?php endif; ?>
+
                     <?php if (!empty($stundenkontoSaldoFehler)): ?>
                         <div class="status-small mt-025"><strong><?php echo htmlspecialchars((string)$stundenkontoSaldoFehler, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></strong></div>
                     <?php elseif (is_array($stundenkontoSaldo) && isset($stundenkontoSaldo['saldo_stunden_bis_vormonat'])): ?>

@@ -712,9 +712,41 @@ class TerminalController
         $heuteStr = $now->format('Y-m-d');
 
         try {
-            // IST: Tage < heute aus ReportService; heute live aus Rohbuchungen.
-            // Wichtig: Darf nicht komplett ausfallen, wenn ReportService intern ausfaellt.
-            $istBisher = 0.0;
+            $parseStundenZuMinuten = static function ($wert): int {
+                $s = trim((string)$wert);
+                if ($s === '') {
+                    return 0;
+                }
+                $s = str_replace(',', '.', $s);
+                if (!is_numeric($s)) {
+                    return 0;
+                }
+                $stunden = (float)$s;
+                return (int)round($stunden * 60.0);
+            };
+
+            $formatStunden = static function (float $stunden, bool $mitVorzeichen = false): string {
+                $text = $mitVorzeichen ? sprintf('%+.2f', $stunden) : sprintf('%.2f', $stunden);
+                return str_replace('.', ',', $text);
+            };
+
+            $formatMinutenAlsStunden = static function (int $minuten, bool $mitVorzeichen = false): string {
+                $stunden = $minuten / 60.0;
+                $text = $mitVorzeichen ? sprintf('%+.2f', $stunden) : sprintf('%.2f', $stunden);
+                return str_replace('.', ',', $text);
+            };
+
+            $sumIstMinuten = 0;
+            $sumIstMinutenBisHeute = 0;
+            $sumArztMinuten = 0;
+            $sumKrankLfzMinuten = 0;
+            $sumKrankKkMinuten = 0;
+            $sumUrlaubMinuten = 0;
+            $sumFeiertagMinuten = 0;
+            $sumKurzarbeitMinuten = 0;
+            $sumSonstMinuten = 0;
+            $sollMinuten = 0;
+            $stundenkontoSaldoText = '';
 
             if (class_exists('ReportService')) {
                 try {
@@ -727,16 +759,68 @@ class TerminalController
                             if (!is_array($t)) {
                                 continue;
                             }
-                            $datum = (string)($t['datum'] ?? '');
-                            if ($datum === '' || $datum >= $heuteStr) {
+
+                            $sumArztMinuten += $parseStundenZuMinuten($t['arzt_stunden'] ?? '0');
+                            $sumKrankLfzMinuten += $parseStundenZuMinuten($t['krank_lfz_stunden'] ?? '0');
+                            $sumKrankKkMinuten += $parseStundenZuMinuten($t['krank_kk_stunden'] ?? '0');
+                            $sumUrlaubMinuten += $parseStundenZuMinuten($t['urlaub_stunden'] ?? '0');
+                            $sumFeiertagMinuten += $parseStundenZuMinuten($t['feiertag_stunden'] ?? '0');
+                            $sumKurzarbeitMinuten += $parseStundenZuMinuten($t['kurzarbeit_stunden'] ?? '0');
+                            $sumSonstMinuten += $parseStundenZuMinuten($t['sonstige_stunden'] ?? '0');
+
+                            if (!empty($t['micro_arbeitszeit_ignoriert'])) {
                                 continue;
                             }
-                            $istBisher += (float)str_replace(',', '.', (string)($t['arbeitszeit_stunden'] ?? '0'));
+
+                            $bloecke = [];
+                            if (isset($t['arbeitsbloecke']) && is_array($t['arbeitsbloecke'])) {
+                                $bloecke = $t['arbeitsbloecke'];
+                            }
+
+                            foreach ($bloecke as $b) {
+                                if (!is_array($b)) {
+                                    continue;
+                                }
+
+                                $kStr = (string)($b['kommen_korr'] ?? $b['kommen_roh'] ?? '');
+                                $gStr = (string)($b['gehen_korr'] ?? $b['gehen_roh'] ?? '');
+                                if ($kStr !== '' && $gStr !== '') {
+                                    try {
+                                        $k = new DateTimeImmutable($kStr);
+                                        $g = new DateTimeImmutable($gStr);
+                                        if ($g > $k) {
+                                            $durSek = $g->getTimestamp() - $k->getTimestamp();
+                                            $durStd = $durSek / 3600.0;
+                                            if ($durStd < 0.05) {
+                                                continue;
+                                            }
+                                        }
+                                    } catch (Throwable $e) {
+                                        // Ignorieren, falls Blockzeiten nicht gelesen werden koennen.
+                                    }
+                                }
+
+                                $minuten = $parseStundenZuMinuten($b['ist_stunden'] ?? '0');
+                                if ($minuten <= 0) {
+                                    continue;
+                                }
+
+                                $sumIstMinuten += $minuten;
+
+                                $datum = (string)($t['datum'] ?? '');
+                                if ($datum !== '' && $datum <= $heuteStr) {
+                                    $sumIstMinutenBisHeute += $minuten;
+                                }
+                            }
                         }
+                    }
+
+                    if (isset($monatsdaten['monatswerte']) && is_array($monatsdaten['monatswerte'])) {
+                        $sollMinuten = $parseStundenZuMinuten($monatsdaten['monatswerte']['sollstunden'] ?? '0');
                     }
                 } catch (Throwable $e) {
                     if (class_exists('Logger')) {
-                        Logger::warn('Terminal: Monatsstatus (IST) via ReportService fehlgeschlagen', [
+                        Logger::warn('Terminal: Monatsstatus via ReportService fehlgeschlagen', [
                             'mitarbeiter_id' => $mitarbeiterId,
                             'jahr' => $jahr,
                             'monat' => $monat,
@@ -746,14 +830,17 @@ class TerminalController
                 }
             }
 
-            $istHeute = 0.0;
-            try {
-                $istHeute = $this->berechneIstStundenHeuteBisJetzt($mitarbeiterId, $now);
-            } catch (Throwable $e) {
-                $istHeute = 0.0;
+            if (class_exists('StundenkontoService')) {
+                try {
+                    $stundenkontoService = StundenkontoService::getInstanz();
+                    $saldoMinuten = $stundenkontoService->holeSaldoMinutenBisVormonat($mitarbeiterId, $jahr, $monat);
+                    $stundenkontoSaldoText = str_replace('.', ',', $stundenkontoService->formatMinutenAlsStundenString((int)$saldoMinuten, true));
+                } catch (Throwable $e) {
+                    $stundenkontoSaldoText = '';
+                }
             }
-            $istBisher += $istHeute;
-            $istBisher = round($istBisher, 2);
+
+            $istBisherMinuten = $sumIstMinutenBisHeute;
 
             // Soll-Werte aus Wochenarbeitszeit ableiten (Mo-Fr).
             $wochenarbeitszeit = 0.0;
@@ -797,25 +884,49 @@ class TerminalController
                 }
             }
 
-            $sollBisHeute = round($sollBisHeute, 2);
-            $sollMonatGesamt = round($sollMonatGesamt, 2);
+            $sollBisHeuteMinuten = (int)round($sollBisHeute * 60.0);
+            $sollMonatGesamtMinuten = (int)round($sollMonatGesamt * 60.0);
 
             // Extras fuer Startscreen-Info.
-            $restBisMonatsende = round($sollMonatGesamt - $istBisher, 2);
-            $saldoBisHeute = round($istBisher - $sollBisHeute, 2);
-            $saldoLabel = $saldoBisHeute >= 0 ? 'im Plan' : 'Rueckstand';
-            $saldoAmpel = $saldoBisHeute >= 0 ? 'ok' : 'error';
+            $restBisMonatsendeMinuten = $sollMonatGesamtMinuten - $istBisherMinuten;
+            $saldoBisHeuteMinuten = $istBisherMinuten - $sollBisHeuteMinuten;
+            $saldoLabel = $saldoBisHeuteMinuten >= 0 ? 'im Plan' : 'Rueckstand';
+            $saldoAmpel = $saldoBisHeuteMinuten >= 0 ? 'ok' : 'error';
+
+            $sumAllMinuten = $sumIstMinuten
+                + $sumArztMinuten
+                + $sumKrankLfzMinuten
+                + $sumKrankKkMinuten
+                + $sumUrlaubMinuten
+                + $sumKurzarbeitMinuten
+                + $sumFeiertagMinuten
+                + $sumSonstMinuten;
+
+            $diffMinuten = $sumAllMinuten - $sollMinuten;
 
             return [
                 'jahr'               => $jahr,
                 'monat'              => $monat,
-                'soll_monat_gesamt'  => sprintf('%.2f', $sollMonatGesamt),
-                'soll_bis_heute'     => sprintf('%.2f', $sollBisHeute),
-                'ist_bisher'         => sprintf('%.2f', $istBisher),
-                'rest_bis_monatsende'=> sprintf('%.2f', $restBisMonatsende),
-                'saldo_bis_heute'    => sprintf('%.2f', $saldoBisHeute),
+                'soll_monat_gesamt'  => $formatStunden($sollMonatGesamt),
+                'soll_bis_heute'     => $formatMinutenAlsStunden($sollBisHeuteMinuten),
+                'ist_bisher'         => $formatMinutenAlsStunden($istBisherMinuten),
+                'rest_bis_monatsende'=> $formatMinutenAlsStunden($restBisMonatsendeMinuten),
+                'saldo_bis_heute'    => $formatMinutenAlsStunden($saldoBisHeuteMinuten, true),
                 'saldo_label'        => $saldoLabel,
                 'saldo_ampel'        => $saldoAmpel,
+                'zusammenfassung'    => [
+                    'ist' => $formatMinutenAlsStunden($sumIstMinuten),
+                    'arzt' => $formatMinutenAlsStunden($sumArztMinuten),
+                    'krank_lfz' => $formatMinutenAlsStunden($sumKrankLfzMinuten),
+                    'krank_kk' => $formatMinutenAlsStunden($sumKrankKkMinuten),
+                    'urlaub' => $formatMinutenAlsStunden($sumUrlaubMinuten),
+                    'feiertag' => $formatMinutenAlsStunden($sumFeiertagMinuten),
+                    'kurzarbeit' => $formatMinutenAlsStunden($sumKurzarbeitMinuten),
+                    'sonst' => $formatMinutenAlsStunden($sumSonstMinuten),
+                    'summen' => $formatMinutenAlsStunden($sumAllMinuten),
+                    'differenz' => $formatMinutenAlsStunden($diffMinuten, true),
+                    'stundenkonto' => $stundenkontoSaldoText,
+                ],
             ];
         } catch (Throwable $e) {
             if (class_exists('Logger')) {
@@ -830,13 +941,26 @@ class TerminalController
             return [
                 'jahr'               => $jahr,
                 'monat'              => $monat,
-                'soll_monat_gesamt'  => '0.00',
-                'soll_bis_heute'     => '0.00',
-                'ist_bisher'         => '0.00',
-                'rest_bis_monatsende'=> '0.00',
-                'saldo_bis_heute'    => '0.00',
+                'soll_monat_gesamt'  => '0,00',
+                'soll_bis_heute'     => '0,00',
+                'ist_bisher'         => '0,00',
+                'rest_bis_monatsende'=> '0,00',
+                'saldo_bis_heute'    => '0,00',
                 'saldo_label'        => 'unbekannt',
                 'saldo_ampel'        => 'error',
+                'zusammenfassung'    => [
+                    'ist' => '0,00',
+                    'arzt' => '0,00',
+                    'krank_lfz' => '0,00',
+                    'krank_kk' => '0,00',
+                    'urlaub' => '0,00',
+                    'feiertag' => '0,00',
+                    'kurzarbeit' => '0,00',
+                    'sonst' => '0,00',
+                    'summen' => '0,00',
+                    'differenz' => '0,00',
+                    'stundenkonto' => '',
+                ],
             ];
         }
     }
