@@ -2109,25 +2109,81 @@ private function holeBetriebsferienTageFuerMitarbeiterUndMonat(int $mitarbeiterI
         $tageswerte = $this->wendeKurzarbeitVolltagWieBetriebsferienAn($tageswerte, $volltagKurzarbeitStd);
 
         // Monatswerte fuer Anzeige verlässlich aus Tageswerten ableiten:
-        // - IST: Arbeitszeit + bezahlte Abwesenheiten (Arzt/Krank/Feiertag/Urlaub/Sonstiges)
+        // - IST: Blockweise Summe der IST-Spalte (arbeitsbloecke[].ist_stunden)
+        // - Abwesenheiten werden fuer Summen separat erfasst.
         // - Kurzarbeit reduziert das Soll, zaehlt aber **nicht** als IST (MasterPrompt).
-        $felderIst = [
-            'arbeitszeit_stunden',
-            'arzt_stunden',
-            'krank_lfz_stunden',
-            'krank_kk_stunden',
-            'feiertag_stunden',
-            'urlaub_stunden',
-            'sonstige_stunden',
-        ];
+        $parseStundenZuMinuten = function ($wert): int {
+            $s = trim((string)$wert);
+            if ($s === '') {
+                return 0;
+            }
+            $s = str_replace(',', '.', $s);
+            if (!is_numeric($s)) {
+                return 0;
+            }
+            $stunden = (float)$s;
+            return (int)round($stunden * 60.0);
+        };
 
-        $istSumme = 0.0;
+        $sumIstMinuten = 0;
+        $sumArztMinuten = 0;
+        $sumKrankLfzMinuten = 0;
+        $sumKrankKkMinuten = 0;
+        $sumFeiertagMinuten = 0;
+        $sumKurzarbeitMinuten = 0;
+        $sumUrlaubMinuten = 0;
+        $sumSonstMinuten = 0;
+
         foreach ($tageswerte as $t) {
-            foreach ($felderIst as $f) {
-                $istSumme += (float)str_replace(',', '.', (string)($t[$f] ?? '0'));
+            if (!is_array($t)) {
+                continue;
+            }
+
+            $sumArztMinuten += $parseStundenZuMinuten($t['arzt_stunden'] ?? '0');
+            $sumKrankLfzMinuten += $parseStundenZuMinuten($t['krank_lfz_stunden'] ?? '0');
+            $sumKrankKkMinuten += $parseStundenZuMinuten($t['krank_kk_stunden'] ?? '0');
+            $sumFeiertagMinuten += $parseStundenZuMinuten($t['feiertag_stunden'] ?? '0');
+            $sumKurzarbeitMinuten += $parseStundenZuMinuten($t['kurzarbeit_stunden'] ?? '0');
+            $sumUrlaubMinuten += $parseStundenZuMinuten($t['urlaub_stunden'] ?? '0');
+            $sumSonstMinuten += $parseStundenZuMinuten($t['sonstige_stunden'] ?? '0');
+
+            if (!empty($t['micro_arbeitszeit_ignoriert'])) {
+                continue;
+            }
+
+            $bloecke = [];
+            if (isset($t['arbeitsbloecke']) && is_array($t['arbeitsbloecke'])) {
+                $bloecke = $t['arbeitsbloecke'];
+            }
+
+            foreach ($bloecke as $b) {
+                if (!is_array($b)) {
+                    continue;
+                }
+
+                $kStr = (string)($b['kommen_korr'] ?? $b['kommen_roh'] ?? '');
+                $gStr = (string)($b['gehen_korr'] ?? $b['gehen_roh'] ?? '');
+                if ($kStr !== '' && $gStr !== '') {
+                    try {
+                        $k = new \DateTimeImmutable($kStr);
+                        $g = new \DateTimeImmutable($gStr);
+                        if ($g > $k) {
+                            $durSek = $g->getTimestamp() - $k->getTimestamp();
+                            $durStd = $durSek / 3600.0;
+                            if ($durStd < self::MICRO_ARBEITSZEIT_GRENZE_STUNDEN) {
+                                continue;
+                            }
+                        }
+                    } catch (\Throwable $e) {
+                        // Ignorieren, falls Blockzeiten nicht parst werden koennen.
+                    }
+                }
+
+                $sumIstMinuten += $parseStundenZuMinuten($b['ist_stunden'] ?? '0');
             }
         }
-        $istSumme = round($istSumme, 2);
+
+        $istSumme = round($sumIstMinuten / 60.0, 2);
 
         // Basis-Soll (Wochentage * Tages-Soll) minus Kurzarbeit-Reduktion (nur Mo-Fr, nicht Feiertag).
         $baseSollFallback = $this->berechneSollstundenFallback($mitarbeiterId, $start, $betriebsferienTage);
@@ -2224,12 +2280,59 @@ private function holeBetriebsferienTageFuerMitarbeiterUndMonat(int $mitarbeiterI
             }
         }
 
+        $formatMinutenAlsStunden = function (int $minuten, bool $mitVorzeichen = false): string {
+            $stunden = $minuten / 60.0;
+            return $mitVorzeichen ? sprintf('%+.2f', $stunden) : sprintf('%.2f', $stunden);
+        };
+
+        $sumAllMinuten = $sumIstMinuten
+            + $sumArztMinuten
+            + $sumKrankLfzMinuten
+            + $sumKrankKkMinuten
+            + $sumUrlaubMinuten
+            + $sumKurzarbeitMinuten
+            + $sumFeiertagMinuten
+            + $sumSonstMinuten;
+
+        $sollMinuten = 0;
+        if (is_array($monatswerte)) {
+            $sollMinuten = $parseStundenZuMinuten($monatswerte['sollstunden'] ?? '0');
+        }
+
+        $diffMinuten = $sumAllMinuten - $sollMinuten;
+
+        $stundenkontoSaldoText = '';
+        if (class_exists('StundenkontoService')) {
+            try {
+                $stundenkontoService = StundenkontoService::getInstanz();
+                $saldoMinuten = $stundenkontoService->holeSaldoMinutenBisVormonat($mitarbeiterId, $jahr, $monat);
+                $stundenkontoSaldoText = $stundenkontoService->formatMinutenAlsStundenString((int)$saldoMinuten, true);
+            } catch (\Throwable $e) {
+                $stundenkontoSaldoText = '';
+            }
+        }
+
+        $monatszusammenfassung = [
+            'iststunden' => $formatMinutenAlsStunden($sumIstMinuten),
+            'arzt' => $formatMinutenAlsStunden($sumArztMinuten),
+            'krank_lfz' => $formatMinutenAlsStunden($sumKrankLfzMinuten),
+            'krank_kk' => $formatMinutenAlsStunden($sumKrankKkMinuten),
+            'urlaub' => $formatMinutenAlsStunden($sumUrlaubMinuten),
+            'kurzarbeit' => $formatMinutenAlsStunden($sumKurzarbeitMinuten),
+            'feiertag' => $formatMinutenAlsStunden($sumFeiertagMinuten),
+            'sonst' => $formatMinutenAlsStunden($sumSonstMinuten),
+            'summen' => $formatMinutenAlsStunden($sumAllMinuten),
+            'differenz' => $formatMinutenAlsStunden($diffMinuten),
+            'stundenkonto_bis_vormonat' => $stundenkontoSaldoText,
+        ];
+
         return [
             'mitarbeiter_id' => $mitarbeiterId,
             'jahr'           => $jahr,
             'monat'          => $monat,
             'monatswerte'    => $monatswerte,
             'tageswerte'     => $tageswerte,
+            'monatszusammenfassung' => $monatszusammenfassung,
         ];
 }
 }
