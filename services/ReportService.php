@@ -256,7 +256,11 @@ class ReportService
      *
      * @return array<string,array<int,array<string,mixed>>> Map: 'Y-m-d' => [ ['kommen_roh'=>..., 'gehen_roh'=>..., 'kommen_korr'=>..., 'gehen_korr'=>..., 'ist_stunden'=>..., 'pause_stunden'=>..., 'zeit_manuell_geaendert'=>0|1], ...]
      */
-    private function holeArbeitsbloeckeProTagFuerMonat(int $mitarbeiterId, \DateTimeImmutable $monatStart): array
+    private function holeArbeitsbloeckeProTagFuerMonat(
+        int $mitarbeiterId,
+        \DateTimeImmutable $monatStart,
+        array $pauseOverrideStatusProTag
+    ): array
     {
         $mitarbeiterId = (int)$mitarbeiterId;
         if ($mitarbeiterId <= 0) {
@@ -317,7 +321,7 @@ class ReportService
         sort($tage);
         $overnightMaxSeconds = 12 * 3600;
 
-        $convertBlocks = function (array $bloecke): array {
+        $convertBlocks = function (array $bloecke, bool $pauseOverrideAktiv): array {
             if ($bloecke === []) {
                 return [];
             }
@@ -384,7 +388,7 @@ class ReportService
                         }
                         $pauseStunden = sprintf('%.2f', $pauseMinuten / 60);
                         $istNetto = ($diffSekunden / 3600.0) - ($pauseMinuten / 60.0);
-                        if ($istNetto < 0) {
+                        if ($istNetto < 0 && !$pauseOverrideAktiv) {
                             $istNetto = 0.0;
                         }
                         $istStunden = sprintf('%.2f', $istNetto);
@@ -435,6 +439,9 @@ class ReportService
 
         foreach ($tage as $ymd) {
             $dayBookings = $proTag[$ymd] ?? [];
+            $pauseOverrideAktiv = isset($pauseOverrideStatusProTag[$ymd])
+                ? (bool)$pauseOverrideStatusProTag[$ymd]
+                : false;
             // Defensiv sortieren
             usort($dayBookings, static function (array $a, array $b): int {
                 return strcmp((string)($a['zeitstempel'] ?? ''), (string)($b['zeitstempel'] ?? ''));
@@ -612,7 +619,7 @@ class ReportService
                 });
             }
 
-            $out = $convertBlocks($bloecke);
+            $out = $convertBlocks($bloecke, $pauseOverrideAktiv);
 
             if ($out !== []) {
                 $result[$ymd] = $out;
@@ -642,7 +649,10 @@ class ReportService
                     });
                 }
 
-                $outExtra = $convertBlocks($bloecke);
+                $pauseOverrideAktiv = isset($pauseOverrideStatusProTag[$ymd])
+                    ? (bool)$pauseOverrideStatusProTag[$ymd]
+                    : false;
+                $outExtra = $convertBlocks($bloecke, $pauseOverrideAktiv);
                 if ($outExtra !== []) {
                     if (isset($result[$ymd]) && is_array($result[$ymd])) {
                         $merged = array_merge($result[$ymd], $outExtra);
@@ -663,7 +673,7 @@ class ReportService
      * @param array<int,array<string,mixed>> $bloecke
      * @return array<int,array<string,mixed>>
      */
-    private function ergaenzeIstUndPauseInArbeitsbloecken(array $bloecke): array
+    private function ergaenzeIstUndPauseInArbeitsbloecken(array $bloecke, bool $pauseOverrideAktiv): array
     {
         if ($bloecke === []) {
             return $bloecke;
@@ -720,7 +730,7 @@ class ReportService
 
             $block['pause_stunden'] = sprintf('%.2f', $pauseMinuten / 60.0);
             $istNetto = ($diffSek / 3600.0) - ($pauseMinuten / 60.0);
-            if ($istNetto < 0) {
+            if ($istNetto < 0 && !$pauseOverrideAktiv) {
                 $istNetto = 0.0;
             }
             $block['ist_stunden'] = sprintf('%.2f', $istNetto);
@@ -1282,6 +1292,7 @@ private function holeBetriebsferienTageFuerMitarbeiterUndMonat(int $mitarbeiterI
      * - Pausen-/Saldo-Logik ist in dieser Basisversion noch minimal (Pause = 0)
      *
      * @param array<string,bool> $betriebsferienTage Map: 'Y-m-d' => true
+     * @param array<string,bool> $pauseOverrideStatusProTag Map: 'Y-m-d' => true
      *
      * @return array<int,array<string,mixed>>
      */
@@ -1290,7 +1301,8 @@ private function holeBetriebsferienTageFuerMitarbeiterUndMonat(int $mitarbeiterI
         int $jahr,
         int $monat,
         \DateTimeImmutable $monatStart,
-        array $betriebsferienTage
+        array $betriebsferienTage,
+        array $pauseOverrideStatusProTag
     ): array {
         $tageswerte = [];
 
@@ -1362,6 +1374,9 @@ private function holeBetriebsferienTageFuerMitarbeiterUndMonat(int $mitarbeiterI
             $ymd = $d->format('Y-m-d');
 
             $dayBookings = $buchungenProTag[$ymd] ?? [];
+            $pauseOverrideAktiv = isset($pauseOverrideStatusProTag[$ymd])
+                ? (bool)$pauseOverrideStatusProTag[$ymd]
+                : false;
 
             $zeitManuell = false;
             $kommenRoh = null; // \DateTimeImmutable|null
@@ -1513,7 +1528,7 @@ private function holeBetriebsferienTageFuerMitarbeiterUndMonat(int $mitarbeiterI
 
             $istStd = $bruttoStd - ($pauseMin / 60.0);
 
-            if ($istStd < 0) {
+            if ($istStd < 0 && !$pauseOverrideAktiv) {
                 $istStd = 0.0;
             }
 
@@ -1674,7 +1689,14 @@ private function holeBetriebsferienTageFuerMitarbeiterUndMonat(int $mitarbeiterI
         // - `tageswerte_mitarbeiter` kann (je nach Cron/Batch-Stand) lückenhaft sein.
         // - Für Monatsübersicht/PDF sollen auch Tage mit Buchungen sichtbar bleiben.
         // - DB-Werte (inkl. Overrides) haben Vorrang und überschreiben den Fallback.
-        $tageswerteFallback = $this->berechneTageswerteFallbackAusZeitbuchung($mitarbeiterId, $jahr, $monat, $start, $betriebsferienTage);
+        $tageswerteFallback = $this->berechneTageswerteFallbackAusZeitbuchung(
+            $mitarbeiterId,
+            $jahr,
+            $monat,
+            $start,
+            $betriebsferienTage,
+            $pauseOverrideStatusProTag
+        );
         $tageswerte = $tageswerteFallback;
 
         if ($tageswerteRoh !== []) {
@@ -1743,7 +1765,7 @@ private function holeBetriebsferienTageFuerMitarbeiterUndMonat(int $mitarbeiterI
             }
 
             if ($istStdFloat !== null) {
-                if ($istStdFloat < 0) {
+                if ($istStdFloat < 0 && !$pauseOverrideAktiv) {
                     $istStdFloat = 0.0;
                 }
                 $istStunden = sprintf('%.2f', $istStdFloat);
@@ -1861,12 +1883,17 @@ private function holeBetriebsferienTageFuerMitarbeiterUndMonat(int $mitarbeiterI
         // Arbeitsbloecke (Rohbuchungen) je Tag: Basis fuer Mehrfach-Kommen/Gehen und echte Stunden-Summe.
         // Wichtig: Wir berechnen hier **Summe der Bloecke** (nicht Min/Max ueber den ganzen Tag),
         // damit Pausen/Unterbrechungen nicht als Arbeitszeit zaehlen.
-        $arbeitsBloeckeProTag = $this->holeArbeitsbloeckeProTagFuerMonat($mitarbeiterId, $start);
+        $arbeitsBloeckeProTag = $this->holeArbeitsbloeckeProTagFuerMonat(
+            $mitarbeiterId,
+            $start,
+            $pauseOverrideStatusProTag
+        );
 
         foreach ($tageswerte as $i => $row) {
             $datum = (string)($row['datum'] ?? '');
             $bloecke = ($datum !== '' && isset($arbeitsBloeckeProTag[$datum])) ? $arbeitsBloeckeProTag[$datum] : [];
-            $bloecke = $this->ergaenzeIstUndPauseInArbeitsbloecken($bloecke);
+            $pauseOverrideAktiv = ((int)($row['pause_override_aktiv'] ?? 0) === 1);
+            $bloecke = $this->ergaenzeIstUndPauseInArbeitsbloecken($bloecke, $pauseOverrideAktiv);
             $tageswerte[$i]['arbeitsbloecke'] = $bloecke;
 
             // Wenn der Tag zuvor als "Mikro-Arbeitszeit" komplett ignoriert wurde, ueberschreiben wir nichts.
@@ -1908,7 +1935,6 @@ private function holeBetriebsferienTageFuerMitarbeiterUndMonat(int $mitarbeiterI
                 continue;
             }
 
-            $pauseOverrideAktiv = ((int)($row['pause_override_aktiv'] ?? 0) === 1);
             $pauseStd = (float)str_replace(',', '.', (string)($row['pausen_stunden'] ?? '0'));
             if ($pauseStd < 0) {
                 $pauseStd = 0.0;
@@ -1973,7 +1999,7 @@ private function holeBetriebsferienTageFuerMitarbeiterUndMonat(int $mitarbeiterI
 
             $istStd = $sumSek / 3600.0;
             $istNet = $istStd - $pauseStd;
-            if ($istNet < 0) {
+            if ($istNet < 0 && !$pauseOverrideAktiv) {
                 $istNet = 0.0;
             }
 
