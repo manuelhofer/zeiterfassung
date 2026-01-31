@@ -239,7 +239,7 @@ class PDFService
         // Kopfzeile nie farblich markieren
         $zellMarkierungen[] = array_fill(0, 15, false);
 
-        // Summen für Block unten
+        // Summen für Block unten (Ist wird blockweise addiert, passend zur sichtbaren IST-Spalte)
         $sumIst = 0.0;
         $sumArzt = 0.0;
         $sumKrankLfz = 0.0;
@@ -330,7 +330,6 @@ class PDFService
                 }
 
                 // Summen (nur einmal pro Tag!)
-                $sumIst += $istNettoF;
                 $sumArzt += $arztF;
                 $sumKrankLfz += $krankLfzF;
                 $sumKrankKk += $krankKkF;
@@ -506,6 +505,9 @@ class PDFService
                 $istBlockF = $this->parseFloat((string)($b['ist_stunden'] ?? '0'));
                 if ($istBlockF > 0.0001) {
                     $istBlock = $this->formatDez2($istBlockF);
+                }
+                if ($istBlock !== '') {
+                    $sumIst += $this->parseFloat($istBlock);
                 }
 
                 $rows[] = [
