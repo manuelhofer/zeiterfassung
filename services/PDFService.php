@@ -506,7 +506,14 @@ class PDFService
                 if ($istBlockF > 0.0001) {
                     $istBlock = $this->formatDez2($istBlockF);
                 }
-                if ($istBlock !== '') {
+                $hatBlockZeit = (
+                    (trim((string)($b['kommen_roh'] ?? '')) !== '' && substr((string)($b['kommen_roh'] ?? ''), 0, 10) !== '0000-00-00')
+                    || (trim((string)($b['gehen_roh'] ?? '')) !== '' && substr((string)($b['gehen_roh'] ?? ''), 0, 10) !== '0000-00-00')
+                    || (trim((string)($b['kommen_korr'] ?? '')) !== '' && substr((string)($b['kommen_korr'] ?? ''), 0, 10) !== '0000-00-00')
+                    || (trim((string)($b['gehen_korr'] ?? '')) !== '' && substr((string)($b['gehen_korr'] ?? ''), 0, 10) !== '0000-00-00')
+                );
+
+                if ($istBlock !== '' && $hatBlockZeit) {
                     $sumIst += $this->parseFloat($istBlock);
                 }
 
