@@ -779,6 +779,9 @@ class TerminalController
                                 $bloecke = $t['arbeitsbloecke'];
                             }
 
+                            $istMinutenTag = 0;
+                            $hatBlockIst = false;
+
                             foreach ($bloecke as $b) {
                                 if (!is_array($b)) {
                                     continue;
@@ -807,12 +810,21 @@ class TerminalController
                                     continue;
                                 }
 
-                                $sumIstMinuten += $minuten;
+                                $hatBlockIst = true;
+                                $istMinutenTag += $minuten;
+                            }
 
-                                $datum = (string)($t['datum'] ?? '');
-                                if ($datum !== '' && $datum <= $heuteStr) {
-                                    $sumIstMinutenBisHeute += $minuten;
-                                }
+                            if (!$hatBlockIst) {
+                                $istMinutenTag = $parseStundenZuMinuten($t['arbeitszeit_stunden'] ?? '0');
+                            }
+
+                            if ($istMinutenTag > 0) {
+                                $sumIstMinuten += $istMinutenTag;
+                            }
+
+                            $datum = (string)($t['datum'] ?? '');
+                            if ($datum !== '' && $datum <= $heuteStr) {
+                                $sumIstMinutenBisHeute += $istMinutenTag;
                             }
                         }
                     }
