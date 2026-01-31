@@ -747,12 +747,14 @@ class TerminalController
             $sumSonstMinuten = 0;
             $sollMinuten = 0;
             $stundenkontoSaldoText = '';
+            $zusammenfassungAusReport = null;
 
             if (class_exists('ReportService')) {
                 try {
                     $reportService = new ReportService();
                     $monatsdaten = $reportService->holeMonatsdatenFuerMitarbeiter($mitarbeiterId, $jahr, $monat);
                     $tageswerte = $monatsdaten['tageswerte'] ?? [];
+                    $zusammenfassungAusReport = $monatsdaten['monatszusammenfassung'] ?? null;
 
                     if (is_array($tageswerte)) {
                         foreach ($tageswerte as $t) {
@@ -904,6 +906,52 @@ class TerminalController
 
             $diffMinuten = $sumAllMinuten - $sollMinuten;
 
+            $formatStundenText = static function (?string $wert): string {
+                if ($wert === null) {
+                    return '0,00';
+                }
+                $text = str_replace(',', '.', trim($wert));
+                if ($text === '' || !is_numeric($text)) {
+                    return '0,00';
+                }
+                return str_replace('.', ',', sprintf('%.2f', (float)$text));
+            };
+
+            $zusammenfassung = [
+                'ist' => $formatMinutenAlsStunden($sumIstMinuten),
+                'arzt' => $formatMinutenAlsStunden($sumArztMinuten),
+                'krank_lfz' => $formatMinutenAlsStunden($sumKrankLfzMinuten),
+                'krank_kk' => $formatMinutenAlsStunden($sumKrankKkMinuten),
+                'urlaub' => $formatMinutenAlsStunden($sumUrlaubMinuten),
+                'feiertag' => $formatMinutenAlsStunden($sumFeiertagMinuten),
+                'kurzarbeit' => $formatMinutenAlsStunden($sumKurzarbeitMinuten),
+                'sonst' => $formatMinutenAlsStunden($sumSonstMinuten),
+                'summen' => $formatMinutenAlsStunden($sumAllMinuten),
+                'differenz' => $formatMinutenAlsStunden($diffMinuten),
+                'stundenkonto' => $stundenkontoSaldoText,
+            ];
+
+            if (is_array($zusammenfassungAusReport)) {
+                $stundenkontoAusReport = $zusammenfassungAusReport['stundenkonto_bis_vormonat'] ?? null;
+                $stundenkontoText = $stundenkontoSaldoText;
+                if ($stundenkontoAusReport !== null && trim((string)$stundenkontoAusReport) !== '') {
+                    $stundenkontoText = str_replace('.', ',', (string)$stundenkontoAusReport);
+                }
+                $zusammenfassung = [
+                    'ist' => $formatStundenText((string)($zusammenfassungAusReport['iststunden'] ?? null)),
+                    'arzt' => $formatStundenText((string)($zusammenfassungAusReport['arzt'] ?? null)),
+                    'krank_lfz' => $formatStundenText((string)($zusammenfassungAusReport['krank_lfz'] ?? null)),
+                    'krank_kk' => $formatStundenText((string)($zusammenfassungAusReport['krank_kk'] ?? null)),
+                    'urlaub' => $formatStundenText((string)($zusammenfassungAusReport['urlaub'] ?? null)),
+                    'feiertag' => $formatStundenText((string)($zusammenfassungAusReport['feiertag'] ?? null)),
+                    'kurzarbeit' => $formatStundenText((string)($zusammenfassungAusReport['kurzarbeit'] ?? null)),
+                    'sonst' => $formatStundenText((string)($zusammenfassungAusReport['sonst'] ?? null)),
+                    'summen' => $formatStundenText((string)($zusammenfassungAusReport['summen'] ?? null)),
+                    'differenz' => $formatStundenText((string)($zusammenfassungAusReport['differenz'] ?? null)),
+                    'stundenkonto' => $stundenkontoText,
+                ];
+            }
+
             return [
                 'jahr'               => $jahr,
                 'monat'              => $monat,
@@ -914,19 +962,7 @@ class TerminalController
                 'saldo_bis_heute'    => $formatMinutenAlsStunden($saldoBisHeuteMinuten, true),
                 'saldo_label'        => $saldoLabel,
                 'saldo_ampel'        => $saldoAmpel,
-                'zusammenfassung'    => [
-                    'ist' => $formatMinutenAlsStunden($sumIstMinuten),
-                    'arzt' => $formatMinutenAlsStunden($sumArztMinuten),
-                    'krank_lfz' => $formatMinutenAlsStunden($sumKrankLfzMinuten),
-                    'krank_kk' => $formatMinutenAlsStunden($sumKrankKkMinuten),
-                    'urlaub' => $formatMinutenAlsStunden($sumUrlaubMinuten),
-                    'feiertag' => $formatMinutenAlsStunden($sumFeiertagMinuten),
-                    'kurzarbeit' => $formatMinutenAlsStunden($sumKurzarbeitMinuten),
-                    'sonst' => $formatMinutenAlsStunden($sumSonstMinuten),
-                    'summen' => $formatMinutenAlsStunden($sumAllMinuten),
-                    'differenz' => $formatMinutenAlsStunden($diffMinuten, true),
-                    'stundenkonto' => $stundenkontoSaldoText,
-                ],
+                'zusammenfassung'    => $zusammenfassung,
             ];
         } catch (Throwable $e) {
             if (class_exists('Logger')) {
