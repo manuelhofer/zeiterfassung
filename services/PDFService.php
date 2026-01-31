@@ -495,9 +495,13 @@ class PDFService
 
                 $pauseBlock = '';
                 $istBlock = '';
-                $pauseBlockF = $this->parseFloat((string)($b['pause_stunden'] ?? '0'));
-                if ($pauseBlockF > 0.0001) {
-                    $pauseBlock = $this->formatDez2($pauseBlockF);
+                if ($pauseOverrideAktiv) {
+                    $pauseBlock = $istErsteZeile ? $pause : '';
+                } else {
+                    $pauseBlockF = $this->parseFloat((string)($b['pause_stunden'] ?? '0'));
+                    if ($pauseBlockF > 0.0001) {
+                        $pauseBlock = $this->formatDez2($pauseBlockF);
+                    }
                 }
                 $istBlockF = $this->parseFloat((string)($b['ist_stunden'] ?? '0'));
                 if ($istBlockF > 0.0001) {

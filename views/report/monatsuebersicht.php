@@ -1235,7 +1235,12 @@ if (is_array($tageswerte) && $tageswerte !== []) {
                         <?php
                             $pauseShow = '-';
                             $pauseManuell = $pauseOverrideAktiv;
-                            if (!$blockUnvollstaendig) {
+                            if ($pauseOverrideAktiv) {
+                                if ($istErsteZeile) {
+                                    $pauseOverrideWert = trim((string)($t['pausen_stunden'] ?? ''));
+                                    $pauseShow = $pauseOverrideWert !== '' ? $pauseOverrideWert : '-';
+                                }
+                            } elseif (!$blockUnvollstaendig) {
                                 $pauseBlock = isset($b['pause_stunden']) ? trim((string)$b['pause_stunden']) : '';
                                 if (!$istMicroIgnoriert && $pauseBlock !== '') {
                                     $pauseShow = $pauseBlock;
