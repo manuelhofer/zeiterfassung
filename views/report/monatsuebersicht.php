@@ -698,9 +698,6 @@ if (is_array($tageswerte) && $tageswerte !== []) {
             Sollstunden: <?php echo htmlspecialchars((string)($monatswerte['sollstunden'] ?? ''), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>,
             Iststunden: <?php echo htmlspecialchars((string)($monatswerte['iststunden'] ?? ''), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>,
             Differenz: <?php echo htmlspecialchars((string)($monatswerte['differenzstunden'] ?? ''), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>
-            <?php if (!empty($monatswerte['ist_fallback'])): ?>
-                <em>(berechnet)</em>
-            <?php endif; ?>
 
             <?php if ($stundenkontoSaldoText !== ''): ?>
                 <br>
@@ -1347,6 +1344,10 @@ if (is_array($tageswerte) && $tageswerte !== []) {
                 <strong>Monatszusammenfassung (wie PDF)</strong>
                 <table style="width: 100%; margin-top: 6px;">
                     <tbody>
+                    <tr>
+                        <td>Sollstunden</td>
+                        <td style="text-align: right;"><?php echo htmlspecialchars((string)($monatszusammenfassung['sollstunden'] ?? ''), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></td>
+                    </tr>
                     <tr>
                         <td>Iststunden (IST-Spalte)</td>
                         <td style="text-align: right;"><?php echo htmlspecialchars((string)($monatszusammenfassung['iststunden'] ?? ''), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></td>

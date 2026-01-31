@@ -2183,7 +2183,15 @@ private function holeBetriebsferienTageFuerMitarbeiterUndMonat(int $mitarbeiterI
             }
         }
 
-        $istSumme = round($sumIstMinuten / 60.0, 2);
+        $istSummeMinutenGesamt = $sumIstMinuten
+            + $sumArztMinuten
+            + $sumKrankLfzMinuten
+            + $sumKrankKkMinuten
+            + $sumFeiertagMinuten
+            + $sumUrlaubMinuten
+            + $sumSonstMinuten;
+
+        $istSumme = round($istSummeMinutenGesamt / 60.0, 2);
 
         // Basis-Soll (Wochentage * Tages-Soll) minus Kurzarbeit-Reduktion (nur Mo-Fr, nicht Feiertag).
         $baseSollFallback = $this->berechneSollstundenFallback($mitarbeiterId, $start, $betriebsferienTage);
@@ -2313,6 +2321,7 @@ private function holeBetriebsferienTageFuerMitarbeiterUndMonat(int $mitarbeiterI
         }
 
         $monatszusammenfassung = [
+            'sollstunden' => $formatMinutenAlsStunden($sollMinuten),
             'iststunden' => $formatMinutenAlsStunden($sumIstMinuten),
             'arzt' => $formatMinutenAlsStunden($sumArztMinuten),
             'krank_lfz' => $formatMinutenAlsStunden($sumKrankLfzMinuten),
