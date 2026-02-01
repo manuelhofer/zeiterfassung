@@ -202,7 +202,8 @@ class AuftragController
         try {
             $sql = "
                 SELECT
-                    az.*, 
+                    az.*,
+                    COALESCE(NULLIF(az.arbeitsschritt_code, ''), aas.arbeitsschritt_code) AS arbeitsschritt_code_effektiv,
                     mi.vorname, mi.nachname,
                     ma.name AS maschine_name,
                     a.auftragsnummer AS auftrag_nummer
@@ -210,6 +211,7 @@ class AuftragController
                 INNER JOIN mitarbeiter mi ON mi.id = az.mitarbeiter_id
                 LEFT JOIN maschine ma ON ma.id = az.maschine_id
                 LEFT JOIN auftrag a ON a.id = az.auftrag_id
+                LEFT JOIN auftrag_arbeitsschritt aas ON aas.id = az.arbeitsschritt_id
                 WHERE (a.auftragsnummer = :code OR az.auftragscode = :code)
                 ORDER BY az.startzeit DESC
                 LIMIT 1000
@@ -227,7 +229,7 @@ class AuftragController
                         $dauerSec = (int)($ts2 - $ts1);
                         $sumSekunden += $dauerSec;
 
-                        $schrittTmp = isset($b['arbeitsschritt_code']) ? trim((string)$b['arbeitsschritt_code']) : '';
+                        $schrittTmp = isset($b['arbeitsschritt_code_effektiv']) ? trim((string)$b['arbeitsschritt_code_effektiv']) : '';
                         $key = ($schrittTmp !== '') ? $schrittTmp : '(ohne)';
                         if (!isset($sumProSchritt[$key])) {
                             $sumProSchritt[$key] = 0;
@@ -299,7 +301,7 @@ class AuftragController
                                 }
                                 $maschine = (string)($b['maschine_name'] ?? '');
                                 $typ = (string)($b['typ'] ?? '');
-                                $schritt = trim((string)($b['arbeitsschritt_code'] ?? ''));
+                                $schritt = trim((string)($b['arbeitsschritt_code_effektiv'] ?? ''));
                                 $start = (string)($b['startzeit'] ?? '');
                                 $end = (string)($b['endzeit'] ?? '');
                                 $status = (string)($b['status'] ?? '');
