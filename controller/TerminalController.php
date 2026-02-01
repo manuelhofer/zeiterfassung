@@ -785,8 +785,53 @@ class TerminalController
                             $sumSonstMinuten += $parseStundenZuMinuten($t['sonstige_stunden'] ?? '0');
 
                             $datum = (string)($t['datum'] ?? '');
-                            $istMinutenTagFuerAnzeige = $parseStundenZuMinuten($t['arbeitszeit_stunden'] ?? '0')
-                                + $parseStundenZuMinuten($t['arzt_stunden'] ?? '0')
+                            $istMinutenTagFuerAnzeige = 0;
+                            $hatBlockIstFuerAnzeige = false;
+
+                            if (empty($t['micro_arbeitszeit_ignoriert'])) {
+                                $bloeckeFuerAnzeige = [];
+                                if (isset($t['arbeitsbloecke']) && is_array($t['arbeitsbloecke'])) {
+                                    $bloeckeFuerAnzeige = $t['arbeitsbloecke'];
+                                }
+
+                                foreach ($bloeckeFuerAnzeige as $b) {
+                                    if (!is_array($b)) {
+                                        continue;
+                                    }
+
+                                    $kStr = (string)($b['kommen_korr'] ?? $b['kommen_roh'] ?? '');
+                                    $gStr = (string)($b['gehen_korr'] ?? $b['gehen_roh'] ?? '');
+                                    if ($kStr !== '' && $gStr !== '') {
+                                        try {
+                                            $k = new DateTimeImmutable($kStr);
+                                            $g = new DateTimeImmutable($gStr);
+                                            if ($g > $k) {
+                                                $durSek = $g->getTimestamp() - $k->getTimestamp();
+                                                $durStd = $durSek / 3600.0;
+                                                if ($durStd < 0.05) {
+                                                    continue;
+                                                }
+                                            }
+                                        } catch (Throwable $e) {
+                                            // Ignorieren, falls Blockzeiten nicht gelesen werden koennen.
+                                        }
+                                    }
+
+                                    $minuten = $parseStundenZuMinuten($b['ist_stunden'] ?? '0');
+                                    if ($minuten <= 0) {
+                                        continue;
+                                    }
+
+                                    $hatBlockIstFuerAnzeige = true;
+                                    $istMinutenTagFuerAnzeige += $minuten;
+                                }
+                            }
+
+                            if (!$hatBlockIstFuerAnzeige) {
+                                $istMinutenTagFuerAnzeige = $parseStundenZuMinuten($t['arbeitszeit_stunden'] ?? '0');
+                            }
+
+                            $istMinutenTagFuerAnzeige += $parseStundenZuMinuten($t['arzt_stunden'] ?? '0')
                                 + $parseStundenZuMinuten($t['krank_lfz_stunden'] ?? '0')
                                 + $parseStundenZuMinuten($t['krank_kk_stunden'] ?? '0')
                                 + $parseStundenZuMinuten($t['urlaub_stunden'] ?? '0')
