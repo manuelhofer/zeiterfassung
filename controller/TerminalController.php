@@ -3339,10 +3339,22 @@ class TerminalController
                 . $this->sqlString($auftragscode) . ', 1) '
                 . 'ON DUPLICATE KEY UPDATE auftragsnummer = auftragsnummer';
 
+            $sqlSchritt = null;
+            $sqlSchrittId = 'NULL';
+            if ($arbeitsschrittCode !== null) {
+                $auftragIdSql = '(SELECT id FROM auftrag WHERE auftragsnummer = ' . $this->sqlString($auftragscode) . ' LIMIT 1)';
+                $sqlSchritt = 'INSERT INTO auftrag_arbeitsschritt (auftrag_id, arbeitsschritt_code, aktiv) VALUES ('
+                    . $auftragIdSql . ', '
+                    . $this->sqlString($arbeitsschrittCode) . ', 1)
+                    ON DUPLICATE KEY UPDATE arbeitsschritt_code = arbeitsschritt_code';
+                $sqlSchrittId = '(SELECT id FROM auftrag_arbeitsschritt WHERE auftrag_id = ' . $auftragIdSql
+                    . ' AND arbeitsschritt_code = ' . $this->sqlString($arbeitsschrittCode) . ' LIMIT 1)';
+            }
+
             $sql = 'INSERT INTO auftragszeit (mitarbeiter_id, auftrag_id, arbeitsschritt_id, auftragscode, arbeitsschritt_code, maschine_id, terminal_id, typ, startzeit, kommentar) VALUES ('
                 . $this->sqlInt($mitarbeiterId) . ', '
                 . 'NULL, '
-                . 'NULL, '
+                . $sqlSchrittId . ', '
                 . $this->sqlString($auftragscode) . ', '
                 . ($arbeitsschrittCode === null ? 'NULL' : $this->sqlString($arbeitsschrittCode)) . ', '
                 . $this->sqlNullableInt($maschineId) . ', '
@@ -3354,6 +3366,9 @@ class TerminalController
 
             try {
                 OfflineQueueManager::getInstanz()->speichereInQueue($sqlEnsureAuftrag, $mitarbeiterId, null, 'auftrag_ensure');
+                if ($sqlSchritt !== null) {
+                    OfflineQueueManager::getInstanz()->speichereInQueue($sqlSchritt, $mitarbeiterId, null, 'auftrag_schritt_ensure');
+                }
                 OfflineQueueManager::getInstanz()->speichereInQueue($sql, $mitarbeiterId, null, 'nebenauftrag_start');
                 return 0;
             } catch (Throwable $e) {
