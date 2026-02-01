@@ -868,27 +868,29 @@ class ZeitController
         }
 
         $microBuchungenAusgeblendetAnzahl = 0;
-        if (!$zeigeMicroBuchungen && is_array($buchungen) && count($buchungen) >= 2) {
-            // Mikro-Buchungen: Grenze ist zentral über `config.micro_buchung_max_sekunden` einstellbar.
-            // Default: 180 Sekunden (= 3 Minuten).
-            $maxMicroSekunden = 180;
-            try {
-                if (class_exists('KonfigurationService')) {
-                    $cfg = KonfigurationService::getInstanz();
-                    $val = $cfg->getInt('micro_buchung_max_sekunden', 180);
-                    if ($val !== null) {
-                        $maxMicroSekunden = (int)$val;
-                    }
+        // Mikro-Buchungen: Grenze ist zentral über `config.micro_buchung_max_sekunden` einstellbar.
+        // Default: 5 Sekunden.
+        $microBuchungGrenzeSekunden = 5;
+        try {
+            if (class_exists('KonfigurationService')) {
+                $cfg = KonfigurationService::getInstanz();
+                $val = $cfg->getInt('micro_buchung_max_sekunden', 5);
+                if ($val !== null) {
+                    $microBuchungGrenzeSekunden = (int)$val;
                 }
-            } catch (Throwable $e) {
-                // Fallback bleibt Default.
-                $maxMicroSekunden = 180;
             }
-            if ($maxMicroSekunden < 30 || $maxMicroSekunden > 3600) {
-                $maxMicroSekunden = 180;
-            }
+        } catch (Throwable $e) {
+            // Fallback bleibt Default.
+            $microBuchungGrenzeSekunden = 5;
+        }
+        if ($microBuchungGrenzeSekunden < 0) {
+            $microBuchungGrenzeSekunden = 0;
+        } elseif ($microBuchungGrenzeSekunden > 5) {
+            $microBuchungGrenzeSekunden = 5;
+        }
 
-            $res = $this->filtereMicroZeitbuchungenAusListe($buchungen, $maxMicroSekunden);
+        if (!$zeigeMicroBuchungen && is_array($buchungen) && count($buchungen) >= 2) {
+            $res = $this->filtereMicroZeitbuchungenAusListe($buchungen, $microBuchungGrenzeSekunden);
             $buchungen = $res['buchungen'];
             $microBuchungenAusgeblendetAnzahl = (int)($res['ausgeblendet'] ?? 0);
         }
@@ -1394,8 +1396,8 @@ class ZeitController
         }
         if ($toleranzSekunden < 0) {
             $toleranzSekunden = 0;
-        } elseif ($toleranzSekunden > 3600) {
-            $toleranzSekunden = 3600;
+        } elseif ($toleranzSekunden > 5) {
+            $toleranzSekunden = 5;
         }
 
         $konflikt = $zbModel->pruefeZeitstempelKonflikt($zielMitarbeiterId, $typ, $dt, $toleranzSekunden);
