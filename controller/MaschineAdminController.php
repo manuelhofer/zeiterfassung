@@ -151,6 +151,7 @@ class MaschineAdminController
             'name'         => '',
             'abteilung_id' => null,
             'beschreibung' => '',
+            'code_bild_pfad' => null,
             'aktiv'        => 1,
         ];
 
@@ -226,6 +227,7 @@ class MaschineAdminController
             'name'         => $name,
             'abteilung_id' => $abteilungId,
             'beschreibung' => $beschreibung,
+            'code_bild_pfad' => null,
             'aktiv'        => $aktiv,
         ];
 
@@ -269,6 +271,19 @@ class MaschineAdminController
                 ]);
             }
 
+            $maschinenId = $id > 0 ? $id : (int)$this->datenbank->letzteInsertId();
+            $qrService = new MaschineQrCodeService();
+            $codeBildPfad = $qrService->erzeugeMaschinenQrCode($maschinenId);
+            if ($codeBildPfad !== null) {
+                $sql = 'UPDATE maschine
+                        SET code_bild_pfad = :code_bild_pfad
+                        WHERE id = :id';
+                $this->datenbank->ausfuehren($sql, [
+                    'id' => $maschinenId,
+                    'code_bild_pfad' => $codeBildPfad,
+                ]);
+            }
+
             header('Location: ?seite=maschine_admin');
             return;
         } catch (\Throwable $e) {
@@ -299,6 +314,7 @@ class MaschineAdminController
         $name        = (string)($maschine['name'] ?? '');
         $abteilungId = $maschine['abteilung_id'] ?? null;
         $beschreibung = (string)($maschine['beschreibung'] ?? '');
+        $codeBildPfad = (string)($maschine['code_bild_pfad'] ?? '');
         $aktiv       = (int)($maschine['aktiv'] ?? 0) === 1;
 
         if ($abteilungId !== null) {
@@ -354,14 +370,19 @@ class MaschineAdminController
 
                 <?php if ($id > 0): ?>
                     <div style="margin: 1rem 0; padding: 0.75rem; border: 1px solid #ddd; border-radius: 6px; max-width: 520px;">
-                        <div><strong>Maschinen-Barcode</strong></div>
-                        <div style="margin-top: 0.5rem;">
-                            <img src="maschine_code.php?id=<?php echo $id; ?>&amp;format=svg" alt="Barcode Maschine <?php echo $id; ?>" style="max-width: 100%; height: auto;">
-                        </div>
-                        <div style="margin-top: 0.5rem; display:flex; gap: 1rem; flex-wrap: wrap;">
-                            <a href="maschine_code.php?id=<?php echo $id; ?>&amp;format=svg" target="_blank">Download SVG</a>
-                            <a href="maschine_code.php?id=<?php echo $id; ?>&amp;format=png" target="_blank">Download PNG</a>
-                        </div>
+                        <div><strong>Maschinen-QR-Code</strong></div>
+                        <?php if ($codeBildPfad !== ''): ?>
+                            <div style="margin-top: 0.5rem;">
+                                <img src="<?php echo htmlspecialchars($codeBildPfad, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>" alt="QR-Code Maschine <?php echo $id; ?>" style="max-width: 100%; height: auto;">
+                            </div>
+                            <div style="margin-top: 0.5rem; display:flex; gap: 1rem; flex-wrap: wrap;">
+                                <a href="<?php echo htmlspecialchars($codeBildPfad, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>" target="_blank">Download PNG</a>
+                            </div>
+                        <?php else: ?>
+                            <div style="margin-top: 0.5rem; color: #444;">
+                                Noch kein QR-Code gespeichert. Bitte die Maschine speichern.
+                            </div>
+                        <?php endif; ?>
                         <div style="margin-top: 0.5rem; font-size: 0.9rem; color: #444;">
                             Scan-Code: <code><?php echo $id; ?></code>
                         </div>
