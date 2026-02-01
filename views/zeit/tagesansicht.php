@@ -364,7 +364,7 @@ foreach ($buchungen as $b) {
 
             <label>
                 Pause in Stunden:
-                <input type="number" id="pause_stunden" name="pause_stunden" step="0.25" min="0" max="24" style="width: 90px;" value="<?php echo htmlspecialchars($pauseOverrideStunden, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>">
+                <input type="text" id="pause_stunden" name="pause_stunden" inputmode="decimal" pattern="^[0-9]+([.,][0-9]+)?$" style="width: 90px;" value="<?php echo htmlspecialchars($pauseOverrideStunden, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>">
             </label>
 
             <div style="margin-top: 8px;">
@@ -390,6 +390,7 @@ foreach ($buchungen as $b) {
                 function sync() {
                     var on = !!cb.checked;
                     inp.disabled = !on;
+                    inp.required = on;
                     if (begr) {
                         begr.disabled = !on;
                         begr.required = on;
