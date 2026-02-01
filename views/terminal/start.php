@@ -715,7 +715,7 @@ require __DIR__ . '/_layout_top.php';
 
                 <?php if ($hauptdbOk !== true): ?>
                     <div class="status-small mt-05"><strong>Nur im Online-Modus verfügbar.</strong></div>
-                <?php elseif (isset($monatsStatus) && is_array($monatsStatus) && (($monatsStatus['daten_ok'] ?? true) === true)): ?>
+                <?php elseif (isset($monatsStatus) && is_array($monatsStatus) && isset($monatsStatus['ist_bisher'])): ?>
                     <div class="status-small mt-05">Soll-Stunden (Monat gesamt): <strong><?php echo htmlspecialchars((string)($monatsStatus['soll_monat_gesamt'] ?? '0.00'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?> h</strong></div>
                     <div class="status-small">Soll-Stunden (bis heute): <strong><?php echo htmlspecialchars((string)($monatsStatus['soll_bis_heute'] ?? '0.00'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?> h</strong></div>
                     <div class="status-small">Ist-Stunden (bis heute): <strong><?php echo htmlspecialchars((string)($monatsStatus['ist_bisher'] ?? '0.00'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?> h</strong></div>
@@ -742,6 +742,15 @@ require __DIR__ . '/_layout_top.php';
                         <div class="status-small mt-025"><strong><?php echo htmlspecialchars((string)$stundenkontoSaldoFehler, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></strong></div>
                     <?php elseif (is_array($stundenkontoSaldo) && isset($stundenkontoSaldo['saldo_stunden_bis_vormonat'])): ?>
                         <div class="status-small mt-025">Gutstunden/Minusstunden (Stand bis Vormonat): <strong><?php echo htmlspecialchars((string)($stundenkontoSaldo['saldo_stunden_bis_vormonat'] ?? '0.00'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?> h</strong></div>
+                    <?php endif; ?>
+                    <?php if ((($monatsStatus['daten_ok'] ?? true) !== true)): ?>
+                        <?php
+                            $monatsStatusFehler = null;
+                            if (!empty($monatsStatus['fehler_text'])) {
+                                $monatsStatusFehler = (string)$monatsStatus['fehler_text'];
+                            }
+                        ?>
+                        <div class="status-small mt-05"><strong><?php echo htmlspecialchars($monatsStatusFehler ?? 'Monatsübersicht konnte nicht geladen werden.', ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></strong></div>
                     <?php endif; ?>
                 <?php else: ?>
                     <?php
@@ -1213,7 +1222,16 @@ require __DIR__ . '/_layout_top.php';
                 <?php endif; ?>
 
             <?php endif; ?>
-            <?php if (!isset($monatsStatus) || !is_array($monatsStatus) || (($monatsStatus['daten_ok'] ?? true) !== true)): ?>
+            <?php if (isset($monatsStatus) && is_array($monatsStatus) && isset($monatsStatus['ist_bisher']) && (($monatsStatus['daten_ok'] ?? true) !== true)): ?>
+                <?php
+                    $monatsStatusFehler = null;
+                    if (!empty($monatsStatus['fehler_text'])) {
+                        $monatsStatusFehler = (string)$monatsStatus['fehler_text'];
+                    }
+                ?>
+                <div class="status-small mt-05"><strong><?php echo htmlspecialchars($monatsStatusFehler ?? 'Monatsübersicht konnte nicht geladen werden.', ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></strong></div>
+            <?php endif; ?>
+            <?php if (!isset($monatsStatus) || !is_array($monatsStatus) || !isset($monatsStatus['ist_bisher'])): ?>
                 <?php
                     $monatsStatusFehler = null;
                     if (isset($monatsStatus) && is_array($monatsStatus) && !empty($monatsStatus['fehler_text'])) {
