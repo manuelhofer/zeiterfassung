@@ -3463,7 +3463,7 @@ class TerminalController
             $auftragscode = null;
         }
 
-        $status = in_array($status, ['abgeschlossen', 'abgebrochen'], true) ? $status : 'abgeschlossen';
+        $status = in_array($status, ['abgeschlossen', 'abgebrochen', 'pausiert'], true) ? $status : 'abgeschlossen';
         $jetzt = new DateTimeImmutable('now');
 
         // Offline: nur in Queue schreiben
@@ -4347,6 +4347,38 @@ $urlaubSaldo = null;
             $this->setzeTerminalAnwesenheitStatus(true);
         }
 
+        // Bei erfolgreichem Kommen (nur online) ggf. pausierten Hauptauftrag automatisch fortsetzen.
+        if ($fehlerText === null && $id !== null && $id > 0 && $this->istHauptdatenbankAktiv()) {
+            $fortsetzung = $this->auftragszeitService->starteLetztenPausiertenHauptauftrag(
+                (int)$mitarbeiter['id'],
+                $zeitpunkt,
+                'automatisch fortgesetzt'
+            );
+
+            if (is_array($fortsetzung) && isset($fortsetzung['id'])) {
+                if ($nachricht !== null && $nachricht !== '') {
+                    $nachricht .= ' Letzter Auftrag wurde automatisch fortgesetzt.';
+                } else {
+                    $nachricht = 'Letzter Auftrag wurde automatisch fortgesetzt.';
+                }
+
+                try {
+                    if (session_status() === PHP_SESSION_ACTIVE) {
+                        $_SESSION['terminal_letzter_auftrag'] = [
+                            'auftragscode' => (string)($fortsetzung['auftragscode'] ?? ''),
+                            'arbeitsschritt_code' => $fortsetzung['arbeitsschritt_code'] ?? null,
+                            'status' => 'laufend',
+                            'typ' => 'haupt',
+                            'auftragszeit_id' => (int)$fortsetzung['id'],
+                            'zeit' => $zeitpunkt->format('Y-m-d H:i:s'),
+                        ];
+                    }
+                } catch (\Throwable $e) {
+                    // niemals Terminal-Flow blockieren
+                }
+            }
+        }
+
 
         // Einheitlicher Flow: nach Kommen/Gehen immer auf Startscreen redirecten,
         // damit alle Statusboxen (Urlaub, Warnungen, laufende Aufträge, ...) konsistent berechnet werden.
@@ -4486,20 +4518,20 @@ $urlaubSaldo = null;
             $this->auftragszeitService->stoppeAlleLaufendenAuftraegeFuerMitarbeiter(
                 (int)$mitarbeiter['id'],
                 $zeitpunkt,
-                'abgeschlossen'
+                'pausiert'
             );
 
             // Session-Merker anpassen, damit Statusboxen korrekt reagieren.
             try {
                 if (session_status() === PHP_SESSION_ACTIVE) {
                     if (isset($_SESSION['terminal_letzter_auftrag']) && is_array($_SESSION['terminal_letzter_auftrag'])) {
-                        $_SESSION['terminal_letzter_auftrag']['status'] = 'abgeschlossen';
+                        $_SESSION['terminal_letzter_auftrag']['status'] = 'pausiert';
                         $_SESSION['terminal_letzter_auftrag']['endzeit'] = $zeitpunkt->format('Y-m-d H:i:s');
                         $_SESSION['terminal_letzter_auftrag']['zeit'] = $zeitpunkt->format('Y-m-d H:i:s');
                     }
 
                     if (isset($_SESSION['terminal_letzter_nebenauftrag']) && is_array($_SESSION['terminal_letzter_nebenauftrag'])) {
-                        $_SESSION['terminal_letzter_nebenauftrag']['status'] = 'abgeschlossen';
+                        $_SESSION['terminal_letzter_nebenauftrag']['status'] = 'pausiert';
                         $_SESSION['terminal_letzter_nebenauftrag']['endzeit'] = $zeitpunkt->format('Y-m-d H:i:s');
                         $_SESSION['terminal_letzter_nebenauftrag']['zeit'] = $zeitpunkt->format('Y-m-d H:i:s');
                     }
