@@ -292,6 +292,7 @@ class MaschineAdminController
             $qrService = new MaschineQrCodeService();
             $codeBildPfad = $qrService->erzeugeMaschinenQrCode($maschinenId);
             if ($codeBildPfad !== null) {
+                $codeBildPfad = $this->normalisiereCodeBildPfad($codeBildPfad);
                 $sql = 'UPDATE maschine
                         SET code_bild_pfad = :code_bild_pfad
                         WHERE id = :id';
@@ -341,7 +342,8 @@ class MaschineAdminController
         $abteilungId = $maschine['abteilung_id'] ?? null;
         $beschreibung = (string)($maschine['beschreibung'] ?? '');
         $codeBildPfad = (string)($maschine['code_bild_pfad'] ?? '');
-        $codeBildUrl = $this->baueQrCodeUrlPfad($codeBildPfad);
+        $normalisierterCodeBildPfad = $this->normalisiereCodeBildPfad($codeBildPfad) ?? '';
+        $codeBildUrl = $this->baueQrCodeUrlPfad($normalisierterCodeBildPfad);
         $aktiv       = (int)($maschine['aktiv'] ?? 0) === 1;
 
         if ($abteilungId !== null) {
@@ -455,6 +457,28 @@ class MaschineAdminController
             }
 
             return '/' . trim($basisUrl, '/') . '/' . ltrim($codeBildPfad, '/');
+        }
+
+        return '/' . ltrim($codeBildPfad, '/');
+    }
+
+    private function normalisiereCodeBildPfad(?string $codeBildPfad): ?string
+    {
+        if ($codeBildPfad === null) {
+            return null;
+        }
+
+        $codeBildPfad = trim($codeBildPfad);
+        if ($codeBildPfad === '') {
+            return null;
+        }
+
+        if (preg_match('~^https?://~i', $codeBildPfad) === 1) {
+            return $codeBildPfad;
+        }
+
+        if (str_starts_with($codeBildPfad, '/')) {
+            return $codeBildPfad;
         }
 
         return '/' . ltrim($codeBildPfad, '/');
