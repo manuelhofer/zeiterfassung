@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost
--- Erstellungszeit: 28. Jan 2026 um 17:05
+-- Erstellungszeit: 01. Feb 2026 um 06:12
 -- Server-Version: 11.8.3-MariaDB-deb11
 -- PHP-Version: 8.3.26
 
@@ -262,7 +262,8 @@ CREATE TABLE `krankzeitraum` (
 
 INSERT INTO `krankzeitraum` (`id`, `mitarbeiter_id`, `typ`, `von_datum`, `bis_datum`, `kommentar`, `aktiv`, `angelegt_von_mitarbeiter_id`, `erstellt_am`, `geaendert_am`) VALUES
 (1, 1, 'lfz', '2025-12-29', '2026-02-01', NULL, 1, 2, '2026-01-03 13:04:14', '2026-01-03 13:04:14'),
-(2, 9, 'lfz', '2026-01-01', '2026-01-31', NULL, 1, 2, '2026-01-19 19:46:08', '2026-01-19 19:46:08');
+(2, 9, 'lfz', '2026-01-01', '2026-01-31', NULL, 1, 2, '2026-01-19 19:46:08', '2026-01-19 19:46:08'),
+(3, 2, 'lfz', '2025-12-15', '2025-12-30', 'fasdf', 1, 2, '2026-02-01 05:15:08', '2026-02-01 05:15:08');
 
 -- --------------------------------------------------------
 
@@ -752,7 +753,7 @@ CREATE TABLE `stundenkonto_korrektur` (
 --
 
 INSERT INTO `stundenkonto_korrektur` (`id`, `mitarbeiter_id`, `wirksam_datum`, `delta_minuten`, `typ`, `batch_id`, `begruendung`, `erstellt_von_mitarbeiter_id`, `stealth`, `erstellt_am`, `geaendert_am`) VALUES
-(1, 2, '2025-12-31', -9405, 'manuell', NULL, 'Monatsabschluss 2025-12', 2, 0, '2026-01-18 07:58:51', '2026-01-18 07:58:51');
+(1, 2, '2025-12-31', 915, 'manuell', NULL, 'Monatsabschluss 2025-12', 2, 0, '2026-01-18 07:58:51', '2026-02-01 06:16:46');
 
 -- --------------------------------------------------------
 
@@ -776,27 +777,10 @@ CREATE TABLE `system_log` (
 --
 
 INSERT INTO `system_log` (`id`, `zeitstempel`, `loglevel`, `kategorie`, `nachricht`, `daten`, `mitarbeiter_id`, `terminal_id`) VALUES
-(1035, '2026-01-26 18:31:20', 'info', 'auth', 'Login erfolgreich (Benutzername/E-Mail)', '{\"kennung\":\"ManuelKleespies\",\"mitarbeiter_id\":2}', 2, NULL),
-(1036, '2026-01-27 18:46:51', 'info', 'auth', 'Login erfolgreich (Benutzername/E-Mail)', '{\"kennung\":\"ManuelKleespies\",\"mitarbeiter_id\":2}', 2, NULL),
-(1037, '2026-01-27 19:03:48', 'info', 'zeitservice', 'Synchronisierung Tageswerte abgeschlossen', '{\"mitarbeiter_id\":2,\"datum\":\"2026-01-26\",\"kommen_roh\":null,\"gehen_roh\":\"2026-01-26 05:05:05\",\"pause_min\":0,\"pause_quelle\":\"auto\",\"pause_db_min\":0,\"felder_manuell\":0}', 2, NULL),
-(1038, '2026-01-27 19:03:48', 'info', 'zeitbuchung_audit', 'Zeitbuchung korrigiert', '{\"aktion\":\"add\",\"buchung_id\":115,\"ziel_mitarbeiter_id\":2,\"datum\":\"2026-01-26\",\"alt\":null,\"neu\":{\"id\":115,\"typ\":\"gehen\",\"zeitstempel\":\"2026-01-26 05:05:05\",\"kommentar\":\"234\",\"quelle\":\"web\",\"manuell_geaendert\":1,\"nachtshift\":0},\"begruendung\":\"234\"}', 2, NULL),
-(1039, '2026-01-27 20:23:08', 'info', 'zeitservice', 'Synchronisierung Tageswerte abgeschlossen', '{\"mitarbeiter_id\":2,\"datum\":\"2026-01-26\",\"kommen_roh\":\"2026-01-26 23:42:03\",\"gehen_roh\":\"2026-01-26 05:05:05\",\"pause_min\":0,\"pause_quelle\":\"auto\",\"pause_db_min\":0,\"felder_manuell\":0}', 2, NULL),
-(1040, '2026-01-27 20:23:08', 'info', 'zeitbuchung_audit', 'Zeitbuchung korrigiert', '{\"aktion\":\"add\",\"buchung_id\":116,\"ziel_mitarbeiter_id\":2,\"datum\":\"2026-01-26\",\"alt\":null,\"neu\":{\"id\":116,\"typ\":\"kommen\",\"zeitstempel\":\"2026-01-26 23:42:03\",\"kommentar\":\"13\",\"quelle\":\"web\",\"manuell_geaendert\":1,\"nachtshift\":0},\"begruendung\":\"13\"}', 2, NULL),
-(1041, '2026-01-27 20:23:25', 'info', 'zeitservice', 'Synchronisierung Tageswerte abgeschlossen', '{\"mitarbeiter_id\":2,\"datum\":\"2026-01-26\",\"kommen_roh\":\"2026-01-26 23:42:03\",\"gehen_roh\":\"2026-01-26 23:42:05\",\"pause_min\":0,\"pause_quelle\":\"auto\",\"pause_db_min\":0,\"felder_manuell\":0}', 2, NULL),
-(1042, '2026-01-27 20:23:25', 'info', 'zeitbuchung_audit', 'Zeitbuchung korrigiert', '{\"aktion\":\"add\",\"buchung_id\":117,\"ziel_mitarbeiter_id\":2,\"datum\":\"2026-01-26\",\"alt\":null,\"neu\":{\"id\":117,\"typ\":\"gehen\",\"zeitstempel\":\"2026-01-26 23:42:05\",\"kommentar\":\"345\",\"quelle\":\"web\",\"manuell_geaendert\":1,\"nachtshift\":0},\"begruendung\":\"345\"}', 2, NULL),
-(1043, '2026-01-27 20:26:48', 'info', 'zeitservice', 'Synchronisierung Tageswerte abgeschlossen', '{\"mitarbeiter_id\":2,\"datum\":\"2026-01-15\",\"kommen_roh\":null,\"gehen_roh\":null,\"pause_min\":0,\"pause_quelle\":\"auto\",\"pause_db_min\":0,\"felder_manuell\":0}', 2, NULL),
-(1044, '2026-01-27 20:26:48', 'info', 'zeitbuchung_audit', 'Zeitbuchung korrigiert', '{\"aktion\":\"delete\",\"buchung_id\":110,\"ziel_mitarbeiter_id\":2,\"datum\":\"2026-01-15\",\"alt\":{\"typ\":\"kommen\",\"zeitstempel\":\"2026-01-15 21:55:02\",\"kommentar\":\"12\",\"quelle\":\"web\"},\"neu\":null,\"begruendung\":\"123\"}', 2, NULL),
-(1045, '2026-01-27 20:27:04', 'info', 'zeitservice', 'Synchronisierung Tageswerte abgeschlossen', '{\"mitarbeiter_id\":2,\"datum\":\"2026-01-16\",\"kommen_roh\":\"2026-01-16 20:21:08\",\"gehen_roh\":\"2026-01-16 20:21:32\",\"pause_min\":0,\"pause_quelle\":\"auto\",\"pause_db_min\":0,\"felder_manuell\":0}', 2, NULL),
-(1046, '2026-01-27 20:27:04', 'info', 'zeitbuchung_audit', 'Zeitbuchung korrigiert', '{\"aktion\":\"delete\",\"buchung_id\":111,\"ziel_mitarbeiter_id\":2,\"datum\":\"2026-01-16\",\"alt\":{\"typ\":\"gehen\",\"zeitstempel\":\"2026-01-16 06:06:06\",\"kommentar\":\"6\",\"quelle\":\"web\"},\"neu\":null,\"begruendung\":\"123\"}', 2, NULL),
-(1047, '2026-01-27 20:27:06', 'info', 'zeitservice', 'Synchronisierung Tageswerte abgeschlossen', '{\"mitarbeiter_id\":2,\"datum\":\"2026-01-16\",\"kommen_roh\":null,\"gehen_roh\":\"2026-01-16 20:21:32\",\"pause_min\":0,\"pause_quelle\":\"auto\",\"pause_db_min\":0,\"felder_manuell\":0}', 2, NULL),
-(1048, '2026-01-27 20:27:06', 'info', 'zeitbuchung_audit', 'Zeitbuchung korrigiert', '{\"aktion\":\"delete\",\"buchung_id\":75,\"ziel_mitarbeiter_id\":2,\"datum\":\"2026-01-16\",\"alt\":{\"typ\":\"kommen\",\"zeitstempel\":\"2026-01-16 20:21:08\",\"kommentar\":\"\",\"quelle\":\"terminal\"},\"neu\":null,\"begruendung\":\"123\"}', 2, NULL),
-(1049, '2026-01-27 20:27:09', 'info', 'zeitservice', 'Synchronisierung Tageswerte abgeschlossen', '{\"mitarbeiter_id\":2,\"datum\":\"2026-01-16\",\"kommen_roh\":null,\"gehen_roh\":null,\"pause_min\":0,\"pause_quelle\":\"auto\",\"pause_db_min\":0,\"felder_manuell\":0}', 2, NULL),
-(1050, '2026-01-27 20:27:09', 'info', 'zeitbuchung_audit', 'Zeitbuchung korrigiert', '{\"aktion\":\"delete\",\"buchung_id\":76,\"ziel_mitarbeiter_id\":2,\"datum\":\"2026-01-16\",\"alt\":{\"typ\":\"gehen\",\"zeitstempel\":\"2026-01-16 20:21:32\",\"kommentar\":\"\",\"quelle\":\"terminal\"},\"neu\":null,\"begruendung\":\"123\"}', 2, NULL),
-(1051, '2026-01-27 20:27:24', 'info', 'zeitservice', 'Synchronisierung Tageswerte abgeschlossen', '{\"mitarbeiter_id\":2,\"datum\":\"2026-01-15\",\"kommen_roh\":\"2026-01-15 21:22:23\",\"gehen_roh\":null,\"pause_min\":0,\"pause_quelle\":\"auto\",\"pause_db_min\":0,\"felder_manuell\":0}', 2, NULL),
-(1052, '2026-01-27 20:27:24', 'info', 'zeitbuchung_audit', 'Zeitbuchung korrigiert', '{\"aktion\":\"add\",\"buchung_id\":118,\"ziel_mitarbeiter_id\":2,\"datum\":\"2026-01-15\",\"alt\":null,\"neu\":{\"id\":118,\"typ\":\"kommen\",\"zeitstempel\":\"2026-01-15 21:22:23\",\"kommentar\":\"123\",\"quelle\":\"web\",\"manuell_geaendert\":1,\"nachtshift\":1},\"begruendung\":\"123\"}', 2, NULL),
-(1053, '2026-01-27 20:27:40', 'info', 'zeitservice', 'Synchronisierung Tageswerte abgeschlossen', '{\"mitarbeiter_id\":2,\"datum\":\"2026-01-16\",\"kommen_roh\":null,\"gehen_roh\":\"2026-01-16 06:22:22\",\"pause_min\":0,\"pause_quelle\":\"auto\",\"pause_db_min\":0,\"felder_manuell\":0}', 2, NULL),
-(1054, '2026-01-27 20:27:40', 'info', 'zeitbuchung_audit', 'Zeitbuchung korrigiert', '{\"aktion\":\"add\",\"buchung_id\":119,\"ziel_mitarbeiter_id\":2,\"datum\":\"2026-01-16\",\"alt\":null,\"neu\":{\"id\":119,\"typ\":\"gehen\",\"zeitstempel\":\"2026-01-16 06:22:22\",\"kommentar\":\"23\",\"quelle\":\"web\",\"manuell_geaendert\":1,\"nachtshift\":0},\"begruendung\":\"23\"}', 2, NULL),
-(1055, '2026-01-28 17:26:13', 'info', 'auth', 'Login erfolgreich (Benutzername/E-Mail)', '{\"kennung\":\"ManuelKleespies\",\"mitarbeiter_id\":2}', 2, NULL);
+(1194, '2026-02-01 07:06:16', 'info', 'tageswerte_audit', 'Tageswerte gesetzt: Pause-Override', '{\"ziel_mitarbeiter_id\":2,\"datum\":\"2026-02-04\",\"pause_stunden\":0.5,\"pause_minuten\":30,\"begruendung\":\"keine frühstückspause gemacht\"}', 2, NULL),
+(1195, '2026-02-01 07:07:31', 'warn', 'terminal_monatsstatus', 'Terminal: Monatsstatus via ReportService fehlgeschlagen', '{\"mitarbeiter_id\":2,\"jahr\":2026,\"monat\":2,\"exception\":\"Call to private ReportService::__construct() from scope TerminalController\"}', 2, NULL),
+(1196, '2026-02-01 07:07:33', 'warn', 'terminal_monatsstatus', 'Terminal: Monatsstatus via ReportService fehlgeschlagen', '{\"mitarbeiter_id\":2,\"jahr\":2026,\"monat\":2,\"exception\":\"Call to private ReportService::__construct() from scope TerminalController\"}', 2, NULL),
+(1197, '2026-02-01 07:08:34', 'warn', 'terminal_monatsstatus', 'Terminal: Monatsstatus via ReportService fehlgeschlagen', '{\"mitarbeiter_id\":2,\"jahr\":2026,\"monat\":2,\"exception\":\"Call to private ReportService::__construct() from scope TerminalController\"}', 2, NULL);
 
 -- --------------------------------------------------------
 
@@ -873,8 +857,23 @@ INSERT INTO `tageswerte_mitarbeiter` (`id`, `mitarbeiter_id`, `datum`, `kommen_r
 (61, 2, '2026-01-24', '2026-01-24 04:36:22', '2026-01-24 12:12:12', NULL, NULL, 30, 0, NULL, NULL, NULL, 6.50, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, '2026-01-25 14:24:57', '2026-01-25 14:24:57'),
 (64, 2, '2026-01-25', NULL, NULL, NULL, NULL, 0, 0, NULL, NULL, NULL, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, '2026-01-25 14:26:29', '2026-01-25 15:14:43'),
 (66, 2, '2026-01-26', '2026-01-26 23:42:03', '2026-01-26 23:42:05', NULL, NULL, 0, 0, NULL, NULL, NULL, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, '2026-01-25 14:27:34', '2026-01-27 20:23:25'),
-(67, 2, '2026-01-16', NULL, '2026-01-16 06:22:22', NULL, NULL, 0, 0, NULL, NULL, NULL, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, '2026-01-25 14:29:18', '2026-01-27 20:27:40'),
-(69, 2, '2026-01-15', '2026-01-15 21:22:23', NULL, NULL, NULL, 0, 0, NULL, NULL, NULL, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, '2026-01-25 14:29:57', '2026-01-27 20:27:23');
+(67, 2, '2026-01-16', NULL, '2026-01-16 06:22:22', NULL, NULL, 60, 0, NULL, NULL, NULL, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0, 0, 0, 0, 0, 0, 0, 0, 1, NULL, '2026-01-25 14:29:18', '2026-01-31 04:49:03'),
+(69, 2, '2026-01-15', '2026-01-15 21:22:23', NULL, NULL, NULL, 0, 0, NULL, NULL, NULL, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, '2026-01-25 14:29:57', '2026-01-27 20:27:23'),
+(88, 2, '2026-01-27', '2026-01-27 04:04:04', '2026-01-27 22:22:22', NULL, NULL, 45, 0, NULL, NULL, NULL, 17.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, '2026-02-01 05:04:25', '2026-02-01 05:04:35'),
+(90, 2, '2026-01-28', '2026-01-28 02:02:02', '2026-01-28 22:22:22', NULL, NULL, 45, 0, NULL, NULL, NULL, 19.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, '2026-02-01 05:04:52', '2026-02-01 05:04:58'),
+(92, 2, '2026-01-29', '2026-01-29 02:02:02', '2026-01-29 22:22:22', NULL, NULL, 45, 0, NULL, NULL, NULL, 19.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, '2026-02-01 05:05:11', '2026-02-01 05:05:17'),
+(94, 2, '2026-01-30', '2026-01-30 02:02:02', '2026-01-30 22:22:22', NULL, NULL, 30, 0, NULL, NULL, NULL, 10.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, '2026-02-01 05:05:29', '2026-02-01 05:05:51'),
+(98, 2, '2025-12-01', '2025-12-01 21:22:02', NULL, NULL, NULL, 0, 0, NULL, NULL, NULL, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, '2026-02-01 05:08:17', '2026-02-01 05:08:17'),
+(99, 2, '2025-12-02', NULL, '2025-12-02 08:00:00', NULL, NULL, 0, 0, NULL, NULL, NULL, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, '2026-02-01 05:08:40', '2026-02-01 05:08:40'),
+(100, 2, '2025-12-03', '2025-12-03 05:55:05', '2025-12-03 22:22:02', NULL, NULL, 45, 0, NULL, NULL, NULL, 15.50, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, '2026-02-01 05:10:00', '2026-02-01 05:10:08'),
+(104, 2, '2025-12-04', '2025-12-04 05:55:05', '2025-12-04 22:22:02', NULL, NULL, 45, 0, NULL, NULL, NULL, 15.50, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, '2026-02-01 05:11:22', '2026-02-01 05:11:36'),
+(106, 2, '2025-12-05', '2025-12-05 05:55:05', '2025-12-05 22:22:02', NULL, NULL, 45, 0, NULL, NULL, NULL, 15.50, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, '2026-02-01 05:11:50', '2026-02-01 05:21:14'),
+(110, 2, '2025-12-08', '2025-12-08 02:02:02', '2025-12-08 22:22:05', NULL, NULL, 45, 0, NULL, NULL, NULL, 19.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, '2026-02-01 05:13:17', '2026-02-01 05:13:35'),
+(115, 2, '2025-12-09', '2025-12-09 05:55:05', '2025-12-09 23:23:23', NULL, NULL, 45, 0, NULL, NULL, NULL, 16.50, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, '2026-02-01 05:33:52', '2026-02-01 05:55:09'),
+(128, 2, '2025-12-10', '2025-12-10 05:55:05', '2025-12-10 05:56:05', NULL, NULL, 0, 0, NULL, NULL, NULL, 0.02, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, '2026-02-01 06:15:26', '2026-02-01 06:15:51'),
+(130, 2, '2026-02-02', '2026-02-02 05:55:05', '2026-02-02 16:00:00', NULL, NULL, 0, 0, NULL, NULL, NULL, 7.25, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0, 0, 0, 0, 0, 0, 0, 0, 1, NULL, '2026-02-01 06:17:14', '2026-02-01 06:18:25'),
+(135, 2, '2026-02-03', '2026-02-03 05:55:05', '2026-02-03 15:45:05', NULL, NULL, 45, 0, NULL, NULL, NULL, 9.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, '2026-02-01 06:52:26', '2026-02-01 06:52:37'),
+(137, 2, '2026-02-04', '2026-02-04 05:05:05', '2026-02-04 15:15:05', NULL, NULL, 30, 1, 'keine frühstückspause gemacht', 2, '2026-02-01 07:06:16', 9.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0, 0, 0, 0, 0, 0, 0, 0, 1, NULL, '2026-02-01 06:53:24', '2026-02-01 07:06:16');
 
 -- --------------------------------------------------------
 
@@ -1073,7 +1072,43 @@ INSERT INTO `zeitbuchung` (`id`, `mitarbeiter_id`, `typ`, `zeitstempel`, `quelle
 (116, 2, 'kommen', '2026-01-26 23:42:03', 'web', 1, '13', 0, NULL, '2026-01-27 20:23:08', '2026-01-27 20:23:08'),
 (117, 2, 'gehen', '2026-01-26 23:42:05', 'web', 1, '345', 0, NULL, '2026-01-27 20:23:25', '2026-01-27 20:23:25'),
 (118, 2, 'kommen', '2026-01-15 21:22:23', 'web', 1, '123', 1, NULL, '2026-01-27 20:27:23', '2026-01-27 20:27:23'),
-(119, 2, 'gehen', '2026-01-16 06:22:22', 'web', 1, '23', 0, NULL, '2026-01-27 20:27:40', '2026-01-27 20:27:40');
+(119, 2, 'gehen', '2026-01-16 06:22:22', 'web', 1, '23', 0, NULL, '2026-01-27 20:27:40', '2026-01-27 20:27:40'),
+(120, 2, 'kommen', '2026-01-27 04:04:04', 'web', 1, '4', 0, NULL, '2026-02-01 05:04:25', '2026-02-01 05:04:25'),
+(121, 2, 'gehen', '2026-01-27 22:22:22', 'web', 1, '22', 0, NULL, '2026-02-01 05:04:35', '2026-02-01 05:04:35'),
+(122, 2, 'kommen', '2026-01-28 02:02:02', 'web', 1, '2', 0, NULL, '2026-02-01 05:04:52', '2026-02-01 05:04:52'),
+(123, 2, 'gehen', '2026-01-28 22:22:22', 'web', 1, '2', 0, NULL, '2026-02-01 05:04:58', '2026-02-01 05:04:58'),
+(124, 2, 'kommen', '2026-01-29 02:02:02', 'web', 1, '2', 0, NULL, '2026-02-01 05:05:11', '2026-02-01 05:05:11'),
+(125, 2, 'gehen', '2026-01-29 22:22:22', 'web', 1, '2', 0, NULL, '2026-02-01 05:05:17', '2026-02-01 05:05:17'),
+(126, 2, 'kommen', '2026-01-30 02:02:02', 'web', 1, '2', 0, NULL, '2026-02-01 05:05:29', '2026-02-01 05:05:29'),
+(127, 2, 'gehen', '2026-01-30 05:05:05', 'web', 1, '5', 0, NULL, '2026-02-01 05:05:35', '2026-02-01 05:05:35'),
+(128, 2, 'kommen', '2026-01-30 14:04:04', 'web', 1, '4', 0, NULL, '2026-02-01 05:05:44', '2026-02-01 05:05:44'),
+(129, 2, 'gehen', '2026-01-30 22:22:22', 'web', 1, '2', 0, NULL, '2026-02-01 05:05:51', '2026-02-01 05:05:51'),
+(130, 2, 'kommen', '2025-12-01 21:22:02', 'web', 1, '2', 1, NULL, '2026-02-01 05:08:17', '2026-02-01 05:08:17'),
+(131, 2, 'gehen', '2025-12-02 08:00:00', 'web', 1, '5', 0, NULL, '2026-02-01 05:08:40', '2026-02-01 05:08:40'),
+(132, 2, 'kommen', '2025-12-03 05:55:05', 'web', 1, '5', 0, NULL, '2026-02-01 05:10:00', '2026-02-01 05:10:00'),
+(133, 2, 'gehen', '2025-12-03 22:22:02', 'web', 1, '2', 0, NULL, '2026-02-01 05:10:08', '2026-02-01 05:10:08'),
+(135, 2, 'kommen', '2025-12-04 05:55:05', 'web', 1, '5', 0, NULL, '2026-02-01 05:11:22', '2026-02-01 05:11:22'),
+(136, 2, 'gehen', '2025-12-04 22:22:02', 'web', 1, '2', 0, NULL, '2026-02-01 05:11:36', '2026-02-01 05:11:36'),
+(137, 2, 'kommen', '2025-12-05 05:55:05', 'web', 1, '2', 0, NULL, '2026-02-01 05:11:50', '2026-02-01 05:11:50'),
+(138, 2, 'gehen', '2025-12-05 05:55:22', 'web', 1, '5', 0, NULL, '2026-02-01 05:11:56', '2026-02-01 05:20:27'),
+(139, 2, 'kommen', '2025-12-05 05:55:25', 'web', 1, '5', 0, NULL, '2026-02-01 05:12:18', '2026-02-01 05:21:14'),
+(140, 2, 'gehen', '2025-12-05 22:22:02', 'web', 1, '2', 0, NULL, '2026-02-01 05:12:41', '2026-02-01 05:12:41'),
+(141, 2, 'kommen', '2025-12-08 02:02:02', 'web', 1, '2', 0, NULL, '2026-02-01 05:13:17', '2026-02-01 05:13:17'),
+(142, 2, 'gehen', '2025-12-08 22:22:05', 'web', 1, '2', 0, NULL, '2026-02-01 05:13:35', '2026-02-01 05:13:35'),
+(146, 2, 'kommen', '2025-12-09 05:55:05', 'web', 1, '5', 0, NULL, '2026-02-01 05:40:47', '2026-02-01 05:40:47'),
+(147, 2, 'gehen', '2025-12-09 05:55:09', 'web', 1, '5', 0, NULL, '2026-02-01 05:41:29', '2026-02-01 06:05:11'),
+(149, 2, 'kommen', '2025-12-09 05:55:23', 'web', 1, '5', 0, NULL, '2026-02-01 05:54:59', '2026-02-01 05:54:59'),
+(150, 2, 'gehen', '2025-12-09 23:23:23', 'web', 1, '5', 0, NULL, '2026-02-01 05:55:09', '2026-02-01 05:55:09'),
+(151, 2, 'kommen', '2025-12-10 05:55:05', 'web', 1, '5', 0, NULL, '2026-02-01 06:15:26', '2026-02-01 06:15:26'),
+(152, 2, 'gehen', '2025-12-10 05:56:05', 'web', 1, '5', 0, NULL, '2026-02-01 06:15:51', '2026-02-01 06:15:51'),
+(153, 2, 'kommen', '2026-02-02 05:55:05', 'web', 1, '5', 0, NULL, '2026-02-01 06:17:14', '2026-02-01 06:17:14'),
+(154, 2, 'gehen', '2026-02-02 10:00:00', 'web', 1, '7', 0, NULL, '2026-02-01 06:17:26', '2026-02-01 06:17:26'),
+(155, 2, 'kommen', '2026-02-02 12:00:00', 'web', 1, '4', 0, NULL, '2026-02-01 06:17:49', '2026-02-01 06:17:49'),
+(156, 2, 'gehen', '2026-02-02 16:00:00', 'web', 1, '4', 0, NULL, '2026-02-01 06:17:59', '2026-02-01 06:17:59'),
+(157, 2, 'kommen', '2026-02-03 05:55:05', 'web', 1, '5', 0, NULL, '2026-02-01 06:52:26', '2026-02-01 06:52:26'),
+(158, 2, 'gehen', '2026-02-03 15:45:05', 'web', 1, '5', 0, NULL, '2026-02-01 06:52:37', '2026-02-01 06:52:37'),
+(159, 2, 'kommen', '2026-02-04 05:05:05', 'web', 1, '5', 0, NULL, '2026-02-01 06:53:24', '2026-02-01 06:53:24'),
+(160, 2, 'gehen', '2026-02-04 15:15:05', 'web', 1, '5', 0, NULL, '2026-02-01 06:53:45', '2026-02-01 06:53:45');
 
 -- --------------------------------------------------------
 
@@ -1408,7 +1443,7 @@ ALTER TABLE `betriebsferien`
 -- AUTO_INCREMENT für Tabelle `config`
 --
 ALTER TABLE `config`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=79998;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=88080;
 
 --
 -- AUTO_INCREMENT für Tabelle `db_injektionsqueue`
@@ -1426,7 +1461,7 @@ ALTER TABLE `feiertag`
 -- AUTO_INCREMENT für Tabelle `krankzeitraum`
 --
 ALTER TABLE `krankzeitraum`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT für Tabelle `kurzarbeit_plan`
@@ -1516,13 +1551,13 @@ ALTER TABLE `stundenkonto_korrektur`
 -- AUTO_INCREMENT für Tabelle `system_log`
 --
 ALTER TABLE `system_log`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1056;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1198;
 
 --
 -- AUTO_INCREMENT für Tabelle `tageswerte_mitarbeiter`
 --
 ALTER TABLE `tageswerte_mitarbeiter`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=87;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=140;
 
 --
 -- AUTO_INCREMENT für Tabelle `terminal`
@@ -1546,7 +1581,7 @@ ALTER TABLE `urlaub_kontingent_jahr`
 -- AUTO_INCREMENT für Tabelle `zeitbuchung`
 --
 ALTER TABLE `zeitbuchung`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=120;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=161;
 
 --
 -- AUTO_INCREMENT für Tabelle `zeit_rundungsregel`
@@ -1564,6 +1599,12 @@ ALTER TABLE `zeit_rundungsregel`
 ALTER TABLE `abteilung`
   ADD CONSTRAINT `abteilung_ibfk_1` FOREIGN KEY (`parent_id`) REFERENCES `abteilung` (`id`) ON DELETE SET NULL ON UPDATE CASCADE,
   ADD CONSTRAINT `fk_abteilung_parent` FOREIGN KEY (`parent_id`) REFERENCES `abteilung` (`id`) ON DELETE SET NULL ON UPDATE CASCADE;
+
+--
+-- Constraints der Tabelle `tageswerte_mitarbeiter`
+--
+ALTER TABLE `tageswerte_mitarbeiter`
+  ADD CONSTRAINT `fk_pause_override_gesetzt_von` FOREIGN KEY (`pause_override_gesetzt_von_mitarbeiter_id`) REFERENCES `mitarbeiter` (`id`) ON DELETE SET NULL ON UPDATE CASCADE;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
