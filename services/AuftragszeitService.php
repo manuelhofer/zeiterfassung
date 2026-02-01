@@ -230,11 +230,23 @@ class AuftragszeitService
                 . $this->sqlNullableString($auftragscode, 100) . ', 1)
                 ON DUPLICATE KEY UPDATE auftragsnummer = auftragsnummer';
 
+            $sqlSchritt = null;
+            $sqlSchrittId = 'NULL';
+            if ($arbeitsschrittCode !== null) {
+                $auftragIdSql = '(SELECT id FROM auftrag WHERE auftragsnummer = ' . $this->sqlNullableString($auftragscode, 100) . ' LIMIT 1)';
+                $sqlSchritt = 'INSERT INTO auftrag_arbeitsschritt (auftrag_id, arbeitsschritt_code, aktiv) VALUES ('
+                    . $auftragIdSql . ', '
+                    . $this->sqlNullableString($arbeitsschrittCode, 100) . ', 1)
+                    ON DUPLICATE KEY UPDATE arbeitsschritt_code = arbeitsschritt_code';
+                $sqlSchrittId = '(SELECT id FROM auftrag_arbeitsschritt WHERE auftrag_id = ' . $auftragIdSql
+                    . ' AND arbeitsschritt_code = ' . $this->sqlNullableString($arbeitsschrittCode, 100) . ' LIMIT 1)';
+            }
+
             // 3) neuen Hauptauftrag anlegen
             $sql3 = 'INSERT INTO auftragszeit (mitarbeiter_id, auftrag_id, arbeitsschritt_id, auftragscode, arbeitsschritt_code, maschine_id, terminal_id, typ, startzeit, kommentar) VALUES ('
                 . (int)$mitarbeiterId . ', '
                 . $this->sqlNullableInt($auftragId) . ', '
-                . 'NULL, '
+                . $sqlSchrittId . ', '
                 . $this->sqlNullableString($auftragscode, 100) . ', '
                 . $this->sqlNullableString($arbeitsschrittCode, 100) . ', '
                 . $this->sqlNullableInt($maschineId) . ', '
@@ -247,6 +259,9 @@ class AuftragszeitService
             try {
                 $ok1 = OfflineQueueManager::getInstanz()->speichereInQueue($sql1, $mitarbeiterId, null, 'auftrag_start_close');
                 $ok2 = OfflineQueueManager::getInstanz()->speichereInQueue($sql2, $mitarbeiterId, null, 'auftrag_ensure');
+                if ($sqlSchritt !== null) {
+                    OfflineQueueManager::getInstanz()->speichereInQueue($sqlSchritt, $mitarbeiterId, null, 'auftrag_schritt_ensure');
+                }
                 $ok3 = OfflineQueueManager::getInstanz()->speichereInQueue($sql3, $mitarbeiterId, null, 'auftrag_start');
 
                 return ($ok1 && $ok2 && $ok3) ? 0 : null;

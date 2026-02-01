@@ -828,9 +828,10 @@ class DashboardController
                 if ($hauptDbOk) {
                     $schemaChecks = [
                         'zeitbuchung' => ['id', 'mitarbeiter_id', 'typ', 'zeitstempel', 'quelle', 'manuell_geaendert', 'kommentar', 'terminal_id'],
-                        'auftragszeit' => ['id', 'mitarbeiter_id', 'auftrag_id', 'auftragscode', 'maschine_id', 'terminal_id', 'typ', 'startzeit', 'endzeit', 'status', 'kommentar'],
+                        'auftragszeit' => ['id', 'mitarbeiter_id', 'auftrag_id', 'arbeitsschritt_id', 'auftragscode', 'arbeitsschritt_code', 'maschine_id', 'terminal_id', 'typ', 'startzeit', 'endzeit', 'status', 'kommentar'],
                         // Gemäß Master-Prompt: `auftrag` ist minimal/optional – Kern ist die Auftragsnummer.
                         'auftrag' => ['id', 'auftragsnummer', 'aktiv'],
+                        'auftrag_arbeitsschritt' => ['id', 'auftrag_id', 'arbeitsschritt_code', 'aktiv'],
                         'terminal' => ['id', 'name', 'modus', 'aktiv', 'offline_erlaubt_kommen_gehen', 'offline_erlaubt_auftraege'],
                         'db_injektionsqueue' => ['id', 'status', 'sql_befehl', 'fehlernachricht', 'versuche', 'letzte_ausfuehrung', 'meta_mitarbeiter_id', 'meta_terminal_id', 'meta_aktion', 'erstellt_am'],
                     ];
