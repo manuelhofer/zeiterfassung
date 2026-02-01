@@ -748,6 +748,8 @@ class TerminalController
             $sollMinuten = 0;
             $stundenkontoSaldoText = '';
             $zusammenfassungAusReport = null;
+            $sollBisHeuteMinutenAusTagen = 0;
+            $hatSollAusTagen = false;
 
             if (class_exists('ReportService')) {
                 try {
@@ -769,6 +771,28 @@ class TerminalController
                             $sumFeiertagMinuten += $parseStundenZuMinuten($t['feiertag_stunden'] ?? '0');
                             $sumKurzarbeitMinuten += $parseStundenZuMinuten($t['kurzarbeit_stunden'] ?? '0');
                             $sumSonstMinuten += $parseStundenZuMinuten($t['sonstige_stunden'] ?? '0');
+
+                            $datum = (string)($t['datum'] ?? '');
+                            $istMinutenTagFuerAnzeige = $parseStundenZuMinuten($t['arbeitszeit_stunden'] ?? '0')
+                                + $parseStundenZuMinuten($t['arzt_stunden'] ?? '0')
+                                + $parseStundenZuMinuten($t['krank_lfz_stunden'] ?? '0')
+                                + $parseStundenZuMinuten($t['krank_kk_stunden'] ?? '0')
+                                + $parseStundenZuMinuten($t['urlaub_stunden'] ?? '0')
+                                + $parseStundenZuMinuten($t['feiertag_stunden'] ?? '0')
+                                + $parseStundenZuMinuten($t['sonstige_stunden'] ?? '0');
+
+                            if ($datum !== '' && $datum <= $heuteStr) {
+                                $sumIstMinutenBisHeute += $istMinutenTagFuerAnzeige;
+
+                                $sollFeldKandidaten = ['soll_stunden', 'tagessoll', 'soll'];
+                                foreach ($sollFeldKandidaten as $feld) {
+                                    if (array_key_exists($feld, $t)) {
+                                        $hatSollAusTagen = true;
+                                        $sollBisHeuteMinutenAusTagen += $parseStundenZuMinuten($t[$feld]);
+                                        break;
+                                    }
+                                }
+                            }
 
                             if (!empty($t['micro_arbeitszeit_ignoriert'])) {
                                 continue;
@@ -822,10 +846,6 @@ class TerminalController
                                 $sumIstMinuten += $istMinutenTag;
                             }
 
-                            $datum = (string)($t['datum'] ?? '');
-                            if ($datum !== '' && $datum <= $heuteStr) {
-                                $sumIstMinutenBisHeute += $istMinutenTag;
-                            }
                         }
                     }
 
@@ -898,7 +918,9 @@ class TerminalController
                 }
             }
 
-            $sollBisHeuteMinuten = (int)round($sollBisHeute * 60.0);
+            $sollBisHeuteMinuten = $hatSollAusTagen
+                ? $sollBisHeuteMinutenAusTagen
+                : (int)round($sollBisHeute * 60.0);
             $sollMonatGesamtMinuten = (int)round($sollMonatGesamt * 60.0);
 
             // Extras fuer Startscreen-Info.
