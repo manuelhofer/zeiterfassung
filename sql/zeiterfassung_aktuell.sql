@@ -193,7 +193,9 @@ INSERT INTO `config` (`id`, `schluessel`, `wert`, `typ`, `beschreibung`, `erstel
 (227, 'terminal_session_idle_timeout', '300', 'int', 'Terminal: serverseitiges Session-Idle-Timeout (Sekunden). Fallback, falls JS-Auto-Logout nicht greift. Default 300.', '2025-12-31 21:08:33', '2025-12-31 21:08:33'),
 (228, 'urlaub_blocke_negativen_resturlaub', '0', 'bool', 'Urlaub: Wenn aktiv (1), werden Urlaubsanträge blockiert, wenn der Resturlaub dadurch negativ würde. Default 0.', '2025-12-31 21:08:33', '2025-12-31 21:08:33'),
 (5897, 'terminal_healthcheck_interval', '10', 'int', 'Terminal: Intervall (Sekunden) für wiederkehrende Healthchecks (Hauptdatenbank/Offline-Queue Anzeige). Default 10.', '2026-01-11 06:38:46', '2026-01-11 06:38:46'),
-(31548, 'micro_buchung_max_sekunden', '180', 'int', 'Zeitbuchungen: Mikro-Buchungen (Kommen/Gehen) bis zu X Sekunden werden standardmäßig ignoriert/ausgeblendet. Default 180 (= 3 Minuten).', '2026-01-14 12:33:45', '2026-01-14 12:33:45');
+(31548, 'micro_buchung_max_sekunden', '180', 'int', 'Zeitbuchungen: Mikro-Buchungen (Kommen/Gehen) bis zu X Sekunden werden standardmäßig ignoriert/ausgeblendet. Default 180 (= 3 Minuten).', '2026-01-14 12:33:45', '2026-01-14 12:33:45'),
+(31549, 'maschinen_qr_rel_pfad', 'uploads/maschinen_codes', 'string', 'Maschinen-QR: Relativer Speicherpfad unterhalb von public. Default uploads/maschinen_codes.', '2026-01-14 12:33:45', '2026-01-14 12:33:45'),
+(31550, 'maschinen_qr_base_url', '', 'string', 'Maschinen-QR: Basis-URL oder Basispfad für die Ausgabe. Leer = Domain-Root.', '2026-01-14 12:33:45', '2026-01-14 12:33:45');
 
 -- --------------------------------------------------------
 

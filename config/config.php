@@ -101,7 +101,8 @@ return [
         ],
     ],
 
-    // QR-Code-Pfade für Maschinen
+    // QR-Code-Pfade für Maschinen (Fallback/Kompatibilität)
+    // Hinweis: Primär werden diese Werte aus der config-Tabelle gelesen.
     // Basis-URL für die Ausgabe (kann absolute URL oder Pfad relativ zur Domain sein)
     'maschinen_qr_base_url' => '',
     // Optionaler relativer Pfad unterhalb des public-Verzeichnisses
