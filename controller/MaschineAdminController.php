@@ -446,17 +446,17 @@ class MaschineAdminController
             return $codeBildPfad;
         }
 
-        $relativerPfad = ltrim($codeBildPfad, '/');
-        if (!str_contains($relativerPfad, '/')) {
-            $konfigPfad = $this->holeMaschinenQrRelPfad();
-            if ($konfigPfad !== '') {
-                $relativerPfad = trim($konfigPfad, '/') . '/' . $relativerPfad;
-            }
-        }
-
         $basisUrl = $this->holeMaschinenQrBasisUrl();
         if ($basisUrl === '') {
             $basisUrl = $this->holeAppBasisUrl();
+        }
+
+        $relativerPfad = ltrim($codeBildPfad, '/');
+        if (!str_contains($relativerPfad, '/')) {
+            $konfigPfad = $basisUrl === '' ? $this->holeMaschinenQrRelPfad() : '';
+            if ($konfigPfad !== '') {
+                $relativerPfad = trim($konfigPfad, '/') . '/' . $relativerPfad;
+            }
         }
 
         if ($basisUrl !== '') {
