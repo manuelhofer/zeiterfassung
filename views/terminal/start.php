@@ -1196,6 +1196,9 @@ require __DIR__ . '/_layout_top.php';
                 <?php if (is_array($letzterAuftrag) && (($letzterAuftrag['status'] ?? '') === 'laufend') && !empty($letzterAuftrag['auftragscode'])): ?>
                     <div class="status-small mt-035">Letzter Auftrag (lokal): <strong><?php echo htmlspecialchars((string)$letzterAuftrag['auftragscode'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></strong></div>
                 <?php endif; ?>
+                <?php if (is_array($letzterAuftrag) && (($letzterAuftrag['status'] ?? '') === 'pausiert') && !empty($letzterAuftrag['auftragscode'])): ?>
+                    <div class="status-small mt-035">Letzter Auftrag (pausiert, lokal): <strong><?php echo htmlspecialchars((string)$letzterAuftrag['auftragscode'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></strong></div>
+                <?php endif; ?>
             <?php else: ?>
 
             <?php if (!empty($heuteFehler)): ?>
@@ -1276,6 +1279,9 @@ require __DIR__ . '/_layout_top.php';
                 <div class="status-small">Keine laufenden Aufträge.</div>
                 <?php if (is_array($letzterAuftrag) && (($letzterAuftrag['status'] ?? '') === 'laufend') && !empty($letzterAuftrag['auftragscode'])): ?>
                     <div class="status-small mt-035">Letzter Auftrag (lokal): <strong><?php echo htmlspecialchars((string)$letzterAuftrag['auftragscode'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></strong></div>
+                <?php endif; ?>
+                <?php if (is_array($letzterAuftrag) && (($letzterAuftrag['status'] ?? '') === 'pausiert') && !empty($letzterAuftrag['auftragscode'])): ?>
+                    <div class="status-small mt-035">Letzter Auftrag (pausiert, lokal): <strong><?php echo htmlspecialchars((string)$letzterAuftrag['auftragscode'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></strong></div>
                 <?php endif; ?>
             <?php else: ?>
                 <pre><?php

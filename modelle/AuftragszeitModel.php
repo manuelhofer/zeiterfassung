@@ -16,6 +16,48 @@ class AuftragszeitModel
     }
 
     /**
+     * Lädt die zuletzt pausierte Auftragszeit eines Mitarbeiters.
+     *
+     * @return array<string,mixed>|null
+     */
+    public function holeLetztePausierteFuerMitarbeiter(int $mitarbeiterId, ?string $typ = null): ?array
+    {
+        $mitarbeiterId = max(1, $mitarbeiterId);
+        $typ = $typ !== null ? trim($typ) : null;
+        if ($typ !== null && !in_array($typ, ['haupt', 'neben'], true)) {
+            $typ = null;
+        }
+
+        try {
+            $sql = 'SELECT *
+                    FROM auftragszeit
+                    WHERE mitarbeiter_id = :mitarbeiter_id
+                      AND status = \'pausiert\'';
+
+            $params = ['mitarbeiter_id' => $mitarbeiterId];
+            if ($typ !== null) {
+                $sql .= ' AND typ = :typ';
+                $params['typ'] = $typ;
+            }
+
+            $sql .= ' ORDER BY endzeit DESC, id DESC
+                      LIMIT 1';
+
+            return $this->datenbank->fetchEine($sql, $params);
+        } catch (\Throwable $e) {
+            if (class_exists('Logger')) {
+                Logger::error('Fehler beim Laden der zuletzt pausierten Auftragszeit', [
+                    'mitarbeiter_id' => $mitarbeiterId,
+                    'typ'            => $typ,
+                    'exception'      => $e->getMessage(),
+                ], $mitarbeiterId, null, 'auftrag');
+            }
+
+            return null;
+        }
+    }
+
+    /**
      * Lädt eine Auftragszeit nach ID.
      *
      * @return array<string,mixed>|null
@@ -191,7 +233,7 @@ class AuftragszeitModel
      *
      * @param int                 $auftragszeitId ID der Auftragszeit
      * @param \DateTimeImmutable $zeitpunkt      Zeitstempel für das Ende
-     * @param string              $status         Zielstatus (abgeschlossen/abgebrochen)
+     * @param string              $status         Zielstatus (abgeschlossen/abgebrochen/pausiert)
      *
      * @return bool true bei Erfolg, false bei Fehler
      */
@@ -203,7 +245,7 @@ class AuftragszeitModel
             return false;
         }
 
-        if (!in_array($status, ['abgeschlossen', 'abgebrochen'], true)) {
+        if (!in_array($status, ['abgeschlossen', 'abgebrochen', 'pausiert'], true)) {
             $status = 'abgeschlossen';
         }
 

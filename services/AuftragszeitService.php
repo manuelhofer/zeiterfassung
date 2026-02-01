@@ -137,7 +137,7 @@ class AuftragszeitService
             return;
         }
 
-        if (!in_array($status, ['abgeschlossen', 'abgebrochen'], true)) {
+        if (!in_array($status, ['abgeschlossen', 'abgebrochen', 'pausiert'], true)) {
             $status = 'abgeschlossen';
         }
 
@@ -366,7 +366,7 @@ class AuftragszeitService
      * @param int         $mitarbeiterId  Mitarbeiter, für den gestoppt werden soll
      * @param int|null    $auftragszeitId Konkrete ID der Auftragszeit (optional)
      * @param string|null $auftragscode   Auftragscode zur Auswahl (optional)
-     * @param string      $status         Zielstatus (`abgeschlossen` oder `abgebrochen`)
+     * @param string      $status         Zielstatus (`abgeschlossen`, `abgebrochen` oder `pausiert`)
      *
      * @return int|null 1=online erfolgreich, 0=offline in Queue gespeichert, null=Fehler/kein passender Auftrag
      */
@@ -377,7 +377,7 @@ class AuftragszeitService
             return null;
         }
 
-        if (!in_array($status, ['abgeschlossen', 'abgebrochen'], true)) {
+        if (!in_array($status, ['abgeschlossen', 'abgebrochen', 'pausiert'], true)) {
             $status = 'abgeschlossen';
         }
 
@@ -543,7 +543,7 @@ class AuftragszeitService
      *
      * @param int                $mitarbeiterId Mitarbeiter-ID
      * @param \DateTimeImmutable $zeitpunkt      Endzeitpunkt
-     * @param string             $status         Zielstatus (abgeschlossen/abgebrochen)
+     * @param string             $status         Zielstatus (abgeschlossen/abgebrochen/pausiert)
      *
      * @return int|null 1=online erfolgreich, 0=offline in Queue gespeichert, null=Fehler
      */
@@ -554,7 +554,7 @@ class AuftragszeitService
             return null;
         }
 
-        if (!in_array($status, ['abgeschlossen', 'abgebrochen'], true)) {
+        if (!in_array($status, ['abgeschlossen', 'abgebrochen', 'pausiert'], true)) {
             $status = 'abgeschlossen';
         }
 
@@ -630,5 +630,67 @@ class AuftragszeitService
 
             return null;
         }
+    }
+
+    /**
+     * Startet den zuletzt pausierten Hauptauftrag eines Mitarbeiters erneut.
+     *
+     * @return array<string,mixed>|null Metadaten der neuen Auftragszeit oder null, wenn nichts fortgesetzt wurde
+     */
+    public function starteLetztenPausiertenHauptauftrag(int $mitarbeiterId, \DateTimeImmutable $zeitpunkt, string $kommentar = 'automatisch fortgesetzt'): ?array
+    {
+        $mitarbeiterId = (int)$mitarbeiterId;
+        if ($mitarbeiterId <= 0) {
+            return null;
+        }
+
+        $laufende = $this->auftragszeitModel->holeLaufendeFuerMitarbeiter($mitarbeiterId);
+        if (is_array($laufende) && count($laufende) > 0) {
+            return null;
+        }
+
+        $pause = $this->auftragszeitModel->holeLetztePausierteFuerMitarbeiter($mitarbeiterId, 'haupt');
+        if (!is_array($pause)) {
+            return null;
+        }
+
+        $auftragscode = isset($pause['auftragscode']) ? trim((string)$pause['auftragscode']) : '';
+        if ($auftragscode === '') {
+            return null;
+        }
+
+        $typ = isset($pause['typ']) && (string)$pause['typ'] === 'neben' ? 'neben' : 'haupt';
+        $auftragId = isset($pause['auftrag_id']) ? (int)$pause['auftrag_id'] : null;
+        $arbeitsschrittId = isset($pause['arbeitsschritt_id']) ? (int)$pause['arbeitsschritt_id'] : null;
+        $arbeitsschrittCode = isset($pause['arbeitsschritt_code']) ? trim((string)$pause['arbeitsschritt_code']) : null;
+        if ($arbeitsschrittCode === '') {
+            $arbeitsschrittCode = null;
+        }
+        $maschineId = isset($pause['maschine_id']) ? (int)$pause['maschine_id'] : null;
+        $terminalId = isset($pause['terminal_id']) ? (int)$pause['terminal_id'] : null;
+
+        $neueId = $this->auftragszeitModel->erstelleAuftragszeit(
+            $mitarbeiterId,
+            $auftragId,
+            $auftragscode,
+            $arbeitsschrittId,
+            $arbeitsschrittCode,
+            $maschineId,
+            $terminalId,
+            $typ,
+            $zeitpunkt,
+            $kommentar
+        );
+
+        if ($neueId === null) {
+            return null;
+        }
+
+        return [
+            'id' => (int)$neueId,
+            'auftragscode' => $auftragscode,
+            'arbeitsschritt_code' => $arbeitsschrittCode,
+            'typ' => $typ,
+        ];
     }
 }
