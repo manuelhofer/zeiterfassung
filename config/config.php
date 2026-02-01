@@ -100,4 +100,7 @@ return [
             'url' => config_env('ZEIT_RFID_WS_URL', 'ws://127.0.0.1:8765'),
         ],
     ],
+
+    // QR-Code-Pfade für Maschinen
+    'qr_maschinen_rel_pfad' => 'uploads/maschinen_codes',
 ];

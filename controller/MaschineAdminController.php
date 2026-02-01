@@ -341,6 +341,7 @@ class MaschineAdminController
         $abteilungId = $maschine['abteilung_id'] ?? null;
         $beschreibung = (string)($maschine['beschreibung'] ?? '');
         $codeBildPfad = (string)($maschine['code_bild_pfad'] ?? '');
+        $codeBildUrl = $this->baueQrCodeUrlPfad($codeBildPfad);
         $aktiv       = (int)($maschine['aktiv'] ?? 0) === 1;
 
         if ($abteilungId !== null) {
@@ -403,12 +404,12 @@ class MaschineAdminController
                 <?php if ($id > 0): ?>
                     <div style="margin: 1rem 0; padding: 0.75rem; border: 1px solid #ddd; border-radius: 6px; max-width: 520px;">
                         <div><strong>Maschinen-QR-Code</strong></div>
-                        <?php if ($codeBildPfad !== ''): ?>
+                        <?php if ($codeBildUrl !== ''): ?>
                             <div style="margin-top: 0.5rem;">
-                                <img src="<?php echo htmlspecialchars($codeBildPfad, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>" alt="QR-Code Maschine <?php echo $id; ?>" style="max-width: 100%; height: auto;">
+                                <img src="<?php echo htmlspecialchars($codeBildUrl, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>" alt="QR-Code Maschine <?php echo $id; ?>" style="max-width: 100%; height: auto;">
                             </div>
                             <div style="margin-top: 0.5rem; display:flex; gap: 1rem; flex-wrap: wrap;">
-                                <a href="<?php echo htmlspecialchars($codeBildPfad, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>" target="_blank">Download PNG</a>
+                                <a href="<?php echo htmlspecialchars($codeBildUrl, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>" target="_blank">Download PNG</a>
                             </div>
                         <?php else: ?>
                             <div style="margin-top: 0.5rem; color: #444;">
@@ -430,5 +431,50 @@ class MaschineAdminController
         <?php
 
         require __DIR__ . '/../views/layout/footer.php';
+    }
+
+    private function baueQrCodeUrlPfad(string $codeBildPfad): string
+    {
+        $codeBildPfad = trim($codeBildPfad);
+        if ($codeBildPfad === '') {
+            return '';
+        }
+
+        if (preg_match('~^https?://~i', $codeBildPfad) === 1) {
+            return $codeBildPfad;
+        }
+
+        if (str_starts_with($codeBildPfad, '/')) {
+            return $codeBildPfad;
+        }
+
+        $basisUrl = $this->holeAppBasisUrl();
+        if ($basisUrl !== '') {
+            if (preg_match('~^https?://~i', $basisUrl) === 1) {
+                return rtrim($basisUrl, '/') . '/' . ltrim($codeBildPfad, '/');
+            }
+
+            return '/' . trim($basisUrl, '/') . '/' . ltrim($codeBildPfad, '/');
+        }
+
+        return '/' . ltrim($codeBildPfad, '/');
+    }
+
+    private function holeAppBasisUrl(): string
+    {
+        $pfad = __DIR__ . '/../config/config.php';
+        if (!is_file($pfad)) {
+            return '';
+        }
+
+        try {
+            /** @var array<string,mixed> $cfg */
+            $cfg = require $pfad;
+        } catch (\Throwable $e) {
+            return '';
+        }
+
+        $basisUrl = $cfg['app']['base_url'] ?? '';
+        return is_string($basisUrl) ? trim($basisUrl) : '';
     }
 }

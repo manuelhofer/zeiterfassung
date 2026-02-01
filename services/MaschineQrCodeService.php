@@ -9,10 +9,12 @@ declare(strict_types=1);
 class MaschineQrCodeService
 {
     private string $basisVerzeichnis;
+    private string $relativerBasisPfad;
 
     public function __construct(?string $basisVerzeichnis = null)
     {
         $this->basisVerzeichnis = $basisVerzeichnis ?? __DIR__ . '/../public';
+        $this->relativerBasisPfad = $this->ermittleRelativenBasisPfad();
         $this->ladeBibliothek();
     }
 
@@ -22,7 +24,7 @@ class MaschineQrCodeService
             return null;
         }
 
-        $relativerPfad = 'uploads/maschinen_codes/maschine_' . $maschinenId . '.png';
+        $relativerPfad = $this->relativerBasisPfad . '/maschine_' . $maschinenId . '.png';
         $zielPfad = $this->basisVerzeichnis . '/' . $relativerPfad;
 
         $zielOrdner = dirname($zielPfad);
@@ -49,6 +51,48 @@ class MaschineQrCodeService
     private function ladeBibliothek(): void
     {
         require_once __DIR__ . '/phpqrcode/qrlib.php';
+    }
+
+    private function ermittleRelativenBasisPfad(): string
+    {
+        $standardPfad = 'uploads/maschinen_codes';
+        $konfiguration = $this->ladeKonfiguration();
+        $konfigPfad = $konfiguration['qr_maschinen_rel_pfad'] ?? '';
+        if (!is_string($konfigPfad)) {
+            return $standardPfad;
+        }
+
+        $konfigPfad = trim($konfigPfad);
+        if ($konfigPfad === '') {
+            return $standardPfad;
+        }
+
+        $konfigPfad = trim($konfigPfad, '/');
+        if ($konfigPfad === '') {
+            return $standardPfad;
+        }
+
+        return $konfigPfad;
+    }
+
+    /**
+     * @return array<string,mixed>
+     */
+    private function ladeKonfiguration(): array
+    {
+        $pfad = __DIR__ . '/../config/config.php';
+        if (!is_file($pfad)) {
+            return [];
+        }
+
+        try {
+            /** @var array<string,mixed> $cfg */
+            $cfg = require $pfad;
+        } catch (\Throwable $e) {
+            return [];
+        }
+
+        return $cfg;
     }
 
     private function erzeugePng(string $daten, ?string $zielPfad, int $groesse = 6, int $rand = 2): void
