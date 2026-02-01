@@ -65,8 +65,8 @@ class MaschineQrCodeService
     private function ermittleRelativenSpeicherPfad(array $konfiguration): string
     {
         $standardPfad = 'uploads/maschinen_codes';
-        $konfigPfad = $konfiguration['maschinen_qr_rel_pfad'] ?? null;
-        return $this->normalisiereRelativenPfad($konfigPfad, $standardPfad);
+        $konfigPfad = $this->waehleRelativenPfad($konfiguration);
+        return $this->bereinigeRelativenPfad($konfigPfad, $standardPfad);
     }
 
     /**
@@ -74,6 +74,13 @@ class MaschineQrCodeService
      */
     private function ladeKonfiguration(): array
     {
+        if (!class_exists('KonfigurationService')) {
+            $pfad = __DIR__ . '/KonfigurationService.php';
+            if (is_file($pfad)) {
+                require_once $pfad;
+            }
+        }
+
         if (!class_exists('KonfigurationService')) {
             return [];
         }
@@ -91,8 +98,8 @@ class MaschineQrCodeService
      */
     private function ermittleRelativenUrlPfad(array $konfiguration, string $fallback): string
     {
-        $konfigPfad = $konfiguration['maschinen_qr_rel_pfad'] ?? null;
-        return $this->normalisiereRelativenPfad($konfigPfad, $fallback);
+        $konfigPfad = $this->waehleRelativenPfad($konfiguration);
+        return $this->bereinigeRelativenPfad($konfigPfad, $fallback);
     }
 
     /**
@@ -138,6 +145,29 @@ class MaschineQrCodeService
         }
 
         return $konfigPfad;
+    }
+
+    /**
+     * @param array<string,mixed> $konfiguration
+     */
+    private function waehleRelativenPfad(array $konfiguration): ?string
+    {
+        $neuerPfad = $konfiguration['maschinen_qr_rel_pfad'] ?? null;
+        if ($this->istNichtLeererString($neuerPfad)) {
+            return $neuerPfad;
+        }
+
+        $alterPfad = $konfiguration['qr_maschinen_rel_pfad'] ?? null;
+        if ($this->istNichtLeererString($alterPfad)) {
+            return $alterPfad;
+        }
+
+        return null;
+    }
+
+    private function istNichtLeererString($wert): bool
+    {
+        return is_string($wert) && trim($wert) !== '';
     }
 
     private function baueUrlPfad(string $dateiname): string
