@@ -102,5 +102,10 @@ return [
     ],
 
     // QR-Code-Pfade für Maschinen
+    // Basis-URL für die Ausgabe (kann absolute URL oder Pfad relativ zur Domain sein)
+    'maschinen_qr_base_url' => '',
+    // Optionaler relativer Pfad unterhalb des public-Verzeichnisses
+    'maschinen_qr_rel_pfad' => 'uploads/maschinen_codes',
+    // Kompatibilitätsschlüssel (alt)
     'qr_maschinen_rel_pfad' => 'uploads/maschinen_codes',
 ];

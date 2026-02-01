@@ -450,7 +450,11 @@ class MaschineAdminController
             return $codeBildPfad;
         }
 
-        $basisUrl = $this->holeAppBasisUrl();
+        $basisUrl = $this->holeMaschinenQrBasisUrl();
+        if ($basisUrl === '') {
+            $basisUrl = $this->holeAppBasisUrl();
+        }
+
         if ($basisUrl !== '') {
             if (preg_match('~^https?://~i', $basisUrl) === 1) {
                 return rtrim($basisUrl, '/') . '/' . ltrim($codeBildPfad, '/');
@@ -499,6 +503,24 @@ class MaschineAdminController
         }
 
         $basisUrl = $cfg['app']['base_url'] ?? '';
+        return is_string($basisUrl) ? trim($basisUrl) : '';
+    }
+
+    private function holeMaschinenQrBasisUrl(): string
+    {
+        $pfad = __DIR__ . '/../config/config.php';
+        if (!is_file($pfad)) {
+            return '';
+        }
+
+        try {
+            /** @var array<string,mixed> $cfg */
+            $cfg = require $pfad;
+        } catch (\Throwable $e) {
+            return '';
+        }
+
+        $basisUrl = $cfg['maschinen_qr_base_url'] ?? '';
         return is_string($basisUrl) ? trim($basisUrl) : '';
     }
 }
