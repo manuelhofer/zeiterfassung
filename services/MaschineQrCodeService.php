@@ -89,7 +89,6 @@ class MaschineQrCodeService
 
         return [
             'maschinen_qr_rel_pfad' => $service->get('maschinen_qr_rel_pfad', null),
-            'qr_maschinen_rel_pfad' => $service->get('qr_maschinen_rel_pfad', null),
             'maschinen_qr_base_url' => $service->get('maschinen_qr_base_url', null),
         ];
     }
@@ -109,21 +108,38 @@ class MaschineQrCodeService
     private function ermittleBasisUrl(array $konfiguration): string
     {
         $basisUrl = $konfiguration['maschinen_qr_base_url'] ?? '';
-        return is_string($basisUrl) ? trim($basisUrl) : '';
+        if (!is_string($basisUrl)) {
+            return '';
+        }
+
+        $basisUrl = trim($basisUrl);
+        if ($basisUrl === '') {
+            return '';
+        }
+
+        if (preg_match('~^https?://~i', $basisUrl) === 1) {
+            return $basisUrl;
+        }
+
+        return $this->normalisiereRelativenPfad($basisUrl, '');
     }
 
-    private function bereinigeRelativenPfad($konfigPfad, string $fallback): string
+    private function normalisiereRelativenPfad($konfigPfad, string $fallback): string
     {
         if (!is_string($konfigPfad)) {
             return $fallback;
         }
 
+        $konfigPfad = str_replace('\\', '/', $konfigPfad);
         $konfigPfad = trim($konfigPfad);
         if ($konfigPfad === '') {
             return $fallback;
         }
 
-        $konfigPfad = trim($konfigPfad, '/');
+        $konfigPfad = ltrim($konfigPfad, '/');
+        $konfigPfad = preg_replace('~^(?:zeiterfassung/)?public(?:/|$)~i', '', $konfigPfad);
+        $konfigPfad = trim((string)$konfigPfad, '/');
+
         if ($konfigPfad === '') {
             return $fallback;
         }
