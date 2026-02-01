@@ -762,39 +762,129 @@ class TerminalController
             $zusammenfassungAusReport = null;
             $sollBisHeuteMinutenAusTagen = 0;
             $hatSollAusTagen = false;
+            $datenFehlerText = null;
+            $datenOk = true;
+            $hatTageswerte = false;
+            $hatZusammenfassungAusReport = false;
+            $monatswerte = null;
 
             if (class_exists('ReportService')) {
                 try {
                     $reportService = new ReportService();
                     $monatsdaten = $reportService->holeMonatsdatenFuerMitarbeiter($mitarbeiterId, $jahr, $monat);
-                    $tageswerte = $monatsdaten['tageswerte'] ?? [];
-                    $zusammenfassungAusReport = $monatsdaten['monatszusammenfassung'] ?? null;
+                    if (!is_array($monatsdaten)) {
+                        $datenOk = false;
+                        $datenFehlerText = 'Monatsübersicht konnte nicht geladen werden.';
+                    } else {
+                        $tageswerte = $monatsdaten['tageswerte'] ?? [];
+                        $zusammenfassungAusReport = $monatsdaten['monatszusammenfassung'] ?? null;
+                        $monatswerte = $monatsdaten['monatswerte'] ?? null;
+                        $hatTageswerte = is_array($tageswerte) && count($tageswerte) > 0;
+                        $hatZusammenfassungAusReport = is_array($zusammenfassungAusReport);
 
-                    if (is_array($tageswerte)) {
-                        foreach ($tageswerte as $t) {
-                            if (!is_array($t)) {
-                                continue;
-                            }
+                        if (!$hatTageswerte && is_array($monatswerte) && class_exists('Logger')) {
+                            Logger::warn('Terminal: Tageswerte fehlen trotz Monatswerten', [
+                                'mitarbeiter_id' => $mitarbeiterId,
+                                'jahr' => $jahr,
+                                'monat' => $monat,
+                                'monatswerte_keys' => array_keys($monatswerte),
+                            ], $mitarbeiterId, null, 'terminal_monatsstatus');
+                        }
 
-                            $sumArztMinuten += $parseStundenZuMinuten($t['arzt_stunden'] ?? '0');
-                            $sumKrankLfzMinuten += $parseStundenZuMinuten($t['krank_lfz_stunden'] ?? '0');
-                            $sumKrankKkMinuten += $parseStundenZuMinuten($t['krank_kk_stunden'] ?? '0');
-                            $sumUrlaubMinuten += $parseStundenZuMinuten($t['urlaub_stunden'] ?? '0');
-                            $sumFeiertagMinuten += $parseStundenZuMinuten($t['feiertag_stunden'] ?? '0');
-                            $sumKurzarbeitMinuten += $parseStundenZuMinuten($t['kurzarbeit_stunden'] ?? '0');
-                            $sumSonstMinuten += $parseStundenZuMinuten($t['sonstige_stunden'] ?? '0');
-
-                            $datum = (string)($t['datum'] ?? '');
-                            $istMinutenTagFuerAnzeige = 0;
-                            $hatBlockIstFuerAnzeige = false;
-
-                            if (empty($t['micro_arbeitszeit_ignoriert'])) {
-                                $bloeckeFuerAnzeige = [];
-                                if (isset($t['arbeitsbloecke']) && is_array($t['arbeitsbloecke'])) {
-                                    $bloeckeFuerAnzeige = $t['arbeitsbloecke'];
+                        if (is_array($tageswerte)) {
+                            foreach ($tageswerte as $t) {
+                                if (!is_array($t)) {
+                                    continue;
                                 }
 
-                                foreach ($bloeckeFuerAnzeige as $b) {
+                                $sumArztMinuten += $parseStundenZuMinuten($t['arzt_stunden'] ?? '0');
+                                $sumKrankLfzMinuten += $parseStundenZuMinuten($t['krank_lfz_stunden'] ?? '0');
+                                $sumKrankKkMinuten += $parseStundenZuMinuten($t['krank_kk_stunden'] ?? '0');
+                                $sumUrlaubMinuten += $parseStundenZuMinuten($t['urlaub_stunden'] ?? '0');
+                                $sumFeiertagMinuten += $parseStundenZuMinuten($t['feiertag_stunden'] ?? '0');
+                                $sumKurzarbeitMinuten += $parseStundenZuMinuten($t['kurzarbeit_stunden'] ?? '0');
+                                $sumSonstMinuten += $parseStundenZuMinuten($t['sonstige_stunden'] ?? '0');
+
+                                $datum = (string)($t['datum'] ?? '');
+                                $istMinutenTagFuerAnzeige = 0;
+                                $hatBlockIstFuerAnzeige = false;
+
+                                if (empty($t['micro_arbeitszeit_ignoriert'])) {
+                                    $bloeckeFuerAnzeige = [];
+                                    if (isset($t['arbeitsbloecke']) && is_array($t['arbeitsbloecke'])) {
+                                        $bloeckeFuerAnzeige = $t['arbeitsbloecke'];
+                                    }
+
+                                    foreach ($bloeckeFuerAnzeige as $b) {
+                                        if (!is_array($b)) {
+                                            continue;
+                                        }
+
+                                        $kStr = (string)($b['kommen_korr'] ?? $b['kommen_roh'] ?? '');
+                                        $gStr = (string)($b['gehen_korr'] ?? $b['gehen_roh'] ?? '');
+                                        if ($kStr !== '' && $gStr !== '') {
+                                            try {
+                                                $k = new DateTimeImmutable($kStr);
+                                                $g = new DateTimeImmutable($gStr);
+                                                if ($g > $k) {
+                                                    $durSek = $g->getTimestamp() - $k->getTimestamp();
+                                                    $durStd = $durSek / 3600.0;
+                                                    if ($durStd < 0.05) {
+                                                        continue;
+                                                    }
+                                                }
+                                            } catch (Throwable $e) {
+                                                // Ignorieren, falls Blockzeiten nicht gelesen werden koennen.
+                                            }
+                                        }
+
+                                        $minuten = $parseStundenZuMinuten($b['ist_stunden'] ?? '0');
+                                        if ($minuten <= 0) {
+                                            continue;
+                                        }
+
+                                        $hatBlockIstFuerAnzeige = true;
+                                        $istMinutenTagFuerAnzeige += $minuten;
+                                    }
+                                }
+
+                                if (!$hatBlockIstFuerAnzeige) {
+                                    $istMinutenTagFuerAnzeige = $parseStundenZuMinuten($t['arbeitszeit_stunden'] ?? '0');
+                                }
+
+                                $istMinutenTagFuerAnzeige += $parseStundenZuMinuten($t['arzt_stunden'] ?? '0')
+                                    + $parseStundenZuMinuten($t['krank_lfz_stunden'] ?? '0')
+                                    + $parseStundenZuMinuten($t['krank_kk_stunden'] ?? '0')
+                                    + $parseStundenZuMinuten($t['urlaub_stunden'] ?? '0')
+                                    + $parseStundenZuMinuten($t['feiertag_stunden'] ?? '0')
+                                    + $parseStundenZuMinuten($t['sonstige_stunden'] ?? '0');
+
+                                if ($datum !== '' && $datum <= $heuteStr) {
+                                    $sumIstMinutenBisHeute += $istMinutenTagFuerAnzeige;
+
+                                    $sollFeldKandidaten = ['soll_stunden', 'tagessoll', 'soll'];
+                                    foreach ($sollFeldKandidaten as $feld) {
+                                        if (array_key_exists($feld, $t)) {
+                                            $hatSollAusTagen = true;
+                                            $sollBisHeuteMinutenAusTagen += $parseStundenZuMinuten($t[$feld]);
+                                            break;
+                                        }
+                                    }
+                                }
+
+                                if (!empty($t['micro_arbeitszeit_ignoriert'])) {
+                                    continue;
+                                }
+
+                                $bloecke = [];
+                                if (isset($t['arbeitsbloecke']) && is_array($t['arbeitsbloecke'])) {
+                                    $bloecke = $t['arbeitsbloecke'];
+                                }
+
+                                $istMinutenTag = 0;
+                                $hatBlockIst = false;
+
+                                foreach ($bloecke as $b) {
                                     if (!is_array($b)) {
                                         continue;
                                     }
@@ -822,92 +912,39 @@ class TerminalController
                                         continue;
                                     }
 
-                                    $hatBlockIstFuerAnzeige = true;
-                                    $istMinutenTagFuerAnzeige += $minuten;
-                                }
-                            }
-
-                            if (!$hatBlockIstFuerAnzeige) {
-                                $istMinutenTagFuerAnzeige = $parseStundenZuMinuten($t['arbeitszeit_stunden'] ?? '0');
-                            }
-
-                            $istMinutenTagFuerAnzeige += $parseStundenZuMinuten($t['arzt_stunden'] ?? '0')
-                                + $parseStundenZuMinuten($t['krank_lfz_stunden'] ?? '0')
-                                + $parseStundenZuMinuten($t['krank_kk_stunden'] ?? '0')
-                                + $parseStundenZuMinuten($t['urlaub_stunden'] ?? '0')
-                                + $parseStundenZuMinuten($t['feiertag_stunden'] ?? '0')
-                                + $parseStundenZuMinuten($t['sonstige_stunden'] ?? '0');
-
-                            if ($datum !== '' && $datum <= $heuteStr) {
-                                $sumIstMinutenBisHeute += $istMinutenTagFuerAnzeige;
-
-                                $sollFeldKandidaten = ['soll_stunden', 'tagessoll', 'soll'];
-                                foreach ($sollFeldKandidaten as $feld) {
-                                    if (array_key_exists($feld, $t)) {
-                                        $hatSollAusTagen = true;
-                                        $sollBisHeuteMinutenAusTagen += $parseStundenZuMinuten($t[$feld]);
-                                        break;
-                                    }
-                                }
-                            }
-
-                            if (!empty($t['micro_arbeitszeit_ignoriert'])) {
-                                continue;
-                            }
-
-                            $bloecke = [];
-                            if (isset($t['arbeitsbloecke']) && is_array($t['arbeitsbloecke'])) {
-                                $bloecke = $t['arbeitsbloecke'];
-                            }
-
-                            $istMinutenTag = 0;
-                            $hatBlockIst = false;
-
-                            foreach ($bloecke as $b) {
-                                if (!is_array($b)) {
-                                    continue;
+                                    $hatBlockIst = true;
+                                    $istMinutenTag += $minuten;
                                 }
 
-                                $kStr = (string)($b['kommen_korr'] ?? $b['kommen_roh'] ?? '');
-                                $gStr = (string)($b['gehen_korr'] ?? $b['gehen_roh'] ?? '');
-                                if ($kStr !== '' && $gStr !== '') {
-                                    try {
-                                        $k = new DateTimeImmutable($kStr);
-                                        $g = new DateTimeImmutable($gStr);
-                                        if ($g > $k) {
-                                            $durSek = $g->getTimestamp() - $k->getTimestamp();
-                                            $durStd = $durSek / 3600.0;
-                                            if ($durStd < 0.05) {
-                                                continue;
-                                            }
-                                        }
-                                    } catch (Throwable $e) {
-                                        // Ignorieren, falls Blockzeiten nicht gelesen werden koennen.
-                                    }
+                                if (!$hatBlockIst) {
+                                    $istMinutenTag = $parseStundenZuMinuten($t['arbeitszeit_stunden'] ?? '0');
                                 }
 
-                                $minuten = $parseStundenZuMinuten($b['ist_stunden'] ?? '0');
-                                if ($minuten <= 0) {
-                                    continue;
+                                if ($istMinutenTag > 0) {
+                                    $sumIstMinuten += $istMinutenTag;
                                 }
 
-                                $hatBlockIst = true;
-                                $istMinutenTag += $minuten;
                             }
-
-                            if (!$hatBlockIst) {
-                                $istMinutenTag = $parseStundenZuMinuten($t['arbeitszeit_stunden'] ?? '0');
-                            }
-
-                            if ($istMinutenTag > 0) {
-                                $sumIstMinuten += $istMinutenTag;
-                            }
-
                         }
-                    }
 
-                    if (isset($monatsdaten['monatswerte']) && is_array($monatsdaten['monatswerte'])) {
-                        $sollMinuten = $parseStundenZuMinuten($monatsdaten['monatswerte']['sollstunden'] ?? '0');
+                        if (!$hatTageswerte && $hatZusammenfassungAusReport) {
+                            $sumIstMinuten = $parseStundenZuMinuten($zusammenfassungAusReport['iststunden'] ?? '0');
+                            $sumArztMinuten = $parseStundenZuMinuten($zusammenfassungAusReport['arzt'] ?? '0');
+                            $sumKrankLfzMinuten = $parseStundenZuMinuten($zusammenfassungAusReport['krank_lfz'] ?? '0');
+                            $sumKrankKkMinuten = $parseStundenZuMinuten($zusammenfassungAusReport['krank_kk'] ?? '0');
+                            $sumUrlaubMinuten = $parseStundenZuMinuten($zusammenfassungAusReport['urlaub'] ?? '0');
+                            $sumFeiertagMinuten = $parseStundenZuMinuten($zusammenfassungAusReport['feiertag'] ?? '0');
+                            $sumKurzarbeitMinuten = $parseStundenZuMinuten($zusammenfassungAusReport['kurzarbeit'] ?? '0');
+                            $sumSonstMinuten = $parseStundenZuMinuten($zusammenfassungAusReport['sonst'] ?? '0');
+                            $sumIstMinutenBisHeute = $sumIstMinuten;
+                        } elseif (!$hatTageswerte && !$hatZusammenfassungAusReport) {
+                            $datenOk = false;
+                            $datenFehlerText = 'Monatsübersicht konnte nicht geladen werden.';
+                        }
+
+                        if (isset($monatsdaten['monatswerte']) && is_array($monatsdaten['monatswerte'])) {
+                            $sollMinuten = $parseStundenZuMinuten($monatsdaten['monatswerte']['sollstunden'] ?? '0');
+                        }
                     }
                 } catch (Throwable $e) {
                     if (class_exists('Logger')) {
@@ -918,7 +955,12 @@ class TerminalController
                             'exception' => $e->getMessage(),
                         ], $mitarbeiterId, null, 'terminal_monatsstatus');
                     }
+                    $datenOk = false;
+                    $datenFehlerText = 'Monatsübersicht konnte nicht geladen werden.';
                 }
+            } else {
+                $datenOk = false;
+                $datenFehlerText = 'Monatsübersicht konnte nicht geladen werden.';
             }
 
             if (class_exists('StundenkontoService')) {
@@ -1043,6 +1085,10 @@ class TerminalController
                 ];
             }
 
+            if (!$datenOk && $datenFehlerText === null) {
+                $datenFehlerText = 'Monatsübersicht konnte nicht geladen werden.';
+            }
+
             return [
                 'jahr'               => $jahr,
                 'monat'              => $monat,
@@ -1054,6 +1100,8 @@ class TerminalController
                 'saldo_label'        => $saldoLabel,
                 'saldo_ampel'        => $saldoAmpel,
                 'zusammenfassung'    => $zusammenfassung,
+                'daten_ok'           => $datenOk,
+                'fehler_text'        => $datenFehlerText,
             ];
         } catch (Throwable $e) {
             if (class_exists('Logger')) {
@@ -1068,26 +1116,8 @@ class TerminalController
             return [
                 'jahr'               => $jahr,
                 'monat'              => $monat,
-                'soll_monat_gesamt'  => '0,00',
-                'soll_bis_heute'     => '0,00',
-                'ist_bisher'         => '0,00',
-                'rest_bis_monatsende'=> '0,00',
-                'saldo_bis_heute'    => '0,00',
-                'saldo_label'        => 'unbekannt',
-                'saldo_ampel'        => 'error',
-                'zusammenfassung'    => [
-                    'ist' => '0,00',
-                    'arzt' => '0,00',
-                    'krank_lfz' => '0,00',
-                    'krank_kk' => '0,00',
-                    'urlaub' => '0,00',
-                    'feiertag' => '0,00',
-                    'kurzarbeit' => '0,00',
-                    'sonst' => '0,00',
-                    'summen' => '0,00',
-                    'differenz' => '0,00',
-                    'stundenkonto' => '',
-                ],
+                'daten_ok'           => false,
+                'fehler_text'        => 'Monatsübersicht konnte nicht geladen werden.',
             ];
         }
     }
