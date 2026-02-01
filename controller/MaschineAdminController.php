@@ -446,24 +446,28 @@ class MaschineAdminController
             return $codeBildPfad;
         }
 
-        if (str_starts_with($codeBildPfad, '/')) {
-            return $codeBildPfad;
-        }
-
         $basisUrl = $this->holeMaschinenQrBasisUrl();
         if ($basisUrl === '') {
             $basisUrl = $this->holeAppBasisUrl();
         }
 
-        if ($basisUrl !== '') {
-            if (preg_match('~^https?://~i', $basisUrl) === 1) {
-                return rtrim($basisUrl, '/') . '/' . ltrim($codeBildPfad, '/');
+        $relativerPfad = ltrim($codeBildPfad, '/');
+        if (!str_contains($relativerPfad, '/')) {
+            $konfigPfad = $basisUrl === '' ? $this->holeMaschinenQrRelPfad() : '';
+            if ($konfigPfad !== '') {
+                $relativerPfad = trim($konfigPfad, '/') . '/' . $relativerPfad;
             }
-
-            return '/' . trim($basisUrl, '/') . '/' . ltrim($codeBildPfad, '/');
         }
 
-        return '/' . ltrim($codeBildPfad, '/');
+        if ($basisUrl !== '') {
+            if (preg_match('~^https?://~i', $basisUrl) === 1) {
+                return rtrim($basisUrl, '/') . '/' . ltrim($relativerPfad, '/');
+            }
+
+            return '/' . trim($basisUrl, '/') . '/' . ltrim($relativerPfad, '/');
+        }
+
+        return '/' . ltrim($relativerPfad, '/');
     }
 
     private function normalisiereCodeBildPfad(?string $codeBildPfad): ?string
@@ -481,11 +485,7 @@ class MaschineAdminController
             return $codeBildPfad;
         }
 
-        if (str_starts_with($codeBildPfad, '/')) {
-            return $codeBildPfad;
-        }
-
-        return '/' . ltrim($codeBildPfad, '/');
+        return ltrim($codeBildPfad, '/');
     }
 
     private function holeAppBasisUrl(): string
@@ -508,19 +508,73 @@ class MaschineAdminController
 
     private function holeMaschinenQrBasisUrl(): string
     {
+        $konfigService = $this->holeKonfigurationService();
+        if ($konfigService !== null) {
+            $basisUrl = $konfigService->get('maschinen_qr_base_url', null);
+            if (is_string($basisUrl)) {
+                return trim($basisUrl);
+            }
+        }
+
+        $cfg = $this->holeDateiKonfiguration();
+        $basisUrl = $cfg['maschinen_qr_base_url'] ?? '';
+        return is_string($basisUrl) ? trim($basisUrl) : '';
+    }
+
+    private function holeMaschinenQrRelPfad(): string
+    {
+        $konfigService = $this->holeKonfigurationService();
+        if ($konfigService !== null) {
+            $neuerPfad = $konfigService->get('maschinen_qr_rel_pfad', null);
+            if (is_string($neuerPfad) && trim($neuerPfad) !== '') {
+                return trim($neuerPfad);
+            }
+
+            $alterPfad = $konfigService->get('qr_maschinen_rel_pfad', null);
+            if (is_string($alterPfad)) {
+                return trim($alterPfad);
+            }
+        }
+
+        $cfg = $this->holeDateiKonfiguration();
+        $pfad = $cfg['maschinen_qr_rel_pfad'] ?? $cfg['qr_maschinen_rel_pfad'] ?? '';
+        return is_string($pfad) ? trim($pfad) : '';
+    }
+
+    /**
+     * @return object|null
+     */
+    private function holeKonfigurationService(): ?object
+    {
+        if (!class_exists('KonfigurationService')) {
+            $pfad = __DIR__ . '/../services/KonfigurationService.php';
+            if (is_file($pfad)) {
+                require_once $pfad;
+            }
+        }
+
+        if (class_exists('KonfigurationService')) {
+            return KonfigurationService::getInstanz();
+        }
+
+        return null;
+    }
+
+    /**
+     * @return array<string,mixed>
+     */
+    private function holeDateiKonfiguration(): array
+    {
         $pfad = __DIR__ . '/../config/config.php';
         if (!is_file($pfad)) {
-            return '';
+            return [];
         }
 
         try {
             /** @var array<string,mixed> $cfg */
-            $cfg = require $pfad;
+            return require $pfad;
         } catch (\Throwable $e) {
-            return '';
+            return [];
         }
-
-        $basisUrl = $cfg['maschinen_qr_base_url'] ?? '';
-        return is_string($basisUrl) ? trim($basisUrl) : '';
     }
 }
