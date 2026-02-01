@@ -1400,7 +1400,7 @@ class ZeitController
             $toleranzSekunden = 5;
         }
 
-        $konflikt = $zbModel->pruefeZeitstempelKonflikt($zielMitarbeiterId, $typ, $dt, $toleranzSekunden);
+        $konflikt = $zbModel->pruefeZeitstempelKonflikt($zielMitarbeiterId, null, $dt, $toleranzSekunden);
         if ($konflikt) {
             if ($toleranzSekunden <= 1) {
                 $fehler = 'Diese Zeit liegt in derselben Sekunde wie ein vorhandener Stempel und ist deshalb nicht zulässig.';

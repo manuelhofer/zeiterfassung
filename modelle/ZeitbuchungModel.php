@@ -82,7 +82,7 @@ class ZeitbuchungModel
      */
     public function pruefeZeitstempelKonflikt(
         int $mitarbeiterId,
-        string $typ,
+        ?string $typ,
         \DateTimeInterface $zeitpunkt,
         int $toleranzSekunden = 0
     ): bool {
@@ -91,7 +91,8 @@ class ZeitbuchungModel
             return false;
         }
 
-        if ($typ !== 'kommen' && $typ !== 'gehen') {
+        $typ = $typ !== null ? trim($typ) : null;
+        if ($typ !== null && $typ !== 'kommen' && $typ !== 'gehen') {
             $typ = 'kommen';
         }
 
@@ -108,25 +109,28 @@ class ZeitbuchungModel
 
         $sql = 'SELECT id
                 FROM zeitbuchung
-                WHERE mitarbeiter_id = :mid
-                  AND typ = :typ
-                  AND zeitstempel >= :von
+                WHERE mitarbeiter_id = :mid';
+        $params = [
+            'mid' => $mitarbeiterId,
+            'von' => $von->format('Y-m-d H:i:s'),
+            'bis' => $bis->format('Y-m-d H:i:s'),
+        ];
+        if ($typ !== null && $typ !== '') {
+            $sql .= ' AND typ = :typ';
+            $params['typ'] = $typ;
+        }
+        $sql .= ' AND zeitstempel >= :von
                   AND zeitstempel <= :bis
-                LIMIT 1';
+                  LIMIT 1';
 
         try {
-            $row = $this->db->fetchEine($sql, [
-                'mid' => $mitarbeiterId,
-                'typ' => $typ,
-                'von' => $von->format('Y-m-d H:i:s'),
-                'bis' => $bis->format('Y-m-d H:i:s'),
-            ]);
+            $row = $this->db->fetchEine($sql, $params);
             return is_array($row);
         } catch (\Throwable $e) {
             if (class_exists('Logger')) {
                 Logger::warn('Fehler beim Prüfen auf Zeitstempel-Konflikte', [
                     'mitarbeiter_id' => $mitarbeiterId,
-                    'typ'            => $typ,
+                    'typ'            => $typ ?? '',
                     'exception'      => $e->getMessage(),
                 ], $mitarbeiterId, null, 'zeitbuchung_model');
             }

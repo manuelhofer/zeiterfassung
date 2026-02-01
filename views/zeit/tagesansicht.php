@@ -251,8 +251,8 @@ foreach ($buchungen as $b) {
     $editZeit = zeit_format_uhrzeit((string)($editBuchung['zeitstempel'] ?? ''));
     $editKommentar = (string)($editBuchung['kommentar'] ?? '');
     $editNachtshift = (int)($editBuchung['nachtshift'] ?? 0);
-    // HTML time input erwartet i.d.R. HH:MM (Sekunden optional je nach Browser)
-    $editZeitInput = substr($editZeit, 0, 5);
+    // HTML time input akzeptiert Sekunden (step=1), daher volle Uhrzeit übernehmen.
+    $editZeitInput = $editZeit;
 ?>
     <div id="buchung-bearbeiten" style="border:1px solid #b00020; border-radius: 8px; padding: 10px 12px; background:#fff5f5; margin: 12px 0;">
         <h3 style="margin: 0 0 8px 0; color:#b00020;">Buchung bearbeiten (ID <?php echo $editId; ?>)</h3>
