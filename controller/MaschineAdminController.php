@@ -188,7 +188,7 @@ class MaschineAdminController
             }
         }
 
-        $this->renderFormular($maschine, $abteilungen, $fehlermeldung);
+        $this->renderFormular($maschine, $abteilungen, $fehlermeldung, null);
     }
 
     /**
@@ -218,6 +218,7 @@ class MaschineAdminController
         $aktiv = $aktivRaw !== null ? 1 : 0;
 
         $fehlermeldung = null;
+        $erfolgsmeldung = null;
         if ($name === '') {
             $fehlermeldung = 'Bitte geben Sie einen Namen für die Maschine ein.';
         }
@@ -239,7 +240,7 @@ class MaschineAdminController
         }
 
         if ($fehlermeldung !== null) {
-            $this->renderFormular($maschine, $abteilungen, $fehlermeldung);
+            $this->renderFormular($maschine, $abteilungen, $fehlermeldung, $erfolgsmeldung);
             return;
         }
 
@@ -270,8 +271,24 @@ class MaschineAdminController
                     'aktiv'        => $aktiv,
                 ]);
             }
+        } catch (\Throwable $e) {
+            $fehlermeldung = 'Die Maschine konnte nicht gespeichert werden. Bitte prüfen Sie die Datenbankverbindung.';
+            if (class_exists('Logger')) {
+                Logger::error('Fehler beim Speichern einer Maschine', [
+                    'id'        => $id,
+                    'maschine'  => $maschine,
+                    'exception' => $e->getMessage(),
+                ], $id > 0 ? $id : null, null, 'maschine');
+            }
 
-            $maschinenId = $id > 0 ? $id : (int)$this->datenbank->letzteInsertId();
+            $this->renderFormular($maschine, $abteilungen, $fehlermeldung, $erfolgsmeldung);
+            return;
+        }
+
+        $maschinenId = $id > 0 ? $id : (int)$this->datenbank->letzteInsertId();
+        $codeBildPfad = null;
+
+        try {
             $qrService = new MaschineQrCodeService();
             $codeBildPfad = $qrService->erzeugeMaschinenQrCode($maschinenId);
             if ($codeBildPfad !== null) {
@@ -283,21 +300,30 @@ class MaschineAdminController
                     'code_bild_pfad' => $codeBildPfad,
                 ]);
             }
-
-            header('Location: ?seite=maschine_admin');
-            return;
         } catch (\Throwable $e) {
-            $fehlermeldung = 'Die Maschine konnte nicht gespeichert werden.';
+            $codeBildPfad = null;
             if (class_exists('Logger')) {
-                Logger::error('Fehler beim Speichern einer Maschine', [
-                    'id'        => $id,
-                    'maschine'  => $maschine,
+                Logger::error('Fehler beim Erzeugen des Maschinen-QR-Codes', [
+                    'id'        => $maschinenId,
                     'exception' => $e->getMessage(),
-                ], $id > 0 ? $id : null, null, 'maschine');
+                ], $maschinenId, null, 'maschine');
             }
-
-            $this->renderFormular($maschine, $abteilungen, $fehlermeldung);
         }
+
+        if ($codeBildPfad === null) {
+            $fehlermeldung = 'Die Maschine wurde gespeichert, aber der QR-Code konnte nicht erstellt werden. Bitte Schreibrechte im Verzeichnis public/uploads/maschinen_codes prüfen.';
+        } else {
+            $erfolgsmeldung = 'Die Maschine wurde gespeichert und der QR-Code wurde aktualisiert.';
+        }
+
+        $aktuelleMaschine = $this->maschineModel->holeNachId($maschinenId);
+        if ($aktuelleMaschine === null) {
+            $aktuelleMaschine = $maschine;
+            $aktuelleMaschine['id'] = $maschinenId;
+            $aktuelleMaschine['code_bild_pfad'] = $codeBildPfad;
+        }
+
+        $this->renderFormular($aktuelleMaschine, $abteilungen, $fehlermeldung, $erfolgsmeldung);
     }
 
     /**
@@ -306,7 +332,7 @@ class MaschineAdminController
      * @param array<string,mixed> $maschine
      * @param array<int,array<string,mixed>> $abteilungen
      */
-    private function renderFormular(array $maschine, array $abteilungen, ?string $fehlermeldung): void
+    private function renderFormular(array $maschine, array $abteilungen, ?string $fehlermeldung, ?string $erfolgsmeldung): void
     {
         require __DIR__ . '/../views/layout/header.php';
 
@@ -330,6 +356,12 @@ class MaschineAdminController
             <?php if (!empty($fehlermeldung)): ?>
                 <div class="fehlermeldung">
                     <?php echo htmlspecialchars((string)$fehlermeldung, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>
+                </div>
+            <?php endif; ?>
+
+            <?php if (!empty($erfolgsmeldung)): ?>
+                <div class="erfolgsmeldung">
+                    <?php echo htmlspecialchars((string)$erfolgsmeldung, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>
                 </div>
             <?php endif; ?>
 
