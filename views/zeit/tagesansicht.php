@@ -366,6 +366,10 @@ foreach ($buchungen as $b) {
                 Pause Override
             </label>
 
+            <span style="color:#666; font-size: 0.95rem;">
+                Hinweis: Override setzt betriebliche Pausenfenster außer Kraft.
+            </span>
+
             <label>
                 Pause in Stunden:
                 <input type="text" id="pause_stunden" name="pause_stunden" inputmode="decimal" pattern="^[0-9]+([.,][0-9]+)?$" style="width: 90px;" value="<?php echo htmlspecialchars($pauseOverrideStunden, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>">
