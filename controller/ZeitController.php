@@ -1380,17 +1380,17 @@ class ZeitController
             $typ = 'kommen';
         }
 
-        $toleranzSekunden = 180;
+        $toleranzSekunden = 5;
         try {
             if (class_exists('KonfigurationService')) {
                 $cfg = KonfigurationService::getInstanz();
-                $val = $cfg->getInt('micro_buchung_max_sekunden', 180);
+                $val = $cfg->getInt('micro_buchung_max_sekunden', 5);
                 if ($val !== null) {
                     $toleranzSekunden = (int)$val;
                 }
             }
         } catch (Throwable $e) {
-            $toleranzSekunden = 180;
+            $toleranzSekunden = 5;
         }
         if ($toleranzSekunden < 0) {
             $toleranzSekunden = 0;
