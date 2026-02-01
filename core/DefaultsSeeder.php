@@ -85,6 +85,18 @@ class DefaultsSeeder
                 'typ'           => 'int',
                 'beschreibung'  => 'Zeitbuchungen: Mikro-Buchungen (Kommen/Gehen) bis zu X Sekunden werden standardmäßig ignoriert/ausgeblendet. Default 180 (= 3 Minuten).',
             ],
+            [
+                'schluessel'    => 'maschinen_qr_rel_pfad',
+                'wert'          => 'uploads/maschinen_codes',
+                'typ'           => 'string',
+                'beschreibung'  => 'Maschinen-QR: Relativer Speicherpfad unterhalb von public. Default uploads/maschinen_codes.',
+            ],
+            [
+                'schluessel'    => 'maschinen_qr_base_url',
+                'wert'          => '',
+                'typ'           => 'string',
+                'beschreibung'  => 'Maschinen-QR: Basis-URL oder Basispfad für die Ausgabe. Leer = Domain-Root.',
+            ],
         ];
 
         // INSERT IGNORE ist sicher: es werden nur fehlende Keys eingefügt.
@@ -95,7 +107,9 @@ class DefaultsSeeder
                     (:k3, :w3, :t3, :b3),
                     (:k4, :w4, :t4, :b4),
                     (:k5, :w5, :t5, :b5),
-                    (:k6, :w6, :t6, :b6)';
+                    (:k6, :w6, :t6, :b6),
+                    (:k7, :w7, :t7, :b7),
+                    (:k8, :w8, :t8, :b8)';
 
         try {
             $betroffen = $db->ausfuehren($sql, [
@@ -128,6 +142,16 @@ class DefaultsSeeder
                 'w6' => $defaults[5]['wert'],
                 't6' => $defaults[5]['typ'],
                 'b6' => $defaults[5]['beschreibung'],
+
+                'k7' => $defaults[6]['schluessel'],
+                'w7' => $defaults[6]['wert'],
+                't7' => $defaults[6]['typ'],
+                'b7' => $defaults[6]['beschreibung'],
+
+                'k8' => $defaults[7]['schluessel'],
+                'w8' => $defaults[7]['wert'],
+                't8' => $defaults[7]['typ'],
+                'b8' => $defaults[7]['beschreibung'],
             ]);
 
             if ($betroffen > 0 && class_exists('Logger')) {

@@ -74,19 +74,17 @@ class MaschineQrCodeService
      */
     private function ladeKonfiguration(): array
     {
-        $pfad = __DIR__ . '/../config/config.php';
-        if (!is_file($pfad)) {
+        if (!class_exists('KonfigurationService')) {
             return [];
         }
 
-        try {
-            /** @var array<string,mixed> $cfg */
-            $cfg = require $pfad;
-        } catch (\Throwable $e) {
-            return [];
-        }
+        $service = KonfigurationService::getInstanz();
 
-        return $cfg;
+        return [
+            'maschinen_qr_rel_pfad' => $service->get('maschinen_qr_rel_pfad', null),
+            'qr_maschinen_rel_pfad' => $service->get('qr_maschinen_rel_pfad', null),
+            'maschinen_qr_base_url' => $service->get('maschinen_qr_base_url', null),
+        ];
     }
 
     /**
