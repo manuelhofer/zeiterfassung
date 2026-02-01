@@ -578,6 +578,10 @@ CREATE TABLE `tageswerte_mitarbeiter` (
   `kommen_korr` DATETIME NULL,
   `gehen_korr` DATETIME NULL,
   `pause_korr_minuten` INT UNSIGNED NOT NULL DEFAULT 0,
+  `pause_override_aktiv` TINYINT(1) NOT NULL DEFAULT 0,
+  `pause_override_begruendung` VARCHAR(255) NULL,
+  `pause_override_gesetzt_von_mitarbeiter_id` INT UNSIGNED NULL,
+  `pause_override_gesetzt_am` DATETIME NULL,
   `ist_stunden` DECIMAL(6,2) NOT NULL DEFAULT 0.00,
   `arzt_stunden` DECIMAL(5,2) NOT NULL DEFAULT 0.00,
   `krank_lfz_stunden` DECIMAL(5,2) NOT NULL DEFAULT 0.00,
@@ -601,9 +605,13 @@ CREATE TABLE `tageswerte_mitarbeiter` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `uniq_tageswerte_mitarbeiter_datum` (`mitarbeiter_id`,`datum`),
   KEY `idx_tageswerte_datum` (`datum`),
+  KEY `idx_pause_override_gesetzt_von` (`pause_override_gesetzt_von_mitarbeiter_id`),
   CONSTRAINT `fk_tageswerte_mitarbeiter`
     FOREIGN KEY (`mitarbeiter_id`) REFERENCES `mitarbeiter`(`id`)
-    ON UPDATE CASCADE ON DELETE RESTRICT
+    ON UPDATE CASCADE ON DELETE RESTRICT,
+  CONSTRAINT `fk_pause_override_gesetzt_von`
+    FOREIGN KEY (`pause_override_gesetzt_von_mitarbeiter_id`) REFERENCES `mitarbeiter`(`id`)
+    ON UPDATE CASCADE ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------

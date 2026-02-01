@@ -685,7 +685,14 @@ class ZeitController
                             $felderFlag = $andere ? 1 : 0;
 
                             $db->ausfuehren(
-                                'UPDATE tageswerte_mitarbeiter SET pause_korr_minuten = 0, felder_manuell_geaendert = :flag WHERE mitarbeiter_id = :mid AND datum = :datum',
+                                'UPDATE tageswerte_mitarbeiter
+                                 SET pause_korr_minuten = 0,
+                                     pause_override_aktiv = 0,
+                                     pause_override_begruendung = NULL,
+                                     pause_override_gesetzt_von_mitarbeiter_id = NULL,
+                                     pause_override_gesetzt_am = NULL,
+                                     felder_manuell_geaendert = :flag
+                                 WHERE mitarbeiter_id = :mid AND datum = :datum',
                                 ['flag' => $felderFlag, 'mid' => $zielMitarbeiterId, 'datum' => $datumYmd]
                             );
                         }
@@ -741,16 +748,32 @@ class ZeitController
                 try {
                     $db = Database::getInstanz();
 
-                    $sql = 'INSERT INTO tageswerte_mitarbeiter (mitarbeiter_id, datum, pause_korr_minuten, felder_manuell_geaendert)
-                            VALUES (:mid, :datum, :pmin, 1)
+                    $sql = 'INSERT INTO tageswerte_mitarbeiter (
+                                mitarbeiter_id,
+                                datum,
+                                pause_korr_minuten,
+                                pause_override_aktiv,
+                                pause_override_begruendung,
+                                pause_override_gesetzt_von_mitarbeiter_id,
+                                pause_override_gesetzt_am,
+                                felder_manuell_geaendert
+                            )
+                            VALUES (:mid, :datum, :pmin, 1, :begr, :gesetzt_von, :gesetzt_am, 1)
                             ON DUPLICATE KEY UPDATE
                                 pause_korr_minuten = VALUES(pause_korr_minuten),
+                                pause_override_aktiv = 1,
+                                pause_override_begruendung = VALUES(pause_override_begruendung),
+                                pause_override_gesetzt_von_mitarbeiter_id = VALUES(pause_override_gesetzt_von_mitarbeiter_id),
+                                pause_override_gesetzt_am = VALUES(pause_override_gesetzt_am),
                                 felder_manuell_geaendert = 1';
 
                     $db->ausfuehren($sql, [
-                        'mid'   => $zielMitarbeiterId,
-                        'datum' => $datumYmd,
-                        'pmin'  => $minuten,
+                        'mid'         => $zielMitarbeiterId,
+                        'datum'       => $datumYmd,
+                        'pmin'        => $minuten,
+                        'begr'        => $begruendung,
+                        'gesetzt_von' => $angemeldeteId,
+                        'gesetzt_am'  => (new DateTimeImmutable())->format('Y-m-d H:i:s'),
                     ]);
 
                     if (class_exists('Logger')) {
@@ -918,11 +941,15 @@ class ZeitController
             }
         }
 
-        // Pause-Override (aktiv + Begründung) wird über Audit-Log ermittelt,
-        // damit 0,00 Stunden als Override möglich sind und trotzdem klar aktiv/inaktiv unterscheidbar bleibt.
+        // Pause-Override inkl. Metadaten (aktiv + Begründung + gesetzt von/am).
+        // Primär aus tageswerte_mitarbeiter, Fallback über Audit-Log, damit 0,00h weiterhin eindeutig bleibt.
         $pauseOverrideAktiv = false;
         $pauseOverrideStunden = '';
         $pauseOverrideBegruendung = '';
+        $pauseOverrideGesetztVonId = 0;
+        $pauseOverrideGesetztAmRoh = '';
+        $pauseOverrideGesetztVonAnzeige = '';
+        $pauseOverrideGesetztAmAnzeige = '';
 
         // Auto-Pause nach Regeln (Anzeige-Hilfe):
         // - Wird genutzt, um in der Tagesansicht bei deaktiviertem Override zu zeigen,
@@ -987,12 +1014,37 @@ class ZeitController
             $pauseAutoVorschlagMin = 0;
         }
         try {
-            $audit = $this->holeLetztenPauseOverrideAudit($zielMitarbeiterId, $datumYmd);
-            if (is_array($audit)) {
-                $pauseOverrideAktiv = (($audit['aktiv'] ?? false) === true);
-                $pauseOverrideBegruendung = (string)($audit['begruendung'] ?? '');
-
+            if (is_array($tageswerte) && array_key_exists('pause_override_aktiv', $tageswerte)) {
+                $pauseOverrideAktiv = ((int)($tageswerte['pause_override_aktiv'] ?? 0) === 1);
                 if ($pauseOverrideAktiv) {
+                    $pauseOverrideBegruendung = (string)($tageswerte['pause_override_begruendung'] ?? '');
+                    $pauseOverrideGesetztVonId = (int)($tageswerte['pause_override_gesetzt_von_mitarbeiter_id'] ?? 0);
+                    $pauseOverrideGesetztAmRoh = (string)($tageswerte['pause_override_gesetzt_am'] ?? '');
+
+                    if (isset($tageswerte['pause_korr_minuten'])) {
+                        $min = (int)$tageswerte['pause_korr_minuten'];
+                        $pauseOverrideStunden = number_format($min / 60.0, 2, '.', '');
+                    }
+                }
+            }
+
+            $audit = $this->holeLetztenPauseOverrideAudit($zielMitarbeiterId, $datumYmd);
+            if (is_array($audit) && (($audit['aktiv'] ?? false) === true)) {
+                if (!$pauseOverrideAktiv) {
+                    $pauseOverrideAktiv = true;
+                }
+
+                if ($pauseOverrideBegruendung === '') {
+                    $pauseOverrideBegruendung = (string)($audit['begruendung'] ?? '');
+                }
+                if ($pauseOverrideGesetztVonId <= 0) {
+                    $pauseOverrideGesetztVonId = (int)($audit['gesetzt_von_id'] ?? 0);
+                }
+                if ($pauseOverrideGesetztAmRoh === '') {
+                    $pauseOverrideGesetztAmRoh = (string)($audit['gesetzt_am'] ?? '');
+                }
+
+                if ($pauseOverrideStunden === '') {
                     $min = null;
                     if (isset($audit['pause_minuten']) && is_numeric($audit['pause_minuten'])) {
                         $min = (int)$audit['pause_minuten'];
@@ -1009,6 +1061,29 @@ class ZeitController
             $pauseOverrideAktiv = false;
             $pauseOverrideStunden = '';
             $pauseOverrideBegruendung = '';
+            $pauseOverrideGesetztVonId = 0;
+            $pauseOverrideGesetztAmRoh = '';
+        }
+
+        if ($pauseOverrideAktiv) {
+            if ($pauseOverrideGesetztVonId > 0) {
+                $gesVon = $this->holeMitarbeiterStammdaten($pauseOverrideGesetztVonId);
+                if (is_array($gesVon)) {
+                    $name = $this->formatMitarbeiterName($gesVon);
+                } else {
+                    $name = 'Mitarbeiter #' . $pauseOverrideGesetztVonId;
+                }
+                $pauseOverrideGesetztVonAnzeige = $name . ' (ID ' . $pauseOverrideGesetztVonId . ')';
+            }
+
+            if ($pauseOverrideGesetztAmRoh !== '') {
+                try {
+                    $dt = new DateTimeImmutable($pauseOverrideGesetztAmRoh);
+                    $pauseOverrideGesetztAmAnzeige = $dt->format('d.m.Y H:i');
+                } catch (Throwable $e) {
+                    $pauseOverrideGesetztAmAnzeige = $pauseOverrideGesetztAmRoh;
+                }
+            }
         }
 
         // Wenn Override nicht aktiv ist, zeigen wir die automatische Pause nach Regeln an
@@ -1458,7 +1533,7 @@ class ZeitController
             $likeDatum = '%"datum":"' . $datumYmd . '"%';
 
             $row = $db->fetchEine(
-                "SELECT id, zeitstempel, nachricht, daten
+                "SELECT id, zeitstempel, nachricht, daten, mitarbeiter_id
                  FROM system_log
                  WHERE kategorie = 'tageswerte_audit'
                    AND (nachricht = 'Tageswerte gesetzt: Pause-Override' OR nachricht = 'Tageswerte entfernt: Pause-Override')
@@ -1481,6 +1556,8 @@ class ZeitController
 
             $aktiv = ((string)($row['nachricht'] ?? '') === 'Tageswerte gesetzt: Pause-Override');
             $begruendung = (string)($decoded['begruendung'] ?? '');
+            $gesetztVonId = (int)($row['mitarbeiter_id'] ?? 0);
+            $gesetztAm = (string)($row['zeitstempel'] ?? '');
 
             $pauseMinuten = null;
             if (isset($decoded['pause_minuten']) && is_numeric($decoded['pause_minuten'])) {
@@ -1491,6 +1568,8 @@ class ZeitController
                 'aktiv' => $aktiv,
                 'begruendung' => $begruendung,
                 'pause_minuten' => $pauseMinuten,
+                'gesetzt_von_id' => $gesetztVonId,
+                'gesetzt_am' => $gesetztAm,
             ];
         } catch (Throwable $e) {
             return null;

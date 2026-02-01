@@ -318,6 +318,8 @@ foreach ($buchungen as $b) {
             $pauseOverrideAktiv = isset($pauseOverrideAktiv) ? (bool)$pauseOverrideAktiv : false;
             $pauseOverrideStunden = isset($pauseOverrideStunden) ? (string)$pauseOverrideStunden : '';
             $pauseOverrideBegruendung = isset($pauseOverrideBegruendung) ? (string)$pauseOverrideBegruendung : '';
+            $pauseOverrideGesetztVonAnzeige = isset($pauseOverrideGesetztVonAnzeige) ? (string)$pauseOverrideGesetztVonAnzeige : '';
+            $pauseOverrideGesetztAmAnzeige = isset($pauseOverrideGesetztAmAnzeige) ? (string)$pauseOverrideGesetztAmAnzeige : '';
 
             // Pflicht-Begründungen (aus Audit-Log) für Tagesfelder.
             $kurzarbeitOverrideBegruendung = isset($kurzarbeitOverrideBegruendung) ? (string)$kurzarbeitOverrideBegruendung : '';
@@ -333,13 +335,15 @@ foreach ($buchungen as $b) {
         <h4>Pause (Override)</h4>
 
         <?php if ($pauseOverrideAktiv): ?>
+            <?php
+                $pauseOverrideVon = $pauseOverrideGesetztVonAnzeige !== '' ? $pauseOverrideGesetztVonAnzeige : 'unbekannt';
+                $pauseOverrideAm = $pauseOverrideGesetztAmAnzeige !== '' ? $pauseOverrideGesetztAmAnzeige : 'unbekannt';
+                $pauseOverrideTextBegruendung = trim((string)$pauseOverrideBegruendung) !== '' ? $pauseOverrideBegruendung : 'keine Angabe';
+            ?>
             <div style="border: 2px solid #b00020; border-radius: 10px; padding: 0.6rem 0.8rem; background: #fff5f5; margin: 8px 0 10px 0;">
-                <strong style="color:#b00020;">Pause Override aktiv:</strong>
+                <strong style="color:#b00020;">Pause-Override aktiv:</strong>
                 <span><?php echo htmlspecialchars(str_replace('.', ',', (string)$pauseOverrideStunden), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?> Stunden</span>
-                <span style="color:#666; font-size: 0.95rem;">(überschreibt automatische Pausenberechnung)</span>
-                <?php if (trim((string)$pauseOverrideBegruendung) !== ''): ?>
-                    <span style="margin-left: 10px; color:#666;">Begründung: <em><?php echo htmlspecialchars($pauseOverrideBegruendung, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></em></span>
-                <?php endif; ?>
+                <span style="color:#666; font-size: 0.95rem;">– gesetzt von <?php echo htmlspecialchars($pauseOverrideVon, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?> am <?php echo htmlspecialchars($pauseOverrideAm, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?> – Begründung: <em><?php echo htmlspecialchars($pauseOverrideTextBegruendung, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></em></span>
                 <a href="?seite=dashboard" style="margin-left: 10px;">Zurück zum Dashboard</a>
             </div>
         <?php endif; ?>
