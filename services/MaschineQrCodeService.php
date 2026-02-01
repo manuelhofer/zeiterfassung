@@ -46,7 +46,7 @@ class MaschineQrCodeService
             return null;
         }
 
-        return $this->baueUrlPfad($dateiname);
+        return $dateiname;
     }
 
     public function gebeQrPngAus(string $daten, int $groesse = 6, int $rand = 2): void
