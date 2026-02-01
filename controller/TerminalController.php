@@ -707,8 +707,8 @@ class TerminalController
         }
 
         $now = new DateTimeImmutable('now');
-        $jahrInput = $jahr ?? (isset($_GET['jahr']) ? (int)$_GET['jahr'] : 0);
-        $monatInput = $monat ?? (isset($_GET['monat']) ? (int)$_GET['monat'] : 0);
+        $jahrInput = ($jahr !== null) ? $jahr : (int)$now->format('Y');
+        $monatInput = ($monat !== null) ? $monat : (int)$now->format('n');
 
         $jahr = ($jahrInput >= 2000 && $jahrInput <= 2100) ? $jahrInput : (int)$now->format('Y');
         $monat = ($monatInput >= 1 && $monatInput <= 12) ? $monatInput : (int)$now->format('n');
@@ -2361,7 +2361,19 @@ class TerminalController
         $monatsStatusFehler = null;
 
         if (is_array($mitarbeiter) && isset($mitarbeiter['id']) && $hauptdbAktiv) {
-            $monatsStatus = $this->berechneMonatsStatusFuerMitarbeiter((int)$mitarbeiter['id']);
+            $filterJahr = null;
+            $filterMonat = null;
+
+            if ($zeigeArbeitszeitUebersichtSeite) {
+                $filterJahr = isset($_GET['jahr']) ? (int)$_GET['jahr'] : null;
+                $filterMonat = isset($_GET['monat']) ? (int)$_GET['monat'] : null;
+            }
+
+            $monatsStatus = $this->berechneMonatsStatusFuerMitarbeiter(
+                (int)$mitarbeiter['id'],
+                $filterJahr,
+                $filterMonat
+            );
             if ($monatsStatus === null) {
                 $monatsStatusFehler = 'Monatsstatus konnte nicht geladen werden.';
             }
