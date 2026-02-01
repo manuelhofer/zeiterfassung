@@ -34,6 +34,7 @@ $editBuchung         = $editBuchung ?? null;
 
 $zeigeMicroBuchungen = !empty($zeigeMicroBuchungen);
 $microBuchungenAusgeblendetAnzahl = isset($microBuchungenAusgeblendetAnzahl) ? (int)$microBuchungenAusgeblendetAnzahl : 0;
+$microBuchungGrenzeSekunden = isset($microBuchungGrenzeSekunden) ? (int)$microBuchungGrenzeSekunden : 5;
 
 if (!function_exists('zeit_format_uhrzeit')) {
     /**
@@ -70,6 +71,25 @@ foreach ($buchungen as $b) {
             <small>(<?php echo htmlspecialchars($zielMitarbeiterName, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>)</small>
         <?php endif; ?>
     </h2>
+    <?php
+        $monatLink = '';
+        try {
+            $dtMonat = new DateTimeImmutable($datum);
+            $jahrLink = (int)$dtMonat->format('Y');
+            $monatLinkVal = (int)$dtMonat->format('n');
+            $monatLink = '?seite=report_monat&jahr=' . $jahrLink . '&monat=' . $monatLinkVal;
+            if ($zielMitarbeiterId > 0) {
+                $monatLink .= '&mitarbeiter_id=' . $zielMitarbeiterId;
+            }
+        } catch (Throwable $e) {
+            $monatLink = '';
+        }
+    ?>
+    <?php if ($monatLink !== ''): ?>
+        <p style="margin-top: 4px;">
+            <a href="<?php echo htmlspecialchars($monatLink, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>">Zur Monatsübersicht</a>
+        </p>
+    <?php endif; ?>
 
     <?php if ($darfAndereMitarbeiter): ?>
         <form method="get" style="margin: 0 0 12px 0;">
@@ -124,30 +144,30 @@ foreach ($buchungen as $b) {
         <p style="padding:8px;border:1px solid #d29a9a;background:#f7e9e9;"><?php echo htmlspecialchars($flashFehler, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></p>
     <?php endif; ?>
 
+    <?php
+        // Hinweis: Mikro-Buchungen werden standardmäßig ausgeblendet (siehe Controller).
+        $baseUrl = '?seite=zeit_heute&datum=' . urlencode($datum);
+        if ($zielMitarbeiterId > 0) {
+            $baseUrl .= '&mitarbeiter_id=' . urlencode((string)$zielMitarbeiterId);
+        }
+        $toggleUrl = $zeigeMicroBuchungen ? $baseUrl : ($baseUrl . '&show_micro=1');
+    ?>
+
+    <?php if (!$zeigeMicroBuchungen && $microBuchungenAusgeblendetAnzahl > 0): ?>
+        <p style="padding:8px;border:1px solid #d0d0d0;background:#f7f7f7;">
+            Hinweis: <?php echo (int)$microBuchungenAusgeblendetAnzahl; ?> Mikro-Buchung(en) (≤ <?php echo (int)$microBuchungGrenzeSekunden; ?> Sekunden) wurden ausgeblendet.
+            <a href="<?php echo htmlspecialchars($toggleUrl, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>" style="margin-left:8px;">Mikro-Buchungen anzeigen</a>
+        </p>
+    <?php elseif ($zeigeMicroBuchungen): ?>
+        <p style="padding:8px;border:1px solid #d0d0d0;background:#f7f7f7;">
+            Mikro-Buchungen werden angezeigt.
+            <a href="<?php echo htmlspecialchars($toggleUrl, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>" style="margin-left:8px;">Mikro-Buchungen ausblenden</a>
+        </p>
+    <?php endif; ?>
+
     <?php if ($buchungen === []): ?>
         <p>Für dieses Datum sind keine Buchungen vorhanden.</p>
     <?php else: ?>
-
-        <?php
-            // Hinweis: Mikro-Buchungen werden standardmäßig ausgeblendet (siehe Controller).
-            $baseUrl = '?seite=zeit_heute&datum=' . urlencode($datum);
-            if ($zielMitarbeiterId > 0) {
-                $baseUrl .= '&mitarbeiter_id=' . urlencode((string)$zielMitarbeiterId);
-            }
-            $toggleUrl = $zeigeMicroBuchungen ? $baseUrl : ($baseUrl . '&show_micro=1');
-        ?>
-
-        <?php if (!$zeigeMicroBuchungen && $microBuchungenAusgeblendetAnzahl > 0): ?>
-            <p style="padding:8px;border:1px solid #d0d0d0;background:#f7f7f7;">
-                Hinweis: <?php echo (int)$microBuchungenAusgeblendetAnzahl; ?> Mikro-Buchung(en) (≤ 3 Minuten) wurden ausgeblendet.
-                <a href="<?php echo htmlspecialchars($toggleUrl, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>" style="margin-left:8px;">Mikro-Buchungen anzeigen</a>
-            </p>
-        <?php elseif ($zeigeMicroBuchungen): ?>
-            <p style="padding:8px;border:1px solid #d0d0d0;background:#f7f7f7;">
-                Mikro-Buchungen werden angezeigt.
-                <a href="<?php echo htmlspecialchars($toggleUrl, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>" style="margin-left:8px;">Mikro-Buchungen ausblenden</a>
-            </p>
-        <?php endif; ?>
 
         <table>
             <thead>
@@ -231,8 +251,8 @@ foreach ($buchungen as $b) {
     $editZeit = zeit_format_uhrzeit((string)($editBuchung['zeitstempel'] ?? ''));
     $editKommentar = (string)($editBuchung['kommentar'] ?? '');
     $editNachtshift = (int)($editBuchung['nachtshift'] ?? 0);
-    // HTML time input erwartet i.d.R. HH:MM (Sekunden optional je nach Browser)
-    $editZeitInput = substr($editZeit, 0, 5);
+    // HTML time input akzeptiert Sekunden (step=1), daher volle Uhrzeit übernehmen.
+    $editZeitInput = $editZeit;
 ?>
     <div id="buchung-bearbeiten" style="border:1px solid #b00020; border-radius: 8px; padding: 10px 12px; background:#fff5f5; margin: 12px 0;">
         <h3 style="margin: 0 0 8px 0; color:#b00020;">Buchung bearbeiten (ID <?php echo $editId; ?>)</h3>
