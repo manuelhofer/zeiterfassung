@@ -9,12 +9,17 @@ declare(strict_types=1);
 class MaschineQrCodeService
 {
     private string $basisVerzeichnis;
-    private string $relativerBasisPfad;
+    private string $relativerSpeicherPfad;
+    private string $relativerUrlPfad;
+    private string $basisUrl;
 
     public function __construct(?string $basisVerzeichnis = null)
     {
         $this->basisVerzeichnis = $basisVerzeichnis ?? __DIR__ . '/../public';
-        $this->relativerBasisPfad = $this->ermittleRelativenBasisPfad();
+        $konfiguration = $this->ladeKonfiguration();
+        $this->relativerSpeicherPfad = $this->ermittleRelativenSpeicherPfad($konfiguration);
+        $this->relativerUrlPfad = $this->ermittleRelativenUrlPfad($konfiguration, $this->relativerSpeicherPfad);
+        $this->basisUrl = $this->ermittleBasisUrl($konfiguration);
         $this->ladeBibliothek();
     }
 
@@ -24,7 +29,8 @@ class MaschineQrCodeService
             return null;
         }
 
-        $relativerPfad = $this->relativerBasisPfad . '/maschine_' . $maschinenId . '.png';
+        $dateiname = 'maschine_' . $maschinenId . '.png';
+        $relativerPfad = $this->relativerSpeicherPfad . '/' . $dateiname;
         $zielPfad = $this->basisVerzeichnis . '/' . $relativerPfad;
 
         $zielOrdner = dirname($zielPfad);
@@ -40,7 +46,7 @@ class MaschineQrCodeService
             return null;
         }
 
-        return $relativerPfad;
+        return $this->baueUrlPfad($dateiname);
     }
 
     public function gebeQrPngAus(string $daten, int $groesse = 6, int $rand = 2): void
@@ -53,26 +59,14 @@ class MaschineQrCodeService
         require_once __DIR__ . '/phpqrcode/qrlib.php';
     }
 
-    private function ermittleRelativenBasisPfad(): string
+    /**
+     * @param array<string,mixed> $konfiguration
+     */
+    private function ermittleRelativenSpeicherPfad(array $konfiguration): string
     {
         $standardPfad = 'uploads/maschinen_codes';
-        $konfiguration = $this->ladeKonfiguration();
-        $konfigPfad = $konfiguration['qr_maschinen_rel_pfad'] ?? '';
-        if (!is_string($konfigPfad)) {
-            return $standardPfad;
-        }
-
-        $konfigPfad = trim($konfigPfad);
-        if ($konfigPfad === '') {
-            return $standardPfad;
-        }
-
-        $konfigPfad = trim($konfigPfad, '/');
-        if ($konfigPfad === '') {
-            return $standardPfad;
-        }
-
-        return $konfigPfad;
+        $konfigPfad = $konfiguration['maschinen_qr_rel_pfad'] ?? $konfiguration['qr_maschinen_rel_pfad'] ?? '';
+        return $this->bereinigeRelativenPfad($konfigPfad, $standardPfad);
     }
 
     /**
@@ -93,6 +87,58 @@ class MaschineQrCodeService
         }
 
         return $cfg;
+    }
+
+    /**
+     * @param array<string,mixed> $konfiguration
+     */
+    private function ermittleRelativenUrlPfad(array $konfiguration, string $fallback): string
+    {
+        $konfigPfad = $konfiguration['maschinen_qr_rel_pfad'] ?? $konfiguration['qr_maschinen_rel_pfad'] ?? '';
+        return $this->bereinigeRelativenPfad($konfigPfad, $fallback);
+    }
+
+    /**
+     * @param array<string,mixed> $konfiguration
+     */
+    private function ermittleBasisUrl(array $konfiguration): string
+    {
+        $basisUrl = $konfiguration['maschinen_qr_base_url'] ?? '';
+        return is_string($basisUrl) ? trim($basisUrl) : '';
+    }
+
+    private function bereinigeRelativenPfad($konfigPfad, string $fallback): string
+    {
+        if (!is_string($konfigPfad)) {
+            return $fallback;
+        }
+
+        $konfigPfad = trim($konfigPfad);
+        if ($konfigPfad === '') {
+            return $fallback;
+        }
+
+        $konfigPfad = trim($konfigPfad, '/');
+        if ($konfigPfad === '') {
+            return $fallback;
+        }
+
+        return $konfigPfad;
+    }
+
+    private function baueUrlPfad(string $dateiname): string
+    {
+        $relativerPfad = $this->relativerUrlPfad . '/' . $dateiname;
+
+        if ($this->basisUrl === '') {
+            return '/' . ltrim($relativerPfad, '/');
+        }
+
+        if (preg_match('~^https?://~i', $this->basisUrl) === 1) {
+            return rtrim($this->basisUrl, '/') . '/' . ltrim($relativerPfad, '/');
+        }
+
+        return '/' . trim($this->basisUrl, '/') . '/' . ltrim($relativerPfad, '/');
     }
 
     private function erzeugePng(string $daten, ?string $zielPfad, int $groesse = 6, int $rand = 2): void
