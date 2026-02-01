@@ -65,8 +65,8 @@ class MaschineQrCodeService
     private function ermittleRelativenSpeicherPfad(array $konfiguration): string
     {
         $standardPfad = 'uploads/maschinen_codes';
-        $konfigPfad = $this->waehleRelativenPfad($konfiguration);
-        return $this->bereinigeRelativenPfad($konfigPfad, $standardPfad);
+        $konfigPfad = $konfiguration['maschinen_qr_rel_pfad'] ?? null;
+        return $this->normalisiereRelativenPfad($konfigPfad, $standardPfad);
     }
 
     /**
@@ -82,7 +82,6 @@ class MaschineQrCodeService
 
         return [
             'maschinen_qr_rel_pfad' => $service->get('maschinen_qr_rel_pfad', null),
-            'qr_maschinen_rel_pfad' => $service->get('qr_maschinen_rel_pfad', null),
             'maschinen_qr_base_url' => $service->get('maschinen_qr_base_url', null),
         ];
     }
@@ -92,8 +91,8 @@ class MaschineQrCodeService
      */
     private function ermittleRelativenUrlPfad(array $konfiguration, string $fallback): string
     {
-        $konfigPfad = $this->waehleRelativenPfad($konfiguration);
-        return $this->bereinigeRelativenPfad($konfigPfad, $fallback);
+        $konfigPfad = $konfiguration['maschinen_qr_rel_pfad'] ?? null;
+        return $this->normalisiereRelativenPfad($konfigPfad, $fallback);
     }
 
     /**
@@ -102,49 +101,43 @@ class MaschineQrCodeService
     private function ermittleBasisUrl(array $konfiguration): string
     {
         $basisUrl = $konfiguration['maschinen_qr_base_url'] ?? '';
-        return is_string($basisUrl) ? trim($basisUrl) : '';
+        if (!is_string($basisUrl)) {
+            return '';
+        }
+
+        $basisUrl = trim($basisUrl);
+        if ($basisUrl === '') {
+            return '';
+        }
+
+        if (preg_match('~^https?://~i', $basisUrl) === 1) {
+            return $basisUrl;
+        }
+
+        return $this->normalisiereRelativenPfad($basisUrl, '');
     }
 
-    private function bereinigeRelativenPfad($konfigPfad, string $fallback): string
+    private function normalisiereRelativenPfad($konfigPfad, string $fallback): string
     {
         if (!is_string($konfigPfad)) {
             return $fallback;
         }
 
+        $konfigPfad = str_replace('\\', '/', $konfigPfad);
         $konfigPfad = trim($konfigPfad);
         if ($konfigPfad === '') {
             return $fallback;
         }
 
-        $konfigPfad = trim($konfigPfad, '/');
+        $konfigPfad = ltrim($konfigPfad, '/');
+        $konfigPfad = preg_replace('~^(?:zeiterfassung/)?public(?:/|$)~i', '', $konfigPfad);
+        $konfigPfad = trim((string)$konfigPfad, '/');
+
         if ($konfigPfad === '') {
             return $fallback;
         }
 
         return $konfigPfad;
-    }
-
-    /**
-     * @param array<string,mixed> $konfiguration
-     */
-    private function waehleRelativenPfad(array $konfiguration): ?string
-    {
-        $neuerPfad = $konfiguration['maschinen_qr_rel_pfad'] ?? null;
-        if ($this->istNichtLeererString($neuerPfad)) {
-            return $neuerPfad;
-        }
-
-        $alterPfad = $konfiguration['qr_maschinen_rel_pfad'] ?? null;
-        if ($this->istNichtLeererString($alterPfad)) {
-            return $alterPfad;
-        }
-
-        return null;
-    }
-
-    private function istNichtLeererString($wert): bool
-    {
-        return is_string($wert) && trim($wert) !== '';
     }
 
     private function baueUrlPfad(string $dateiname): string
