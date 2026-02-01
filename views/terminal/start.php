@@ -1204,7 +1204,7 @@ require __DIR__ . '/_layout_top.php';
                 </div>
             <?php endif; ?>
 
-            <?php if (isset($monatsStatus) && is_array($monatsStatus) && isset($monatsStatus['ist_bisher'])): ?>
+            <?php if (isset($monatsStatus) && is_array($monatsStatus) && (($monatsStatus['daten_ok'] ?? true) === true) && isset($monatsStatus['ist_bisher'])): ?>
                 <div class="status-small mt-05"><strong>Monatsstatus (<?php echo htmlspecialchars(sprintf('%02d/%04d', (int)$monatsStatus['monat'], (int)$monatsStatus['jahr']), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>)</strong></div>
 		        <?php if (isset($monatsStatus['rest_bis_monatsende'])): ?>
 		            <div class="status-small">Noch zu arbeiten bis Monatsende: <strong><?php echo htmlspecialchars((string)$monatsStatus['rest_bis_monatsende'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?> h</strong></div>
