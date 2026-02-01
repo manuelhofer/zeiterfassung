@@ -674,6 +674,39 @@ require __DIR__ . '/_layout_top.php';
         <?php if ($zeigeArbeitszeitUebersichtSeite): ?>
             <div class="status-box">
                 <div class="status-title"><span>Arbeitszeit-Übersicht</span></div>
+                <?php
+                    $jetzt = new DateTimeImmutable('now');
+                    $aktuellesJahr = (int)$jetzt->format('Y');
+                    $auswahlJahr = (int)($monatsStatus['jahr'] ?? $aktuellesJahr);
+                    $auswahlMonat = (int)($monatsStatus['monat'] ?? (int)$jetzt->format('n'));
+                    $jahre = range($aktuellesJahr - 2, $aktuellesJahr + 1);
+                ?>
+                <form method="get" action="terminal.php" class="terminal-button-form" style="margin-top:8px;">
+                    <input type="hidden" name="aktion" value="start">
+                    <input type="hidden" name="view" value="arbeitszeit">
+                    <label style="display:inline-block; margin-right:8px;">
+                        Jahr:
+                        <select name="jahr">
+                            <?php foreach ($jahre as $jahrOption): ?>
+                                <option value="<?php echo (int)$jahrOption; ?>"<?php echo ($jahrOption === $auswahlJahr) ? ' selected' : ''; ?>>
+                                    <?php echo (int)$jahrOption; ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                    </label>
+                    <label style="display:inline-block; margin-right:8px;">
+                        Monat:
+                        <select name="monat">
+                            <?php for ($m = 1; $m <= 12; $m++): ?>
+                                <option value="<?php echo (int)$m; ?>"<?php echo ($m === $auswahlMonat) ? ' selected' : ''; ?>>
+                                    <?php echo htmlspecialchars(sprintf('%02d', $m), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>
+                                </option>
+                            <?php endfor; ?>
+                        </select>
+                    </label>
+                    <button type="submit" class="secondary">Anzeigen</button>
+                </form>
+                <div class="status-small mt-025">Hinweis: „Ist bis heute“ bezieht sich auf das gewählte Monatsdatum.</div>
                 <div class="status-small">
                     Mitarbeiter:
                     <strong><?php echo htmlspecialchars($mitarbeiterName, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></strong>

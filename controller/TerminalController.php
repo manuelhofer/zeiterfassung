@@ -697,7 +697,7 @@ class TerminalController
      * - Soll bis heute
      * - Ist bis heute (inkl. laufendem heutigen Arbeitstag)
      */
-    private function berechneMonatsStatusFuerMitarbeiter(int $mitarbeiterId): ?array
+    private function berechneMonatsStatusFuerMitarbeiter(int $mitarbeiterId, ?int $jahr = null, ?int $monat = null): ?array
     {
         if ($mitarbeiterId <= 0) {
             return null;
@@ -707,9 +707,21 @@ class TerminalController
         }
 
         $now = new DateTimeImmutable('now');
-        $jahr = (int)$now->format('Y');
-        $monat = (int)$now->format('n');
+        $jahrInput = $jahr ?? (isset($_GET['jahr']) ? (int)$_GET['jahr'] : 0);
+        $monatInput = $monat ?? (isset($_GET['monat']) ? (int)$_GET['monat'] : 0);
+
+        $jahr = ($jahrInput >= 2000 && $jahrInput <= 2100) ? $jahrInput : (int)$now->format('Y');
+        $monat = ($monatInput >= 1 && $monatInput <= 12) ? $monatInput : (int)$now->format('n');
+
         $heuteStr = $now->format('Y-m-d');
+        $aktuellesJahr = (int)$now->format('Y');
+        $aktuellerMonat = (int)$now->format('n');
+
+        if ($jahr < $aktuellesJahr || ($jahr === $aktuellesJahr && $monat < $aktuellerMonat)) {
+            $heuteStr = (new DateTimeImmutable(sprintf('%04d-%02d-01', $jahr, $monat)))
+                ->modify('last day of this month')
+                ->format('Y-m-d');
+        }
 
         try {
             $parseStundenZuMinuten = static function ($wert): int {
