@@ -71,6 +71,25 @@ foreach ($buchungen as $b) {
             <small>(<?php echo htmlspecialchars($zielMitarbeiterName, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>)</small>
         <?php endif; ?>
     </h2>
+    <?php
+        $monatLink = '';
+        try {
+            $dtMonat = new DateTimeImmutable($datum);
+            $jahrLink = (int)$dtMonat->format('Y');
+            $monatLinkVal = (int)$dtMonat->format('n');
+            $monatLink = '?seite=report_monat&jahr=' . $jahrLink . '&monat=' . $monatLinkVal;
+            if ($zielMitarbeiterId > 0) {
+                $monatLink .= '&mitarbeiter_id=' . $zielMitarbeiterId;
+            }
+        } catch (Throwable $e) {
+            $monatLink = '';
+        }
+    ?>
+    <?php if ($monatLink !== ''): ?>
+        <p style="margin-top: 4px;">
+            <a href="<?php echo htmlspecialchars($monatLink, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>">Zur Monatsübersicht</a>
+        </p>
+    <?php endif; ?>
 
     <?php if ($darfAndereMitarbeiter): ?>
         <form method="get" style="margin: 0 0 12px 0;">
