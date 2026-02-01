@@ -80,6 +80,32 @@ INSERT INTO `auftrag` (`id`, `auftragsnummer`, `kurzbeschreibung`, `kunde`, `sta
 -- --------------------------------------------------------
 
 --
+-- Tabellenstruktur für Tabelle `auftrag_arbeitsschritt`
+--
+
+CREATE TABLE `auftrag_arbeitsschritt` (
+  `id` bigint(20) UNSIGNED NOT NULL,
+  `auftrag_id` bigint(20) UNSIGNED NOT NULL,
+  `arbeitsschritt_code` varchar(100) NOT NULL,
+  `bezeichnung` varchar(255) DEFAULT NULL,
+  `aktiv` tinyint(1) NOT NULL DEFAULT 1,
+  `erstellt_am` datetime NOT NULL DEFAULT current_timestamp(),
+  `geaendert_am` datetime NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Daten für Tabelle `auftrag_arbeitsschritt`
+--
+
+INSERT INTO `auftrag_arbeitsschritt` (`id`, `auftrag_id`, `arbeitsschritt_code`, `bezeichnung`, `aktiv`, `erstellt_am`, `geaendert_am`) VALUES
+(1, 1, '12341234', NULL, 1, '2026-01-18 16:25:36', '2026-01-18 16:25:36'),
+(2, 2, '123123', NULL, 1, '2026-01-19 19:11:24', '2026-01-19 19:11:24'),
+(3, 3, '1213131', NULL, 1, '2026-01-20 04:35:19', '2026-01-20 04:35:19'),
+(4, 4, '564687564', NULL, 1, '2026-01-20 04:35:31', '2026-01-20 04:35:31');
+
+-- --------------------------------------------------------
+
+--
 -- Tabellenstruktur für Tabelle `auftragszeit`
 --
 
@@ -87,6 +113,7 @@ CREATE TABLE `auftragszeit` (
   `id` bigint(20) UNSIGNED NOT NULL,
   `mitarbeiter_id` bigint(20) UNSIGNED NOT NULL,
   `auftrag_id` bigint(20) UNSIGNED DEFAULT NULL,
+  `arbeitsschritt_id` bigint(20) UNSIGNED DEFAULT NULL,
   `auftragscode` varchar(100) DEFAULT NULL,
   `arbeitsschritt_code` varchar(100) DEFAULT NULL,
   `maschine_id` bigint(20) UNSIGNED DEFAULT NULL,
@@ -104,13 +131,13 @@ CREATE TABLE `auftragszeit` (
 -- Daten für Tabelle `auftragszeit`
 --
 
-INSERT INTO `auftragszeit` (`id`, `mitarbeiter_id`, `auftrag_id`, `auftragscode`, `arbeitsschritt_code`, `maschine_id`, `terminal_id`, `typ`, `startzeit`, `endzeit`, `status`, `kommentar`, `erstellt_am`, `geaendert_am`) VALUES
-(1, 2, NULL, '11', NULL, 1, NULL, 'haupt', '2026-01-02 16:30:59', '2026-01-02 16:31:17', 'abgeschlossen', NULL, '2026-01-02 16:30:59', '2026-01-02 16:31:17'),
-(4, 2, NULL, '123123', NULL, NULL, NULL, 'haupt', '2026-01-18 09:56:16', '2026-01-18 16:25:36', 'abgeschlossen', NULL, '2026-01-18 09:56:16', '2026-01-18 16:25:36'),
-(5, 2, 1, '12341234', '12341234', NULL, NULL, 'haupt', '2026-01-18 16:25:36', '2026-01-18 16:26:21', 'abgeschlossen', NULL, '2026-01-18 16:25:36', '2026-01-18 16:26:21'),
-(6, 2, 2, '1234556', '123123', NULL, NULL, 'haupt', '2026-01-19 19:11:24', '2026-01-19 19:40:37', 'abgeschlossen', NULL, '2026-01-19 19:11:24', '2026-01-19 19:40:37'),
-(7, 2, 3, '12312', '1213131', NULL, NULL, 'haupt', '2026-01-20 04:35:19', '2026-01-20 04:35:45', 'abgeschlossen', NULL, '2026-01-20 04:35:19', '2026-01-20 04:35:45'),
-(8, 2, 4, '5486754', '564687564', NULL, NULL, 'neben', '2026-01-20 04:35:31', '2026-01-21 20:32:46', 'abgeschlossen', NULL, '2026-01-20 04:35:31', '2026-01-21 20:32:46');
+INSERT INTO `auftragszeit` (`id`, `mitarbeiter_id`, `auftrag_id`, `arbeitsschritt_id`, `auftragscode`, `arbeitsschritt_code`, `maschine_id`, `terminal_id`, `typ`, `startzeit`, `endzeit`, `status`, `kommentar`, `erstellt_am`, `geaendert_am`) VALUES
+(1, 2, NULL, NULL, '11', NULL, 1, NULL, 'haupt', '2026-01-02 16:30:59', '2026-01-02 16:31:17', 'abgeschlossen', NULL, '2026-01-02 16:30:59', '2026-01-02 16:31:17'),
+(4, 2, NULL, NULL, '123123', NULL, NULL, NULL, 'haupt', '2026-01-18 09:56:16', '2026-01-18 16:25:36', 'abgeschlossen', NULL, '2026-01-18 09:56:16', '2026-01-18 16:25:36'),
+(5, 2, 1, 1, '12341234', '12341234', NULL, NULL, 'haupt', '2026-01-18 16:25:36', '2026-01-18 16:26:21', 'abgeschlossen', NULL, '2026-01-18 16:25:36', '2026-01-18 16:26:21'),
+(6, 2, 2, 2, '1234556', '123123', NULL, NULL, 'haupt', '2026-01-19 19:11:24', '2026-01-19 19:40:37', 'abgeschlossen', NULL, '2026-01-19 19:11:24', '2026-01-19 19:40:37'),
+(7, 2, 3, 3, '12312', '1213131', NULL, NULL, 'haupt', '2026-01-20 04:35:19', '2026-01-20 04:35:45', 'abgeschlossen', NULL, '2026-01-20 04:35:19', '2026-01-20 04:35:45'),
+(8, 2, 4, 4, '5486754', '564687564', NULL, NULL, 'neben', '2026-01-20 04:35:31', '2026-01-21 20:32:46', 'abgeschlossen', NULL, '2026-01-20 04:35:31', '2026-01-21 20:32:46');
 
 -- --------------------------------------------------------
 
@@ -1161,12 +1188,21 @@ ALTER TABLE `auftrag`
   ADD KEY `idx_auftrag_status` (`status`);
 
 --
+-- Indizes für die Tabelle `auftrag_arbeitsschritt`
+--
+ALTER TABLE `auftrag_arbeitsschritt`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `uniq_auftrag_arbeitsschritt` (`auftrag_id`,`arbeitsschritt_code`),
+  ADD KEY `idx_auftrag_arbeitsschritt_auftrag` (`auftrag_id`);
+
+--
 -- Indizes für die Tabelle `auftragszeit`
 --
 ALTER TABLE `auftragszeit`
   ADD PRIMARY KEY (`id`),
   ADD KEY `idx_auftragszeit_mitarbeiter` (`mitarbeiter_id`),
   ADD KEY `idx_auftragszeit_auftrag` (`auftrag_id`),
+  ADD KEY `idx_auftragszeit_arbeitsschritt` (`arbeitsschritt_id`),
   ADD KEY `idx_auftragszeit_maschine` (`maschine_id`),
   ADD KEY `idx_auftragszeit_startzeit` (`startzeit`),
   ADD KEY `idx_auftragszeit_status` (`status`),
