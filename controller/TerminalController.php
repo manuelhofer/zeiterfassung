@@ -3266,6 +3266,53 @@ class TerminalController
      *  - 0   offline gespeichert (Queue)
      *  - null Fehler
      */
+    private function findeOderErstelleArbeitsschritt(?int $auftragId, ?string $arbeitsschrittCode): ?int
+    {
+        $auftragId = $auftragId !== null ? (int)$auftragId : 0;
+        $arbeitsschrittCode = $arbeitsschrittCode !== null ? trim((string)$arbeitsschrittCode) : '';
+        if ($auftragId <= 0 || $arbeitsschrittCode === '' || !class_exists('Database')) {
+            return null;
+        }
+
+        try {
+            $db = Database::getInstanz();
+            $row = $db->fetchEine(
+                'SELECT id FROM auftrag_arbeitsschritt WHERE auftrag_id = :auftrag_id AND arbeitsschritt_code = :code LIMIT 1',
+                ['auftrag_id' => $auftragId, 'code' => $arbeitsschrittCode]
+            );
+
+            if (is_array($row) && isset($row['id'])) {
+                return (int)$row['id'];
+            }
+
+            $db->ausfuehren(
+                'INSERT INTO auftrag_arbeitsschritt (auftrag_id, arbeitsschritt_code, aktiv)
+                 VALUES (:auftrag_id, :code, 1)
+                 ON DUPLICATE KEY UPDATE arbeitsschritt_code = arbeitsschritt_code',
+                ['auftrag_id' => $auftragId, 'code' => $arbeitsschrittCode]
+            );
+
+            $row = $db->fetchEine(
+                'SELECT id FROM auftrag_arbeitsschritt WHERE auftrag_id = :auftrag_id AND arbeitsschritt_code = :code LIMIT 1',
+                ['auftrag_id' => $auftragId, 'code' => $arbeitsschrittCode]
+            );
+
+            if (is_array($row) && isset($row['id'])) {
+                return (int)$row['id'];
+            }
+        } catch (Throwable $e) {
+            if (class_exists('Logger')) {
+                Logger::warn('Terminal: Arbeitsschritt konnte nicht angelegt werden', [
+                    'auftrag_id' => $auftragId,
+                    'arbeitsschritt_code' => $arbeitsschrittCode,
+                    'exception' => $e->getMessage(),
+                ], null, null, 'terminal_nebenauftrag');
+            }
+        }
+
+        return null;
+    }
+
     private function starteNebenauftrag(int $mitarbeiterId, string $auftragscode, ?int $maschineId, ?string $arbeitsschrittCode = null): ?int
     {
         $mitarbeiterId = max(1, $mitarbeiterId);
@@ -3292,8 +3339,9 @@ class TerminalController
                 . $this->sqlString($auftragscode) . ', 1) '
                 . 'ON DUPLICATE KEY UPDATE auftragsnummer = auftragsnummer';
 
-            $sql = 'INSERT INTO auftragszeit (mitarbeiter_id, auftrag_id, auftragscode, arbeitsschritt_code, maschine_id, terminal_id, typ, startzeit, kommentar) VALUES ('
+            $sql = 'INSERT INTO auftragszeit (mitarbeiter_id, auftrag_id, arbeitsschritt_id, auftragscode, arbeitsschritt_code, maschine_id, terminal_id, typ, startzeit, kommentar) VALUES ('
                 . $this->sqlInt($mitarbeiterId) . ', '
+                . 'NULL, '
                 . 'NULL, '
                 . $this->sqlString($auftragscode) . ', '
                 . ($arbeitsschrittCode === null ? 'NULL' : $this->sqlString($arbeitsschrittCode)) . ', '
@@ -3352,30 +3400,22 @@ class TerminalController
             }
         }
 
+        $arbeitsschrittId = $this->findeOderErstelleArbeitsschritt($auftragId, $arbeitsschrittCode);
+
         try {
             $auftragszeitModel = new AuftragszeitModel();
             $neueId = $auftragszeitModel->erstelleAuftragszeit(
                 $mitarbeiterId,
                 $auftragId,
                 $auftragscode,
+                $arbeitsschrittId,
+                $arbeitsschrittCode,
                 $maschineId,
                 null,
                 'neben',
                 $jetzt,
                 null
             );
-
-            if ($neueId !== null && $neueId > 0 && $arbeitsschrittCode !== null && class_exists('Database')) {
-                try {
-                    $db = Database::getInstanz();
-                    $db->ausfuehren('UPDATE auftragszeit SET arbeitsschritt_code = :c WHERE id = :id', [
-                        'c' => $arbeitsschrittCode,
-                        'id' => (int)$neueId,
-                    ]);
-                } catch (Throwable $e) {
-                    // Soft-fail: Nebenauftrag darf nicht blockieren
-                }
-            }
 
             return $neueId;
         } catch (Throwable $e) {
