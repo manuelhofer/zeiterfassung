@@ -387,16 +387,21 @@ class ZeitService
         }
 
         // Bestehende Tageswerte laden (für manuelle Tagesfeld-Overrides).
-        $pauseMinDb = 0;
+        $pauseMinDb = null;
         $felderManuell = 0;
         try {
             $tw = $this->tageswerteModel->holeNachMitarbeiterUndDatum($mitarbeiterId, $datumYmd);
             if (is_array($tw)) {
-                $pauseMinDb = (int)($tw['pause_korr_minuten'] ?? 0);
+                if (array_key_exists('pause_korr_minuten', $tw)) {
+                    $pauseMinDb = $tw['pause_korr_minuten'];
+                    if ($pauseMinDb !== null) {
+                        $pauseMinDb = (int)$pauseMinDb;
+                    }
+                }
                 $felderManuell = (int)($tw['felder_manuell_geaendert'] ?? 0);
             }
         } catch (\Throwable $e) {
-            $pauseMinDb = 0;
+            $pauseMinDb = null;
             $felderManuell = 0;
         }
 
@@ -409,7 +414,7 @@ class ZeitService
         $istStd = 0.0;
 
         // Wenn Tagesfelder manuell gesetzt wurden, respektieren wir den DB-Wert.
-        if ($felderManuell === 1) {
+        if ($felderManuell === 1 && $pauseMinDb !== null) {
             $pauseMin = max(0, $pauseMinDb);
             $pauseQuelle = 'manuell';
 

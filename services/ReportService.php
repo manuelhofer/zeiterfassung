@@ -1704,12 +1704,18 @@ private function holeBetriebsferienTageFuerMitarbeiterUndMonat(int $mitarbeiterI
             $datum      = (string)($tw['datum'] ?? '');
             $pauseOverrideAktiv = isset($pauseOverrideStatusProTag[$datum]) ? (bool)$pauseOverrideStatusProTag[$datum] : false;
             $istStunden = (string)($tw['ist_stunden'] ?? '0.00');
-            $pauseMinDb = (int)($tw['pause_korr_minuten'] ?? 0);
+            $pauseMinDb = null;
+            if (array_key_exists('pause_korr_minuten', $tw)) {
+                $pauseMinDb = $tw['pause_korr_minuten'];
+                if ($pauseMinDb !== null) {
+                    $pauseMinDb = (int)$pauseMinDb;
+                }
+            }
             $felderManuell = (int)($tw['felder_manuell_geaendert'] ?? 0);
 
             $rohManuell = (int)($tw['rohdaten_manuell_geaendert'] ?? 0);
             $zeitManuell = ($rohManuell === 1) || isset($manuellZeitbuchungTage[$datum]);
-            $pauseMin   = $pauseMinDb;
+            $pauseMin   = $pauseMinDb ?? 0;
             $pauseStd   = $pauseMin / 60.0;
             $pauseEntscheidungNoetig = false;
             $pauseAutoMin = 0;
@@ -1731,7 +1737,7 @@ private function holeBetriebsferienTageFuerMitarbeiterUndMonat(int $mitarbeiterI
                     $k = new \DateTimeImmutable($kommenKorr);
                     $g = new \DateTimeImmutable($gehenKorr);
                     if ($g > $k) {
-                        if (!$pauseOverrideAktiv && $pauseMinDb <= 0) {
+                        if (!$pauseOverrideAktiv && $pauseMinDb === null) {
                             $res = $this->pausenService->berechnePausenMinutenUndEntscheidungFuerBlock($k, $g);
                             $pauseMin = (int)($res['pause_minuten'] ?? 0);
                             $pauseStd = $pauseMin / 60.0;
@@ -1750,7 +1756,7 @@ private function holeBetriebsferienTageFuerMitarbeiterUndMonat(int $mitarbeiterI
                     $k = new \DateTimeImmutable($kommenRoh);
                     $g = new \DateTimeImmutable($gehenRoh);
                     if ($g > $k) {
-                        if (!$pauseOverrideAktiv && $pauseMinDb <= 0) {
+                        if (!$pauseOverrideAktiv && $pauseMinDb === null) {
                             $res = $this->pausenService->berechnePausenMinutenUndEntscheidungFuerBlock($k, $g);
                             $pauseMin = (int)($res['pause_minuten'] ?? 0);
                             $pauseStd = $pauseMin / 60.0;
