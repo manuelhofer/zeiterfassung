@@ -820,10 +820,22 @@ class ZeitController
                 $kommentar = $begruendung;
 
                 $nachtshift = ((int)($_POST['nachtshift'] ?? 0) === 1) ? 1 : 0;
-                $ok = $this->korrigiereAddBuchung($zbModel, $angemeldeteId, $zielMitarbeiterId, $datumYmd, $typ, $zeit, $kommentar, $begruendung, $nachtshift);
+                $fehlerAddBuchung = null;
+                $ok = $this->korrigiereAddBuchung(
+                    $zbModel,
+                    $angemeldeteId,
+                    $zielMitarbeiterId,
+                    $datumYmd,
+                    $typ,
+                    $zeit,
+                    $kommentar,
+                    $begruendung,
+                    $nachtshift,
+                    $fehlerAddBuchung
+                );
 
                 $_SESSION['zeit_korrektur_flash_ok'] = $ok ? 'Buchung wurde hinzugefügt.' : null;
-                $_SESSION['zeit_korrektur_flash_fehler'] = $ok ? null : 'Buchung konnte nicht hinzugefügt werden.';
+                $_SESSION['zeit_korrektur_flash_fehler'] = $ok ? null : ($fehlerAddBuchung ?? 'Buchung konnte nicht hinzugefügt werden.');
 
                 $this->redirect($this->buildTagesansichtUrl($datumYmd, $zielMitarbeiterId, $darfAndereMitarbeiter, null));
                 return;
@@ -1351,7 +1363,8 @@ class ZeitController
         string $zeit,
         ?string $kommentar,
         string $begruendung,
-        ?int $nachtshift = null
+        ?int $nachtshift = null,
+        ?string &$fehler = null
     ): bool {
         $zeitNorm = $this->parseUhrzeit($zeit);
         if ($zeitNorm === null) {
@@ -1365,6 +1378,34 @@ class ZeitController
 
         if ($typ !== 'kommen' && $typ !== 'gehen') {
             $typ = 'kommen';
+        }
+
+        $toleranzSekunden = 5;
+        try {
+            if (class_exists('KonfigurationService')) {
+                $cfg = KonfigurationService::getInstanz();
+                $val = $cfg->getInt('micro_buchung_max_sekunden', 5);
+                if ($val !== null) {
+                    $toleranzSekunden = (int)$val;
+                }
+            }
+        } catch (Throwable $e) {
+            $toleranzSekunden = 5;
+        }
+        if ($toleranzSekunden < 0) {
+            $toleranzSekunden = 0;
+        } elseif ($toleranzSekunden > 3600) {
+            $toleranzSekunden = 3600;
+        }
+
+        $konflikt = $zbModel->pruefeZeitstempelKonflikt($zielMitarbeiterId, $typ, $dt, $toleranzSekunden);
+        if ($konflikt) {
+            if ($toleranzSekunden <= 1) {
+                $fehler = 'Diese Zeit liegt in derselben Sekunde wie ein vorhandener Stempel und ist deshalb nicht zulässig.';
+            } else {
+                $fehler = 'Diese Zeit liegt innerhalb von ' . $toleranzSekunden . ' Sekunden zu einem vorhandenen Stempel und ist deshalb nicht zulässig.';
+            }
+            return false;
         }
 
         $nachtshiftVal = ($typ === 'kommen' && (int)$nachtshift === 1) ? 1 : 0;

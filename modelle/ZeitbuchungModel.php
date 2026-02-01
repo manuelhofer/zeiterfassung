@@ -78,6 +78,63 @@ class ZeitbuchungModel
     }
 
     /**
+     * Prüft, ob für einen Mitarbeiter eine Buchung mit gleichem Typ im Toleranzfenster existiert.
+     */
+    public function pruefeZeitstempelKonflikt(
+        int $mitarbeiterId,
+        string $typ,
+        \DateTimeInterface $zeitpunkt,
+        int $toleranzSekunden = 0
+    ): bool {
+        $mitarbeiterId = max(1, (int)$mitarbeiterId);
+        if ($mitarbeiterId <= 0) {
+            return false;
+        }
+
+        if ($typ !== 'kommen' && $typ !== 'gehen') {
+            $typ = 'kommen';
+        }
+
+        $toleranzSekunden = max(0, (int)$toleranzSekunden);
+        $basis = \DateTimeImmutable::createFromInterface($zeitpunkt);
+        if ($toleranzSekunden === 0) {
+            $von = $basis;
+            $bis = $basis;
+        } else {
+            $intervall = new \DateInterval('PT' . $toleranzSekunden . 'S');
+            $von = $basis->sub($intervall);
+            $bis = $basis->add($intervall);
+        }
+
+        $sql = 'SELECT id
+                FROM zeitbuchung
+                WHERE mitarbeiter_id = :mid
+                  AND typ = :typ
+                  AND zeitstempel >= :von
+                  AND zeitstempel <= :bis
+                LIMIT 1';
+
+        try {
+            $row = $this->db->fetchEine($sql, [
+                'mid' => $mitarbeiterId,
+                'typ' => $typ,
+                'von' => $von->format('Y-m-d H:i:s'),
+                'bis' => $bis->format('Y-m-d H:i:s'),
+            ]);
+            return is_array($row);
+        } catch (\Throwable $e) {
+            if (class_exists('Logger')) {
+                Logger::warn('Fehler beim Prüfen auf Zeitstempel-Konflikte', [
+                    'mitarbeiter_id' => $mitarbeiterId,
+                    'typ'            => $typ,
+                    'exception'      => $e->getMessage(),
+                ], $mitarbeiterId, null, 'zeitbuchung_model');
+            }
+            return false;
+        }
+    }
+
+    /**
      * Erstellt eine neue Zeitbuchung für einen Mitarbeiter.
      *
      * @param int                $mitarbeiterId ID des Mitarbeiters
