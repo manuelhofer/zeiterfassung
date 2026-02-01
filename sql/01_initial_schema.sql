@@ -340,6 +340,7 @@ CREATE TABLE `pausenentscheidung` (
   KEY `idx_pausenentscheidung_mid` (`mitarbeiter_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- Daten für Tabelle `pausenfenster`
 -- --------------------------------------------------------
 -- Tabellenstruktur für Tabelle `pausenfenster`
 -- --------------------------------------------------------
@@ -378,6 +379,39 @@ CREATE TABLE `recht` (
   KEY `idx_recht_aktiv` (`aktiv`)
 ) ENGINE=InnoDB AUTO_INCREMENT=30 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- Daten für Tabelle `recht`
+-- --------------------------------------------------------
+INSERT INTO `recht` (`id`, `code`, `name`, `beschreibung`, `aktiv`, `erstellt_am`, `geaendert_am`) VALUES
+(1, 'URLAUB_GENEHMIGEN', 'Urlaub genehmigen (zugewiesene Mitarbeiter)', 'Darf Urlaubsanträge genehmigen/ablehnen (typisch: nur für Mitarbeiter, für die man als Genehmiger eingetragen ist).', 1, '2026-01-01 12:33:18', '2026-01-01 12:33:18'),
+(2, 'URLAUB_GENEHMIGEN_ALLE', 'Urlaub genehmigen (alle Mitarbeiter)', 'Darf Urlaubsanträge aller Mitarbeiter genehmigen/ablehnen (Chef/Personalbüro).', 1, '2026-01-01 12:33:18', '2026-01-01 12:33:18'),
+(3, 'URLAUB_GENEHMIGEN_SELF', 'Urlaub genehmigen (eigene Anträge)', 'Darf eigene Urlaubsanträge selbst genehmigen/ablehnen (z. B. Chef).', 1, '2026-01-01 12:33:18', '2026-01-01 12:33:18'),
+(4, 'ZEIT_EDIT_SELF', 'Zeitbuchungen bearbeiten (eigene)', 'Darf eigene Zeitbuchungen nachträglich bearbeiten (Audit/Markierung erforderlich).', 0, '2026-01-01 12:33:18', '2026-01-11 11:01:15'),
+(5, 'ZEIT_EDIT_ALLE', 'Zeitbuchungen bearbeiten (alle)', 'Darf Zeitbuchungen aller Mitarbeiter nachträglich bearbeiten (Audit/Markierung erforderlich).', 0, '2026-01-01 12:33:18', '2026-01-11 11:01:15'),
+(6, 'REPORT_MONAT_ALLE', 'Monatsreports einsehen (alle)', 'Darf Monatsübersichten/PDFs für alle Mitarbeiter einsehen/erzeugen.', 0, '2026-01-01 12:33:18', '2026-01-11 11:01:15'),
+(7, 'ROLLEN_RECHTE_VERWALTEN', 'Rollen/Rechte verwalten', 'Darf Rollen und deren Rechtezuweisungen administrieren.', 1, '2026-01-01 12:33:18', '2026-01-01 12:33:18'),
+(8, 'ZEITBUCHUNG_EDIT_SELF', 'Zeitbuchungen bearbeiten (eigene)', 'Erlaubt das Korrigieren von eigenen Zeitbuchungen (add/update/delete) im Backend inkl. Audit-Log.', 1, '2026-01-01 16:15:18', '2026-01-01 16:15:18'),
+(9, 'ZEITBUCHUNG_EDIT_ALL', 'Zeitbuchungen bearbeiten (alle Mitarbeiter)', 'Erlaubt das Korrigieren von Zeitbuchungen aller Mitarbeiter (add/update/delete) im Backend inkl. Audit-Log.', 1, '2026-01-01 16:15:18', '2026-01-01 16:15:18'),
+(10, 'REPORT_MONAT_VIEW_ALL', 'Monatsreport (alle) ansehen', 'Darf Monatsübersichten/PDFs für beliebige Mitarbeiter anzeigen/erzeugen.', 1, '2026-01-01 16:15:29', '2026-01-01 16:15:29'),
+(11, 'REPORT_MONAT_EXPORT_ALL', 'Monatsreport (alle) exportieren', 'Darf einen Sammel-Export (ZIP) für einen Monat erzeugen (pro Mitarbeiter 1 PDF).', 1, '2026-01-01 16:15:29', '2026-01-01 16:15:29'),
+(12, 'REPORTS_ANSEHEN_ALLE', 'Reports aller Mitarbeiter ansehen', 'Darf Monats-/PDF-Reports für andere Mitarbeiter ansehen/exportieren.', 1, '2026-01-01 16:15:38', '2026-01-01 16:15:38'),
+(13, 'ZEITBUCHUNG_EDITIEREN_SELF', 'Eigene Zeitbuchungen bearbeiten', 'Darf eigene Zeitbuchungen korrigieren (mit Audit/Begründung).', 0, '2026-01-01 16:15:38', '2026-01-11 11:01:15'),
+(14, 'ZEITBUCHUNG_EDITIEREN_ALLE', 'Zeitbuchungen aller bearbeiten', 'Darf Zeitbuchungen anderer Mitarbeiter korrigieren (mit Audit/Begründung).', 0, '2026-01-01 16:15:38', '2026-01-11 11:01:15'),
+(15, 'MITARBEITER_VERWALTEN', 'Mitarbeiter verwalten', 'Darf Mitarbeiter anlegen/bearbeiten.', 1, '2026-01-01 16:15:38', '2026-01-01 16:15:38'),
+(16, 'ABTEILUNG_VERWALTEN', 'Abteilungen verwalten', 'Darf Abteilungen anlegen/bearbeiten.', 1, '2026-01-01 16:15:38', '2026-01-01 16:15:38'),
+(17, 'MASCHINEN_VERWALTEN', 'Maschinen verwalten', 'Darf Maschinen anlegen/bearbeiten.', 1, '2026-01-01 16:15:38', '2026-01-01 16:15:38'),
+(18, 'FEIERTAGE_VERWALTEN', 'Feiertage verwalten', 'Darf Feiertage anlegen/bearbeiten.', 1, '2026-01-01 16:15:38', '2026-01-01 16:15:38'),
+(19, 'BETRIEBSFERIEN_VERWALTEN', 'Betriebsferien verwalten', 'Darf Betriebsferien anlegen/bearbeiten.', 1, '2026-01-01 16:15:38', '2026-01-01 16:15:38'),
+(20, 'QUEUE_VERWALTEN', 'Offline-Queue verwalten', 'Darf Offline-Queue einsehen/clear/retry.', 1, '2026-01-01 16:15:38', '2026-01-01 16:15:38'),
+(21, 'TERMINAL_VERWALTEN', 'Terminals verwalten', 'Darf Terminals anlegen/bearbeiten.', 1, '2026-01-01 16:15:39', '2026-01-01 16:15:39'),
+(22, 'ZEIT_RUNDUNGSREGELN_VERWALTEN', 'Zeit-Rundungsregeln verwalten', 'Darf Zeit-Rundungsregeln anlegen/bearbeiten/aktivieren.', 1, '2026-01-01 16:20:52', '2026-01-01 16:20:52'),
+(23, 'KONFIGURATION_VERWALTEN', 'Konfiguration verwalten', 'Darf Konfigurationseinträge (Key/Value) anlegen/bearbeiten.', 1, '2026-01-01 16:20:52', '2026-01-01 16:20:52'),
+(24, 'URLAUB_KONTINGENT_VERWALTEN', 'Urlaub-Kontingent verwalten', 'Darf Urlaubskontingente/Übertrag/Korrekturen pro Mitarbeiter und Jahr pflegen.', 1, '2026-01-01 16:20:52', '2026-01-01 16:20:52'),
+(25, 'PAUSENREGELN_VERWALTEN', 'Pausenregeln verwalten', 'Darf betriebliche Pausenfenster (Zwangspausen) anlegen/bearbeiten.', 1, '2026-01-03 09:17:30', '2026-01-03 09:17:30'),
+(26, 'KRANKZEITRAUM_VERWALTEN', 'Krankzeitraum verwalten', 'Darf Krank-Zeiträume pro Mitarbeiter pflegen (Lohnfortzahlung/Krankenkasse).', 1, '2026-01-03 09:17:30', '2026-01-03 09:17:30'),
+(27, 'KURZARBEIT_VERWALTEN', 'Kurzarbeit verwalten', 'Darf Kurzarbeit planen und Zeiträume pflegen.', 1, '2026-01-03 09:17:30', '2026-01-03 09:17:30'),
+(28, 'DASHBOARD_ZEITWARNUNGEN_SEHEN', 'Dashboard: Zeitwarnungen sehen', 'Darf den Dashboard-Warnblock für unplausible/unvollständige Kommen/Gehen-Stempel sehen.', 1, '2026-01-07 08:36:06', '2026-01-07 08:36:06'),
+(29, 'STUNDENKONTO_VERWALTEN', 'Stundenkonto verwalten', 'Darf Stundenkonto-Korrekturen und Verteilungen im Backend erfassen.', 1, '2026-01-17 16:49:40', '2026-01-17 16:49:40');
+
 -- --------------------------------------------------------
 -- Tabellenstruktur für Tabelle `rolle`
 -- --------------------------------------------------------
@@ -393,6 +427,11 @@ CREATE TABLE `rolle` (
   UNIQUE KEY `uniq_rolle_name` (`name`)
 ) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- Daten für Tabelle `rolle`
+-- --------------------------------------------------------
+INSERT INTO `rolle` (`id`, `name`, `beschreibung`, `aktiv`, `ist_superuser`, `erstellt_am`, `geaendert_am`) VALUES
+(1, 'Chef', 'Vollzugriff auf alle Adminfunktionen', 1, 1, '2025-11-30 05:30:47', '2026-01-07 12:16:34');
+
 -- --------------------------------------------------------
 -- Tabellenstruktur für Tabelle `rolle_hat_recht`
 -- --------------------------------------------------------
@@ -403,6 +442,39 @@ CREATE TABLE `rolle_hat_recht` (
   PRIMARY KEY (`rolle_id`,`recht_id`),
   KEY `idx_rolle_hat_recht_recht` (`recht_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Daten für Tabelle `rolle_hat_recht`
+-- --------------------------------------------------------
+INSERT INTO `rolle_hat_recht` (`rolle_id`, `recht_id`, `erstellt_am`) VALUES
+(1, 1, '2026-01-04 06:40:56'),
+(1, 2, '2026-01-04 06:40:56'),
+(1, 3, '2026-01-04 06:40:56'),
+(1, 4, '2026-01-04 06:40:56'),
+(1, 5, '2026-01-04 06:40:56'),
+(1, 6, '2026-01-04 06:40:56'),
+(1, 7, '2026-01-04 06:40:56'),
+(1, 8, '2026-01-04 06:40:56'),
+(1, 9, '2026-01-04 06:40:56'),
+(1, 10, '2026-01-04 06:40:56'),
+(1, 11, '2026-01-04 06:40:56'),
+(1, 12, '2026-01-04 06:40:56'),
+(1, 13, '2026-01-04 06:40:56'),
+(1, 14, '2026-01-04 06:40:56'),
+(1, 15, '2026-01-04 06:40:56'),
+(1, 16, '2026-01-04 06:40:56'),
+(1, 17, '2026-01-04 06:40:56'),
+(1, 18, '2026-01-04 06:40:56'),
+(1, 19, '2026-01-04 06:40:56'),
+(1, 20, '2026-01-04 06:40:56'),
+(1, 21, '2026-01-04 06:40:56'),
+(1, 22, '2026-01-04 06:40:56'),
+(1, 23, '2026-01-04 06:40:56'),
+(1, 24, '2026-01-04 06:40:56'),
+(1, 25, '2026-01-04 06:40:56'),
+(1, 26, '2026-01-04 06:40:56'),
+(1, 27, '2026-01-04 06:40:56'),
+(1, 28, '2026-01-07 08:36:06'),
+(1, 29, '2026-01-17 16:49:40');
 
 -- --------------------------------------------------------
 -- Tabellenstruktur für Tabelle `sonstiges_grund`
@@ -428,6 +500,7 @@ CREATE TABLE `sonstiges_grund` (
 INSERT INTO `sonstiges_grund` (`id`, `code`, `titel`, `default_stunden`, `begruendung_pflicht`, `aktiv`, `sort_order`, `kommentar`, `erstellt_am`, `geaendert_am`) VALUES
 (1, 'SoU', 'Sonderurlaub', 8.00, 1, 1, 1, NULL, '2026-01-04 10:53:16', '2026-01-04 10:53:16');
 
+-- Daten für Tabelle `sonstiges_grund`
 -- --------------------------------------------------------
 -- Tabellenstruktur für Tabelle `stundenkonto_batch`
 -- --------------------------------------------------------
