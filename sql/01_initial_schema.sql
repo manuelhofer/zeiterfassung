@@ -212,6 +212,7 @@ CREATE TABLE `maschine` (
   `name` varchar(150) NOT NULL,
   `abteilung_id` bigint(20) UNSIGNED DEFAULT NULL,
   `beschreibung` text DEFAULT NULL,
+  `code_bild_pfad` varchar(255) DEFAULT NULL,
   `aktiv` tinyint(1) NOT NULL DEFAULT 1,
   `erstellt_am` datetime NOT NULL DEFAULT current_timestamp(),
   `geaendert_am` datetime NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
