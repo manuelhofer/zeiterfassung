@@ -37,6 +37,44 @@ class AuftragController
         return true;
     }
 
+    private function hatArbeitsschrittTabellen(): bool
+    {
+        try {
+            $tabellen = $this->db->fetchAlle(
+                'SELECT TABLE_NAME FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name IN (:t1, :t2)',
+                ['t1' => 'auftrag_arbeitsschritt', 't2' => 'auftragszeit']
+            );
+
+            $hat = [];
+            foreach ($tabellen as $row) {
+                $name = isset($row['TABLE_NAME']) ? (string)$row['TABLE_NAME'] : '';
+                if ($name !== '') {
+                    $hat[$name] = true;
+                }
+            }
+
+            if (empty($hat['auftrag_arbeitsschritt']) || empty($hat['auftragszeit'])) {
+                return false;
+            }
+
+            $spalten = $this->db->fetchAlle(
+                'SELECT COLUMN_NAME FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = :t',
+                ['t' => 'auftragszeit']
+            );
+
+            foreach ($spalten as $row) {
+                $name = isset($row['COLUMN_NAME']) ? (string)$row['COLUMN_NAME'] : '';
+                if ($name === 'arbeitsschritt_id') {
+                    return true;
+                }
+            }
+        } catch (\Throwable $e) {
+            return false;
+        }
+
+        return false;
+    }
+
     /**
      * Liste / Suche
      * Route: ?seite=auftrag
@@ -217,24 +255,43 @@ class AuftragController
         $countProSchritt = [];
 
         try {
-            $sql = "
-                SELECT
-                    az.*,
-                    COALESCE(NULLIF(az.arbeitsschritt_code, ''), aas.arbeitsschritt_code) AS arbeitsschritt_code_effektiv,
-                    mi.vorname, mi.nachname,
-                    ma.name AS maschine_name,
-                    a.auftragsnummer AS auftrag_nummer
-                FROM auftragszeit az
-                INNER JOIN mitarbeiter mi ON mi.id = az.mitarbeiter_id
-                LEFT JOIN maschine ma ON ma.id = az.maschine_id
-                LEFT JOIN auftrag a ON a.id = az.auftrag_id
-                LEFT JOIN auftrag_arbeitsschritt aas ON aas.id = az.arbeitsschritt_id
-                WHERE (a.auftragsnummer = :code OR az.auftragscode = :code)
-                ORDER BY az.startzeit DESC
-                LIMIT 1000
-            ";
-
-            $buchungen = $this->db->fetchAlle($sql, ['code' => $code]);
+            $nutztArbeitsschritt = $this->hatArbeitsschrittTabellen();
+            if ($nutztArbeitsschritt) {
+                $sql = "
+                    SELECT
+                        az.*,
+                        COALESCE(NULLIF(az.arbeitsschritt_code, ''), aas.arbeitsschritt_code) AS arbeitsschritt_code_effektiv,
+                        mi.vorname, mi.nachname,
+                        ma.name AS maschine_name,
+                        a.auftragsnummer AS auftrag_nummer
+                    FROM auftragszeit az
+                    INNER JOIN mitarbeiter mi ON mi.id = az.mitarbeiter_id
+                    LEFT JOIN maschine ma ON ma.id = az.maschine_id
+                    LEFT JOIN auftrag a ON a.id = az.auftrag_id
+                    LEFT JOIN auftrag_arbeitsschritt aas ON aas.id = az.arbeitsschritt_id
+                    WHERE (a.auftragsnummer = :code1 OR az.auftragscode = :code2)
+                    ORDER BY az.startzeit DESC
+                    LIMIT 1000
+                ";
+                $buchungen = $this->db->fetchAlle($sql, ['code1' => $code, 'code2' => $code]);
+            } else {
+                $sql = "
+                    SELECT
+                        az.*,
+                        az.arbeitsschritt_code AS arbeitsschritt_code_effektiv,
+                        mi.vorname, mi.nachname,
+                        ma.name AS maschine_name,
+                        a.auftragsnummer AS auftrag_nummer
+                    FROM auftragszeit az
+                    INNER JOIN mitarbeiter mi ON mi.id = az.mitarbeiter_id
+                    LEFT JOIN maschine ma ON ma.id = az.maschine_id
+                    LEFT JOIN auftrag a ON a.id = az.auftrag_id
+                    WHERE (a.auftragsnummer = :code1 OR az.auftragscode = :code2)
+                    ORDER BY az.startzeit DESC
+                    LIMIT 1000
+                ";
+                $buchungen = $this->db->fetchAlle($sql, ['code1' => $code, 'code2' => $code]);
+            }
 
             foreach ($buchungen as $b) {
                 $start = (string)($b['startzeit'] ?? '');
