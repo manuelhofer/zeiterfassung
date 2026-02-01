@@ -580,7 +580,7 @@ CREATE TABLE `tageswerte_mitarbeiter` (
   `pause_korr_minuten` INT UNSIGNED NOT NULL DEFAULT 0,
   `pause_override_aktiv` TINYINT(1) NOT NULL DEFAULT 0,
   `pause_override_begruendung` VARCHAR(255) NULL,
-  `pause_override_gesetzt_von_mitarbeiter_id` INT UNSIGNED NULL,
+  `pause_override_gesetzt_von_mitarbeiter_id` BIGINT UNSIGNED NULL,
   `pause_override_gesetzt_am` DATETIME NULL,
   `ist_stunden` DECIMAL(6,2) NOT NULL DEFAULT 0.00,
   `arzt_stunden` DECIMAL(5,2) NOT NULL DEFAULT 0.00,
