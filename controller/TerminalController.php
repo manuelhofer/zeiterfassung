@@ -4481,6 +4481,35 @@ $urlaubSaldo = null;
             $this->setzeTerminalAnwesenheitStatus(false);
         }
 
+        // Nach erfolgreichem Gehen: alle laufenden Aufträge (Haupt + Neben) beenden.
+        if ($fehlerText === null && $id !== null) {
+            $this->auftragszeitService->stoppeAlleLaufendenAuftraegeFuerMitarbeiter(
+                (int)$mitarbeiter['id'],
+                $zeitpunkt,
+                'abgeschlossen'
+            );
+
+            // Session-Merker anpassen, damit Statusboxen korrekt reagieren.
+            try {
+                if (session_status() === PHP_SESSION_ACTIVE) {
+                    if (isset($_SESSION['terminal_letzter_auftrag']) && is_array($_SESSION['terminal_letzter_auftrag'])) {
+                        $_SESSION['terminal_letzter_auftrag']['status'] = 'abgeschlossen';
+                        $_SESSION['terminal_letzter_auftrag']['endzeit'] = $zeitpunkt->format('Y-m-d H:i:s');
+                        $_SESSION['terminal_letzter_auftrag']['zeit'] = $zeitpunkt->format('Y-m-d H:i:s');
+                    }
+
+                    if (isset($_SESSION['terminal_letzter_nebenauftrag']) && is_array($_SESSION['terminal_letzter_nebenauftrag'])) {
+                        $_SESSION['terminal_letzter_nebenauftrag']['status'] = 'abgeschlossen';
+                        $_SESSION['terminal_letzter_nebenauftrag']['endzeit'] = $zeitpunkt->format('Y-m-d H:i:s');
+                        $_SESSION['terminal_letzter_nebenauftrag']['zeit'] = $zeitpunkt->format('Y-m-d H:i:s');
+                    }
+
+                    $_SESSION['terminal_nebenauftrag_laufend_count'] = 0;
+                }
+            } catch (\Throwable $e) {
+                // niemals Terminal-Flow blockieren
+            }
+        }
 
         // Einheitlicher Flow: nach Kommen/Gehen immer auf Startscreen redirecten,
         // damit alle Statusboxen (Urlaub, Warnungen, laufende Aufträge, ...) konsistent berechnet werden.
