@@ -1,3 +1,3 @@
--- QR-Code-Bildpfad fuer Maschinen
+-- QR-Code-Bildpfad fuer Maschinen (idempotent)
 ALTER TABLE `maschine`
-  ADD COLUMN `code_bild_pfad` varchar(255) DEFAULT NULL AFTER `beschreibung`;
+  ADD COLUMN IF NOT EXISTS `code_bild_pfad` varchar(255) DEFAULT NULL AFTER `beschreibung`;
