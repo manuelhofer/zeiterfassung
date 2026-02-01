@@ -298,6 +298,7 @@ CREATE TABLE `maschine` (
   `name` varchar(150) NOT NULL,
   `abteilung_id` bigint(20) UNSIGNED DEFAULT NULL,
   `beschreibung` text DEFAULT NULL,
+  `code_bild_pfad` varchar(255) DEFAULT NULL,
   `aktiv` tinyint(1) NOT NULL DEFAULT 1,
   `erstellt_am` datetime NOT NULL DEFAULT current_timestamp(),
   `geaendert_am` datetime NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
@@ -307,11 +308,11 @@ CREATE TABLE `maschine` (
 -- Daten für Tabelle `maschine`
 --
 
-INSERT INTO `maschine` (`id`, `name`, `abteilung_id`, `beschreibung`, `aktiv`, `erstellt_am`, `geaendert_am`) VALUES
-(1, 'KaoMing', 1, NULL, 1, '2026-01-01 20:20:47', '2026-01-11 12:00:25'),
-(2, 'CLX 500', 2, 'Dreh-/Fräs- Zentrum', 1, '2026-01-11 12:00:55', '2026-01-11 12:00:55'),
-(3, 'Cyclon1000', 2, NULL, 1, '2026-01-11 12:01:14', '2026-01-11 12:01:14'),
-(4, 'BTF1000', 1, NULL, 1, '2026-01-11 12:01:26', '2026-01-11 12:01:26');
+INSERT INTO `maschine` (`id`, `name`, `abteilung_id`, `beschreibung`, `code_bild_pfad`, `aktiv`, `erstellt_am`, `geaendert_am`) VALUES
+(1, 'KaoMing', 1, NULL, NULL, 1, '2026-01-01 20:20:47', '2026-01-11 12:00:25'),
+(2, 'CLX 500', 2, 'Dreh-/Fräs- Zentrum', NULL, 1, '2026-01-11 12:00:55', '2026-01-11 12:00:55'),
+(3, 'Cyclon1000', 2, NULL, NULL, 1, '2026-01-11 12:01:14', '2026-01-11 12:01:14'),
+(4, 'BTF1000', 1, NULL, NULL, 1, '2026-01-11 12:01:26', '2026-01-11 12:01:26');
 
 -- --------------------------------------------------------
 
