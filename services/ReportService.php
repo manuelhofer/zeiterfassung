@@ -187,6 +187,35 @@ class ReportService
             return [];
         }
 
+        try {
+            $db = Database::getInstanz();
+            $rows = $db->fetchAlle(
+                'SELECT datum, pause_override_aktiv
+                 FROM tageswerte_mitarbeiter
+                 WHERE mitarbeiter_id = :mid
+                   AND datum >= :von
+                   AND datum < :bis',
+                [
+                    'mid' => $mitarbeiterId,
+                    'von' => $von->format('Y-m-d'),
+                    'bis' => $bis->format('Y-m-d'),
+                ]
+            );
+
+            $map = [];
+            foreach ($rows as $r) {
+                $datum = trim((string)($r['datum'] ?? ''));
+                if ($datum === '') {
+                    continue;
+                }
+                $map[$datum] = ((int)($r['pause_override_aktiv'] ?? 0) === 1);
+            }
+
+            return $map;
+        } catch (\Throwable $e) {
+            // Fallback: Audit-Log auswerten (Bestand vor Migration).
+        }
+
         $sql = 'SELECT zeitstempel, nachricht, daten
                 FROM system_log
                 WHERE kategorie = :kat
