@@ -770,7 +770,7 @@ class TerminalController
 
             if (class_exists('ReportService')) {
                 try {
-                    $reportService = new ReportService();
+                    $reportService = ReportService::getInstanz();
                     $monatsdaten = $reportService->holeMonatsdatenFuerMitarbeiter($mitarbeiterId, $jahr, $monat);
                     if (!is_array($monatsdaten)) {
                         $datenOk = false;
