@@ -71,11 +71,17 @@ class AuftragController
             $sql = "
                 SELECT
                     COALESCE(a.auftragsnummer, az.auftragscode) AS auftragsnummer,
+                    MAX(a.aktiv) AS auftrag_aktiv,
                     COUNT(*) AS buchungen,
                     SUM(CASE WHEN az.status = 'laufend' THEN 1 ELSE 0 END) AS laufend,
+                    CASE
+                        WHEN SUM(CASE WHEN az.status = 'laufend' THEN 1 ELSE 0 END) > 0 THEN 'laufend'
+                        ELSE 'abgeschlossen'
+                    END AS status,
                     SUM(CASE WHEN az.endzeit IS NOT NULL THEN TIMESTAMPDIFF(SECOND, az.startzeit, az.endzeit) ELSE 0 END) AS sekunden,
                     MIN(az.startzeit) AS erste_startzeit,
-                    MAX(COALESCE(az.endzeit, az.startzeit)) AS letzte_zeit
+                    MAX(COALESCE(az.endzeit, az.startzeit)) AS letzte_zeit,
+                    COALESCE(MAX(a.geaendert_am), MAX(COALESCE(az.endzeit, az.startzeit))) AS zuletzt_bearbeitet
                 FROM auftragszeit az
                 LEFT JOIN auftrag a ON a.id = az.auftrag_id
                 {$where}
@@ -128,9 +134,12 @@ class AuftragController
                             <th>Auftragsnummer</th>
                             <th>Buchungen</th>
                             <th>Laufend</th>
+                            <th>Status</th>
                             <th>Stunden (Summe)</th>
                             <th>Erste Buchung</th>
                             <th>Letzte Buchung</th>
+                            <th>Aktiv</th>
+                            <th>Zuletzt bearbeitet</th>
                             <th>Aktion</th>
                         </tr>
                     </thead>
@@ -138,22 +147,30 @@ class AuftragController
                         <?php foreach ($auftraege as $row): ?>
                             <?php
                                 $nr = (string)($row['auftragsnummer'] ?? '');
+                                $aktivRaw = $row['auftrag_aktiv'] ?? null;
                                 $buchungen = (int)($row['buchungen'] ?? 0);
                                 $laufend = (int)($row['laufend'] ?? 0);
+                                $status = (string)($row['status'] ?? '');
                                 $sekunden = (int)($row['sekunden'] ?? 0);
                                 $stunden = $sekunden > 0 ? round($sekunden / 3600, 2) : 0.0;
                                 $erste = (string)($row['erste_startzeit'] ?? '');
                                 $letzte = (string)($row['letzte_zeit'] ?? '');
+                                $zuletztBearbeitet = (string)($row['zuletzt_bearbeitet'] ?? '');
 
                                 $nrEsc = htmlspecialchars($nr, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+                                $aktivText = $aktivRaw === null ? '-' : (((int)$aktivRaw === 1) ? 'Ja' : 'Nein');
+                                $statusText = $status !== '' ? $status : '-';
                             ?>
                             <tr>
                                 <td><?php echo $nrEsc; ?></td>
                                 <td><?php echo $buchungen; ?></td>
                                 <td><?php echo $laufend; ?></td>
+                                <td><?php echo htmlspecialchars($statusText, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></td>
                                 <td><?php echo number_format($stunden, 2, '.', ''); ?></td>
                                 <td><?php echo htmlspecialchars($erste, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></td>
                                 <td><?php echo htmlspecialchars($letzte, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></td>
+                                <td><?php echo $aktivText; ?></td>
+                                <td><?php echo htmlspecialchars($zuletztBearbeitet, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></td>
                                 <td>
                                     <?php if ($nr !== ''): ?>
                                         <a href="?seite=auftrag_detail&amp;code=<?php echo urlencode($nr); ?>">Details</a>
