@@ -340,6 +340,7 @@ CREATE TABLE `pausenentscheidung` (
   KEY `idx_pausenentscheidung_mid` (`mitarbeiter_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- Daten für Tabelle `pausenfenster`
 -- --------------------------------------------------------
 -- Tabellenstruktur für Tabelle `pausenfenster`
 -- --------------------------------------------------------
@@ -499,6 +500,7 @@ CREATE TABLE `sonstiges_grund` (
 INSERT INTO `sonstiges_grund` (`id`, `code`, `titel`, `default_stunden`, `begruendung_pflicht`, `aktiv`, `sort_order`, `kommentar`, `erstellt_am`, `geaendert_am`) VALUES
 (1, 'SoU', 'Sonderurlaub', 8.00, 1, 1, 1, NULL, '2026-01-04 10:53:16', '2026-01-04 10:53:16');
 
+-- Daten für Tabelle `sonstiges_grund`
 -- --------------------------------------------------------
 -- Tabellenstruktur für Tabelle `stundenkonto_batch`
 -- --------------------------------------------------------
