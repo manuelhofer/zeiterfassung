@@ -4,8 +4,8 @@
 - `01_initial_schema.sql`: **vollständiges** Datenbankschema für `zeiterfassung` (Neuinstallation).
 
 ## Migrationen (Updates bestehender Installationen)
-- `02_...` bis `28_...`: Schrittweise Migrationen fuer bestehende Datenbanken.
-- Hinweis: Fuer eine **Neuinstallation** werden diese Dateien **nicht** benoetigt.
+- Entfernt: Es gibt keine Instanzen, die ueber Migrationen aktualisiert werden muessen.
+- Falls spaeter doch Updates noetig sind, werden Migrationen separat bereitgestellt.
 
 ## Offline-DB (Terminal, optional)
 - `offline_db_schema.sql`: Minimal-Schema für eine **lokale** Terminal-DB `zeiterfassung_offline`.
