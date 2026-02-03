@@ -1074,8 +1074,6 @@ Keine externen PHP-Frameworks, nur Plain-PHP nach den Regeln aus dem Master-Prom
   - Initiales Datenbankschema (aus Upload übernommen).
 - `docs/master_prompt_zeiterfassung_v2.md`
   - Master-Prompt mit allen Regeln für dieses Projekt.
-- `docs/README_zeiterfassung.md`
-  - Überblick über Verzeichnisstruktur und Zweck.
 - `docs/DEV_PROMPT_HISTORY.md`
   - (Diese Datei) – beschreibt Verlauf und aktuellen Arbeits-Prompt.
 
@@ -1252,7 +1250,7 @@ Diesen Block 1:1 in einen neuen Chat mit ChatGPT einfügen, um an genau diesem P
 > - views/: Layout (header/footer), Login-Formular, Dashboard, einfache Zeit-/Urlaub-/Report-Views, Terminal-Platzhalter  
 > - public/: index.php (Backend-Front-Controller – aktuell nur statische Startseite), terminal.php (Terminal-Platzhalter), css/app.css  
 > - sql/: 01_initial_schema.sql mit der Datenbankstruktur  
-> - docs/: master_prompt_zeiterfassung_v2.md, README_zeiterfassung.md, DEV_PROMPT_HISTORY.md  
+> - docs/: master_prompt_zeiterfassung_v2.md, DEV_PROMPT_HISTORY.md  
 >  
 > WICHTIG:  
 > - Halte Dich an die Regeln aus `master_prompt_zeiterfassung_v2.md`.  
