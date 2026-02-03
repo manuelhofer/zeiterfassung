@@ -8,8 +8,7 @@ declare(strict_types=1);
  * - Lege **echte** Zugangsdaten ausschließlich in `/config/config.local.php`
  *   (nicht versioniert) oder per Umgebungsvariablen ab.
  * - Diese Datei enthält nur Default-/Beispielwerte.
- * - Die Datei `/config.php` ist nur noch ein Kompatibilitäts-Wrapper und
- *   enthält **keine** Zugangsdaten mehr.
+ * - Es gibt **nur eine** Konfigurationsquelle: diese Datei.
  */
 
 $lokaleConfig = __DIR__ . '/config.local.php';

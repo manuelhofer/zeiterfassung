@@ -21,6 +21,7 @@ Die Datei `config/config.php` enthält **keine** echten Zugangsdaten mehr. Lege
 deine produktiven Werte stattdessen in `config/config.local.php` (nicht
 versioniert) oder per Umgebungsvariablen ab. Eine Vorlage findest du in
 `config/config.php.example`.
+Es gibt bewusst **nur eine** Konfigurationsquelle im Projekt: `config/config.php`.
 
 ## Prompt-Archivierung
 
