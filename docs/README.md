@@ -39,3 +39,4 @@ Weitere alte Spezifikationen liegen ebenfalls im Archivordner `docs/archiv`.
 ## Weitere Dokumentation
 
 - Admin-Handbuch: [`docs/admin_handbuch.md`](admin_handbuch.md)
+- RFID-Reader-Setup: [`docs/rfid_reader_setup.md`](rfid_reader_setup.md)
