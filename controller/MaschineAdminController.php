@@ -335,6 +335,109 @@ class MaschineAdminController
     }
 
     /**
+     * Barcode fuer eine Maschine neu generieren.
+     */
+    public function barcodeNeuGenerieren(): void
+    {
+        if (!$this->pruefeZugriff()) {
+            return;
+        }
+
+        $idRaw = $_GET['id'] ?? '';
+        $id    = is_numeric($idRaw) ? (int)$idRaw : 0;
+
+        $fehlermeldung = null;
+        $erfolgsmeldung = null;
+        $maschine = null;
+
+        if ($id <= 0) {
+            $fehlermeldung = 'Ungueltige Maschinen-ID.';
+        } else {
+            try {
+                $maschine = $this->maschineModel->holeNachId($id);
+                if ($maschine === null) {
+                    $fehlermeldung = 'Die ausgewählte Maschine wurde nicht gefunden.';
+                }
+            } catch (\Throwable $e) {
+                $fehlermeldung = 'Die Maschine konnte nicht geladen werden.';
+                if (class_exists('Logger')) {
+                    Logger::error('Fehler beim Laden einer Maschine für Barcode-Neuerzeugung', [
+                        'id'        => $id,
+                        'exception' => $e->getMessage(),
+                    ], $id, null, 'maschine');
+                }
+            }
+        }
+
+        if ($maschine !== null && $fehlermeldung === null) {
+            $maschinenName = (string)($maschine['name'] ?? '');
+            $codeBildPfad = null;
+            $barcodeFallback = false;
+
+            try {
+                $qrService = new MaschineQrCodeService();
+                $codeBildPfad = $qrService->erzeugeMaschinenBarcode($id, $maschinenName);
+                if ($codeBildPfad === null) {
+                    $barcodeFallback = true;
+                    $codeBildPfad = $qrService->erzeugeMaschinenQrCode($id);
+                }
+                if ($codeBildPfad !== null) {
+                    $codeBildPfad = $this->normalisiereCodeBildPfad($codeBildPfad);
+                    $sql = 'UPDATE maschine
+                            SET code_bild_pfad = :code_bild_pfad
+                            WHERE id = :id';
+                    $this->datenbank->ausfuehren($sql, [
+                        'id' => $id,
+                        'code_bild_pfad' => $codeBildPfad,
+                    ]);
+                    $maschine['code_bild_pfad'] = $codeBildPfad;
+                }
+            } catch (\Throwable $e) {
+                $codeBildPfad = null;
+                if (class_exists('Logger')) {
+                    Logger::error('Fehler beim Neuerzeugen des Maschinen-Barcodes', [
+                        'id'        => $id,
+                        'exception' => $e->getMessage(),
+                    ], $id, null, 'maschine');
+                }
+            }
+
+            if ($codeBildPfad === null) {
+                $fehlermeldung = 'Der Barcode konnte nicht neu erzeugt werden. Bitte Schreibrechte im Verzeichnis public/uploads/maschinen_codes prüfen.';
+            } elseif ($barcodeFallback) {
+                $erfolgsmeldung = 'Der Barcode konnte nicht erstellt werden, daher wurde ein QR-Code hinterlegt.';
+            } else {
+                $erfolgsmeldung = 'Der Barcode wurde neu generiert.';
+            }
+        }
+
+        $abteilungen = [];
+        try {
+            $abteilungen = $this->abteilungModel->holeAlleAktiven();
+        } catch (\Throwable $e) {
+            $abteilungen = [];
+            if (class_exists('Logger')) {
+                Logger::error('Fehler beim Laden der Abteilungen für Barcode-Neuerzeugung', [
+                    'exception' => $e->getMessage(),
+                ], $id > 0 ? $id : null, null, 'maschine');
+            }
+        }
+
+        if ($maschine === null) {
+            $maschine = [
+                'id'           => $id,
+                'name'         => '',
+                'abteilung_id' => null,
+                'beschreibung' => '',
+                'code_bild_pfad' => null,
+                'aktiv'        => 1,
+            ];
+        }
+
+        $this->renderFormular($maschine, $abteilungen, $fehlermeldung, $erfolgsmeldung);
+    }
+
+    /**
      * Rendert das Formular (Neu/Bearbeiten).
      *
      * @param array<string,mixed> $maschine
@@ -431,6 +534,11 @@ class MaschineAdminController
                                 Noch kein Barcode gespeichert. Bitte die Maschine speichern.
                             </div>
                         <?php endif; ?>
+                        <div style="margin-top: 0.5rem;">
+                            <form method="post" action="?seite=maschine_admin_barcode_neu&amp;id=<?php echo $id; ?>">
+                                <button type="submit">Barcode neu generieren</button>
+                            </form>
+                        </div>
                         <div style="margin-top: 0.5rem; font-size: 0.9rem; color: #444;">
                             Scan-Code: <code><?php echo htmlspecialchars($scanDaten, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></code>
                         </div>

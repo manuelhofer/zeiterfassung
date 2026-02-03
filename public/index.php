@@ -79,6 +79,7 @@ try {
         'maschine_admin',
         'maschine_admin_bearbeiten',
         'maschine_admin_speichern',
+        'maschine_admin_barcode_neu',
         'abteilung_admin',
         'abteilung_admin_bearbeiten',
         'abteilung_admin_speichern',
@@ -210,6 +211,11 @@ try {
         case 'maschine_admin_speichern':
             $controller = new MaschineAdminController();
             $controller->speichern();
+            break;
+
+        case 'maschine_admin_barcode_neu':
+            $controller = new MaschineAdminController();
+            $controller->barcodeNeuGenerieren();
             break;
 
         case 'abteilung_admin':
