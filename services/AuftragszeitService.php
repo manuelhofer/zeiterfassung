@@ -644,6 +644,56 @@ class AuftragszeitService
             return null;
         }
 
+        $db = null;
+        if (class_exists('Database')) {
+            $db = Database::getInstanz();
+        }
+
+        $hauptDbOk = null;
+        if ($db !== null && method_exists($db, 'istHauptdatenbankVerfuegbar')) {
+            try {
+                $hauptDbOk = (bool)$db->istHauptdatenbankVerfuegbar();
+            } catch (\Throwable $e) {
+                $hauptDbOk = false;
+            }
+        }
+
+        if ($this->istTerminalInstallation() && $hauptDbOk === false) {
+            $zeitStr = $zeitpunkt->format('Y-m-d H:i:s');
+            $sql = 'INSERT INTO auftragszeit (mitarbeiter_id, auftrag_id, arbeitsschritt_id, auftragscode, arbeitsschritt_code, maschine_id, terminal_id, typ, startzeit, kommentar) '
+                . 'SELECT az.mitarbeiter_id, az.auftrag_id, az.arbeitsschritt_id, az.auftragscode, az.arbeitsschritt_code, az.maschine_id, az.terminal_id, '
+                . "'haupt', "
+                . $this->sqlQuote($zeitStr) . ', '
+                . $this->sqlNullableString($kommentar, 255)
+                . ' FROM auftragszeit az '
+                . 'WHERE az.mitarbeiter_id=' . (int)$mitarbeiterId
+                . " AND az.status='pausiert' AND az.typ='haupt'"
+                . ' AND NOT EXISTS (SELECT 1 FROM auftragszeit laufend'
+                . ' WHERE laufend.mitarbeiter_id=az.mitarbeiter_id AND laufend.status=\'laufend\' AND laufend.endzeit IS NULL)'
+                . ' ORDER BY az.endzeit DESC, az.id DESC'
+                . ' LIMIT 1';
+
+            try {
+                $ok = OfflineQueueManager::getInstanz()->speichereInQueue(
+                    $sql,
+                    $mitarbeiterId,
+                    null,
+                    'auftrag_fortsetzen'
+                );
+
+                return $ok ? ['id' => 0, 'typ' => 'haupt', 'queued' => true] : null;
+            } catch (\Throwable $e) {
+                if (class_exists('Logger')) {
+                    Logger::error('AuftragszeitService: Offline-Queue Auftrag fortsetzen fehlgeschlagen', [
+                        'mitarbeiter_id' => $mitarbeiterId,
+                        'exception' => $e->getMessage(),
+                    ], $mitarbeiterId, null, 'auftragszeit_service_offline');
+                }
+
+                return null;
+            }
+        }
+
         $laufende = $this->auftragszeitModel->holeLaufendeFuerMitarbeiter($mitarbeiterId);
         if (is_array($laufende) && count($laufende) > 0) {
             return null;
@@ -659,7 +709,7 @@ class AuftragszeitService
             return null;
         }
 
-        $typ = isset($pause['typ']) && (string)$pause['typ'] === 'neben' ? 'neben' : 'haupt';
+        $typ = 'haupt';
         $auftragId = isset($pause['auftrag_id']) ? (int)$pause['auftrag_id'] : null;
         $arbeitsschrittId = isset($pause['arbeitsschritt_id']) ? (int)$pause['arbeitsschritt_id'] : null;
         $arbeitsschrittCode = isset($pause['arbeitsschritt_code']) ? trim((string)$pause['arbeitsschritt_code']) : null;
@@ -691,6 +741,7 @@ class AuftragszeitService
             'auftragscode' => $auftragscode,
             'arbeitsschritt_code' => $arbeitsschrittCode,
             'typ' => $typ,
+            'queued' => false,
         ];
     }
 }
