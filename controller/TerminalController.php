@@ -2206,21 +2206,11 @@ class TerminalController
 
                 $tmp = [];
 
-                // Nachtschicht-Grenzfall: Kommen am Abend + Gehen am Folgetag frueh
+                // Nachtschicht-Grenzfall: Kommen (nachtshift=1) am Abend + Gehen am Folgetag frueh
                 // soll nicht als Warnung erscheinen (paarweise ueber Mitternacht).
-                // Wir filtern nur den sicheren Fall: genau 1 Stempel am Tag (nur Kommen oder nur Gehen).
                 $mid = (int)$mitarbeiter['id'];
-                $istNachtschichtGrenzfall = function (string $datum, array $r) use ($mid): bool {
-                    $anz = (int)($r['anzahl_buchungen'] ?? 0);
-                    $k = (int)($r['anzahl_kommen'] ?? 0);
-                    $g = (int)($r['anzahl_gehen'] ?? 0);
-                    if ($anz !== 1) {
-                        return false;
-                    }
-                    if (!(($k === 1 && $g === 0) || ($k === 0 && $g === 1))) {
-                        return false;
-                    }
-
+                $db = $this->datenbank;
+                $istNachtschichtGrenzfall = function (string $datum, array $r) use ($mid, $db): bool {
                     $d = DateTimeImmutable::createFromFormat('Y-m-d', $datum);
                     if (!$d) {
                         return false;
@@ -2228,31 +2218,31 @@ class TerminalController
                     $prev = $d->modify('-1 day')->format('Y-m-d');
                     $next = $d->modify('+1 day')->format('Y-m-d');
 
-                    $zeit = (string)($r['letzter_stempel'] ?? '');
-                    if ($zeit === '' || strlen($zeit) < 19) {
-                        return false;
-                    }
-                    $t = substr($zeit, 11, 8);
+                    $nachtKommen = function (string $tag) use ($db, $mid): ?string {
+                        $row = $db->fetchEine(
+                            "SELECT zeitstempel
+"
+                            . "FROM zeitbuchung
+"
+                            . "WHERE mitarbeiter_id = :mid
+"
+                            . "  AND typ = 'kommen'
+"
+                            . "  AND nachtshift = 1
+"
+                            . "  AND DATE(zeitstempel) = :d
+"
+                            . "ORDER BY zeitstempel DESC
+"
+                            . "LIMIT 1",
+                            ['mid' => $mid, 'd' => $tag]
+                        );
+                        return is_array($row) ? (string)($row['zeitstempel'] ?? '') : '';
+                    };
 
-                    $db = $this->datenbank;
-
-                    // Fall A: Tag hat nur Kommen am Abend, Folgetag hat nur Gehen frueh
-                    if ($k === 1) {
-                        if (!($t >= '18:00:00' && $t <= '23:59:59')) {
-                            return false;
-                        }
-                        $r2 = $db->fetchEinzel(
-                            "SELECT
-"
-                            . "  SUM(CASE WHEN typ='kommen' THEN 1 ELSE 0 END) AS anzahl_kommen,
-"
-                            . "  SUM(CASE WHEN typ='gehen' THEN 1 ELSE 0 END) AS anzahl_gehen,
-"
-                            . "  COUNT(*) AS anzahl_buchungen,
-"
-                            . "  MIN(zeitstempel) AS erster_stempel,
-"
-                            . "  MAX(zeitstempel) AS letzter_stempel
+                    $fruehesGehen = function (string $tag) use ($db, $mid): ?string {
+                        $row = $db->fetchEine(
+                            "SELECT typ, zeitstempel
 "
                             . "FROM zeitbuchung
 "
@@ -2262,69 +2252,46 @@ class TerminalController
 "
                             . "  AND DATE(zeitstempel) = :d
 "
-                            . "GROUP BY DATE(zeitstempel)",
-                            ['mid' => $mid, 'd' => $next]
+                            . "ORDER BY zeitstempel ASC
+"
+                            . "LIMIT 1",
+                            ['mid' => $mid, 'd' => $tag]
                         );
-                        if (!is_array($r2)) {
+                        if (!is_array($row)) {
+                            return null;
+                        }
+                        if ((string)($row['typ'] ?? '') !== 'gehen') {
+                            return null;
+                        }
+                        return (string)($row['zeitstempel'] ?? '');
+                    };
+
+                    $checkPair = function (?string $kommen, ?string $gehen): bool {
+                        if ($kommen === '' || $gehen === '') {
                             return false;
                         }
-                        if ((int)($r2['anzahl_buchungen'] ?? 0) !== 1) {
+                        if (strlen($kommen ?? '') < 19 || strlen($gehen ?? '') < 19) {
                             return false;
                         }
-                        if ((int)($r2['anzahl_gehen'] ?? 0) !== 1 || (int)($r2['anzahl_kommen'] ?? 0) !== 0) {
+                        try {
+                            $kDt = new DateTimeImmutable($kommen);
+                            $gDt = new DateTimeImmutable($gehen);
+                        } catch (Throwable $e) {
                             return false;
                         }
-                        $z2 = (string)($r2['erster_stempel'] ?? '');
-                        if ($z2 === '' || strlen($z2) < 19) {
-                            return false;
-                        }
-                        $t2 = substr($z2, 11, 8);
-                        return ($t2 >= '00:00:00' && $t2 <= '06:00:00');
+                        $diff = $gDt->getTimestamp() - $kDt->getTimestamp();
+                        return ($diff > 0 && $diff <= 12 * 3600);
+                    };
+
+                    $kommenHeute = $nachtKommen($datum);
+                    $gehenMorgen = $fruehesGehen($next);
+                    if ($checkPair($kommenHeute, $gehenMorgen)) {
+                        return true;
                     }
 
-                    // Fall B: Tag hat nur Gehen frueh, Vortag hat nur Kommen am Abend
-                    if (!($t >= '00:00:00' && $t <= '06:00:00')) {
-                        return false;
-                    }
-                    $r1 = $db->fetchEinzel(
-                        "SELECT
-"
-                        . "  SUM(CASE WHEN typ='kommen' THEN 1 ELSE 0 END) AS anzahl_kommen,
-"
-                        . "  SUM(CASE WHEN typ='gehen' THEN 1 ELSE 0 END) AS anzahl_gehen,
-"
-                        . "  COUNT(*) AS anzahl_buchungen,
-"
-                        . "  MIN(zeitstempel) AS erster_stempel,
-"
-                        . "  MAX(zeitstempel) AS letzter_stempel
-"
-                        . "FROM zeitbuchung
-"
-                        . "WHERE mitarbeiter_id = :mid
-"
-                        . "  AND typ IN ('kommen','gehen')
-"
-                        . "  AND DATE(zeitstempel) = :d
-"
-                        . "GROUP BY DATE(zeitstempel)",
-                        ['mid' => $mid, 'd' => $prev]
-                    );
-                    if (!is_array($r1)) {
-                        return false;
-                    }
-                    if ((int)($r1['anzahl_buchungen'] ?? 0) !== 1) {
-                        return false;
-                    }
-                    if ((int)($r1['anzahl_kommen'] ?? 0) !== 1 || (int)($r1['anzahl_gehen'] ?? 0) !== 0) {
-                        return false;
-                    }
-                    $z1 = (string)($r1['letzter_stempel'] ?? '');
-                    if ($z1 === '' || strlen($z1) < 19) {
-                        return false;
-                    }
-                    $t1 = substr($z1, 11, 8);
-                    return ($t1 >= '18:00:00' && $t1 <= '23:59:59');
+                    $kommenGestern = $nachtKommen($prev);
+                    $gehenHeute = $fruehesGehen($datum);
+                    return $checkPair($kommenGestern, $gehenHeute);
                 };
 
                 foreach ($rows as $r) {
