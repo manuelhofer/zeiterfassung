@@ -38,7 +38,7 @@ Die folgenden Regeln und Anforderungen gelten für **alle** zukünftigen Antwort
        - `XX` = fortlaufende Nummer am Tag (z. B. `01`, `02`, ...)
        - `<kurzbeschreibung>` = kurzer Slug in `kebab-case` (nur a-z, 0-9, `-`, keine Umlaute), z. B. `report-kommen-gehen`
    - Die **Patch-ID** ist der vordere Teil bis inkl. `-XX` (z. B. `P-2025-12-21-06`).
-   - In `docs/DEV_PROMPT_HISTORY.md` muss pro Patch ein Eintrag existieren, der **Patch-ID** und **ZIP-Dateiname** eindeutig referenziert.
+   - `docs/DEV_PROMPT_HISTORY.md` ist ein **Snapshot-Dokument** (kein Vollverlauf) und wird **nicht** als Pflichtbestandteil jeder Veroeffentlichung gefuehrt.
 
 3. **Ausnahmen für SQL**
    - Falls der Nutzer **ausdrücklich** danach fragt, darfst du zusätzlich zur ZIP **reine SQL-Statements** im Chat ausgeben, die 1:1 in phpMyAdmin eingefügt werden können (z. B. kleine Migrationen, Hotfixes).
@@ -106,20 +106,11 @@ Die folgenden Regeln und Anforderungen gelten für **alle** zukünftigen Antwort
 ---
 
 
-7. **DEV_PROMPT_HISTORY – Pflichtformat & Aktualisierung**
+7. **DEV_PROMPT_HISTORY – Snapshot (optional)**
    - Datei: `docs/DEV_PROMPT_HISTORY.md`
-   - Diese Datei muss **bei jedem Patch** aktualisiert und in der ZIP mitgeliefert werden.
-   - Aufbau (oben in der Datei – zuerst lesen):
-     - `KI-SNAPSHOT (immer aktuell, max. 1–2 Bildschirmseiten)` mit:
-       - **Source of Truth** (DB-Schema-Datei, z. B. `zeiterfassung_aktuell.sql`)
-       - **Entry Points** (Backend/Terminal)
-       - **Zuletzt erledigt**
-       - **Bekannte Bugs (offen)**
-       - **Offene Tasks (priorisiert)**
-       - **Nächster Schritt (konkret)** – immer genau beschreiben, was als nächstes zu implementieren ist
-   - Danach folgt der Block **„VOLLER VERLAUF“** (chronologisch):
-     - Darf **nicht** gelöscht werden (alle bisherigen Infos bleiben erhalten).
-     - Pro Patch ein Eintrag mit Datum, kurzer Done-Info und Next-Step.
+   - Die Datei enthaelt **nur den Snapshot** fuer den aktuellen Projektstand.
+   - Ein **voller Verlauf/Archiv** ist **nicht mehr Teil der Veroeffentlichung**.
+   - Der Snapshot kann bei Bedarf aktualisiert werden, ist aber **keine Pflichtdatei** fuer jede ZIP.
 
 
 7a. **Rechte-Prompt (Source of Truth für Berechtigungen)**
@@ -133,32 +124,31 @@ Die folgenden Regeln und Anforderungen gelten für **alle** zukünftigen Antwort
      1. **Inputs prüfen (Source of Truth):**
         - Aktuelles Projekt-ZIP (vom Nutzer),
         - `docs/master_prompt_zeiterfassung_v12.md`,
-        - `docs/DEV_PROMPT_HISTORY.md` (SNAPSHOT + mind. die letzten 3 Patches lesen),
+        - `docs/DEV_PROMPT_HISTORY.md` (falls vorhanden, Snapshot lesen),
         - `docs/rechte_prompt.md` (falls vorhanden),
         - `zeiterfassung_aktuell.sql`.
         - **Wenn eine dieser Dateien fehlt/abgelaufen ist:** keine Implementierung starten – im Chat um Re-Upload bitten.
      2. **Hash-Nachweis (Pflicht):**
         - SHA256 von Projekt-ZIP + den o. g. Dateien berechnen.
-        - Diese Hashes im neuen Patch-Eintrag in `docs/DEV_PROMPT_HISTORY.md` unter **„EINGELESEN (SHA256)“** dokumentieren.
+        - Falls `docs/DEV_PROMPT_HISTORY.md` gepflegt wird: Hashes dort dokumentieren.
      3. **Duplicate-Check (Pflicht):**
-        - Vor dem Implementieren prüfen, ob das Ziel bereits in **„Erledigte Tasks“**, **„Bekannte Bugs (DONE)“** oder im LOG (per T-/B-/D-ID) enthalten ist.
+        - Vor dem Implementieren prüfen, ob das Ziel bereits in **„Zuletzt erledigt“** oder **„Bekannte Bugs (DONE)“** enthalten ist.
         - Ergebnis im Patch-Eintrag dokumentieren (Block **„DUPLICATE-CHECK“**).
         - Wenn bereits erledigt: **nicht erneut implementieren**, sondern den nächsten offenen Task nehmen oder im Chat melden.
      4. **Task-Disziplin:**
         - Es werden nur Tasks umgesetzt, die entweder im SNAPSHOT unter **„Offene Tasks“** stehen oder die der Nutzer **explizit** beauftragt.
      5. **Änderungsliste vorab (Pflicht):**
-        - Im Patch-Eintrag muss eine Liste stehen: **„DATEIEN (max. 3)“** = die geplanten/angepassten Relativpfade.
+        - Im Patch-Eintrag (falls gepflegt) muss eine Liste stehen: **„DATEIEN (max. 3)“** = die geplanten/angepassten Relativpfade.
      6. **Gültigkeitsregel für Patches:**
-        - Ein Patch-ZIP gilt als **ungültig**, wenn der DEV_PROMPT_HISTORY-Eintrag die Blöcke
-          **EINGELESEN (SHA256)** + **DUPLICATE-CHECK** + **DATEIEN (max. 3)** nicht enthält.
+        - Ein Patch-ZIP gilt **nicht** mehr als ungültig, wenn kein DEV_PROMPT_HISTORY-Eintrag existiert.
 
 
 
 9. **Task-Splitting & Patch-Größe (Pflicht)**
    - Ziel: Jede Iteration ist so klein, dass am Ende **immer** eine gültige Patch-ZIP entsteht (Master-Prompt-Regeln erfüllt).
    - **1 Patch = 1 Thema / 1 sichtbarer Effekt.** Keine Misch-Patches (z. B. nicht gleichzeitig UI + DB + PDF „nebenbei“).
-   - **Datei-Budget-Regel:** Maximal **3 Dateien pro Patch**. Da `docs/DEV_PROMPT_HISTORY.md` **immer** in der ZIP sein muss, bleiben meist **nur 2 weitere Dateien** für Code/SQL/Views.
-     - Wenn zusätzlich der Master-Prompt angepasst werden muss, bleibt oft **nur 1 weitere Datei** → Task **automatisch splitten**.
+   - **Datei-Budget-Regel:** Maximal **3 Dateien pro Patch**.
+     - Wenn zusätzlich der Master-Prompt angepasst werden muss, bleibt oft **nur 2 weitere Dateien** → Task **automatisch splitten**.
    - Wenn bei Planung/Umsetzung klar wird, dass mehr Dateien nötig wären: **sofort stoppen**, Änderungen zurückhalten und den Task in **Teil-Patches** aufteilen.
    - Jeder Patch braucht **1 Akzeptanzkriterium in genau 1 Satz** (konkretes Beispiel/Erwartung) und dokumentiert es im Patch-Eintrag unter **DONE/NEXT**.
    - Keine „Refactors nebenbei“: Es wird nur geändert, was für das Akzeptanzkriterium zwingend notwendig ist.
@@ -1022,24 +1012,10 @@ Je nach Rolle werden Buttons angezeigt:
 
 ## 20. DEV_PROMPT_HISTORY & Projekt-Historie
 
-- Im Projekt gibt es die Datei `docs/DEV_PROMPT_HISTORY.md`, die den bisherigen Verlauf, wichtige Design-Entscheidungen und den aktuellen Arbeits-Prompt bündelt.
-- Diese Datei ist **verpflichtender Bestandteil jeder ZIP-Antwort** und muss vom Assistenten bei jedem Arbeitsschritt gepflegt werden.
-- Pflege-Regeln für `DEV_PROMPT_HISTORY.md`:
-  - Neue Schritte werden chronologisch im Verlauf ergänzt (Datum, kurze Beschreibung, betroffene Dateien/Bereiche).
-  - Erledigte Punkte aus „Offene Punkte / Nächste sinnvolle Schritte“ werden dort als erledigt erkennbar dokumentiert.
-  - Am **Ende der Datei** steht immer ein Block in der Form:
-
-    ```markdown
-    ### Aktueller Status (YYYY-MM-DD)
-
-    - **Zuletzt erledigt:** <kurze Beschreibung des letzten abgeschlossenen Schritts>
-    - **Nächster geplanter Schritt:** <konkreter, nächster Arbeitsschritt>
-    ```
-
-  - Dieser Block wird bei **jeder neuen ZIP-Antwort** vom Assistenten aktualisiert:
-    - „Zuletzt erledigt“ beschreibt, was in der gerade gelieferten ZIP umgesetzt wurde.
-    - „Nächster geplanter Schritt“ beschreibt, was fachlich/technisch als nächstes folgen soll.
-- Der Master-Prompt selbst (`docs/master_prompt_zeiterfassung_v12.md`) ist ebenfalls immer in der ZIP enthalten und wird angepasst, wenn sich Meta-Regeln (wie diese) verändern.
+- Im Projekt gibt es die Datei `docs/DEV_PROMPT_HISTORY.md`, die **nur den Snapshot** fuer den aktuellen Arbeitsstand enthaelt.
+- Ein **voller Verlauf/Archiv** ist **nicht mehr Teil der Veroeffentlichung**.
+- Die Datei ist **kein verpflichtender Bestandteil** jeder ZIP-Antwort und wird nur bei Bedarf gepflegt.
+- Der Master-Prompt selbst (`docs/master_prompt_zeiterfassung_v12.md`) wird angepasst, wenn sich Meta-Regeln (wie diese) veraendern.
 
 ---
 

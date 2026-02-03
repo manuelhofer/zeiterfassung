@@ -14,10 +14,10 @@ Bevor irgendetwas implementiert wird:
 
 1) Master-Regeln lesen und strikt befolgen:
    - `docs/master_prompt_zeiterfassung_v10.md`
-   - Ausgabeformat: **nur ZIP**, max. 3 Dateien pro Patch (inkl. `docs/DEV_PROMPT_HISTORY.md`).
+   - Ausgabeformat: **nur ZIP**, max. 3 Dateien pro Patch.
 
 2) Entwicklungsstand lesen:
-   - `docs/DEV_PROMPT_HISTORY.md` (SNAPSHOT + letzte Patches)
+   - `docs/DEV_PROMPT_HISTORY.md` (falls vorhanden, Snapshot lesen)
 
 3) Rechte-System verstehen:
    - `docs/rechte_prompt.md`
@@ -273,7 +273,7 @@ Jede Aenderung am Stundenkonto muss nachvollziehbar sein:
 
 ## 10) Patch-Splitting (verbindlich nach Master-Prompt)
 
-Max. 3 Dateien pro Patch (inkl. `docs/DEV_PROMPT_HISTORY.md`). Deshalb: konsequent in Teilpatches.
+Max. 3 Dateien pro Patch. Deshalb: konsequent in Teilpatches.
 
 Empfohlene Reihenfolge (nur Plan, nicht alles auf einmal):
 
@@ -315,4 +315,3 @@ Jeder Patch:
 - Backend erlaubt Korrekturen mit Begruendung und Rechtsschutz.
 - Verteilbuchung erzeugt nachvollziehbare Tagesbuchungen (Minutenbasis) und ist auditierbar.
 - Monatsuebersicht (HTML + PDF) zeigt „Saldo vor Monat“ zusaetzlich zum Monatssaldo.
-
