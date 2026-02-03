@@ -774,7 +774,7 @@ P-2026-01-25-02_dashboard-zeitwarnungen-derived-table.zip
   - DEV_PROMPT_HISTORY: SNAPSHOT aktualisiert + Patch dokumentiert.
   - Akzeptanzkriterium: In Master- und Dev-Prompt steht, dass das Auftragsmodul zuerst als eigener Prompt spezifiziert wird und die Implementierung nur auf ausdruecklichen Auftrag erfolgt.
 - **NEXT:**
-  - Doku-Patch: `docs/auftrags_prompt_v1.md` erstellen (Auftrag + Arbeitsschritte + optional Maschine/Barcode) ohne bestehende Funktionen anzutasten.
+  - Doku-Patch: `docs/archiv/auftrags_prompt_v1.md` erstellen (Auftrag + Arbeitsschritte + optional Maschine/Barcode) ohne bestehende Funktionen anzutasten.
 
 
 ## P-2026-01-18-16
@@ -10094,18 +10094,18 @@ Pflicht-Begründungen für Tagesfelder (Kurzarbeit/Krank/Sonstiges) sollen in de
   - Rechte-Prompt (aus ZIP): `docs/rechte_prompt.md` = `5d8a5925bc2cf0dff364e500996c42fdeefe5f0b953cead7807ae642b70e7fc1`
   - SQL-Schema (SoT, aus ZIP): `sql/01_initial_schema.sql` = `b0088149d6f39bd7c0dc6e41dff197fea496ddcb7a3afca838140f6b50fd33de`
   - Zusatz (DB-Dump, aus ZIP): `sql/zeiterfassung_aktuell.sql` = `6ffbe22edafbe20bf6d8c95deaf442cc4e35ceec497531ed4ee8a3fbb561c138`
-  - Zusatz 1 (Scope alt, aus ZIP): `docs/zusatzpromt.md` = `1d80dc1a3718e7b495fbae5615840448ada0ad7a14281bb57618f11dc8bf4f58`
+  - Zusatz 1 (Scope alt, aus ZIP): `docs/archiv/zusatzpromt.md` = `1d80dc1a3718e7b495fbae5615840448ada0ad7a14281bb57618f11dc8bf4f58`
 - **DUPLICATE-CHECK:**
-  - Geprueft: `docs/zusatz2promt.md` existierte noch nicht.
+  - Geprueft: `docs/archiv/zusatz2promt.md` existierte noch nicht.
 - **DATEIEN (max. 3):**
-  1) `docs/zusatz2promt.md`
+  1) `docs/archiv/zusatz2promt.md`
   2) `docs/DEV_PROMPT_HISTORY.md`
 - **DONE:**
   - Neuer Zusatz-Prompt 2 erstellt: Stundenkonto (Gutstunden/Minusstunden) inkl. Strategie (Monatsaggregation), Datenmodell (Korrektur-Ledger + Batch), Backend/Terminal/PDF-Anforderungen und Micro-Patch-Plan.
 - **AKZEPTANZ:**
-  - `docs/zusatz2promt.md` ist im Projekt vorhanden und beschreibt die Stundenkonto-Umsetzung inkl. rueckwirkender Verteilungen so, dass eine LLM direkt danach implementieren kann.
+  - `docs/archiv/zusatz2promt.md` ist im Projekt vorhanden und beschreibt die Stundenkonto-Umsetzung inkl. rueckwirkender Verteilungen so, dass eine LLM direkt danach implementieren kann.
 - **TESTS:**
-  - `sha256sum docs/zusatz2promt.md`
+  - `sha256sum docs/archiv/zusatz2promt.md`
 - **NEXT:**
   - Naechster Patch: DB-Migration fuer `stundenkonto_korrektur` + `stundenkonto_batch` und neues Recht `STUNDENKONTO_VERWALTEN` (danach Service + Terminal-Anzeige).
 
@@ -10806,7 +10806,7 @@ Eintrittsdatum im Mitarbeiter-Admin pflegbar machen, damit die Urlaubslogik (Ein
   - SQL-Schema (SoT): `sql/01_initial_schema.sql` = `70114c586e4f366bdc339efa58bfd4ef7dc85a7a22ac960e21995f604faf985e`
   - Zusatz (Offline-Schema): `sql/offline_db_schema.sql` = `165bd68e62f4a776d2425d108fbf0775497ade28f5a1e8242069c1cf084177c9`
   - Zusatz (DB-Dump): `sql/zeiterfassung_aktuell.sql` = `9c62b1709c4729cca8a3b59e7a700c25ef23907592b9cc5256e5d78649e29cee`
-  - Zusatz (Auftrags-Scope): `docs/docs/auftrags_prompt_v1.md` = `35142adf8d89ca7df88472aa50186da5c659a29928754ffc3354259ce54467cc`
+  - Zusatz (Auftrags-Scope): `docs/docs/archiv/auftrags_prompt_v1.md` = `35142adf8d89ca7df88472aa50186da5c659a29928754ffc3354259ce54467cc`
 - **DUPLICATE-CHECK:**
   - SNAPSHOT/LOG geprueft: Kein Eintrag `P-2026-01-18-26` vorhanden → OK
 - **DATEIEN (max. 3):**
@@ -10884,15 +10884,15 @@ Eintrittsdatum im Mitarbeiter-Admin pflegbar machen, damit die Urlaubslogik (Ein
   - SQL-Schema (SoT): `sql/01_initial_schema.sql` = `70114c586e4f366bdc339efa58bfd4ef7dc85a7a22ac960e21995f604faf985e`
   - Zusatz (Offline-Schema): `sql/offline_db_schema.sql` = `165bd68e62f4a776d2425d108fbf0775497ade28f5a1e8242069c1cf084177c9`
   - Zusatz (DB-Dump): `sql/zeiterfassung_aktuell.sql` = `9c62b1709c4729cca8a3b59e7a700c25ef23907592b9cc5256e5d78649e29cee`
-  - Zusatz (Auftrags-Prompt): `docs/auftrags_prompt_v1.md` = `35142adf8d89ca7df88472aa50186da5c659a29928754ffc3354259ce54467cc`
+  - Zusatz (Auftrags-Prompt): `docs/archiv/auftrags_prompt_v1.md` = `35142adf8d89ca7df88472aa50186da5c659a29928754ffc3354259ce54467cc`
 - **DUPLICATE-CHECK:**
   - SNAPSHOT/LOG geprueft: Kein Eintrag `P-2026-01-18-33` vorhanden → OK
 - **DATEIEN (max. 3):**
-  - `docs/auftrags_prompt_v1.md`
+  - `docs/archiv/auftrags_prompt_v1.md`
   - `docs/dev_prompt_zeiterfassung_v12.md`
   - `docs/DEV_PROMPT_HISTORY.md`
 - **DONE:**
-  - Doku: `docs/auftrags_prompt_v1.md` im Projektstand abgelegt.
+  - Doku: `docs/archiv/auftrags_prompt_v1.md` im Projektstand abgelegt.
   - Dev-Prompt: Auftragsmodul-Stand kurz aktualisiert.
   - History: P-2026-01-18-31/32 nachgetragen + SNAPSHOT aktualisiert.
 - **NEXT:**
@@ -11204,7 +11204,7 @@ Eintrittsdatum im Mitarbeiter-Admin pflegbar machen, damit die Urlaubslogik (Ein
   - SQL-Schema (SoT): `sql/01_initial_schema.sql` = `70114c586e4f366bdc339efa58bfd4ef7dc85a7a22ac960e21995f604faf985e`
   - Zusatz (Offline-Schema): `sql/offline_db_schema.sql` = `165bd68e62f4a776d2425d108fbf0775497ade28f5a1e8242069c1cf084177c9`
   - Zusatz (DB-Dump): `sql/zeiterfassung_aktuell.sql` = `9c62b1709c4729cca8a3b59e7a700c25ef23907592b9cc5256e5d78649e29cee`
-  - Zusatz (Auftrags-Scope): `docs/docs/auftrags_prompt_v1.md` = `35142adf8d89ca7df88472aa50186da5c659a29928754ffc3354259ce54467cc`
+  - Zusatz (Auftrags-Scope): `docs/docs/archiv/auftrags_prompt_v1.md` = `35142adf8d89ca7df88472aa50186da5c659a29928754ffc3354259ce54467cc`
 - **DUPLICATE-CHECK:**
   - SNAPSHOT/LOG geprueft: Task „Auftrag starten ausblenden wenn Hauptauftrag laeuft“ war nur als NEXT in P-2026-01-18-24 dokumentiert → noch nicht umgesetzt → OK.
 - **DATEIEN (max. 3):**

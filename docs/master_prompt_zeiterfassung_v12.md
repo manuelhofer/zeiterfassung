@@ -17,7 +17,7 @@ Die folgenden Regeln und Anforderungen gelten für **alle** zukünftigen Antwort
 - Weiterentwicklung: Es wird **nur** noch gearbeitet, wenn **Bugs gefunden** werden oder wenn der Nutzer **ausdrücklich** eine Erweiterung beauftragt.
 - Arbeitsmodus: Erst **reproduzierbarer Bugreport** (Schritte/Erwartung/Ist), dann **Micro-Patch** nach den Patch-Regeln.
 - Erweiterungen: Neue Funktionsbereiche werden zuerst in separaten Prompt-Dateien spezifiziert (z. B. Auftrags-Scan/Arbeitsschritte), bevor implementiert wird.
-  - Spezifikation Auftragsmodul (neu): `docs/auftrags_prompt_v1.md` (siehe naechster Patch).
+  - Hinweis: Aeltere Spezifikationen liegen im Archiv (`docs/archiv`).
 
 ---
 
