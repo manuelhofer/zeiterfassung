@@ -43,7 +43,7 @@ require __DIR__ . '/_layout_top.php';
         <label for="arbeitsschritt_code">Arbeitsschritt-Code</label>
         <input type="text" id="arbeitsschritt_code" name="arbeitsschritt_code" autocomplete="off" required>
 
-        <label for="maschine_id">Maschinen-ID (optional)</label>
+        <label for="maschine_id">Maschinen-ID (optional, Barcode: id_name möglich)</label>
         <input type="text" id="maschine_id" name="maschine_id" inputmode="numeric" autocomplete="off" placeholder="z.B. 12">
 
         <div class="button-row">
