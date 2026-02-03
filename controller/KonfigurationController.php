@@ -226,7 +226,16 @@ class KonfigurationController
             return;
         }
 
-if (!$this->pruefeZugriff()) {
+        if ($tab === 'systemlog') {
+            if (!$this->pruefeZugriff()) {
+                return;
+            }
+
+            $this->indexSystemlog();
+            return;
+        }
+
+        if (!$this->pruefeZugriff()) {
             return;
         }
 
@@ -256,6 +265,7 @@ if (!$this->pruefeZugriff()) {
                 | <a href="?seite=konfiguration_admin&amp;tab=krankzeitraum">Krank (LFZ/KK)</a>
                 | <a href="?seite=konfiguration_admin&amp;tab=pausen">Pausenregeln</a>
                 | <a href="?seite=konfiguration_admin&amp;tab=sonstiges">Sonstiges-Gründe</a>
+                | <a href="?seite=konfiguration_admin&amp;tab=systemlog">System-Log</a>
             </p>
 
             <p>
@@ -317,6 +327,115 @@ if (!$this->pruefeZugriff()) {
             <p style="margin-top:0.75rem; color:#555;">
                 Hinweis: Änderungen wirken sofort. Defaults werden automatisch über <code>DefaultsSeeder</code> angelegt, falls Einträge fehlen.
             </p>
+        </section>
+        <?php
+        require __DIR__ . '/../views/layout/footer.php';
+    }
+
+    /**
+     * Admin-UI: System-Log (Info/Warn/Error) anzeigen.
+     */
+    private function indexSystemlog(): void
+    {
+        $limit = 200;
+        $limit = max(10, min(500, $limit));
+
+        $fehlermeldung = null;
+        $eintraege = [];
+
+        try {
+            $sql = "SELECT l.zeitstempel, l.loglevel, l.kategorie, l.nachricht, l.daten, l.mitarbeiter_id, l.terminal_id,
+                           m.vorname AS m_vorname, m.nachname AS m_nachname
+                    FROM system_log l
+                    LEFT JOIN mitarbeiter m ON m.id = l.mitarbeiter_id
+                    WHERE LOWER(l.loglevel) IN ('info', 'warn', 'error')
+                    ORDER BY l.zeitstempel DESC
+                    LIMIT " . (int)$limit;
+            $eintraege = $this->datenbank->fetchAlle($sql);
+        } catch (Throwable $e) {
+            $fehlermeldung = 'Das System-Log konnte nicht geladen werden.';
+            if (class_exists('Logger')) {
+                Logger::error('Fehler beim Laden des System-Logs', [
+                    'exception' => $e->getMessage(),
+                ], $this->authService->holeAngemeldeteMitarbeiterId(), null, 'system_log');
+            }
+        }
+
+        require __DIR__ . '/../views/layout/header.php';
+        ?>
+        <section>
+            <h2>System-Log</h2>
+
+            <p style="margin-top:0.25rem;">
+                <a href="?seite=konfiguration_admin">Konfiguration</a>
+                | <a href="?seite=konfiguration_admin&amp;tab=krankzeitraum">Krank (LFZ/KK)</a>
+                | <a href="?seite=konfiguration_admin&amp;tab=pausen">Pausenregeln</a>
+                | <a href="?seite=konfiguration_admin&amp;tab=sonstiges">Sonstiges-Gründe</a>
+                | <a href="?seite=konfiguration_admin&amp;tab=systemlog">System-Log</a>
+            </p>
+
+            <p style="color:#555;max-width:60rem;">
+                Angezeigt werden die letzten <?php echo (int)$limit; ?> Einträge (Info, Warnung, Fehler).
+            </p>
+
+            <?php if (!empty($fehlermeldung)): ?>
+                <div class="fehlermeldung">
+                    <?php echo htmlspecialchars((string)$fehlermeldung, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>
+                </div>
+            <?php endif; ?>
+
+            <?php if (count($eintraege) === 0): ?>
+                <p>Es sind derzeit keine Log-Einträge vorhanden.</p>
+            <?php else: ?>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Zeit</th>
+                            <th>Level</th>
+                            <th>Kategorie</th>
+                            <th>Nachricht</th>
+                            <th>Daten</th>
+                            <th>Mitarbeiter</th>
+                            <th>Terminal</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($eintraege as $e): ?>
+                            <?php
+                                $zeit = (string)($e['zeitstempel'] ?? '');
+                                $level = strtolower((string)($e['loglevel'] ?? ''));
+                                $kategorie = (string)($e['kategorie'] ?? '');
+                                $nachricht = (string)($e['nachricht'] ?? '');
+                                $daten = (string)($e['daten'] ?? '');
+                                $mitarbeiterId = (int)($e['mitarbeiter_id'] ?? 0);
+                                $terminalId = (int)($e['terminal_id'] ?? 0);
+                                $mVorname = trim((string)($e['m_vorname'] ?? ''));
+                                $mNachname = trim((string)($e['m_nachname'] ?? ''));
+                                $mitarbeiterName = trim($mNachname . ', ' . $mVorname);
+                                if ($mitarbeiterName === '' && $mitarbeiterId > 0) {
+                                    $mitarbeiterName = 'Mitarbeiter #' . $mitarbeiterId;
+                                }
+                                $datenKurz = $daten !== '' && mb_strlen($daten) > 120 ? (mb_substr($daten, 0, 120) . '…') : $daten;
+                            ?>
+                            <tr>
+                                <td><?php echo htmlspecialchars($zeit, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></td>
+                                <td><?php echo htmlspecialchars($level !== '' ? strtoupper($level) : '-', ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></td>
+                                <td><?php echo htmlspecialchars($kategorie !== '' ? $kategorie : '-', ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></td>
+                                <td><?php echo htmlspecialchars($nachricht, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></td>
+                                <td>
+                                    <?php if ($datenKurz !== ''): ?>
+                                        <code><?php echo htmlspecialchars($datenKurz, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></code>
+                                    <?php else: ?>
+                                        -
+                                    <?php endif; ?>
+                                </td>
+                                <td><?php echo htmlspecialchars($mitarbeiterName !== '' ? $mitarbeiterName : '-', ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></td>
+                                <td><?php echo $terminalId > 0 ? (int)$terminalId : '-'; ?></td>
+                            </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            <?php endif; ?>
         </section>
         <?php
         require __DIR__ . '/../views/layout/footer.php';
@@ -586,6 +705,7 @@ if (!$this->pruefeZugriff()) {
                 | <a href="?seite=konfiguration_admin&amp;tab=krankzeitraum">Krank (LFZ/KK)</a>
                 | <a href="?seite=konfiguration_admin&amp;tab=pausen">Pausenregeln</a>
                 | <a href="?seite=konfiguration_admin&amp;tab=sonstiges">Sonstiges-Gründe</a>
+                | <a href="?seite=konfiguration_admin&amp;tab=systemlog">System-Log</a>
             </p>
 
             <p style="color:#555;max-width:60rem;">
@@ -1074,6 +1194,7 @@ if (!$this->pruefeZugriff()) {
                 | <a href="?seite=konfiguration_admin&amp;tab=krankzeitraum">Krank (LFZ/KK)</a>
                 | <a href="?seite=konfiguration_admin&amp;tab=pausen">Pausenregeln</a>
                 | <a href="?seite=konfiguration_admin&amp;tab=sonstiges">Sonstiges-Gründe</a>
+                | <a href="?seite=konfiguration_admin&amp;tab=systemlog">System-Log</a>
             </p>
 
             <p style="color:#555;max-width:60rem;">
@@ -1467,6 +1588,7 @@ if (!$this->pruefeZugriff()) {
                 | <a href="?seite=konfiguration_admin&amp;tab=krankzeitraum">Krank (LFZ/KK)</a>
                 | <a href="?seite=konfiguration_admin&amp;tab=pausen">Pausenregeln</a>
                 | <a href="?seite=konfiguration_admin&amp;tab=sonstiges">Sonstiges-Gründe</a>
+                | <a href="?seite=konfiguration_admin&amp;tab=systemlog">System-Log</a>
             </p>
 
             <p style="color:#555;max-width:60rem;">
