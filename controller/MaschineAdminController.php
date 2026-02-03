@@ -343,6 +343,7 @@ class MaschineAdminController
         $beschreibung = (string)($maschine['beschreibung'] ?? '');
         $codeBildPfad = (string)($maschine['code_bild_pfad'] ?? '');
         $normalisierterCodeBildPfad = $this->normalisiereCodeBildPfad($codeBildPfad) ?? '';
+        $maschinenQrUrlKonfiguriert = $this->holeMaschinenQrUrl() !== '';
         $codeBildUrl = $this->baueQrCodeUrlPfad($normalisierterCodeBildPfad);
         $aktiv       = (int)($maschine['aktiv'] ?? 0) === 1;
 
@@ -406,7 +407,11 @@ class MaschineAdminController
                 <?php if ($id > 0): ?>
                     <div style="margin: 1rem 0; padding: 0.75rem; border: 1px solid #ddd; border-radius: 6px; max-width: 520px;">
                         <div><strong>Maschinen-QR-Code</strong></div>
-                        <?php if ($codeBildUrl !== ''): ?>
+                        <?php if (!$maschinenQrUrlKonfiguriert): ?>
+                            <div style="margin-top: 0.5rem; color: #a00;">
+                                Bitte die Maschinen-QR-URL in der Konfiguration hinterlegen, damit der QR-Code korrekt geladen werden kann.
+                            </div>
+                        <?php elseif ($codeBildUrl !== ''): ?>
                             <div style="margin-top: 0.5rem;">
                                 <img src="<?php echo htmlspecialchars($codeBildUrl, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>" alt="QR-Code Maschine <?php echo $id; ?>" style="max-width: 100%; height: auto;">
                             </div>
@@ -446,28 +451,21 @@ class MaschineAdminController
             return $codeBildPfad;
         }
 
-        $basisUrl = $this->holeMaschinenQrBasisUrl();
-        if ($basisUrl === '') {
-            $basisUrl = $this->holeAppBasisUrl();
+        $maschinenQrUrl = $this->holeMaschinenQrUrl();
+        $dateiname = basename($codeBildPfad);
+        if ($dateiname === '') {
+            return '';
         }
 
-        $relativerPfad = ltrim($codeBildPfad, '/');
-        if (!str_contains($relativerPfad, '/')) {
-            $konfigPfad = $basisUrl === '' ? $this->holeMaschinenQrRelPfad() : '';
-            if ($konfigPfad !== '') {
-                $relativerPfad = trim($konfigPfad, '/') . '/' . $relativerPfad;
-            }
+        if ($maschinenQrUrl === '') {
+            return '';
         }
 
-        if ($basisUrl !== '') {
-            if (preg_match('~^https?://~i', $basisUrl) === 1) {
-                return rtrim($basisUrl, '/') . '/' . ltrim($relativerPfad, '/');
-            }
-
-            return '/' . trim($basisUrl, '/') . '/' . ltrim($relativerPfad, '/');
+        if (preg_match('~^https?://~i', $maschinenQrUrl) === 1) {
+            return rtrim($maschinenQrUrl, '/') . '/' . ltrim($dateiname, '/');
         }
 
-        return '/' . ltrim($relativerPfad, '/');
+        return '/' . trim($maschinenQrUrl, '/') . '/' . ltrim($dateiname, '/');
     }
 
     private function normalisiereCodeBildPfad(?string $codeBildPfad): ?string
@@ -488,57 +486,22 @@ class MaschineAdminController
         return ltrim($codeBildPfad, '/');
     }
 
-    private function holeAppBasisUrl(): string
-    {
-        $pfad = __DIR__ . '/../config/config.php';
-        if (!is_file($pfad)) {
-            return '';
-        }
-
-        try {
-            /** @var array<string,mixed> $cfg */
-            $cfg = require $pfad;
-        } catch (\Throwable $e) {
-            return '';
-        }
-
-        $basisUrl = $cfg['app']['base_url'] ?? '';
-        return is_string($basisUrl) ? trim($basisUrl) : '';
-    }
-
-    private function holeMaschinenQrBasisUrl(): string
+    private function holeMaschinenQrUrl(): string
     {
         $konfigService = $this->holeKonfigurationService();
         if ($konfigService !== null) {
-            $basisUrl = $konfigService->get('maschinen_qr_base_url', null);
-            if (is_string($basisUrl)) {
-                return trim($basisUrl);
+            $maschinenQrUrl = $konfigService->get('maschinen_qr_url', null);
+            if (is_string($maschinenQrUrl) && trim($maschinenQrUrl) !== '') {
+                return trim($maschinenQrUrl);
+            }
+
+            $alterUrl = $konfigService->get('maschinen_qr_base_url', null);
+            if (is_string($alterUrl)) {
+                return trim($alterUrl);
             }
         }
 
-        $cfg = $this->holeDateiKonfiguration();
-        $basisUrl = $cfg['maschinen_qr_base_url'] ?? '';
-        return is_string($basisUrl) ? trim($basisUrl) : '';
-    }
-
-    private function holeMaschinenQrRelPfad(): string
-    {
-        $konfigService = $this->holeKonfigurationService();
-        if ($konfigService !== null) {
-            $neuerPfad = $konfigService->get('maschinen_qr_rel_pfad', null);
-            if (is_string($neuerPfad) && trim($neuerPfad) !== '') {
-                return trim($neuerPfad);
-            }
-
-            $alterPfad = $konfigService->get('qr_maschinen_rel_pfad', null);
-            if (is_string($alterPfad)) {
-                return trim($alterPfad);
-            }
-        }
-
-        $cfg = $this->holeDateiKonfiguration();
-        $pfad = $cfg['maschinen_qr_rel_pfad'] ?? $cfg['qr_maschinen_rel_pfad'] ?? '';
-        return is_string($pfad) ? trim($pfad) : '';
+        return '';
     }
 
     /**
@@ -560,21 +523,4 @@ class MaschineAdminController
         return null;
     }
 
-    /**
-     * @return array<string,mixed>
-     */
-    private function holeDateiKonfiguration(): array
-    {
-        $pfad = __DIR__ . '/../config/config.php';
-        if (!is_file($pfad)) {
-            return [];
-        }
-
-        try {
-            /** @var array<string,mixed> $cfg */
-            return require $pfad;
-        } catch (\Throwable $e) {
-            return [];
-        }
-    }
 }
