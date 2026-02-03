@@ -4487,18 +4487,16 @@ $urlaubSaldo = null;
             $this->setzeTerminalAnwesenheitStatus(false);
         }
 
-        // Nach erfolgreichem Gehen: laufenden Hauptauftrag pausieren.
+        // Nach erfolgreichem Gehen: alle laufenden Aufträge pausieren.
         if ($fehlerText === null && $id !== null) {
-            $stopErgebnis = $this->auftragszeitService->stoppeLaufendeHauptauftraegeFuerMitarbeiter(
+            $stopErgebnis = $this->auftragszeitService->stoppeAlleLaufendenAuftraegeFuerMitarbeiter(
                 (int)$mitarbeiter['id'],
                 $zeitpunkt,
                 'pausiert'
             );
 
             if ($stopErgebnis === 1 || $stopErgebnis === 0) {
-                $hinweis = $stopErgebnis === 0
-                    ? 'Der laufende Hauptauftrag wurde automatisch pausiert (offline vorgemerkt).'
-                    : 'Der laufende Hauptauftrag wurde automatisch pausiert.';
+                $hinweis = 'Alle laufenden Aufträge wurden pausiert.';
                 if ($nachricht !== null && $nachricht !== '') {
                     $nachricht .= ' ' . $hinweis;
                 } else {
