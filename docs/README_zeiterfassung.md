@@ -1,24 +1,4 @@
-# Zeiterfassung und Mitarbeiter-/Auftragsmanagement
+# Hinweis
 
-Dieses Projekt enthält eine PHP-basierte Webanwendung zur Zeiterfassung,
-Urlaubsverwaltung und optionalen Auftragszeiterfassung.
-
-Verzeichnisse (Überblick):
-
-- `public/`   – Einstiegspunkte (z. B. `index.php`, später evtl. Terminal-UI), CSS, JS
-- `core/`     – Basisfunktionen (Datenbank, Autoloader, Logging, Helper)
-- `modelle/`  – reine DB-Modelle (Mitarbeiter, Zeitbuchungen, Urlaubsanträge, …)
-- `services/` – Geschäftslogik (ZeitService, UrlaubService, RundungsService, …)
-- `controller/` – Request-Verarbeitung und Übergabe an Views
-- `views/`    – PHP-Views/HTML-Templates
-- `sql/`      – Datenbankschemata und Migrationen
-- `docs/`     – Dokumentation, Master-Prompt, Notizen
-
-Diese Datei dient nur als kurze Orientierung und kann bei Bedarf erweitert werden.
-
-## Konfiguration (Zugangsdaten)
-
-Die Datei `config/config.php` enthält **keine** echten Zugangsdaten mehr. Lege
-deine produktiven Werte stattdessen in `config/config.local.php` (nicht
-versioniert) oder per Umgebungsvariablen ab. Eine Vorlage findest du in
-`config/config.php.example`.
+Diese Datei ist nicht mehr die kanonische Einstiegdokumentation. Die aktuelle
+Übersicht befindet sich in [`docs/README.md`](README.md).
