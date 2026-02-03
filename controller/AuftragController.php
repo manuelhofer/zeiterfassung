@@ -112,8 +112,10 @@ class AuftragController
                     MAX(a.aktiv) AS auftrag_aktiv,
                     COUNT(*) AS buchungen,
                     SUM(CASE WHEN az.status = 'laufend' THEN 1 ELSE 0 END) AS laufend,
+                    SUM(CASE WHEN az.status = 'pausiert' THEN 1 ELSE 0 END) AS pausiert,
                     CASE
                         WHEN SUM(CASE WHEN az.status = 'laufend' THEN 1 ELSE 0 END) > 0 THEN 'laufend'
+                        WHEN SUM(CASE WHEN az.status = 'pausiert' THEN 1 ELSE 0 END) > 0 THEN 'pausiert'
                         ELSE 'abgeschlossen'
                     END AS status,
                     SUM(CASE WHEN az.endzeit IS NOT NULL THEN TIMESTAMPDIFF(SECOND, az.startzeit, az.endzeit) ELSE 0 END) AS sekunden,

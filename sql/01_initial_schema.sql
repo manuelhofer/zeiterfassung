@@ -78,7 +78,7 @@ CREATE TABLE `auftragszeit` (
   `typ` enum('haupt','neben') NOT NULL DEFAULT 'haupt',
   `startzeit` datetime NOT NULL,
   `endzeit` datetime DEFAULT NULL,
-  `status` enum('laufend','abgeschlossen','abgebrochen') NOT NULL DEFAULT 'laufend',
+  `status` enum('laufend','abgeschlossen','abgebrochen','pausiert') NOT NULL DEFAULT 'laufend',
   `kommentar` text DEFAULT NULL,
   `erstellt_am` datetime NOT NULL DEFAULT current_timestamp(),
   `geaendert_am` datetime NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
