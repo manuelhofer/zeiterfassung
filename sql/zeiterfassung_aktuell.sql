@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost
--- Erstellungszeit: 01. Feb 2026 um 06:12
+-- Erstellungszeit: 03. Feb 2026 um 12:08
 -- Server-Version: 11.8.3-MariaDB-deb11
 -- PHP-Version: 8.3.26
 
@@ -75,33 +75,11 @@ INSERT INTO `auftrag` (`id`, `auftragsnummer`, `kurzbeschreibung`, `kunde`, `sta
 (1, '12341234', NULL, NULL, NULL, 1, '2026-01-18 16:25:36', '2026-01-18 16:25:36'),
 (2, '1234556', NULL, NULL, NULL, 1, '2026-01-19 19:11:24', '2026-01-19 19:11:24'),
 (3, '12312', NULL, NULL, NULL, 1, '2026-01-20 04:35:19', '2026-01-20 04:35:19'),
-(4, '5486754', NULL, NULL, NULL, 1, '2026-01-20 04:35:31', '2026-01-20 04:35:31');
-
--- --------------------------------------------------------
-
---
--- Tabellenstruktur für Tabelle `auftrag_arbeitsschritt`
---
-
-CREATE TABLE `auftrag_arbeitsschritt` (
-  `id` bigint(20) UNSIGNED NOT NULL,
-  `auftrag_id` bigint(20) UNSIGNED NOT NULL,
-  `arbeitsschritt_code` varchar(100) NOT NULL,
-  `bezeichnung` varchar(255) DEFAULT NULL,
-  `aktiv` tinyint(1) NOT NULL DEFAULT 1,
-  `erstellt_am` datetime NOT NULL DEFAULT current_timestamp(),
-  `geaendert_am` datetime NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
---
--- Daten für Tabelle `auftrag_arbeitsschritt`
---
-
-INSERT INTO `auftrag_arbeitsschritt` (`id`, `auftrag_id`, `arbeitsschritt_code`, `bezeichnung`, `aktiv`, `erstellt_am`, `geaendert_am`) VALUES
-(1, 1, '12341234', NULL, 1, '2026-01-18 16:25:36', '2026-01-18 16:25:36'),
-(2, 2, '123123', NULL, 1, '2026-01-19 19:11:24', '2026-01-19 19:11:24'),
-(3, 3, '1213131', NULL, 1, '2026-01-20 04:35:19', '2026-01-20 04:35:19'),
-(4, 4, '564687564', NULL, 1, '2026-01-20 04:35:31', '2026-01-20 04:35:31');
+(4, '5486754', NULL, NULL, NULL, 1, '2026-01-20 04:35:31', '2026-01-20 04:35:31'),
+(5, '123123', NULL, NULL, NULL, 1, '2026-02-01 12:45:31', '2026-02-01 12:45:31'),
+(6, 'zylinder', NULL, NULL, NULL, 1, '2026-02-01 13:19:15', '2026-02-01 13:19:15'),
+(7, 'wirschauenmal', NULL, NULL, NULL, 1, '2026-02-03 11:29:57', '2026-02-03 11:29:57'),
+(8, 'wirtestendasjetzt', NULL, NULL, NULL, 1, '2026-02-03 13:04:17', '2026-02-03 13:04:17');
 
 -- --------------------------------------------------------
 
@@ -134,10 +112,40 @@ CREATE TABLE `auftragszeit` (
 INSERT INTO `auftragszeit` (`id`, `mitarbeiter_id`, `auftrag_id`, `arbeitsschritt_id`, `auftragscode`, `arbeitsschritt_code`, `maschine_id`, `terminal_id`, `typ`, `startzeit`, `endzeit`, `status`, `kommentar`, `erstellt_am`, `geaendert_am`) VALUES
 (1, 2, NULL, NULL, '11', NULL, 1, NULL, 'haupt', '2026-01-02 16:30:59', '2026-01-02 16:31:17', 'abgeschlossen', NULL, '2026-01-02 16:30:59', '2026-01-02 16:31:17'),
 (4, 2, NULL, NULL, '123123', NULL, NULL, NULL, 'haupt', '2026-01-18 09:56:16', '2026-01-18 16:25:36', 'abgeschlossen', NULL, '2026-01-18 09:56:16', '2026-01-18 16:25:36'),
-(5, 2, 1, 1, '12341234', '12341234', NULL, NULL, 'haupt', '2026-01-18 16:25:36', '2026-01-18 16:26:21', 'abgeschlossen', NULL, '2026-01-18 16:25:36', '2026-01-18 16:26:21'),
-(6, 2, 2, 2, '1234556', '123123', NULL, NULL, 'haupt', '2026-01-19 19:11:24', '2026-01-19 19:40:37', 'abgeschlossen', NULL, '2026-01-19 19:11:24', '2026-01-19 19:40:37'),
-(7, 2, 3, 3, '12312', '1213131', NULL, NULL, 'haupt', '2026-01-20 04:35:19', '2026-01-20 04:35:45', 'abgeschlossen', NULL, '2026-01-20 04:35:19', '2026-01-20 04:35:45'),
-(8, 2, 4, 4, '5486754', '564687564', NULL, NULL, 'neben', '2026-01-20 04:35:31', '2026-01-21 20:32:46', 'abgeschlossen', NULL, '2026-01-20 04:35:31', '2026-01-21 20:32:46');
+(5, 2, 1, NULL, '12341234', '12341234', NULL, NULL, 'haupt', '2026-01-18 16:25:36', '2026-01-18 16:26:21', 'abgeschlossen', NULL, '2026-01-18 16:25:36', '2026-01-18 16:26:21'),
+(6, 2, 2, NULL, '1234556', '123123', NULL, NULL, 'haupt', '2026-01-19 19:11:24', '2026-01-19 19:40:37', 'abgeschlossen', NULL, '2026-01-19 19:11:24', '2026-01-19 19:40:37'),
+(7, 2, 3, NULL, '12312', '1213131', NULL, NULL, 'haupt', '2026-01-20 04:35:19', '2026-01-20 04:35:45', 'abgeschlossen', NULL, '2026-01-20 04:35:19', '2026-01-20 04:35:45'),
+(8, 2, 4, NULL, '5486754', '564687564', NULL, NULL, 'neben', '2026-01-20 04:35:31', '2026-01-21 20:32:46', 'abgeschlossen', NULL, '2026-01-20 04:35:31', '2026-01-21 20:32:46'),
+(9, 2, 5, 1, '123123', '123123123', NULL, NULL, 'haupt', '2026-02-01 12:45:31', '2026-02-01 12:45:38', 'abgeschlossen', NULL, '2026-02-01 12:45:31', '2026-02-01 12:45:38'),
+(10, 2, 6, 2, 'zylinder', 'drehen', 2, NULL, 'haupt', '2026-02-01 13:19:15', '2026-02-03 11:04:37', 'abgeschlossen', NULL, '2026-02-01 13:19:15', '2026-02-03 11:04:37'),
+(11, 2, 7, 3, 'wirschauenmal', 'wiedasgeht', NULL, NULL, 'haupt', '2026-02-03 11:29:57', '2026-02-03 11:42:07', 'abgeschlossen', NULL, '2026-02-03 11:29:57', '2026-02-03 11:42:07'),
+(12, 2, 8, 4, 'wirtestendasjetzt', 'ganzdolle', NULL, NULL, 'haupt', '2026-02-03 13:04:17', NULL, 'laufend', NULL, '2026-02-03 13:04:17', '2026-02-03 13:04:17');
+
+-- --------------------------------------------------------
+
+--
+-- Tabellenstruktur für Tabelle `auftrag_arbeitsschritt`
+--
+
+CREATE TABLE `auftrag_arbeitsschritt` (
+  `id` bigint(20) UNSIGNED NOT NULL,
+  `auftrag_id` bigint(20) UNSIGNED NOT NULL,
+  `arbeitsschritt_code` varchar(100) NOT NULL,
+  `bezeichnung` varchar(255) DEFAULT NULL,
+  `aktiv` tinyint(1) NOT NULL DEFAULT 1,
+  `erstellt_am` datetime NOT NULL DEFAULT current_timestamp(),
+  `geaendert_am` datetime NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Daten für Tabelle `auftrag_arbeitsschritt`
+--
+
+INSERT INTO `auftrag_arbeitsschritt` (`id`, `auftrag_id`, `arbeitsschritt_code`, `bezeichnung`, `aktiv`, `erstellt_am`, `geaendert_am`) VALUES
+(1, 5, '123123123', NULL, 1, '2026-02-01 12:45:31', '2026-02-01 12:45:31'),
+(2, 6, 'drehen', NULL, 1, '2026-02-01 13:19:15', '2026-02-01 13:19:15'),
+(3, 7, 'wiedasgeht', NULL, 1, '2026-02-03 11:29:57', '2026-02-03 11:29:57'),
+(4, 8, 'ganzdolle', NULL, 1, '2026-02-03 13:04:17', '2026-02-03 13:04:17');
 
 -- --------------------------------------------------------
 
@@ -194,8 +202,9 @@ INSERT INTO `config` (`id`, `schluessel`, `wert`, `typ`, `beschreibung`, `erstel
 (228, 'urlaub_blocke_negativen_resturlaub', '0', 'bool', 'Urlaub: Wenn aktiv (1), werden Urlaubsanträge blockiert, wenn der Resturlaub dadurch negativ würde. Default 0.', '2025-12-31 21:08:33', '2025-12-31 21:08:33'),
 (5897, 'terminal_healthcheck_interval', '10', 'int', 'Terminal: Intervall (Sekunden) für wiederkehrende Healthchecks (Hauptdatenbank/Offline-Queue Anzeige). Default 10.', '2026-01-11 06:38:46', '2026-01-11 06:38:46'),
 (31548, 'micro_buchung_max_sekunden', '180', 'int', 'Zeitbuchungen: Mikro-Buchungen (Kommen/Gehen) bis zu X Sekunden werden standardmäßig ignoriert/ausgeblendet. Default 180 (= 3 Minuten).', '2026-01-14 12:33:45', '2026-01-14 12:33:45'),
-(31549, 'maschinen_qr_rel_pfad', 'uploads/maschinen_codes', 'string', 'Maschinen-QR: Relativer Speicherpfad unterhalb von public. Default uploads/maschinen_codes.', '2026-01-14 12:33:45', '2026-01-14 12:33:45'),
-(31550, 'maschinen_qr_url', '', 'string', 'Maschinen-QR: URL oder Basispfad für die Ausgabe. Leer = Domain-Root.', '2026-01-14 12:33:45', '2026-01-14 12:33:45');
+(109152, 'maschinen_qr_rel_pfad', 'uploads/maschinen_codes', 'string', 'Maschinen-QR: Relativer Speicherpfad unterhalb von public. Default uploads/maschinen_codes.', '2026-02-01 16:28:45', '2026-02-03 12:03:30'),
+(109153, 'maschinen_qr_base_url', 'testsetsetsetset', 'string', 'Maschinen-QR: Basis-URL oder Basispfad für die Ausgabe. Leer = Domain-Root.', '2026-02-01 16:28:45', '2026-02-01 18:03:04'),
+(119992, 'maschinen_qr_url', 'https://project-ronin.de/zeiterfassung/public/uploads/maschinen_codes/', 'string', 'Maschinen-QR: URL oder Basispfad für die Ausgabe. Leer = Domain-Root.', '2026-02-03 12:16:48', '2026-02-03 12:18:49');
 
 -- --------------------------------------------------------
 
@@ -338,10 +347,11 @@ CREATE TABLE `maschine` (
 --
 
 INSERT INTO `maschine` (`id`, `name`, `abteilung_id`, `beschreibung`, `code_bild_pfad`, `aktiv`, `erstellt_am`, `geaendert_am`) VALUES
-(1, 'KaoMing', 1, NULL, NULL, 1, '2026-01-01 20:20:47', '2026-01-11 12:00:25'),
-(2, 'CLX 500', 2, 'Dreh-/Fräs- Zentrum', NULL, 1, '2026-01-11 12:00:55', '2026-01-11 12:00:55'),
-(3, 'Cyclon1000', 2, NULL, NULL, 1, '2026-01-11 12:01:14', '2026-01-11 12:01:14'),
-(4, 'BTF1000', 1, NULL, NULL, 1, '2026-01-11 12:01:26', '2026-01-11 12:01:26');
+(1, 'KaoMing', 1, NULL, 'uploads/maschinen_codes/maschine_1_barcode.png', 1, '2026-01-01 20:20:47', '2026-02-03 12:51:13'),
+(2, 'CLX 500', 2, 'Dreh-/Fräs- Zentrum', 'uploads/maschinen_codes/maschine_2_barcode.png', 1, '2026-01-11 12:00:55', '2026-02-03 12:43:37'),
+(3, 'Cyclon1000', 2, NULL, 'uploads/maschinen_codes/maschine_3_barcode.png', 1, '2026-01-11 12:01:14', '2026-02-03 12:51:23'),
+(4, 'BTF1000', 1, NULL, 'uploads/maschinen_codes/maschine_4_barcode.png', 1, '2026-01-11 12:01:26', '2026-02-03 12:50:58'),
+(5, 'test', 1, 'sdfas', 'uploads/maschinen_codes/maschine_5.png', 1, '2026-02-01 13:22:09', '2026-02-03 12:28:53');
 
 -- --------------------------------------------------------
 
@@ -374,7 +384,7 @@ CREATE TABLE `mitarbeiter` (
 
 INSERT INTO `mitarbeiter` (`id`, `personalnummer`, `vorname`, `nachname`, `geburtsdatum`, `eintrittsdatum`, `wochenarbeitszeit`, `urlaub_monatsanspruch`, `benutzername`, `email`, `passwort_hash`, `rfid_code`, `aktiv`, `ist_login_berechtigt`, `erstellt_am`, `geaendert_am`) VALUES
 (1, '34', 'Hans1', 'Wurst', '1972-10-03', NULL, 40.00, 2.50, NULL, NULL, NULL, NULL, 0, 0, '2025-11-30 05:30:47', '2026-01-11 19:24:47'),
-(2, '8', 'Manuel', 'Kleespies', '1982-07-19', '2016-10-01', 40.00, 2.50, 'ManuelKleespies', 'zero.c@web.de', '$2y$10$MiGTJ8fEujWjgGo0aXXdv.abGjaXJDsJ0TdMGGcMcgYqOPd44Rbf6', NULL, 1, 1, '2025-11-30 06:41:39', '2026-01-18 07:46:37'),
+(2, '8', 'Manuel', 'Kleespies', '1982-07-19', '2016-10-01', 40.00, 2.50, 'ManuelKleespies', 'zero.c@web.de', '$2y$10$MiGTJ8fEujWjgGo0aXXdv.abGjaXJDsJ0TdMGGcMcgYqOPd44Rbf6', '12345', 1, 1, '2025-11-30 06:41:39', '2026-02-01 10:58:57'),
 (3, '20', 'Dietmar', 'Rüppel', '1975-02-02', NULL, 40.00, 2.50, 'Dietmar_Rueppel', 'dietmarrueppel@web.de', NULL, NULL, 1, 0, '2026-01-11 07:46:48', '2026-01-11 07:46:48'),
 (4, NULL, 'Marc', 'Crispens', NULL, NULL, 40.00, 2.50, 'MarcCrispens', 'm.crispens@wernig.com', '$2y$10$nzJUOZIULBoOOj6JLVGhHOeCiSc9bPkmTpOVGWgTkMk2RMV2Ait8O', NULL, 1, 1, '2026-01-11 11:44:35', '2026-01-11 11:44:35'),
 (5, '9', 'Arno', 'Seitz', NULL, NULL, 40.00, 2.50, 'ArnoSeitz', 'a.seitz@wernig.com', '$2y$10$ob.W736ofFkniF0vPt6GUO3YRXC41v6MSuElVzRzSy18RTmhlu8Si', NULL, 1, 1, '2026-01-11 11:45:29', '2026-01-11 11:54:14'),
@@ -438,8 +448,8 @@ INSERT INTO `mitarbeiter_hat_abteilung` (`id`, `mitarbeiter_id`, `abteilung_id`,
 (10, 8, 7, 1, '2026-01-11 16:33:29'),
 (11, 10, 1, 1, '2026-01-11 16:33:39'),
 (14, 12, 4, 1, '2026-01-11 19:23:05'),
-(16, 2, 2, 1, '2026-01-18 07:46:37'),
-(17, 9, 2, 1, '2026-01-19 19:45:11');
+(17, 9, 2, 1, '2026-01-19 19:45:11'),
+(18, 2, 2, 1, '2026-02-01 10:58:57');
 
 -- --------------------------------------------------------
 
@@ -473,7 +483,7 @@ CREATE TABLE `mitarbeiter_hat_rolle` (
 --
 
 INSERT INTO `mitarbeiter_hat_rolle` (`mitarbeiter_id`, `rolle_id`, `erstellt_am`) VALUES
-(2, 1, '2026-01-18 07:46:37'),
+(2, 1, '2026-02-01 10:58:57'),
 (4, 5, '2026-01-11 11:44:35'),
 (5, 5, '2026-01-11 11:54:14'),
 (6, 5, '2026-01-11 11:46:15'),
@@ -506,7 +516,7 @@ INSERT INTO `mitarbeiter_hat_rolle_scope` (`id`, `mitarbeiter_id`, `rolle_id`, `
 (4, 5, 5, 'global', 0, 1, '2026-01-11 11:54:14'),
 (5, 7, 2, 'global', 0, 1, '2026-01-11 11:55:14'),
 (8, 14, 1, 'global', 0, 1, '2026-01-11 13:34:01'),
-(13, 2, 1, 'global', 0, 1, '2026-01-18 07:46:37');
+(14, 2, 1, 'global', 0, 1, '2026-02-01 10:58:57');
 
 -- --------------------------------------------------------
 
@@ -810,7 +820,77 @@ INSERT INTO `system_log` (`id`, `zeitstempel`, `loglevel`, `kategorie`, `nachric
 (1194, '2026-02-01 07:06:16', 'info', 'tageswerte_audit', 'Tageswerte gesetzt: Pause-Override', '{\"ziel_mitarbeiter_id\":2,\"datum\":\"2026-02-04\",\"pause_stunden\":0.5,\"pause_minuten\":30,\"begruendung\":\"keine frühstückspause gemacht\"}', 2, NULL),
 (1195, '2026-02-01 07:07:31', 'warn', 'terminal_monatsstatus', 'Terminal: Monatsstatus via ReportService fehlgeschlagen', '{\"mitarbeiter_id\":2,\"jahr\":2026,\"monat\":2,\"exception\":\"Call to private ReportService::__construct() from scope TerminalController\"}', 2, NULL),
 (1196, '2026-02-01 07:07:33', 'warn', 'terminal_monatsstatus', 'Terminal: Monatsstatus via ReportService fehlgeschlagen', '{\"mitarbeiter_id\":2,\"jahr\":2026,\"monat\":2,\"exception\":\"Call to private ReportService::__construct() from scope TerminalController\"}', 2, NULL),
-(1197, '2026-02-01 07:08:34', 'warn', 'terminal_monatsstatus', 'Terminal: Monatsstatus via ReportService fehlgeschlagen', '{\"mitarbeiter_id\":2,\"jahr\":2026,\"monat\":2,\"exception\":\"Call to private ReportService::__construct() from scope TerminalController\"}', 2, NULL);
+(1197, '2026-02-01 07:08:34', 'warn', 'terminal_monatsstatus', 'Terminal: Monatsstatus via ReportService fehlgeschlagen', '{\"mitarbeiter_id\":2,\"jahr\":2026,\"monat\":2,\"exception\":\"Call to private ReportService::__construct() from scope TerminalController\"}', 2, NULL),
+(1198, '2026-02-01 07:31:30', 'warn', 'terminal_monatsstatus', 'Terminal: Monatsstatus via ReportService fehlgeschlagen', '{\"mitarbeiter_id\":2,\"jahr\":2026,\"monat\":2,\"exception\":\"Call to private ReportService::__construct() from scope TerminalController\"}', 2, NULL),
+(1199, '2026-02-01 07:31:34', 'warn', 'terminal_monatsstatus', 'Terminal: Monatsstatus via ReportService fehlgeschlagen', '{\"mitarbeiter_id\":2,\"jahr\":2026,\"monat\":2,\"exception\":\"Call to private ReportService::__construct() from scope TerminalController\"}', 2, NULL),
+(1200, '2026-02-01 07:32:38', 'warn', 'terminal_monatsstatus', 'Terminal: Monatsstatus via ReportService fehlgeschlagen', '{\"mitarbeiter_id\":2,\"jahr\":2026,\"monat\":2,\"exception\":\"Call to private ReportService::__construct() from scope TerminalController\"}', 2, NULL),
+(1201, '2026-02-01 07:35:49', 'info', 'zeitservice', 'Synchronisierung Tageswerte abgeschlossen', '{\"mitarbeiter_id\":2,\"datum\":\"2026-02-01\",\"kommen_roh\":\"2026-02-01 01:02:03\",\"gehen_roh\":null,\"pause_min\":0,\"pause_quelle\":\"auto\",\"pause_db_min\":null,\"felder_manuell\":0}', 2, NULL),
+(1202, '2026-02-01 07:35:49', 'info', 'zeitbuchung_audit', 'Zeitbuchung korrigiert', '{\"aktion\":\"add\",\"buchung_id\":161,\"ziel_mitarbeiter_id\":2,\"datum\":\"2026-02-01\",\"alt\":null,\"neu\":{\"id\":161,\"typ\":\"kommen\",\"zeitstempel\":\"2026-02-01 01:02:03\",\"kommentar\":\"3\",\"quelle\":\"web\",\"manuell_geaendert\":1,\"nachtshift\":0},\"begruendung\":\"3\"}', 2, NULL),
+(1203, '2026-02-01 07:35:59', 'info', 'zeitservice', 'Synchronisierung Tageswerte abgeschlossen', '{\"mitarbeiter_id\":2,\"datum\":\"2026-02-01\",\"kommen_roh\":\"2026-02-01 01:02:03\",\"gehen_roh\":\"2026-02-01 15:05:05\",\"pause_min\":45,\"pause_quelle\":\"auto\",\"pause_db_min\":0,\"felder_manuell\":0}', 2, NULL),
+(1204, '2026-02-01 07:35:59', 'info', 'zeitbuchung_audit', 'Zeitbuchung korrigiert', '{\"aktion\":\"add\",\"buchung_id\":162,\"ziel_mitarbeiter_id\":2,\"datum\":\"2026-02-01\",\"alt\":null,\"neu\":{\"id\":162,\"typ\":\"gehen\",\"zeitstempel\":\"2026-02-01 15:05:05\",\"kommentar\":\"5\",\"quelle\":\"web\",\"manuell_geaendert\":1,\"nachtshift\":0},\"begruendung\":\"5\"}', 2, NULL),
+(1205, '2026-02-01 07:36:03', 'warn', 'terminal_monatsstatus', 'Terminal: Monatsstatus via ReportService fehlgeschlagen', '{\"mitarbeiter_id\":2,\"jahr\":2026,\"monat\":2,\"exception\":\"Call to private ReportService::__construct() from scope TerminalController\"}', 2, NULL),
+(1206, '2026-02-01 07:36:05', 'warn', 'terminal_monatsstatus', 'Terminal: Monatsstatus via ReportService fehlgeschlagen', '{\"mitarbeiter_id\":2,\"jahr\":2026,\"monat\":2,\"exception\":\"Call to private ReportService::__construct() from scope TerminalController\"}', 2, NULL),
+(1207, '2026-02-01 07:37:12', 'warn', 'terminal_monatsstatus', 'Terminal: Monatsstatus via ReportService fehlgeschlagen', '{\"mitarbeiter_id\":2,\"jahr\":2026,\"monat\":2,\"exception\":\"Call to private ReportService::__construct() from scope TerminalController\"}', 2, NULL),
+(1208, '2026-02-01 07:49:32', 'warn', 'terminal_monatsstatus', 'Terminal: Monatsstatus via ReportService fehlgeschlagen', '{\"mitarbeiter_id\":2,\"jahr\":2026,\"monat\":2,\"exception\":\"Call to private ReportService::__construct() from scope TerminalController\"}', 2, NULL),
+(1209, '2026-02-01 07:49:33', 'warn', 'terminal_monatsstatus', 'Terminal: Monatsstatus via ReportService fehlgeschlagen', '{\"mitarbeiter_id\":2,\"jahr\":2026,\"monat\":2,\"exception\":\"Call to private ReportService::__construct() from scope TerminalController\"}', 2, NULL),
+(1210, '2026-02-01 07:49:39', 'warn', 'terminal_monatsstatus', 'Terminal: Monatsstatus via ReportService fehlgeschlagen', '{\"mitarbeiter_id\":2,\"jahr\":2026,\"monat\":1,\"exception\":\"Call to private ReportService::__construct() from scope TerminalController\"}', 2, NULL),
+(1211, '2026-02-01 07:50:44', 'warn', 'terminal_monatsstatus', 'Terminal: Monatsstatus via ReportService fehlgeschlagen', '{\"mitarbeiter_id\":2,\"jahr\":2026,\"monat\":2,\"exception\":\"Call to private ReportService::__construct() from scope TerminalController\"}', 2, NULL),
+(1212, '2026-02-01 07:55:08', 'warn', 'terminal_monatsstatus', 'Terminal: Monatsstatus via ReportService fehlgeschlagen', '{\"mitarbeiter_id\":2,\"jahr\":2026,\"monat\":2,\"exception\":\"Call to private ReportService::__construct() from scope TerminalController\"}', 2, NULL),
+(1213, '2026-02-01 07:55:11', 'warn', 'terminal_monatsstatus', 'Terminal: Monatsstatus via ReportService fehlgeschlagen', '{\"mitarbeiter_id\":2,\"jahr\":2026,\"monat\":2,\"exception\":\"Call to private ReportService::__construct() from scope TerminalController\"}', 2, NULL),
+(1214, '2026-02-01 07:55:14', 'warn', 'terminal_monatsstatus', 'Terminal: Monatsstatus via ReportService fehlgeschlagen', '{\"mitarbeiter_id\":2,\"jahr\":2026,\"monat\":1,\"exception\":\"Call to private ReportService::__construct() from scope TerminalController\"}', 2, NULL),
+(1215, '2026-02-01 07:57:08', 'warn', 'terminal_monatsstatus', 'Terminal: Monatsstatus via ReportService fehlgeschlagen', '{\"mitarbeiter_id\":2,\"jahr\":2026,\"monat\":2,\"exception\":\"Call to private ReportService::__construct() from scope TerminalController\"}', 2, NULL),
+(1216, '2026-02-01 08:42:37', 'warn', 'terminal_monatsstatus', 'Terminal: Monatsstatus via ReportService fehlgeschlagen', '{\"mitarbeiter_id\":2,\"jahr\":2026,\"monat\":2,\"exception\":\"Call to private ReportService::__construct() from scope TerminalController\"}', 2, NULL),
+(1217, '2026-02-01 08:42:40', 'warn', 'terminal_monatsstatus', 'Terminal: Monatsstatus via ReportService fehlgeschlagen', '{\"mitarbeiter_id\":2,\"jahr\":2026,\"monat\":2,\"exception\":\"Call to private ReportService::__construct() from scope TerminalController\"}', 2, NULL),
+(1218, '2026-02-01 08:42:47', 'warn', 'terminal_monatsstatus', 'Terminal: Monatsstatus via ReportService fehlgeschlagen', '{\"mitarbeiter_id\":2,\"jahr\":2026,\"monat\":1,\"exception\":\"Call to private ReportService::__construct() from scope TerminalController\"}', 2, NULL),
+(1219, '2026-02-01 08:44:06', 'warn', 'terminal_monatsstatus', 'Terminal: Monatsstatus via ReportService fehlgeschlagen', '{\"mitarbeiter_id\":2,\"jahr\":2026,\"monat\":2,\"exception\":\"Call to private ReportService::__construct() from scope TerminalController\"}', 2, NULL),
+(1220, '2026-02-01 09:10:29', 'warn', 'terminal_monatsstatus', 'Terminal: Monatsstatus via ReportService fehlgeschlagen', '{\"mitarbeiter_id\":2,\"jahr\":2026,\"monat\":2,\"exception\":\"Call to private ReportService::__construct() from scope TerminalController\"}', 2, NULL),
+(1221, '2026-02-01 09:10:33', 'warn', 'terminal_monatsstatus', 'Terminal: Monatsstatus via ReportService fehlgeschlagen', '{\"mitarbeiter_id\":2,\"jahr\":2026,\"monat\":2,\"exception\":\"Call to private ReportService::__construct() from scope TerminalController\"}', 2, NULL),
+(1222, '2026-02-01 09:10:41', 'warn', 'terminal_monatsstatus', 'Terminal: Monatsstatus via ReportService fehlgeschlagen', '{\"mitarbeiter_id\":2,\"jahr\":2026,\"monat\":1,\"exception\":\"Call to private ReportService::__construct() from scope TerminalController\"}', 2, NULL),
+(1223, '2026-02-01 09:11:44', 'warn', 'terminal_monatsstatus', 'Terminal: Monatsstatus via ReportService fehlgeschlagen', '{\"mitarbeiter_id\":2,\"jahr\":2026,\"monat\":2,\"exception\":\"Call to private ReportService::__construct() from scope TerminalController\"}', 2, NULL),
+(1224, '2026-02-01 09:33:33', 'warn', 'terminal_monatsstatus', 'Terminal: Monatsstatus via ReportService fehlgeschlagen', '{\"mitarbeiter_id\":2,\"jahr\":2026,\"monat\":2,\"exception\":\"Call to private ReportService::__construct() from scope TerminalController\"}', 2, NULL),
+(1225, '2026-02-01 09:33:36', 'warn', 'terminal_monatsstatus', 'Terminal: Monatsstatus via ReportService fehlgeschlagen', '{\"mitarbeiter_id\":2,\"jahr\":2026,\"monat\":2,\"exception\":\"Call to private ReportService::__construct() from scope TerminalController\"}', 2, NULL),
+(1226, '2026-02-01 09:33:39', 'warn', 'terminal_monatsstatus', 'Terminal: Monatsstatus via ReportService fehlgeschlagen', '{\"mitarbeiter_id\":2,\"jahr\":2026,\"monat\":1,\"exception\":\"Call to private ReportService::__construct() from scope TerminalController\"}', 2, NULL),
+(1227, '2026-02-01 09:34:43', 'warn', 'terminal_monatsstatus', 'Terminal: Monatsstatus via ReportService fehlgeschlagen', '{\"mitarbeiter_id\":2,\"jahr\":2026,\"monat\":2,\"exception\":\"Call to private ReportService::__construct() from scope TerminalController\"}', 2, NULL),
+(1228, '2026-02-01 10:49:43', 'info', 'zeitservice', 'Synchronisierung Tageswerte abgeschlossen', '{\"mitarbeiter_id\":2,\"datum\":\"2026-02-01\",\"kommen_roh\":null,\"gehen_roh\":\"2026-02-01 15:05:05\",\"pause_min\":0,\"pause_quelle\":\"auto\",\"pause_db_min\":45,\"felder_manuell\":0}', 2, NULL),
+(1229, '2026-02-01 10:49:43', 'info', 'zeitbuchung_audit', 'Zeitbuchung korrigiert', '{\"aktion\":\"delete\",\"buchung_id\":161,\"ziel_mitarbeiter_id\":2,\"datum\":\"2026-02-01\",\"alt\":{\"typ\":\"kommen\",\"zeitstempel\":\"2026-02-01 01:02:03\",\"kommentar\":\"3\",\"quelle\":\"web\"},\"neu\":null,\"begruendung\":\"1\"}', 2, NULL),
+(1230, '2026-02-01 10:49:59', 'error', 'offline_queue', 'Fehler bei Abarbeitung von db_injektionsqueue', '{\"id\":1,\"sql_befehl\":\"INSERT INTO zeitbuchung (mitarbeiter_id, typ, zeitstempel, quelle, manuell_geaendert, kommentar, terminal_id) VALUES ((SELECT id FROM mitarbeiter WHERE rfid_code = \'2\' AND aktiv = 1 LIMIT 1), \'kommen\', \'2026-02-01 10:48:00\', \'terminal\', 0, NULL, NULL)\",\"exception\":\"SQLSTATE[23000]: Integrity constraint violation: 1048 Column \'mitarbeiter_id\' cannot be null\"}', NULL, NULL),
+(1231, '2026-02-01 10:50:42', 'info', 'zeitservice', 'Synchronisierung Tageswerte abgeschlossen', '{\"mitarbeiter_id\":2,\"datum\":\"2026-02-01\",\"kommen_roh\":\"2026-02-01 02:02:02\",\"gehen_roh\":\"2026-02-01 15:05:05\",\"pause_min\":45,\"pause_quelle\":\"auto\",\"pause_db_min\":0,\"felder_manuell\":0}', 2, NULL),
+(1232, '2026-02-01 10:50:42', 'info', 'zeitbuchung_audit', 'Zeitbuchung korrigiert', '{\"aktion\":\"add\",\"buchung_id\":163,\"ziel_mitarbeiter_id\":2,\"datum\":\"2026-02-01\",\"alt\":null,\"neu\":{\"id\":163,\"typ\":\"kommen\",\"zeitstempel\":\"2026-02-01 02:02:02\",\"kommentar\":\"2\",\"quelle\":\"web\",\"manuell_geaendert\":1,\"nachtshift\":0},\"begruendung\":\"2\"}', 2, NULL),
+(1233, '2026-02-01 10:52:49', 'info', 'zeitservice', 'Synchronisierung Tageswerte abgeschlossen', '{\"mitarbeiter_id\":2,\"datum\":\"2026-02-01\",\"kommen_roh\":null,\"gehen_roh\":\"2026-02-01 15:05:05\",\"pause_min\":0,\"pause_quelle\":\"auto\",\"pause_db_min\":45,\"felder_manuell\":0}', 2, NULL),
+(1234, '2026-02-01 10:52:49', 'info', 'zeitbuchung_audit', 'Zeitbuchung korrigiert', '{\"aktion\":\"delete\",\"buchung_id\":163,\"ziel_mitarbeiter_id\":2,\"datum\":\"2026-02-01\",\"alt\":{\"typ\":\"kommen\",\"zeitstempel\":\"2026-02-01 02:02:02\",\"kommentar\":\"2\",\"quelle\":\"web\"},\"neu\":null,\"begruendung\":\"2\"}', 2, NULL),
+(1235, '2026-02-01 10:57:24', 'info', 'offline_queue', 'Queue-Eintrag gelöscht', '{\"id\":1}', NULL, NULL),
+(1236, '2026-02-01 11:02:24', 'error', 'offline_queue', 'Fehler bei Abarbeitung von db_injektionsqueue', '{\"id\":2,\"sql_befehl\":\"INSERT INTO zeitbuchung (mitarbeiter_id, typ, zeitstempel, quelle, manuell_geaendert, kommentar, terminal_id) VALUES ((SELECT id FROM mitarbeiter WHERE rfid_code = \'2\' AND aktiv = 1 LIMIT 1), \'kommen\', \'2026-02-01 11:00:46\', \'terminal\', 0, NULL, NULL)\",\"exception\":\"SQLSTATE[23000]: Integrity constraint violation: 1048 Column \'mitarbeiter_id\' cannot be null\"}', NULL, NULL),
+(1237, '2026-02-01 11:03:04', 'info', 'offline_queue', 'Queue-Eintrag gelöscht', '{\"id\":2}', NULL, NULL),
+(1238, '2026-02-01 11:06:21', 'info', 'urlaub_genehmigung', 'Urlaub-Genehmigung: Antrag entschieden', '{\"antrag_id\":7,\"mitarbeiter_id\":2,\"status_neu\":\"genehmigt\",\"kommentar\":\"nein\",\"darf_alle\":1,\"darf_bereich\":1,\"darf_self\":1}', 2, NULL),
+(1239, '2026-02-01 11:06:23', 'info', 'urlaub_genehmigung', 'Urlaub-Genehmigung: Antrag entschieden', '{\"antrag_id\":5,\"mitarbeiter_id\":12,\"status_neu\":\"abgelehnt\",\"kommentar\":\"nein\",\"darf_alle\":1,\"darf_bereich\":1,\"darf_self\":1}', 2, NULL),
+(1240, '2026-02-01 11:37:27', 'error', 'auftrag', 'Fehler beim Laden der Auftragsdetails', '{\"exception\":\"SQLSTATE[HY093]: Invalid parameter number\",\"code\":\"5486754\"}', NULL, NULL),
+(1241, '2026-02-01 12:33:49', 'error', 'auftrag', 'Fehler beim Laden der Auftragsdetails', '{\"exception\":\"SQLSTATE[HY093]: Invalid parameter number\",\"code\":\"5486754\"}', NULL, NULL),
+(1242, '2026-02-01 12:45:11', 'error', 'auftrag', 'Fehler beim Laden der Auftragsdetails', '{\"exception\":\"SQLSTATE[HY093]: Invalid parameter number\",\"code\":\"12312\"}', NULL, NULL),
+(1243, '2026-02-01 12:45:53', 'error', 'auftrag', 'Fehler beim Laden der Auftragsdetails', '{\"exception\":\"SQLSTATE[HY093]: Invalid parameter number\",\"code\":\"123123\"}', NULL, NULL),
+(1244, '2026-02-01 13:20:06', 'error', 'maschine', 'Fehler beim Speichern einer Maschine', '{\"id\":2,\"maschine\":{\"id\":2,\"name\":\"CLX 500\",\"abteilung_id\":2,\"beschreibung\":\"Dreh-/Fräs- Zentrum\",\"code_bild_pfad\":null,\"aktiv\":1},\"exception\":\"SQLSTATE[42S22]: Column not found: 1054 Unknown column \'code_bild_pfad\' in \'SET\'\"}', 2, NULL),
+(1245, '2026-02-01 13:22:09', 'error', 'maschine', 'Fehler beim Speichern einer Maschine', '{\"id\":0,\"maschine\":{\"id\":0,\"name\":\"test\",\"abteilung_id\":1,\"beschreibung\":\"sdfas\",\"code_bild_pfad\":null,\"aktiv\":1},\"exception\":\"SQLSTATE[42S22]: Column not found: 1054 Unknown column \'code_bild_pfad\' in \'SET\'\"}', NULL, NULL),
+(1246, '2026-02-01 14:05:56', 'error', 'maschine', 'Fehler beim Erzeugen des Maschinen-QR-Codes', '{\"id\":4,\"exception\":\"SQLSTATE[42S22]: Column not found: 1054 Unknown column \'code_bild_pfad\' in \'SET\'\"}', 4, NULL),
+(1247, '2026-02-01 16:28:45', 'info', 'config', 'Default-Config-Werte wurden automatisch angelegt (fehlende Keys).', '{\"keys\":[\"terminal_timeout_standard\",\"terminal_timeout_urlaub\",\"terminal_session_idle_timeout\",\"urlaub_blocke_negativen_resturlaub\",\"terminal_healthcheck_interval\",\"micro_buchung_max_sekunden\",\"maschinen_qr_rel_pfad\",\"maschinen_qr_base_url\"]}', NULL, NULL),
+(1248, '2026-02-01 17:45:52', 'error', 'auftragszeit_service', 'Fehler beim Beenden laufender Aufträge (Service)', '{\"mitarbeiter_id\":2,\"status\":\"pausiert\",\"exception\":\"SQLSTATE[01000]: Warning: 1265 Data truncated for column \'status\' at row 1\"}', 2, NULL),
+(1249, '2026-02-01 17:47:51', 'info', 'zeitservice', 'Synchronisierung Tageswerte abgeschlossen', '{\"mitarbeiter_id\":2,\"datum\":\"2026-02-01\",\"kommen_roh\":\"2026-02-01 11:04:11\",\"gehen_roh\":\"2026-02-01 17:45:52\",\"pause_min\":0,\"pause_quelle\":\"auto\",\"pause_db_min\":0,\"felder_manuell\":0}', 2, NULL),
+(1250, '2026-02-01 17:47:51', 'info', 'zeitbuchung_audit', 'Zeitbuchung korrigiert', '{\"aktion\":\"delete\",\"buchung_id\":162,\"ziel_mitarbeiter_id\":2,\"datum\":\"2026-02-01\",\"alt\":{\"typ\":\"gehen\",\"zeitstempel\":\"2026-02-01 15:05:05\",\"kommentar\":\"5\",\"quelle\":\"web\"},\"neu\":null,\"begruendung\":\"2\"}', 2, NULL),
+(1251, '2026-02-01 17:47:54', 'info', 'zeitservice', 'Synchronisierung Tageswerte abgeschlossen', '{\"mitarbeiter_id\":2,\"datum\":\"2026-02-01\",\"kommen_roh\":\"2026-02-01 11:04:11\",\"gehen_roh\":\"2026-02-01 17:45:52\",\"pause_min\":0,\"pause_quelle\":\"auto\",\"pause_db_min\":0,\"felder_manuell\":0}', 2, NULL),
+(1252, '2026-02-01 17:47:54', 'info', 'zeitbuchung_audit', 'Zeitbuchung korrigiert', '{\"aktion\":\"delete\",\"buchung_id\":165,\"ziel_mitarbeiter_id\":2,\"datum\":\"2026-02-01\",\"alt\":{\"typ\":\"kommen\",\"zeitstempel\":\"2026-02-01 12:45:17\",\"kommentar\":\"\",\"quelle\":\"terminal\"},\"neu\":null,\"begruendung\":\"2\"}', 2, NULL),
+(1253, '2026-02-03 11:04:02', 'warn', 'auth', 'Login fehlgeschlagen', '{\"kennung\":\"zeiterfassung\",\"grund\":\"Mitarbeiter nicht gefunden oder nicht login-berechtigt\"}', NULL, NULL),
+(1254, '2026-02-03 11:04:05', 'info', 'auth', 'Login erfolgreich (Benutzername/E-Mail)', '{\"kennung\":\"ManuelKleespies\",\"mitarbeiter_id\":2}', 2, NULL),
+(1255, '2026-02-03 11:05:25', 'info', 'zeitservice', 'Synchronisierung Tageswerte abgeschlossen', '{\"mitarbeiter_id\":2,\"datum\":\"2026-02-03\",\"kommen_roh\":\"2026-02-03 11:04:32\",\"gehen_roh\":\"2026-02-03 15:45:05\",\"pause_min\":30,\"pause_quelle\":\"auto\",\"pause_db_min\":45,\"felder_manuell\":0}', 2, NULL),
+(1256, '2026-02-03 11:05:25', 'info', 'zeitbuchung_audit', 'Zeitbuchung korrigiert', '{\"aktion\":\"delete\",\"buchung_id\":157,\"ziel_mitarbeiter_id\":2,\"datum\":\"2026-02-03\",\"alt\":{\"typ\":\"kommen\",\"zeitstempel\":\"2026-02-03 05:55:05\",\"kommentar\":\"5\",\"quelle\":\"web\"},\"neu\":null,\"begruendung\":\"1\"}', 2, NULL),
+(1257, '2026-02-03 11:05:28', 'info', 'zeitservice', 'Synchronisierung Tageswerte abgeschlossen', '{\"mitarbeiter_id\":2,\"datum\":\"2026-02-03\",\"kommen_roh\":null,\"gehen_roh\":\"2026-02-03 15:45:05\",\"pause_min\":0,\"pause_quelle\":\"auto\",\"pause_db_min\":30,\"felder_manuell\":0}', 2, NULL),
+(1258, '2026-02-03 11:05:28', 'info', 'zeitbuchung_audit', 'Zeitbuchung korrigiert', '{\"aktion\":\"delete\",\"buchung_id\":167,\"ziel_mitarbeiter_id\":2,\"datum\":\"2026-02-03\",\"alt\":{\"typ\":\"kommen\",\"zeitstempel\":\"2026-02-03 11:04:32\",\"kommentar\":\"\",\"quelle\":\"terminal\"},\"neu\":null,\"begruendung\":\"1\"}', 2, NULL),
+(1259, '2026-02-03 11:05:42', 'info', 'zeitservice', 'Synchronisierung Tageswerte abgeschlossen', '{\"mitarbeiter_id\":2,\"datum\":\"2026-02-03\",\"kommen_roh\":null,\"gehen_roh\":null,\"pause_min\":0,\"pause_quelle\":\"auto\",\"pause_db_min\":0,\"felder_manuell\":0}', 2, NULL),
+(1260, '2026-02-03 11:05:42', 'info', 'zeitbuchung_audit', 'Zeitbuchung korrigiert', '{\"aktion\":\"delete\",\"buchung_id\":158,\"ziel_mitarbeiter_id\":2,\"datum\":\"2026-02-03\",\"alt\":{\"typ\":\"gehen\",\"zeitstempel\":\"2026-02-03 15:45:05\",\"kommentar\":\"5\",\"quelle\":\"web\"},\"neu\":null,\"begruendung\":\"1\"}', 2, NULL),
+(1261, '2026-02-03 11:05:58', 'info', 'zeitservice', 'Synchronisierung Tageswerte abgeschlossen', '{\"mitarbeiter_id\":2,\"datum\":\"2026-02-03\",\"kommen_roh\":\"2026-02-03 11:11:11\",\"gehen_roh\":null,\"pause_min\":0,\"pause_quelle\":\"auto\",\"pause_db_min\":0,\"felder_manuell\":0}', 2, NULL),
+(1262, '2026-02-03 11:05:58', 'info', 'zeitbuchung_audit', 'Zeitbuchung korrigiert', '{\"aktion\":\"add\",\"buchung_id\":168,\"ziel_mitarbeiter_id\":2,\"datum\":\"2026-02-03\",\"alt\":null,\"neu\":{\"id\":168,\"typ\":\"kommen\",\"zeitstempel\":\"2026-02-03 11:11:11\",\"kommentar\":\"1\",\"quelle\":\"web\",\"manuell_geaendert\":1,\"nachtshift\":0},\"begruendung\":\"1\"}', 2, NULL),
+(1263, '2026-02-03 11:41:25', 'error', 'auftragszeit_service', 'Fehler beim Beenden laufender Aufträge (Service)', '{\"mitarbeiter_id\":2,\"status\":\"pausiert\",\"exception\":\"SQLSTATE[01000]: Warning: 1265 Data truncated for column \'status\' at row 1\"}', 2, NULL),
+(1264, '2026-02-03 11:59:04', 'error', 'maschine', 'Fehler beim Erzeugen des Maschinen-QR-Codes', '{\"id\":5,\"exception\":\"Call to undefined method MaschineQrCodeService::bereinigeRelativenPfad()\"}', 5, NULL),
+(1265, '2026-02-03 12:16:48', 'info', 'config', 'Default-Config-Werte wurden automatisch angelegt (fehlende Keys).', '{\"keys\":[\"terminal_timeout_standard\",\"terminal_timeout_urlaub\",\"terminal_session_idle_timeout\",\"urlaub_blocke_negativen_resturlaub\",\"terminal_healthcheck_interval\",\"micro_buchung_max_sekunden\",\"maschinen_qr_rel_pfad\",\"maschinen_qr_url\"]}', NULL, NULL),
+(1266, '2026-02-03 12:19:14', 'error', 'maschine', 'Fehler beim Erzeugen des Maschinen-QR-Codes', '{\"id\":5,\"exception\":\"Call to undefined method MaschineQrCodeService::bereinigeRelativenPfad()\"}', 5, NULL),
+(1267, '2026-02-03 12:20:08', 'error', 'maschine', 'Fehler beim Erzeugen des Maschinen-QR-Codes', '{\"id\":5,\"exception\":\"Call to undefined method MaschineQrCodeService::bereinigeRelativenPfad()\"}', 5, NULL);
 
 -- --------------------------------------------------------
 
@@ -902,8 +982,9 @@ INSERT INTO `tageswerte_mitarbeiter` (`id`, `mitarbeiter_id`, `datum`, `kommen_r
 (115, 2, '2025-12-09', '2025-12-09 05:55:05', '2025-12-09 23:23:23', NULL, NULL, 45, 0, NULL, NULL, NULL, 16.50, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, '2026-02-01 05:33:52', '2026-02-01 05:55:09'),
 (128, 2, '2025-12-10', '2025-12-10 05:55:05', '2025-12-10 05:56:05', NULL, NULL, 0, 0, NULL, NULL, NULL, 0.02, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, '2026-02-01 06:15:26', '2026-02-01 06:15:51'),
 (130, 2, '2026-02-02', '2026-02-02 05:55:05', '2026-02-02 16:00:00', NULL, NULL, 0, 0, NULL, NULL, NULL, 7.25, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0, 0, 0, 0, 0, 0, 0, 0, 1, NULL, '2026-02-01 06:17:14', '2026-02-01 06:18:25'),
-(135, 2, '2026-02-03', '2026-02-03 05:55:05', '2026-02-03 15:45:05', NULL, NULL, 45, 0, NULL, NULL, NULL, 9.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, '2026-02-01 06:52:26', '2026-02-01 06:52:37'),
-(137, 2, '2026-02-04', '2026-02-04 05:05:05', '2026-02-04 15:15:05', NULL, NULL, 30, 1, 'keine frühstückspause gemacht', 2, '2026-02-01 07:06:16', 9.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0, 0, 0, 0, 0, 0, 0, 0, 1, NULL, '2026-02-01 06:53:24', '2026-02-01 07:06:16');
+(135, 2, '2026-02-03', '2026-02-03 11:11:11', NULL, NULL, NULL, 0, 0, NULL, NULL, NULL, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, '2026-02-01 06:52:26', '2026-02-03 11:05:58'),
+(137, 2, '2026-02-04', '2026-02-04 05:05:05', '2026-02-04 15:15:05', NULL, NULL, 30, 1, 'keine frühstückspause gemacht', 2, '2026-02-01 07:06:16', 9.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0, 0, 0, 0, 0, 0, 0, 0, 1, NULL, '2026-02-01 06:53:24', '2026-02-01 07:06:16'),
+(140, 2, '2026-02-01', '2026-02-01 11:04:11', '2026-02-01 17:45:52', NULL, NULL, 0, 0, NULL, NULL, NULL, 6.50, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, '2026-02-01 07:35:49', '2026-02-01 17:47:51');
 
 -- --------------------------------------------------------
 
@@ -959,9 +1040,9 @@ CREATE TABLE `urlaubsantrag` (
 --
 
 INSERT INTO `urlaubsantrag` (`id`, `mitarbeiter_id`, `von_datum`, `bis_datum`, `tage_gesamt`, `status`, `antrags_datum`, `entscheidungs_mitarbeiter_id`, `entscheidungs_datum`, `kommentar_mitarbeiter`, `kommentar_genehmiger`, `erstellt_am`, `geaendert_am`) VALUES
-(5, 12, '2026-07-02', '2026-07-17', 12.00, 'offen', '2026-01-11 19:21:21', NULL, NULL, 'asdf', NULL, '2026-01-11 19:21:21', '2026-01-11 19:21:21'),
+(5, 12, '2026-07-02', '2026-07-17', 12.00, 'abgelehnt', '2026-01-11 19:21:21', 2, '2026-02-01 11:06:23', 'asdf', NULL, '2026-01-11 19:21:21', '2026-02-01 11:06:23'),
 (6, 2, '2026-01-23', '2026-01-31', 6.00, 'storniert', '2026-01-12 06:48:52', NULL, NULL, 'Hahsh', NULL, '2026-01-12 06:48:52', '2026-01-12 06:49:11'),
-(7, 2, '2026-01-26', '2026-01-30', 5.00, 'offen', '2026-01-24 04:24:45', NULL, NULL, 'asfd', NULL, '2026-01-24 04:24:45', '2026-01-24 04:24:45');
+(7, 2, '2026-01-26', '2026-01-30', 5.00, 'genehmigt', '2026-01-24 04:24:45', 2, '2026-02-01 11:06:21', 'asfd', NULL, '2026-01-24 04:24:45', '2026-02-01 11:06:21');
 
 -- --------------------------------------------------------
 
@@ -1135,10 +1216,13 @@ INSERT INTO `zeitbuchung` (`id`, `mitarbeiter_id`, `typ`, `zeitstempel`, `quelle
 (154, 2, 'gehen', '2026-02-02 10:00:00', 'web', 1, '7', 0, NULL, '2026-02-01 06:17:26', '2026-02-01 06:17:26'),
 (155, 2, 'kommen', '2026-02-02 12:00:00', 'web', 1, '4', 0, NULL, '2026-02-01 06:17:49', '2026-02-01 06:17:49'),
 (156, 2, 'gehen', '2026-02-02 16:00:00', 'web', 1, '4', 0, NULL, '2026-02-01 06:17:59', '2026-02-01 06:17:59'),
-(157, 2, 'kommen', '2026-02-03 05:55:05', 'web', 1, '5', 0, NULL, '2026-02-01 06:52:26', '2026-02-01 06:52:26'),
-(158, 2, 'gehen', '2026-02-03 15:45:05', 'web', 1, '5', 0, NULL, '2026-02-01 06:52:37', '2026-02-01 06:52:37'),
 (159, 2, 'kommen', '2026-02-04 05:05:05', 'web', 1, '5', 0, NULL, '2026-02-01 06:53:24', '2026-02-01 06:53:24'),
-(160, 2, 'gehen', '2026-02-04 15:15:05', 'web', 1, '5', 0, NULL, '2026-02-01 06:53:45', '2026-02-01 06:53:45');
+(160, 2, 'gehen', '2026-02-04 15:15:05', 'web', 1, '5', 0, NULL, '2026-02-01 06:53:45', '2026-02-01 06:53:45'),
+(164, 2, 'kommen', '2026-02-01 11:04:11', 'terminal', 0, NULL, 0, NULL, '2026-02-01 11:05:38', '2026-02-01 11:05:38'),
+(166, 2, 'gehen', '2026-02-01 17:45:52', 'terminal', 0, NULL, 0, NULL, '2026-02-01 17:45:52', '2026-02-01 17:45:52'),
+(168, 2, 'kommen', '2026-02-03 11:11:11', 'web', 1, '1', 0, NULL, '2026-02-03 11:05:58', '2026-02-03 11:05:58'),
+(169, 2, 'gehen', '2026-02-03 11:41:25', 'terminal', 0, NULL, 0, NULL, '2026-02-03 11:41:25', '2026-02-03 11:41:25'),
+(170, 2, 'kommen', '2026-02-03 11:42:04', 'terminal', 0, NULL, 0, NULL, '2026-02-03 11:42:04', '2026-02-03 11:42:04');
 
 -- --------------------------------------------------------
 
@@ -1190,27 +1274,27 @@ ALTER TABLE `auftrag`
   ADD KEY `idx_auftrag_status` (`status`);
 
 --
--- Indizes für die Tabelle `auftrag_arbeitsschritt`
---
-ALTER TABLE `auftrag_arbeitsschritt`
-  ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `uniq_auftrag_arbeitsschritt` (`auftrag_id`,`arbeitsschritt_code`),
-  ADD KEY `idx_auftrag_arbeitsschritt_auftrag` (`auftrag_id`);
-
---
 -- Indizes für die Tabelle `auftragszeit`
 --
 ALTER TABLE `auftragszeit`
   ADD PRIMARY KEY (`id`),
   ADD KEY `idx_auftragszeit_mitarbeiter` (`mitarbeiter_id`),
   ADD KEY `idx_auftragszeit_auftrag` (`auftrag_id`),
-  ADD KEY `idx_auftragszeit_arbeitsschritt` (`arbeitsschritt_id`),
   ADD KEY `idx_auftragszeit_maschine` (`maschine_id`),
   ADD KEY `idx_auftragszeit_startzeit` (`startzeit`),
   ADD KEY `idx_auftragszeit_status` (`status`),
   ADD KEY `fk_auftragszeit_terminal` (`terminal_id`),
   ADD KEY `idx_auftragszeit_auftrag_arbeitsschritt` (`auftrag_id`,`arbeitsschritt_code`),
-  ADD KEY `idx_auftragszeit_code_arbeitsschritt` (`auftragscode`,`arbeitsschritt_code`);
+  ADD KEY `idx_auftragszeit_code_arbeitsschritt` (`auftragscode`,`arbeitsschritt_code`),
+  ADD KEY `idx_auftragszeit_arbeitsschritt` (`arbeitsschritt_id`);
+
+--
+-- Indizes für die Tabelle `auftrag_arbeitsschritt`
+--
+ALTER TABLE `auftrag_arbeitsschritt`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `uniq_auftrag_arbeitsschritt` (`auftrag_id`,`arbeitsschritt_code`),
+  ADD KEY `idx_auftrag_arbeitsschritt_auftrag` (`auftrag_id`);
 
 --
 -- Indizes für die Tabelle `betriebsferien`
@@ -1464,13 +1548,19 @@ ALTER TABLE `abteilung`
 -- AUTO_INCREMENT für Tabelle `auftrag`
 --
 ALTER TABLE `auftrag`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 
 --
 -- AUTO_INCREMENT für Tabelle `auftragszeit`
 --
 ALTER TABLE `auftragszeit`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
+
+--
+-- AUTO_INCREMENT für Tabelle `auftrag_arbeitsschritt`
+--
+ALTER TABLE `auftrag_arbeitsschritt`
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT für Tabelle `betriebsferien`
@@ -1482,7 +1572,7 @@ ALTER TABLE `betriebsferien`
 -- AUTO_INCREMENT für Tabelle `config`
 --
 ALTER TABLE `config`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=88080;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=122929;
 
 --
 -- AUTO_INCREMENT für Tabelle `db_injektionsqueue`
@@ -1512,7 +1602,7 @@ ALTER TABLE `kurzarbeit_plan`
 -- AUTO_INCREMENT für Tabelle `maschine`
 --
 ALTER TABLE `maschine`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT für Tabelle `mitarbeiter`
@@ -1530,13 +1620,13 @@ ALTER TABLE `mitarbeiter_genehmiger`
 -- AUTO_INCREMENT für Tabelle `mitarbeiter_hat_abteilung`
 --
 ALTER TABLE `mitarbeiter_hat_abteilung`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=19;
 
 --
 -- AUTO_INCREMENT für Tabelle `mitarbeiter_hat_rolle_scope`
 --
 ALTER TABLE `mitarbeiter_hat_rolle_scope`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
 
 --
 -- AUTO_INCREMENT für Tabelle `monatswerte_mitarbeiter`
@@ -1590,13 +1680,13 @@ ALTER TABLE `stundenkonto_korrektur`
 -- AUTO_INCREMENT für Tabelle `system_log`
 --
 ALTER TABLE `system_log`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1198;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1268;
 
 --
 -- AUTO_INCREMENT für Tabelle `tageswerte_mitarbeiter`
 --
 ALTER TABLE `tageswerte_mitarbeiter`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=140;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=151;
 
 --
 -- AUTO_INCREMENT für Tabelle `terminal`
@@ -1620,7 +1710,7 @@ ALTER TABLE `urlaub_kontingent_jahr`
 -- AUTO_INCREMENT für Tabelle `zeitbuchung`
 --
 ALTER TABLE `zeitbuchung`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=161;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=171;
 
 --
 -- AUTO_INCREMENT für Tabelle `zeit_rundungsregel`
