@@ -157,6 +157,12 @@ class TerminalController
             return null;
         }
 
+        // Barcode-Format: "id_name" oder "id-name" -> führende Zahl verwenden
+        if (preg_match('/^(\\d+)[_-]/', $raw, $m)) {
+            $id = (int)$m[1];
+            return ($id > 0) ? $id : null;
+        }
+
         // Reine Zahl
         if (ctype_digit($raw)) {
             $id = (int)$raw;

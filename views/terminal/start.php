@@ -951,7 +951,7 @@ require __DIR__ . '/_layout_top.php';
                 <label for="neben_arbeitsschritt_code">Arbeitsschritt-Code</label>
                 <input type="text" id="neben_arbeitsschritt_code" name="arbeitsschritt_code" value="<?php echo htmlspecialchars((string)($nebenauftragFormular['arbeitsschritt_code'] ?? ''), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>" autocomplete="off" required>
 
-                <label for="neben_maschine_id">Maschine (optional)</label>
+                <label for="neben_maschine_id">Maschine (optional, Barcode: id_name möglich)</label>
                 <input type="text" id="neben_maschine_id" name="maschine_id" value="<?php echo htmlspecialchars((string)($nebenauftragFormular['maschine_id'] ?? ''), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>" inputmode="numeric" autocomplete="off" placeholder="z.B. 12">
 
                 <div class="button-row">
