@@ -1,80 +1,134 @@
-# Git-Wiki und Repository-Beschreibung
+# Inhalt für die Git-Wiki
 
-## Ziel
-Diese Anleitung beschreibt, wie eine **GitHub-Wiki** für das Projekt gepflegt
-wird und wie die **Repository-Beschreibung** (Kurzbeschreibung + Topics) sinnvoll
-gesetzt wird.
+Dieses Dokument ist **der eigentliche Wiki-Inhalt**, den du in die GitHub-Wiki
+kopieren kannst. Du wolltest keine Anleitung zur Aktivierung, sondern den
+fertigen Text für deine Wiki-Seiten.
 
-## GitHub-Wiki anlegen und pflegen
+## Seite: Home
 
-### 1) Wiki aktivieren
-1. Öffne das Repository auf GitHub.
-2. Klicke auf **Settings** → **Features**.
-3. Aktiviere die Option **Wiki**.
-
-> Hinweis: Die Wiki ist ein **separates Git-Repository**. Du kannst sie sowohl
-> über die GitHub-Weboberfläche als auch per Git-Clone verwalten.
-
-### 2) Wiki-Repository klonen
-```bash
-git clone https://github.com/<ORG>/<REPO>.wiki.git
-```
-
-### 3) Startstruktur für die Wiki (Empfehlung)
-Lege folgende Seiten an (Dateinamen sind die Seitentitel):
-
-- **Home.md**
-  - Kurzüberblick, Links zu den wichtigsten Bereichen.
-- **Administration.md**
-  - Einstellungen, Rollen, Rechte, Konfigurationsorte.
-- **RFID-Reader.md**
-  - Anleitung für beide RFID-Varianten (Keyboard-Wedge & WebSocket-Bridge).
-- **FAQ.md**
-  - Häufige Probleme und Lösungen.
-- **Changelog.md** (optional)
-  - Änderungen an Prozessen und Konfigurationen.
-
-### 4) Inhalt aus der Projekt-Doku übernehmen
-Die Dateien im Verzeichnis `docs/` eignen sich als Grundlage:
-- `docs/admin_handbuch.md` → **Administration.md**
-- `docs/rfid_reader_setup.md` → **RFID-Reader.md**
-- `docs/STATUS_SNAPSHOT.md` → **Changelog.md** (ggf. gekürzt)
-
-### 5) Änderungen veröffentlichen
-```bash
-git add .
-git commit -m "Wiki: Basisdokumentation" 
-git push
-```
-
-## Repository-Beschreibung (Kurztext + Topics)
-
-### 1) Kurzbeschreibung setzen
-1. Öffne die Repository-Seite auf GitHub.
-2. Klicke auf das **Zahnrad** neben der Beschreibung.
-3. Beispieltext:
-   - **Kurzbeschreibung:** „Zeiterfassung und Mitarbeiter-/Auftragsmanagement mit RFID-Integration“
-
-### 2) Topics pflegen
-Empfohlene Topics (anpassen je nach Projektumfang):
-- `zeiterfassung`
-- `rfid`
-- `php`
-- `zeitmanagement`
-- `mitarbeiterverwaltung`
-
-### 3) README-Teaser (optional)
-Optional kann im Haupt-README ein kurzer Absatz ergänzt werden, der auf die
-Wiki verweist und den Einstieg erleichtert.
-
-## Empfohlener Wiki-Starttext (Beispiel)
-```markdown
 # Zeiterfassung – Wiki
 
-Willkommen im Projekt-Wiki. Hier findest du:
-- **Administration** (Einstellungen, Rechte, Konfiguration)
-- **RFID-Reader** (beide Varianten inkl. Fehlerdiagnose)
-- **FAQ**
+Willkommen im Projekt-Wiki. Hier findest du die wichtigsten Einstell- und
+Admin-Themen zur Zeiterfassung inklusive RFID-Anbindung.
 
-Für technische Details im Repository siehe das Verzeichnis `docs/`.
-```
+**Schnellzugriff**
+- **Administration**: Einstellungen, Rollen, Rechte, Konfiguration
+- **RFID-Reader**: Beide Varianten (Tastatur-Scanner & WebSocket-Bridge)
+- **FAQ**: Häufige Probleme und Lösungen
+
+**Repo-Teaser (Kurzbeschreibung)**
+> „Zeiterfassung und Mitarbeiter-/Auftragsmanagement mit RFID-Integration“
+
+**Empfohlene Topics**
+`zeiterfassung`, `rfid`, `php`, `zeitmanagement`, `mitarbeiterverwaltung`
+
+---
+
+## Seite: Administration
+
+# Administration
+
+Diese Seite beschreibt, wo Einstellungen vorgenommen werden und welche
+Bereiche wofür zuständig sind.
+
+## Konfigurationsorte
+
+### `config/`
+- **`config/config.php`**: Zentrale Konfiguration mit Defaults.
+- **`config/config.local.php`** (nicht versioniert): Produktive/ lokale Werte.
+- **`config/config.php.example`**: Vorlage für eigene Konfigurationen.
+
+### `services/`
+- Fachlogik (z. B. Zeitregeln, Rundung, Urlaub).
+- Typische Anlaufpunkte: `ZeitService`, `UrlaubService`, `RundungsService`.
+
+### `controller/`
+- Request-Verarbeitung, Übergabe an Views.
+- Geeignet für Anpassungen an Abläufen.
+
+### `modelle/`
+- Datenbank-Modelle (Mitarbeiter, Zeitbuchungen, Urlaubsanträge).
+
+### `sql/`
+- Datenbankschemata/Migrationen.
+- Referenz: `sql/01_initial_schema.sql`.
+
+## Typische Einstellungen (Ablauf)
+
+### 1) Benutzer anlegen
+1. Admin-Oberfläche öffnen.
+2. Mitarbeiter anlegen (Name, Personalnummer, Status).
+3. Rollen zuweisen (siehe unten).
+4. Speichern und in der Übersicht prüfen.
+
+### 2) Rollen & Rechte
+1. Rollenverwaltung öffnen.
+2. Rolle erstellen (z. B. „Teamleitung“).
+3. Rechte aktivieren (z. B. Freigaben, Auswertungen).
+4. Rolle zuweisen.
+
+### 3) Zeitregeln & Rundungen
+1. Regeln in `services/` prüfen.
+2. Anpassungen in den jeweiligen Services vornehmen.
+3. Mit Testbuchungen prüfen.
+
+### 4) Datenbank/SQL
+1. Schema aus `sql/01_initial_schema.sql` importieren.
+2. Zugangsdaten in `config/config.local.php` setzen.
+3. Verbindung über die Admin-Oberfläche prüfen.
+
+---
+
+## Seite: RFID-Reader
+
+# RFID-Reader
+
+Es gibt zwei unterstützte Varianten. Wähle die, die zu deiner Hardware passt.
+
+## Variante 1: Tastatur-Scanner (USB-HID/Keyboard-Wedge)
+Der Reader verhält sich wie eine Tastatur und schreibt die UID direkt in das
+aktive Eingabefeld.
+
+**Konfiguration**
+- `terminal.rfid_ws.enabled = false`
+- oder `ZEIT_RFID_WS_ENABLED=0`
+
+**Test**
+- Terminal-Seite öffnen.
+- Scan durchführen und prüfen, dass die UID im Eingabefeld landet.
+
+## Variante 2: SPI/RC522 mit WebSocket-Bridge
+Der Reader liefert UIDs über einen lokalen WebSocket-Dienst.
+
+**Konfiguration**
+- `terminal.rfid_ws.enabled = true`
+- `terminal.rfid_ws.url = ws://127.0.0.1:8765`
+- oder `ZEIT_RFID_WS_ENABLED=1`, `ZEIT_RFID_WS_URL=ws://127.0.0.1:8765`
+
+**Test**
+- Dienststatus prüfen (`systemctl status rfid-ws.service --no-pager`).
+- Port checken (`ss -lntp | grep 8765`).
+- Terminal-Seite öffnen und Scan durchführen.
+
+## Fehlersuche (Kurz)
+- Kein Input beim Tastatur-Scanner → Fokus prüfen, HID-Modus aktiv?
+- WebSocket getrennt → URL/Port prüfen, `wss://` bei HTTPS.
+- RFID unbekannt → RFID-Zuweisung im Admin prüfen.
+
+---
+
+## Seite: FAQ
+
+# FAQ
+
+**F: Wie finde ich die wichtigsten Einstellungen?**  
+A: Starte bei `config/` und `services/`. Die Admin-Seite ist der erste Einstieg.
+
+**F: Wo stehen die DB-Tabellen/Struktur?**  
+A: In `sql/01_initial_schema.sql`.
+
+**F: Warum kommt beim Scan nichts an?**  
+A: Beim Tastatur-Scanner: Fokus prüfen. Bei WebSocket: Dienst/Port/URL prüfen.
+
+**F: RFID wird nicht erkannt?**  
+A: Prüfe die RFID-Zuweisung in der Admin-Oberfläche.
