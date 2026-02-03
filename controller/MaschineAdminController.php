@@ -287,10 +287,15 @@ class MaschineAdminController
 
         $maschinenId = $id > 0 ? $id : (int)$this->datenbank->letzteInsertId();
         $codeBildPfad = null;
+        $barcodeFallback = false;
 
         try {
             $qrService = new MaschineQrCodeService();
-            $codeBildPfad = $qrService->erzeugeMaschinenQrCode($maschinenId);
+            $codeBildPfad = $qrService->erzeugeMaschinenBarcode($maschinenId, $name);
+            if ($codeBildPfad === null) {
+                $barcodeFallback = true;
+                $codeBildPfad = $qrService->erzeugeMaschinenQrCode($maschinenId);
+            }
             if ($codeBildPfad !== null) {
                 $codeBildPfad = $this->normalisiereCodeBildPfad($codeBildPfad);
                 $sql = 'UPDATE maschine
@@ -304,7 +309,7 @@ class MaschineAdminController
         } catch (\Throwable $e) {
             $codeBildPfad = null;
             if (class_exists('Logger')) {
-                Logger::error('Fehler beim Erzeugen des Maschinen-QR-Codes', [
+                Logger::error('Fehler beim Erzeugen des Maschinen-Barcodes', [
                     'id'        => $maschinenId,
                     'exception' => $e->getMessage(),
                 ], $maschinenId, null, 'maschine');
@@ -312,9 +317,11 @@ class MaschineAdminController
         }
 
         if ($codeBildPfad === null) {
-            $fehlermeldung = 'Die Maschine wurde gespeichert, aber der QR-Code konnte nicht erstellt werden. Bitte Schreibrechte im Verzeichnis public/uploads/maschinen_codes prüfen.';
+            $fehlermeldung = 'Die Maschine wurde gespeichert, aber der Barcode konnte nicht erstellt werden. Bitte Schreibrechte im Verzeichnis public/uploads/maschinen_codes prüfen.';
+        } elseif ($barcodeFallback) {
+            $erfolgsmeldung = 'Die Maschine wurde gespeichert. Der Barcode konnte nicht erstellt werden, daher wurde ein QR-Code hinterlegt.';
         } else {
-            $erfolgsmeldung = 'Die Maschine wurde gespeichert und der QR-Code wurde aktualisiert.';
+            $erfolgsmeldung = 'Die Maschine wurde gespeichert und der Barcode wurde aktualisiert.';
         }
 
         $aktuelleMaschine = $this->maschineModel->holeNachId($maschinenId);
@@ -325,6 +332,109 @@ class MaschineAdminController
         }
 
         $this->renderFormular($aktuelleMaschine, $abteilungen, $fehlermeldung, $erfolgsmeldung);
+    }
+
+    /**
+     * Barcode fuer eine Maschine neu generieren.
+     */
+    public function barcodeNeuGenerieren(): void
+    {
+        if (!$this->pruefeZugriff()) {
+            return;
+        }
+
+        $idRaw = $_GET['id'] ?? '';
+        $id    = is_numeric($idRaw) ? (int)$idRaw : 0;
+
+        $fehlermeldung = null;
+        $erfolgsmeldung = null;
+        $maschine = null;
+
+        if ($id <= 0) {
+            $fehlermeldung = 'Ungueltige Maschinen-ID.';
+        } else {
+            try {
+                $maschine = $this->maschineModel->holeNachId($id);
+                if ($maschine === null) {
+                    $fehlermeldung = 'Die ausgewählte Maschine wurde nicht gefunden.';
+                }
+            } catch (\Throwable $e) {
+                $fehlermeldung = 'Die Maschine konnte nicht geladen werden.';
+                if (class_exists('Logger')) {
+                    Logger::error('Fehler beim Laden einer Maschine für Barcode-Neuerzeugung', [
+                        'id'        => $id,
+                        'exception' => $e->getMessage(),
+                    ], $id, null, 'maschine');
+                }
+            }
+        }
+
+        if ($maschine !== null && $fehlermeldung === null) {
+            $maschinenName = (string)($maschine['name'] ?? '');
+            $codeBildPfad = null;
+            $barcodeFallback = false;
+
+            try {
+                $qrService = new MaschineQrCodeService();
+                $codeBildPfad = $qrService->erzeugeMaschinenBarcode($id, $maschinenName);
+                if ($codeBildPfad === null) {
+                    $barcodeFallback = true;
+                    $codeBildPfad = $qrService->erzeugeMaschinenQrCode($id);
+                }
+                if ($codeBildPfad !== null) {
+                    $codeBildPfad = $this->normalisiereCodeBildPfad($codeBildPfad);
+                    $sql = 'UPDATE maschine
+                            SET code_bild_pfad = :code_bild_pfad
+                            WHERE id = :id';
+                    $this->datenbank->ausfuehren($sql, [
+                        'id' => $id,
+                        'code_bild_pfad' => $codeBildPfad,
+                    ]);
+                    $maschine['code_bild_pfad'] = $codeBildPfad;
+                }
+            } catch (\Throwable $e) {
+                $codeBildPfad = null;
+                if (class_exists('Logger')) {
+                    Logger::error('Fehler beim Neuerzeugen des Maschinen-Barcodes', [
+                        'id'        => $id,
+                        'exception' => $e->getMessage(),
+                    ], $id, null, 'maschine');
+                }
+            }
+
+            if ($codeBildPfad === null) {
+                $fehlermeldung = 'Der Barcode konnte nicht neu erzeugt werden. Bitte Schreibrechte im Verzeichnis public/uploads/maschinen_codes prüfen.';
+            } elseif ($barcodeFallback) {
+                $erfolgsmeldung = 'Der Barcode konnte nicht erstellt werden, daher wurde ein QR-Code hinterlegt.';
+            } else {
+                $erfolgsmeldung = 'Der Barcode wurde neu generiert.';
+            }
+        }
+
+        $abteilungen = [];
+        try {
+            $abteilungen = $this->abteilungModel->holeAlleAktiven();
+        } catch (\Throwable $e) {
+            $abteilungen = [];
+            if (class_exists('Logger')) {
+                Logger::error('Fehler beim Laden der Abteilungen für Barcode-Neuerzeugung', [
+                    'exception' => $e->getMessage(),
+                ], $id > 0 ? $id : null, null, 'maschine');
+            }
+        }
+
+        if ($maschine === null) {
+            $maschine = [
+                'id'           => $id,
+                'name'         => '',
+                'abteilung_id' => null,
+                'beschreibung' => '',
+                'code_bild_pfad' => null,
+                'aktiv'        => 1,
+            ];
+        }
+
+        $this->renderFormular($maschine, $abteilungen, $fehlermeldung, $erfolgsmeldung);
     }
 
     /**
@@ -346,6 +456,7 @@ class MaschineAdminController
         $maschinenQrUrlKonfiguriert = $this->holeMaschinenQrUrl() !== '';
         $codeBildUrl = $this->baueQrCodeUrlPfad($normalisierterCodeBildPfad);
         $aktiv       = (int)($maschine['aktiv'] ?? 0) === 1;
+        $scanDaten = $id > 0 ? $id . '_' . $name : '';
 
         if ($abteilungId !== null) {
             $abteilungId = (int)$abteilungId;
@@ -406,25 +517,30 @@ class MaschineAdminController
 
                 <?php if ($id > 0): ?>
                     <div style="margin: 1rem 0; padding: 0.75rem; border: 1px solid #ddd; border-radius: 6px; max-width: 520px;">
-                        <div><strong>Maschinen-QR-Code</strong></div>
+                        <div><strong>Maschinen-Barcode</strong></div>
                         <?php if (!$maschinenQrUrlKonfiguriert): ?>
                             <div style="margin-top: 0.5rem; color: #a00;">
-                                Bitte die Maschinen-QR-URL in der Konfiguration hinterlegen, damit der QR-Code korrekt geladen werden kann.
+                                Bitte die Maschinen-QR-URL in der Konfiguration hinterlegen, damit der Barcode korrekt geladen werden kann.
                             </div>
                         <?php elseif ($codeBildUrl !== ''): ?>
                             <div style="margin-top: 0.5rem;">
-                                <img src="<?php echo htmlspecialchars($codeBildUrl, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>" alt="QR-Code Maschine <?php echo $id; ?>" style="max-width: 100%; height: auto;">
+                                <img src="<?php echo htmlspecialchars($codeBildUrl, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>" alt="Barcode Maschine <?php echo $id; ?>" style="max-width: 100%; height: auto;">
                             </div>
                             <div style="margin-top: 0.5rem; display:flex; gap: 1rem; flex-wrap: wrap;">
                                 <a href="<?php echo htmlspecialchars($codeBildUrl, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>" target="_blank">Download PNG</a>
                             </div>
                         <?php else: ?>
                             <div style="margin-top: 0.5rem; color: #444;">
-                                Noch kein QR-Code gespeichert. Bitte die Maschine speichern.
+                                Noch kein Barcode gespeichert. Bitte die Maschine speichern.
                             </div>
                         <?php endif; ?>
+                        <div style="margin-top: 0.5rem;">
+                            <form method="post" action="?seite=maschine_admin_barcode_neu&amp;id=<?php echo $id; ?>">
+                                <button type="submit">Barcode neu generieren</button>
+                            </form>
+                        </div>
                         <div style="margin-top: 0.5rem; font-size: 0.9rem; color: #444;">
-                            Scan-Code: <code><?php echo $id; ?></code>
+                            Scan-Code: <code><?php echo htmlspecialchars($scanDaten, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></code>
                         </div>
                     </div>
                 <?php endif; ?>
