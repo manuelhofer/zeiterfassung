@@ -35,3 +35,7 @@ vorherige Version in `docs/archiv`). Ältere Stände werden entfernt oder in ein
 externes Archiv (separates Repo oder Release-Artefakt) ausgelagert.
 
 Weitere alte Spezifikationen liegen ebenfalls im Archivordner `docs/archiv`.
+
+## Weitere Dokumentation
+
+- Admin-Handbuch: [`docs/admin_handbuch.md`](admin_handbuch.md)
