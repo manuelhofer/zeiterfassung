@@ -39,5 +39,6 @@ Weitere alte Spezifikationen liegen ebenfalls im Archivordner `docs/archiv`.
 ## Weitere Dokumentation
 
 - Admin-Handbuch: [`docs/admin_handbuch.md`](admin_handbuch.md)
+- Installationsanleitung (Kurzfassung): [`docs/installationsanleitung.md`](installationsanleitung.md)
 - RFID-Reader-Setup: [`docs/rfid_reader_setup.md`](rfid_reader_setup.md)
 - Git-Wiki & Repo-Beschreibung: [`docs/git_wiki_und_beschreibung.md`](git_wiki_und_beschreibung.md)
