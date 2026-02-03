@@ -1,11 +1,3 @@
-# Inhalt für die Git-Wiki
-
-Dieses Dokument ist **der eigentliche Wiki-Inhalt**, den du in die GitHub-Wiki
-kopieren kannst. Du wolltest keine Anleitung zur Aktivierung, sondern den
-fertigen Text für deine Wiki-Seiten.
-
-## Seite: Home
-
 # Zeiterfassung – Wiki
 
 Willkommen im Projekt-Wiki. Hier findest du die wichtigsten Einstell- und
