@@ -4487,9 +4487,9 @@ $urlaubSaldo = null;
             $this->setzeTerminalAnwesenheitStatus(false);
         }
 
-        // Nach erfolgreichem Gehen: alle laufenden Aufträge (Haupt- und Nebenaufträge) pausieren.
+        // Nach erfolgreichem Gehen: laufenden Hauptauftrag pausieren.
         if ($fehlerText === null && $id !== null) {
-            $stopErgebnis = $this->auftragszeitService->stoppeAlleLaufendenAuftraegeFuerMitarbeiter(
+            $stopErgebnis = $this->auftragszeitService->stoppeLaufendeHauptauftraegeFuerMitarbeiter(
                 (int)$mitarbeiter['id'],
                 $zeitpunkt,
                 'pausiert'
@@ -4497,8 +4497,8 @@ $urlaubSaldo = null;
 
             if ($stopErgebnis === 1 || $stopErgebnis === 0) {
                 $hinweis = $stopErgebnis === 0
-                    ? 'Alle laufenden Aufträge wurden automatisch pausiert (offline vorgemerkt).'
-                    : 'Alle laufenden Aufträge wurden automatisch pausiert.';
+                    ? 'Der laufende Hauptauftrag wurde automatisch pausiert (offline vorgemerkt).'
+                    : 'Der laufende Hauptauftrag wurde automatisch pausiert.';
                 if ($nachricht !== null && $nachricht !== '') {
                     $nachricht .= ' ' . $hinweis;
                 } else {
@@ -4513,14 +4513,6 @@ $urlaubSaldo = null;
                             $_SESSION['terminal_letzter_auftrag']['endzeit'] = $zeitpunkt->format('Y-m-d H:i:s');
                             $_SESSION['terminal_letzter_auftrag']['zeit'] = $zeitpunkt->format('Y-m-d H:i:s');
                         }
-
-                        if (isset($_SESSION['terminal_letzter_nebenauftrag']) && is_array($_SESSION['terminal_letzter_nebenauftrag'])) {
-                            $_SESSION['terminal_letzter_nebenauftrag']['status'] = 'pausiert';
-                            $_SESSION['terminal_letzter_nebenauftrag']['endzeit'] = $zeitpunkt->format('Y-m-d H:i:s');
-                            $_SESSION['terminal_letzter_nebenauftrag']['zeit'] = $zeitpunkt->format('Y-m-d H:i:s');
-                        }
-
-                        $_SESSION['terminal_nebenauftrag_laufend_count'] = 0;
                     }
                 } catch (\Throwable $e) {
                     // niemals Terminal-Flow blockieren

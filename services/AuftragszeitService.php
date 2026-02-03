@@ -633,6 +633,100 @@ class AuftragszeitService
     }
 
     /**
+     * Stoppt alle laufenden Hauptaufträge eines Mitarbeiters.
+     *
+     * @param int                $mitarbeiterId Mitarbeiter-ID
+     * @param \DateTimeImmutable $zeitpunkt      Endzeitpunkt
+     * @param string             $status         Zielstatus (abgeschlossen/abgebrochen/pausiert)
+     *
+     * @return int|null 1=online erfolgreich, 0=offline in Queue gespeichert, null=Fehler
+     */
+    public function stoppeLaufendeHauptauftraegeFuerMitarbeiter(int $mitarbeiterId, \DateTimeImmutable $zeitpunkt, string $status = 'abgeschlossen'): ?int
+    {
+        $mitarbeiterId = (int)$mitarbeiterId;
+        if ($mitarbeiterId <= 0) {
+            return null;
+        }
+
+        if (!in_array($status, ['abgeschlossen', 'abgebrochen', 'pausiert'], true)) {
+            $status = 'abgeschlossen';
+        }
+
+        $db = null;
+        if (class_exists('Database')) {
+            $db = Database::getInstanz();
+        }
+
+        $hauptDbOk = null;
+        if ($db !== null && method_exists($db, 'istHauptdatenbankVerfuegbar')) {
+            try {
+                $hauptDbOk = (bool)$db->istHauptdatenbankVerfuegbar();
+            } catch (\Throwable $e) {
+                $hauptDbOk = false;
+            }
+        }
+
+        if ($this->istTerminalInstallation() && $hauptDbOk === false) {
+            $endStr = $zeitpunkt->format('Y-m-d H:i:s');
+            $sql = 'UPDATE auftragszeit SET '
+                . 'endzeit=' . $this->sqlQuote($endStr) . ', '
+                . 'status=' . $this->sqlQuote($status) . ' '
+                . 'WHERE mitarbeiter_id=' . (int)$mitarbeiterId
+                . " AND typ='haupt' AND status='laufend' AND endzeit IS NULL";
+
+            try {
+                $ok = OfflineQueueManager::getInstanz()->speichereInQueue(
+                    $sql,
+                    $mitarbeiterId,
+                    null,
+                    'auftrag_stop_haupt'
+                );
+
+                return $ok ? 0 : null;
+            } catch (\Throwable $e) {
+                if (class_exists('Logger')) {
+                    Logger::error('AuftragszeitService: Offline-Queue Hauptaufträge stoppen fehlgeschlagen', [
+                        'mitarbeiter_id' => $mitarbeiterId,
+                        'status'         => $status,
+                        'exception'      => $e->getMessage(),
+                    ], $mitarbeiterId, null, 'auftragszeit_service_offline');
+                }
+
+                return null;
+            }
+        }
+
+        try {
+            $dbOnline = Database::getInstanz();
+            $sql = 'UPDATE auftragszeit
+                    SET endzeit = :endzeit,
+                        status  = :status
+                    WHERE mitarbeiter_id = :mitarbeiter_id
+                      AND typ = \'haupt\'
+                      AND status = \'laufend\'
+                      AND endzeit IS NULL';
+
+            $dbOnline->ausfuehren($sql, [
+                'endzeit'        => $zeitpunkt->format('Y-m-d H:i:s'),
+                'status'         => $status,
+                'mitarbeiter_id' => $mitarbeiterId,
+            ]);
+
+            return 1;
+        } catch (\Throwable $e) {
+            if (class_exists('Logger')) {
+                Logger::error('Fehler beim Beenden laufender Hauptaufträge (Service)', [
+                    'mitarbeiter_id' => $mitarbeiterId,
+                    'status'         => $status,
+                    'exception'      => $e->getMessage(),
+                ], $mitarbeiterId, null, 'auftragszeit_service');
+            }
+
+            return null;
+        }
+    }
+
+    /**
      * Startet den zuletzt pausierten Hauptauftrag eines Mitarbeiters erneut.
      *
      * @return array<string,mixed>|null Metadaten der neuen Auftragszeit oder null, wenn nichts fortgesetzt wurde
