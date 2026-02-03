@@ -4,7 +4,7 @@ declare(strict_types=1);
 /**
  * MaschineQrCodeService
  *
- * Erzeugt QR-Codes fuer Maschinen und kann diese direkt ausgeben.
+ * Erzeugt QR-Codes und Barcodes fuer Maschinen und kann diese direkt ausgeben.
  */
 class MaschineQrCodeService
 {
@@ -21,6 +21,7 @@ class MaschineQrCodeService
         $this->relativerUrlPfad = $this->ermittleRelativenUrlPfad($konfiguration, $this->relativerSpeicherPfad);
         $this->maschinenQrUrl = $this->ermittleMaschinenQrUrl($konfiguration);
         $this->ladeBibliothek();
+        $this->ladeBarcodeBibliothek();
     }
 
     public function erzeugeMaschinenQrCode(int $maschinenId): ?string
@@ -49,14 +50,78 @@ class MaschineQrCodeService
         return $relativerPfad;
     }
 
+    public function erzeugeMaschinenBarcode(int $maschinenId, string $maschinenName): ?string
+    {
+        if ($maschinenId <= 0) {
+            return null;
+        }
+
+        $maschinenName = trim($maschinenName);
+        $barcodeInhalt = $maschinenId . '_' . $maschinenName;
+        $dateiname = 'maschine_' . $maschinenId . '_barcode.png';
+        $relativerPfad = $this->relativerSpeicherPfad . '/' . $dateiname;
+        $zielPfad = $this->basisVerzeichnis . '/' . $relativerPfad;
+
+        $zielOrdner = dirname($zielPfad);
+        if (!is_dir($zielOrdner)) {
+            if (!mkdir($zielOrdner, 0755, true) && !is_dir($zielOrdner)) {
+                return null;
+            }
+        }
+
+        if (!$this->erzeugeBarcodePng($barcodeInhalt, $zielPfad)) {
+            return null;
+        }
+
+        if (!is_file($zielPfad)) {
+            return null;
+        }
+
+        return $relativerPfad;
+    }
+
     public function gebeQrPngAus(string $daten, int $groesse = 6, int $rand = 2): void
     {
         $this->erzeugePng($daten, null, $groesse, $rand);
     }
 
+    public function gebeBarcodePngAus(string $daten, int $breiteFaktor = 2, int $hoehe = 60): void
+    {
+        $pngDaten = $this->erzeugeBarcodePngDaten($daten, $breiteFaktor, $hoehe);
+        if ($pngDaten !== null) {
+            echo $pngDaten;
+        }
+    }
+
     private function ladeBibliothek(): void
     {
         require_once __DIR__ . '/phpqrcode/qrlib.php';
+    }
+
+    private function ladeBarcodeBibliothek(): void
+    {
+        $basisPfad = __DIR__ . '/barcode/Picqer/Barcode';
+        $dateien = [
+            $basisPfad . '/Barcode.php',
+            $basisPfad . '/BarcodeBar.php',
+            $basisPfad . '/BarcodeGenerator.php',
+            $basisPfad . '/BarcodeGeneratorPNG.php',
+            $basisPfad . '/Exceptions/BarcodeException.php',
+            $basisPfad . '/Exceptions/InvalidCharacterException.php',
+            $basisPfad . '/Exceptions/InvalidLengthException.php',
+            $basisPfad . '/Exceptions/InvalidCheckDigitException.php',
+            $basisPfad . '/Exceptions/UnknownTypeException.php',
+            $basisPfad . '/Renderers/RendererInterface.php',
+            $basisPfad . '/Renderers/PngRenderer.php',
+            $basisPfad . '/Types/TypeInterface.php',
+            $basisPfad . '/Types/TypeCode128.php',
+        ];
+
+        foreach ($dateien as $datei) {
+            if (is_file($datei)) {
+                require_once $datei;
+            }
+        }
     }
 
     /**
@@ -196,5 +261,45 @@ class MaschineQrCodeService
         $ziel = $zielPfad ?? false;
 
         QRcode::png($daten, $ziel, $level, $groesse, $rand);
+    }
+
+    private function erzeugeBarcodePng(string $daten, string $zielPfad, int $breiteFaktor = 2, int $hoehe = 60): bool
+    {
+        $pngDaten = $this->erzeugeBarcodePngDaten($daten, $breiteFaktor, $hoehe);
+        if ($pngDaten === null) {
+            return false;
+        }
+
+        return file_put_contents($zielPfad, $pngDaten) !== false;
+    }
+
+    private function erzeugeBarcodePngDaten(string $daten, int $breiteFaktor = 2, int $hoehe = 60): ?string
+    {
+        if (!class_exists('Picqer\\Barcode\\BarcodeGeneratorPNG')) {
+            return null;
+        }
+
+        if (!function_exists('imagecreate') && !extension_loaded('imagick')) {
+            return null;
+        }
+
+        try {
+            $generator = new Picqer\Barcode\BarcodeGeneratorPNG();
+            return $generator->getBarcode(
+                $daten,
+                Picqer\Barcode\BarcodeGenerator::TYPE_CODE_128,
+                $breiteFaktor,
+                $hoehe
+            );
+        } catch (\Throwable $e) {
+            if (class_exists('Logger')) {
+                Logger::error('Fehler beim Erzeugen des Maschinen-Barcodes', [
+                    'daten' => $daten,
+                    'exception' => $e->getMessage(),
+                ], null, null, 'maschine');
+            }
+        }
+
+        return null;
     }
 }

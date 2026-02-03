@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-// QR-Generator fuer Maschinen-IDs.
+// Barcode-Generator fuer Maschinen-IDs.
 // Hinweis: bewusst als eigenes Endpoint (ohne Router), damit ein <img>-Tag es direkt laden kann.
 
 require __DIR__ . '/../core/Autoloader.php';
@@ -58,19 +58,36 @@ if ($id <= 0) {
     exit;
 }
 
-if (!function_exists('imagecreatetruecolor')) {
+if (!function_exists('imagecreatetruecolor') && !extension_loaded('imagick')) {
     http_response_code(501);
     header('Content-Type: text/plain; charset=UTF-8');
-    echo 'QR-Ausgabe nicht verfuegbar (PHP-GD fehlt). Bitte php-gd installieren.';
+    echo 'Barcode-Ausgabe nicht verfuegbar (PHP-GD fehlt). Bitte php-gd installieren.';
     exit;
 }
 
 $qrService = new MaschineQrCodeService();
+$name = trim((string)($_GET['name'] ?? ''));
+$barcodeDaten = $id . '_' . $name;
 
 // Cache defensiv aus (damit der Download immer frisch ist).
 header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
 header('Pragma: no-cache');
 header('Content-Type: image/png');
-header('Content-Disposition: inline; filename="maschine-' . $id . '.png"');
+header('Content-Disposition: inline; filename="maschine-' . $id . '-barcode.png"');
 
-$qrService->gebeQrPngAus((string)$id);
+ob_start();
+$qrService->gebeBarcodePngAus($barcodeDaten);
+$ausgabe = ob_get_clean();
+
+if ($ausgabe === '' || $ausgabe === false) {
+    if (class_exists('Logger')) {
+        Logger::error('Barcode-Ausgabe fehlgeschlagen, Fallback auf QR', [
+            'id' => $id,
+            'name' => $name,
+        ], $id, null, 'maschine');
+    }
+    $qrService->gebeQrPngAus((string)$id);
+    exit;
+}
+
+echo $ausgabe;
