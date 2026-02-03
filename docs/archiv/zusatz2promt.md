@@ -4,7 +4,7 @@ Stand: 2026-01-17
 
 Dieser Prompt beschreibt, wie im Projekt **„Zeiterfassung“** ein **Stundenkonto** (Guthaben/Minus) umgesetzt werden soll: performant, nachvollziehbar (Audit/Begruendung) und rueckwirkend korrigierbar.
 
-Wichtig: Der vorherige `docs/zusatzpromt.md` gilt als **abgearbeitet**. Dieser Prompt ist der neue Scope.
+Wichtig: Der vorherige `docs/archiv/zusatzpromt.md` gilt als **abgearbeitet**. Dieser Prompt ist der neue Scope.
 
 ---
 
