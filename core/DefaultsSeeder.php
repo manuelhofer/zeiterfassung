@@ -92,10 +92,10 @@ class DefaultsSeeder
                 'beschreibung'  => 'Maschinen-QR: Relativer Speicherpfad unterhalb von public. Default uploads/maschinen_codes.',
             ],
             [
-                'schluessel'    => 'maschinen_qr_base_url',
+                'schluessel'    => 'maschinen_qr_url',
                 'wert'          => '',
                 'typ'           => 'string',
-                'beschreibung'  => 'Maschinen-QR: Basis-URL oder Basispfad für die Ausgabe. Leer = Domain-Root.',
+                'beschreibung'  => 'Maschinen-QR: URL oder Basispfad für die Ausgabe. Leer = Domain-Root.',
             ],
         ];
 

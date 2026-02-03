@@ -195,7 +195,7 @@ INSERT INTO `config` (`id`, `schluessel`, `wert`, `typ`, `beschreibung`, `erstel
 (5897, 'terminal_healthcheck_interval', '10', 'int', 'Terminal: Intervall (Sekunden) für wiederkehrende Healthchecks (Hauptdatenbank/Offline-Queue Anzeige). Default 10.', '2026-01-11 06:38:46', '2026-01-11 06:38:46'),
 (31548, 'micro_buchung_max_sekunden', '180', 'int', 'Zeitbuchungen: Mikro-Buchungen (Kommen/Gehen) bis zu X Sekunden werden standardmäßig ignoriert/ausgeblendet. Default 180 (= 3 Minuten).', '2026-01-14 12:33:45', '2026-01-14 12:33:45'),
 (31549, 'maschinen_qr_rel_pfad', 'uploads/maschinen_codes', 'string', 'Maschinen-QR: Relativer Speicherpfad unterhalb von public. Default uploads/maschinen_codes.', '2026-01-14 12:33:45', '2026-01-14 12:33:45'),
-(31550, 'maschinen_qr_base_url', '', 'string', 'Maschinen-QR: Basis-URL oder Basispfad für die Ausgabe. Leer = Domain-Root.', '2026-01-14 12:33:45', '2026-01-14 12:33:45');
+(31550, 'maschinen_qr_url', '', 'string', 'Maschinen-QR: URL oder Basispfad für die Ausgabe. Leer = Domain-Root.', '2026-01-14 12:33:45', '2026-01-14 12:33:45');
 
 -- --------------------------------------------------------
 
