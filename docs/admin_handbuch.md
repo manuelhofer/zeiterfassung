@@ -64,6 +64,12 @@ Status-Snapshot.
 2. Pflege Zugangsdaten in `config/config.local.php` oder per Umgebungsvariablen.
 3. Prüfe die Verbindung über die Admin-Oberfläche.
 
+### 5) RFID-Reader (Terminal)
+1. Wähle die passende Reader-Variante (Tastatur-Scanner oder WebSocket-Bridge).
+2. Konfiguriere die Bridge-Einstellungen in `config/config.php` bzw. `config/config.local.php`.
+3. Teste den Scan am Terminal und prüfe die Logs bei Problemen.
+
 ## Verlinkte Referenzen
 - Projektübersicht und Konfiguration: [`docs/README.md`](README.md)
 - Status/Letzte Änderungen: [`docs/STATUS_SNAPSHOT.md`](STATUS_SNAPSHOT.md)
+- RFID-Reader-Setup: [`docs/rfid_reader_setup.md`](rfid_reader_setup.md)
