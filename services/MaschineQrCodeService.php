@@ -66,7 +66,7 @@ class MaschineQrCodeService
     {
         $standardPfad = 'uploads/maschinen_codes';
         $konfigPfad = $this->waehleRelativenPfad($konfiguration);
-        return $this->bereinigeRelativenPfad($konfigPfad, $standardPfad);
+        return $this->normalisiereRelativenPfad($konfigPfad, $standardPfad);
     }
 
     /**
@@ -100,7 +100,7 @@ class MaschineQrCodeService
     private function ermittleRelativenUrlPfad(array $konfiguration, string $fallback): string
     {
         $konfigPfad = $this->waehleRelativenPfad($konfiguration);
-        return $this->bereinigeRelativenPfad($konfigPfad, $fallback);
+        return $this->normalisiereRelativenPfad($konfigPfad, $fallback);
     }
 
     /**
