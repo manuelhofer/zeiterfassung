@@ -57,7 +57,7 @@ class SessionManager
         }
 
         if (session_status() === PHP_SESSION_NONE) {
-            // Optional: Session-Namen anhand des App-Namens aus der config.php ableiten.
+            // Optional: Session-Namen anhand des App-Namens aus der config/config.php ableiten.
             $sessionName = $this->ermittleSessionNameAusKonfiguration();
             if ($sessionName !== '') {
                 session_name($sessionName);
@@ -88,7 +88,7 @@ class SessionManager
      */
     private function ermittleSessionNameAusKonfiguration(): string
     {
-        $konfigPfad = __DIR__ . '/../config.php';
+        $konfigPfad = __DIR__ . '/../config/config.php';
         if (!file_exists($konfigPfad)) {
             return '';
         }
