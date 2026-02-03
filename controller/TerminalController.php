@@ -4314,9 +4314,9 @@ $urlaubSaldo = null;
             $this->setzeTerminalAnwesenheitStatus(true);
         }
 
-        // Bei erfolgreichem Kommen (online oder offline) ggf. pausierten Hauptauftrag automatisch fortsetzen.
+        // Bei erfolgreichem Kommen (online oder offline) ggf. pausierte Aufträge automatisch fortsetzen.
         if ($fehlerText === null && $id !== null) {
-            $fortsetzung = $this->auftragszeitService->starteLetztenPausiertenHauptauftrag(
+            $fortsetzung = $this->auftragszeitService->startePausierteAuftraegeFuerMitarbeiter(
                 (int)$mitarbeiter['id'],
                 $zeitpunkt,
                 'automatisch fortgesetzt'
@@ -4324,30 +4324,42 @@ $urlaubSaldo = null;
 
             if (is_array($fortsetzung)) {
                 $wartetOffline = !empty($fortsetzung['queued']);
-                if ($nachricht !== null && $nachricht !== '') {
-                    $nachricht .= $wartetOffline
-                        ? ' Letzter Hauptauftrag wird automatisch fortgesetzt (offline vorgemerkt).'
-                        : ' Letzter Hauptauftrag wurde automatisch fortgesetzt.';
-                } else {
-                    $nachricht = $wartetOffline
-                        ? 'Letzter Hauptauftrag wird automatisch fortgesetzt (offline vorgemerkt).'
-                        : 'Letzter Hauptauftrag wurde automatisch fortgesetzt.';
+                $hatFortsetzungen = $wartetOffline || ((int)($fortsetzung['anzahl'] ?? 0) > 0);
+                if ($hatFortsetzungen) {
+                    if ($nachricht !== null && $nachricht !== '') {
+                        $nachricht .= ' Aufträge wurden automatisch fortgesetzt.';
+                    } else {
+                        $nachricht = 'Aufträge wurden automatisch fortgesetzt.';
+                    }
                 }
 
-                if (!$wartetOffline && isset($fortsetzung['id'])) {
-                    try {
-                        if (session_status() === PHP_SESSION_ACTIVE) {
-                            $_SESSION['terminal_letzter_auftrag'] = [
-                                'auftragscode' => (string)($fortsetzung['auftragscode'] ?? ''),
-                                'arbeitsschritt_code' => $fortsetzung['arbeitsschritt_code'] ?? null,
-                                'status' => 'laufend',
-                                'typ' => 'haupt',
-                                'auftragszeit_id' => (int)$fortsetzung['id'],
-                                'zeit' => $zeitpunkt->format('Y-m-d H:i:s'),
-                            ];
+                if (!$wartetOffline && isset($fortsetzung['auftraege']) && is_array($fortsetzung['auftraege'])) {
+                    $letzterHauptauftrag = null;
+                    foreach ($fortsetzung['auftraege'] as $auftrag) {
+                        if (!is_array($auftrag)) {
+                            continue;
                         }
-                    } catch (\Throwable $e) {
-                        // niemals Terminal-Flow blockieren
+                        if (($auftrag['typ'] ?? null) === 'haupt') {
+                            $letzterHauptauftrag = $auftrag;
+                            break;
+                        }
+                    }
+
+                    if ($letzterHauptauftrag !== null && isset($letzterHauptauftrag['id'])) {
+                        try {
+                            if (session_status() === PHP_SESSION_ACTIVE) {
+                                $_SESSION['terminal_letzter_auftrag'] = [
+                                    'auftragscode' => (string)($letzterHauptauftrag['auftragscode'] ?? ''),
+                                    'arbeitsschritt_code' => $letzterHauptauftrag['arbeitsschritt_code'] ?? null,
+                                    'status' => 'laufend',
+                                    'typ' => 'haupt',
+                                    'auftragszeit_id' => (int)$letzterHauptauftrag['id'],
+                                    'zeit' => $zeitpunkt->format('Y-m-d H:i:s'),
+                                ];
+                            }
+                        } catch (\Throwable $e) {
+                            // niemals Terminal-Flow blockieren
+                        }
                     }
                 }
             }

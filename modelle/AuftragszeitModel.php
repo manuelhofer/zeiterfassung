@@ -58,6 +58,35 @@ class AuftragszeitModel
     }
 
     /**
+     * Lädt alle pausierten Auftragszeiten eines Mitarbeiters (neueste zuerst).
+     *
+     * @return array<int,array<string,mixed>>
+     */
+    public function holePausierteFuerMitarbeiter(int $mitarbeiterId): array
+    {
+        $mitarbeiterId = max(1, $mitarbeiterId);
+
+        try {
+            $sql = 'SELECT *
+                    FROM auftragszeit
+                    WHERE mitarbeiter_id = :mitarbeiter_id
+                      AND status = \'pausiert\'
+                    ORDER BY endzeit DESC, id DESC';
+
+            return $this->datenbank->fetchAlle($sql, ['mitarbeiter_id' => $mitarbeiterId]);
+        } catch (\Throwable $e) {
+            if (class_exists('Logger')) {
+                Logger::error('Fehler beim Laden pausierter Auftragszeiten', [
+                    'mitarbeiter_id' => $mitarbeiterId,
+                    'exception'      => $e->getMessage(),
+                ], $mitarbeiterId, null, 'auftrag');
+            }
+
+            return [];
+        }
+    }
+
+    /**
      * Lädt eine Auftragszeit nach ID.
      *
      * @return array<string,mixed>|null

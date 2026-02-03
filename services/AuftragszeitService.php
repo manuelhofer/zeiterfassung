@@ -838,4 +838,133 @@ class AuftragszeitService
             'queued' => false,
         ];
     }
+
+    /**
+     * Startet pausierte Aufträge eines Mitarbeiters erneut.
+     *
+     * Regel: Alle pausierten Aufträge (Haupt + Neben) werden fortgesetzt.
+     *
+     * @return array<string,mixed>|null Metadaten der Fortsetzungen oder null, wenn nichts fortgesetzt wurde
+     */
+    public function startePausierteAuftraegeFuerMitarbeiter(
+        int $mitarbeiterId,
+        \DateTimeImmutable $zeitpunkt,
+        string $kommentar = 'automatisch fortgesetzt'
+    ): ?array {
+        $mitarbeiterId = (int)$mitarbeiterId;
+        if ($mitarbeiterId <= 0) {
+            return null;
+        }
+
+        $db = null;
+        if (class_exists('Database')) {
+            $db = Database::getInstanz();
+        }
+
+        $hauptDbOk = null;
+        if ($db !== null && method_exists($db, 'istHauptdatenbankVerfuegbar')) {
+            try {
+                $hauptDbOk = (bool)$db->istHauptdatenbankVerfuegbar();
+            } catch (\Throwable $e) {
+                $hauptDbOk = false;
+            }
+        }
+
+        if ($this->istTerminalInstallation() && $hauptDbOk === false) {
+            $zeitStr = $zeitpunkt->format('Y-m-d H:i:s');
+            $sql = 'INSERT INTO auftragszeit (mitarbeiter_id, auftrag_id, arbeitsschritt_id, auftragscode, arbeitsschritt_code, maschine_id, terminal_id, typ, startzeit, kommentar) '
+                . 'SELECT az.mitarbeiter_id, az.auftrag_id, az.arbeitsschritt_id, az.auftragscode, az.arbeitsschritt_code, az.maschine_id, az.terminal_id, '
+                . 'az.typ, '
+                . $this->sqlQuote($zeitStr) . ', '
+                . $this->sqlNullableString($kommentar, 255)
+                . ' FROM auftragszeit az '
+                . 'WHERE az.mitarbeiter_id=' . (int)$mitarbeiterId
+                . " AND az.status='pausiert'"
+                . ' ORDER BY az.endzeit DESC, az.id DESC';
+
+            try {
+                $ok = OfflineQueueManager::getInstanz()->speichereInQueue(
+                    $sql,
+                    $mitarbeiterId,
+                    null,
+                    'auftrag_fortsetzen'
+                );
+
+                return $ok ? ['queued' => true, 'anzahl' => 0, 'auftraege' => []] : null;
+            } catch (\Throwable $e) {
+                if (class_exists('Logger')) {
+                    Logger::error('AuftragszeitService: Offline-Queue Auftragsfortsetzung fehlgeschlagen', [
+                        'mitarbeiter_id' => $mitarbeiterId,
+                        'exception' => $e->getMessage(),
+                    ], $mitarbeiterId, null, 'auftragszeit_service_offline');
+                }
+
+                return null;
+            }
+        }
+
+        $pausen = $this->auftragszeitModel->holePausierteFuerMitarbeiter($mitarbeiterId);
+        if ($pausen === []) {
+            return null;
+        }
+
+        $fortgesetzt = [];
+        $anzahl = 0;
+
+        foreach ($pausen as $pause) {
+            $auftragscode = isset($pause['auftragscode']) ? trim((string)$pause['auftragscode']) : '';
+            if ($auftragscode === '') {
+                continue;
+            }
+
+            $typ = isset($pause['typ']) ? trim((string)$pause['typ']) : 'haupt';
+            if (!in_array($typ, ['haupt', 'neben'], true)) {
+                $typ = 'haupt';
+            }
+
+            $auftragId = isset($pause['auftrag_id']) ? (int)$pause['auftrag_id'] : null;
+            $arbeitsschrittId = isset($pause['arbeitsschritt_id']) ? (int)$pause['arbeitsschritt_id'] : null;
+            $arbeitsschrittCode = isset($pause['arbeitsschritt_code']) ? trim((string)$pause['arbeitsschritt_code']) : null;
+            if ($arbeitsschrittCode === '') {
+                $arbeitsschrittCode = null;
+            }
+            $maschineId = isset($pause['maschine_id']) ? (int)$pause['maschine_id'] : null;
+            $terminalId = isset($pause['terminal_id']) ? (int)$pause['terminal_id'] : null;
+
+            $neueId = $this->auftragszeitModel->erstelleAuftragszeit(
+                $mitarbeiterId,
+                $auftragId,
+                $auftragscode,
+                $arbeitsschrittId,
+                $arbeitsschrittCode,
+                $maschineId,
+                $terminalId,
+                $typ,
+                $zeitpunkt,
+                $kommentar
+            );
+
+            if ($neueId === null) {
+                continue;
+            }
+
+            $anzahl++;
+            $fortgesetzt[] = [
+                'id' => (int)$neueId,
+                'auftragscode' => $auftragscode,
+                'arbeitsschritt_code' => $arbeitsschrittCode,
+                'typ' => $typ,
+            ];
+        }
+
+        if ($anzahl === 0) {
+            return null;
+        }
+
+        return [
+            'queued' => false,
+            'anzahl' => $anzahl,
+            'auftraege' => $fortgesetzt,
+        ];
+    }
 }
