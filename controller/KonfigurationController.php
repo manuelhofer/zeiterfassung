@@ -333,22 +333,71 @@ class KonfigurationController
     }
 
     /**
-     * Admin-UI: System-Log (Info/Warn/Error) anzeigen.
+     * Admin-UI: System-Log (Warnung/Fehler) anzeigen.
      */
     private function indexSystemlog(): void
     {
         $limit = 200;
         $limit = max(10, min(500, $limit));
 
+        $ok = isset($_GET['ok']) ? (int)$_GET['ok'] : 0;
+        $csrfToken = $this->holeOderErzeugeCsrfToken();
         $fehlermeldung = null;
         $eintraege = [];
 
+        $istPost = (isset($_SERVER['REQUEST_METHOD']) && strtoupper((string)$_SERVER['REQUEST_METHOD']) === 'POST');
+        if ($istPost) {
+            $postToken = isset($_POST['csrf_token']) ? (string)$_POST['csrf_token'] : '';
+            if (!hash_equals($csrfToken, $postToken)) {
+                $fehlermeldung = 'CSRF-Check fehlgeschlagen. Bitte Seite neu laden.';
+            } else {
+                $aktion = isset($_POST['log_action']) ? trim((string)$_POST['log_action']) : '';
+
+                if ($aktion === 'loeschen') {
+                    $id = isset($_POST['id']) ? (int)$_POST['id'] : 0;
+                    $id = max(0, $id);
+                    if ($id <= 0) {
+                        $fehlermeldung = 'Ungültige Log-ID.';
+                    } else {
+                        try {
+                            $this->datenbank->ausfuehren('DELETE FROM system_log WHERE id = :id', ['id' => $id]);
+                            header('Location: ?seite=konfiguration_admin&tab=systemlog&ok=1');
+                            return;
+                        } catch (Throwable $e) {
+                            $fehlermeldung = 'Löschen fehlgeschlagen.';
+                            if (class_exists('Logger')) {
+                                Logger::error('Fehler beim Löschen eines System-Log-Eintrags', [
+                                    'id' => $id,
+                                    'exception' => $e->getMessage(),
+                                ], $this->authService->holeAngemeldeteMitarbeiterId(), null, 'system_log');
+                            }
+                        }
+                    }
+                }
+
+                if ($aktion === 'leeren') {
+                    try {
+                        $this->datenbank->ausfuehren('DELETE FROM system_log');
+                        header('Location: ?seite=konfiguration_admin&tab=systemlog&ok=1');
+                        return;
+                    } catch (Throwable $e) {
+                        $fehlermeldung = 'Das System-Log konnte nicht geleert werden.';
+                        if (class_exists('Logger')) {
+                            Logger::error('Fehler beim Leeren des System-Logs', [
+                                'exception' => $e->getMessage(),
+                            ], $this->authService->holeAngemeldeteMitarbeiterId(), null, 'system_log');
+                        }
+                    }
+                }
+            }
+        }
+
         try {
-            $sql = "SELECT l.zeitstempel, l.loglevel, l.kategorie, l.nachricht, l.daten, l.mitarbeiter_id, l.terminal_id,
+            $sql = "SELECT l.id, l.zeitstempel, l.loglevel, l.kategorie, l.nachricht, l.daten, l.mitarbeiter_id, l.terminal_id,
                            m.vorname AS m_vorname, m.nachname AS m_nachname
                     FROM system_log l
                     LEFT JOIN mitarbeiter m ON m.id = l.mitarbeiter_id
-                    WHERE LOWER(l.loglevel) IN ('info', 'warn', 'error')
+                    WHERE LOWER(l.loglevel) IN ('warn', 'error')
                     ORDER BY l.zeitstempel DESC
                     LIMIT " . (int)$limit;
             $eintraege = $this->datenbank->fetchAlle($sql);
@@ -375,14 +424,24 @@ class KonfigurationController
             </p>
 
             <p style="color:#555;max-width:60rem;">
-                Angezeigt werden die letzten <?php echo (int)$limit; ?> Einträge (Info, Warnung, Fehler).
+                Angezeigt werden die letzten <?php echo (int)$limit; ?> Einträge (Warnung, Fehler).
             </p>
+
+            <?php if ($ok === 1): ?>
+                <div class="erfolgsmeldung">Aktion abgeschlossen.</div>
+            <?php endif; ?>
 
             <?php if (!empty($fehlermeldung)): ?>
                 <div class="fehlermeldung">
                     <?php echo htmlspecialchars((string)$fehlermeldung, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>
                 </div>
             <?php endif; ?>
+
+            <form method="post" action="?seite=konfiguration_admin&amp;tab=systemlog" onsubmit="return confirm('System-Log wirklich vollständig leeren?');">
+                <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($csrfToken, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>">
+                <input type="hidden" name="log_action" value="leeren">
+                <button type="submit" class="button-link danger">System-Log leeren</button>
+            </form>
 
             <?php if (count($eintraege) === 0): ?>
                 <p>Es sind derzeit keine Log-Einträge vorhanden.</p>
@@ -397,11 +456,13 @@ class KonfigurationController
                             <th>Daten</th>
                             <th>Mitarbeiter</th>
                             <th>Terminal</th>
+                            <th>Aktionen</th>
                         </tr>
                     </thead>
                     <tbody>
                         <?php foreach ($eintraege as $e): ?>
                             <?php
+                                $id = (int)($e['id'] ?? 0);
                                 $zeit = (string)($e['zeitstempel'] ?? '');
                                 $level = strtolower((string)($e['loglevel'] ?? ''));
                                 $kategorie = (string)($e['kategorie'] ?? '');
@@ -416,6 +477,8 @@ class KonfigurationController
                                     $mitarbeiterName = 'Mitarbeiter #' . $mitarbeiterId;
                                 }
                                 $datenKurz = $daten !== '' && mb_strlen($daten) > 120 ? (mb_substr($daten, 0, 120) . '…') : $daten;
+                                $datenVoll = $daten !== '' ? $daten : 'Keine Daten vorhanden.';
+                                $detailId = 'systemlog_detail_' . $id;
                             ?>
                             <tr>
                                 <td><?php echo htmlspecialchars($zeit, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></td>
@@ -431,10 +494,43 @@ class KonfigurationController
                                 </td>
                                 <td><?php echo htmlspecialchars($mitarbeiterName !== '' ? $mitarbeiterName : '-', ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></td>
                                 <td><?php echo $terminalId > 0 ? (int)$terminalId : '-'; ?></td>
+                                <td>
+                                    <button type="button" class="button-link" data-detail-toggle="<?php echo htmlspecialchars($detailId, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>">Details</button>
+                                    <form method="post" action="?seite=konfiguration_admin&amp;tab=systemlog" style="display:inline;" onsubmit="return confirm('Diesen Log-Eintrag wirklich löschen?');">
+                                        <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($csrfToken, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>">
+                                        <input type="hidden" name="log_action" value="loeschen">
+                                        <input type="hidden" name="id" value="<?php echo (int)$id; ?>">
+                                        <button type="submit" class="button-link danger">Löschen</button>
+                                    </form>
+                                </td>
+                            </tr>
+                            <tr id="<?php echo htmlspecialchars($detailId, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>" style="display:none;">
+                                <td colspan="8">
+                                    <div style="padding:0.5rem 0;">
+                                        <strong>Details:</strong>
+                                        <pre style="white-space:pre-wrap; margin:0.35rem 0 0;"><?php echo htmlspecialchars($datenVoll, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></pre>
+                                    </div>
+                                </td>
                             </tr>
                         <?php endforeach; ?>
                     </tbody>
                 </table>
+
+                <script>
+                (function(){
+                    var toggles = document.querySelectorAll('[data-detail-toggle]');
+                    toggles.forEach(function(btn){
+                        btn.addEventListener('click', function(){
+                            var zielId = btn.getAttribute('data-detail-toggle');
+                            if (!zielId) return;
+                            var zeile = document.getElementById(zielId);
+                            if (!zeile) return;
+                            var sichtbar = zeile.style.display !== 'none';
+                            zeile.style.display = sichtbar ? 'none' : 'table-row';
+                        });
+                    });
+                })();
+                </script>
             <?php endif; ?>
         </section>
         <?php
