@@ -1387,6 +1387,8 @@ class ZeitController
             ];
 
             $this->loggeZeitbuchungAudit('update', $actorMitarbeiterId, $zielMitarbeiterId, $datumYmd, $buchungId, $altAudit, $neuAudit, $begruendung);
+
+            $this->synchronisiereAuftraegeNachManuellerZeitbuchung($zielMitarbeiterId, $typ, $dt);
         }
 
         return $ok;
@@ -1505,7 +1507,59 @@ class ZeitController
 
         $this->loggeZeitbuchungAudit('add', $actorMitarbeiterId, $zielMitarbeiterId, $datumYmd, $id, null, $neuAudit, $begruendung);
 
+        $this->synchronisiereAuftraegeNachManuellerZeitbuchung($zielMitarbeiterId, $typ, $dt);
+
         return true;
+    }
+
+    private function synchronisiereAuftraegeNachManuellerZeitbuchung(
+        int $mitarbeiterId,
+        string $typ,
+        DateTimeImmutable $zeitpunkt
+    ): void {
+        if ($mitarbeiterId <= 0) {
+            return;
+        }
+
+        if (!in_array($typ, ['kommen', 'gehen'], true)) {
+            return;
+        }
+
+        try {
+            $auftragszeitService = AuftragszeitService::getInstanz();
+        } catch (Throwable $e) {
+            return;
+        }
+
+        if ($typ === 'gehen') {
+            $res = $auftragszeitService->stoppeAlleLaufendenAuftraegeFuerMitarbeiterBisZeitpunkt(
+                $mitarbeiterId,
+                $zeitpunkt,
+                'pausiert'
+            );
+
+            if ($res === null && class_exists('Logger')) {
+                Logger::warn('Manuelle Zeitkorrektur: Laufende Aufträge konnten nicht pausiert werden', [
+                    'mitarbeiter_id' => $mitarbeiterId,
+                    'zeitpunkt' => $zeitpunkt->format('Y-m-d H:i:s'),
+                ], $mitarbeiterId, null, 'zeit_korrektur');
+            }
+
+            return;
+        }
+
+        $res = $auftragszeitService->startePausierteAuftraegeFuerMitarbeiterBisZeitpunkt(
+            $mitarbeiterId,
+            $zeitpunkt,
+            'automatisch fortgesetzt (manuelle Zeitkorrektur)'
+        );
+
+        if ($res === null && class_exists('Logger')) {
+            Logger::warn('Manuelle Zeitkorrektur: Pausierte Aufträge konnten nicht fortgesetzt werden', [
+                'mitarbeiter_id' => $mitarbeiterId,
+                'zeitpunkt' => $zeitpunkt->format('Y-m-d H:i:s'),
+            ], $mitarbeiterId, null, 'zeit_korrektur');
+        }
     }
 
     /**
