@@ -1532,7 +1532,7 @@ class ZeitController
         }
 
         if ($typ === 'gehen') {
-            $res = $auftragszeitService->stoppeAlleLaufendenAuftraegeFuerMitarbeiter(
+            $res = $auftragszeitService->stoppeAlleLaufendenAuftraegeFuerMitarbeiterBisZeitpunkt(
                 $mitarbeiterId,
                 $zeitpunkt,
                 'pausiert'
@@ -1548,7 +1548,7 @@ class ZeitController
             return;
         }
 
-        $res = $auftragszeitService->startePausierteAuftraegeFuerMitarbeiter(
+        $res = $auftragszeitService->startePausierteAuftraegeFuerMitarbeiterBisZeitpunkt(
             $mitarbeiterId,
             $zeitpunkt,
             'automatisch fortgesetzt (manuelle Zeitkorrektur)'

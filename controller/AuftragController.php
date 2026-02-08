@@ -363,6 +363,7 @@ class AuftragController
                             <th>Ende</th>
                             <th>Dauer (h)</th>
                             <th>Status</th>
+                            <th>Aktion</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -381,6 +382,8 @@ class AuftragController
                                 $start = (string)($b['startzeit'] ?? '');
                                 $end = (string)($b['endzeit'] ?? '');
                                 $status = (string)($b['status'] ?? '');
+                                $mitarbeiterId = (int)($b['mitarbeiter_id'] ?? 0);
+                                $datumLink = '';
 
                                 $dauerH = '';
                                 if ($end !== '') {
@@ -389,6 +392,10 @@ class AuftragController
                                     if ($ts1 !== false && $ts2 !== false && $ts2 >= $ts1) {
                                         $dauerH = number_format(round(($ts2 - $ts1) / 3600, 2), 2, '.', '');
                                     }
+                                }
+
+                                if ($start !== '') {
+                                    $datumLink = substr($start, 0, 10);
                                 }
                             ?>
                             <tr>
@@ -401,6 +408,13 @@ class AuftragController
                                 <td><?php echo htmlspecialchars($end, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></td>
                                 <td><?php echo $dauerH !== '' ? $dauerH : '-'; ?></td>
                                 <td><?php echo htmlspecialchars($status, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></td>
+                                <td>
+                                    <?php if ($datumLink !== '' && $mitarbeiterId > 0): ?>
+                                        <a href="?seite=zeit_heute&amp;datum=<?php echo urlencode($datumLink); ?>&amp;mitarbeiter_id=<?php echo (int)$mitarbeiterId; ?>">Editieren</a>
+                                    <?php else: ?>
+                                        -
+                                    <?php endif; ?>
+                                </td>
                             </tr>
                         <?php endforeach; ?>
                     </tbody>
