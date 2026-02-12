@@ -294,6 +294,50 @@ form.login-form textarea {
     resize: vertical;
 }
 
+.terminal-datum-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.75rem;
+}
+
+.terminal-zahlenfeld {
+    background-color: #3f3f3f;
+    border: 1px solid #606060;
+    border-radius: 8px;
+    padding: 0.5rem;
+    display: grid;
+    gap: 0.35rem;
+    justify-items: stretch;
+    text-align: center;
+}
+
+.terminal-zahlenfeld span {
+    font-size: 0.8rem;
+    color: #d2d2d2;
+}
+
+.terminal-zahlenfeld-knopf {
+    width: 100%;
+    flex: none;
+    font-size: 1.4rem;
+    line-height: 1;
+    padding: 0.45rem 0.35rem;
+    border-radius: 6px;
+}
+
+.terminal-zahlenfeld input[type="number"] {
+    text-align: center;
+    font-size: 1.15rem;
+    font-weight: bold;
+    padding: 0.55rem 0.35rem;
+}
+
+@media (max-width: 780px) {
+    .terminal-datum-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
 /* Buttons */
 .button-row {
     display: flex;

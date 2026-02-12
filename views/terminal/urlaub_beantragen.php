@@ -38,6 +38,29 @@ $urlaubSaldoFehler = (isset($urlaubSaldoFehler) && is_string($urlaubSaldoFehler)
 $urlaubJahr = isset($urlaubJahr) ? (int)$urlaubJahr : (int)(new DateTimeImmutable('now'))->format('Y');
 $urlaubVorschau = (isset($urlaubVorschau) && is_array($urlaubVorschau)) ? $urlaubVorschau : null;
 
+$datumAusFormular = static function (string $datumWert): array {
+    if ($datumWert !== '') {
+        $datumObjekt = DateTimeImmutable::createFromFormat('Y-m-d', $datumWert);
+        if ($datumObjekt instanceof DateTimeImmutable) {
+            return [
+                'tag'   => (int)$datumObjekt->format('d'),
+                'monat' => (int)$datumObjekt->format('m'),
+                'jahr'  => (int)$datumObjekt->format('Y'),
+            ];
+        }
+    }
+
+    $heute = new DateTimeImmutable('today');
+    return [
+        'tag'   => (int)$heute->format('d'),
+        'monat' => (int)$heute->format('m'),
+        'jahr'  => (int)$heute->format('Y'),
+    ];
+};
+
+$vonDatumTeile = $datumAusFormular((string)($urlaubFormular['von_datum'] ?? ''));
+$bisDatumTeile = $datumAusFormular((string)($urlaubFormular['bis_datum'] ?? ''));
+
 // Mitarbeiter-Name/ID für das Bottom-Panel (defensiv; verhindert undefined vars)
 $mitarbeiterName = '';
 $mitarbeiterId = 0;
@@ -181,14 +204,58 @@ require __DIR__ . '/_layout_top.php';
             <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($csrfToken, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>">
 
             <label for="von_datum">Von</label>
-            <input type="date" id="von_datum" name="von_datum"
+            <div class="terminal-datum-eingabe" data-datum-block="von">
+                <input type="hidden" id="von_datum" name="von_datum"
                    value="<?php echo htmlspecialchars((string)($urlaubFormular['von_datum'] ?? ''), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>"
-                   required autofocus>
+                   required>
+                <div class="terminal-datum-grid" aria-label="Startdatum auswählen">
+                    <div class="terminal-zahlenfeld" data-segment="tag">
+                        <button type="button" class="terminal-zahlenfeld-knopf" data-richtung="hoch" aria-label="Tag erhöhen">+</button>
+                        <input type="number" min="1" max="31" step="1" inputmode="numeric" value="<?php echo (int)$vonDatumTeile['tag']; ?>" aria-label="Tag" required autofocus>
+                        <button type="button" class="terminal-zahlenfeld-knopf" data-richtung="runter" aria-label="Tag verringern">−</button>
+                        <span>Tag</span>
+                    </div>
+                    <div class="terminal-zahlenfeld" data-segment="monat">
+                        <button type="button" class="terminal-zahlenfeld-knopf" data-richtung="hoch" aria-label="Monat erhöhen">+</button>
+                        <input type="number" min="1" max="12" step="1" inputmode="numeric" value="<?php echo (int)$vonDatumTeile['monat']; ?>" aria-label="Monat" required>
+                        <button type="button" class="terminal-zahlenfeld-knopf" data-richtung="runter" aria-label="Monat verringern">−</button>
+                        <span>Monat</span>
+                    </div>
+                    <div class="terminal-zahlenfeld" data-segment="jahr">
+                        <button type="button" class="terminal-zahlenfeld-knopf" data-richtung="hoch" aria-label="Jahr erhöhen">+</button>
+                        <input type="number" min="2020" max="2100" step="1" inputmode="numeric" value="<?php echo (int)$vonDatumTeile['jahr']; ?>" aria-label="Jahr" required>
+                        <button type="button" class="terminal-zahlenfeld-knopf" data-richtung="runter" aria-label="Jahr verringern">−</button>
+                        <span>Jahr</span>
+                    </div>
+                </div>
+            </div>
 
             <label for="bis_datum">Bis</label>
-            <input type="date" id="bis_datum" name="bis_datum"
+            <div class="terminal-datum-eingabe" data-datum-block="bis">
+                <input type="hidden" id="bis_datum" name="bis_datum"
                    value="<?php echo htmlspecialchars((string)($urlaubFormular['bis_datum'] ?? ''), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>"
                    required>
+                <div class="terminal-datum-grid" aria-label="Enddatum auswählen">
+                    <div class="terminal-zahlenfeld" data-segment="tag">
+                        <button type="button" class="terminal-zahlenfeld-knopf" data-richtung="hoch" aria-label="Tag erhöhen">+</button>
+                        <input type="number" min="1" max="31" step="1" inputmode="numeric" value="<?php echo (int)$bisDatumTeile['tag']; ?>" aria-label="Tag" required>
+                        <button type="button" class="terminal-zahlenfeld-knopf" data-richtung="runter" aria-label="Tag verringern">−</button>
+                        <span>Tag</span>
+                    </div>
+                    <div class="terminal-zahlenfeld" data-segment="monat">
+                        <button type="button" class="terminal-zahlenfeld-knopf" data-richtung="hoch" aria-label="Monat erhöhen">+</button>
+                        <input type="number" min="1" max="12" step="1" inputmode="numeric" value="<?php echo (int)$bisDatumTeile['monat']; ?>" aria-label="Monat" required>
+                        <button type="button" class="terminal-zahlenfeld-knopf" data-richtung="runter" aria-label="Monat verringern">−</button>
+                        <span>Monat</span>
+                    </div>
+                    <div class="terminal-zahlenfeld" data-segment="jahr">
+                        <button type="button" class="terminal-zahlenfeld-knopf" data-richtung="hoch" aria-label="Jahr erhöhen">+</button>
+                        <input type="number" min="2020" max="2100" step="1" inputmode="numeric" value="<?php echo (int)$bisDatumTeile['jahr']; ?>" aria-label="Jahr" required>
+                        <button type="button" class="terminal-zahlenfeld-knopf" data-richtung="runter" aria-label="Jahr verringern">−</button>
+                        <span>Jahr</span>
+                    </div>
+                </div>
+            </div>
 
             <label for="kommentar_mitarbeiter">Kommentar (optional)</label>
             <textarea id="kommentar_mitarbeiter" name="kommentar_mitarbeiter"><?php
@@ -204,6 +271,78 @@ require __DIR__ . '/_layout_top.php';
         <div class="logout-link">
             <button type="submit" form="logout-form" class="logout-button">Abmelden</button>
         </div>
+
+        <script>
+            (function () {
+                'use strict';
+
+                function tageImMonat(jahr, monat) {
+                    return new Date(jahr, monat, 0).getDate();
+                }
+
+                function eingrenzen(wert, min, max) {
+                    if (Number.isNaN(wert)) {
+                        return min;
+                    }
+                    return Math.min(Math.max(wert, min), max);
+                }
+
+                function aktualisiereDatumsblock(datumsblock) {
+                    const verstecktesDatum = datumsblock.querySelector('input[type="hidden"]');
+                    const tagEingabe = datumsblock.querySelector('[data-segment="tag"] input');
+                    const monatEingabe = datumsblock.querySelector('[data-segment="monat"] input');
+                    const jahrEingabe = datumsblock.querySelector('[data-segment="jahr"] input');
+
+                    const jahr = eingrenzen(parseInt(jahrEingabe.value, 10), 2020, 2100);
+                    const monat = eingrenzen(parseInt(monatEingabe.value, 10), 1, 12);
+                    const maxTag = tageImMonat(jahr, monat);
+                    const tag = eingrenzen(parseInt(tagEingabe.value, 10), 1, maxTag);
+
+                    jahrEingabe.value = String(jahr);
+                    monatEingabe.value = String(monat);
+                    tagEingabe.value = String(tag);
+                    tagEingabe.max = String(maxTag);
+
+                    const tagMitNull = String(tag).padStart(2, '0');
+                    const monatMitNull = String(monat).padStart(2, '0');
+                    verstecktesDatum.value = jahr + '-' + monatMitNull + '-' + tagMitNull;
+                }
+
+                document.querySelectorAll('[data-datum-block]').forEach(function (datumsblock) {
+                    aktualisiereDatumsblock(datumsblock);
+
+                    datumsblock.addEventListener('click', function (ereignis) {
+                        const ziel = ereignis.target;
+                        if (!(ziel instanceof HTMLElement) || !ziel.matches('[data-richtung]')) {
+                            return;
+                        }
+
+                        const zahlenfeld = ziel.closest('.terminal-zahlenfeld');
+                        if (!zahlenfeld) {
+                            return;
+                        }
+
+                        const eingabe = zahlenfeld.querySelector('input');
+                        if (!(eingabe instanceof HTMLInputElement)) {
+                            return;
+                        }
+
+                        const schritt = ziel.getAttribute('data-richtung') === 'hoch' ? 1 : -1;
+                        eingabe.value = String((parseInt(eingabe.value, 10) || 0) + schritt);
+                        aktualisiereDatumsblock(datumsblock);
+                    });
+
+                    datumsblock.querySelectorAll('input[type="number"]').forEach(function (eingabe) {
+                        eingabe.addEventListener('change', function () {
+                            aktualisiereDatumsblock(datumsblock);
+                        });
+                        eingabe.addEventListener('blur', function () {
+                            aktualisiereDatumsblock(datumsblock);
+                        });
+                    });
+                });
+            })();
+        </script>
     <?php endif; ?>
 
 
