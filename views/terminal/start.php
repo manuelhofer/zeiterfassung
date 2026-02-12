@@ -973,12 +973,12 @@ require __DIR__ . '/_layout_top.php';
                     <p id="kommentar_zeichenzahl" class="status-small" aria-live="polite">0 Zeichen</p>
                 </div>
 
-                <div class="button-row">
-                    <button type="button" class="secondary terminal-primary-action" data-nav="zurueck" disabled>Zurück</button>
+                <div class="button-row terminal-wizard-aktionsleiste">
+                    <div class="terminal-wizard-sekundaeraktionen">
+                        <a href="terminal.php?aktion=urlaub_beantragen" class="button-link secondary terminal-primary-action">Abbrechen</a>
+                        <button type="button" class="secondary terminal-primary-action" data-nav="zurueck" hidden>Zurück</button>
+                    </div>
                     <button type="submit" class="terminal-primary-action" data-nav="primaer">Weiter</button>
-                </div>
-                <div class="button-row">
-                    <a href="terminal.php?aktion=urlaub_beantragen" class="button-link secondary terminal-primary-action">Abbrechen</a>
                 </div>
             </form>
 
@@ -1167,6 +1167,7 @@ require __DIR__ . '/_layout_top.php';
                         });
 
                         if (knopfZurueck instanceof HTMLButtonElement) {
+                            knopfZurueck.hidden = wizardZustand.schrittIndex === 0;
                             knopfZurueck.disabled = wizardZustand.schrittIndex === 0;
                         }
                         if (knopfPrimaer instanceof HTMLButtonElement) {
