@@ -995,7 +995,7 @@ require __DIR__ . '/_layout_top.php';
 
                 <div class="button-row terminal-wizard-aktionsleiste">
                     <div class="terminal-wizard-sekundaeraktionen">
-                        <button type="submit" form="urlaub_wizard_exit_form" class="secondary terminal-primary-action">Exit</button>
+                        <button type="submit" form="urlaub_wizard_exit_form" class="secondary terminal-primary-action"<?php echo ($urlaubWizardSchritt === 1 ? "" : " hidden"); ?>>Exit</button>
                         <button type="button" class="secondary terminal-primary-action" data-nav="zurueck"<?php echo ($urlaubWizardSchritt > 1 ? '' : ' hidden'); ?>>Zurück</button>
                     </div>
                     <button type="submit" class="terminal-primary-action" data-nav="weiter" name="wizard_aktion" value="weiter"<?php echo ($urlaubWizardSchritt < 3 ? '' : ' hidden'); ?>>Weiter</button>
@@ -1034,6 +1034,7 @@ require __DIR__ . '/_layout_top.php';
 
                     const schrittElemente = Array.from(formular.querySelectorAll('[data-schritt]'));
                     const knopfZurueck = formular.querySelector('[data-nav="zurueck"]');
+                    const knopfExit = formular.querySelector('[form="urlaub_wizard_exit_form"]');
                     const knopfWeiter = formular.querySelector('[data-nav="weiter"]');
                     const knopfSpeichern = formular.querySelector('[data-nav="speichern"]');
                     const kommentarZeichenzahl = document.getElementById('kommentar_zeichenzahl');
@@ -1115,6 +1116,23 @@ require __DIR__ . '/_layout_top.php';
                         return true;
                     }
 
+                    function enthaeltWochenende(vonDatumObjekt, bisDatumObjekt) {
+                        if (!(vonDatumObjekt instanceof Date) || !(bisDatumObjekt instanceof Date)) {
+                            return false;
+                        }
+
+                        const laufendesDatum = new Date(vonDatumObjekt.getTime());
+                        while (laufendesDatum <= bisDatumObjekt) {
+                            const wochentag = laufendesDatum.getDay();
+                            if (wochentag === 0 || wochentag === 6) {
+                                return true;
+                            }
+                            laufendesDatum.setDate(laufendesDatum.getDate() + 1);
+                        }
+
+                        return false;
+                    }
+
                     function setzeTextNachricht(element, nachricht) {
                         if (!(element instanceof HTMLElement)) {
                             return;
@@ -1170,7 +1188,9 @@ require __DIR__ . '/_layout_top.php';
                             }
 
                             if (istNurWochenende(vonDatumObjekt, bisDatumObjekt)) {
-                                setzeTextNachricht(hinweisBisWann, 'Hinweis: Der gewählte Zeitraum enthält nur Wochenenden. Falls zusätzlich nur Feiertage betroffen sind, können 0 Urlaubstage entstehen.');
+                                setzeTextNachricht(hinweisBisWann, 'Hinweis: Der gewählte Zeitraum enthält nur Wochenenden. Dadurch können 0 Urlaubstage entstehen.');
+                            } else if (enthaeltWochenende(vonDatumObjekt, bisDatumObjekt)) {
+                                setzeTextNachricht(hinweisBisWann, 'Hinweis: Der gewählte Zeitraum enthält Wochenendtage. Diese werden bei der Urlaubstage-Berechnung nicht als Arbeitstage gezählt.');
                             }
                         }
 
@@ -1325,6 +1345,9 @@ require __DIR__ . '/_layout_top.php';
                         if (knopfZurueck instanceof HTMLButtonElement) {
                             knopfZurueck.hidden = wizardZustand.schrittIndex === 0;
                             knopfZurueck.disabled = wizardZustand.schrittIndex === 0;
+                        }
+                        if (knopfExit instanceof HTMLButtonElement) {
+                            knopfExit.hidden = wizardZustand.schrittIndex !== 0;
                         }
                         if (knopfWeiter instanceof HTMLButtonElement) {
                             knopfWeiter.hidden = istLetzterSchritt;
@@ -1499,6 +1522,82 @@ require __DIR__ . '/_layout_top.php';
                     aktualisiereTastaturUmschalter();
                     aktualisiereKommentarZeichenzahl();
                     aktualisiereWizardAnsicht();
+                    formular.setAttribute('data-wizard-initialisiert', '1');
+                })();
+            </script>
+
+            <script>
+                (function () {
+                    'use strict';
+
+                    var formular = document.getElementById('urlaub_wizard_formular');
+                    if (!(formular instanceof HTMLFormElement)) {
+                        return;
+                    }
+
+                    // Notfall-Fallback: Wenn das Hauptskript wegen Browser-Inkompatibilität
+                    // oder eines Laufzeitfehlers nicht korrekt initialisiert, bleibt der
+                    // „Weiter“-Knopf trotzdem benutzbar.
+                    if (formular.getAttribute('data-wizard-initialisiert') === '1') {
+                        return;
+                    }
+
+                    var schrittElemente = Array.prototype.slice.call(formular.querySelectorAll('[data-schritt]'));
+                    if (schrittElemente.length === 0) {
+                        return;
+                    }
+
+                    var knopfZurueck = formular.querySelector('[data-nav="zurueck"]');
+                    var knopfExit = formular.querySelector('[form="urlaub_wizard_exit_form"]');
+                    var knopfWeiter = formular.querySelector('[data-nav="weiter"]');
+                    var knopfSpeichern = formular.querySelector('[data-nav="speichern"]');
+                    var schrittIndex = 0;
+
+                    function aktualisiereAnsicht() {
+                        var istLetzterSchritt = schrittIndex >= (schrittElemente.length - 1);
+
+                        for (var i = 0; i < schrittElemente.length; i++) {
+                            schrittElemente[i].hidden = (i !== schrittIndex);
+                        }
+
+                        if (knopfZurueck instanceof HTMLButtonElement) {
+                            knopfZurueck.hidden = schrittIndex === 0;
+                            knopfZurueck.disabled = schrittIndex === 0;
+                        }
+                        if (knopfExit instanceof HTMLButtonElement) {
+                            knopfExit.hidden = schrittIndex !== 0;
+                        }
+                        if (knopfWeiter instanceof HTMLButtonElement) {
+                            knopfWeiter.hidden = istLetzterSchritt;
+                        }
+                        if (knopfSpeichern instanceof HTMLButtonElement) {
+                            knopfSpeichern.hidden = !istLetzterSchritt;
+                        }
+                    }
+
+                    if (knopfZurueck instanceof HTMLButtonElement) {
+                        knopfZurueck.addEventListener('click', function () {
+                            schrittIndex = Math.max(0, schrittIndex - 1);
+                            aktualisiereAnsicht();
+                        });
+                    }
+
+                    if (knopfWeiter instanceof HTMLButtonElement) {
+                        knopfWeiter.addEventListener('click', function () {
+                            schrittIndex = Math.min(schrittElemente.length - 1, schrittIndex + 1);
+                            aktualisiereAnsicht();
+                        });
+                    }
+
+                    formular.addEventListener('submit', function (ereignis) {
+                        if (schrittIndex < (schrittElemente.length - 1)) {
+                            ereignis.preventDefault();
+                            schrittIndex = Math.min(schrittElemente.length - 1, schrittIndex + 1);
+                            aktualisiereAnsicht();
+                        }
+                    });
+
+                    aktualisiereAnsicht();
                 })();
             </script>
         <?php elseif ($zeigeRfidZuweisenFormular): ?>
