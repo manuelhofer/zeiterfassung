@@ -354,6 +354,53 @@ form.login-form textarea {
     color: #ffd27d;
 }
 
+.terminal-osk-umschalter {
+    margin-top: 0.75rem;
+    width: 100%;
+}
+
+.terminal-osk {
+    margin-top: 0.75rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+}
+
+.terminal-osk-zeile {
+    display: grid;
+    grid-template-columns: repeat(10, minmax(0, 1fr));
+    gap: 0.4rem;
+}
+
+.terminal-osk-taste {
+    flex: none;
+    width: 100%;
+    min-height: 3rem;
+    font-size: 1.1rem;
+    border-radius: 8px;
+    padding: 0.45rem 0.35rem;
+    background-color: #2d7cd6;
+}
+
+.terminal-osk-taste-breit {
+    grid-column: span 3;
+}
+
+.terminal-osk-taste-extra-breit {
+    grid-column: span 4;
+}
+
+@media (max-width: 780px) {
+    .terminal-osk-zeile {
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+    }
+
+    .terminal-osk-taste-breit,
+    .terminal-osk-taste-extra-breit {
+        grid-column: span 2;
+    }
+}
+
 @media (max-width: 780px) {
     .terminal-datum-zeile {
         grid-template-columns: 3.5rem 1fr 3.5rem;
