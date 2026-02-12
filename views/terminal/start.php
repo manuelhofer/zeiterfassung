@@ -968,7 +968,9 @@ require __DIR__ . '/_layout_top.php';
                 <div class="terminal-wizard-schritt" data-schritt="kommentar" hidden>
                     <p class="status-small"><strong>Schritt 3 von 3: kommentar</strong></p>
                     <label for="kommentar_mitarbeiter">Kommentar (optional)</label>
-                    <textarea id="kommentar_mitarbeiter" rows="8"><?php echo htmlspecialchars((string)($urlaubFormular['kommentar_mitarbeiter'] ?? ''), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></textarea>
+                    <textarea id="kommentar_mitarbeiter" rows="8" aria-describedby="kommentar_hinweis kommentar_zeichenzahl"><?php echo htmlspecialchars((string)($urlaubFormular['kommentar_mitarbeiter'] ?? ''), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></textarea>
+                    <p id="kommentar_hinweis" class="status-small">Kommentar (optional)</p>
+                    <p id="kommentar_zeichenzahl" class="status-small" aria-live="polite">0 Zeichen</p>
                 </div>
 
                 <div class="button-row">
@@ -1011,6 +1013,7 @@ require __DIR__ . '/_layout_top.php';
                     const knopfZurueck = formular.querySelector('[data-nav="zurueck"]');
                     const knopfWeiter = formular.querySelector('[data-nav="weiter"]');
                     const knopfSpeichern = formular.querySelector('[data-nav="speichern"]');
+                    const kommentarZeichenzahl = document.getElementById('kommentar_zeichenzahl');
                     const fehlermeldungAbWann = formular.querySelector('[data-fehler-fuer="ab_wann"]');
                     const fehlermeldungBisWann = formular.querySelector('[data-fehler-fuer="bis_wann"]');
                     const hinweisBisWann = formular.querySelector('[data-hinweis-fuer="bis_wann"]');
@@ -1149,6 +1152,13 @@ require __DIR__ . '/_layout_top.php';
                         }
                     }
 
+                    function aktualisiereKommentarZeichenzahl() {
+                        if (!(kommentarTextfeld instanceof HTMLTextAreaElement) || !(kommentarZeichenzahl instanceof HTMLElement)) {
+                            return;
+                        }
+                        kommentarZeichenzahl.textContent = kommentarTextfeld.value.length + ' Zeichen';
+                    }
+
                     function aktualisiereWizardAnsicht() {
                         schrittElemente.forEach(function (element) {
                             const schrittName = element.getAttribute('data-schritt');
@@ -1167,7 +1177,10 @@ require __DIR__ . '/_layout_top.php';
                         }
 
                         if (wizardSchritte[wizardZustand.schrittIndex] === 'kommentar' && kommentarTextfeld instanceof HTMLTextAreaElement) {
-                            kommentarTextfeld.focus();
+                            kommentarTextfeld.value = wizardZustand.kommentar_mitarbeiter;
+                            kommentarTextfeld.focus({ preventScroll: true });
+                            kommentarTextfeld.setSelectionRange(kommentarTextfeld.value.length, kommentarTextfeld.value.length);
+                            aktualisiereKommentarZeichenzahl();
                         }
                     }
 
@@ -1216,6 +1229,13 @@ require __DIR__ . '/_layout_top.php';
                         kommentarTextfeld.addEventListener('input', function () {
                             wizardZustand.kommentar_mitarbeiter = kommentarTextfeld.value;
                             versteckterKommentar.value = kommentarTextfeld.value;
+                            aktualisiereKommentarZeichenzahl();
+                        });
+
+                        kommentarTextfeld.addEventListener('keydown', function (ereignis) {
+                            if (ereignis.key === 'Enter' && ereignis.ctrlKey) {
+                                ereignis.preventDefault();
+                            }
                         });
                     }
 
@@ -1237,13 +1257,21 @@ require __DIR__ . '/_layout_top.php';
                     }
 
                     formular.addEventListener('submit', function (ereignis) {
+                        const ausloeser = ereignis.submitter;
+                        if (!(ausloeser instanceof HTMLButtonElement) || ausloeser.getAttribute('data-nav') !== 'speichern') {
+                            ereignis.preventDefault();
+                            return;
+                        }
+
                         if (!pruefeAktivenSchritt()) {
                             ereignis.preventDefault();
                             return;
                         }
+
                         versteckterKommentar.value = (kommentarTextfeld instanceof HTMLTextAreaElement) ? kommentarTextfeld.value : wizardZustand.kommentar_mitarbeiter;
                     });
 
+                    aktualisiereKommentarZeichenzahl();
                     aktualisiereWizardAnsicht();
                 })();
             </script>
