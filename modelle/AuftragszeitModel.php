@@ -145,6 +145,47 @@ class AuftragszeitModel
         }
     }
 
+    /**
+     * Lädt die letzte passende laufende Auftragszeit eines Mitarbeiters bis zu einem Stichtag.
+     *
+     * Es wird genau ein Datensatz ermittelt (neuester Start <= Stichtag),
+     * damit historische Korrekturen keine späteren Schichten beeinflussen.
+     *
+     * @return array<string,mixed>|null
+     */
+    public function holeLetzteLaufendeFuerMitarbeiterBisZeitpunkt(int $mitarbeiterId, \DateTimeImmutable $zeitpunkt): ?array
+    {
+        $mitarbeiterId = max(1, $mitarbeiterId);
+        $zeitpunktStr = $zeitpunkt->format('Y-m-d H:i:s');
+
+        try {
+            $sql = 'SELECT *
+                    FROM auftragszeit
+                    WHERE mitarbeiter_id = :mitarbeiter_id
+                      AND typ IN (\'haupt\', \'neben\')
+                      AND status = \'laufend\'
+                      AND endzeit IS NULL
+                      AND startzeit <= :stichtag
+                    ORDER BY startzeit DESC, id DESC
+                    LIMIT 1';
+
+            return $this->datenbank->fetchEine($sql, [
+                'mitarbeiter_id' => $mitarbeiterId,
+                'stichtag' => $zeitpunktStr,
+            ]);
+        } catch (\Throwable $e) {
+            if (class_exists('Logger')) {
+                Logger::error('Fehler beim Laden der letzten laufenden Auftragszeit bis Zeitpunkt', [
+                    'mitarbeiter_id' => $mitarbeiterId,
+                    'stichtag' => $zeitpunktStr,
+                    'exception' => $e->getMessage(),
+                ], $mitarbeiterId, null, 'auftrag');
+            }
+
+            return null;
+        }
+    }
+
 
     /**
      * Beendet alle aktuell laufenden Hauptaufträge eines Mitarbeiters.

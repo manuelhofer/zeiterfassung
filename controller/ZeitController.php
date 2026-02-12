@@ -1532,16 +1532,25 @@ class ZeitController
         }
 
         if ($typ === 'gehen') {
-            $res = $auftragszeitService->stoppeAlleLaufendenAuftraegeFuerMitarbeiterBisZeitpunkt(
+            $res = $auftragszeitService->beendeLetztePassendeLaufendeAuftragszeitFuerMitarbeiterBisZeitpunkt(
                 $mitarbeiterId,
                 $zeitpunkt,
                 'pausiert'
             );
 
             if ($res === null && class_exists('Logger')) {
-                Logger::warn('Manuelle Zeitkorrektur: Laufende Aufträge konnten nicht pausiert werden', [
+                Logger::warn('Manuelle Zeitkorrektur: Keine passende laufende Auftragszeit zum Pausieren gefunden', [
                     'mitarbeiter_id' => $mitarbeiterId,
                     'zeitpunkt' => $zeitpunkt->format('Y-m-d H:i:s'),
+                ], $mitarbeiterId, null, 'zeit_korrektur');
+            }
+
+            if (is_array($res) && class_exists('Logger')) {
+                Logger::info('Manuelle Zeitkorrektur: Laufende Auftragszeit gezielt pausiert', [
+                    'mitarbeiter_id' => $mitarbeiterId,
+                    'auftragszeit_id' => $res['auftragszeit_id'] ?? null,
+                    'zeitpunkt' => $zeitpunkt->format('Y-m-d H:i:s'),
+                    'queued' => (bool)($res['queued'] ?? false),
                 ], $mitarbeiterId, null, 'zeit_korrektur');
             }
 
