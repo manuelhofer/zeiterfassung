@@ -19,6 +19,7 @@ declare(strict_types=1);
 /** @var array<string,string>|null $urlaubVorschau */
 /** @var array<string,mixed>|null $stundenkontoSaldo */
 /** @var string|null $stundenkontoSaldoFehler */
+/** @var int|null $urlaubWizardSchritt */
 
 $heuteDatum = $heuteDatum ?? null;
 $heuteBuchungen = $heuteBuchungen ?? [];
@@ -79,6 +80,10 @@ if (!is_array($laufendeNebenauftraege)) {
 }
 
 $urlaubFormular = is_array($urlaubFormular ?? null) ? (array)$urlaubFormular : [];
+$urlaubWizardSchritt = isset($urlaubWizardSchritt) ? (int)$urlaubWizardSchritt : (int)($urlaubFormular['wizard_schritt'] ?? 1);
+if ($urlaubWizardSchritt < 1 || $urlaubWizardSchritt > 3) {
+    $urlaubWizardSchritt = 1;
+}
 
 $datumAusFormular = static function (string $datumWert): array {
     if ($datumWert !== '') {
@@ -906,8 +911,10 @@ require __DIR__ . '/_layout_top.php';
                 <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($csrfToken, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>">
             </form>
 
-            <form method="post" action="terminal.php?aktion=urlaub_beantragen" class="login-form" id="urlaub_wizard_formular">
+            <form method="post" action="terminal.php?aktion=urlaub_beantragen" class="login-form" id="urlaub_wizard_formular" data-initialer-schritt="<?php echo $urlaubWizardSchritt; ?>">
                 <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($csrfToken, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>">
+                <input type="hidden" id="wizard_aktion" name="wizard_aktion" value="speichern">
+                <input type="hidden" id="wizard_schritt" name="wizard_schritt" value="<?php echo $urlaubWizardSchritt; ?>">
                 <input type="hidden" id="von_datum" name="von_datum" value="<?php echo htmlspecialchars((string)($urlaubFormular['von_datum'] ?? ''), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>" required>
                 <input type="hidden" id="bis_datum" name="bis_datum" value="<?php echo htmlspecialchars((string)($urlaubFormular['bis_datum'] ?? ''), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>" required>
                 <input type="hidden" id="kommentar_mitarbeiter_wizard" name="kommentar_mitarbeiter" value="<?php echo htmlspecialchars((string)($urlaubFormular['kommentar_mitarbeiter'] ?? ''), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>">
@@ -917,7 +924,7 @@ require __DIR__ . '/_layout_top.php';
                     require __DIR__ . '/_logout_form.php';
                 ?>
 
-                <div class="terminal-wizard-schritt" data-schritt="ab_wann">
+                <div class="terminal-wizard-schritt" data-schritt="ab_wann"<?php echo ($urlaubWizardSchritt === 1 ? '' : ' hidden'); ?>>
                     <p class="status-small"><strong>Schritt 1 von 3: ab_wann</strong></p>
                     <label>Startdatum</label>
                     <div class="terminal-datum-eingabe" data-datum-block="von">
@@ -945,7 +952,7 @@ require __DIR__ . '/_layout_top.php';
                     <p class="terminal-wizard-fehlermeldung" data-fehler-fuer="ab_wann" hidden></p>
                 </div>
 
-                <div class="terminal-wizard-schritt" data-schritt="bis_wann" hidden>
+                <div class="terminal-wizard-schritt" data-schritt="bis_wann"<?php echo ($urlaubWizardSchritt === 2 ? '' : ' hidden'); ?>>
                     <p class="status-small"><strong>Schritt 2 von 3: bis_wann</strong></p>
                     <label>Enddatum</label>
                     <div class="terminal-datum-eingabe" data-datum-block="bis">
@@ -974,7 +981,7 @@ require __DIR__ . '/_layout_top.php';
                     <p class="terminal-wizard-hinweis" data-hinweis-fuer="bis_wann" hidden></p>
                 </div>
 
-                <div class="terminal-wizard-schritt" data-schritt="kommentar" hidden>
+                <div class="terminal-wizard-schritt" data-schritt="kommentar"<?php echo ($urlaubWizardSchritt === 3 ? '' : ' hidden'); ?>>
                     <p class="status-small"><strong>Schritt 3 von 3: kommentar</strong></p>
                     <label for="kommentar_mitarbeiter">Kommentar (optional)</label>
                     <textarea id="kommentar_mitarbeiter" rows="8" aria-describedby="kommentar_hinweis kommentar_zeichenzahl"><?php echo htmlspecialchars((string)($urlaubFormular['kommentar_mitarbeiter'] ?? ''), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></textarea>
@@ -984,13 +991,15 @@ require __DIR__ . '/_layout_top.php';
                     <p id="kommentar_zeichenzahl" class="status-small" aria-live="polite">0 Zeichen</p>
                 </div>
 
+                <p class="terminal-wizard-validierungsmeldung" data-wizard-validierung role="status" aria-live="polite"></p>
+
                 <div class="button-row terminal-wizard-aktionsleiste">
                     <div class="terminal-wizard-sekundaeraktionen">
                         <button type="submit" form="urlaub_wizard_exit_form" class="secondary terminal-primary-action">Exit</button>
-                        <button type="button" class="secondary terminal-primary-action" data-nav="zurueck" hidden>Zurück</button>
+                        <button type="button" class="secondary terminal-primary-action" data-nav="zurueck"<?php echo ($urlaubWizardSchritt > 1 ? '' : ' hidden'); ?>>Zurück</button>
                     </div>
-                    <button type="button" class="terminal-primary-action" data-nav="weiter">Weiter</button>
-                    <button type="submit" class="terminal-primary-action" data-nav="speichern" hidden>Speichern</button>
+                    <button type="submit" class="terminal-primary-action" data-nav="weiter" name="wizard_aktion" value="weiter"<?php echo ($urlaubWizardSchritt < 3 ? '' : ' hidden'); ?>>Weiter</button>
+                    <button type="submit" class="terminal-primary-action" data-nav="speichern"<?php echo ($urlaubWizardSchritt >= 3 ? '' : ' hidden'); ?>>Speichern</button>
                 </div>
             </form>
 
@@ -1006,6 +1015,8 @@ require __DIR__ . '/_layout_top.php';
                     const verstecktesVonDatum = document.getElementById('von_datum');
                     const verstecktesBisDatum = document.getElementById('bis_datum');
                     const versteckterKommentar = document.getElementById('kommentar_mitarbeiter_wizard');
+                    const versteckteWizardAktion = document.getElementById('wizard_aktion');
+                    const versteckterWizardSchritt = document.getElementById('wizard_schritt');
                     const kommentarTextfeld = document.getElementById('kommentar_mitarbeiter');
 
                     if (!(verstecktesVonDatum instanceof HTMLInputElement) || !(verstecktesBisDatum instanceof HTMLInputElement) || !(versteckterKommentar instanceof HTMLInputElement)) {
@@ -1013,8 +1024,9 @@ require __DIR__ . '/_layout_top.php';
                     }
 
                     const wizardSchritte = ['ab_wann', 'bis_wann', 'kommentar'];
+                    const initialerSchritt = parseInt(formular.getAttribute('data-initialer-schritt') || '1', 10);
                     const wizardZustand = {
-                        schrittIndex: 0,
+                        schrittIndex: Number.isInteger(initialerSchritt) ? Math.max(0, Math.min(wizardSchritte.length - 1, initialerSchritt - 1)) : 0,
                         von_datum: verstecktesVonDatum.value,
                         bis_datum: verstecktesBisDatum.value,
                         kommentar_mitarbeiter: versteckterKommentar.value
@@ -1030,6 +1042,7 @@ require __DIR__ . '/_layout_top.php';
                     const fehlermeldungAbWann = formular.querySelector('[data-fehler-fuer="ab_wann"]');
                     const fehlermeldungBisWann = formular.querySelector('[data-fehler-fuer="bis_wann"]');
                     const hinweisBisWann = formular.querySelector('[data-hinweis-fuer="bis_wann"]');
+                    const wizardValidierungsmeldung = formular.querySelector('[data-wizard-validierung]');
                     let tastaturSichtbar = true;
                     let sonderzeichenModus = false;
 
@@ -1111,6 +1124,14 @@ require __DIR__ . '/_layout_top.php';
                         element.hidden = text === '';
                     }
 
+                    function setzeWizardValidierungsmeldung(nachricht) {
+                        if (!(wizardValidierungsmeldung instanceof HTMLElement)) {
+                            return;
+                        }
+                        const text = (typeof nachricht === 'string') ? nachricht.trim() : '';
+                        wizardValidierungsmeldung.textContent = text;
+                    }
+
                     function pruefeAktivenSchritt() {
                         const aktuellerSchritt = wizardSchritte[wizardZustand.schrittIndex];
                         const vonDatumObjekt = parseDatumStreng(wizardZustand.von_datum);
@@ -1119,10 +1140,12 @@ require __DIR__ . '/_layout_top.php';
                         setzeTextNachricht(fehlermeldungAbWann, '');
                         setzeTextNachricht(fehlermeldungBisWann, '');
                         setzeTextNachricht(hinweisBisWann, '');
+                        setzeWizardValidierungsmeldung('');
 
                         if (aktuellerSchritt === 'ab_wann') {
                             if (vonDatumObjekt === null) {
                                 setzeTextNachricht(fehlermeldungAbWann, 'Bitte ein technisch gültiges Startdatum auswählen.');
+                                setzeWizardValidierungsmeldung('Schritt 1 ist ungültig: Bitte ein gültiges Startdatum auswählen.');
                                 return false;
                             }
                         }
@@ -1130,16 +1153,19 @@ require __DIR__ . '/_layout_top.php';
                         if (aktuellerSchritt === 'bis_wann') {
                             if (bisDatumObjekt === null) {
                                 setzeTextNachricht(fehlermeldungBisWann, 'Bitte ein technisch gültiges Enddatum auswählen.');
+                                setzeWizardValidierungsmeldung('Schritt 2 ist ungültig: Bitte ein gültiges Enddatum auswählen.');
                                 return false;
                             }
 
                             if (vonDatumObjekt === null) {
                                 setzeTextNachricht(fehlermeldungBisWann, 'Das Startdatum ist ungültig. Bitte Schritt „ab_wann“ prüfen.');
+                                setzeWizardValidierungsmeldung('Startdatum ungültig: Bitte zuerst Schritt 1 korrigieren.');
                                 return false;
                             }
 
                             if (bisDatumObjekt < vonDatumObjekt) {
                                 setzeTextNachricht(fehlermeldungBisWann, 'Das Enddatum darf nicht vor dem Startdatum liegen.');
+                                setzeWizardValidierungsmeldung('Schritt 2 ist ungültig: Enddatum darf nicht vor dem Startdatum liegen.');
                                 return false;
                             }
 
@@ -1286,6 +1312,10 @@ require __DIR__ . '/_layout_top.php';
                     function aktualisiereWizardAnsicht() {
                         const istLetzterSchritt = wizardZustand.schrittIndex >= wizardSchritte.length - 1;
 
+                        if (versteckterWizardSchritt instanceof HTMLInputElement) {
+                            versteckterWizardSchritt.value = String(wizardZustand.schrittIndex + 1);
+                        }
+
                         schrittElemente.forEach(function (element) {
                             const schrittName = element.getAttribute('data-schritt');
                             const istAktiv = schrittName === wizardSchritte[wizardZustand.schrittIndex];
@@ -1426,12 +1456,29 @@ require __DIR__ . '/_layout_top.php';
                     }
 
                     if (knopfWeiter instanceof HTMLButtonElement) {
-                        knopfWeiter.addEventListener('click', function () {
+                        knopfWeiter.addEventListener('click', function (ereignis) {
+                            if (versteckteWizardAktion instanceof HTMLInputElement) {
+                                versteckteWizardAktion.value = 'weiter';
+                            }
+                            if (versteckterWizardSchritt instanceof HTMLInputElement) {
+                                versteckterWizardSchritt.value = String(wizardZustand.schrittIndex + 1);
+                            }
+
+                            // Wenn JavaScript läuft, bleibt der Wechsel clientseitig.
+                            // Ohne JavaScript greift der Submit-Fallback auf dem Server.
+                            ereignis.preventDefault();
                             geheZumNaechstenSchrittNachValidierung();
                         });
                     }
 
                     formular.addEventListener('submit', function (ereignis) {
+                        if (versteckteWizardAktion instanceof HTMLInputElement) {
+                            versteckteWizardAktion.value = 'speichern';
+                        }
+                        if (versteckterWizardSchritt instanceof HTMLInputElement) {
+                            versteckterWizardSchritt.value = String(wizardZustand.schrittIndex + 1);
+                        }
+
                         const istLetzterSchritt = wizardZustand.schrittIndex >= wizardSchritte.length - 1;
 
                         if (!istLetzterSchritt) {
