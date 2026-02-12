@@ -902,6 +902,10 @@ require __DIR__ . '/_layout_top.php';
                 Bitte in drei Schritten ausfüllen.
             </p>
 
+            <form method="post" action="terminal.php?aktion=logout" id="urlaub_wizard_exit_form" class="is-hidden">
+                <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($csrfToken, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>">
+            </form>
+
             <form method="post" action="terminal.php?aktion=urlaub_beantragen" class="login-form">
                 <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($csrfToken, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>">
                 <input type="hidden" id="von_datum" name="von_datum" value="<?php echo htmlspecialchars((string)($urlaubFormular['von_datum'] ?? ''), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>" required>
@@ -982,7 +986,7 @@ require __DIR__ . '/_layout_top.php';
 
                 <div class="button-row terminal-wizard-aktionsleiste">
                     <div class="terminal-wizard-sekundaeraktionen">
-                        <button type="submit" form="logout-form" class="secondary terminal-primary-action">Exit</button>
+                        <button type="submit" form="urlaub_wizard_exit_form" class="secondary terminal-primary-action">Exit</button>
                         <button type="button" class="secondary terminal-primary-action" data-nav="zurueck" hidden>Zurück</button>
                     </div>
                     <button type="button" class="terminal-primary-action" data-nav="weiter">Weiter</button>
