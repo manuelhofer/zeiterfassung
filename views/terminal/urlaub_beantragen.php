@@ -38,6 +38,29 @@ $urlaubSaldoFehler = (isset($urlaubSaldoFehler) && is_string($urlaubSaldoFehler)
 $urlaubJahr = isset($urlaubJahr) ? (int)$urlaubJahr : (int)(new DateTimeImmutable('now'))->format('Y');
 $urlaubVorschau = (isset($urlaubVorschau) && is_array($urlaubVorschau)) ? $urlaubVorschau : null;
 
+$datumAusFormular = static function (string $datumWert): array {
+    if ($datumWert !== '') {
+        $datumObjekt = DateTimeImmutable::createFromFormat('Y-m-d', $datumWert);
+        if ($datumObjekt instanceof DateTimeImmutable) {
+            return [
+                'tag'   => (int)$datumObjekt->format('d'),
+                'monat' => (int)$datumObjekt->format('m'),
+                'jahr'  => (int)$datumObjekt->format('Y'),
+            ];
+        }
+    }
+
+    $heute = new DateTimeImmutable('today');
+    return [
+        'tag'   => (int)$heute->format('d'),
+        'monat' => (int)$heute->format('m'),
+        'jahr'  => (int)$heute->format('Y'),
+    ];
+};
+
+$vonDatumTeile = $datumAusFormular((string)($urlaubFormular['von_datum'] ?? ''));
+$bisDatumTeile = $datumAusFormular((string)($urlaubFormular['bis_datum'] ?? ''));
+
 // Mitarbeiter-Name/ID für das Bottom-Panel (defensiv; verhindert undefined vars)
 $mitarbeiterName = '';
 $mitarbeiterId = 0;
@@ -179,16 +202,61 @@ require __DIR__ . '/_layout_top.php';
 
         <form method="post" action="terminal.php?aktion=urlaub_beantragen" class="login-form">
             <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($csrfToken, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>">
-
             <label for="von_datum">Von</label>
-            <input type="date" id="von_datum" name="von_datum"
+            <div class="terminal-datum-eingabe" data-datum-block="von">
+                <input type="hidden" id="von_datum" name="von_datum"
                    value="<?php echo htmlspecialchars((string)($urlaubFormular['von_datum'] ?? ''), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>"
-                   required autofocus>
+                   required>
+                <div class="terminal-datum-grid" aria-label="Startdatum auswählen">
+                    <div class="terminal-datum-zeile" data-segment="tag">
+                        <button type="button" class="terminal-zahlenfeld-knopf" data-richtung="runter" aria-label="Tag verringern">−</button>
+                        <input type="text" class="terminal-datum-wert" value="<?php echo (int)$vonDatumTeile['tag']; ?>" aria-label="Tag" readonly>
+                        <button type="button" class="terminal-zahlenfeld-knopf" data-richtung="hoch" aria-label="Tag erhöhen">+</button>
+                        <span class="terminal-datum-zeile-bezeichnung">Tag</span>
+                    </div>
+                    <div class="terminal-datum-zeile" data-segment="monat">
+                        <button type="button" class="terminal-zahlenfeld-knopf" data-richtung="runter" aria-label="Monat verringern">−</button>
+                        <input type="text" class="terminal-datum-wert" value="<?php echo (int)$vonDatumTeile['monat']; ?>" aria-label="Monat" readonly>
+                        <button type="button" class="terminal-zahlenfeld-knopf" data-richtung="hoch" aria-label="Monat erhöhen">+</button>
+                        <span class="terminal-datum-zeile-bezeichnung">Monat</span>
+                    </div>
+                    <div class="terminal-datum-zeile" data-segment="jahr">
+                        <button type="button" class="terminal-zahlenfeld-knopf" data-richtung="runter" aria-label="Jahr verringern">−</button>
+                        <input type="text" class="terminal-datum-wert" value="<?php echo (int)$vonDatumTeile['jahr']; ?>" aria-label="Jahr" readonly>
+                        <button type="button" class="terminal-zahlenfeld-knopf" data-richtung="hoch" aria-label="Jahr erhöhen">+</button>
+                        <span class="terminal-datum-zeile-bezeichnung">Jahr</span>
+                    </div>
+                </div>
+                <div class="terminal-datum-hinweis">Tippen Sie auf +/−, um das Datum zu verändern.</div>
+            </div>
 
             <label for="bis_datum">Bis</label>
-            <input type="date" id="bis_datum" name="bis_datum"
+            <div class="terminal-datum-eingabe" data-datum-block="bis">
+                <input type="hidden" id="bis_datum" name="bis_datum"
                    value="<?php echo htmlspecialchars((string)($urlaubFormular['bis_datum'] ?? ''), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>"
                    required>
+                <div class="terminal-datum-grid" aria-label="Enddatum auswählen">
+                    <div class="terminal-datum-zeile" data-segment="tag">
+                        <button type="button" class="terminal-zahlenfeld-knopf" data-richtung="runter" aria-label="Tag verringern">−</button>
+                        <input type="text" class="terminal-datum-wert" value="<?php echo (int)$bisDatumTeile['tag']; ?>" aria-label="Tag" readonly>
+                        <button type="button" class="terminal-zahlenfeld-knopf" data-richtung="hoch" aria-label="Tag erhöhen">+</button>
+                        <span class="terminal-datum-zeile-bezeichnung">Tag</span>
+                    </div>
+                    <div class="terminal-datum-zeile" data-segment="monat">
+                        <button type="button" class="terminal-zahlenfeld-knopf" data-richtung="runter" aria-label="Monat verringern">−</button>
+                        <input type="text" class="terminal-datum-wert" value="<?php echo (int)$bisDatumTeile['monat']; ?>" aria-label="Monat" readonly>
+                        <button type="button" class="terminal-zahlenfeld-knopf" data-richtung="hoch" aria-label="Monat erhöhen">+</button>
+                        <span class="terminal-datum-zeile-bezeichnung">Monat</span>
+                    </div>
+                    <div class="terminal-datum-zeile" data-segment="jahr">
+                        <button type="button" class="terminal-zahlenfeld-knopf" data-richtung="runter" aria-label="Jahr verringern">−</button>
+                        <input type="text" class="terminal-datum-wert" value="<?php echo (int)$bisDatumTeile['jahr']; ?>" aria-label="Jahr" readonly>
+                        <button type="button" class="terminal-zahlenfeld-knopf" data-richtung="hoch" aria-label="Jahr erhöhen">+</button>
+                        <span class="terminal-datum-zeile-bezeichnung">Jahr</span>
+                    </div>
+                </div>
+                <div class="terminal-datum-hinweis">Tippen Sie auf +/−, um das Datum zu verändern.</div>
+            </div>
 
             <label for="kommentar_mitarbeiter">Kommentar (optional)</label>
             <textarea id="kommentar_mitarbeiter" name="kommentar_mitarbeiter"><?php
@@ -204,6 +272,85 @@ require __DIR__ . '/_layout_top.php';
         <div class="logout-link">
             <button type="submit" form="logout-form" class="logout-button">Abmelden</button>
         </div>
+
+        <script>
+            (function () {
+                'use strict';
+
+                function tageImMonat(jahr, monat) {
+                    return new Date(jahr, monat, 0).getDate();
+                }
+
+                function eingrenzen(wert, min, max) {
+                    if (Number.isNaN(wert)) {
+                        return min;
+                    }
+                    return Math.min(Math.max(wert, min), max);
+                }
+
+                function aktualisiereDatumsblock(datumsblock) {
+                    const verstecktesDatum = datumsblock.querySelector('input[type="hidden"]');
+                    const tagAnzeige = datumsblock.querySelector('[data-segment="tag"] .terminal-datum-wert');
+                    const monatAnzeige = datumsblock.querySelector('[data-segment="monat"] .terminal-datum-wert');
+                    const jahrAnzeige = datumsblock.querySelector('[data-segment="jahr"] .terminal-datum-wert');
+
+                    const jahr = eingrenzen(parseInt(jahrAnzeige.value, 10), 2020, 2100);
+                    const monat = eingrenzen(parseInt(monatAnzeige.value, 10), 1, 12);
+                    const maxTag = tageImMonat(jahr, monat);
+                    const tag = eingrenzen(parseInt(tagAnzeige.value, 10), 1, maxTag);
+
+                    jahrAnzeige.value = String(jahr);
+                    monatAnzeige.value = String(monat);
+                    tagAnzeige.value = String(tag);
+
+                    const tagMitNull = String(tag).padStart(2, '0');
+                    const monatMitNull = String(monat).padStart(2, '0');
+                    verstecktesDatum.value = jahr + '-' + monatMitNull + '-' + tagMitNull;
+                }
+
+                document.querySelectorAll('[data-datum-block]').forEach(function (datumsblock) {
+                    aktualisiereDatumsblock(datumsblock);
+
+                    datumsblock.addEventListener('click', function (ereignis) {
+                        const ziel = ereignis.target;
+                        if (!(ziel instanceof HTMLElement) || !ziel.matches('[data-richtung]')) {
+                            return;
+                        }
+
+                        const zahlenfeld = ziel.closest('[data-segment]');
+                        if (!zahlenfeld) {
+                            return;
+                        }
+
+                        const eingabe = zahlenfeld.querySelector('.terminal-datum-wert');
+                        if (!(eingabe instanceof HTMLInputElement)) {
+                            return;
+                        }
+
+                        const schritt = ziel.getAttribute('data-richtung') === 'hoch' ? 1 : -1;
+                        const segment = zahlenfeld.getAttribute('data-segment');
+                        const aktuellerWert = parseInt(eingabe.value, 10) || 0;
+
+                        if (segment === 'monat') {
+                            const neuerWert = ((aktuellerWert - 1 + schritt + 12) % 12) + 1;
+                            eingabe.value = String(neuerWert);
+                        } else if (segment === 'tag') {
+                            const jahrAnzeige = datumsblock.querySelector('[data-segment="jahr"] .terminal-datum-wert');
+                            const monatAnzeige = datumsblock.querySelector('[data-segment="monat"] .terminal-datum-wert');
+                            const maxTag = tageImMonat(parseInt(jahrAnzeige.value, 10) || 2026, parseInt(monatAnzeige.value, 10) || 1);
+                            const neuerWert = ((aktuellerWert - 1 + schritt + maxTag) % maxTag) + 1;
+                            eingabe.value = String(neuerWert);
+                        } else {
+                            eingabe.value = String(eingrenzen(aktuellerWert + schritt, 2020, 2100));
+                        }
+
+                        aktualisiereDatumsblock(datumsblock);
+                    });
+
+                    
+                });
+            })();
+        </script>
     <?php endif; ?>
 
 
