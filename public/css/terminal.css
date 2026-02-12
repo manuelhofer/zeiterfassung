@@ -451,7 +451,8 @@ form.login-form textarea {
     flex: 1 1 auto;
 }
 
-.terminal-wizard-aktionsleiste > [data-nav="primaer"] {
+.terminal-wizard-aktionsleiste > [data-nav="weiter"],
+.terminal-wizard-aktionsleiste > [data-nav="speichern"] {
     flex: 1 1 auto;
 }
 
