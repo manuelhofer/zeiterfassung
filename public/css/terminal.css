@@ -388,6 +388,26 @@ form.login-form textarea {
     font-size: 1.25rem;
 }
 
+.terminal-wizard-aktionsleiste {
+    align-items: stretch;
+    justify-content: space-between;
+}
+
+.terminal-wizard-sekundaeraktionen {
+    display: flex;
+    flex: 1 1 auto;
+    gap: 1rem;
+}
+
+.terminal-wizard-sekundaeraktionen .button-link,
+.terminal-wizard-sekundaeraktionen button {
+    flex: 1 1 auto;
+}
+
+.terminal-wizard-aktionsleiste > [data-nav="primaer"] {
+    flex: 1 1 auto;
+}
+
 /* Statusbox: keine zweite Uhrzeit/Datum im Titel anzeigen (Header-Uhr ist die einzige Quelle) */
 .status-box .status-title > .status-small {
     display: none;
