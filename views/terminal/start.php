@@ -918,11 +918,7 @@ require __DIR__ . '/_layout_top.php';
                 <input type="hidden" id="von_datum" name="von_datum" value="<?php echo htmlspecialchars((string)($urlaubFormular['von_datum'] ?? ''), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>" required>
                 <input type="hidden" id="bis_datum" name="bis_datum" value="<?php echo htmlspecialchars((string)($urlaubFormular['bis_datum'] ?? ''), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>" required>
                 <input type="hidden" id="kommentar_mitarbeiter_wizard" name="kommentar_mitarbeiter" value="<?php echo htmlspecialchars((string)($urlaubFormular['kommentar_mitarbeiter'] ?? ''), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>">
-
-                <?php
-                    $logoutFormHidden = true;
-                    require __DIR__ . '/_logout_form.php';
-                ?>
+                <?php // Hinweis: Im Wizard keine weiteren <form>-Includes verwenden, da der HTML-Parser sonst Formulare implizit schließt. ?>
 
                 <div class="terminal-wizard-schritt" data-schritt="ab_wann"<?php echo ($urlaubWizardSchritt === 1 ? '' : ' hidden'); ?>>
                     <p class="status-small"><strong>Schritt 1 von 3: ab_wann</strong></p>
