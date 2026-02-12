@@ -488,6 +488,14 @@ button {
     box-sizing: border-box;
 }
 
+/* Native hidden-Attribute muss die globale Button-Anzeige zuverlässig überschreiben */
+[hidden],
+button[hidden],
+a.button-link[hidden],
+.terminal-osk[hidden] {
+    display: none !important;
+}
+
 a.button-link.secondary,
 button.secondary {
     background-color: #555;
