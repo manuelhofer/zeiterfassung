@@ -4019,12 +4019,44 @@ $urlaubSaldo = null;
         $von = trim((string)($_POST['von_datum'] ?? ''));
         $bis = trim((string)($_POST['bis_datum'] ?? ''));
         $kommentar = trim((string)($_POST['kommentar_mitarbeiter'] ?? ''));
+        $wizardAktion = trim((string)($_POST['wizard_aktion'] ?? ''));
+        $wizardSchritt = (int)($_POST['wizard_schritt'] ?? 1);
+        if ($wizardSchritt < 1) {
+            $wizardSchritt = 1;
+        }
 
         $formular = [
             'von_datum'             => $von,
             'bis_datum'             => $bis,
             'kommentar_mitarbeiter' => $kommentar,
+            'wizard_schritt'        => $wizardSchritt,
         ];
+
+        // Technischer Fallback ohne JavaScript:
+        // Bei "Weiter" soll mindestens von Schritt 1 auf Schritt 2 gewechselt werden,
+        // ohne bereits das komplette Formular serverseitig zu validieren/speichern.
+        if ($wizardAktion === 'weiter') {
+            if ($wizardSchritt <= 1) {
+                $vonDatumGueltig = false;
+                if ($von !== '') {
+                    $vonDatumObjekt = \DateTimeImmutable::createFromFormat('Y-m-d', $von);
+                    $vonDatumGueltig = ($vonDatumObjekt instanceof \DateTimeImmutable) && ($vonDatumObjekt->format('Y-m-d') === $von);
+                }
+
+                if (!$vonDatumGueltig) {
+                    $this->urlaubBeantragenForm('Bitte ein gültiges Startdatum wählen, um zum nächsten Schritt zu wechseln.', $formular);
+                    return;
+                }
+
+                $formular['wizard_schritt'] = 2;
+                $this->urlaubBeantragenForm(null, $formular);
+                return;
+            }
+
+            $formular['wizard_schritt'] = 3;
+            $this->urlaubBeantragenForm(null, $formular);
+            return;
+        }
 
         $fehlermeldung = null;
 
