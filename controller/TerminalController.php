@@ -3790,6 +3790,10 @@ class TerminalController
     /**
      * Urlaub beantragen – Formular (Terminal).
      *
+     * Maßgebliches View:
+     * - Übersicht und Formular werden zentral über `views/terminal/start.php`
+     *   per Modus (`?modus=antrag`) gerendert.
+     *
      * Hinweis:
      * - Nur online (Hauptdatenbank erreichbar).
      * - Auto-Logout Timeout ist länger (Kontext: "urlaub").
