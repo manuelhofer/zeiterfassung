@@ -1499,6 +1499,78 @@ require __DIR__ . '/_layout_top.php';
                     aktualisiereTastaturUmschalter();
                     aktualisiereKommentarZeichenzahl();
                     aktualisiereWizardAnsicht();
+                    formular.setAttribute('data-wizard-initialisiert', '1');
+                })();
+            </script>
+
+            <script>
+                (function () {
+                    'use strict';
+
+                    var formular = document.getElementById('urlaub_wizard_formular');
+                    if (!(formular instanceof HTMLFormElement)) {
+                        return;
+                    }
+
+                    // Notfall-Fallback: Wenn das Hauptskript wegen Browser-Inkompatibilität
+                    // oder eines Laufzeitfehlers nicht korrekt initialisiert, bleibt der
+                    // „Weiter“-Knopf trotzdem benutzbar.
+                    if (formular.getAttribute('data-wizard-initialisiert') === '1') {
+                        return;
+                    }
+
+                    var schrittElemente = Array.prototype.slice.call(formular.querySelectorAll('[data-schritt]'));
+                    if (schrittElemente.length === 0) {
+                        return;
+                    }
+
+                    var knopfZurueck = formular.querySelector('[data-nav="zurueck"]');
+                    var knopfWeiter = formular.querySelector('[data-nav="weiter"]');
+                    var knopfSpeichern = formular.querySelector('[data-nav="speichern"]');
+                    var schrittIndex = 0;
+
+                    function aktualisiereAnsicht() {
+                        var istLetzterSchritt = schrittIndex >= (schrittElemente.length - 1);
+
+                        for (var i = 0; i < schrittElemente.length; i++) {
+                            schrittElemente[i].hidden = (i !== schrittIndex);
+                        }
+
+                        if (knopfZurueck instanceof HTMLButtonElement) {
+                            knopfZurueck.hidden = schrittIndex === 0;
+                            knopfZurueck.disabled = schrittIndex === 0;
+                        }
+                        if (knopfWeiter instanceof HTMLButtonElement) {
+                            knopfWeiter.hidden = istLetzterSchritt;
+                        }
+                        if (knopfSpeichern instanceof HTMLButtonElement) {
+                            knopfSpeichern.hidden = !istLetzterSchritt;
+                        }
+                    }
+
+                    if (knopfZurueck instanceof HTMLButtonElement) {
+                        knopfZurueck.addEventListener('click', function () {
+                            schrittIndex = Math.max(0, schrittIndex - 1);
+                            aktualisiereAnsicht();
+                        });
+                    }
+
+                    if (knopfWeiter instanceof HTMLButtonElement) {
+                        knopfWeiter.addEventListener('click', function () {
+                            schrittIndex = Math.min(schrittElemente.length - 1, schrittIndex + 1);
+                            aktualisiereAnsicht();
+                        });
+                    }
+
+                    formular.addEventListener('submit', function (ereignis) {
+                        if (schrittIndex < (schrittElemente.length - 1)) {
+                            ereignis.preventDefault();
+                            schrittIndex = Math.min(schrittElemente.length - 1, schrittIndex + 1);
+                            aktualisiereAnsicht();
+                        }
+                    });
+
+                    aktualisiereAnsicht();
                 })();
             </script>
         <?php elseif ($zeigeRfidZuweisenFormular): ?>
