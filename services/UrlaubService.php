@@ -379,6 +379,82 @@ class UrlaubService
     }
 
     /**
+     * Prüft, ob der gewünschte Zeitraum mit einem bereits **aktiven** Urlaubsantrag überlappt.
+     *
+     * Aktiv bedeutet standardmäßig: Status IN ('offen', 'genehmigt').
+     * Optional kann zusätzlich explizit ausgeschlossen werden, dass abgelehnte/stornierte
+     * Datensätze in Sonderfällen versehentlich mitgezogen werden.
+     *
+     * @return array<string,mixed>|null 1. überlappender Antrag oder null
+     */
+    public function findeUeberlappendenAktivenUrlaub(
+        int $mitarbeiterId,
+        string $vonDatum,
+        string $bisDatum,
+        bool $abgelehntUndStorniertExplizitAusschliessen = false
+    ): ?array {
+        $mitarbeiterId = (int)$mitarbeiterId;
+        if ($mitarbeiterId <= 0) {
+            return null;
+        }
+
+        $von = $this->parseDatum($vonDatum);
+        $bis = $this->parseDatum($bisDatum);
+        if ($von === null || $bis === null) {
+            return null;
+        }
+
+        if ($von > $bis) {
+            return null;
+        }
+
+        // Schutz: keine extremen Bereiche prüfen
+        try {
+            $tageDiff = (int)$von->diff($bis)->days;
+        } catch (\Throwable $e) {
+            $tageDiff = 0;
+        }
+
+        if ($tageDiff > 3650) { // 10 Jahre
+            return null;
+        }
+
+        $db = Database::getInstanz();
+
+        // Überlappung: NICHT (ende < startNeu ODER start > endeNeu)
+        $sql = "SELECT id, von_datum, bis_datum, status\n"
+             . "FROM urlaubsantrag\n"
+             . "WHERE mitarbeiter_id = :mid\n"
+             . "  AND status IN ('offen', 'genehmigt')\n"
+             . ($abgelehntUndStorniertExplizitAusschliessen
+                ? "  AND status NOT IN ('abgelehnt', 'storniert')\n"
+                : "")
+             . "  AND NOT (bis_datum < :von OR von_datum > :bis)\n"
+             . "ORDER BY von_datum ASC, id ASC\n"
+             . "LIMIT 1";
+
+        try {
+            $row = $db->fetchEine($sql, [
+                'mid' => $mitarbeiterId,
+                'von' => $von->format('Y-m-d'),
+                'bis' => $bis->format('Y-m-d'),
+            ]);
+        } catch (\Throwable $e) {
+            if (class_exists('Logger')) {
+                Logger::warn('Fehler bei Überlappungsprüfung (aktiver Urlaub)', [
+                    'mitarbeiter_id' => $mitarbeiterId,
+                    'von'            => $vonDatum,
+                    'bis'            => $bisDatum,
+                    'exception'      => $e->getMessage(),
+                ], $mitarbeiterId, null, 'urlaubservice');
+            }
+            return null;
+        }
+
+        return (is_array($row) && !empty($row['id'])) ? $row : null;
+    }
+
+    /**
      * Berechnet die Anzahl der **Arbeitstage** (inkl. Start- und Endtag),
      * wobei Wochenenden, betriebsfreie Feiertage und Betriebsferien **nicht** zählen.
      *

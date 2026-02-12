@@ -524,14 +524,14 @@ class UrlaubController
                 }
 
                 if ($fehlermeldung === null && $vonDt !== null && $bisDt !== null) {
-                    // Blockiere, wenn der Zeitraum mit bereits genehmigtem Urlaub überlappt (analog Terminal).
-                    $ueberlappung = $this->urlaubService->findeUeberlappendenGenehmigtenUrlaub($mitarbeiterId, $von, $bis);
+                    // Blockiere, wenn der Zeitraum mit bereits offenem/genehmigtem Urlaub überlappt.
+                    $ueberlappung = $this->urlaubService->findeUeberlappendenAktivenUrlaub($mitarbeiterId, $von, $bis);
                     if ($ueberlappung !== null) {
                         $ovVon = (string)($ueberlappung['von_datum'] ?? '');
                         $ovBis = (string)($ueberlappung['bis_datum'] ?? '');
                         $ovId  = (int)($ueberlappung['id'] ?? 0);
 
-                        $msg = 'Es existiert bereits genehmigter Urlaub im Zeitraum ';
+                        $msg = 'Es existiert bereits ein offener oder genehmigter Antrag im Zeitraum ';
                         $msg .= ($ovVon !== '' ? $ovVon : '?') . ' bis ' . ($ovBis !== '' ? $ovBis : '?');
                         if ($ovId > 0) {
                             $msg .= ' (Antrag #' . $ovId . ').';

@@ -4096,13 +4096,13 @@ $urlaubSaldo = null;
         // Tage gesamt = Arbeitstage (inkl. Start- und Endtag),
         // Wochenenden, betriebsfreie Feiertage und Betriebsferien werden nicht gezählt.
         $urlaubService = UrlaubService::getInstanz();
-        $ueberlappung = $urlaubService->findeUeberlappendenGenehmigtenUrlaub($mitarbeiterId, $von, $bis);
+        $ueberlappung = $urlaubService->findeUeberlappendenAktivenUrlaub($mitarbeiterId, $von, $bis);
         if ($ueberlappung !== null) {
             $ovVon = (string)($ueberlappung['von_datum'] ?? '');
             $ovBis = (string)($ueberlappung['bis_datum'] ?? '');
             $ovId  = (int)($ueberlappung['id'] ?? 0);
 
-            $msg = 'Es existiert bereits genehmigter Urlaub im Zeitraum ';
+            $msg = 'Es existiert bereits ein offener oder genehmigter Antrag im Zeitraum ';
             $msg .= ($ovVon !== '' ? $ovVon : '?') . ' bis ' . ($ovBis !== '' ? $ovBis : '?');
             if ($ovId > 0) {
                 $msg .= ' (Antrag #' . $ovId . ').';
