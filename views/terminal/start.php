@@ -975,8 +975,7 @@ require __DIR__ . '/_layout_top.php';
 
                 <div class="button-row">
                     <button type="button" class="secondary terminal-primary-action" data-nav="zurueck" disabled>Zurück</button>
-                    <button type="button" class="terminal-primary-action" data-nav="weiter">Weiter</button>
-                    <button type="submit" class="terminal-primary-action" data-nav="speichern" hidden>Speichern</button>
+                    <button type="submit" class="terminal-primary-action" data-nav="primaer">Weiter</button>
                 </div>
                 <div class="button-row">
                     <a href="terminal.php?aktion=urlaub_beantragen" class="button-link secondary terminal-primary-action">Abbrechen</a>
@@ -1011,8 +1010,7 @@ require __DIR__ . '/_layout_top.php';
 
                     const schrittElemente = Array.from(formular.querySelectorAll('[data-schritt]'));
                     const knopfZurueck = formular.querySelector('[data-nav="zurueck"]');
-                    const knopfWeiter = formular.querySelector('[data-nav="weiter"]');
-                    const knopfSpeichern = formular.querySelector('[data-nav="speichern"]');
+                    const knopfPrimaer = formular.querySelector('[data-nav="primaer"]');
                     const kommentarZeichenzahl = document.getElementById('kommentar_zeichenzahl');
                     const fehlermeldungAbWann = formular.querySelector('[data-fehler-fuer="ab_wann"]');
                     const fehlermeldungBisWann = formular.querySelector('[data-fehler-fuer="bis_wann"]');
@@ -1160,6 +1158,8 @@ require __DIR__ . '/_layout_top.php';
                     }
 
                     function aktualisiereWizardAnsicht() {
+                        const istLetzterSchritt = wizardZustand.schrittIndex >= wizardSchritte.length - 1;
+
                         schrittElemente.forEach(function (element) {
                             const schrittName = element.getAttribute('data-schritt');
                             const istAktiv = schrittName === wizardSchritte[wizardZustand.schrittIndex];
@@ -1169,11 +1169,8 @@ require __DIR__ . '/_layout_top.php';
                         if (knopfZurueck instanceof HTMLButtonElement) {
                             knopfZurueck.disabled = wizardZustand.schrittIndex === 0;
                         }
-                        if (knopfWeiter instanceof HTMLButtonElement) {
-                            knopfWeiter.hidden = wizardZustand.schrittIndex >= wizardSchritte.length - 1;
-                        }
-                        if (knopfSpeichern instanceof HTMLButtonElement) {
-                            knopfSpeichern.hidden = wizardZustand.schrittIndex < wizardSchritte.length - 1;
+                        if (knopfPrimaer instanceof HTMLButtonElement) {
+                            knopfPrimaer.textContent = istLetzterSchritt ? 'Speichern' : 'Weiter';
                         }
 
                         if (wizardSchritte[wizardZustand.schrittIndex] === 'kommentar' && kommentarTextfeld instanceof HTMLTextAreaElement) {
@@ -1246,20 +1243,18 @@ require __DIR__ . '/_layout_top.php';
                         });
                     }
 
-                    if (knopfWeiter instanceof HTMLButtonElement) {
-                        knopfWeiter.addEventListener('click', function () {
+                    formular.addEventListener('submit', function (ereignis) {
+                        const istLetzterSchritt = wizardZustand.schrittIndex >= wizardSchritte.length - 1;
+
+                        if (!istLetzterSchritt) {
+                            ereignis.preventDefault();
+
                             if (!pruefeAktivenSchritt()) {
                                 return;
                             }
+
                             wizardZustand.schrittIndex = Math.min(wizardSchritte.length - 1, wizardZustand.schrittIndex + 1);
                             aktualisiereWizardAnsicht();
-                        });
-                    }
-
-                    formular.addEventListener('submit', function (ereignis) {
-                        const ausloeser = ereignis.submitter;
-                        if (!(ausloeser instanceof HTMLButtonElement) || ausloeser.getAttribute('data-nav') !== 'speichern') {
-                            ereignis.preventDefault();
                             return;
                         }
 
