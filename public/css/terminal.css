@@ -342,6 +342,18 @@ form.login-form textarea {
     color: #d2d2d2;
 }
 
+.terminal-wizard-fehlermeldung {
+    margin-top: 0.5rem;
+    font-size: 0.9rem;
+    color: #ff9f9f;
+}
+
+.terminal-wizard-hinweis {
+    margin-top: 0.5rem;
+    font-size: 0.85rem;
+    color: #ffd27d;
+}
+
 @media (max-width: 780px) {
     .terminal-datum-zeile {
         grid-template-columns: 3.5rem 1fr 3.5rem;

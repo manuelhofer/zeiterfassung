@@ -933,6 +933,7 @@ require __DIR__ . '/_layout_top.php';
                             </div>
                         </div>
                     </div>
+                    <p class="terminal-wizard-fehlermeldung" data-fehler-fuer="ab_wann" hidden></p>
                 </div>
 
                 <div class="terminal-wizard-schritt" data-schritt="bis_wann" hidden>
@@ -960,6 +961,8 @@ require __DIR__ . '/_layout_top.php';
                             </div>
                         </div>
                     </div>
+                    <p class="terminal-wizard-fehlermeldung" data-fehler-fuer="bis_wann" hidden></p>
+                    <p class="terminal-wizard-hinweis" data-hinweis-fuer="bis_wann" hidden></p>
                 </div>
 
                 <div class="terminal-wizard-schritt" data-schritt="kommentar" hidden>
@@ -1008,6 +1011,9 @@ require __DIR__ . '/_layout_top.php';
                     const knopfZurueck = formular.querySelector('[data-nav="zurueck"]');
                     const knopfWeiter = formular.querySelector('[data-nav="weiter"]');
                     const knopfSpeichern = formular.querySelector('[data-nav="speichern"]');
+                    const fehlermeldungAbWann = formular.querySelector('[data-fehler-fuer="ab_wann"]');
+                    const fehlermeldungBisWann = formular.querySelector('[data-fehler-fuer="bis_wann"]');
+                    const hinweisBisWann = formular.querySelector('[data-hinweis-fuer="bis_wann"]');
 
                     function tageImMonat(jahr, monat) {
                         return new Date(jahr, monat, 0).getDate();
@@ -1018,6 +1024,98 @@ require __DIR__ . '/_layout_top.php';
                             return min;
                         }
                         return Math.min(Math.max(wert, min), max);
+                    }
+
+                    function parseDatumStreng(datumText) {
+                        if (typeof datumText !== 'string') {
+                            return null;
+                        }
+
+                        const treffer = datumText.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+                        if (!treffer) {
+                            return null;
+                        }
+
+                        const jahr = parseInt(treffer[1], 10);
+                        const monat = parseInt(treffer[2], 10);
+                        const tag = parseInt(treffer[3], 10);
+                        const datumObjekt = new Date(jahr, monat - 1, tag);
+                        if (
+                            Number.isNaN(datumObjekt.getTime())
+                            || datumObjekt.getFullYear() !== jahr
+                            || datumObjekt.getMonth() !== monat - 1
+                            || datumObjekt.getDate() !== tag
+                        ) {
+                            return null;
+                        }
+
+                        return datumObjekt;
+                    }
+
+                    function istNurWochenende(vonDatumObjekt, bisDatumObjekt) {
+                        if (!(vonDatumObjekt instanceof Date) || !(bisDatumObjekt instanceof Date)) {
+                            return false;
+                        }
+
+                        const laufendesDatum = new Date(vonDatumObjekt.getTime());
+                        while (laufendesDatum <= bisDatumObjekt) {
+                            const wochentag = laufendesDatum.getDay();
+                            if (wochentag !== 0 && wochentag !== 6) {
+                                return false;
+                            }
+                            laufendesDatum.setDate(laufendesDatum.getDate() + 1);
+                        }
+
+                        return true;
+                    }
+
+                    function setzeTextNachricht(element, nachricht) {
+                        if (!(element instanceof HTMLElement)) {
+                            return;
+                        }
+                        const text = (typeof nachricht === 'string') ? nachricht.trim() : '';
+                        element.textContent = text;
+                        element.hidden = text === '';
+                    }
+
+                    function pruefeAktivenSchritt() {
+                        const aktuellerSchritt = wizardSchritte[wizardZustand.schrittIndex];
+                        const vonDatumObjekt = parseDatumStreng(wizardZustand.von_datum);
+                        const bisDatumObjekt = parseDatumStreng(wizardZustand.bis_datum);
+
+                        setzeTextNachricht(fehlermeldungAbWann, '');
+                        setzeTextNachricht(fehlermeldungBisWann, '');
+                        setzeTextNachricht(hinweisBisWann, '');
+
+                        if (aktuellerSchritt === 'ab_wann') {
+                            if (vonDatumObjekt === null) {
+                                setzeTextNachricht(fehlermeldungAbWann, 'Bitte ein technisch gültiges Startdatum auswählen.');
+                                return false;
+                            }
+                        }
+
+                        if (aktuellerSchritt === 'bis_wann') {
+                            if (bisDatumObjekt === null) {
+                                setzeTextNachricht(fehlermeldungBisWann, 'Bitte ein technisch gültiges Enddatum auswählen.');
+                                return false;
+                            }
+
+                            if (vonDatumObjekt === null) {
+                                setzeTextNachricht(fehlermeldungBisWann, 'Das Startdatum ist ungültig. Bitte Schritt „ab_wann“ prüfen.');
+                                return false;
+                            }
+
+                            if (bisDatumObjekt < vonDatumObjekt) {
+                                setzeTextNachricht(fehlermeldungBisWann, 'Das Enddatum darf nicht vor dem Startdatum liegen.');
+                                return false;
+                            }
+
+                            if (istNurWochenende(vonDatumObjekt, bisDatumObjekt)) {
+                                setzeTextNachricht(hinweisBisWann, 'Hinweis: Der gewählte Zeitraum enthält nur Wochenenden. Falls zusätzlich nur Feiertage betroffen sind, können 0 Urlaubstage entstehen.');
+                            }
+                        }
+
+                        return true;
                     }
 
                     function aktualisiereDatumsblock(datumsblock) {
@@ -1110,6 +1208,7 @@ require __DIR__ . '/_layout_top.php';
                             }
 
                             aktualisiereDatumsblock(datumsblock);
+                            pruefeAktivenSchritt();
                         });
                     });
 
@@ -1129,12 +1228,19 @@ require __DIR__ . '/_layout_top.php';
 
                     if (knopfWeiter instanceof HTMLButtonElement) {
                         knopfWeiter.addEventListener('click', function () {
+                            if (!pruefeAktivenSchritt()) {
+                                return;
+                            }
                             wizardZustand.schrittIndex = Math.min(wizardSchritte.length - 1, wizardZustand.schrittIndex + 1);
                             aktualisiereWizardAnsicht();
                         });
                     }
 
-                    formular.addEventListener('submit', function () {
+                    formular.addEventListener('submit', function (ereignis) {
+                        if (!pruefeAktivenSchritt()) {
+                            ereignis.preventDefault();
+                            return;
+                        }
                         versteckterKommentar.value = (kommentarTextfeld instanceof HTMLTextAreaElement) ? kommentarTextfeld.value : wizardZustand.kommentar_mitarbeiter;
                     });
 
