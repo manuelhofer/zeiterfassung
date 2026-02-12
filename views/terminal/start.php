@@ -969,6 +969,8 @@ require __DIR__ . '/_layout_top.php';
                     <p class="status-small"><strong>Schritt 3 von 3: kommentar</strong></p>
                     <label for="kommentar_mitarbeiter">Kommentar (optional)</label>
                     <textarea id="kommentar_mitarbeiter" rows="8" aria-describedby="kommentar_hinweis kommentar_zeichenzahl"><?php echo htmlspecialchars((string)($urlaubFormular['kommentar_mitarbeiter'] ?? ''), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></textarea>
+                    <button type="button" class="secondary terminal-osk-umschalter" id="kommentar_tastatur_umschalter" aria-expanded="true" aria-controls="terminal_kommentar_tastatur">Tastatur schließen</button>
+                    <div class="terminal-osk" id="terminal_kommentar_tastatur" aria-label="Bildschirmtastatur für Kommentar"></div>
                     <p id="kommentar_hinweis" class="status-small">Kommentar (optional)</p>
                     <p id="kommentar_zeichenzahl" class="status-small" aria-live="polite">0 Zeichen</p>
                 </div>
@@ -1011,9 +1013,28 @@ require __DIR__ . '/_layout_top.php';
                     const knopfZurueck = formular.querySelector('[data-nav="zurueck"]');
                     const knopfPrimaer = formular.querySelector('[data-nav="primaer"]');
                     const kommentarZeichenzahl = document.getElementById('kommentar_zeichenzahl');
+                    const tastaturUmschalter = document.getElementById('kommentar_tastatur_umschalter');
+                    const tastaturContainer = document.getElementById('terminal_kommentar_tastatur');
                     const fehlermeldungAbWann = formular.querySelector('[data-fehler-fuer="ab_wann"]');
                     const fehlermeldungBisWann = formular.querySelector('[data-fehler-fuer="bis_wann"]');
                     const hinweisBisWann = formular.querySelector('[data-hinweis-fuer="bis_wann"]');
+                    let tastaturSichtbar = true;
+                    let sonderzeichenModus = false;
+
+                    const tastaturLayouts = {
+                        standard: [
+                            ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0'],
+                            ['q', 'w', 'e', 'r', 't', 'z', 'u', 'i', 'o', 'p'],
+                            ['a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', 'ö', 'ä'],
+                            ['y', 'x', 'c', 'v', 'b', 'n', 'm', ',', '.']
+                        ],
+                        sonderzeichen: [
+                            ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0'],
+                            ['!', '"', '§', '$', '%', '&', '/', '(', ')', '='],
+                            ['?', '+', '-', '*', '#', ';', ':', '_', '@', '€'],
+                            ['[', ']', '{', '}', '<', '>', '\\', '|', '^']
+                        ]
+                    };
 
                     function tageImMonat(jahr, monat) {
                         return new Date(jahr, monat, 0).getDate();
@@ -1156,6 +1177,100 @@ require __DIR__ . '/_layout_top.php';
                         kommentarZeichenzahl.textContent = kommentarTextfeld.value.length + ' Zeichen';
                     }
 
+                    function synchronisiereKommentarZustand() {
+                        if (!(kommentarTextfeld instanceof HTMLTextAreaElement)) {
+                            return;
+                        }
+                        wizardZustand.kommentar_mitarbeiter = kommentarTextfeld.value;
+                        versteckterKommentar.value = kommentarTextfeld.value;
+                        aktualisiereKommentarZeichenzahl();
+                    }
+
+                    function fokussiereKommentarTextfeld(ansEndeSetzen) {
+                        if (!(kommentarTextfeld instanceof HTMLTextAreaElement)) {
+                            return;
+                        }
+                        kommentarTextfeld.focus({ preventScroll: true });
+                        if (ansEndeSetzen) {
+                            const cursorPosition = kommentarTextfeld.value.length;
+                            kommentarTextfeld.setSelectionRange(cursorPosition, cursorPosition);
+                        }
+                    }
+
+                    function fuegeKommentarTextEin(text) {
+                        if (!(kommentarTextfeld instanceof HTMLTextAreaElement) || typeof text !== 'string') {
+                            return;
+                        }
+                        const start = kommentarTextfeld.selectionStart ?? kommentarTextfeld.value.length;
+                        const ende = kommentarTextfeld.selectionEnd ?? kommentarTextfeld.value.length;
+                        const davor = kommentarTextfeld.value.slice(0, start);
+                        const danach = kommentarTextfeld.value.slice(ende);
+                        kommentarTextfeld.value = davor + text + danach;
+                        const neuePosition = start + text.length;
+                        kommentarTextfeld.setSelectionRange(neuePosition, neuePosition);
+                        synchronisiereKommentarZustand();
+                        fokussiereKommentarTextfeld(false);
+                    }
+
+                    function loescheKommentarZeichen() {
+                        if (!(kommentarTextfeld instanceof HTMLTextAreaElement)) {
+                            return;
+                        }
+                        const start = kommentarTextfeld.selectionStart ?? kommentarTextfeld.value.length;
+                        const ende = kommentarTextfeld.selectionEnd ?? kommentarTextfeld.value.length;
+                        if (start !== ende) {
+                            kommentarTextfeld.value = kommentarTextfeld.value.slice(0, start) + kommentarTextfeld.value.slice(ende);
+                            kommentarTextfeld.setSelectionRange(start, start);
+                        } else if (start > 0) {
+                            kommentarTextfeld.value = kommentarTextfeld.value.slice(0, start - 1) + kommentarTextfeld.value.slice(ende);
+                            kommentarTextfeld.setSelectionRange(start - 1, start - 1);
+                        }
+                        synchronisiereKommentarZustand();
+                        fokussiereKommentarTextfeld(false);
+                    }
+
+                    function aktualisiereTastaturUmschalter() {
+                        if (!(tastaturUmschalter instanceof HTMLButtonElement) || !(tastaturContainer instanceof HTMLElement)) {
+                            return;
+                        }
+                        tastaturContainer.hidden = !tastaturSichtbar;
+                        tastaturUmschalter.textContent = tastaturSichtbar ? 'Tastatur schließen' : 'Tastatur öffnen';
+                        tastaturUmschalter.setAttribute('aria-expanded', tastaturSichtbar ? 'true' : 'false');
+                    }
+
+                    function erstelleTaste(label, wert, zusatzklasse) {
+                        const taste = document.createElement('button');
+                        taste.type = 'button';
+                        taste.className = 'terminal-osk-taste' + (zusatzklasse ? ' ' + zusatzklasse : '');
+                        taste.setAttribute('data-taste-wert', wert);
+                        taste.textContent = label;
+                        return taste;
+                    }
+
+                    function renderTastatur() {
+                        if (!(tastaturContainer instanceof HTMLElement)) {
+                            return;
+                        }
+
+                        tastaturContainer.innerHTML = '';
+                        const layout = sonderzeichenModus ? tastaturLayouts.sonderzeichen : tastaturLayouts.standard;
+                        layout.forEach(function (zeile) {
+                            const zeilenElement = document.createElement('div');
+                            zeilenElement.className = 'terminal-osk-zeile';
+                            zeile.forEach(function (zeichen) {
+                                zeilenElement.appendChild(erstelleTaste(zeichen, zeichen));
+                            });
+                            tastaturContainer.appendChild(zeilenElement);
+                        });
+
+                        const steuerZeile = document.createElement('div');
+                        steuerZeile.className = 'terminal-osk-zeile';
+                        steuerZeile.appendChild(erstelleTaste(sonderzeichenModus ? 'ABC' : '#+=', 'modus', 'terminal-osk-taste-breit'));
+                        steuerZeile.appendChild(erstelleTaste('Leerzeichen', 'leerzeichen', 'terminal-osk-taste-breit terminal-osk-taste-extra-breit'));
+                        steuerZeile.appendChild(erstelleTaste('Löschen', 'loeschen', 'terminal-osk-taste-breit'));
+                        tastaturContainer.appendChild(steuerZeile);
+                    }
+
                     function aktualisiereWizardAnsicht() {
                         const istLetzterSchritt = wizardZustand.schrittIndex >= wizardSchritte.length - 1;
 
@@ -1175,9 +1290,12 @@ require __DIR__ . '/_layout_top.php';
 
                         if (wizardSchritte[wizardZustand.schrittIndex] === 'kommentar' && kommentarTextfeld instanceof HTMLTextAreaElement) {
                             kommentarTextfeld.value = wizardZustand.kommentar_mitarbeiter;
-                            kommentarTextfeld.focus({ preventScroll: true });
-                            kommentarTextfeld.setSelectionRange(kommentarTextfeld.value.length, kommentarTextfeld.value.length);
+                            fokussiereKommentarTextfeld(true);
+                            tastaturSichtbar = true;
+                            aktualisiereTastaturUmschalter();
                             aktualisiereKommentarZeichenzahl();
+                        } else if (tastaturContainer instanceof HTMLElement) {
+                            tastaturContainer.hidden = true;
                         }
                     }
 
@@ -1224,14 +1342,54 @@ require __DIR__ . '/_layout_top.php';
 
                     if (kommentarTextfeld instanceof HTMLTextAreaElement) {
                         kommentarTextfeld.addEventListener('input', function () {
-                            wizardZustand.kommentar_mitarbeiter = kommentarTextfeld.value;
-                            versteckterKommentar.value = kommentarTextfeld.value;
-                            aktualisiereKommentarZeichenzahl();
+                            synchronisiereKommentarZustand();
                         });
 
                         kommentarTextfeld.addEventListener('keydown', function (ereignis) {
                             if (ereignis.key === 'Enter' && ereignis.ctrlKey) {
                                 ereignis.preventDefault();
+                            }
+                        });
+                    }
+
+                    if (tastaturUmschalter instanceof HTMLButtonElement) {
+                        tastaturUmschalter.addEventListener('click', function () {
+                            tastaturSichtbar = !tastaturSichtbar;
+                            aktualisiereTastaturUmschalter();
+                            if (tastaturSichtbar) {
+                                fokussiereKommentarTextfeld(false);
+                            }
+                        });
+                    }
+
+                    if (tastaturContainer instanceof HTMLElement) {
+                        tastaturContainer.addEventListener('click', function (ereignis) {
+                            const ziel = ereignis.target;
+                            if (!(ziel instanceof HTMLElement)) {
+                                return;
+                            }
+                            const taste = ziel.closest('[data-taste-wert]');
+                            if (!(taste instanceof HTMLElement)) {
+                                return;
+                            }
+
+                            const tastaturWert = taste.getAttribute('data-taste-wert');
+                            if (tastaturWert === 'modus') {
+                                sonderzeichenModus = !sonderzeichenModus;
+                                renderTastatur();
+                                fokussiereKommentarTextfeld(false);
+                                return;
+                            }
+                            if (tastaturWert === 'leerzeichen') {
+                                fuegeKommentarTextEin(' ');
+                                return;
+                            }
+                            if (tastaturWert === 'loeschen') {
+                                loescheKommentarZeichen();
+                                return;
+                            }
+                            if (typeof tastaturWert === 'string' && tastaturWert !== '') {
+                                fuegeKommentarTextEin(tastaturWert);
                             }
                         });
                     }
@@ -1266,6 +1424,8 @@ require __DIR__ . '/_layout_top.php';
                         versteckterKommentar.value = (kommentarTextfeld instanceof HTMLTextAreaElement) ? kommentarTextfeld.value : wizardZustand.kommentar_mitarbeiter;
                     });
 
+                    renderTastatur();
+                    aktualisiereTastaturUmschalter();
                     aktualisiereKommentarZeichenzahl();
                     aktualisiereWizardAnsicht();
                 })();
