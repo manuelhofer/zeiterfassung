@@ -244,7 +244,7 @@ $tab = isset($_GET['tab']) ? (string)$_GET['tab'] : '';
         <a href="?seite=urlaub_genehmigung" class="<?php echo $seite === 'urlaub_genehmigung' ? 'active' : ''; ?>">Urlaub genehmigen</a>
     <?php endif; ?>
     <a href="?seite=report_monat" class="<?php echo $seite === 'report_monat' ? 'active' : ''; ?>">Monatsübersicht</a>
-    <a href="?seite=auftrag" class="<?php echo in_array($seite, ['auftrag','auftrag_detail'], true) ? 'active' : ''; ?>">Aufträge</a>
+    <a href="?seite=auftrag" class="<?php echo in_array($seite, ['auftrag','auftrag_detail','auftragszeit_bearbeiten'], true) ? 'active' : ''; ?>">Aufträge</a>
     <?php if ($hatMitarbeiterAdminRecht): ?>
         <a href="?seite=mitarbeiter_admin" class="<?php echo $seite === 'mitarbeiter_admin' ? 'active' : ''; ?>">Mitarbeiter</a>
     <?php endif; ?>
