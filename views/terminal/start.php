@@ -908,6 +908,11 @@ require __DIR__ . '/_layout_top.php';
                 <input type="hidden" id="bis_datum" name="bis_datum" value="<?php echo htmlspecialchars((string)($urlaubFormular['bis_datum'] ?? ''), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>" required>
                 <input type="hidden" id="kommentar_mitarbeiter_wizard" name="kommentar_mitarbeiter" value="<?php echo htmlspecialchars((string)($urlaubFormular['kommentar_mitarbeiter'] ?? ''), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>">
 
+                <?php
+                    $logoutFormHidden = true;
+                    require __DIR__ . '/_logout_form.php';
+                ?>
+
                 <div class="terminal-wizard-schritt" data-schritt="ab_wann">
                     <p class="status-small"><strong>Schritt 1 von 3: ab_wann</strong></p>
                     <label>Startdatum</label>
@@ -977,6 +982,7 @@ require __DIR__ . '/_layout_top.php';
 
                 <div class="button-row terminal-wizard-aktionsleiste">
                     <div class="terminal-wizard-sekundaeraktionen">
+                        <button type="submit" form="logout-form" class="secondary terminal-primary-action">Exit</button>
                         <button type="button" class="secondary terminal-primary-action" data-nav="zurueck" hidden>Zurück</button>
                     </div>
                     <button type="button" class="terminal-primary-action" data-nav="weiter">Weiter</button>
