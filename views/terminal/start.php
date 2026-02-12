@@ -975,7 +975,6 @@ require __DIR__ . '/_layout_top.php';
 
                 <div class="button-row terminal-wizard-aktionsleiste">
                     <div class="terminal-wizard-sekundaeraktionen">
-                        <a href="terminal.php?aktion=urlaub_beantragen" class="button-link secondary terminal-primary-action">Abbrechen</a>
                         <button type="button" class="secondary terminal-primary-action" data-nav="zurueck" hidden>Zurück</button>
                     </div>
                     <button type="submit" class="terminal-primary-action" data-nav="primaer">Weiter</button>
