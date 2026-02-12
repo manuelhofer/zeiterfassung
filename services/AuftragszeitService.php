@@ -737,6 +737,150 @@ class AuftragszeitService
     }
 
     /**
+     * Beendet genau eine (die letzte passende) laufende Auftragszeit bis zum Stichtag.
+     *
+     * Fachregel:
+     * - Bei historischen Korrekturen darf nur der konkret betroffene Datensatz geschlossen werden.
+     * - Keine Massen-Updates über mehrere laufende Zeilen ohne explizite Auswahl.
+     * - Es wird niemals ein Endzeitpunkt vor der Startzeit gesetzt.
+     *
+     * @return array<string,mixed>|null
+     */
+    public function beendeLetztePassendeLaufendeAuftragszeitFuerMitarbeiterBisZeitpunkt(
+        int $mitarbeiterId,
+        \DateTimeImmutable $zeitpunkt,
+        string $status = 'abgeschlossen'
+    ): ?array {
+        $mitarbeiterId = (int)$mitarbeiterId;
+        if ($mitarbeiterId <= 0) {
+            return null;
+        }
+
+        if (!in_array($status, ['abgeschlossen', 'abgebrochen', 'pausiert'], true)) {
+            $status = 'abgeschlossen';
+        }
+
+        $db = null;
+        if (class_exists('Database')) {
+            $db = Database::getInstanz();
+        }
+
+        $hauptDbOk = null;
+        if ($db !== null && method_exists($db, 'istHauptdatenbankVerfuegbar')) {
+            try {
+                $hauptDbOk = (bool)$db->istHauptdatenbankVerfuegbar();
+            } catch (\Throwable $e) {
+                $hauptDbOk = false;
+            }
+        }
+
+        if ($this->istTerminalInstallation() && $hauptDbOk === false) {
+            $endStr = $zeitpunkt->format('Y-m-d H:i:s');
+            $sql = 'UPDATE auftragszeit SET '
+                . 'endzeit=' . $this->sqlQuote($endStr) . ', '
+                . 'status=' . $this->sqlQuote($status) . ' '
+                . 'WHERE id = ('
+                . 'SELECT id FROM ('
+                . 'SELECT id FROM auftragszeit '
+                . 'WHERE mitarbeiter_id=' . (int)$mitarbeiterId
+                . " AND typ IN ('haupt','neben')"
+                . " AND status='laufend'"
+                . " AND endzeit IS NULL"
+                . ' AND startzeit <= ' . $this->sqlQuote($endStr)
+                . ' ORDER BY startzeit DESC, id DESC LIMIT 1'
+                . ') AS kandidaten'
+                . ')'
+                . ' AND startzeit <= ' . $this->sqlQuote($endStr);
+
+            try {
+                $ok = OfflineQueueManager::getInstanz()->speichereInQueue(
+                    $sql,
+                    $mitarbeiterId,
+                    null,
+                    'auftrag_stop_letzte_bis'
+                );
+
+                return $ok ? [
+                    'queued' => true,
+                    'auftragszeit_id' => null,
+                    'status' => $status,
+                ] : null;
+            } catch (\Throwable $e) {
+                if (class_exists('Logger')) {
+                    Logger::error('AuftragszeitService: Offline-Queue letzte passende Auftragszeit stoppen fehlgeschlagen', [
+                        'mitarbeiter_id' => $mitarbeiterId,
+                        'status' => $status,
+                        'exception' => $e->getMessage(),
+                    ], $mitarbeiterId, null, 'auftragszeit_service_offline');
+                }
+
+                return null;
+            }
+        }
+
+        $kandidat = $this->auftragszeitModel->holeLetzteLaufendeFuerMitarbeiterBisZeitpunkt($mitarbeiterId, $zeitpunkt);
+        if (!is_array($kandidat) || !isset($kandidat['id'])) {
+            return null;
+        }
+
+        $auftragszeitId = (int)$kandidat['id'];
+        if ($auftragszeitId <= 0) {
+            return null;
+        }
+
+        $startzeitRoh = isset($kandidat['startzeit']) ? (string)$kandidat['startzeit'] : '';
+        if ($startzeitRoh !== '' && $zeitpunkt->format('Y-m-d H:i:s') < $startzeitRoh) {
+            if (class_exists('Logger')) {
+                Logger::warn('AuftragszeitService: Auftragszeit nicht beendet, da Endzeit vor Startzeit läge', [
+                    'auftragszeit_id' => $auftragszeitId,
+                    'mitarbeiter_id' => $mitarbeiterId,
+                    'startzeit' => $startzeitRoh,
+                    'endzeit' => $zeitpunkt->format('Y-m-d H:i:s'),
+                    'status' => $status,
+                ], $mitarbeiterId, null, 'auftragszeit_service');
+            }
+
+            return null;
+        }
+
+        try {
+            $dbOnline = Database::getInstanz();
+            $dbOnline->ausfuehren(
+                'UPDATE auftragszeit
+                 SET endzeit = :endzeit,
+                     status = :status
+                 WHERE id = :id
+                   AND status = \'laufend\'
+                   AND endzeit IS NULL
+                   AND startzeit <= :endzeit
+                 LIMIT 1',
+                [
+                    'endzeit' => $zeitpunkt->format('Y-m-d H:i:s'),
+                    'status' => $status,
+                    'id' => $auftragszeitId,
+                ]
+            );
+
+            return [
+                'queued' => false,
+                'auftragszeit_id' => $auftragszeitId,
+                'status' => $status,
+            ];
+        } catch (\Throwable $e) {
+            if (class_exists('Logger')) {
+                Logger::error('Fehler beim Beenden der letzten passenden laufenden Auftragszeit (Service)', [
+                    'auftragszeit_id' => $auftragszeitId,
+                    'mitarbeiter_id' => $mitarbeiterId,
+                    'status' => $status,
+                    'exception' => $e->getMessage(),
+                ], $mitarbeiterId, null, 'auftragszeit_service');
+            }
+
+            return null;
+        }
+    }
+
+    /**
      * Stoppt alle laufenden Hauptaufträge eines Mitarbeiters.
      *
      * @param int                $mitarbeiterId Mitarbeiter-ID

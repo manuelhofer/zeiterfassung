@@ -192,6 +192,64 @@ class SmokeTestController
             $add($checks, 'Terminal', 'ZeitService: Offline-Queue-Branch prüfbar', null, 'services/ZeitService.php nicht lesbar.');
         }
 
+
+        // Regression-Fall: historische Gehen-Korrektur darf nur einen konkreten Auftragszeit-Datensatz schließen.
+        $zeitCtrlPfad = $root . '/controller/ZeitController.php';
+        if (is_file($zeitCtrlPfad) && is_readable($zeitCtrlPfad)) {
+            $inhalt = @file_get_contents($zeitCtrlPfad);
+            if (is_string($inhalt) && $inhalt !== '') {
+                $nutztGezielteMethode = (strpos($inhalt, 'beendeLetztePassendeLaufendeAuftragszeitFuerMitarbeiterBisZeitpunkt') !== false);
+                $nutztMassenupdateNicht = (strpos($inhalt, 'stoppeAlleLaufendenAuftraegeFuerMitarbeiterBisZeitpunkt') === false);
+                $hatAuftragszeitIdLog = (strpos($inhalt, "'auftragszeit_id'") !== false);
+
+                $ok = ($nutztGezielteMethode && $nutztMassenupdateNicht && $hatAuftragszeitIdLog);
+
+                $detailsFehlt = [];
+                if (!$nutztGezielteMethode) { $detailsFehlt[] = 'gezielte Service-Methode fehlt'; }
+                if (!$nutztMassenupdateNicht) { $detailsFehlt[] = 'alter Massenupdate-Aufruf noch vorhanden'; }
+                if (!$hatAuftragszeitIdLog) { $detailsFehlt[] = 'Logging ohne auftragszeit_id'; }
+
+                $add(
+                    $checks,
+                    'Regression',
+                    'Historische Gehen-Korrektur schließt nur einen Datensatz',
+                    $ok,
+                    $ok ? '' : ('Fehlt: ' . implode(', ', $detailsFehlt))
+                );
+            } else {
+                $add($checks, 'Regression', 'Historische Gehen-Korrektur schließt nur einen Datensatz', null, 'controller/ZeitController.php konnte nicht gelesen werden.');
+            }
+        } else {
+            $add($checks, 'Regression', 'Historische Gehen-Korrektur schließt nur einen Datensatz', null, 'controller/ZeitController.php nicht lesbar.');
+        }
+
+        $auftragszeitServicePfad = $root . '/services/AuftragszeitService.php';
+        if (is_file($auftragszeitServicePfad) && is_readable($auftragszeitServicePfad)) {
+            $inhalt = @file_get_contents($auftragszeitServicePfad);
+            if (is_string($inhalt) && $inhalt !== '') {
+                $hatGezielteMethode = (strpos($inhalt, 'function beendeLetztePassendeLaufendeAuftragszeitFuerMitarbeiterBisZeitpunkt') !== false);
+                $hatGuardStartEnde = (strpos($inhalt, 'startzeit <= :endzeit') !== false);
+
+                $ok = ($hatGezielteMethode && $hatGuardStartEnde);
+
+                $detailsFehlt = [];
+                if (!$hatGezielteMethode) { $detailsFehlt[] = 'gezielte Beenden-Methode fehlt'; }
+                if (!$hatGuardStartEnde) { $detailsFehlt[] = 'Guard endzeit >= startzeit fehlt'; }
+
+                $add(
+                    $checks,
+                    'Regression',
+                    'AuftragszeitService: gezieltes Beenden inkl. Start/Ende-Guard',
+                    $ok,
+                    $ok ? '' : ('Fehlt: ' . implode(', ', $detailsFehlt))
+                );
+            } else {
+                $add($checks, 'Regression', 'AuftragszeitService: gezieltes Beenden inkl. Start/Ende-Guard', null, 'services/AuftragszeitService.php konnte nicht gelesen werden.');
+            }
+        } else {
+            $add($checks, 'Regression', 'AuftragszeitService: gezieltes Beenden inkl. Start/Ende-Guard', null, 'services/AuftragszeitService.php nicht lesbar.');
+        }
+
         $terminalCtrlPfad = $root . '/controller/TerminalController.php';
         if (is_file($terminalCtrlPfad) && is_readable($terminalCtrlPfad)) {
             $inhalt = @file_get_contents($terminalCtrlPfad);
