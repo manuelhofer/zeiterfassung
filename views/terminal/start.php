@@ -979,7 +979,8 @@ require __DIR__ . '/_layout_top.php';
                     <div class="terminal-wizard-sekundaeraktionen">
                         <button type="button" class="secondary terminal-primary-action" data-nav="zurueck" hidden>Zurück</button>
                     </div>
-                    <button type="submit" class="terminal-primary-action" data-nav="primaer">Weiter</button>
+                    <button type="button" class="terminal-primary-action" data-nav="weiter">Weiter</button>
+                    <button type="submit" class="terminal-primary-action" data-nav="speichern" hidden>Speichern</button>
                 </div>
             </form>
 
@@ -1011,7 +1012,8 @@ require __DIR__ . '/_layout_top.php';
 
                     const schrittElemente = Array.from(formular.querySelectorAll('[data-schritt]'));
                     const knopfZurueck = formular.querySelector('[data-nav="zurueck"]');
-                    const knopfPrimaer = formular.querySelector('[data-nav="primaer"]');
+                    const knopfWeiter = formular.querySelector('[data-nav="weiter"]');
+                    const knopfSpeichern = formular.querySelector('[data-nav="speichern"]');
                     const kommentarZeichenzahl = document.getElementById('kommentar_zeichenzahl');
                     const tastaturUmschalter = document.getElementById('kommentar_tastatur_umschalter');
                     const tastaturContainer = document.getElementById('terminal_kommentar_tastatur');
@@ -1284,8 +1286,11 @@ require __DIR__ . '/_layout_top.php';
                             knopfZurueck.hidden = wizardZustand.schrittIndex === 0;
                             knopfZurueck.disabled = wizardZustand.schrittIndex === 0;
                         }
-                        if (knopfPrimaer instanceof HTMLButtonElement) {
-                            knopfPrimaer.textContent = istLetzterSchritt ? 'Speichern' : 'Weiter';
+                        if (knopfWeiter instanceof HTMLButtonElement) {
+                            knopfWeiter.hidden = istLetzterSchritt;
+                        }
+                        if (knopfSpeichern instanceof HTMLButtonElement) {
+                            knopfSpeichern.hidden = !istLetzterSchritt;
                         }
 
                         if (wizardSchritte[wizardZustand.schrittIndex] === 'kommentar' && kommentarTextfeld instanceof HTMLTextAreaElement) {
@@ -1401,18 +1406,27 @@ require __DIR__ . '/_layout_top.php';
                         });
                     }
 
+                    function geheZumNaechstenSchrittNachValidierung() {
+                        if (!pruefeAktivenSchritt()) {
+                            return;
+                        }
+
+                        wizardZustand.schrittIndex = Math.min(wizardSchritte.length - 1, wizardZustand.schrittIndex + 1);
+                        aktualisiereWizardAnsicht();
+                    }
+
+                    if (knopfWeiter instanceof HTMLButtonElement) {
+                        knopfWeiter.addEventListener('click', function () {
+                            geheZumNaechstenSchrittNachValidierung();
+                        });
+                    }
+
                     formular.addEventListener('submit', function (ereignis) {
                         const istLetzterSchritt = wizardZustand.schrittIndex >= wizardSchritte.length - 1;
 
                         if (!istLetzterSchritt) {
                             ereignis.preventDefault();
-
-                            if (!pruefeAktivenSchritt()) {
-                                return;
-                            }
-
-                            wizardZustand.schrittIndex = Math.min(wizardSchritte.length - 1, wizardZustand.schrittIndex + 1);
-                            aktualisiereWizardAnsicht();
+                            geheZumNaechstenSchrittNachValidierung();
                             return;
                         }
 
