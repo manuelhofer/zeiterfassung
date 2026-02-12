@@ -306,4 +306,56 @@ class AuftragszeitModel
         }
     }
 
+    /**
+     * Aktualisiert Zeitraum, Status und Kommentar einer Auftragszeit.
+     */
+    public function aktualisiereAuftragszeitZeitraum(
+        int $auftragszeitId,
+        \DateTimeImmutable $startzeit,
+        ?\DateTimeImmutable $endzeit,
+        string $status,
+        ?string $kommentar
+    ): bool {
+        $auftragszeitId = max(1, $auftragszeitId);
+        if ($auftragszeitId <= 0) {
+            return false;
+        }
+
+        if (!in_array($status, ['laufend', 'abgeschlossen', 'abgebrochen', 'pausiert'], true)) {
+            $status = $endzeit === null ? 'laufend' : 'abgeschlossen';
+        }
+
+        try {
+            $sql = 'UPDATE auftragszeit
+                    SET startzeit = :startzeit,
+                        endzeit = :endzeit,
+                        status = :status,
+                        kommentar = :kommentar
+                    WHERE id = :id
+                    LIMIT 1';
+
+            $this->datenbank->ausfuehren($sql, [
+                'startzeit' => $startzeit->format('Y-m-d H:i:s'),
+                'endzeit' => $endzeit !== null ? $endzeit->format('Y-m-d H:i:s') : null,
+                'status' => $status,
+                'kommentar' => $kommentar,
+                'id' => $auftragszeitId,
+            ]);
+
+            return true;
+        } catch (\Throwable $e) {
+            if (class_exists('Logger')) {
+                Logger::error('Fehler beim Aktualisieren einer Auftragszeit (Model)', [
+                    'auftragszeit_id' => $auftragszeitId,
+                    'startzeit' => $startzeit->format('Y-m-d H:i:s'),
+                    'endzeit' => $endzeit !== null ? $endzeit->format('Y-m-d H:i:s') : null,
+                    'status' => $status,
+                    'exception' => $e->getMessage(),
+                ], null, null, 'auftrag');
+            }
+
+            return false;
+        }
+    }
+
 }

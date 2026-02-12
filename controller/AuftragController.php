@@ -16,6 +16,8 @@ declare(strict_types=1);
  */
 class AuftragController
 {
+    private const CSRF_KEY_AUFTRAGSZEIT_BEARBEITEN = 'auftragszeit_bearbeiten_csrf_token';
+
     private AuthService $authService;
     private Database $db;
 
@@ -158,6 +160,7 @@ class AuftragController
                 <?php endif; ?>
             </form>
 
+
             <?php if (!empty($fehlermeldung)): ?>
                 <div class="fehlermeldung">
                     <?php echo htmlspecialchars((string)$fehlermeldung, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>
@@ -251,6 +254,10 @@ class AuftragController
         }
 
         $fehlermeldung = null;
+        $flashOk = isset($_SESSION['auftrag_detail_flash_ok']) ? (string)$_SESSION['auftrag_detail_flash_ok'] : null;
+        $flashFehler = isset($_SESSION['auftrag_detail_flash_fehler']) ? (string)$_SESSION['auftrag_detail_flash_fehler'] : null;
+        unset($_SESSION['auftrag_detail_flash_ok'], $_SESSION['auftrag_detail_flash_fehler']);
+
         $buchungen = [];
         $sumSekunden = 0;
         $sumProSchritt = [];
@@ -342,6 +349,18 @@ class AuftragController
                 <a href="?seite=auftrag">&laquo; Zurueck zur Liste</a>
             </p>
 
+            <?php if (is_string($flashOk) && $flashOk !== ''): ?>
+                <p style="padding:8px;border:1px solid #9ad29a;background:#e9f7e9;">
+                    <?php echo htmlspecialchars($flashOk, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>
+                </p>
+            <?php endif; ?>
+
+            <?php if (is_string($flashFehler) && $flashFehler !== ''): ?>
+                <p style="padding:8px;border:1px solid #d29a9a;background:#f7e9e9;">
+                    <?php echo htmlspecialchars($flashFehler, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>
+                </p>
+            <?php endif; ?>
+
             <?php if (!empty($fehlermeldung)): ?>
                 <div class="fehlermeldung">
                     <?php echo htmlspecialchars((string)$fehlermeldung, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>
@@ -382,8 +401,6 @@ class AuftragController
                                 $start = (string)($b['startzeit'] ?? '');
                                 $end = (string)($b['endzeit'] ?? '');
                                 $status = (string)($b['status'] ?? '');
-                                $mitarbeiterId = (int)($b['mitarbeiter_id'] ?? 0);
-                                $datumLink = '';
 
                                 $dauerH = '';
                                 if ($end !== '') {
@@ -394,9 +411,6 @@ class AuftragController
                                     }
                                 }
 
-                                if ($start !== '') {
-                                    $datumLink = substr($start, 0, 10);
-                                }
                             ?>
                             <tr>
                                 <td><?php echo $id; ?></td>
@@ -409,8 +423,8 @@ class AuftragController
                                 <td><?php echo $dauerH !== '' ? $dauerH : '-'; ?></td>
                                 <td><?php echo htmlspecialchars($status, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></td>
                                 <td>
-                                    <?php if ($datumLink !== '' && $mitarbeiterId > 0): ?>
-                                        <a href="?seite=zeit_heute&amp;datum=<?php echo urlencode($datumLink); ?>&amp;mitarbeiter_id=<?php echo (int)$mitarbeiterId; ?>">Editieren</a>
+                                    <?php if ($id > 0): ?>
+                                        <a href="?seite=auftragszeit_bearbeiten&amp;id=<?php echo $id; ?>">Editieren</a>
                                     <?php else: ?>
                                         -
                                     <?php endif; ?>
@@ -455,5 +469,243 @@ class AuftragController
         </section>
         <?php
         require __DIR__ . '/../views/layout/footer.php';
+    }
+
+    /**
+     * Bearbeiten einer einzelnen Auftragszeit.
+     * Route: ?seite=auftragszeit_bearbeiten&id=...
+     */
+    public function auftragszeitBearbeiten(): void
+    {
+        if (!$this->pruefeZugriff()) {
+            return;
+        }
+
+        $auftragszeitId = (int)($_GET['id'] ?? $_POST['id'] ?? 0);
+        if ($auftragszeitId <= 0) {
+            $_SESSION['auftrag_detail_flash_fehler'] = 'Die Auftragszeit-ID ist ungültig.';
+            header('Location: ?seite=auftrag');
+            return;
+        }
+
+        $auftragszeitModel = new AuftragszeitModel();
+        $auftragModel = new AuftragModel();
+        $datensatz = $auftragszeitModel->holeNachId($auftragszeitId);
+        if (!is_array($datensatz)) {
+            $_SESSION['auftrag_detail_flash_fehler'] = 'Die Auftragszeit wurde nicht gefunden.';
+            header('Location: ?seite=auftrag');
+            return;
+        }
+
+        $angemeldeterMitarbeiter = $this->authService->holeAngemeldetenMitarbeiter();
+        $angemeldeteId = (int)($angemeldeterMitarbeiter['id'] ?? 0);
+        if ($angemeldeteId <= 0) {
+            header('Location: ?seite=login');
+            return;
+        }
+
+        $kannAlleBearbeiten = $this->darfAuftragszeitAlleBearbeiten();
+        $kannEigeneBearbeiten = $this->darfAuftragszeitEigeneBearbeiten();
+        $zielMitarbeiterId = (int)($datensatz['mitarbeiter_id'] ?? 0);
+        $darfBearbeiten = $kannAlleBearbeiten || ($kannEigeneBearbeiten && $zielMitarbeiterId === $angemeldeteId);
+
+        if (!$darfBearbeiten) {
+            $_SESSION['auftrag_detail_flash_fehler'] = 'Sie dürfen diese Auftragszeit nicht bearbeiten.';
+            header('Location: ?seite=auftrag_detail&code=' . urlencode($this->ermittleAuftragscode($datensatz, $auftragModel)));
+            return;
+        }
+
+        $csrfToken = $this->holeOderErzeugeCsrfToken();
+        $fehlermeldung = null;
+
+        $status = (string)($datensatz['status'] ?? '');
+        $kommentar = (string)($datensatz['kommentar'] ?? '');
+        $startDatum = $this->formatDatumFuerForm((string)($datensatz['startzeit'] ?? ''));
+        $startUhrzeit = $this->formatUhrzeitFuerForm((string)($datensatz['startzeit'] ?? ''));
+        $endeDatum = $this->formatDatumFuerForm((string)($datensatz['endzeit'] ?? ''));
+        $endeUhrzeit = $this->formatUhrzeitFuerForm((string)($datensatz['endzeit'] ?? ''));
+
+        if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {
+            $postToken = (string)($_POST['csrf_token'] ?? '');
+            if ($csrfToken === '' || !hash_equals($csrfToken, $postToken)) {
+                $fehlermeldung = 'CSRF-Check fehlgeschlagen.';
+            } else {
+                $startDatum = trim((string)($_POST['start_datum'] ?? ''));
+                $startUhrzeit = trim((string)($_POST['start_uhrzeit'] ?? ''));
+                $endeDatum = trim((string)($_POST['ende_datum'] ?? ''));
+                $endeUhrzeit = trim((string)($_POST['ende_uhrzeit'] ?? ''));
+                $status = trim((string)($_POST['status'] ?? ''));
+                $kommentar = trim((string)($_POST['kommentar'] ?? ''));
+
+                if (strlen($kommentar) > 2000) {
+                    $kommentar = substr($kommentar, 0, 2000);
+                }
+
+                $startzeit = $this->parseDatumUhrzeit($startDatum, $startUhrzeit);
+                if ($startzeit === null) {
+                    $fehlermeldung = 'Bitte ein gültiges Start-Datum und eine gültige Start-Uhrzeit angeben.';
+                }
+
+                $endzeit = null;
+                $hatEndeInput = ($endeDatum !== '' || $endeUhrzeit !== '');
+                if ($fehlermeldung === null && $hatEndeInput) {
+                    if ($endeDatum === '' || $endeUhrzeit === '') {
+                        $fehlermeldung = 'Bitte Ende-Datum und Ende-Uhrzeit gemeinsam ausfüllen oder beide Felder leer lassen.';
+                    } else {
+                        $endzeit = $this->parseDatumUhrzeit($endeDatum, $endeUhrzeit);
+                        if ($endzeit === null) {
+                            $fehlermeldung = 'Bitte ein gültiges Ende-Datum und eine gültige Ende-Uhrzeit angeben.';
+                        }
+                    }
+                }
+
+                if ($fehlermeldung === null && $startzeit !== null && $endzeit !== null && $startzeit >= $endzeit) {
+                    $fehlermeldung = 'Die Startzeit muss vor der Endzeit liegen.';
+                }
+
+                if ($fehlermeldung === null && $endzeit === null && $status !== 'laufend') {
+                    $fehlermeldung = 'Ohne Endzeit ist nur der Status "laufend" zulässig.';
+                }
+
+                if ($fehlermeldung === null && $endzeit !== null && $status === 'laufend') {
+                    $fehlermeldung = 'Bei gesetzter Endzeit darf der Status nicht "laufend" sein.';
+                }
+
+                if ($fehlermeldung === null) {
+                    if (!in_array($status, ['laufend', 'abgeschlossen', 'abgebrochen', 'pausiert'], true)) {
+                        $status = $endzeit === null ? 'laufend' : 'abgeschlossen';
+                    }
+
+                    $ok = $auftragszeitModel->aktualisiereAuftragszeitZeitraum(
+                        $auftragszeitId,
+                        $startzeit,
+                        $endzeit,
+                        $status,
+                        $kommentar !== '' ? $kommentar : null
+                    );
+
+                    if ($ok) {
+                        $code = $this->ermittleAuftragscode($datensatz, $auftragModel);
+                        $_SESSION['auftrag_detail_flash_ok'] = 'Auftragszeit erfolgreich gespeichert.';
+                        header('Location: ?seite=auftrag_detail&code=' . urlencode($code));
+                        return;
+                    }
+
+                    $fehlermeldung = 'Die Auftragszeit konnte nicht gespeichert werden.';
+                }
+            }
+        }
+
+        $auftragscode = $this->ermittleAuftragscode($datensatz, $auftragModel);
+        require __DIR__ . '/../views/layout/header.php';
+        require __DIR__ . '/../views/auftragszeit/bearbeiten.php';
+        require __DIR__ . '/../views/layout/footer.php';
+    }
+
+    private function ermittleAuftragscode(array $auftragszeit, AuftragModel $auftragModel): string
+    {
+        $auftragscode = trim((string)($auftragszeit['auftragscode'] ?? ''));
+        if ($auftragscode !== '') {
+            return $auftragscode;
+        }
+
+        $auftragId = (int)($auftragszeit['auftrag_id'] ?? 0);
+        if ($auftragId > 0) {
+            $auftrag = $auftragModel->holeNachId($auftragId);
+            if (is_array($auftrag)) {
+                $nr = trim((string)($auftrag['auftragsnummer'] ?? ''));
+                if ($nr !== '') {
+                    return $nr;
+                }
+            }
+        }
+
+        return '';
+    }
+
+    private function holeOderErzeugeCsrfToken(): string
+    {
+        $token = $_SESSION[self::CSRF_KEY_AUFTRAGSZEIT_BEARBEITEN] ?? null;
+        if (!is_string($token) || $token === '') {
+            try {
+                $token = bin2hex(random_bytes(32));
+            } catch (\Throwable $e) {
+                $token = bin2hex((string)mt_rand());
+            }
+            $_SESSION[self::CSRF_KEY_AUFTRAGSZEIT_BEARBEITEN] = $token;
+        }
+
+        return (string)$token;
+    }
+
+    private function darfAuftragszeitAlleBearbeiten(): bool
+    {
+        $legacyAdmin = (
+            $this->authService->hatRolle('Chef')
+            || $this->authService->hatRolle('Personalbüro')
+            || $this->authService->hatRolle('Personalbuero')
+        );
+
+        return $this->authService->hatRecht('ZEITBUCHUNG_EDIT_ALL') || $legacyAdmin;
+    }
+
+    private function darfAuftragszeitEigeneBearbeiten(): bool
+    {
+        $legacyAdmin = (
+            $this->authService->hatRolle('Chef')
+            || $this->authService->hatRolle('Personalbüro')
+            || $this->authService->hatRolle('Personalbuero')
+        );
+
+        return $this->authService->hatRecht('ZEITBUCHUNG_EDIT_SELF') || $legacyAdmin;
+    }
+
+    private function parseDatumUhrzeit(string $datum, string $uhrzeit): ?\DateTimeImmutable
+    {
+        $datum = trim($datum);
+        $uhrzeit = trim($uhrzeit);
+        if ($datum === '' || $uhrzeit === '') {
+            return null;
+        }
+
+        $wert = $datum . ' ' . $uhrzeit;
+        $zeit = \DateTimeImmutable::createFromFormat('Y-m-d H:i', $wert);
+        if (!($zeit instanceof \DateTimeImmutable)) {
+            return null;
+        }
+
+        if ($zeit->format('Y-m-d H:i') !== $wert) {
+            return null;
+        }
+
+        return $zeit;
+    }
+
+    private function formatDatumFuerForm(string $datetime): string
+    {
+        $datetime = trim($datetime);
+        if ($datetime === '') {
+            return '';
+        }
+        $ts = strtotime($datetime);
+        if ($ts === false) {
+            return '';
+        }
+
+        return date('Y-m-d', $ts);
+    }
+
+    private function formatUhrzeitFuerForm(string $datetime): string
+    {
+        $datetime = trim($datetime);
+        if ($datetime === '') {
+            return '';
+        }
+        $ts = strtotime($datetime);
+        if ($ts === false) {
+            return '';
+        }
+
+        return date('H:i', $ts);
     }
 }
