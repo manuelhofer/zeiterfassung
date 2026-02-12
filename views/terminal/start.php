@@ -906,7 +906,7 @@ require __DIR__ . '/_layout_top.php';
                 <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($csrfToken, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>">
             </form>
 
-            <form method="post" action="terminal.php?aktion=urlaub_beantragen" class="login-form">
+            <form method="post" action="terminal.php?aktion=urlaub_beantragen" class="login-form" id="urlaub_wizard_formular">
                 <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($csrfToken, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>">
                 <input type="hidden" id="von_datum" name="von_datum" value="<?php echo htmlspecialchars((string)($urlaubFormular['von_datum'] ?? ''), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>" required>
                 <input type="hidden" id="bis_datum" name="bis_datum" value="<?php echo htmlspecialchars((string)($urlaubFormular['bis_datum'] ?? ''), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>" required>
@@ -998,7 +998,7 @@ require __DIR__ . '/_layout_top.php';
                 (function () {
                     'use strict';
 
-                    const formular = document.querySelector('form[action="terminal.php?aktion=urlaub_beantragen"]');
+                    const formular = document.getElementById('urlaub_wizard_formular');
                     if (!(formular instanceof HTMLFormElement)) {
                         return;
                     }
