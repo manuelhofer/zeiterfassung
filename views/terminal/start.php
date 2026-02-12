@@ -1523,7 +1523,17 @@ require __DIR__ . '/_layout_top.php';
                     var knopfZurueck = formular.querySelector('[data-nav="zurueck"]');
                     var knopfWeiter = formular.querySelector('[data-nav="weiter"]');
                     var knopfSpeichern = formular.querySelector('[data-nav="speichern"]');
+                    var wizardValidierungsmeldung = formular.querySelector('[data-wizard-validierung]');
                     var schrittIndex = 0;
+
+                    var bindungOk = (knopfWeiter instanceof HTMLButtonElement)
+                        && (knopfZurueck instanceof HTMLButtonElement)
+                        && (knopfSpeichern instanceof HTMLButtonElement);
+                    formular.setAttribute('data-wizard-bindung', bindungOk ? 'ok' : 'fehlt');
+
+                    if (!(knopfWeiter instanceof HTMLButtonElement) && wizardValidierungsmeldung instanceof HTMLElement) {
+                        wizardValidierungsmeldung.textContent = 'Technischer Fehler: Navigation nicht initialisiert';
+                    }
 
                     function aktualisiereAnsicht() {
                         var istLetzterSchritt = schrittIndex >= (schrittElemente.length - 1);
