@@ -899,72 +899,81 @@ require __DIR__ . '/_layout_top.php';
         <?php elseif ($zeigeUrlaubFormular): ?>
             <p class="hinweis">
                 <strong>Urlaub beantragen</strong><br>
-                Datum wählen, optional Kommentar hinzufügen.
+                Bitte in drei Schritten ausfüllen.
             </p>
 
             <form method="post" action="terminal.php?aktion=urlaub_beantragen" class="login-form">
                 <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($csrfToken, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>">
-                <label for="von_datum">Von</label>
-                <div class="terminal-datum-eingabe" data-datum-block="von">
-                    <input type="hidden" id="von_datum" name="von_datum"
-                        value="<?php echo htmlspecialchars((string)($urlaubFormular['von_datum'] ?? ''), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>"
-                        required autofocus>
-                    <div class="terminal-datum-grid" aria-label="Startdatum auswählen">
-                        <div class="terminal-datum-zeile" data-segment="tag">
-                            <button type="button" class="terminal-zahlenfeld-knopf" data-richtung="runter" aria-label="Tag verringern">−</button>
-                            <input type="text" class="terminal-datum-wert" value="<?php echo (int)$vonDatumTeile['tag']; ?>" aria-label="Tag" readonly>
-                            <button type="button" class="terminal-zahlenfeld-knopf" data-richtung="hoch" aria-label="Tag erhöhen">+</button>
-                            <span class="terminal-datum-zeile-bezeichnung">Tag</span>
-                        </div>
-                        <div class="terminal-datum-zeile" data-segment="monat">
-                            <button type="button" class="terminal-zahlenfeld-knopf" data-richtung="runter" aria-label="Monat verringern">−</button>
-                            <input type="text" class="terminal-datum-wert" value="<?php echo (int)$vonDatumTeile['monat']; ?>" aria-label="Monat" readonly>
-                            <button type="button" class="terminal-zahlenfeld-knopf" data-richtung="hoch" aria-label="Monat erhöhen">+</button>
-                            <span class="terminal-datum-zeile-bezeichnung">Monat</span>
-                        </div>
-                        <div class="terminal-datum-zeile" data-segment="jahr">
-                            <button type="button" class="terminal-zahlenfeld-knopf" data-richtung="runter" aria-label="Jahr verringern">−</button>
-                            <input type="text" class="terminal-datum-wert" value="<?php echo (int)$vonDatumTeile['jahr']; ?>" aria-label="Jahr" readonly>
-                            <button type="button" class="terminal-zahlenfeld-knopf" data-richtung="hoch" aria-label="Jahr erhöhen">+</button>
-                            <span class="terminal-datum-zeile-bezeichnung">Jahr</span>
+                <input type="hidden" id="von_datum" name="von_datum" value="<?php echo htmlspecialchars((string)($urlaubFormular['von_datum'] ?? ''), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>" required>
+                <input type="hidden" id="bis_datum" name="bis_datum" value="<?php echo htmlspecialchars((string)($urlaubFormular['bis_datum'] ?? ''), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>" required>
+                <input type="hidden" id="kommentar_mitarbeiter_wizard" name="kommentar_mitarbeiter" value="<?php echo htmlspecialchars((string)($urlaubFormular['kommentar_mitarbeiter'] ?? ''), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>">
+
+                <div class="terminal-wizard-schritt" data-schritt="ab_wann">
+                    <p class="status-small"><strong>Schritt 1 von 3: ab_wann</strong></p>
+                    <label>Startdatum</label>
+                    <div class="terminal-datum-eingabe" data-datum-block="von">
+                        <div class="terminal-datum-grid" aria-label="Startdatum auswählen">
+                            <div class="terminal-datum-zeile" data-segment="tag">
+                                <button type="button" class="terminal-zahlenfeld-knopf" data-richtung="runter" aria-label="Tag verringern">−</button>
+                                <input type="text" class="terminal-datum-wert" value="<?php echo (int)$vonDatumTeile['tag']; ?>" aria-label="Tag" readonly>
+                                <button type="button" class="terminal-zahlenfeld-knopf" data-richtung="hoch" aria-label="Tag erhöhen">+</button>
+                                <span class="terminal-datum-zeile-bezeichnung">Tag</span>
+                            </div>
+                            <div class="terminal-datum-zeile" data-segment="monat">
+                                <button type="button" class="terminal-zahlenfeld-knopf" data-richtung="runter" aria-label="Monat verringern">−</button>
+                                <input type="text" class="terminal-datum-wert" value="<?php echo (int)$vonDatumTeile['monat']; ?>" aria-label="Monat" readonly>
+                                <button type="button" class="terminal-zahlenfeld-knopf" data-richtung="hoch" aria-label="Monat erhöhen">+</button>
+                                <span class="terminal-datum-zeile-bezeichnung">Monat</span>
+                            </div>
+                            <div class="terminal-datum-zeile" data-segment="jahr">
+                                <button type="button" class="terminal-zahlenfeld-knopf" data-richtung="runter" aria-label="Jahr verringern">−</button>
+                                <input type="text" class="terminal-datum-wert" value="<?php echo (int)$vonDatumTeile['jahr']; ?>" aria-label="Jahr" readonly>
+                                <button type="button" class="terminal-zahlenfeld-knopf" data-richtung="hoch" aria-label="Jahr erhöhen">+</button>
+                                <span class="terminal-datum-zeile-bezeichnung">Jahr</span>
+                            </div>
                         </div>
                     </div>
-                    <div class="terminal-datum-hinweis">Tippen Sie auf +/−, um das Datum zu verändern.</div>
                 </div>
 
-                <label for="bis_datum">Bis</label>
-                <div class="terminal-datum-eingabe" data-datum-block="bis">
-                    <input type="hidden" id="bis_datum" name="bis_datum"
-                        value="<?php echo htmlspecialchars((string)($urlaubFormular['bis_datum'] ?? ''), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>"
-                        required>
-                    <div class="terminal-datum-grid" aria-label="Enddatum auswählen">
-                        <div class="terminal-datum-zeile" data-segment="tag">
-                            <button type="button" class="terminal-zahlenfeld-knopf" data-richtung="runter" aria-label="Tag verringern">−</button>
-                            <input type="text" class="terminal-datum-wert" value="<?php echo (int)$bisDatumTeile['tag']; ?>" aria-label="Tag" readonly>
-                            <button type="button" class="terminal-zahlenfeld-knopf" data-richtung="hoch" aria-label="Tag erhöhen">+</button>
-                            <span class="terminal-datum-zeile-bezeichnung">Tag</span>
-                        </div>
-                        <div class="terminal-datum-zeile" data-segment="monat">
-                            <button type="button" class="terminal-zahlenfeld-knopf" data-richtung="runter" aria-label="Monat verringern">−</button>
-                            <input type="text" class="terminal-datum-wert" value="<?php echo (int)$bisDatumTeile['monat']; ?>" aria-label="Monat" readonly>
-                            <button type="button" class="terminal-zahlenfeld-knopf" data-richtung="hoch" aria-label="Monat erhöhen">+</button>
-                            <span class="terminal-datum-zeile-bezeichnung">Monat</span>
-                        </div>
-                        <div class="terminal-datum-zeile" data-segment="jahr">
-                            <button type="button" class="terminal-zahlenfeld-knopf" data-richtung="runter" aria-label="Jahr verringern">−</button>
-                            <input type="text" class="terminal-datum-wert" value="<?php echo (int)$bisDatumTeile['jahr']; ?>" aria-label="Jahr" readonly>
-                            <button type="button" class="terminal-zahlenfeld-knopf" data-richtung="hoch" aria-label="Jahr erhöhen">+</button>
-                            <span class="terminal-datum-zeile-bezeichnung">Jahr</span>
+                <div class="terminal-wizard-schritt" data-schritt="bis_wann" hidden>
+                    <p class="status-small"><strong>Schritt 2 von 3: bis_wann</strong></p>
+                    <label>Enddatum</label>
+                    <div class="terminal-datum-eingabe" data-datum-block="bis">
+                        <div class="terminal-datum-grid" aria-label="Enddatum auswählen">
+                            <div class="terminal-datum-zeile" data-segment="tag">
+                                <button type="button" class="terminal-zahlenfeld-knopf" data-richtung="runter" aria-label="Tag verringern">−</button>
+                                <input type="text" class="terminal-datum-wert" value="<?php echo (int)$bisDatumTeile['tag']; ?>" aria-label="Tag" readonly>
+                                <button type="button" class="terminal-zahlenfeld-knopf" data-richtung="hoch" aria-label="Tag erhöhen">+</button>
+                                <span class="terminal-datum-zeile-bezeichnung">Tag</span>
+                            </div>
+                            <div class="terminal-datum-zeile" data-segment="monat">
+                                <button type="button" class="terminal-zahlenfeld-knopf" data-richtung="runter" aria-label="Monat verringern">−</button>
+                                <input type="text" class="terminal-datum-wert" value="<?php echo (int)$bisDatumTeile['monat']; ?>" aria-label="Monat" readonly>
+                                <button type="button" class="terminal-zahlenfeld-knopf" data-richtung="hoch" aria-label="Monat erhöhen">+</button>
+                                <span class="terminal-datum-zeile-bezeichnung">Monat</span>
+                            </div>
+                            <div class="terminal-datum-zeile" data-segment="jahr">
+                                <button type="button" class="terminal-zahlenfeld-knopf" data-richtung="runter" aria-label="Jahr verringern">−</button>
+                                <input type="text" class="terminal-datum-wert" value="<?php echo (int)$bisDatumTeile['jahr']; ?>" aria-label="Jahr" readonly>
+                                <button type="button" class="terminal-zahlenfeld-knopf" data-richtung="hoch" aria-label="Jahr erhöhen">+</button>
+                                <span class="terminal-datum-zeile-bezeichnung">Jahr</span>
+                            </div>
                         </div>
                     </div>
-                    <div class="terminal-datum-hinweis">Tippen Sie auf +/−, um das Datum zu verändern.</div>
                 </div>
 
-                <label for="kommentar_mitarbeiter">Kommentar (optional)</label>
-                <textarea id="kommentar_mitarbeiter" name="kommentar_mitarbeiter"><?php echo htmlspecialchars((string)($urlaubFormular['kommentar_mitarbeiter'] ?? ''), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></textarea>
+                <div class="terminal-wizard-schritt" data-schritt="kommentar" hidden>
+                    <p class="status-small"><strong>Schritt 3 von 3: kommentar</strong></p>
+                    <label for="kommentar_mitarbeiter">Kommentar (optional)</label>
+                    <textarea id="kommentar_mitarbeiter" rows="8"><?php echo htmlspecialchars((string)($urlaubFormular['kommentar_mitarbeiter'] ?? ''), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></textarea>
+                </div>
 
                 <div class="button-row">
-                    <button type="submit" class="terminal-primary-action">Antrag speichern</button>
+                    <button type="button" class="secondary terminal-primary-action" data-nav="zurueck" disabled>Zurück</button>
+                    <button type="button" class="terminal-primary-action" data-nav="weiter">Weiter</button>
+                    <button type="submit" class="terminal-primary-action" data-nav="speichern" hidden>Speichern</button>
+                </div>
+                <div class="button-row">
                     <a href="terminal.php?aktion=urlaub_beantragen" class="button-link secondary terminal-primary-action">Abbrechen</a>
                 </div>
             </form>
@@ -972,6 +981,33 @@ require __DIR__ . '/_layout_top.php';
             <script>
                 (function () {
                     'use strict';
+
+                    const formular = document.querySelector('form[action="terminal.php?aktion=urlaub_beantragen"]');
+                    if (!(formular instanceof HTMLFormElement)) {
+                        return;
+                    }
+
+                    const verstecktesVonDatum = document.getElementById('von_datum');
+                    const verstecktesBisDatum = document.getElementById('bis_datum');
+                    const versteckterKommentar = document.getElementById('kommentar_mitarbeiter_wizard');
+                    const kommentarTextfeld = document.getElementById('kommentar_mitarbeiter');
+
+                    if (!(verstecktesVonDatum instanceof HTMLInputElement) || !(verstecktesBisDatum instanceof HTMLInputElement) || !(versteckterKommentar instanceof HTMLInputElement)) {
+                        return;
+                    }
+
+                    const wizardSchritte = ['ab_wann', 'bis_wann', 'kommentar'];
+                    const wizardZustand = {
+                        schrittIndex: 0,
+                        von_datum: verstecktesVonDatum.value,
+                        bis_datum: verstecktesBisDatum.value,
+                        kommentar_mitarbeiter: versteckterKommentar.value
+                    };
+
+                    const schrittElemente = Array.from(formular.querySelectorAll('[data-schritt]'));
+                    const knopfZurueck = formular.querySelector('[data-nav="zurueck"]');
+                    const knopfWeiter = formular.querySelector('[data-nav="weiter"]');
+                    const knopfSpeichern = formular.querySelector('[data-nav="speichern"]');
 
                     function tageImMonat(jahr, monat) {
                         return new Date(jahr, monat, 0).getDate();
@@ -985,7 +1021,8 @@ require __DIR__ . '/_layout_top.php';
                     }
 
                     function aktualisiereDatumsblock(datumsblock) {
-                        const verstecktesDatum = datumsblock.querySelector('input[type="hidden"]');
+                        const datumsBlockName = datumsblock.getAttribute('data-datum-block');
+                        const verstecktesDatum = (datumsBlockName === 'von') ? verstecktesVonDatum : verstecktesBisDatum;
                         const tagAnzeige = datumsblock.querySelector('[data-segment="tag"] .terminal-datum-wert');
                         const monatAnzeige = datumsblock.querySelector('[data-segment="monat"] .terminal-datum-wert');
                         const jahrAnzeige = datumsblock.querySelector('[data-segment="jahr"] .terminal-datum-wert');
@@ -1006,6 +1043,34 @@ require __DIR__ . '/_layout_top.php';
                         const tagMitNull = String(tag).padStart(2, '0');
                         const monatMitNull = String(monat).padStart(2, '0');
                         verstecktesDatum.value = jahr + '-' + monatMitNull + '-' + tagMitNull;
+
+                        if (datumsBlockName === 'von') {
+                            wizardZustand.von_datum = verstecktesDatum.value;
+                        } else {
+                            wizardZustand.bis_datum = verstecktesDatum.value;
+                        }
+                    }
+
+                    function aktualisiereWizardAnsicht() {
+                        schrittElemente.forEach(function (element) {
+                            const schrittName = element.getAttribute('data-schritt');
+                            const istAktiv = schrittName === wizardSchritte[wizardZustand.schrittIndex];
+                            element.hidden = !istAktiv;
+                        });
+
+                        if (knopfZurueck instanceof HTMLButtonElement) {
+                            knopfZurueck.disabled = wizardZustand.schrittIndex === 0;
+                        }
+                        if (knopfWeiter instanceof HTMLButtonElement) {
+                            knopfWeiter.hidden = wizardZustand.schrittIndex >= wizardSchritte.length - 1;
+                        }
+                        if (knopfSpeichern instanceof HTMLButtonElement) {
+                            knopfSpeichern.hidden = wizardZustand.schrittIndex < wizardSchritte.length - 1;
+                        }
+
+                        if (wizardSchritte[wizardZustand.schrittIndex] === 'kommentar' && kommentarTextfeld instanceof HTMLTextAreaElement) {
+                            kommentarTextfeld.focus();
+                        }
                     }
 
                     document.querySelectorAll('[data-datum-block]').forEach(function (datumsblock) {
@@ -1047,6 +1112,33 @@ require __DIR__ . '/_layout_top.php';
                             aktualisiereDatumsblock(datumsblock);
                         });
                     });
+
+                    if (kommentarTextfeld instanceof HTMLTextAreaElement) {
+                        kommentarTextfeld.addEventListener('input', function () {
+                            wizardZustand.kommentar_mitarbeiter = kommentarTextfeld.value;
+                            versteckterKommentar.value = kommentarTextfeld.value;
+                        });
+                    }
+
+                    if (knopfZurueck instanceof HTMLButtonElement) {
+                        knopfZurueck.addEventListener('click', function () {
+                            wizardZustand.schrittIndex = Math.max(0, wizardZustand.schrittIndex - 1);
+                            aktualisiereWizardAnsicht();
+                        });
+                    }
+
+                    if (knopfWeiter instanceof HTMLButtonElement) {
+                        knopfWeiter.addEventListener('click', function () {
+                            wizardZustand.schrittIndex = Math.min(wizardSchritte.length - 1, wizardZustand.schrittIndex + 1);
+                            aktualisiereWizardAnsicht();
+                        });
+                    }
+
+                    formular.addEventListener('submit', function () {
+                        versteckterKommentar.value = (kommentarTextfeld instanceof HTMLTextAreaElement) ? kommentarTextfeld.value : wizardZustand.kommentar_mitarbeiter;
+                    });
+
+                    aktualisiereWizardAnsicht();
                 })();
             </script>
         <?php elseif ($zeigeRfidZuweisenFormular): ?>
