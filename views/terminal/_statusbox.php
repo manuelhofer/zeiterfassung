@@ -91,7 +91,9 @@ if ($fehler !== null) {
 }
 $summaryMeta = implode(' · ', $summaryTeile);
 
-$istOfflineStartansicht = ($hauptdb === false)
+$aktionAktuell = isset($_GET['aktion']) ? (string)$_GET['aktion'] : 'start';
+$istOfflineStartansicht = ($aktionAktuell === 'start')
+    && ($hauptdb === false)
     && empty($_SESSION['terminal_mitarbeiter_id'])
     && empty($_SESSION['terminal_last_unknown_rfid']);
 ?>

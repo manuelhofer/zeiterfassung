@@ -496,29 +496,6 @@ require __DIR__ . '/_layout_top.php';
         </div>
     <?php endif; ?>
 
-	<?php
-		$qsOffen  = isset($queueStatus) && is_array($queueStatus) ? (int)($queueStatus['offen'] ?? 0) : 0;
-		$qsFehler = isset($queueStatus) && is_array($queueStatus) ? (int)($queueStatus['fehler'] ?? 0) : 0;
-		$qsKurz   = isset($queueStatus) && is_array($queueStatus) ? (string)($queueStatus['letzter_fehler_kurz'] ?? '') : '';
-	?>
-	<?php if ($qsFehler > 0 || $qsOffen > 0): ?>
-		<div class="status-box <?php echo ($qsFehler > 0) ? 'error' : 'warn'; ?>">
-			<div class="status-title">
-				<span>Offline-Queue: <?php echo ($qsFehler > 0) ? 'FEHLER' : 'Offen'; ?></span>
-			</div>
-			<div class="status-small">
-				<?php if ($qsFehler > 0): ?>
-					Es gibt <strong><?php echo (int)$qsFehler; ?></strong> fehlerhafte Queue-Eintraege. Bitte Debug oeffnen / Admin informieren.
-					<?php if (trim($qsKurz) !== ''): ?>
-						<div class="status-small mt">Letzter Fehler: <?php echo htmlspecialchars(trim($qsKurz), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></div>
-					<?php endif; ?>
-				<?php else: ?>
-					Es gibt <strong><?php echo (int)$qsOffen; ?></strong> offene Queue-Eintraege. Sobald die Haupt-DB wieder erreichbar ist, werden diese nachgezogen.
-				<?php endif; ?>
-			</div>
-		</div>
-	<?php endif; ?>
-
 	<?php if (!empty($mitarbeiter) && $hauptdbOk === true && is_array($zeitWarnungen) && count($zeitWarnungen) > 0): ?>
 		<div class="status-box error">
 			<div class="status-title"><span>Achtung: Unvollständige Zeitstempel</span></div>

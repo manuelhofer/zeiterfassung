@@ -1535,6 +1535,29 @@ class TerminalController
      * - POST: verarbeitet einen Login-Versuch (RFID-Code oder Mitarbeiter-ID).
      * - Legacy: `?logout=1` ist nur noch eine **nicht-mutierende** Umleitung auf `?aktion=logout`.
      */
+    public function offlineInfo(): void
+    {
+        $csrfToken = $this->holeOderErzeugeCsrfToken();
+        $queueStatus = $_SESSION['terminal_queue_status'] ?? null;
+
+        $qsOffen = 0;
+        $qsFehler = 0;
+        $qsSpeicherort = 'unbekannt';
+        $qsHauptdb = null;
+
+        if (is_array($queueStatus)) {
+            $qsOffen = (int)($queueStatus['offen'] ?? 0);
+            $qsFehler = (int)($queueStatus['fehler'] ?? 0);
+            $qsSpeicherort = (string)($queueStatus['queue_speicherort'] ?? 'unbekannt');
+            $qsHauptdb = $queueStatus['hauptdb_verfuegbar'] ?? null;
+        }
+
+        $seitenTitel = 'Offline-Informationen – Terminal';
+        $seitenUeberschrift = 'Offline-Informationen';
+
+        require __DIR__ . '/../views/terminal/offline_info.php';
+    }
+
     public function start(): void
     {
         $nachricht  = null;

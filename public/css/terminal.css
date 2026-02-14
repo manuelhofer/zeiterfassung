@@ -111,6 +111,16 @@ p.hinweis.center {
     text-transform: uppercase;
 }
 
+.terminal-pill-link {
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.terminal-pill-link:focus-visible {
+    outline: 2px solid #ffffff;
+    outline-offset: 2px;
+}
+
 .terminal-pill.warn {
     background-color: #f9a825;
     color: #111;
