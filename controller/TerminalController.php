@@ -1535,6 +1535,29 @@ class TerminalController
      * - POST: verarbeitet einen Login-Versuch (RFID-Code oder Mitarbeiter-ID).
      * - Legacy: `?logout=1` ist nur noch eine **nicht-mutierende** Umleitung auf `?aktion=logout`.
      */
+    public function offlineInfo(): void
+    {
+        $csrfToken = $this->holeOderErzeugeCsrfToken();
+        $queueStatus = $_SESSION['terminal_queue_status'] ?? null;
+
+        $qsOffen = 0;
+        $qsFehler = 0;
+        $qsSpeicherort = 'unbekannt';
+        $qsHauptdb = null;
+
+        if (is_array($queueStatus)) {
+            $qsOffen = (int)($queueStatus['offen'] ?? 0);
+            $qsFehler = (int)($queueStatus['fehler'] ?? 0);
+            $qsSpeicherort = (string)($queueStatus['queue_speicherort'] ?? 'unbekannt');
+            $qsHauptdb = $queueStatus['hauptdb_verfuegbar'] ?? null;
+        }
+
+        $seitenTitel = 'Offline-Informationen – Terminal';
+        $seitenUeberschrift = 'Offline-Informationen';
+
+        require __DIR__ . '/../views/terminal/offline_info.php';
+    }
+
     public function start(): void
     {
         $nachricht  = null;
@@ -2001,6 +2024,18 @@ class TerminalController
                 // annehmen – aber ohne Mitarbeiter-Login. Wir merken uns nur den RFID-Code
                 // (Session) und lassen die eigentliche Buchung als Queue-Eintrag erfolgen.
                 if (!$this->istHauptdatenbankAktiv()) {
+                    if (isset($_POST['offline_rfid_reset']) && (string)$_POST['offline_rfid_reset'] === '1') {
+                        unset($_SESSION['terminal_offline_rfid_code']);
+                        unset($_SESSION['terminal_offline_rfid_hint']);
+
+                        $redir = 'terminal.php?aktion=start';
+                        if ($debugAktiv) {
+                            $redir .= '&debug=1';
+                        }
+                        header('Location: ' . $redir);
+                        exit;
+                    }
+
                     $rfidCode = isset($_POST['rfid_code']) ? trim((string)$_POST['rfid_code']) : '';
 
                     if ($rfidCode === '') {
@@ -2018,7 +2053,10 @@ class TerminalController
                             unset($_SESSION['terminal_offline_rfid_hint']);
                         }
 
-                        $_SESSION['terminal_flash_nachricht'] = 'RFID-Code erfasst. Bitte „Kommen“ oder „Gehen“ wählen.';
+                        $_SESSION['terminal_flash_nachricht'] = sprintf(
+                            'RFID-Code erfasst (ID %s). Bitte „Kommen“, „Gehen“ oder „Zurück“ wählen.',
+                            $rfidCode
+                        );
 
                         // Immer redirecten, damit Refresh/Enter nicht mehrfach auslöst.
                         $redir = 'terminal.php?aktion=start';

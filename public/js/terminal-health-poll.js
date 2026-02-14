@@ -74,8 +74,9 @@
     }
 
     if (!pill) {
-      pill = document.createElement("div");
-      pill.className = "terminal-pill";
+      pill = document.createElement("a");
+      pill.className = "terminal-pill terminal-pill-link";
+      pill.href = "terminal.php?aktion=offline_info";
       // vor der Uhr einfügen
       var clock = topbar.querySelector("#terminal-uhr");
       if (clock && clock.parentNode === topbar) {

@@ -511,6 +511,10 @@ try {
             }
             break;
 
+        case 'offline_info':
+            $controller->offlineInfo();
+            break;
+
         case 'start':
         default:
             $controller->start();

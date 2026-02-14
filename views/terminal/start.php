@@ -496,29 +496,6 @@ require __DIR__ . '/_layout_top.php';
         </div>
     <?php endif; ?>
 
-	<?php
-		$qsOffen  = isset($queueStatus) && is_array($queueStatus) ? (int)($queueStatus['offen'] ?? 0) : 0;
-		$qsFehler = isset($queueStatus) && is_array($queueStatus) ? (int)($queueStatus['fehler'] ?? 0) : 0;
-		$qsKurz   = isset($queueStatus) && is_array($queueStatus) ? (string)($queueStatus['letzter_fehler_kurz'] ?? '') : '';
-	?>
-	<?php if ($qsFehler > 0 || $qsOffen > 0): ?>
-		<div class="status-box <?php echo ($qsFehler > 0) ? 'error' : 'warn'; ?>">
-			<div class="status-title">
-				<span>Offline-Queue: <?php echo ($qsFehler > 0) ? 'FEHLER' : 'Offen'; ?></span>
-			</div>
-			<div class="status-small">
-				<?php if ($qsFehler > 0): ?>
-					Es gibt <strong><?php echo (int)$qsFehler; ?></strong> fehlerhafte Queue-Eintraege. Bitte Debug oeffnen / Admin informieren.
-					<?php if (trim($qsKurz) !== ''): ?>
-						<div class="status-small mt">Letzter Fehler: <?php echo htmlspecialchars(trim($qsKurz), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></div>
-					<?php endif; ?>
-				<?php else: ?>
-					Es gibt <strong><?php echo (int)$qsOffen; ?></strong> offene Queue-Eintraege. Sobald die Haupt-DB wieder erreichbar ist, werden diese nachgezogen.
-				<?php endif; ?>
-			</div>
-		</div>
-	<?php endif; ?>
-
 	<?php if (!empty($mitarbeiter) && $hauptdbOk === true && is_array($zeitWarnungen) && count($zeitWarnungen) > 0): ?>
 		<div class="status-box error">
 			<div class="status-title"><span>Achtung: Unvollständige Zeitstempel</span></div>
@@ -558,120 +535,143 @@ require __DIR__ . '/_layout_top.php';
                 }
             ?>
 
-            <div class="fehler">
-                Hauptdatenbank offline – Offline-Modus aktiv.
-                <div class="status-small" style="margin-top:6px;">
-                    Kommen/Gehen wird lokal gespeichert und später synchronisiert.
-                </div>
-            </div>
-
             <p class="hinweis">
                 Bitte RFID-Chip an das Lesegerät halten.<br>
                 Danach „Kommen“ oder „Gehen“ auswählen.
             </p>
 
-            <form method="post" action="terminal.php?aktion=start" class="login-form terminal-login-form">
+            <form method="post" action="terminal.php?aktion=start" class="login-form terminal-login-form<?php echo ($offlineRfid !== '') ? ' terminal-login-form-mit-rfid' : ''; ?>">
                 <label for="rfid_code">RFID</label>
                 <input type="text" id="rfid_code" name="rfid_code" autocomplete="off" autofocus>
 
                 <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($csrfToken, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>">
 
-                <div class="button-row terminal-login-buttonrow">
-                    <button type="submit">Weiter</button>
-                </div>
+                <?php if ($offlineRfid === ''): ?>
+                    <div class="button-row terminal-login-buttonrow">
+                        <button type="submit">Weiter</button>
+                    </div>
+                <?php endif; ?>
             </form>
 
             <?php if ($offlineRfid !== ''): ?>
-                <div class="status-box" style="margin-top:16px;">
-                    <div class="status-title"><span>RFID erfasst</span></div>
-                    <div class="status-small">Code: <strong><?php echo htmlspecialchars($offlineRfid, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></strong></div>
+                <?php
+                    $offlineVorschlag = '';
+                    $offlineLetzteTyp = '';
+                    $offlineLetzteZeit = '';
 
-                    <?php
-                        $offlineVorschlag = '';
-                        $offlineLetzteTyp = '';
-                        $offlineLetzteZeit = '';
-
-                        if (is_array($offlineHint)) {
-                            if (isset($offlineHint['vorschlag_typ']) && is_string($offlineHint['vorschlag_typ'])) {
-                                $offlineVorschlag = trim((string)$offlineHint['vorschlag_typ']);
-                            }
-                            if (isset($offlineHint['letzte_typ']) && is_string($offlineHint['letzte_typ'])) {
-                                $offlineLetzteTyp = trim((string)$offlineHint['letzte_typ']);
-                            }
-                            if (isset($offlineHint['letzte_zeit']) && is_string($offlineHint['letzte_zeit'])) {
-                                $offlineLetzteZeit = trim((string)$offlineHint['letzte_zeit']);
-                            }
+                    if (is_array($offlineHint)) {
+                        if (isset($offlineHint['vorschlag_typ']) && is_string($offlineHint['vorschlag_typ'])) {
+                            $offlineVorschlag = trim((string)$offlineHint['vorschlag_typ']);
                         }
-
-                        $labelTyp = static function (string $t): string {
-                            if ($t === 'kommen') return 'Kommen';
-                            if ($t === 'gehen') return 'Gehen';
-                            return $t;
-                        };
-
-                        $fmtZeitpunktDE = static function (string $dt): string {
-                            $dt = trim($dt);
-                            if ($dt === '') return '';
-                            try {
-                                return (new DateTimeImmutable($dt))->format('H:i:s d-m-Y');
-                            } catch (Throwable $e) {
-                                return $dt;
-                            }
-                        };
-
-                        $offlineKommenCls = '';
-                        $offlineGehenCls = '';
-                        if ($offlineVorschlag === 'kommen') {
-                            $offlineGehenCls = 'secondary';
-                        } elseif ($offlineVorschlag === 'gehen') {
-                            $offlineKommenCls = 'secondary';
+                        if (isset($offlineHint['letzte_typ']) && is_string($offlineHint['letzte_typ'])) {
+                            $offlineLetzteTyp = trim((string)$offlineHint['letzte_typ']);
                         }
-                    ?>
+                        if (isset($offlineHint['letzte_zeit']) && is_string($offlineHint['letzte_zeit'])) {
+                            $offlineLetzteZeit = trim((string)$offlineHint['letzte_zeit']);
+                        }
+                    }
 
-                    <?php if ($offlineVorschlag !== ''): ?>
-                        <div class="status-small" style="margin-top:6px;">
-                            Vorschlag: <strong><?php echo htmlspecialchars($labelTyp($offlineVorschlag), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></strong>
-                        </div>
-                    <?php endif; ?>
+                    $labelTyp = static function (string $t): string {
+                        if ($t === 'kommen') return 'Kommen';
+                        if ($t === 'gehen') return 'Gehen';
+                        return $t;
+                    };
 
-                    <?php if ($offlineLetzteTyp !== '' || $offlineLetzteZeit !== ''): ?>
-                        <div class="status-small" style="margin-top:4px;">
-                            Letzte Offline-Buchung:
-                            <strong><?php echo htmlspecialchars($labelTyp($offlineLetzteTyp), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></strong>
-                            <?php if ($offlineLetzteZeit !== ''): ?>
-                                um <?php echo htmlspecialchars($fmtZeitpunktDE($offlineLetzteZeit), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>
-                            <?php endif; ?>
-                        </div>
-                    <?php endif; ?>
+                    $fmtZeitpunktDE = static function (string $dt): string {
+                        $dt = trim($dt);
+                        if ($dt === '') return '';
+                        try {
+                            return (new DateTimeImmutable($dt))->format('H:i:s d-m-Y');
+                        } catch (Throwable $e) {
+                            return $dt;
+                        }
+                    };
+
+                    $offlineKommenCls = '';
+                    $offlineGehenCls = '';
+                    if ($offlineVorschlag === 'kommen') {
+                        $offlineGehenCls = 'secondary';
+                    } elseif ($offlineVorschlag === 'gehen') {
+                        $offlineKommenCls = 'secondary';
+                    }
+
+                    $nachtshiftOption = false;
+                    try {
+                        $nowTime = (new DateTimeImmutable('now'))->format('H:i:s');
+                        $nachtshiftOption = ($nowTime >= '18:00:00');
+                    } catch (Throwable $e) {
+                        $nachtshiftOption = false;
+                    }
+                ?>
+
+                <?php if ($nachtshiftOption): ?>
+                    <label class="terminal-offline-nachtschicht">
+                        <input type="checkbox" form="terminal-offline-kommen-form" name="nachtshift" value="1">
+                        Nachtschicht (Kommen nach 18:00)
+                    </label>
+                <?php endif; ?>
+
+                <div class="button-row terminal-offline-aktionen">
+                    <form method="post" action="terminal.php?aktion=kommen" class="terminal-button-form" id="terminal-offline-kommen-form">
+                        <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($csrfToken, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>">
+                        <input type="hidden" name="rfid_code" value="<?php echo htmlspecialchars($offlineRfid, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>">
+                        <button type="submit" class="primary <?php echo htmlspecialchars($offlineKommenCls, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>">Kommen</button>
+                    </form>
+
+                    <form method="post" action="terminal.php?aktion=gehen" class="terminal-button-form">
+                        <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($csrfToken, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>">
+                        <input type="hidden" name="rfid_code" value="<?php echo htmlspecialchars($offlineRfid, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>">
+                        <button type="submit" class="primary <?php echo htmlspecialchars($offlineGehenCls, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>">Gehen</button>
+                    </form>
                 </div>
 
-                <form method="post" action="terminal.php?aktion=kommen" class="terminal-button-form" style="margin-top:18px;">
+                <form method="post" action="terminal.php?aktion=start" class="terminal-button-form terminal-offline-wechseln">
                     <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($csrfToken, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>">
-                    <input type="hidden" name="rfid_code" value="<?php echo htmlspecialchars($offlineRfid, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>">
-                    <?php
-                        $nachtshiftOption = false;
-                        try {
-                            $nowTime = (new DateTimeImmutable('now'))->format('H:i:s');
-                            $nachtshiftOption = ($nowTime >= '18:00:00');
-                        } catch (Throwable $e) {
-                            $nachtshiftOption = false;
-                        }
-                    ?>
-                    <?php if ($nachtshiftOption): ?>
-                        <label style="display:block; margin-bottom:6px;">
-                            <input type="checkbox" name="nachtshift" value="1">
-                            Nachtschicht (Kommen nach 18:00)
-                        </label>
-                    <?php endif; ?>
-                    <button type="submit" class="primary <?php echo htmlspecialchars($offlineKommenCls, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>">Kommen</button>
+                    <input type="hidden" name="offline_rfid_reset" value="1">
+                    <button type="submit" class="secondary">RFID wechseln</button>
                 </form>
 
-                <form method="post" action="terminal.php?aktion=gehen" class="terminal-button-form" style="margin-top:12px;">
+                <form method="post" action="terminal.php?aktion=start" class="terminal-button-form terminal-offline-zurueck">
                     <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($csrfToken, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>">
-                    <input type="hidden" name="rfid_code" value="<?php echo htmlspecialchars($offlineRfid, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>">
-                    <button type="submit" class="primary <?php echo htmlspecialchars($offlineGehenCls, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>">Gehen</button>
+                    <input type="hidden" name="offline_rfid_reset" value="1">
+                    <button type="submit" class="secondary">Zurück</button>
                 </form>
+
+                <?php if ($offlineLetzteTyp !== '' || $offlineLetzteZeit !== ''): ?>
+                    <div class="status-small mt-05">
+                        Letzte Offline-Buchung:
+                        <strong><?php echo htmlspecialchars($labelTyp($offlineLetzteTyp), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></strong>
+                        <?php if ($offlineLetzteZeit !== ''): ?>
+                            um <?php echo htmlspecialchars($fmtZeitpunktDE($offlineLetzteZeit), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>
+                        <?php endif; ?>
+                    </div>
+                <?php endif; ?>
             <?php endif; ?>
+
+            <script>
+            (function () {
+                var pruefUrl = 'terminal.php?aktion=health';
+
+                var pruefeHauptdatenbank = function () {
+                    fetch(pruefUrl, {
+                        method: 'GET',
+                        cache: 'no-store',
+                        headers: { 'Accept': 'application/json' }
+                    })
+                    .then(function (antwort) { return antwort.json(); })
+                    .then(function (daten) {
+                        if (daten && daten.hauptdb_verfuegbar === true) {
+                            window.location.reload();
+                        }
+                    })
+                    .catch(function () {
+                        // Absichtlich leer: Kein Fehlerpopup im Kiosk.
+                    });
+                };
+
+                window.setInterval(pruefeHauptdatenbank, 5000);
+            })();
+            </script>
         <?php else: ?>
             <p class="hinweis">
 				Bitte RFID-Chip an das Lesegerät halten.<br>
