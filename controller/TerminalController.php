@@ -2001,6 +2001,18 @@ class TerminalController
                 // annehmen – aber ohne Mitarbeiter-Login. Wir merken uns nur den RFID-Code
                 // (Session) und lassen die eigentliche Buchung als Queue-Eintrag erfolgen.
                 if (!$this->istHauptdatenbankAktiv()) {
+                    if (isset($_POST['offline_rfid_reset']) && (string)$_POST['offline_rfid_reset'] === '1') {
+                        unset($_SESSION['terminal_offline_rfid_code']);
+                        unset($_SESSION['terminal_offline_rfid_hint']);
+
+                        $redir = 'terminal.php?aktion=start';
+                        if ($debugAktiv) {
+                            $redir .= '&debug=1';
+                        }
+                        header('Location: ' . $redir);
+                        exit;
+                    }
+
                     $rfidCode = isset($_POST['rfid_code']) ? trim((string)$_POST['rfid_code']) : '';
 
                     if ($rfidCode === '') {
@@ -2018,7 +2030,10 @@ class TerminalController
                             unset($_SESSION['terminal_offline_rfid_hint']);
                         }
 
-                        $_SESSION['terminal_flash_nachricht'] = 'RFID-Code erfasst. Bitte „Kommen“ oder „Gehen“ wählen.';
+                        $_SESSION['terminal_flash_nachricht'] = sprintf(
+                            'RFID-Code erfasst (ID %s). Bitte „Kommen“, „Gehen“ oder „Zurück“ wählen.',
+                            $rfidCode
+                        );
 
                         // Immer redirecten, damit Refresh/Enter nicht mehrfach auslöst.
                         $redir = 'terminal.php?aktion=start';

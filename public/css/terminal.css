@@ -429,6 +429,29 @@ form.login-form textarea {
     margin-top: 1rem;
 }
 
+.terminal-offline-nachtschicht {
+    display: block;
+    margin-top: 1rem;
+    margin-bottom: 0.75rem;
+}
+
+.button-row.terminal-offline-aktionen {
+    gap: 0.75rem;
+    margin-top: 0;
+}
+
+.button-row.terminal-offline-aktionen form {
+    flex: 1 1 0;
+}
+
+.terminal-offline-zurueck {
+    margin-top: 0.75rem;
+}
+
+.terminal-offline-zurueck button {
+    width: 100%;
+}
+
 .button-row.primary-action form {
     flex: 1 1 100%;
 }
