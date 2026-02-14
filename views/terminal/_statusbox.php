@@ -50,8 +50,8 @@ $hint = null;
 
 if ($hauptdb === false && $queue === true) {
     $cls = 'warn';
-    $title = 'Systemstatus: Offline-Modus';
-    $hint = 'Hauptdatenbank offline – Buchungen werden offline gespeichert und später synchronisiert.';
+    $title = 'Systemstatus';
+    $hint = null;
 } elseif ($hauptdb === false && $queue === false) {
     $cls = 'error';
     $title = 'Systemstatus: Störung';
@@ -90,8 +90,13 @@ if ($fehler !== null) {
     $summaryTeile[] = 'Fehler: ' . (string)$fehler;
 }
 $summaryMeta = implode(' · ', $summaryTeile);
+
+$istOfflineStartansicht = ($hauptdb === false)
+    && empty($_SESSION['terminal_mitarbeiter_id'])
+    && empty($_SESSION['terminal_last_unknown_rfid']);
 ?>
 
+<?php if (!$istOfflineStartansicht): ?>
 <details class="status-box terminal-systemstatus <?php echo htmlspecialchars($cls, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>"<?php echo $detailsOpen ? ' open' : ''; ?>>
     <summary class="status-title">
         <span><?php echo htmlspecialchars($title, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></span>
@@ -150,6 +155,7 @@ $summaryMeta = implode(' · ', $summaryTeile);
         </details>
     <?php endif; ?>
 </details>
+<?php endif; ?>
 
 <?php
 $unknownRfid = $_SESSION['terminal_last_unknown_rfid'] ?? null;
@@ -221,4 +227,3 @@ if (isset($csrfToken) && is_string($csrfToken) && $csrfToken !== '') {
         </div>
     </div>
 <?php endif; ?>
-
