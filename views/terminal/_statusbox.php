@@ -50,8 +50,8 @@ $hint = null;
 
 if ($hauptdb === false && $queue === true) {
     $cls = 'warn';
-    $title = 'Systemstatus: Offline-Modus';
-    $hint = 'Hauptdatenbank offline – Buchungen werden offline gespeichert und später synchronisiert.';
+    $title = 'Systemstatus';
+    $hint = null;
 } elseif ($hauptdb === false && $queue === false) {
     $cls = 'error';
     $title = 'Systemstatus: Störung';
@@ -221,4 +221,3 @@ if (isset($csrfToken) && is_string($csrfToken) && $csrfToken !== '') {
         </div>
     </div>
 <?php endif; ?>
-
