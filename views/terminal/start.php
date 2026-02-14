@@ -563,15 +563,17 @@ require __DIR__ . '/_layout_top.php';
                 Danach „Kommen“ oder „Gehen“ auswählen.
             </p>
 
-            <form method="post" action="terminal.php?aktion=start" class="login-form terminal-login-form">
+            <form method="post" action="terminal.php?aktion=start" class="login-form terminal-login-form<?php echo ($offlineRfid !== '') ? ' terminal-login-form-mit-rfid' : ''; ?>">
                 <label for="rfid_code">RFID</label>
                 <input type="text" id="rfid_code" name="rfid_code" autocomplete="off" autofocus>
 
                 <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($csrfToken, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>">
 
-                <div class="button-row terminal-login-buttonrow">
-                    <button type="submit"><?php echo ($offlineRfid !== '') ? 'RFID wechseln' : 'Weiter'; ?></button>
-                </div>
+                <?php if ($offlineRfid === ''): ?>
+                    <div class="button-row terminal-login-buttonrow">
+                        <button type="submit">Weiter</button>
+                    </div>
+                <?php endif; ?>
             </form>
 
             <?php if ($offlineRfid !== ''): ?>
@@ -646,6 +648,12 @@ require __DIR__ . '/_layout_top.php';
                     </form>
                 </div>
 
+                <form method="post" action="terminal.php?aktion=start" class="terminal-button-form terminal-offline-wechseln">
+                    <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($csrfToken, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>">
+                    <input type="hidden" name="offline_rfid_reset" value="1">
+                    <button type="submit" class="secondary">RFID wechseln</button>
+                </form>
+
                 <form method="post" action="terminal.php?aktion=start" class="terminal-button-form terminal-offline-zurueck">
                     <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($csrfToken, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>">
                     <input type="hidden" name="offline_rfid_reset" value="1">
@@ -662,6 +670,31 @@ require __DIR__ . '/_layout_top.php';
                     </div>
                 <?php endif; ?>
             <?php endif; ?>
+
+            <script>
+            (function () {
+                var pruefUrl = 'terminal.php?aktion=health';
+
+                var pruefeHauptdatenbank = function () {
+                    fetch(pruefUrl, {
+                        method: 'GET',
+                        cache: 'no-store',
+                        headers: { 'Accept': 'application/json' }
+                    })
+                    .then(function (antwort) { return antwort.json(); })
+                    .then(function (daten) {
+                        if (daten && daten.hauptdb_verfuegbar === true) {
+                            window.location.reload();
+                        }
+                    })
+                    .catch(function () {
+                        // Absichtlich leer: Kein Fehlerpopup im Kiosk.
+                    });
+                };
+
+                window.setInterval(pruefeHauptdatenbank, 5000);
+            })();
+            </script>
         <?php else: ?>
             <p class="hinweis">
 				Bitte RFID-Chip an das Lesegerät halten.<br>

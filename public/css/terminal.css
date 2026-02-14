@@ -62,6 +62,10 @@ body.terminal-login form.terminal-login-form .terminal-login-buttonrow button {
     padding-bottom: 1.25rem;
 }
 
+body.terminal-login form.terminal-login-form.terminal-login-form-mit-rfid {
+    flex: 0 0 auto;
+}
+
 /* Kiosk/Touch: Titel oben ist redundant und nimmt Platz weg */
 main > h1 {
     display: none;
@@ -446,6 +450,17 @@ form.login-form textarea {
 
 .terminal-offline-zurueck {
     margin-top: 0.75rem;
+}
+
+.terminal-offline-wechseln {
+    margin-top: 0.6rem;
+}
+
+.terminal-offline-wechseln button {
+    width: 100%;
+    font-size: 1rem;
+    padding-top: 0.65rem;
+    padding-bottom: 0.65rem;
 }
 
 .terminal-offline-zurueck button {
