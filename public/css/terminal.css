@@ -37,6 +37,7 @@ main {
 body.terminal-login main {
     display: flex;
     flex-direction: column;
+    padding-bottom: 1.5rem;
 }
 
 body.terminal-login form.terminal-login-form {
@@ -522,6 +523,10 @@ form.login-form textarea {
 @media (max-height: 820px) {
     main {
         padding-bottom: 12.5rem;
+    }
+
+    body.terminal-login main {
+        padding-bottom: 1.5rem;
     }
 
     .terminal-wizard-aktionsleiste {
