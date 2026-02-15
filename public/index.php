@@ -28,6 +28,54 @@ if (session_status() === PHP_SESSION_NONE) {
  *
  * Wir clampen defensiv, statt einen Hard-Fehler zu riskieren.
  */
+
+
+/**
+ * Verarbeitet optionale Stepper-Aktionen für Jahr/Monat.
+ *
+ * Unterstützte Query-Parameter:
+ * - jahr_aktion=plus|minus (alternativ jahr_plus/jahr_minus)
+ * - monat_aktion=plus|minus (alternativ monat_plus/monat_minus)
+ */
+function verarbeite_jahr_monat_aktion(int $jahr, int $monat): array
+{
+    $jahrAktion = isset($_GET['jahr_aktion']) ? (string)$_GET['jahr_aktion'] : '';
+    $monatAktion = isset($_GET['monat_aktion']) ? (string)$_GET['monat_aktion'] : '';
+
+    if ($jahrAktion === '' && isset($_GET['jahr_plus'])) {
+        $jahrAktion = 'plus';
+    } elseif ($jahrAktion === '' && isset($_GET['jahr_minus'])) {
+        $jahrAktion = 'minus';
+    }
+
+    if ($monatAktion === '' && isset($_GET['monat_plus'])) {
+        $monatAktion = 'plus';
+    } elseif ($monatAktion === '' && isset($_GET['monat_minus'])) {
+        $monatAktion = 'minus';
+    }
+
+    if ($monatAktion === 'plus') {
+        $monat++;
+        if ($monat > 12) {
+            $monat = 1;
+            $jahr++;
+        }
+    } elseif ($monatAktion === 'minus') {
+        $monat--;
+        if ($monat < 1) {
+            $monat = 12;
+            $jahr--;
+        }
+    }
+
+    if ($jahrAktion === 'plus') {
+        $jahr++;
+    } elseif ($jahrAktion === 'minus') {
+        $jahr--;
+    }
+
+    return [$jahr, $monat];
+}
 function normalize_jahr_monat(int $jahr, int $monat): array
 {
     $jetztJahr = (int)date('Y');
@@ -157,6 +205,7 @@ try {
             $jahr  = isset($_GET['jahr']) ? (int)$_GET['jahr'] : (int)date('Y');
             $monat = isset($_GET['monat']) ? (int)$_GET['monat'] : (int)date('n');
 
+            [$jahr, $monat] = verarbeite_jahr_monat_aktion($jahr, $monat);
             [$jahr, $monat] = normalize_jahr_monat($jahr, $monat);
 
             $controller = new ReportController();
@@ -167,6 +216,7 @@ try {
             $jahr  = isset($_GET['jahr']) ? (int)$_GET['jahr'] : (int)date('Y');
             $monat = isset($_GET['monat']) ? (int)$_GET['monat'] : (int)date('n');
 
+            [$jahr, $monat] = verarbeite_jahr_monat_aktion($jahr, $monat);
             [$jahr, $monat] = normalize_jahr_monat($jahr, $monat);
 
             $controller = new ReportController();
@@ -177,6 +227,7 @@ try {
             $jahr  = isset($_GET['jahr']) ? (int)$_GET['jahr'] : (int)date('Y');
             $monat = isset($_GET['monat']) ? (int)$_GET['monat'] : (int)date('n');
 
+            [$jahr, $monat] = verarbeite_jahr_monat_aktion($jahr, $monat);
             [$jahr, $monat] = normalize_jahr_monat($jahr, $monat);
 
             $controller = new ReportController();
