@@ -55,9 +55,9 @@
       return { pillText: "STÖRUNG", pillClass: "error", title: "Systemstatus: Störung" };
     }
     if (haupt !== true) {
-      return { pillText: null, pillClass: "warn", title: "Systemstatus: Unklar" };
+      return { pillText: "UNKLAR", pillClass: "warn", title: "Systemstatus: Unklar" };
     }
-    return { pillText: null, pillClass: "ok", title: "Systemstatus: Online" };
+    return { pillText: "ONLINE", pillClass: "ok", title: "Systemstatus: Online" };
   }
 
   function updateTopbarPill(state) {
@@ -65,13 +65,6 @@
     if (!topbar) return;
 
     var pill = topbar.querySelector(".terminal-pill");
-
-    if (!state.pillText) {
-      if (pill) {
-        pill.parentNode.removeChild(pill);
-      }
-      return;
-    }
 
     if (!pill) {
       pill = document.createElement("a");

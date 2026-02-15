@@ -1403,6 +1403,7 @@ class TerminalController
             $this->loescheTerminalMitarbeiterSession();
 
             $_SESSION['terminal_flash_nachricht'] = 'Sie wurden abgemeldet.';
+            $_SESSION['terminal_nach_logout_ohne_aktion'] = 1;
             header('Location: terminal.php?aktion=start');
             exit;
         }
@@ -1562,6 +1563,7 @@ class TerminalController
     {
         $nachricht  = null;
         $fehlerText = null;
+        $nachLogoutWeiterleitungSekunden = 0;
 
         // Offline-Queue Hinweis (End-to-End Feldtest):
         // Wir zeigen bei offenen/fehlerhaften Queue-Eintraegen eine kleine Statusbox.
@@ -1590,6 +1592,11 @@ class TerminalController
             if ($flash !== '') {
                 $nachricht = $nachricht ? ($nachricht . ' ' . $flash) : $flash;
             }
+        }
+
+        if (!empty($_SESSION['terminal_nach_logout_ohne_aktion'])) {
+            unset($_SESSION['terminal_nach_logout_ohne_aktion']);
+            $nachLogoutWeiterleitungSekunden = 8;
         }
         if (isset($_SESSION['terminal_flash_fehler'])) {
             $flash = (string)$_SESSION['terminal_flash_fehler'];
