@@ -712,32 +712,32 @@ require __DIR__ . '/_layout_top.php';
                     $aktuellesJahr = (int)$jetzt->format('Y');
                     $auswahlJahr = (int)($monatsStatus['jahr'] ?? $aktuellesJahr);
                     $auswahlMonat = (int)($monatsStatus['monat'] ?? (int)$jetzt->format('n'));
-                    $jahre = range($aktuellesJahr - 2, $aktuellesJahr + 1);
                 ?>
                 <form method="get" action="terminal.php" class="terminal-button-form" style="margin-top:8px;">
                     <input type="hidden" name="aktion" value="start">
                     <input type="hidden" name="view" value="arbeitszeit">
-                    <label style="display:inline-block; margin-right:8px;">
-                        Jahr:
-                        <select name="jahr">
-                            <?php foreach ($jahre as $jahrOption): ?>
-                                <option value="<?php echo (int)$jahrOption; ?>"<?php echo ($jahrOption === $auswahlJahr) ? ' selected' : ''; ?>>
-                                    <?php echo (int)$jahrOption; ?>
-                                </option>
-                            <?php endforeach; ?>
-                        </select>
-                    </label>
-                    <label style="display:inline-block; margin-right:8px;">
-                        Monat:
-                        <select name="monat">
-                            <?php for ($m = 1; $m <= 12; $m++): ?>
-                                <option value="<?php echo (int)$m; ?>"<?php echo ($m === $auswahlMonat) ? ' selected' : ''; ?>>
-                                    <?php echo htmlspecialchars(sprintf('%02d', $m), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>
-                                </option>
-                            <?php endfor; ?>
-                        </select>
-                    </label>
-                    <button type="submit" class="secondary">Anzeigen</button>
+                    <input type="hidden" name="jahr" value="<?php echo (int)$auswahlJahr; ?>">
+                    <input type="hidden" name="monat" value="<?php echo (int)$auswahlMonat; ?>">
+
+                    <div style="display:flex; align-items:center; justify-content:space-between; gap:16px; width:100%; flex-wrap:wrap;">
+                        <span style="display:inline-flex; align-items:center; gap:6px;">
+                            <span>Jahr:</span>
+                            <span style="display:inline-flex; align-items:center; gap:4px;">
+                                <button type="submit" name="jahr_aktion" value="plus" class="secondary" style="min-width:36px; min-height:36px; padding:0 10px;">+</button>
+                                <strong style="min-width:48px; text-align:center;"><?php echo (int)$auswahlJahr; ?></strong>
+                                <button type="submit" name="jahr_aktion" value="minus" class="secondary" style="min-width:36px; min-height:36px; padding:0 10px;">-</button>
+                            </span>
+                        </span>
+
+                        <span style="display:inline-flex; align-items:center; gap:6px; margin-left:auto;">
+                            <span>Monat:</span>
+                            <span style="display:inline-flex; align-items:center; gap:4px;">
+                                <button type="submit" name="monat_aktion" value="plus" class="secondary" style="min-width:36px; min-height:36px; padding:0 10px;">+</button>
+                                <strong style="min-width:32px; text-align:center;"><?php echo htmlspecialchars(sprintf('%02d', $auswahlMonat), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></strong>
+                                <button type="submit" name="monat_aktion" value="minus" class="secondary" style="min-width:36px; min-height:36px; padding:0 10px;">-</button>
+                            </span>
+                        </span>
+                    </div>
                 </form>
                 <div class="status-small mt-025">Hinweis: „Ist bis heute“ bezieht sich auf das gewählte Monatsdatum.</div>
                 <div class="status-small">
