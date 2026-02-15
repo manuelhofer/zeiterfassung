@@ -2383,8 +2383,56 @@ class TerminalController
             $filterMonat = null;
 
             if ($zeigeArbeitszeitUebersichtSeite) {
-                $filterJahr = isset($_GET['jahr']) ? (int)$_GET['jahr'] : null;
-                $filterMonat = isset($_GET['monat']) ? (int)$_GET['monat'] : null;
+                $jetzt = new DateTimeImmutable('now');
+                $filterJahr = isset($_GET['jahr']) ? (int)$_GET['jahr'] : (int)$jetzt->format('Y');
+                $filterMonat = isset($_GET['monat']) ? (int)$_GET['monat'] : (int)$jetzt->format('n');
+
+                $jahrAktion = (string)($_GET['jahr_aktion'] ?? '');
+                $monatAktion = (string)($_GET['monat_aktion'] ?? '');
+
+                if ($jahrAktion === '' && isset($_GET['jahr_plus'])) {
+                    $jahrAktion = 'plus';
+                } elseif ($jahrAktion === '' && isset($_GET['jahr_minus'])) {
+                    $jahrAktion = 'minus';
+                }
+
+                if ($monatAktion === '' && isset($_GET['monat_plus'])) {
+                    $monatAktion = 'plus';
+                } elseif ($monatAktion === '' && isset($_GET['monat_minus'])) {
+                    $monatAktion = 'minus';
+                }
+
+                if ($monatAktion === 'plus') {
+                    $filterMonat++;
+                    if ($filterMonat > 12) {
+                        $filterMonat = 1;
+                        $filterJahr++;
+                    }
+                } elseif ($monatAktion === 'minus') {
+                    $filterMonat--;
+                    if ($filterMonat < 1) {
+                        $filterMonat = 12;
+                        $filterJahr--;
+                    }
+                }
+
+                if ($jahrAktion === 'plus') {
+                    $filterJahr++;
+                } elseif ($jahrAktion === 'minus') {
+                    $filterJahr--;
+                }
+
+                // Defensiv wie im Front-Controller: ungültige Bereiche auf aktuelle Werte zurücksetzen.
+                $aktuellesJahr = (int)$jetzt->format('Y');
+                if ($filterJahr < 2000 || $filterJahr > 2100) {
+                    $filterJahr = $aktuellesJahr;
+                }
+                if ($filterMonat < 1) {
+                    $filterMonat = 1;
+                }
+                if ($filterMonat > 12) {
+                    $filterMonat = 12;
+                }
             }
 
             $monatsStatus = $this->berechneMonatsStatusFuerMitarbeiter(
