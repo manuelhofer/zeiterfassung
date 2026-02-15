@@ -16,8 +16,6 @@ $seitenUeberschrift = 'Auftrag starten';
 require __DIR__ . '/_layout_top.php';
 ?>
 
-    <?php require __DIR__ . '/_statusbox.php'; ?>
-
     <?php if (!empty($nachricht)): ?>
         <div class="meldung">
             <?php echo htmlspecialchars($nachricht, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>

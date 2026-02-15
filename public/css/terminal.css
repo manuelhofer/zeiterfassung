@@ -121,6 +121,11 @@ p.hinweis.center {
     outline-offset: 2px;
 }
 
+.terminal-pill.ok {
+    background-color: #2e7d32;
+    color: #fff;
+}
+
 .terminal-pill.warn {
     background-color: #f9a825;
     color: #111;

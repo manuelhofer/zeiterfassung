@@ -251,8 +251,6 @@ if ($zeigeArbeitszeitUebersichtSeite) {
 require __DIR__ . '/_layout_top.php';
 ?>
 
-<?php require __DIR__ . '/_statusbox.php'; ?>
-
 <?php if ($debugAktiv): ?>
 <?php
     $debugZeilen = [];
@@ -488,6 +486,14 @@ require __DIR__ . '/_layout_top.php';
                 <?php echo htmlspecialchars($n, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>
             </div>
         <?php endif; ?>
+    <?php endif; ?>
+
+    <?php if (($nachLogoutWeiterleitungSekunden ?? 0) > 0): ?>
+        <script>
+            window.setTimeout(function () {
+                window.location.href = 'terminal.php';
+            }, <?php echo (int)$nachLogoutWeiterleitungSekunden * 1000; ?>);
+        </script>
     <?php endif; ?>
 
     <?php if (!empty($fehlerText)): ?>

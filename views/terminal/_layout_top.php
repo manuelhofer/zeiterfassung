@@ -44,9 +44,9 @@ if ($bodyKlasse !== '') {
 // ------------------------------------------------------------
 $qs = $_SESSION['terminal_queue_status'] ?? null;
 
-$topbarPillText = null;
-$topbarPillClass = '';
-$topbarPillLink = null;
+$topbarPillText = 'ONLINE';
+$topbarPillClass = 'ok';
+$topbarPillLink = 'terminal.php?aktion=offline_info';
 
 if (is_array($qs)) {
     $hauptdb = $qs['hauptdb_verfuegbar'] ?? null;
@@ -55,11 +55,9 @@ if (is_array($qs)) {
     if ($hauptdb === false && $queue === true) {
         $topbarPillText = 'OFFLINE';
         $topbarPillClass = 'warn';
-        $topbarPillLink = 'terminal.php?aktion=offline_info';
     } elseif ($hauptdb === false && $queue === false) {
         $topbarPillText = 'STÖRUNG';
         $topbarPillClass = 'error';
-        $topbarPillLink = 'terminal.php?aktion=offline_info';
     }
 }
 
@@ -75,16 +73,14 @@ if (is_array($qs)) {
 <body<?php echo $bodyAttr; ?>>
 <main>
     <div class="terminal-topbar">
-        <?php if ($topbarPillText !== null): ?>
-            <?php if (is_string($topbarPillLink) && $topbarPillLink !== ''): ?>
-                <a href="<?php echo htmlspecialchars($topbarPillLink, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>" class="terminal-pill terminal-pill-link <?php echo htmlspecialchars($topbarPillClass, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>">
-                    <?php echo htmlspecialchars($topbarPillText, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>
-                </a>
-            <?php else: ?>
-                <div class="terminal-pill <?php echo htmlspecialchars($topbarPillClass, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>">
-                    <?php echo htmlspecialchars($topbarPillText, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>
-                </div>
-            <?php endif; ?>
+        <?php if (is_string($topbarPillLink) && $topbarPillLink !== ''): ?>
+            <a href="<?php echo htmlspecialchars($topbarPillLink, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>" class="terminal-pill terminal-pill-link <?php echo htmlspecialchars($topbarPillClass, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>">
+                <?php echo htmlspecialchars($topbarPillText, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>
+            </a>
+        <?php else: ?>
+            <div class="terminal-pill <?php echo htmlspecialchars($topbarPillClass, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>">
+                <?php echo htmlspecialchars($topbarPillText, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>
+            </div>
         <?php endif; ?>
         <div class="terminal-uhr" id="terminal-uhr">00:00:00 01-01-1970</div>
     </div>

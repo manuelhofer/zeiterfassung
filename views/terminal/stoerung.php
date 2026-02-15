@@ -76,8 +76,6 @@ $bodyKlasse = 'terminal-wide';
 require __DIR__ . '/_layout_top.php';
 ?>
 
-<?php require __DIR__ . '/_statusbox.php'; ?>
-
 <div class="fehler">
         <?php if ($fatalOhneQueue): ?>
             <strong>Weder Hauptdatenbank noch Offline-Queue verfügbar.</strong><br>
