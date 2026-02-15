@@ -719,7 +719,7 @@ require __DIR__ . '/_layout_top.php';
                     <input type="hidden" name="jahr" value="<?php echo (int)$auswahlJahr; ?>">
                     <input type="hidden" name="monat" value="<?php echo (int)$auswahlMonat; ?>">
 
-                    <div style="display:inline-flex; align-items:center; gap:12px; flex-wrap:wrap;">
+                    <div style="display:flex; align-items:center; justify-content:space-between; gap:16px; width:100%; flex-wrap:wrap;">
                         <span style="display:inline-flex; align-items:center; gap:6px;">
                             <span>Jahr:</span>
                             <span style="display:inline-flex; align-items:center; gap:4px;">
@@ -729,7 +729,7 @@ require __DIR__ . '/_layout_top.php';
                             </span>
                         </span>
 
-                        <span style="display:inline-flex; align-items:center; gap:6px;">
+                        <span style="display:inline-flex; align-items:center; gap:6px; margin-left:auto;">
                             <span>Monat:</span>
                             <span style="display:inline-flex; align-items:center; gap:4px;">
                                 <button type="submit" name="monat_aktion" value="plus" class="secondary" style="min-width:36px; min-height:36px; padding:0 10px;">+</button>
