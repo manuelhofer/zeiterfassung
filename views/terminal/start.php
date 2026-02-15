@@ -681,7 +681,6 @@ require __DIR__ . '/_layout_top.php';
         <?php else: ?>
             <p class="hinweis">
 				Bitte RFID-Chip an das Lesegerät halten.<br>
-                Der RFID-Leser „tippt“ den Code meist automatisch in das Feld und bestätigt mit Enter.
             </p>
 
 				<form method="post" action="terminal.php?aktion=start" class="login-form terminal-login-form">
