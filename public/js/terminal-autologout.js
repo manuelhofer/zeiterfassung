@@ -224,8 +224,31 @@
     };
 
     // Pointer-Events: Timer resetten + danach Fokus zurück auf Scannerfeld.
-    const onPointerEvent = () => {
+    const istRfidZuweisungInteraktion = (ereignisZiel) => {
+        if (!ereignisZiel || typeof ereignisZiel.closest !== 'function') {
+            return false;
+        }
+
+        // Touch-Bedienung: Bei der RFID-Zuweisung darf ein offenes Select
+        // nicht durch automatischen Fokuswechsel auf #rfid_code geschlossen werden.
+        if (ereignisZiel.closest('#ziel_mitarbeiter_id')) {
+            return true;
+        }
+
+        if (ereignisZiel.closest('form[action*="aktion=rfid_zuweisen"]')) {
+            return true;
+        }
+
+        return false;
+    };
+
+    const onPointerEvent = (ereignis) => {
         reset();
+
+        if (istRfidZuweisungInteraktion(ereignis ? ereignis.target : null)) {
+            return;
+        }
+
         setTimeout(focusScanInput, 0);
     };
 
@@ -274,6 +297,25 @@
         if (!document.hidden) {
             setTimeout(focusScanInput, 0);
         }
+    };
+
+    const initRfidZuweisungFokus = () => {
+        const mitarbeiterAuswahl = document.getElementById('ziel_mitarbeiter_id');
+        const rfidEingabe = document.getElementById('rfid_code');
+
+        if (!(mitarbeiterAuswahl instanceof HTMLSelectElement)) return;
+        if (!(rfidEingabe instanceof HTMLInputElement)) return;
+
+        mitarbeiterAuswahl.addEventListener('change', () => {
+            const wert = String(mitarbeiterAuswahl.value || '').trim();
+            if (!wert) return;
+
+            try {
+                rfidEingabe.focus({ preventScroll: true });
+            } catch (err) {
+                try { rfidEingabe.focus(); } catch (e2) { /* ignore */ }
+            }
+        });
     };
 
     // ------------------------------------------------------------
@@ -413,6 +455,7 @@
     document.addEventListener('visibilitychange', onVisibility);
 
     startClock();
+    initRfidZuweisungFokus();
 
     if (autologoutEnabled) {
         countdownInterval = setInterval(tick, 1000);
