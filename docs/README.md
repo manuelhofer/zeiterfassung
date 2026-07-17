@@ -1,4 +1,4 @@
-# Zeiterfassung & Mitarbeiter-/Auftragsmanagement – Projektstruktur (Skeleton)
+# Zeiterfassung & Mitarbeiter-/Auftragsmanagement – Projektstruktur
 
 Dieses Verzeichnis enthält Projektdokumentation, u. a. den Master-Prompt.
 Der eigentliche PHP-Code befindet sich in den Verzeichnissen `core`, `controller`,
@@ -12,7 +12,7 @@ Der eigentliche PHP-Code befindet sich in den Verzeichnissen `core`, `controller
 - `services/` – Geschäftslogik (ZeitService, UrlaubService, RundungsService, …)
 - `controller/` – Request-Verarbeitung und Übergabe an Views
 - `views/` – PHP-Views/HTML-Templates
-- `sql/` – Datenbankschemata und Migrationen
+- `sql/` – aktuelles Datenbankschema und optionale SQL-Hilfen
 - `docs/` – Dokumentation, Master-Prompt, Notizen
 
 ## Konfiguration (Zugangsdaten)
@@ -26,13 +26,12 @@ Es gibt bewusst **nur eine** Konfigurationsquelle im Projekt: `config/config.php
 ## Prompt-Archivierung
 
 - Aktueller Kurzstatus: [`docs/STATUS_SNAPSHOT.md`](STATUS_SNAPSHOT.md)
+- Prompt-Uebersicht: [`docs/prompt_uebersicht.md`](prompt_uebersicht.md)
 - Voller Verlauf: [`docs/archiv/DEV_PROMPT_HISTORY.md`](archiv/DEV_PROMPT_HISTORY.md)
 
-Historische Prompts liegen künftig nur in `docs/archiv` und werden dort bewusst
-kurz gehalten: Es bleiben pro Prompt nur die letzten ein bis zwei Versionen
-(typisch: aktuelle Version im Wurzelverzeichnis `docs/` und die direkt
-vorherige Version in `docs/archiv`). Ältere Stände werden entfernt oder in ein
-externes Archiv (separates Repo oder Release-Artefakt) ausgelagert.
+Historische Prompts und der vollstaendige Verlauf liegen in `docs/archiv`.
+Welche Prompt-Datei aktuell wofuer relevant ist, steht in der
+Prompt-Uebersicht.
 
 Weitere alte Spezifikationen liegen ebenfalls im Archivordner `docs/archiv`.
 
@@ -40,5 +39,6 @@ Weitere alte Spezifikationen liegen ebenfalls im Archivordner `docs/archiv`.
 
 - Admin-Handbuch: [`docs/admin_handbuch.md`](admin_handbuch.md)
 - Installationsanleitung: [`docs/installationsanleitung.md`](installationsanleitung.md)
+- Wartungscheckliste: [`docs/wartungscheckliste.md`](wartungscheckliste.md)
 - RFID-Reader-Setup: [`docs/rfid_reader_setup.md`](rfid_reader_setup.md)
 - Git-Wiki & Repo-Beschreibung: [`docs/git_wiki_und_beschreibung.md`](git_wiki_und_beschreibung.md)

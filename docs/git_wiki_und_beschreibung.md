@@ -42,7 +42,7 @@ Bereiche wofür zuständig sind.
 - Datenbank-Modelle (Mitarbeiter, Zeitbuchungen, Urlaubsanträge).
 
 ### `sql/`
-- Datenbankschemata/Migrationen.
+- Aktuelles Datenbankschema und optionale SQL-Hilfen.
 - Referenz: `sql/01_initial_schema.sql`.
 
 ## Typische Einstellungen (Ablauf)

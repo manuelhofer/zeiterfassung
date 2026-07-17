@@ -31,6 +31,7 @@ Webbasierte Zeiterfassung inkl. Mitarbeiter-/Rollen-/Genehmiger-Verwaltung, Urla
 - Terminal: `public/terminal.php` (Routing über `?aktion=...`)
 
 ## Zuletzt erledigt
+- **2026-07-17 lokale Doku-Aufraeumung:** Root-`index.php` leitet auf `public/index.php`; `docs/wartungscheckliste.md`, `docs/prompt_uebersicht.md` und `docs/archiv/README.md` ergaenzt/verlinkt; Master-/Rechte-Prompt und aktive Doku an reale Pfade/Schema-Stand angepasst; keine Fachlogik geaendert.
 - **P-2026-01-25-02:** Dashboard: Zeitwarnungen-Query als Derived-Table (ONLY_FULL_GROUP_BY/SQLMODE-sicher) + Bind-Parameter (start_ts, today); Debug-Fehlertext nur für Legacy-Admin im UI.
 - **P-2026-01-24-08:** Dashboard: Zeitwarnungen-Query nutzt keine PDO-Parameter mehr (Inline-ISO-Datum), weil MariaDB/PDO in der Praxis trotz vorhandener Daten leere Resultsets lieferte; Query entspricht dem phpMyAdmin-Test und Zeitwarnungen werden wieder sichtbar.
 - **P-2026-01-25-01:** Dashboard: Zeitwarnungen-Query GROUP BY erweitert (MariaDB/ONLY_FULL_GROUP_BY kompatibel) + Sortierung ueber m.nachname/m.vorname; bei Fehlern wird jetzt ins error_log geschrieben und im Dashboard ein kurzer Hinweis angezeigt.

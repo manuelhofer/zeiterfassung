@@ -28,8 +28,8 @@ Konfigurationsorte sowie typische Einstellungen im Projekt.
   Zeitbuchungen, Urlaubsanträge usw.
 
 ### `sql/`
-- **Datenbankschemata** und Migrationen, z. B. `sql/01_initial_schema.sql` als
-  Referenz der DB-Struktur.
+- **Datenbankschema** und optionale SQL-Hilfen, z. B. `sql/01_initial_schema.sql`
+  als Referenz der DB-Struktur.
 
 ## Schritt-für-Schritt: Typische Einstellungen
 
@@ -72,4 +72,6 @@ Status-Snapshot.
 ## Verlinkte Referenzen
 - Projektübersicht und Konfiguration: [`docs/README.md`](README.md)
 - Status/Letzte Änderungen: [`docs/STATUS_SNAPSHOT.md`](STATUS_SNAPSHOT.md)
+- Prompt-/Projektorientierung: [`docs/prompt_uebersicht.md`](prompt_uebersicht.md)
+- Wartungs- und Pruefcheckliste: [`docs/wartungscheckliste.md`](wartungscheckliste.md)
 - RFID-Reader-Setup: [`docs/rfid_reader_setup.md`](rfid_reader_setup.md)

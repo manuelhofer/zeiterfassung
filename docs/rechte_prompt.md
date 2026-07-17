@@ -23,7 +23,7 @@ Kurz: In der DB existieren **Legacy-Rechte** und **kanonische Nachfolger** paral
 - Roadmap dazu steht unten in **Kapitel 5** (Phase 1: mergen/ausblenden).
 
 ## 1b. Inventar aller Rechte (DB) + Status
-Quelle: `sql/zeiterfassung_aktuell.sql` (INSERT INTO `recht`).
+Quelle: `sql/01_initial_schema.sql` (INSERT INTO `recht`). Aeltere Verlaufs-/Patch-Eintraege koennen noch `sql/zeiterfassung_aktuell.sql` als historischen DB-Dump nennen.
 
 „Im Code geprüft“ bedeutet: der Code kommt in PHP-Dateien (außerhalb `sql/` und `docs/`) vor und wird aktuell per `AuthService::hatRecht()` / Menü-Checks verwendet.
 
