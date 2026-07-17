@@ -14,6 +14,7 @@ declare(strict_types=1);
  * - $stundenkontoLetzteKorrekturen (array<int,array<string,mixed>>)
  * - $stundenkontoLetzteBatches (array<int,array<string,mixed>>)
  * - $stundenkontoStealthMode (bool)
+ * - $stundenkontoAnsicht (string)
  * - $stundenkontoUmbuchungJahr (int)
  * - $stundenkontoUmbuchungMonat (int)
  * - $stundenkontoUmbuchungTageswerte (array<int,array<string,mixed>>)
@@ -31,6 +32,7 @@ $stundenkontoSaldoAktuellText = $stundenkontoSaldoAktuellText ?? null;
 $stundenkontoLetzteKorrekturen = isset($stundenkontoLetzteKorrekturen) && is_array($stundenkontoLetzteKorrekturen) ? $stundenkontoLetzteKorrekturen : [];
 $stundenkontoLetzteBatches = isset($stundenkontoLetzteBatches) && is_array($stundenkontoLetzteBatches) ? $stundenkontoLetzteBatches : [];
 $stundenkontoStealthMode = !empty($stundenkontoStealthMode);
+$stundenkontoAnsicht = (isset($stundenkontoAnsicht) && (string)$stundenkontoAnsicht === 'sammelumbuchung') ? 'sammelumbuchung' : 'konto';
 $stealthStyle = $stundenkontoStealthMode ? ' style="border: 3px solid #c00; padding: 12px;"' : '';
 $stundenkontoUmbuchungJahr = isset($stundenkontoUmbuchungJahr) ? (int)$stundenkontoUmbuchungJahr : (int)date('Y');
 $stundenkontoUmbuchungMonat = isset($stundenkontoUmbuchungMonat) ? (int)$stundenkontoUmbuchungMonat : (int)date('n');
@@ -93,12 +95,36 @@ $fmtStunden = static function (mixed $wert): string {
     return sprintf('%.2f', $num);
 };
 
-$umbuchungLink = static function (int $mid, int $jahr, int $monat, bool $stealth): string {
+$fmtDatum = static function (string $datum): string {
+    $datum = trim($datum);
+    if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $datum)) {
+        return $datum;
+    }
+    try {
+        return (new \DateTimeImmutable($datum))->format('d.m.Y');
+    } catch (\Throwable) {
+        return $datum;
+    }
+};
+
+$kontoLink = static function (int $mid, bool $stealth): string {
     $params = [
         'seite' => 'mitarbeiter_stundenkonto',
         'mitarbeiter_id' => $mid,
-        'umbuchung_jahr' => $jahr,
+    ];
+    if ($stealth) {
+        $params['mode'] = 'stealth';
+    }
+    return '?' . http_build_query($params);
+};
+
+$umbuchungLink = static function (int $mid, int $monat, int $jahr, bool $stealth): string {
+    $params = [
+        'seite' => 'mitarbeiter_stundenkonto',
+        'mitarbeiter_id' => $mid,
+        'ansicht' => 'sammelumbuchung',
         'umbuchung_monat' => $monat,
+        'umbuchung_jahr' => $jahr,
     ];
     if ($stealth) {
         $params['mode'] = 'stealth';
@@ -126,6 +152,9 @@ $umbuchungLink = static function (int $mid, int $jahr, int $monat, bool $stealth
 
     <form method="get" action="">
         <input type="hidden" name="seite" value="mitarbeiter_stundenkonto">
+        <?php if ($stundenkontoAnsicht === 'sammelumbuchung'): ?>
+            <input type="hidden" name="ansicht" value="sammelumbuchung">
+        <?php endif; ?>
         <?php if ($stundenkontoStealthMode): ?>
             <input type="hidden" name="mode" value="stealth">
         <?php endif; ?>
@@ -146,20 +175,22 @@ $umbuchungLink = static function (int $mid, int $jahr, int $monat, bool $stealth
                 <?php endforeach; ?>
             </select>
         </label>
-        <label>
-            Jahr
-            <input type="number" name="umbuchung_jahr" min="1900" max="2200" value="<?php echo (int)$stundenkontoUmbuchungJahr; ?>" style="width: 5.5rem;">
-        </label>
-        <label>
-            Monat
-            <select name="umbuchung_monat">
-                <?php foreach ($monatsnamen as $monatNummer => $monatName): ?>
-                    <option value="<?php echo (int)$monatNummer; ?>"<?php echo (int)$monatNummer === $stundenkontoUmbuchungMonat ? ' selected' : ''; ?>>
-                        <?php echo htmlspecialchars($monatName, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>
-                    </option>
-                <?php endforeach; ?>
-            </select>
-        </label>
+        <?php if ($stundenkontoAnsicht === 'sammelumbuchung'): ?>
+            <label>
+                Monat
+                <select name="umbuchung_monat">
+                    <?php foreach ($monatsnamen as $monatNummer => $monatName): ?>
+                        <option value="<?php echo (int)$monatNummer; ?>"<?php echo (int)$monatNummer === $stundenkontoUmbuchungMonat ? ' selected' : ''; ?>>
+                            <?php echo htmlspecialchars($monatName, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
+            </label>
+            <label>
+                Jahr
+                <input type="number" name="umbuchung_jahr" min="1900" max="2200" value="<?php echo (int)$stundenkontoUmbuchungJahr; ?>" style="width: 5.5rem;">
+            </label>
+        <?php endif; ?>
         <button type="submit">Anzeigen</button>
     </form>
 
@@ -173,13 +204,147 @@ $umbuchungLink = static function (int $mid, int $jahr, int $monat, bool $stealth
             <?php echo htmlspecialchars($stundenkontoSaldoAktuellText ?? '---', ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>
         </p>
 
-        <p>
-            <a href="<?php echo htmlspecialchars($umbuchungLink($id, $stundenkontoUmbuchungPrevJahr, $stundenkontoUmbuchungPrevMonat, $stundenkontoStealthMode), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>">&laquo; vorheriger Monat</a>
-            |
-            <strong><?php echo htmlspecialchars(($monatsnamen[$stundenkontoUmbuchungMonat] ?? (string)$stundenkontoUmbuchungMonat) . ' ' . (string)$stundenkontoUmbuchungJahr, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></strong>
-            |
-            <a href="<?php echo htmlspecialchars($umbuchungLink($id, $stundenkontoUmbuchungNextJahr, $stundenkontoUmbuchungNextMonat, $stundenkontoStealthMode), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>">naechster Monat &raquo;</a>
-        </p>
+        <?php if ($stundenkontoAnsicht === 'sammelumbuchung'): ?>
+            <p>
+                <a href="<?php echo htmlspecialchars($kontoLink($id, $stundenkontoStealthMode), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>">&laquo; Zurueck zum Stundenkonto</a>
+            </p>
+
+            <h4>Sammelumbuchung auf Zieltag buchen</h4>
+
+            <p>
+                <a href="<?php echo htmlspecialchars($umbuchungLink($id, $stundenkontoUmbuchungPrevMonat, $stundenkontoUmbuchungPrevJahr, $stundenkontoStealthMode), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>">&laquo; vorheriger Monat</a>
+                |
+                <strong><?php echo htmlspecialchars(($monatsnamen[$stundenkontoUmbuchungMonat] ?? (string)$stundenkontoUmbuchungMonat) . ' ' . (string)$stundenkontoUmbuchungJahr, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></strong>
+                |
+                <a href="<?php echo htmlspecialchars($umbuchungLink($id, $stundenkontoUmbuchungNextMonat, $stundenkontoUmbuchungNextJahr, $stundenkontoStealthMode), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>">naechster Monat &raquo;</a>
+            </p>
+
+            <form method="post" action="?seite=mitarbeiter_admin_speichern">
+                <input type="hidden" name="stundenkonto_umbuchung_only" value="1">
+                <input type="hidden" name="return_to" value="stundenkonto">
+                <input type="hidden" name="return_ansicht" value="sammelumbuchung">
+                <input type="hidden" name="id" value="<?php echo (int)$id; ?>">
+                <input type="hidden" name="return_umbuchung_monat" value="<?php echo (int)$stundenkontoUmbuchungMonat; ?>">
+                <input type="hidden" name="return_umbuchung_jahr" value="<?php echo (int)$stundenkontoUmbuchungJahr; ?>">
+                <?php if ($stundenkontoStealthMode): ?>
+                    <input type="hidden" name="stundenkonto_stealth" value="1">
+                <?php endif; ?>
+
+                <?php if (!$stundenkontoDarfVerwalten): ?>
+                    <p><small>Hinweis: Du hast nicht das Recht <code>STUNDENKONTO_VERWALTEN</code>.</small></p>
+                <?php elseif ($stundenkontoUmbuchungFehler !== ''): ?>
+                    <p class="error"><?php echo htmlspecialchars($stundenkontoUmbuchungFehler, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></p>
+                <?php elseif ($stundenkontoUmbuchungTageswerte === []): ?>
+                    <p><small>Fuer den angezeigten Monat liegen keine Tageswerte vor.</small></p>
+                <?php else: ?>
+                    <?php
+                        $istMonatText = '';
+                        if (is_array($stundenkontoUmbuchungZusammenfassung) && isset($stundenkontoUmbuchungZusammenfassung['iststunden'])) {
+                            $istMonatText = (string)$stundenkontoUmbuchungZusammenfassung['iststunden'];
+                        } elseif (is_array($stundenkontoUmbuchungMonatswerte) && isset($stundenkontoUmbuchungMonatswerte['iststunden'])) {
+                            $istMonatText = (string)$stundenkontoUmbuchungMonatswerte['iststunden'];
+                        }
+                    ?>
+                    <?php if ($istMonatText !== ''): ?>
+                        <p><small>Ist-Stunden im angezeigten Monat: <?php echo htmlspecialchars($fmtStunden($istMonatText), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></small></p>
+                    <?php endif; ?>
+
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Datum</th>
+                                <th>Tag</th>
+                                <th>Ist-Stunden</th>
+                                <th>Typ</th>
+                                <th>Abziehen (Stunden)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($stundenkontoUmbuchungTageswerte as $tag): ?>
+                                <?php
+                                    if (!is_array($tag)) {
+                                        continue;
+                                    }
+                                    $datumIso = trim((string)($tag['datum'] ?? ''));
+                                    if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $datumIso)) {
+                                        continue;
+                                    }
+                                    try {
+                                        $tagDatum = new \DateTimeImmutable($datumIso);
+                                    } catch (\Throwable) {
+                                        continue;
+                                    }
+                                    $wochentagNummer = (int)$tagDatum->format('N');
+                                    $wochentagLabel = $wochentageKurz[$wochentagNummer] ?? '';
+                                    $istStunden = $fmtStunden($tag['arbeitszeit_stunden'] ?? '0');
+                                    $tagestyp = trim((string)($tag['tagestyp'] ?? ''));
+                                    $kommentar = trim((string)($tag['kommentar'] ?? ''));
+                                    $typText = $tagestyp !== '' ? $tagestyp : '---';
+                                    if ($kommentar !== '') {
+                                        $typText .= ' / ' . $kommentar;
+                                    }
+                                    $rowStyle = $wochentagNummer >= 6 ? ' style="background: #fafafa;"' : '';
+                                ?>
+                                <tr<?php echo $rowStyle; ?>>
+                                    <td><?php echo htmlspecialchars($fmtDatum($datumIso), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></td>
+                                    <td><?php echo htmlspecialchars($wochentagLabel, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></td>
+                                    <td><?php echo htmlspecialchars($istStunden, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></td>
+                                    <td><?php echo htmlspecialchars($typText, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></td>
+                                    <td>
+                                        <input
+                                            type="number"
+                                            step="0.25"
+                                            min="0"
+                                            name="stundenkonto_umbuchung_quell_stunden[<?php echo htmlspecialchars($datumIso, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>]"
+                                            placeholder="0.00"
+                                            style="width: 7rem;"
+                                        >
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+
+                    <div>
+                        Zieltag
+                        <label>
+                            Tag
+                            <select name="stundenkonto_umbuchung_ziel_tag" required>
+                                <option value="">--</option>
+                                <?php for ($tagNummer = 1; $tagNummer <= 31; $tagNummer++): ?>
+                                    <option value="<?php echo (int)$tagNummer; ?>"><?php echo sprintf('%02d', $tagNummer); ?></option>
+                                <?php endfor; ?>
+                            </select>
+                        </label>
+                        <label>
+                            Monat
+                            <select name="stundenkonto_umbuchung_ziel_monat" required>
+                                <?php foreach ($monatsnamen as $monatNummer => $monatName): ?>
+                                    <option value="<?php echo (int)$monatNummer; ?>"<?php echo (int)$monatNummer === $stundenkontoUmbuchungMonat ? ' selected' : ''; ?>>
+                                        <?php echo htmlspecialchars($monatName, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
+                        </label>
+                        <label>
+                            Jahr
+                            <input type="number" name="stundenkonto_umbuchung_ziel_jahr" min="1900" max="2200" value="<?php echo (int)$stundenkontoUmbuchungJahr; ?>" required style="width: 5.5rem;">
+                        </label>
+                    </div>
+
+                    <div>
+                        <label>
+                            Begruendung
+                            <input type="text" name="stundenkonto_umbuchung_begruendung" required placeholder="z.B. Migration: Samstag aus Altsystem">
+                        </label>
+                    </div>
+
+                    <p>
+                        <button type="submit">Sammelumbuchung buchen</button>
+                    </p>
+                <?php endif; ?>
+            </form>
+        <?php else: ?>
 
         <h4>Letzte Verteilbuchungen / manuelle Korrekturbuchungen</h4>
 
@@ -209,7 +374,7 @@ $umbuchungLink = static function (int $mid, int $jahr, int $monat, bool $stealth
                             }
                         ?>
                         <tr>
-                            <td><?php echo htmlspecialchars($w, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></td>
+                            <td><?php echo htmlspecialchars($fmtDatum($w), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></td>
                             <td><?php echo htmlspecialchars($fmtMin($dmin), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></td>
                             <td><?php echo htmlspecialchars($typ, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></td>
                             <td><?php echo htmlspecialchars($begr, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></td>
@@ -279,7 +444,7 @@ $umbuchungLink = static function (int $mid, int $jahr, int $monat, bool $stealth
                         ?>
                         <tr>
                             <td><?php echo (int)$bid; ?></td>
-                            <td><?php echo htmlspecialchars($vonDatum . ' bis ' . $bisDatum, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></td>
+                            <td><?php echo htmlspecialchars($fmtDatum($vonDatum) . ' bis ' . $fmtDatum($bisDatum), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></td>
                             <td><?php echo htmlspecialchars($modusLabel, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></td>
                             <td><?php echo (int)$anzahlTage; ?></td>
                             <td><?php echo htmlspecialchars($sumTxt, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></td>
@@ -303,8 +468,6 @@ $umbuchungLink = static function (int $mid, int $jahr, int $monat, bool $stealth
                 <input type="hidden" name="stundenkonto_only" value="1">
                 <input type="hidden" name="return_to" value="stundenkonto">
                 <input type="hidden" name="id" value="<?php echo (int)$id; ?>">
-                <input type="hidden" name="return_umbuchung_jahr" value="<?php echo (int)$stundenkontoUmbuchungJahr; ?>">
-                <input type="hidden" name="return_umbuchung_monat" value="<?php echo (int)$stundenkontoUmbuchungMonat; ?>">
                 <?php if ($stundenkontoStealthMode): ?>
                     <input type="hidden" name="stundenkonto_stealth" value="1">
                 <?php endif; ?>
@@ -340,8 +503,6 @@ $umbuchungLink = static function (int $mid, int $jahr, int $monat, bool $stealth
                 <input type="hidden" name="stundenkonto_batch_only" value="1">
                 <input type="hidden" name="return_to" value="stundenkonto">
                 <input type="hidden" name="id" value="<?php echo (int)$id; ?>">
-                <input type="hidden" name="return_umbuchung_jahr" value="<?php echo (int)$stundenkontoUmbuchungJahr; ?>">
-                <input type="hidden" name="return_umbuchung_monat" value="<?php echo (int)$stundenkontoUmbuchungMonat; ?>">
                 <?php if ($stundenkontoStealthMode): ?>
                     <input type="hidden" name="stundenkonto_stealth" value="1">
                 <?php endif; ?>
@@ -394,111 +555,22 @@ $umbuchungLink = static function (int $mid, int $jahr, int $monat, bool $stealth
                 </p>
             </form>
 
-            <h4>Sammelumbuchung auf Zieltag buchen</h4>
-            <form method="post" action="?seite=mitarbeiter_admin_speichern">
-                <input type="hidden" name="stundenkonto_umbuchung_only" value="1">
-                <input type="hidden" name="return_to" value="stundenkonto">
-                <input type="hidden" name="id" value="<?php echo (int)$id; ?>">
-                <input type="hidden" name="return_umbuchung_jahr" value="<?php echo (int)$stundenkontoUmbuchungJahr; ?>">
-                <input type="hidden" name="return_umbuchung_monat" value="<?php echo (int)$stundenkontoUmbuchungMonat; ?>">
+            <form method="get" action="">
+                <input type="hidden" name="seite" value="mitarbeiter_stundenkonto">
+                <input type="hidden" name="mitarbeiter_id" value="<?php echo (int)$id; ?>">
+                <input type="hidden" name="ansicht" value="sammelumbuchung">
+                <input type="hidden" name="umbuchung_monat" value="<?php echo (int)date('n'); ?>">
+                <input type="hidden" name="umbuchung_jahr" value="<?php echo (int)date('Y'); ?>">
                 <?php if ($stundenkontoStealthMode): ?>
-                    <input type="hidden" name="stundenkonto_stealth" value="1">
+                    <input type="hidden" name="mode" value="stealth">
                 <?php endif; ?>
-
-                <?php if ($stundenkontoUmbuchungFehler !== ''): ?>
-                    <p class="error"><?php echo htmlspecialchars($stundenkontoUmbuchungFehler, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></p>
-                <?php elseif ($stundenkontoUmbuchungTageswerte === []): ?>
-                    <p><small>Fuer den angezeigten Monat liegen keine Tageswerte vor.</small></p>
-                <?php else: ?>
-                    <?php
-                        $istMonatText = '';
-                        if (is_array($stundenkontoUmbuchungZusammenfassung) && isset($stundenkontoUmbuchungZusammenfassung['iststunden'])) {
-                            $istMonatText = (string)$stundenkontoUmbuchungZusammenfassung['iststunden'];
-                        } elseif (is_array($stundenkontoUmbuchungMonatswerte) && isset($stundenkontoUmbuchungMonatswerte['iststunden'])) {
-                            $istMonatText = (string)$stundenkontoUmbuchungMonatswerte['iststunden'];
-                        }
-                    ?>
-                    <?php if ($istMonatText !== ''): ?>
-                        <p><small>Ist-Stunden im angezeigten Monat: <?php echo htmlspecialchars($fmtStunden($istMonatText), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></small></p>
-                    <?php endif; ?>
-
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Datum</th>
-                                <th>Tag</th>
-                                <th>Ist-Stunden</th>
-                                <th>Typ</th>
-                                <th>Abziehen (Stunden)</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php foreach ($stundenkontoUmbuchungTageswerte as $tag): ?>
-                                <?php
-                                    if (!is_array($tag)) {
-                                        continue;
-                                    }
-                                    $datumIso = trim((string)($tag['datum'] ?? ''));
-                                    if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $datumIso)) {
-                                        continue;
-                                    }
-                                    try {
-                                        $tagDatum = new \DateTimeImmutable($datumIso);
-                                    } catch (\Throwable) {
-                                        continue;
-                                    }
-                                    $wochentagNummer = (int)$tagDatum->format('N');
-                                    $wochentagLabel = $wochentageKurz[$wochentagNummer] ?? '';
-                                    $istStunden = $fmtStunden($tag['arbeitszeit_stunden'] ?? '0');
-                                    $tagestyp = trim((string)($tag['tagestyp'] ?? ''));
-                                    $kommentar = trim((string)($tag['kommentar'] ?? ''));
-                                    $typText = $tagestyp !== '' ? $tagestyp : '---';
-                                    if ($kommentar !== '') {
-                                        $typText .= ' / ' . $kommentar;
-                                    }
-                                    $rowStyle = $wochentagNummer >= 6 ? ' style="background: #fafafa;"' : '';
-                                ?>
-                                <tr<?php echo $rowStyle; ?>>
-                                    <td><?php echo htmlspecialchars($datumIso, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></td>
-                                    <td><?php echo htmlspecialchars($wochentagLabel, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></td>
-                                    <td><?php echo htmlspecialchars($istStunden, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></td>
-                                    <td><?php echo htmlspecialchars($typText, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></td>
-                                    <td>
-                                        <input
-                                            type="number"
-                                            step="0.25"
-                                            min="0"
-                                            name="stundenkonto_umbuchung_quell_stunden[<?php echo htmlspecialchars($datumIso, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>]"
-                                            placeholder="0.00"
-                                            style="width: 7rem;"
-                                        >
-                                    </td>
-                                </tr>
-                            <?php endforeach; ?>
-                        </tbody>
-                    </table>
-
-                    <div>
-                        <label>
-                            Zieltag
-                            <input type="date" name="stundenkonto_umbuchung_ziel_datum" required>
-                        </label>
-                    </div>
-
-                    <div>
-                        <label>
-                            Begruendung
-                            <input type="text" name="stundenkonto_umbuchung_begruendung" required placeholder="z.B. Migration: Samstag aus Altsystem">
-                        </label>
-                    </div>
-
-                    <p>
-                        <button type="submit">Sammelumbuchung buchen</button>
-                    </p>
-                <?php endif; ?>
+                <p>
+                    <button type="submit">Sammelumbuchung auf Zieltag</button>
+                </p>
             </form>
         <?php else: ?>
             <p><small>Hinweis: Du hast nicht das Recht <code>STUNDENKONTO_VERWALTEN</code>.</small></p>
+        <?php endif; ?>
         <?php endif; ?>
     <?php endif; ?>
 </section>

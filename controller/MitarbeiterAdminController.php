@@ -349,13 +349,17 @@ class MitarbeiterAdminController
         $returnTo = isset($_POST['return_to']) ? trim((string)$_POST['return_to']) : '';
         if ($returnTo === 'stundenkonto') {
             $url = '?seite=mitarbeiter_stundenkonto&mitarbeiter_id=' . (int)$mitarbeiterId;
-            $jahr = isset($_POST['return_umbuchung_jahr']) ? (int)$_POST['return_umbuchung_jahr'] : 0;
-            $monat = isset($_POST['return_umbuchung_monat']) ? (int)$_POST['return_umbuchung_monat'] : 0;
-            if ($jahr >= 1900 && $jahr <= 2200) {
-                $url .= '&umbuchung_jahr=' . $jahr;
-            }
-            if ($monat >= 1 && $monat <= 12) {
-                $url .= '&umbuchung_monat=' . $monat;
+            $returnAnsicht = isset($_POST['return_ansicht']) ? trim((string)$_POST['return_ansicht']) : '';
+            if ($returnAnsicht === 'sammelumbuchung') {
+                $url .= '&ansicht=sammelumbuchung';
+                $jahr = isset($_POST['return_umbuchung_jahr']) ? (int)$_POST['return_umbuchung_jahr'] : 0;
+                $monat = isset($_POST['return_umbuchung_monat']) ? (int)$_POST['return_umbuchung_monat'] : 0;
+                if ($monat >= 1 && $monat <= 12) {
+                    $url .= '&umbuchung_monat=' . $monat;
+                }
+                if ($jahr >= 1900 && $jahr <= 2200) {
+                    $url .= '&umbuchung_jahr=' . $jahr;
+                }
             }
             if (isset($_POST['stundenkonto_stealth']) && (string)$_POST['stundenkonto_stealth'] === '1') {
                 $url .= '&mode=stealth';
@@ -410,6 +414,9 @@ class MitarbeiterAdminController
 
         $stundenkontoDarfVerwalten = $this->authService->hatRecht('STUNDENKONTO_VERWALTEN');
         $stundenkontoStealthMode = isset($_GET['mode']) && (string)$_GET['mode'] === 'stealth';
+        $stundenkontoAnsicht = (isset($_GET['ansicht']) && (string)$_GET['ansicht'] === 'sammelumbuchung')
+            ? 'sammelumbuchung'
+            : 'konto';
         $stundenkontoSaldoAktuellText = null;
         $stundenkontoLetzteKorrekturen = [];
         $stundenkontoLetzteBatches = [];
@@ -448,33 +455,35 @@ class MitarbeiterAdminController
             $stundenkontoLetzteKorrekturen = $stundenkontoDaten['korrekturen'];
             $stundenkontoLetzteBatches = $stundenkontoDaten['batches'];
 
-            try {
-                $reportDaten = ReportService::getInstanz()->holeMonatsdatenFuerMitarbeiter(
-                    $id,
-                    $stundenkontoUmbuchungJahr,
-                    $stundenkontoUmbuchungMonat
-                );
-                $stundenkontoUmbuchungTageswerte = is_array($reportDaten['tageswerte'] ?? null)
-                    ? $reportDaten['tageswerte']
-                    : [];
-                $stundenkontoUmbuchungMonatswerte = is_array($reportDaten['monatswerte'] ?? null)
-                    ? $reportDaten['monatswerte']
-                    : null;
-                $stundenkontoUmbuchungZusammenfassung = is_array($reportDaten['monatszusammenfassung'] ?? null)
-                    ? $reportDaten['monatszusammenfassung']
-                    : null;
-            } catch (\Throwable $e) {
-                $stundenkontoUmbuchungTageswerte = [];
-                $stundenkontoUmbuchungMonatswerte = null;
-                $stundenkontoUmbuchungZusammenfassung = null;
-                $stundenkontoUmbuchungFehler = 'Die Monatsdaten fuer die Sammelumbuchung konnten nicht geladen werden.';
-                if (class_exists('Logger')) {
-                    Logger::warn('Stundenkonto: Monatsdaten fuer Sammelumbuchung konnten nicht geladen werden', [
-                        'mitarbeiter_id' => $id,
-                        'jahr'           => $stundenkontoUmbuchungJahr,
-                        'monat'          => $stundenkontoUmbuchungMonat,
-                        'exception'      => $e->getMessage(),
-                    ], $id, null, 'stundenkonto');
+            if ($stundenkontoAnsicht === 'sammelumbuchung') {
+                try {
+                    $reportDaten = ReportService::getInstanz()->holeMonatsdatenFuerMitarbeiter(
+                        $id,
+                        $stundenkontoUmbuchungJahr,
+                        $stundenkontoUmbuchungMonat
+                    );
+                    $stundenkontoUmbuchungTageswerte = is_array($reportDaten['tageswerte'] ?? null)
+                        ? $reportDaten['tageswerte']
+                        : [];
+                    $stundenkontoUmbuchungMonatswerte = is_array($reportDaten['monatswerte'] ?? null)
+                        ? $reportDaten['monatswerte']
+                        : null;
+                    $stundenkontoUmbuchungZusammenfassung = is_array($reportDaten['monatszusammenfassung'] ?? null)
+                        ? $reportDaten['monatszusammenfassung']
+                        : null;
+                } catch (\Throwable $e) {
+                    $stundenkontoUmbuchungTageswerte = [];
+                    $stundenkontoUmbuchungMonatswerte = null;
+                    $stundenkontoUmbuchungZusammenfassung = null;
+                    $stundenkontoUmbuchungFehler = 'Die Monatsdaten fuer die Sammelumbuchung konnten nicht geladen werden.';
+                    if (class_exists('Logger')) {
+                        Logger::warn('Stundenkonto: Monatsdaten fuer Sammelumbuchung konnten nicht geladen werden', [
+                            'mitarbeiter_id' => $id,
+                            'jahr'           => $stundenkontoUmbuchungJahr,
+                            'monat'          => $stundenkontoUmbuchungMonat,
+                            'exception'      => $e->getMessage(),
+                        ], $id, null, 'stundenkonto');
+                    }
                 }
             }
         }
@@ -2303,6 +2312,18 @@ class MitarbeiterAdminController
             header('Location: ' . $this->stundenkontoRuecksprungUrl($mid));
             exit;
         };
+
+        if ($zielDatum === '') {
+            $zielTag = isset($_POST['stundenkonto_umbuchung_ziel_tag']) ? (int)$_POST['stundenkonto_umbuchung_ziel_tag'] : 0;
+            $zielMonat = isset($_POST['stundenkonto_umbuchung_ziel_monat']) ? (int)$_POST['stundenkonto_umbuchung_ziel_monat'] : 0;
+            $zielJahr = isset($_POST['stundenkonto_umbuchung_ziel_jahr']) ? (int)$_POST['stundenkonto_umbuchung_ziel_jahr'] : 0;
+
+            if ($zielTag <= 0 || $zielMonat <= 0 || $zielJahr <= 0 || !checkdate($zielMonat, $zielTag, $zielJahr)) {
+                $abbrechen('Zieldatum ist ungueltig.');
+            }
+
+            $zielDatum = sprintf('%04d-%02d-%02d', $zielJahr, $zielMonat, $zielTag);
+        }
 
         if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $zielDatum)) {
             $abbrechen('Zieldatum ist ungueltig.');
