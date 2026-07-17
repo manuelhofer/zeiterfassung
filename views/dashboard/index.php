@@ -12,23 +12,26 @@ $mitarbeiterName = $mitarbeiterName ?? 'Unbekannt';
 ?>
 
 <section>
+    <div class="page-header">
+        <div>
     <h2>Willkommen, <?php echo htmlspecialchars($mitarbeiterName, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></h2>
     <p>Dies ist Ihre Startseite für die Zeiterfassung.</p>
+
+        </div>
+    </div>
 
     <?php if (!empty($pausenentscheidungFlash) && is_array($pausenentscheidungFlash)): ?>
         <?php
         $typ = (string)($pausenentscheidungFlash['typ'] ?? '');
         $txt = (string)($pausenentscheidungFlash['text'] ?? '');
-        $bg  = ($typ === 'ok') ? '#f0fff4' : '#fff5f5';
-        $bd  = ($typ === 'ok') ? '#2f855a' : '#b00020';
         ?>
-        <div style="margin-top: 0.75rem; border: 1px solid <?php echo $bd; ?>; background: <?php echo $bg; ?>; border-radius: 10px; padding: 0.75rem 1rem;">
-            <strong style="color:<?php echo $bd; ?>;"><?php echo htmlspecialchars($txt, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></strong>
+        <div class="<?php echo $typ === 'ok' ? 'success' : 'error'; ?>">
+            <strong><?php echo htmlspecialchars($txt, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></strong>
         </div>
     <?php endif; ?>
 
 
-    <ul>
+    <ul class="link-list">
         <li><a href="?seite=zeit_heute">Heutige Kommen/Gehen-Buchungen anzeigen</a></li>
         <li><a href="?seite=urlaub_meine">Eigene Urlaubsanträge einsehen</a></li>
         <li><a href="?seite=report_monat">Monatsübersicht Ihrer Arbeitszeiten</a></li>
@@ -38,7 +41,7 @@ $mitarbeiterName = $mitarbeiterName ?? 'Unbekannt';
 
 <?php if (!empty($zeitUnstimmigkeitenFehler)): ?>
     <section>
-        <div style="border: 2px solid #b00020; border-radius: 10px; padding: 0.9rem 1rem; background: #fff5f5;">
+        <div class="warning-panel">
             <strong style="color:#b00020;">Zeitwarnungen konnten nicht geladen werden.</strong>
             <div style="margin-top: 0.45rem; color:#333;">Bitte error_log prüfen (DashboardController).</div>
 
@@ -52,7 +55,7 @@ $mitarbeiterName = $mitarbeiterName ?? 'Unbekannt';
 
 <?php if (isset($zeitUnstimmigkeiten) && is_array($zeitUnstimmigkeiten) && count($zeitUnstimmigkeiten) > 0): ?>
     <section>
-        <div style="border: 2px solid #b00020; border-radius: 10px; padding: 0.9rem 1rem; background: #fff5f5;">
+        <div class="warning-panel">
             <div style="display:flex; justify-content: space-between; align-items: baseline; gap: 1rem; flex-wrap: wrap;">
                 <strong style="color:#b00020;">Achtung: Unvollständige Zeitbuchungen</strong>
                 <span style="color:#666; font-size: 0.95rem;">(letzte <?php echo (int)($zeitUnstimmigkeitenTage ?? 14); ?> Tage)</span>
@@ -62,7 +65,7 @@ $mitarbeiterName = $mitarbeiterName ?? 'Unbekannt';
                 Bitte prüfen und ggf. korrigieren.
             </div>
 
-            <div style="margin-top: 0.65rem; overflow-x:auto;">
+            <div class="table-wrap">
                 <table style="border-collapse: collapse; width: 100%; min-width: 560px;">
                     <thead>
                     <tr>
@@ -150,7 +153,7 @@ $mitarbeiterName = $mitarbeiterName ?? 'Unbekannt';
 
 <?php if (!empty($pausenEntscheidungenOffen) && is_array($pausenEntscheidungenOffen)): ?>
     <section>
-        <div style="border: 2px solid #b00020; border-radius: 10px; padding: 0.9rem 1rem; background: #fff5f5;">
+        <div class="warning-panel">
             <div style="display:flex; justify-content: space-between; align-items: baseline; gap: 1rem; flex-wrap: wrap;">
                 <strong style="color:#b00020;">Achtung: Pausen-Entscheidung nötig</strong>
                 <span style="color:#666; font-size: 0.95rem;">(<?php echo (int)($pausenEntscheidungenOffenAnzahl ?? count($pausenEntscheidungenOffen)); ?> Fälle)</span>
@@ -159,7 +162,7 @@ $mitarbeiterName = $mitarbeiterName ?? 'Unbekannt';
                 In diesen Fällen wird aktuell <strong>keine Pause</strong> abgezogen, bis entschieden wurde.
             </div>
 
-            <div style="margin-top: 0.65rem; overflow-x:auto;">
+            <div class="table-wrap">
                 <table style="border-collapse: collapse; width: 100%; min-width: 820px;">
                     <thead>
                     <tr>
@@ -247,79 +250,79 @@ $hatAdminSchnellzugriff = (
     <section>
         <h2>Admin Schnellzugriff</h2>
 
-        <div style="display:flex; gap: 1rem; flex-wrap: wrap; align-items: stretch;">
+        <div class="admin-card-grid">
             <?php if (($hatMitarbeiterAdminRecht ?? false)): ?>
-                <div style="border: 1px solid #ccc; border-radius: 8px; padding: 0.9rem 1rem; background: #ffffff; min-width: 240px; flex: 1 1 240px; max-width: 420px;">
+                <div class="admin-card">
                     <strong>Mitarbeiter</strong>
                     <div style="margin-top: 0.45rem;"><a href="?seite=mitarbeiter_admin">öffnen</a></div>
                 </div>
             <?php endif; ?>
 
             <?php if (($hatAbteilungsAdminRecht ?? false)): ?>
-                <div style="border: 1px solid #ccc; border-radius: 8px; padding: 0.9rem 1rem; background: #ffffff; min-width: 240px; flex: 1 1 240px; max-width: 420px;">
+                <div class="admin-card">
                     <strong>Abteilungen</strong>
                     <div style="margin-top: 0.45rem;"><a href="?seite=abteilung_admin">öffnen</a></div>
                 </div>
             <?php endif; ?>
 
             <?php if (($hatRollenAdminRecht ?? false)): ?>
-                <div style="border: 1px solid #ccc; border-radius: 8px; padding: 0.9rem 1rem; background: #ffffff; min-width: 240px; flex: 1 1 240px; max-width: 420px;">
+                <div class="admin-card">
                     <strong>Rollen &amp; Rechte</strong>
                     <div style="margin-top: 0.45rem;"><a href="?seite=rollen_admin">öffnen</a></div>
                 </div>
             <?php endif; ?>
 
             <?php if (($hatMaschineAdminRecht ?? false)): ?>
-                <div style="border: 1px solid #ccc; border-radius: 8px; padding: 0.9rem 1rem; background: #ffffff; min-width: 240px; flex: 1 1 240px; max-width: 420px;">
+                <div class="admin-card">
                     <strong>Maschinen</strong>
                     <div style="margin-top: 0.45rem;"><a href="?seite=maschine_admin">öffnen</a></div>
                 </div>
             <?php endif; ?>
 
             <?php if (($hatFeiertagAdminRecht ?? false)): ?>
-                <div style="border: 1px solid #ccc; border-radius: 8px; padding: 0.9rem 1rem; background: #ffffff; min-width: 240px; flex: 1 1 240px; max-width: 420px;">
+                <div class="admin-card">
                     <strong>Feiertage</strong>
                     <div style="margin-top: 0.45rem;"><a href="?seite=feiertag_admin">öffnen</a></div>
                 </div>
             <?php endif; ?>
 
             <?php if (($hatBetriebsferienAdminRecht ?? false)): ?>
-                <div style="border: 1px solid #ccc; border-radius: 8px; padding: 0.9rem 1rem; background: #ffffff; min-width: 240px; flex: 1 1 240px; max-width: 420px;">
+                <div class="admin-card">
                     <strong>Betriebsferien</strong>
                     <div style="margin-top: 0.45rem;"><a href="?seite=betriebsferien_admin">öffnen</a></div>
                 </div>
             <?php endif; ?>
 
             <?php if (($hatUrlaubKontingentAdminRecht ?? false)): ?>
-                <div style="border: 1px solid #ccc; border-radius: 8px; padding: 0.9rem 1rem; background: #ffffff; min-width: 240px; flex: 1 1 240px; max-width: 420px;">
+                <div class="admin-card">
                     <strong>Urlaub-Kontingent</strong>
                     <div style="margin-top: 0.45rem;"><a href="?seite=urlaub_kontingent_admin">öffnen</a></div>
                 </div>
             <?php endif; ?>
 
             <?php if (($hatRundungsregelAdminRecht ?? false)): ?>
-                <div style="border: 1px solid #ccc; border-radius: 8px; padding: 0.9rem 1rem; background: #ffffff; min-width: 240px; flex: 1 1 240px; max-width: 420px;">
+                <div class="admin-card">
                     <strong>Rundungsregeln</strong>
                     <div style="margin-top: 0.45rem;"><a href="?seite=zeit_rundungsregel_admin">öffnen</a></div>
                 </div>
             <?php endif; ?>
 
             <?php if (($hatKonfigurationAdminRecht ?? false)): ?>
-                <div style="border: 1px solid #ccc; border-radius: 8px; padding: 0.9rem 1rem; background: #ffffff; min-width: 240px; flex: 1 1 240px; max-width: 420px;">
+                <div class="admin-card">
                     <strong>Konfiguration</strong>
                     <div style="margin-top: 0.45rem;"><a href="?seite=konfiguration_admin">öffnen</a></div>
                 </div>
             <?php endif; ?>
 
             <?php if (($hatTerminalAdminRecht ?? false)): ?>
-                <div style="border: 1px solid #ccc; border-radius: 8px; padding: 0.9rem 1rem; background: #ffffff; min-width: 240px; flex: 1 1 240px; max-width: 420px;">
+                <div class="admin-card">
                     <strong>Terminals</strong>
                     <div style="margin-top: 0.45rem;"><a href="?seite=terminal_admin">öffnen</a></div>
                 </div>
             <?php endif; ?>
 
             <?php if (($hatQueueAdminRecht ?? false)): ?>
-                <div style="border: 1px solid #ccc; border-radius: 8px; padding: 0.9rem 1rem; background: #ffffff; min-width: 240px; flex: 1 1 240px; max-width: 420px;">
+                <div class="admin-card">
                     <strong>Offline-Queue</strong>
                     <div style="margin-top: 0.45rem;"><a href="?seite=queue_admin">öffnen</a></div>
                 </div>
@@ -354,7 +357,7 @@ $hatSystemStatus = (isset($systemStatus) && is_array($systemStatus)) || (isset($
                     Gesamt: <strong><?php echo number_format((float)($smokeTest['total_ms'] ?? 0), 1, ',', '.'); ?> ms</strong>
                 </div>
 
-                <div style="overflow-x:auto; margin-top: 0.6rem;">
+                <div class="table-wrap">
                     <table style="border-collapse: collapse; width: 100%; min-width: 520px;">
                         <thead>
                         <tr>

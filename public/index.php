@@ -116,6 +116,7 @@ try {
         'zeit_heute',
         'urlaub_meine',
         'urlaub_genehmigung',
+        'urlaub_verwaltung',
         'urlaub_jahresuebersicht',
         'urlaubsplanung',
         'report_monat',
@@ -147,6 +148,7 @@ try {
         'betriebsferien_admin_speichern',
         'betriebsferien_admin_toggle',
         'queue_admin',
+        'audit_logs',
         'zeit_rundungsregel_admin',
         'zeit_rundungsregel_admin_bearbeiten',
         'konfiguration_admin',
@@ -203,6 +205,11 @@ try {
         case 'urlaub_genehmigung':
             $controller = new UrlaubController();
             $controller->genehmigungListe();
+            break;
+
+        case 'urlaub_verwaltung':
+            $controller = new UrlaubController();
+            $controller->verwaltung();
             break;
 
         case 'urlaub_jahresuebersicht':
@@ -395,6 +402,11 @@ try {
 
         case 'queue_admin':
             $controller = new QueueController();
+            $controller->index();
+            break;
+
+        case 'audit_logs':
+            $controller = new AuditLogController();
             $controller->index();
             break;
 

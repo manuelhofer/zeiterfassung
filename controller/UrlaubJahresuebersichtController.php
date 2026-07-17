@@ -305,6 +305,8 @@ class UrlaubJahresuebersichtController
         $events = [];
         $this->fuegeFeiertageEin($events, $mitarbeiterIds, $jahr);
         $this->fuegeBetriebsferienEin($events, $mitarbeiterIds, $jahr);
+        $this->fuegeKrankzeitraeumeEin($events, $mitarbeiterIds, $jahr);
+        $this->fuegeTageswerteKennzeichenEin($events, $mitarbeiterIds, $jahr);
         $this->fuegeUrlaubsantraegeEin($events, $mitarbeiterIds, $jahr);
         return $events;
     }
@@ -453,6 +455,142 @@ class UrlaubJahresuebersichtController
     }
 
     /**
+     * @param array<int,array<int,array<int,array<string,mixed>>>> $events
+     * @param int[] $mitarbeiterIds
+     */
+    private function fuegeKrankzeitraeumeEin(array &$events, array $mitarbeiterIds, int $jahr): void
+    {
+        if ($mitarbeiterIds === []) {
+            return;
+        }
+
+        $jahrStart = sprintf('%04d-01-01', $jahr);
+        $jahrEnde = sprintf('%04d-12-31', $jahr);
+        $params = ['start' => $jahrStart, 'ende' => $jahrEnde];
+        $in = $this->baueInPlatzhalter($mitarbeiterIds, 'kr', $params);
+        $feiertage = $this->ladeFeiertagDatumSet($jahr);
+
+        try {
+            $rows = $this->db->fetchAlle(
+                "SELECT mitarbeiter_id, typ, von_datum, bis_datum
+                   FROM krankzeitraum
+                  WHERE aktiv = 1
+                    AND mitarbeiter_id IN (" . $in . ")
+                    AND von_datum <= :ende
+                    AND (bis_datum IS NULL OR bis_datum >= :start)",
+                $params
+            );
+        } catch (\Throwable $e) {
+            $rows = [];
+        }
+
+        foreach ($rows as $row) {
+            $mid = (int)($row['mitarbeiter_id'] ?? 0);
+            $typ = strtolower((string)($row['typ'] ?? ''));
+            $von = (string)($row['von_datum'] ?? '');
+            $bis = (string)($row['bis_datum'] ?? '');
+            if ($mid <= 0 || ($typ !== 'lfz' && $typ !== 'kk') || $von === '') {
+                continue;
+            }
+
+            $code = $typ === 'kk' ? 'KK' : 'LF';
+            $class = $typ === 'kk' ? 'krank-kk' : 'krank-lf';
+            $label = $typ === 'kk'
+                ? 'Krank KK (Krankenkasse)'
+                : 'Krank LF (Lohnfortzahlung)';
+
+            $this->fuegeRangeEventEinGefiltert($events, $mid, $von, $bis !== '' ? $bis : $jahrEnde, $jahr, [
+                'code' => $code,
+                'class' => $class,
+                'label' => $label,
+                'priority' => 60,
+            ], $feiertage, true);
+        }
+    }
+
+    /**
+     * @param array<int,array<int,array<int,array<string,mixed>>>> $events
+     * @param int[] $mitarbeiterIds
+     */
+    private function fuegeTageswerteKennzeichenEin(array &$events, array $mitarbeiterIds, int $jahr): void
+    {
+        if ($mitarbeiterIds === []) {
+            return;
+        }
+
+        $params = [
+            'start' => sprintf('%04d-01-01', $jahr),
+            'ende' => sprintf('%04d-12-31', $jahr),
+        ];
+        $in = $this->baueInPlatzhalter($mitarbeiterIds, 'tw', $params);
+
+        try {
+            $rows = $this->db->fetchAlle(
+                'SELECT mitarbeiter_id, datum,
+                        arzt_stunden, krank_lfz_stunden, krank_kk_stunden, kurzarbeit_stunden, sonstige_stunden,
+                        kennzeichen_arzt, kennzeichen_krank_lfz, kennzeichen_krank_kk, kennzeichen_kurzarbeit, kennzeichen_sonstiges,
+                        kommentar
+                   FROM tageswerte_mitarbeiter
+                  WHERE datum BETWEEN :start AND :ende
+                    AND mitarbeiter_id IN (' . $in . ')',
+                $params
+            );
+        } catch (\Throwable $e) {
+            $rows = [];
+        }
+
+        foreach ($rows as $row) {
+            $mid = (int)($row['mitarbeiter_id'] ?? 0);
+            $datum = (string)($row['datum'] ?? '');
+            if ($mid <= 0 || !preg_match('/^\d{4}-\d{2}-\d{2}$/', $datum)) {
+                continue;
+            }
+
+            $kommentar = trim((string)($row['kommentar'] ?? ''));
+            $this->fuegeTageswertKennzeichenEventEin($events, $mid, $datum, $jahr, $row, 'kurzarbeit', [
+                'stunden' => 'kurzarbeit_stunden',
+                'kennzeichen' => 'kennzeichen_kurzarbeit',
+                'code' => 'KA',
+                'class' => 'kurzarbeit',
+                'label' => 'Kurzarbeit',
+                'priority' => 65,
+            ]);
+            $this->fuegeTageswertKennzeichenEventEin($events, $mid, $datum, $jahr, $row, 'arzt', [
+                'stunden' => 'arzt_stunden',
+                'kennzeichen' => 'kennzeichen_arzt',
+                'code' => 'A',
+                'class' => 'arzt',
+                'label' => 'Arzt',
+                'priority' => 68,
+            ]);
+            $this->fuegeTageswertKennzeichenEventEin($events, $mid, $datum, $jahr, $row, 'sonstiges', [
+                'stunden' => 'sonstige_stunden',
+                'kennzeichen' => 'kennzeichen_sonstiges',
+                'code' => 'S',
+                'class' => 'sonstiges',
+                'label' => $kommentar !== '' ? 'Sonstiges: ' . $kommentar : 'Sonstiges',
+                'priority' => 70,
+            ]);
+            $this->fuegeTageswertKennzeichenEventEin($events, $mid, $datum, $jahr, $row, 'krank_lfz', [
+                'stunden' => 'krank_lfz_stunden',
+                'kennzeichen' => 'kennzeichen_krank_lfz',
+                'code' => 'LF',
+                'class' => 'krank-lf',
+                'label' => 'Krank LF (Lohnfortzahlung)',
+                'priority' => 74,
+            ]);
+            $this->fuegeTageswertKennzeichenEventEin($events, $mid, $datum, $jahr, $row, 'krank_kk', [
+                'stunden' => 'krank_kk_stunden',
+                'kennzeichen' => 'kennzeichen_krank_kk',
+                'code' => 'KK',
+                'class' => 'krank-kk',
+                'label' => 'Krank KK (Krankenkasse)',
+                'priority' => 75,
+            ]);
+        }
+    }
+
+    /**
      * @param int[] $mitarbeiterIds
      * @return array<int,array<int,bool>>
      */
@@ -489,6 +627,36 @@ class UrlaubJahresuebersichtController
     }
 
     /**
+     * @return array<string,bool>
+     */
+    private function ladeFeiertagDatumSet(int $jahr): array
+    {
+        try {
+            $rows = $this->db->fetchAlle(
+                'SELECT datum
+                   FROM feiertag
+                  WHERE ist_betriebsfrei = 1
+                    AND datum BETWEEN :start AND :ende',
+                [
+                    'start' => sprintf('%04d-01-01', $jahr),
+                    'ende' => sprintf('%04d-12-31', $jahr),
+                ]
+            );
+        } catch (\Throwable $e) {
+            $rows = [];
+        }
+
+        $set = [];
+        foreach ($rows as $row) {
+            $datum = (string)($row['datum'] ?? '');
+            if ($datum !== '') {
+                $set[$datum] = true;
+            }
+        }
+        return $set;
+    }
+
+    /**
      * @param array<int,array<int,array<int,array<string,mixed>>>> $events
      * @param array<string,mixed> $event
      */
@@ -522,6 +690,89 @@ class UrlaubJahresuebersichtController
                 $events[$monat][$mitarbeiterId][$day] = $event;
             }
         }
+    }
+
+    /**
+     * @param array<int,array<int,array<int,array<string,mixed>>>> $events
+     * @param array<string,mixed> $event
+     * @param array<string,bool> $feiertage
+     */
+    private function fuegeRangeEventEinGefiltert(
+        array &$events,
+        int $mitarbeiterId,
+        string $von,
+        string $bis,
+        int $jahr,
+        array $event,
+        array $feiertage,
+        bool $nurArbeitstage
+    ): void {
+        try {
+            $start = new \DateTimeImmutable($von);
+            $ende = new \DateTimeImmutable($bis);
+            $jahrStart = new \DateTimeImmutable(sprintf('%04d-01-01', $jahr));
+            $jahrEnde = new \DateTimeImmutable(sprintf('%04d-12-31', $jahr));
+        } catch (\Throwable $e) {
+            return;
+        }
+
+        if ($start > $ende) {
+            return;
+        }
+
+        if ($start < $jahrStart) {
+            $start = $jahrStart;
+        }
+        if ($ende > $jahrEnde) {
+            $ende = $jahrEnde;
+        }
+
+        for ($tag = $start; $tag <= $ende; $tag = $tag->modify('+1 day')) {
+            $ymd = $tag->format('Y-m-d');
+            if ($nurArbeitstage) {
+                $wochentag = (int)$tag->format('N');
+                if ($wochentag >= 6 || isset($feiertage[$ymd])) {
+                    continue;
+                }
+            }
+
+            $monat = (int)$tag->format('n');
+            $day = (int)$tag->format('j');
+            $aktuell = $events[$monat][$mitarbeiterId][$day] ?? null;
+            if (!is_array($aktuell) || (int)($event['priority'] ?? 0) >= (int)($aktuell['priority'] ?? 0)) {
+                $events[$monat][$mitarbeiterId][$day] = $event;
+            }
+        }
+    }
+
+    /**
+     * @param array<int,array<int,array<int,array<string,mixed>>>> $events
+     * @param array<string,mixed> $row
+     * @param array{stunden:string,kennzeichen:string,code:string,class:string,label:string,priority:int} $definition
+     */
+    private function fuegeTageswertKennzeichenEventEin(
+        array &$events,
+        int $mitarbeiterId,
+        string $datum,
+        int $jahr,
+        array $row,
+        string $fallbackKey,
+        array $definition
+    ): void {
+        $kennzeichen = (int)($row[$definition['kennzeichen']] ?? 0);
+        $stunden = $this->parseDecimal((string)($row[$definition['stunden']] ?? '0'));
+        if ($kennzeichen !== 1 && $stunden <= 0.0) {
+            return;
+        }
+
+        $event = [
+            'code' => $definition['code'],
+            'class' => $definition['class'],
+            'label' => $definition['label'],
+            'priority' => $definition['priority'],
+        ];
+
+        $this->fuegeRangeEventEin($events, $mitarbeiterId, $datum, $datum, $jahr, $event + ['fallback_key' => $fallbackKey]);
     }
 
     /**
@@ -660,5 +911,11 @@ class UrlaubJahresuebersichtController
     private function formatTage(float $tage): string
     {
         return number_format($tage, 2, ',', '.');
+    }
+
+    private function parseDecimal(string $wert): float
+    {
+        $wert = trim(str_replace(',', '.', $wert));
+        return is_numeric($wert) ? (float)$wert : 0.0;
     }
 }

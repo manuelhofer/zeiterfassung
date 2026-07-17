@@ -23,6 +23,7 @@ $hatBetriebsferienAdminRecht  = false;
 $hatQueueAdminRecht           = false;
 $hatTerminalAdminRecht         = false;
 $hatKonfigurationAdminRecht   = false;
+$hatAuditLogAdminRecht        = false;
 $hatKrankzeitraumAdminRecht   = false;
 $hatUrlaubKontingentAdminRecht = false;
 $hatUrlaubGenehmigungRecht  = false;
@@ -70,6 +71,7 @@ if (class_exists('AuthService')) {
             $hatBetriebsferienAdminRecht   = $auth->hatRecht('BETRIEBSFERIEN_VERWALTEN') || $hatLegacyAdminRolle;
             $hatQueueAdminRecht            = $auth->hatRecht('QUEUE_VERWALTEN') || $hatLegacyAdminRolle;
             $hatTerminalAdminRecht         = $auth->hatRecht('TERMINAL_VERWALTEN') || $hatLegacyAdminRolle;
+            $hatAuditLogAdminRecht         = $auth->hatRecht('KONFIGURATION_VERWALTEN') || $auth->hatRecht('ROLLEN_RECHTE_VERWALTEN') || $hatLegacyAdminRolle;
 
             // Diese Rechte-Codes sind (noch) nicht überall geseedet – Legacy-Fallback bleibt aktiv.
             $hatRundungsregelAdminRecht    = $auth->hatRecht('ZEIT_RUNDUNGSREGELN_VERWALTEN') || $hatLegacyAdminRolle;
@@ -87,6 +89,7 @@ if (class_exists('AuthService')) {
             $hatBetriebsferienAdminRecht   = $hatLegacyAdminRolle;
             $hatQueueAdminRecht            = $hatLegacyAdminRolle;
             $hatTerminalAdminRecht         = $hatLegacyAdminRolle;
+            $hatAuditLogAdminRecht         = $hatLegacyAdminRolle;
             $hatKonfigurationAdminRecht    = $hatLegacyAdminRolle;
             $hatUrlaubKontingentAdminRecht = $hatLegacyAdminRolle;
             $hatKrankzeitraumAdminRecht   = $hatKonfigurationAdminRecht;
@@ -147,6 +150,7 @@ $tab = isset($_GET['tab']) ? (string)$_GET['tab'] : '';
 $navUrlaubAktiv = in_array($seite, [
     'urlaub_meine',
     'urlaub_genehmigung',
+    'urlaub_verwaltung',
     'urlaub_kontingent_admin',
     'urlaub_kontingent_admin_bearbeiten',
     'betriebsferien_admin',
@@ -186,6 +190,7 @@ $navVerwaltungAktiv = in_array($seite, [
     'queue_admin',
     'terminal_admin',
     'terminal_admin_bearbeiten',
+    'audit_logs',
 ], true);
 
 $hatRechteMenue = $hatMitarbeiterAdminRecht || $hatRollenAdminRecht || $hatAbteilungsAdminRecht;
@@ -195,7 +200,8 @@ $hatVerwaltungMenue = $hatMaschineAdminRecht
     || $hatKonfigurationAdminRecht
     || $hatKrankzeitraumAdminRecht
     || $hatQueueAdminRecht
-    || $hatTerminalAdminRecht;
+    || $hatTerminalAdminRecht
+    || $hatAuditLogAdminRecht;
 
 $navVerwaltungStartUrl = '?seite=dashboard';
 if ($hatKonfigurationAdminRecht) {
@@ -212,6 +218,8 @@ if ($hatKonfigurationAdminRecht) {
     $navVerwaltungStartUrl = '?seite=queue_admin';
 } elseif ($hatTerminalAdminRecht) {
     $navVerwaltungStartUrl = '?seite=terminal_admin';
+} elseif ($hatAuditLogAdminRecht) {
+    $navVerwaltungStartUrl = '?seite=audit_logs';
 }
 ?>
 
@@ -333,6 +341,471 @@ if ($hatKonfigurationAdminRecht) {
             display: block;
             color: #555555;
         }
+
+        :root {
+            --backend-bg: #f4f6f7;
+            --backend-surface: #ffffff;
+            --backend-line: #d9e0e4;
+            --backend-line-soft: #edf1f3;
+            --backend-text: #172126;
+            --backend-muted: #5d6b73;
+            --backend-primary: #255f85;
+            --backend-primary-dark: #1d4f70;
+            --backend-danger: #a82222;
+            --backend-danger-bg: #fff1f1;
+            --backend-success: #1f6f43;
+            --backend-success-bg: #eef9f1;
+            --backend-info-bg: #f3f8fb;
+        }
+
+        body {
+            background-color: var(--backend-bg);
+            color: var(--backend-text);
+            font-size: 15px;
+            line-height: 1.4;
+        }
+
+        main {
+            padding: 1.35rem 1.35rem 2rem 1.35rem;
+        }
+
+        h2 {
+            margin: 0 0 0.85rem 0;
+            font-size: 1.35rem;
+        }
+
+        h3 {
+            margin: 1rem 0 0.6rem 0;
+            font-size: 1.08rem;
+        }
+
+        h4 {
+            margin: 1.15rem 0 0.55rem 0;
+            font-size: 1rem;
+        }
+
+        p {
+            margin: 0.55rem 0;
+        }
+
+        section {
+            margin-bottom: 1.35rem;
+        }
+
+        a {
+            color: #1f5f85;
+        }
+
+        a:hover,
+        a:focus {
+            color: #143f59;
+        }
+
+        label {
+            font-weight: 600;
+        }
+
+        input,
+        select,
+        textarea,
+        button {
+            font: inherit;
+        }
+
+        input[type="text"],
+        input[type="search"],
+        input[type="email"],
+        input[type="password"],
+        input[type="number"],
+        input[type="date"],
+        input[type="time"],
+        select,
+        textarea {
+            border: 1px solid #b9c5cb;
+            border-radius: 4px;
+            padding: 0.34rem 0.45rem;
+            background: #ffffff;
+            color: var(--backend-text);
+            box-sizing: border-box;
+        }
+
+        input[type="checkbox"],
+        input[type="radio"] {
+            transform: translateY(1px);
+        }
+
+        textarea {
+            max-width: 100%;
+        }
+
+        button,
+        .button-link {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.35rem;
+            border: 1px solid #1f5f85;
+            border-radius: 4px;
+            background: var(--backend-primary);
+            color: #ffffff;
+            padding: 0.38rem 0.68rem;
+            cursor: pointer;
+            text-decoration: none;
+            line-height: 1.2;
+            min-height: 2rem;
+        }
+
+        button:hover,
+        button:focus,
+        .button-link:hover,
+        .button-link:focus {
+            background: var(--backend-primary-dark);
+            color: #ffffff;
+            text-decoration: none;
+        }
+
+        button[name="aktion"][value="ablehnen"],
+        button.danger,
+        .button-link.danger {
+            border-color: #8e1d1d;
+            background: var(--backend-danger);
+        }
+
+        button[name="aktion"][value="ablehnen"]:hover,
+        button[name="aktion"][value="ablehnen"]:focus,
+        button.danger:hover,
+        button.danger:focus,
+        .button-link.danger:hover,
+        .button-link.danger:focus {
+            background: #821818;
+        }
+
+        table {
+            border: 1px solid var(--backend-line);
+            font-size: 0.93rem;
+        }
+
+        table th,
+        table td {
+            border: 1px solid var(--backend-line);
+            padding: 0.42rem 0.5rem;
+            vertical-align: top;
+        }
+
+        table th {
+            background-color: #e8eef1;
+            color: #111b20;
+            font-weight: 700;
+        }
+
+        tbody tr:nth-child(even) td {
+            background-color: #fbfcfd;
+        }
+
+        tbody tr:hover td {
+            background-color: #f2f7fa;
+        }
+
+        fieldset {
+            border: 1px solid var(--backend-line);
+            border-radius: 6px;
+            padding: 0.95rem 1rem 1rem 1rem;
+            margin: 0 0 0.85rem 0;
+            background: #fbfcfd;
+        }
+
+        legend {
+            font-weight: 700;
+            padding: 0 0.35rem;
+        }
+
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 1rem;
+            flex-wrap: wrap;
+            margin-bottom: 1rem;
+        }
+
+        .page-header h2 {
+            margin-bottom: 0.25rem;
+        }
+
+        .page-header p {
+            color: var(--backend-muted);
+            margin: 0;
+        }
+
+        .toolbar {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: flex-end;
+            gap: 0.65rem;
+            margin: 0.65rem 0 1rem 0;
+        }
+
+        .toolbar label {
+            display: inline-flex;
+            flex-direction: column;
+            gap: 0.22rem;
+        }
+
+        .form-row {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: flex-end;
+            gap: 0.7rem;
+            margin: 0.5rem 0;
+        }
+
+        .form-row label {
+            display: inline-flex;
+            flex-direction: column;
+            gap: 0.22rem;
+        }
+
+        .form-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.55rem;
+            align-items: center;
+            margin-top: 0.8rem;
+        }
+
+        .table-wrap {
+            overflow-x: auto;
+            max-width: 100%;
+            margin: 0.65rem 0 1rem 0;
+        }
+
+        .table-wrap table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 640px;
+        }
+
+        .table-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.4rem;
+            align-items: center;
+        }
+
+        .inline-form {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            align-items: flex-start;
+        }
+
+        .link-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.55rem;
+            list-style: none;
+            padding: 0;
+            margin: 0.75rem 0 0 0;
+        }
+
+        .link-list a {
+            display: inline-flex;
+            align-items: center;
+            min-height: 1.9rem;
+            border: 1px solid var(--backend-line);
+            border-radius: 4px;
+            padding: 0.25rem 0.55rem;
+            background: #ffffff;
+            text-decoration: none;
+        }
+
+        .link-list a:hover,
+        .link-list a:focus {
+            border-color: #9eb8c6;
+            background: #f7fbfd;
+            text-decoration: none;
+        }
+
+        .muted {
+            color: var(--backend-muted);
+        }
+
+        .numeric {
+            text-align: right;
+            font-variant-numeric: tabular-nums;
+            white-space: nowrap;
+        }
+
+        p.error,
+        div.error,
+        p.success,
+        div.success,
+        p.notice,
+        div.notice {
+            border-radius: 6px;
+            padding: 0.65rem 0.8rem;
+            border: 1px solid var(--backend-line);
+            margin: 0.75rem 0;
+        }
+
+        p.error,
+        div.error {
+            background: var(--backend-danger-bg);
+            border-color: #e2a5a5;
+            color: var(--backend-danger);
+        }
+
+        p.success,
+        div.success {
+            background: var(--backend-success-bg);
+            border-color: #9ac8aa;
+            color: var(--backend-success);
+        }
+
+        p.notice,
+        div.notice {
+            background: var(--backend-info-bg);
+            color: #314852;
+        }
+
+        .admin-card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 0.8rem;
+            margin: 0.75rem 0 1rem 0;
+        }
+
+        .admin-card {
+            border: 1px solid var(--backend-line);
+            border-radius: 6px;
+            background: var(--backend-surface);
+            padding: 0.85rem 0.95rem;
+        }
+
+        .admin-card strong {
+            display: block;
+            margin-bottom: 0.35rem;
+        }
+
+        .admin-card p {
+            color: var(--backend-muted);
+            margin: 0.25rem 0 0 0;
+        }
+
+        .admin-card .card-link {
+            display: inline-block;
+            margin-top: 0.45rem;
+            font-weight: 700;
+        }
+
+        .permission-card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 1rem;
+            align-items: start;
+            margin: 0.75rem 0 1rem 0;
+        }
+
+        .permission-card {
+            border: 1px solid var(--backend-line);
+            border-radius: 8px;
+            background: var(--backend-surface);
+            padding: 0.95rem 1rem;
+        }
+
+        .permission-card h3 {
+            margin-top: 0;
+        }
+
+        .role-option-list {
+            display: grid;
+            gap: 0.45rem;
+            margin: 0.6rem 0;
+        }
+
+        .role-option {
+            display: block;
+            border: 1px solid var(--backend-line-soft);
+            border-radius: 6px;
+            background: #fbfcfd;
+            padding: 0.55rem 0.65rem;
+        }
+
+        .role-option small {
+            display: block;
+            color: var(--backend-muted);
+            margin-left: 1.45rem;
+        }
+
+        .compact-form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, max-content));
+            gap: 0.65rem;
+            align-items: end;
+            margin-top: 0.65rem;
+        }
+
+        .warning-panel {
+            border: 2px solid #d64a4a;
+            border-radius: 6px;
+            padding: 0.9rem 1rem;
+            background: #fff7f7;
+        }
+
+        .warning-panel > strong {
+            color: var(--backend-danger);
+        }
+
+        .status-pill {
+            display: inline-flex;
+            align-items: center;
+            border-radius: 999px;
+            padding: 0.12rem 0.48rem;
+            font-size: 0.82rem;
+            font-weight: 700;
+            border: 1px solid var(--backend-line);
+            background: #ffffff;
+            white-space: nowrap;
+        }
+
+        .status-pill.ok {
+            color: var(--backend-success);
+            border-color: #9ac8aa;
+            background: var(--backend-success-bg);
+        }
+
+        .status-pill.error {
+            color: var(--backend-danger);
+            border-color: #e2a5a5;
+            background: var(--backend-danger-bg);
+        }
+
+        @media (max-width: 760px) {
+            header {
+                align-items: flex-start;
+                flex-direction: column;
+                gap: 0.35rem;
+            }
+
+            nav {
+                padding: 0.45rem 0.85rem;
+            }
+
+            nav a,
+            .nav-menu {
+                margin-right: 0.7rem;
+                margin-bottom: 0.2rem;
+            }
+
+            main {
+                padding: 1rem 0.75rem 1.5rem 0.75rem;
+            }
+
+            .toolbar,
+            .form-row {
+                align-items: stretch;
+            }
+        }
     </style>
 </head>
 <body>
@@ -351,6 +824,7 @@ if ($hatKonfigurationAdminRecht) {
             <a href="?seite=urlaub_meine">Mein Urlaub</a>
             <?php if ($hatUrlaubGenehmigungRecht): ?>
                 <a href="?seite=urlaub_genehmigung">Urlaub genehmigen</a>
+                <a href="?seite=urlaub_verwaltung">Urlaubsverwaltung</a>
             <?php endif; ?>
             <?php if ($hatUrlaubKontingentAdminRecht): ?>
                 <a href="?seite=urlaub_kontingent_admin">Urlaub-Kontingent</a>
@@ -420,6 +894,9 @@ if ($hatKonfigurationAdminRecht) {
                 <?php endif; ?>
                 <?php if ($hatTerminalAdminRecht): ?>
                     <a href="?seite=terminal_admin">Terminals</a>
+                <?php endif; ?>
+                <?php if ($hatAuditLogAdminRecht): ?>
+                    <a href="?seite=audit_logs">Logs</a>
                 <?php endif; ?>
             </span>
         </span>

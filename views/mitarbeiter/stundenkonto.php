@@ -134,10 +134,14 @@ $umbuchungLink = static function (int $mid, int $monat, int $jahr, bool $stealth
 ?>
 
 <section<?php echo $stealthStyle; ?>>
+    <div class="page-header">
+        <div>
     <h2>Stundenkonto</h2>
+        </div>
+    </div>
 
     <?php if ($stundenkontoStealthMode): ?>
-        <p style="color: #c00; font-weight: bold;">
+        <p class="error">
             Stealth-Modus aktiv: Buchungen werden als verdeckte Stundenkonto-Korrekturen gespeichert und in den normalen Listen nicht angezeigt.
         </p>
     <?php endif; ?>
@@ -150,7 +154,7 @@ $umbuchungLink = static function (int $mid, int $monat, int $jahr, bool $stealth
         <p class="success"><?php echo htmlspecialchars((string)$successmeldung, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></p>
     <?php endif; ?>
 
-    <form method="get" action="">
+    <form method="get" action="" class="toolbar">
         <input type="hidden" name="seite" value="mitarbeiter_stundenkonto">
         <?php if ($stundenkontoAnsicht === 'sammelumbuchung'): ?>
             <input type="hidden" name="ansicht" value="sammelumbuchung">
@@ -249,6 +253,7 @@ $umbuchungLink = static function (int $mid, int $monat, int $jahr, bool $stealth
                         <p><small>Ist-Stunden im angezeigten Monat: <?php echo htmlspecialchars($fmtStunden($istMonatText), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></small></p>
                     <?php endif; ?>
 
+                    <div class="table-wrap">
                     <table>
                         <thead>
                             <tr>
@@ -304,6 +309,7 @@ $umbuchungLink = static function (int $mid, int $monat, int $jahr, bool $stealth
                             <?php endforeach; ?>
                         </tbody>
                     </table>
+                    </div>
 
                     <div>
                         Zieltag
@@ -349,6 +355,7 @@ $umbuchungLink = static function (int $mid, int $monat, int $jahr, bool $stealth
         <h4>Letzte Verteilbuchungen / manuelle Korrekturbuchungen</h4>
 
         <?php if (count($stundenkontoLetzteKorrekturen) > 0): ?>
+            <div class="table-wrap">
             <table>
                 <thead>
                     <tr>
@@ -384,6 +391,7 @@ $umbuchungLink = static function (int $mid, int $monat, int $jahr, bool $stealth
                     <?php endforeach; ?>
                 </tbody>
             </table>
+            </div>
         <?php else: ?>
             <p><small>Noch keine Stundenkonto-Korrekturen vorhanden.</small></p>
         <?php endif; ?>
@@ -391,6 +399,7 @@ $umbuchungLink = static function (int $mid, int $monat, int $jahr, bool $stealth
         <h4>Letzte Verteilbuchungen (Batch)</h4>
 
         <?php if (count($stundenkontoLetzteBatches) > 0): ?>
+            <div class="table-wrap">
             <table>
                 <thead>
                     <tr>
@@ -457,6 +466,7 @@ $umbuchungLink = static function (int $mid, int $monat, int $jahr, bool $stealth
                     <?php endforeach; ?>
                 </tbody>
             </table>
+            </div>
             <p><small>Hinweis: Arbeitstage = Montag bis Freitag (Feiertage/Betriebsferien werden aktuell nicht automatisch erkannt).</small></p>
         <?php else: ?>
             <p><small>Noch keine Verteilbuchungen vorhanden.</small></p>

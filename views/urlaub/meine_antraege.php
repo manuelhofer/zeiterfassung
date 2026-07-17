@@ -27,7 +27,79 @@ $urlaubSaldo = (isset($urlaubSaldo) && is_array($urlaubSaldo)) ? $urlaubSaldo : 
 
 /** @var array<string,mixed>|null $urlaubVorschau */
 $urlaubVorschau = (isset($urlaubVorschau) && is_array($urlaubVorschau)) ? $urlaubVorschau : null;
+
+$parseYmd = static function (string $ymd): ?DateTimeImmutable {
+    $dt = DateTimeImmutable::createFromFormat('Y-m-d', $ymd);
+    return ($dt instanceof DateTimeImmutable) ? $dt : null;
+};
+
+$fmtDatumDe = static function (string $ymd) use ($parseYmd): string {
+    $dt = $parseYmd($ymd);
+    return ($dt instanceof DateTimeImmutable) ? $dt->format('d.m.Y') : $ymd;
+};
+
+$fmtDatumZeitDe = static function (string $wert): string {
+    $wert = trim($wert);
+    if ($wert === '') {
+        return '';
+    }
+
+    try {
+        if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $wert) === 1) {
+            return (new DateTimeImmutable($wert))->format('d.m.Y');
+        }
+
+        if (preg_match('/^\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2}$/', $wert) === 1) {
+            return (new DateTimeImmutable($wert))->format('d.m.Y H:i:s');
+        }
+    } catch (Throwable $e) {
+        return $wert;
+    }
+
+    return $wert;
+};
 ?>
+
+<style>
+    .urlaub-card {
+        border: 1px solid #d5dde2;
+        border-radius: 8px;
+        background: #ffffff;
+        padding: 0.85rem 1rem;
+        margin-bottom: 0.9rem;
+    }
+
+    .urlaub-card-muted {
+        background: #fbfdff;
+    }
+
+    .urlaub-card h3 {
+        margin-top: 0;
+    }
+
+    .urlaub-preview-note {
+        margin-top: 0.45rem;
+        color: #8a4b00;
+        background: #fff3cd;
+        border: 1px solid #ffdf7e;
+        border-radius: 6px;
+        padding: 0.4rem 0.55rem;
+        display: block;
+        width: fit-content;
+    }
+
+    .urlaub-preview-warning {
+        margin-top: 0.45rem;
+        color: #8a1f11;
+        background: #fff0ee;
+        border: 1px solid #d93025;
+        border-radius: 6px;
+        padding: 0.5rem 0.65rem;
+        display: block;
+        width: fit-content;
+        max-width: 100%;
+    }
+</style>
 
 <section>
     <h2>Meine Urlaubsanträge</h2>
@@ -48,11 +120,6 @@ $urlaubVorschau = (isset($urlaubVorschau) && is_array($urlaubVorschau)) ? $urlau
 
         $jahrStart = new DateTimeImmutable(sprintf('%04d-01-01', $anzeigeJahr));
         $jahrEnde  = new DateTimeImmutable(sprintf('%04d-12-31', $anzeigeJahr));
-
-        $parseYmd = static function (string $ymd): ?DateTimeImmutable {
-            $dt = DateTimeImmutable::createFromFormat('Y-m-d', $ymd);
-            return ($dt instanceof DateTimeImmutable) ? $dt : null;
-        };
 
         $hatAndereJahre = false;
         foreach ($antraege as $tmpA) {
@@ -148,7 +215,7 @@ $urlaubVorschau = (isset($urlaubVorschau) && is_array($urlaubVorschau)) ? $urlau
         $bfRestText = ($bfRestArbeitstage === null) ? '' : $fmtTage((float)$bfRestArbeitstage);
         ?>
 
-        <div style="border:1px solid #ddd;padding:0.5rem 0.75rem;margin-bottom:0.75rem;background:#f7f7f7;">
+        <div class="urlaub-card urlaub-card-muted">
             <strong>Urlaub verfügbar</strong><br>
 
             <div style="display:flex;gap:2rem;flex-wrap:wrap;margin-top:0.35rem;">
@@ -210,7 +277,7 @@ $urlaubVorschau = (isset($urlaubVorschau) && is_array($urlaubVorschau)) ? $urlau
     <?php endif; ?>
 
     <?php if ($zeigeFormular): ?>
-        <div style="border:1px solid #ddd;padding:0.75rem;margin-bottom:1rem;background:#fafafa;">
+        <div class="urlaub-card">
             <h3 style="margin-top:0;">Urlaubsantrag stellen</h3>
 
             <?php if ($urlaubSaldo !== null): ?>
@@ -220,10 +287,11 @@ $urlaubVorschau = (isset($urlaubVorschau) && is_array($urlaubVorschau)) ? $urlau
                 $pvTage = (string)($urlaubVorschau['tage_antrag'] ?? '0.00');
                 $pvNach = (string)($urlaubVorschau['nach_antrag'] ?? '0.00');
                 $pvWarn = trim((string)($urlaubVorschau['warnung'] ?? ''));
+                $pvHinweise = (isset($urlaubVorschau['hinweise']) && is_array($urlaubVorschau['hinweise'])) ? $urlaubVorschau['hinweise'] : [];
                 $pvNachNum = (float)$pvNach;
                 ?>
 
-                <div style="border:1px solid #ddd;padding:0.5rem 0.75rem;margin-bottom:0.75rem;background:#f7f7f7;">
+                <div class="urlaub-card urlaub-card-muted">
                     <strong>Vorschau</strong><br>
                     Verfügbar: <strong><?php echo htmlspecialchars($pvVerfuegbar, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></strong>
                     <?php if ($pvHat): ?>
@@ -235,12 +303,19 @@ $urlaubVorschau = (isset($urlaubVorschau) && is_array($urlaubVorschau)) ? $urlau
                     <?php endif; ?>
 
                     <?php if ($pvWarn !== ''): ?>
-                        <div style="margin-top:0.35rem;color:#b71c1c;"><small><?php echo htmlspecialchars($pvWarn, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></small></div>
+                        <div class="urlaub-preview-warning"><small><?php echo htmlspecialchars($pvWarn, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></small></div>
+                    <?php endif; ?>
+                    <?php if ($pvHinweise !== []): ?>
+                        <div class="urlaub-preview-note">
+                            <?php foreach ($pvHinweise as $hinweis): ?>
+                                <small><?php echo htmlspecialchars((string)$hinweis, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></small><br>
+                            <?php endforeach; ?>
+                        </div>
                     <?php endif; ?>
                 </div>
             <?php endif; ?>
 
-            <form method="post" action="?seite=urlaub_meine&amp;aktion=neu">
+            <form method="post" action="?seite=urlaub_meine&amp;aktion=neu" id="urlaub_antrag_form">
                 <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($csrfToken, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>">
                 <div style="display:flex; gap:1rem; flex-wrap:wrap; align-items:flex-end;">
                     <div>
@@ -267,6 +342,46 @@ $urlaubVorschau = (isset($urlaubVorschau) && is_array($urlaubVorschau)) ? $urlau
                 <button type="submit">Antrag speichern</button>
                 <a href="?seite=urlaub_meine" style="margin-left:0.75rem;">Abbrechen</a>
             </form>
+
+            <script>
+            (function(){
+                var von = document.getElementById('von_datum');
+                var bis = document.getElementById('bis_datum');
+                var kommentar = document.getElementById('kommentar_mitarbeiter');
+                var timer = null;
+                if (!von || !bis) return;
+
+                function aktualisieren() {
+                    if (!von.value || !bis.value) return;
+
+                    var url = new URL(window.location.href);
+                    url.searchParams.set('seite', 'urlaub_meine');
+                    url.searchParams.set('aktion', 'neu');
+                    url.searchParams.set('von_datum', von.value);
+                    url.searchParams.set('bis_datum', bis.value);
+
+                    if (kommentar && kommentar.value) {
+                        url.searchParams.set('kommentar_mitarbeiter', kommentar.value);
+                    } else {
+                        url.searchParams.delete('kommentar_mitarbeiter');
+                    }
+
+                    window.location.href = url.toString();
+                }
+
+                function aktualisierenVerzoegert() {
+                    if (timer) {
+                        window.clearTimeout(timer);
+                    }
+                    timer = window.setTimeout(aktualisieren, 250);
+                }
+
+                ['input', 'change', 'blur'].forEach(function(evt){
+                    von.addEventListener(evt, aktualisierenVerzoegert);
+                    bis.addEventListener(evt, aktualisierenVerzoegert);
+                });
+            })();
+            </script>
         </div>
     <?php endif; ?>
 
@@ -311,8 +426,8 @@ $urlaubVorschau = (isset($urlaubVorschau) && is_array($urlaubVorschau)) ? $urlau
                 }
             ?>
                 <tr>
-                    <td><?php echo htmlspecialchars((string)($a['von_datum'] ?? ''), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></td>
-                    <td><?php echo htmlspecialchars((string)($a['bis_datum'] ?? ''), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></td>
+                    <td><?php echo htmlspecialchars($fmtDatumDe($vonStr), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></td>
+                    <td><?php echo htmlspecialchars($fmtDatumDe($bisStr), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></td>
                     <td><?php echo htmlspecialchars((string)($a['tage_gesamt'] ?? ''), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></td>
                     <td><?php echo htmlspecialchars((string)($a['status'] ?? ''), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></td>
                     <td>
@@ -324,7 +439,7 @@ $urlaubVorschau = (isset($urlaubVorschau) && is_array($urlaubVorschau)) ? $urlau
                         if ($status === 'genehmigt' || $status === 'abgelehnt') {
                             $parts = [];
                             if ($entscheidungsDatum !== '') {
-                                $parts[] = htmlspecialchars($entscheidungsDatum, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+                                $parts[] = htmlspecialchars($fmtDatumZeitDe($entscheidungsDatum), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
                             }
                             if ($entscheidungsName !== '') {
                                 $parts[] = 'durch ' . htmlspecialchars($entscheidungsName, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');

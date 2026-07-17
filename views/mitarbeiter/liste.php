@@ -14,11 +14,13 @@ $fehlermeldung    = $fehlermeldung ?? null;
 ?>
 
 <section>
-    <h2>Mitarbeiterverwaltung</h2>
-
-    <p>
-        <a href="?seite=mitarbeiter_admin_bearbeiten">Neuen Mitarbeiter anlegen</a>
-    </p>
+    <div class="page-header">
+        <div>
+            <h2>Mitarbeiterverwaltung</h2>
+            <p>Mitarbeiter suchen, bearbeiten und die zugeh&ouml;rigen Verwaltungsbereiche &ouml;ffnen.</p>
+        </div>
+        <a class="button-link" href="?seite=mitarbeiter_admin_bearbeiten">Neuen Mitarbeiter anlegen</a>
+    </div>
 
     <?php if ($fehlermeldung !== null): ?>
         <p class="error"><?php echo htmlspecialchars($fehlermeldung, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></p>
@@ -27,6 +29,7 @@ $fehlermeldung    = $fehlermeldung ?? null;
     <?php if (count($mitarbeiterListe) === 0): ?>
         <p>Es sind derzeit keine aktiven Mitarbeiter erfasst.</p>
     <?php else: ?>
+        <div class="table-wrap">
         <table>
             <thead>
                 <tr>
@@ -55,24 +58,25 @@ $fehlermeldung    = $fehlermeldung ?? null;
                         $nameVoll  = trim($vorname . ' ' . $nachname);
                     ?>
                     <tr>
-                        <td><?php echo $id; ?></td>
+                        <td class="numeric"><?php echo $id; ?></td>
                         <td><?php echo htmlspecialchars($nameVoll, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></td>
                         <td><?php echo htmlspecialchars($benutzer, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></td>
                         <td><?php echo htmlspecialchars($email, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></td>
                         <td><?php echo htmlspecialchars($rfid, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></td>
-                        <td><?php echo $loginOk ? 'Ja' : 'Nein'; ?></td>
-                        <td><?php echo $aktiv ? 'Ja' : 'Nein'; ?></td>
+                        <td><span class="status-pill <?php echo $loginOk ? 'ok' : 'error'; ?>"><?php echo $loginOk ? 'Ja' : 'Nein'; ?></span></td>
+                        <td><span class="status-pill <?php echo $aktiv ? 'ok' : 'error'; ?>"><?php echo $aktiv ? 'Ja' : 'Nein'; ?></span></td>
                         <td>
-                            <a href="?seite=mitarbeiter_admin_bearbeiten&amp;id=<?php echo (int)$id; ?>">Bearbeiten</a>
-                            |
-                            <a href="?seite=mitarbeiter_rechte&amp;id=<?php echo (int)$id; ?>">Rollen &amp; Rechte</a>
-                            |
-                            <a href="?seite=mitarbeiter_stundenkonto&amp;mitarbeiter_id=<?php echo (int)$id; ?>">Stundenkonto</a>
+                            <div class="table-actions">
+                                <a href="?seite=mitarbeiter_admin_bearbeiten&amp;id=<?php echo (int)$id; ?>">Bearbeiten</a>
+                                <a href="?seite=mitarbeiter_rechte&amp;id=<?php echo (int)$id; ?>">Rollen &amp; Rechte</a>
+                                <a href="?seite=mitarbeiter_stundenkonto&amp;mitarbeiter_id=<?php echo (int)$id; ?>">Stundenkonto</a>
+                            </div>
                         </td>
                     </tr>
                 <?php endforeach; ?>
             </tbody>
         </table>
+        </div>
     <?php endif; ?>
 </section>
 

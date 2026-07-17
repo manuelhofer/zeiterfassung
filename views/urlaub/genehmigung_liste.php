@@ -23,7 +23,12 @@ $markierterAntragId = isset($_GET['antrag_id']) ? (int)$_GET['antrag_id'] : 0;
 ?>
 
 <section>
+    <div class="page-header">
+        <div>
     <h2>Offene Urlaubsanträge</h2>
+
+        </div>
+    </div>
 
     <?php if ($meldung !== null && $meldung !== ''): ?>
         <p class="success"><?php echo htmlspecialchars($meldung, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></p>
@@ -36,6 +41,7 @@ $markierterAntragId = isset($_GET['antrag_id']) ? (int)$_GET['antrag_id'] : 0;
     <?php if ($antraege === []): ?>
         <p>Es liegen keine offenen Urlaubsanträge vor.</p>
     <?php else: ?>
+        <div class="table-wrap">
         <table>
             <thead>
             <tr>
@@ -94,7 +100,7 @@ $markierterAntragId = isset($_GET['antrag_id']) ? (int)$_GET['antrag_id'] : 0;
                         <?php echo htmlspecialchars($kommentarMitarbeiter, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>
                     </td>
                     <td>
-                        <form method="post" action="?seite=urlaub_genehmigung" style="display:flex; gap:0.5rem; flex-wrap:wrap; align-items:flex-start;">
+                        <form method="post" action="?seite=urlaub_genehmigung" class="inline-form">
                             <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($csrfToken, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>">
                             <input type="hidden" name="antrag_id" value="<?php echo (int)$antragId; ?>">
 
@@ -108,6 +114,7 @@ $markierterAntragId = isset($_GET['antrag_id']) ? (int)$_GET['antrag_id'] : 0;
             <?php endforeach; ?>
             </tbody>
         </table>
+        </div>
     <?php endif; ?>
 </section>
 

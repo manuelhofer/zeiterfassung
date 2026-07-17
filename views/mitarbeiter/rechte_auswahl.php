@@ -17,7 +17,12 @@ $successmeldung = $successmeldung ?? null;
 ?>
 
 <section>
-    <h2>Rollen &amp; Rechte</h2>
+    <div class="page-header">
+        <div>
+            <h2>Rollen &amp; Rechte</h2>
+            <p>Mitarbeiter auswaehlen und die Rollenverwaltung oeffnen.</p>
+        </div>
+    </div>
 
     <?php if ($fehlermeldung !== null): ?>
         <p class="error"><?php echo htmlspecialchars($fehlermeldung, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></p>
@@ -27,36 +32,39 @@ $successmeldung = $successmeldung ?? null;
         <p class="success"><?php echo htmlspecialchars($successmeldung, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></p>
     <?php endif; ?>
 
-    <form method="get" action="">
+    <form method="get" action="" class="toolbar">
         <input type="hidden" name="seite" value="mitarbeiter_rechte">
-        <label for="rechte_mitarbeiter_id">Mitarbeiter</label>
-        <select name="id" id="rechte_mitarbeiter_id" required>
-            <option value="">-- bitte waehlen --</option>
-            <?php foreach ($mitarbeiterListe as $mit): ?>
-                <?php
-                    $id = (int)($mit['id'] ?? 0);
-                    if ($id <= 0) {
-                        continue;
-                    }
-                    $vorname = trim((string)($mit['vorname'] ?? ''));
-                    $nachname = trim((string)($mit['nachname'] ?? ''));
-                    $name = trim($nachname . ', ' . $vorname);
-                    if ($name === ',' || $name === '') {
-                        $name = trim((string)($mit['benutzername'] ?? ''));
-                    }
-                    if ($name === '') {
-                        $name = 'ID ' . $id;
-                    }
-                ?>
-                <option value="<?php echo $id; ?>"><?php echo htmlspecialchars($name, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></option>
-            <?php endforeach; ?>
-        </select>
+        <label for="rechte_mitarbeiter_id">
+            Mitarbeiter
+            <select name="id" id="rechte_mitarbeiter_id" required>
+                <option value="">-- bitte waehlen --</option>
+                <?php foreach ($mitarbeiterListe as $mit): ?>
+                    <?php
+                        $id = (int)($mit['id'] ?? 0);
+                        if ($id <= 0) {
+                            continue;
+                        }
+                        $vorname = trim((string)($mit['vorname'] ?? ''));
+                        $nachname = trim((string)($mit['nachname'] ?? ''));
+                        $name = trim($nachname . ', ' . $vorname);
+                        if ($name === ',' || $name === '') {
+                            $name = trim((string)($mit['benutzername'] ?? ''));
+                        }
+                        if ($name === '') {
+                            $name = 'ID ' . $id;
+                        }
+                    ?>
+                    <option value="<?php echo $id; ?>"><?php echo htmlspecialchars($name, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></option>
+                <?php endforeach; ?>
+            </select>
+        </label>
         <button type="submit">Oeffnen</button>
     </form>
 
     <?php if (count($mitarbeiterListe) === 0): ?>
         <p>Es sind derzeit keine aktiven Mitarbeiter erfasst.</p>
     <?php else: ?>
+        <div class="table-wrap">
         <table>
             <thead>
                 <tr>
@@ -87,6 +95,7 @@ $successmeldung = $successmeldung ?? null;
                 <?php endforeach; ?>
             </tbody>
         </table>
+        </div>
     <?php endif; ?>
 </section>
 

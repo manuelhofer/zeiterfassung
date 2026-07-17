@@ -1092,6 +1092,93 @@ class ZeitController
             $pauseOverrideStunden = $pauseAutoStunden;
         }
 
+        $neueBuchungTypDefault = 'kommen';
+        $neueBuchungZeitDefault = '';
+        $neueBuchungHinweis = '';
+
+        try {
+            $sortierteBuchungen = is_array($buchungen) ? array_values($buchungen) : [];
+            usort($sortierteBuchungen, static function (array $a, array $b): int {
+                return strcmp((string)($a['zeitstempel'] ?? ''), (string)($b['zeitstempel'] ?? ''));
+            });
+
+            $offenerKommen = null;
+            foreach ($sortierteBuchungen as $b) {
+                $typ = (string)($b['typ'] ?? '');
+                $ts = (string)($b['zeitstempel'] ?? '');
+                if ($ts === '' || ($typ !== 'kommen' && $typ !== 'gehen')) {
+                    continue;
+                }
+
+                try {
+                    $dt = new DateTimeImmutable($ts);
+                } catch (Throwable $e) {
+                    continue;
+                }
+
+                if ($typ === 'kommen') {
+                    $offenerKommen = $dt;
+                    continue;
+                }
+
+                if ($typ === 'gehen' && $offenerKommen instanceof DateTimeImmutable && $dt > $offenerKommen) {
+                    $offenerKommen = null;
+                }
+            }
+
+            if ($offenerKommen instanceof DateTimeImmutable) {
+                $neueBuchungTypDefault = 'gehen';
+
+                $wochenarbeitszeit = 0.0;
+                try {
+                    $m = $this->holeMitarbeiterStammdaten($zielMitarbeiterId);
+                    if (is_array($m) && isset($m['wochenarbeitszeit'])) {
+                        $wochenarbeitszeit = (float)str_replace(',', '.', (string)$m['wochenarbeitszeit']);
+                    }
+                } catch (Throwable $e) {
+                    $wochenarbeitszeit = 0.0;
+                }
+
+                $arbeitsMinuten = $wochenarbeitszeit > 0.0
+                    ? (int)round(($wochenarbeitszeit / 5.0) * 60.0)
+                    : 480;
+                if ($arbeitsMinuten <= 0) {
+                    $arbeitsMinuten = 480;
+                }
+
+                $pauseMinuten = 0;
+                if ($pauseOverrideAktiv && $pauseOverrideStunden !== '') {
+                    $pauseMinuten = (int)round(max(0.0, (float)str_replace(',', '.', $pauseOverrideStunden)) * 60.0);
+                } else {
+                    $pausenService = PausenService::getInstanz();
+                    $probeEnde = $offenerKommen->modify('+' . $arbeitsMinuten . ' minutes');
+                    for ($i = 0; $i < 3; $i++) {
+                        $res = $pausenService->berechnePausenMinutenUndEntscheidungFuerBlock($offenerKommen, $probeEnde);
+                        $autoPause = (int)($res['auto_pause_minuten'] ?? $res['pause_minuten'] ?? 0);
+                        if ($autoPause === $pauseMinuten) {
+                            break;
+                        }
+                        $pauseMinuten = max(0, $autoPause);
+                        $probeEnde = $offenerKommen->modify('+' . ($arbeitsMinuten + $pauseMinuten) . ' minutes');
+                    }
+                }
+
+                $vorschlagEnde = $offenerKommen->modify('+' . ($arbeitsMinuten + $pauseMinuten) . ' minutes');
+                $neueBuchungZeitDefault = $vorschlagEnde->format('H:i:s');
+                $neueBuchungHinweis = 'Vorschlag: offenes Kommen um '
+                    . $offenerKommen->format('H:i:s')
+                    . ' + '
+                    . number_format($arbeitsMinuten / 60.0, 2, ',', '.')
+                    . ' h Arbeitszeit + '
+                    . number_format($pauseMinuten / 60.0, 2, ',', '.')
+                    . ' h Pause.';
+            }
+        } catch (Throwable $e) {
+            $neueBuchungTypDefault = 'kommen';
+            $neueBuchungZeitDefault = '';
+            $neueBuchungHinweis = '';
+        }
+
         // Begründungen (Pflicht) für Tagesfelder (Kurzarbeit/Krank/Sonstiges) aus dem Audit-Log,
         // damit Pflichttexte in der Tagesansicht sichtbar bleiben.
         $kurzarbeitOverrideBegruendung = '';

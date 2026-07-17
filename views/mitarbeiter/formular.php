@@ -85,6 +85,8 @@ if ($istRechteModus) {
 $abbrechenUrl = $istRechteModus ? '?seite=mitarbeiter_rechte' : '?seite=mitarbeiter_admin';
 $stundenkontoStealthMode = $stundenkontoStealthMode ?? false;
 $stealthStyle = $stundenkontoStealthMode ? ' style="border: 3px solid #c00; padding: 12px;"' : '';
+$hatAbteilungen = count($alleAbteilungen) > 0;
+$zeigeAbteilungsrollenBereich = $hatAbteilungen || count($rollenScopesAbteilung) > 0;
 ?>
 
 <section<?php echo $stealthStyle; ?>>
@@ -420,6 +422,11 @@ $stealthStyle = $stundenkontoStealthMode ? ' style="border: 3px solid #c00; padd
             <?php if (count($alleRollen) === 0): ?>
                 <p>Es sind noch keine Rollen definiert.</p>
             <?php else: ?>
+                <div class="permission-card-grid">
+                    <div class="permission-card">
+                        <h3>Globale Rollen</h3>
+                        <p class="muted">Diese Rollen gelten f&uuml;r den Mitarbeiter grunds&auml;tzlich im ganzen System.</p>
+                        <div class="role-option-list">
                 <?php foreach ($alleRollen as $rolle): ?>
                     <?php
                         $rid   = (int)($rolle['id'] ?? 0);
@@ -427,7 +434,7 @@ $stealthStyle = $stundenkontoStealthMode ? ' style="border: 3px solid #c00; padd
                         $rDesc = (string)($rolle['beschreibung'] ?? '');
                         $checked = in_array($rid, $rollenIdsAusgewaehlt, true) ? 'checked' : '';
                     ?>
-                    <div>
+                    <div class="role-option">
                         <label>
                             <input type="checkbox" name="rollen_ids[]" value="<?php echo htmlspecialchars((string)$rid, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>" <?php echo $checked; ?>>
                             <?php echo htmlspecialchars($rName, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>
@@ -437,12 +444,16 @@ $stealthStyle = $stundenkontoStealthMode ? ' style="border: 3px solid #c00; padd
                         </label>
                     </div>
                 <?php endforeach; ?>
+                        </div>
                 <p><small>Leere Auswahl bedeutet: Mitarbeiter hat aktuell keine speziellen Rollen/Berechtigungen.</small></p>
                 <p><small>Hinweis: Die oben ausgewählten Rollen werden als <b>global</b> gespeichert.</small></p>
 
-                <hr>
+                    </div>
 
-                <p><small><b>Abteilungs-Rollen (Phase 1)</b>: Optional kannst du Rollen zusätzlich auf eine Abteilung einschränken (auf Wunsch inkl. Unterbereiche). Änderungen werden beim Speichern übernommen.</small></p>
+                <?php if ($zeigeAbteilungsrollenBereich): ?>
+                    <div class="permission-card">
+                        <h3>Rollen in Abteilungen</h3>
+                        <p class="muted">Diese Rollen gelten nur f&uuml;r eine bestimmte Abteilung, optional inklusive Unterbereiche.</p>
 
                 <?php
                     $rolleNameById = [];
@@ -464,7 +475,8 @@ $stealthStyle = $stundenkontoStealthMode ? ' style="border: 3px solid #c00; padd
                 <?php if (count($rollenScopesAbteilung) === 0): ?>
                     <p><small>Keine Abteilungs-Rollen gesetzt.</small></p>
                 <?php else: ?>
-                    <table border="0" cellpadding="4" cellspacing="0">
+                    <div class="table-wrap">
+                    <table>
                         <thead>
                             <tr>
                                 <th align="left">Rolle</th>
@@ -503,11 +515,14 @@ $stealthStyle = $stundenkontoStealthMode ? ' style="border: 3px solid #c00; padd
                             <?php endforeach; ?>
                         </tbody>
                     </table>
+                    </div>
                 <?php endif; ?>
 
+                <?php if ($hatAbteilungen): ?>
                 <p style="margin-top:10px;"><small><b>Neu hinzufügen</b> (ein Eintrag pro Speichern):</small></p>
-                <div style="margin-bottom:6px;">
-                    <label>Rolle:
+                <div class="compact-form-grid">
+                    <label>
+                        Rolle
                         <select name="scope_abteilung_add_rolle_id">
                             <option value="0">—</option>
                             <?php foreach ($alleRollen as $rolle): ?>
@@ -518,9 +533,8 @@ $stealthStyle = $stundenkontoStealthMode ? ' style="border: 3px solid #c00; padd
                             <?php endforeach; ?>
                         </select>
                     </label>
-                </div>
-                <div style="margin-bottom:6px;">
-                    <label>Abteilung:
+                    <label>
+                        Abteilung
                         <select name="scope_abteilung_add_abteilung_id">
                             <option value="0">—</option>
                             <?php foreach ($alleAbteilungen as $abt): ?>
@@ -531,15 +545,113 @@ $stealthStyle = $stundenkontoStealthMode ? ' style="border: 3px solid #c00; padd
                             <?php endforeach; ?>
                         </select>
                     </label>
-                </div>
-                <div style="margin-bottom:6px;">
                     <label>
                         <input type="checkbox" name="scope_abteilung_add_unterbereiche" value="1" <?php echo $addUnterChecked; ?>>
                         gilt für Unterbereiche
                     </label>
                 </div>
                 <p><small>Hinweis: Unterbereiche beziehen sich auf die Abteilungs-Hierarchie (parent_id). Die Rechte-Auswertung wird im nächsten Schritt schrittweise umgesetzt.</small></p>
-<?php endif; ?>
+                <?php endif; ?>
+                    </div>
+                <?php endif; ?>
+                </div>
+            <?php endif; ?>
+            <div class="form-actions">
+                <button type="submit">Rollen speichern</button>
+            </div>
+        </fieldset>
+
+        <fieldset>
+            <legend>Genehmiger</legend>
+            <p>Optional: Hier können eine oder mehrere Personen hinterlegt werden, die diesen Mitarbeiter z.&nbsp;B. für Urlaube oder Zeiten freigeben.</p>
+
+            <?php
+            $anzahlGenehmigerZeilen = max(count($genehmiger) + 2, 3);
+            $aktuellerMitarbeiterId = $id !== null ? (int)$id : 0;
+
+            for ($i = 0; $i < $anzahlGenehmigerZeilen; $i++):
+                $row   = $genehmiger[$i] ?? null;
+                $gid   = $row['genehmiger_mitarbeiter_id'] ?? '';
+                $prio  = $row['prioritaet'] ?? '';
+                $besch = $row['kommentar'] ?? '';
+
+                $anzeigeName = '';
+                if (is_array($row)) {
+                    $nameTeile = [];
+
+                    if (!empty($row['genehmiger_vorname'] ?? null)) {
+                        $nameTeile[] = (string)$row['genehmiger_vorname'];
+                    }
+                    if (!empty($row['genehmiger_nachname'] ?? null)) {
+                        $nameTeile[] = (string)$row['genehmiger_nachname'];
+                    }
+
+                    if (empty($nameTeile) && !empty($row['genehmiger_name'] ?? null)) {
+                        $nameTeile[] = (string)$row['genehmiger_name'];
+                    }
+
+                    if (!empty($nameTeile)) {
+                        $anzeigeName = implode(' ', $nameTeile);
+                    }
+                }
+
+                $gidInt = $gid === '' ? 0 : (int)$gid;
+            ?>
+            <?php $zeilenKlasse = $i === 0 ? 'genehmiger-zeile genehmiger-zeile-haupt' : 'genehmiger-zeile'; ?>
+            <div class="<?php echo $zeilenKlasse; ?>">
+                <label>
+                    Genehmiger (Mitarbeiter)
+                    <select name="genehmiger_id[]">
+                        <option value="">-- bitte wählen --</option>
+                        <?php foreach ($alleMitarbeiterGenehmiger as $mgMit):
+                            $mgId = (int)($mgMit['id'] ?? 0);
+                            if ($mgId <= 0 || $mgId === $aktuellerMitarbeiterId) {
+                                continue;
+                            }
+
+                            $nameTeile = [];
+                            if (!empty($mgMit['nachname'] ?? null)) {
+                                $nameTeile[] = (string)$mgMit['nachname'];
+                            }
+                            if (!empty($mgMit['vorname'] ?? null)) {
+                                $nameTeile[] = (string)$mgMit['vorname'];
+                            }
+
+                            if (empty($nameTeile) && !empty($mgMit['benutzername'] ?? null)) {
+                                $nameTeile[] = (string)$mgMit['benutzername'];
+                            }
+
+                            if (empty($nameTeile)) {
+                                $nameTeile[] = 'ID ' . $mgId;
+                            }
+
+                            $optionLabel = implode(', ', $nameTeile);
+                            $selected    = $mgId === $gidInt ? ' selected' : '';
+                        ?>
+                            <option value="<?php echo $mgId; ?>"<?php echo $selected; ?>>
+                                <?php echo htmlspecialchars($optionLabel, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                </label>
+
+                <label>
+                    Priorität (1 = Hauptgenehmiger, höhere Zahl = Fallback)
+                    <input type="number" name="genehmiger_prio[]" value="<?php echo htmlspecialchars((string)$prio, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>" min="1">
+                </label>
+
+                <label>
+                    Beschreibung / Hinweis
+                    <input type="text" name="genehmiger_beschreibung[]" value="<?php echo htmlspecialchars((string)$besch, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>">
+                </label>
+
+                <?php if ($anzeigeName !== ''): ?>
+                    <small>(Aktuell: <?php echo htmlspecialchars($anzeigeName, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>)</small>
+                <?php endif; ?>
+            </div>
+            <?php endfor; ?>
+
+            <p><small>Leere Zeilen werden ignoriert. Der Mitarbeiter kann nicht sein eigener Genehmiger sein.</small></p>
         </fieldset>
 
         <fieldset>
@@ -701,100 +813,6 @@ $stealthStyle = $stundenkontoStealthMode ? ' style="border: 3px solid #c00; padd
             <?php endif; ?>
         </fieldset>
 
-        
-
-        <fieldset>
-            <legend>Genehmiger</legend>
-            <p>Optional: Hier können eine oder mehrere Personen hinterlegt werden, die diesen Mitarbeiter z.&nbsp;B. für Urlaube oder Zeiten freigeben.</p>
-
-            <?php
-            $anzahlGenehmigerZeilen = max(count($genehmiger) + 2, 3);
-            $aktuellerMitarbeiterId = $id !== null ? (int)$id : 0;
-
-            for ($i = 0; $i < $anzahlGenehmigerZeilen; $i++):
-                $row   = $genehmiger[$i] ?? null;
-                $gid   = $row['genehmiger_mitarbeiter_id'] ?? '';
-                $prio  = $row['prioritaet'] ?? '';
-                $besch = $row['kommentar'] ?? '';
-
-                $anzeigeName = '';
-                if (is_array($row)) {
-                    $nameTeile = [];
-
-                    if (!empty($row['genehmiger_vorname'] ?? null)) {
-                        $nameTeile[] = (string)$row['genehmiger_vorname'];
-                    }
-                    if (!empty($row['genehmiger_nachname'] ?? null)) {
-                        $nameTeile[] = (string)$row['genehmiger_nachname'];
-                    }
-
-                    if (empty($nameTeile) && !empty($row['genehmiger_name'] ?? null)) {
-                        $nameTeile[] = (string)$row['genehmiger_name'];
-                    }
-
-                    if (!empty($nameTeile)) {
-                        $anzeigeName = implode(' ', $nameTeile);
-                    }
-                }
-
-                $gidInt = $gid === '' ? 0 : (int)$gid;
-            ?>
-            <?php $zeilenKlasse = $i === 0 ? 'genehmiger-zeile genehmiger-zeile-haupt' : 'genehmiger-zeile'; ?>
-            <div class="<?php echo $zeilenKlasse; ?>">
-                <label>
-                    Genehmiger (Mitarbeiter)
-                    <select name="genehmiger_id[]">
-                        <option value="">-- bitte wählen --</option>
-                        <?php foreach ($alleMitarbeiterGenehmiger as $mgMit):
-                            $mgId = (int)($mgMit['id'] ?? 0);
-                            if ($mgId <= 0 || $mgId === $aktuellerMitarbeiterId) {
-                                continue;
-                            }
-
-                            $nameTeile = [];
-                            if (!empty($mgMit['nachname'] ?? null)) {
-                                $nameTeile[] = (string)$mgMit['nachname'];
-                            }
-                            if (!empty($mgMit['vorname'] ?? null)) {
-                                $nameTeile[] = (string)$mgMit['vorname'];
-                            }
-
-                            if (empty($nameTeile) && !empty($mgMit['benutzername'] ?? null)) {
-                                $nameTeile[] = (string)$mgMit['benutzername'];
-                            }
-
-                            if (empty($nameTeile)) {
-                                $nameTeile[] = 'ID ' . $mgId;
-                            }
-
-                            $optionLabel = implode(', ', $nameTeile);
-                            $selected    = $mgId === $gidInt ? ' selected' : '';
-                        ?>
-                            <option value="<?php echo $mgId; ?>"<?php echo $selected; ?>>
-                                <?php echo htmlspecialchars($optionLabel, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>
-                            </option>
-                        <?php endforeach; ?>
-                    </select>
-                </label>
-
-                <label>
-                    Priorität (1 = Hauptgenehmiger, höhere Zahl = Fallback)
-                    <input type="number" name="genehmiger_prio[]" value="<?php echo htmlspecialchars((string)$prio, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>" min="1">
-                </label>
-
-                <label>
-                    Beschreibung / Hinweis
-                    <input type="text" name="genehmiger_beschreibung[]" value="<?php echo htmlspecialchars((string)$besch, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>">
-                </label>
-
-                <?php if ($anzeigeName !== ''): ?>
-                    <small>(Aktuell: <?php echo htmlspecialchars($anzeigeName, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>)</small>
-                <?php endif; ?>
-            </div>
-            <?php endfor; ?>
-
-            <p><small>Leere Zeilen werden ignoriert. Der Mitarbeiter kann nicht sein eigener Genehmiger sein.</small></p>
-        </fieldset>
         <?php endif; ?>
 
         <p>

@@ -16,6 +16,7 @@ class UrlaubController
 
     /** Session-Key für CSRF im Bereich "urlaub_meine" (Antrag stellen + Storno). */
     private const CSRF_KEY_MEINE = 'urlaub_meine_csrf_token';
+    private const CSRF_KEY_VERWALTUNG = 'urlaub_verwaltung_csrf_token';
 
     public function __construct()
     {
@@ -68,6 +69,16 @@ class UrlaubController
     private function redirectZurMeineAntraege(): void
     {
         header('Location: ?seite=urlaub_meine');
+    }
+
+    private function redirectZurUrlaubsverwaltung(string $queryString = ''): void
+    {
+        $ziel = '?seite=urlaub_verwaltung';
+        if ($queryString !== '') {
+            $ziel .= '&' . ltrim($queryString, '&');
+        }
+
+        header('Location: ' . $ziel);
     }
 
     /**
@@ -469,6 +480,14 @@ class UrlaubController
 
         $istPost = (isset($_SERVER['REQUEST_METHOD']) && strtoupper((string)$_SERVER['REQUEST_METHOD']) === 'POST');
 
+        if (!$istPost && $zeigeFormular) {
+            $formular = [
+                'von_datum'             => trim((string)($_GET['von_datum'] ?? '')),
+                'bis_datum'             => trim((string)($_GET['bis_datum'] ?? '')),
+                'kommentar_mitarbeiter' => trim((string)($_GET['kommentar_mitarbeiter'] ?? '')),
+            ];
+        }
+
         // POST: Storno (unabhängig vom Formular-Modus)
         if ($istPost) {
             $postAktion = trim((string)($_POST['aktion'] ?? ''));
@@ -532,7 +551,9 @@ class UrlaubController
                         $ovId  = (int)($ueberlappung['id'] ?? 0);
 
                         $msg = 'Es existiert bereits ein offener oder genehmigter Antrag im Zeitraum ';
-                        $msg .= ($ovVon !== '' ? $ovVon : '?') . ' bis ' . ($ovBis !== '' ? $ovBis : '?');
+                        $msg .= ($ovVon !== '' ? $this->formatiereDatumDeutsch($ovVon) : '?')
+                            . ' bis '
+                            . ($ovBis !== '' ? $this->formatiereDatumDeutsch($ovBis) : '?');
                         if ($ovId > 0) {
                             $msg .= ' (Antrag #' . $ovId . ').';
                         } else {
@@ -624,9 +645,47 @@ class UrlaubController
                         $tageNeu = (float)$this->urlaubService->berechneTageGesamtAlsArbeitstageString($mitarbeiterId, $vonTmp, $bisTmp);
                         $verfuegbar = isset($urlaubSaldo['verbleibend']) ? (float)$urlaubSaldo['verbleibend'] : 0.0;
                         $nach = $verfuegbar - $tageNeu;
+                        $kalendertage = ((int)$diff->days) + 1;
+                        $wochenendtage = 0;
+                        for ($d = $vonDt; $d <= $bisDt; $d = $d->modify('+1 day')) {
+                            $wochentag = (int)$d->format('N');
+                            if ($wochentag >= 6) {
+                                $wochenendtage++;
+                            }
+                        }
+
+                        $hinweise = [];
+                        if ($wochenendtage > 0) {
+                            $hinweise[] = $wochenendtage === 1
+                                ? '1 Wochenendtag wird nicht als Urlaubstag gezählt.'
+                                : $wochenendtage . ' Wochenendtage werden nicht als Urlaubstage gezählt.';
+                        }
+
+                        $nichtGezaehlt = max(0.0, (float)$kalendertage - $tageNeu);
+                        if ($nichtGezaehlt > (float)$wochenendtage + 0.01) {
+                            $hinweise[] = 'Betriebsfreie Feiertage oder Betriebsferien im Zeitraum werden ebenfalls nicht als Urlaubstage gezählt.';
+                        }
 
                         $warnung = null;
-                        if ($nach < 0 && $this->urlaubService->istNegativerResturlaubGeblockt()) {
+                        $ueberlappung = $this->urlaubService->findeUeberlappendenAktivenUrlaub($mitarbeiterId, $vonTmp, $bisTmp);
+                        if ($ueberlappung !== null) {
+                            $ovVon = (string)($ueberlappung['von_datum'] ?? '');
+                            $ovBis = (string)($ueberlappung['bis_datum'] ?? '');
+                            $ovStatus = (string)($ueberlappung['status'] ?? '');
+                            $statusText = ($ovStatus === 'genehmigt')
+                                ? 'genehmigten'
+                                : (($ovStatus === 'offen') ? 'offenen' : 'aktiven');
+
+                            $warnung = 'Das geht so nicht: Der Zeitraum überschneidet sich mit einem bereits '
+                                . $statusText
+                                . ' Urlaubsantrag vom '
+                                . ($ovVon !== '' ? $this->formatiereDatumDeutsch($ovVon) : '?')
+                                . ' bis '
+                                . ($ovBis !== '' ? $this->formatiereDatumDeutsch($ovBis) : '?')
+                                . '. Bitte Zeitraum anpassen oder Personalbüro kontaktieren.';
+                        }
+
+                        if ($warnung === null && $nach < 0 && $this->urlaubService->istNegativerResturlaubGeblockt()) {
                             $warnung = 'Achtung: Nach diesem Antrag wäre der Resturlaub negativ – der Antrag wird beim Speichern blockiert.';
                         }
 
@@ -635,6 +694,7 @@ class UrlaubController
                             'verfuegbar'  => number_format($verfuegbar, 2, '.', ''),
                             'nach_antrag' => number_format($nach, 2, '.', ''),
                             'warnung'     => $warnung,
+                            'hinweise'    => $hinweise,
                         ];
                     }
                 }
@@ -642,6 +702,563 @@ class UrlaubController
         }
 
         require __DIR__ . '/../views/urlaub/meine_antraege.php';
+    }
+
+    private function formatiereDatumDeutsch(string $datum): string
+    {
+        $datum = trim($datum);
+        if ($datum === '') {
+            return '';
+        }
+
+        try {
+            if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $datum) === 1) {
+                return (new \DateTimeImmutable($datum))->format('d.m.Y');
+            }
+        } catch (\Throwable $e) {
+            return $datum;
+        }
+
+        return $datum;
+    }
+
+    /**
+     * @return array{darf_alle:bool,darf_bereich:bool,darf_self:bool}
+     */
+    private function ermittleUrlaubGenehmigungsrechte(): array
+    {
+        $legacyAdmin = false;
+        if (method_exists($this->authService, 'hatRolle')) {
+            $legacyAdmin = $this->authService->hatRolle('Chef')
+                || $this->authService->hatRolle('Personalbüro')
+                || $this->authService->hatRolle('Personalbuero');
+        }
+
+        return [
+            'darf_alle' => $legacyAdmin || $this->authService->hatRecht('URLAUB_GENEHMIGEN_ALLE'),
+            'darf_bereich' => $this->authService->hatRecht('URLAUB_GENEHMIGEN'),
+            'darf_self' => $this->authService->hatRecht('URLAUB_GENEHMIGEN_SELF'),
+        ];
+    }
+
+    private function darfUrlaubsantragBearbeiten(
+        Database $db,
+        int $actorId,
+        int $mitarbeiterIdAntrag,
+        bool $darfAlle,
+        bool $darfBereich,
+        bool $darfSelf
+    ): bool {
+        if ($actorId <= 0 || $mitarbeiterIdAntrag <= 0) {
+            return false;
+        }
+
+        if ($mitarbeiterIdAntrag === $actorId) {
+            return $darfSelf || $darfAlle;
+        }
+
+        if ($darfAlle) {
+            return true;
+        }
+
+        if (!$darfBereich) {
+            return false;
+        }
+
+        try {
+            $row = $db->fetchEine(
+                'SELECT 1 AS ok
+                 FROM mitarbeiter_genehmiger
+                 WHERE mitarbeiter_id = :mid
+                   AND genehmiger_mitarbeiter_id = :gid
+                 LIMIT 1',
+                ['mid' => $mitarbeiterIdAntrag, 'gid' => $actorId]
+            );
+        } catch (\Throwable $e) {
+            return false;
+        }
+
+        return $row !== null;
+    }
+
+    private function baueUrlaubVerwaltungQueryAusPost(): string
+    {
+        $params = [];
+
+        $mitarbeiterId = (int)($_POST['filter_mitarbeiter_id'] ?? 0);
+        if ($mitarbeiterId > 0) {
+            $params['mitarbeiter_id'] = (string)$mitarbeiterId;
+        }
+
+        $status = trim((string)($_POST['filter_status'] ?? 'aktiv'));
+        if ($status !== '') {
+            $params['status'] = $status;
+        }
+
+        $jahr = (int)($_POST['filter_jahr'] ?? (int)date('Y'));
+        if ($jahr >= 2000 && $jahr <= 2100) {
+            $params['jahr'] = (string)$jahr;
+        }
+
+        return http_build_query($params);
+    }
+
+    private function verarbeiteUrlaubVerwaltungDirektEintragenPost(
+        Database $db,
+        int $actorId,
+        bool $darfAlle,
+        bool $darfBereich,
+        bool $darfSelf
+    ): void {
+        $returnQuery = $this->baueUrlaubVerwaltungQueryAusPost();
+
+        if (!$this->istCsrfTokenGueltigAusPost(self::CSRF_KEY_VERWALTUNG)) {
+            $_SESSION['urlaub_verwaltung_flash_error'] = 'Sicherheits-Token ist abgelaufen. Bitte erneut versuchen.';
+            $this->redirectZurUrlaubsverwaltung($returnQuery);
+            return;
+        }
+
+        $mitarbeiterId = (int)($_POST['urlaub_neu_mitarbeiter_id'] ?? 0);
+        $von = trim((string)($_POST['urlaub_neu_von_datum'] ?? ''));
+        $bis = trim((string)($_POST['urlaub_neu_bis_datum'] ?? ''));
+        $begruendung = trim((string)($_POST['urlaub_neu_begruendung'] ?? ''));
+
+        if ($mitarbeiterId <= 0) {
+            $_SESSION['urlaub_verwaltung_flash_error'] = 'Bitte einen Mitarbeiter auswählen.';
+            $this->redirectZurUrlaubsverwaltung($returnQuery);
+            return;
+        }
+
+        if (!$this->darfUrlaubsantragBearbeiten($db, $actorId, $mitarbeiterId, $darfAlle, $darfBereich, $darfSelf)) {
+            $_SESSION['urlaub_verwaltung_flash_error'] = 'Keine Berechtigung für diesen Mitarbeiter.';
+            $this->redirectZurUrlaubsverwaltung($returnQuery);
+            return;
+        }
+
+        if ($von === '' || $bis === '') {
+            $_SESSION['urlaub_verwaltung_flash_error'] = 'Bitte Von- und Bis-Datum angeben.';
+            $this->redirectZurUrlaubsverwaltung($returnQuery);
+            return;
+        }
+
+        $vonDt = \DateTimeImmutable::createFromFormat('Y-m-d', $von);
+        $bisDt = \DateTimeImmutable::createFromFormat('Y-m-d', $bis);
+        if (!$vonDt || $vonDt->format('Y-m-d') !== $von || !$bisDt || $bisDt->format('Y-m-d') !== $bis) {
+            $_SESSION['urlaub_verwaltung_flash_error'] = 'Bitte gültige Datumswerte auswählen.';
+            $this->redirectZurUrlaubsverwaltung($returnQuery);
+            return;
+        }
+
+        if ($vonDt > $bisDt) {
+            $_SESSION['urlaub_verwaltung_flash_error'] = 'Das Bis-Datum muss am oder nach dem Von-Datum liegen.';
+            $this->redirectZurUrlaubsverwaltung($returnQuery);
+            return;
+        }
+
+        if ($begruendung === '') {
+            $_SESSION['urlaub_verwaltung_flash_error'] = 'Bitte eine Begründung für den direkten Urlaubseintrag angeben.';
+            $this->redirectZurUrlaubsverwaltung($returnQuery);
+            return;
+        }
+
+        if (mb_strlen($begruendung, 'UTF-8') > 2000) {
+            $begruendung = mb_substr($begruendung, 0, 2000, 'UTF-8');
+        }
+
+        $ueberlappung = $this->urlaubService->findeUeberlappendenAktivenUrlaub($mitarbeiterId, $von, $bis);
+        if ($ueberlappung !== null) {
+            $ovVon = (string)($ueberlappung['von_datum'] ?? '');
+            $ovBis = (string)($ueberlappung['bis_datum'] ?? '');
+            $ovStatus = (string)($ueberlappung['status'] ?? 'aktiv');
+            $_SESSION['urlaub_verwaltung_flash_error'] =
+                'Direkteintrag nicht möglich: Der Zeitraum überschneidet sich mit einem bereits '
+                . ($ovStatus === 'genehmigt' ? 'genehmigten' : 'offenen')
+                . ' Urlaubsantrag vom '
+                . ($ovVon !== '' ? $this->formatiereDatumDeutsch($ovVon) : '?')
+                . ' bis '
+                . ($ovBis !== '' ? $this->formatiereDatumDeutsch($ovBis) : '?')
+                . '.';
+            $this->redirectZurUrlaubsverwaltung($returnQuery);
+            return;
+        }
+
+        $tageGesamt = $this->urlaubService->berechneTageGesamtAlsArbeitstageString($mitarbeiterId, $von, $bis);
+        if (round((float)$tageGesamt, 2) <= 0.0) {
+            $_SESSION['urlaub_verwaltung_flash_error'] = 'Der Zeitraum enthält keine verrechenbaren Urlaubstage (Wochenende/Feiertag/Betriebsferien). Bitte Zeitraum anpassen.';
+            $this->redirectZurUrlaubsverwaltung($returnQuery);
+            return;
+        }
+
+        if ($this->urlaubService->istNegativerResturlaubGeblockt()) {
+            $msg = $this->urlaubService->pruefeNegativenResturlaubBeiNeuemAntrag($mitarbeiterId, $von, $bis);
+            if ($msg !== null) {
+                $_SESSION['urlaub_verwaltung_flash_error'] = $msg;
+                $this->redirectZurUrlaubsverwaltung($returnQuery);
+                return;
+            }
+        }
+
+        $kommentarGenehmiger = 'Direkteintrag durch Urlaubsverwaltung: ' . $begruendung;
+
+        try {
+            $db->ausfuehren(
+                "INSERT INTO urlaubsantrag
+                    (mitarbeiter_id, von_datum, bis_datum, tage_gesamt, status, entscheidungs_mitarbeiter_id, entscheidungs_datum, kommentar_mitarbeiter, kommentar_genehmiger)
+                 VALUES
+                    (:mid, :von, :bis, :tage, 'genehmigt', :actor_id, NOW(), :kommentar_mitarbeiter, :kommentar_genehmiger)",
+                [
+                    'mid' => $mitarbeiterId,
+                    'von' => $von,
+                    'bis' => $bis,
+                    'tage' => $tageGesamt,
+                    'actor_id' => $actorId,
+                    'kommentar_mitarbeiter' => 'Mündlich mitgeteilt / durch Verwaltung eingetragen.',
+                    'kommentar_genehmiger' => $kommentarGenehmiger,
+                ]
+            );
+        } catch (\Throwable $e) {
+            $_SESSION['urlaub_verwaltung_flash_error'] = 'Urlaub konnte nicht eingetragen werden.';
+            if (class_exists('Logger')) {
+                Logger::error('Urlaubsverwaltung: Direkteintrag fehlgeschlagen', [
+                    'actor_id' => $actorId,
+                    'mitarbeiter_id' => $mitarbeiterId,
+                    'von' => $von,
+                    'bis' => $bis,
+                    'exception' => $e->getMessage(),
+                ], $actorId, null, 'urlaub_verwaltung');
+            }
+            $this->redirectZurUrlaubsverwaltung($returnQuery);
+            return;
+        }
+
+        $_SESSION['urlaub_verwaltung_flash_ok'] = 'Urlaub wurde direkt als genehmigt eingetragen.';
+
+        if (class_exists('Logger')) {
+            Logger::info('Urlaubsverwaltung: Urlaub direkt eingetragen', [
+                'mitarbeiter_id' => $mitarbeiterId,
+                'von' => $von,
+                'bis' => $bis,
+                'tage' => $tageGesamt,
+                'begruendung' => $begruendung,
+            ], $actorId, null, 'urlaub_verwaltung');
+        }
+
+        $this->redirectZurUrlaubsverwaltung($returnQuery);
+    }
+
+    private function verarbeiteUrlaubVerwaltungStornoPost(
+        Database $db,
+        int $actorId,
+        bool $darfAlle,
+        bool $darfBereich,
+        bool $darfSelf
+    ): void {
+        $returnQuery = $this->baueUrlaubVerwaltungQueryAusPost();
+
+        if (!$this->istCsrfTokenGueltigAusPost(self::CSRF_KEY_VERWALTUNG)) {
+            $_SESSION['urlaub_verwaltung_flash_error'] = 'Sicherheits-Token ist abgelaufen. Bitte erneut versuchen.';
+            $this->redirectZurUrlaubsverwaltung($returnQuery);
+            return;
+        }
+
+        $aktion = trim((string)($_POST['aktion'] ?? ''));
+        $antragId = (int)($_POST['antrag_id'] ?? 0);
+        $begruendung = trim((string)($_POST['storno_begruendung'] ?? ''));
+
+        if ($aktion !== 'stornieren') {
+            $_SESSION['urlaub_verwaltung_flash_error'] = 'Ungültige Aktion.';
+            $this->redirectZurUrlaubsverwaltung($returnQuery);
+            return;
+        }
+
+        if ($antragId <= 0) {
+            $_SESSION['urlaub_verwaltung_flash_error'] = 'Ungültige Antrags-ID.';
+            $this->redirectZurUrlaubsverwaltung($returnQuery);
+            return;
+        }
+
+        if ($begruendung === '') {
+            $_SESSION['urlaub_verwaltung_flash_error'] = 'Bitte eine Begründung für die Stornierung angeben.';
+            $this->redirectZurUrlaubsverwaltung($returnQuery);
+            return;
+        }
+
+        if (mb_strlen($begruendung, 'UTF-8') > 2000) {
+            $begruendung = mb_substr($begruendung, 0, 2000, 'UTF-8');
+        }
+
+        try {
+            $antrag = $db->fetchEine(
+                'SELECT id, mitarbeiter_id, status, von_datum, bis_datum, kommentar_genehmiger
+                 FROM urlaubsantrag
+                 WHERE id = :id
+                 LIMIT 1',
+                ['id' => $antragId]
+            );
+        } catch (\Throwable $e) {
+            $_SESSION['urlaub_verwaltung_flash_error'] = 'Urlaubsantrag konnte nicht geladen werden.';
+            if (class_exists('Logger')) {
+                Logger::error('Urlaubsverwaltung: Antrag konnte nicht geladen werden', [
+                    'actor_id' => $actorId,
+                    'antrag_id' => $antragId,
+                    'exception' => $e->getMessage(),
+                ], $actorId, null, 'urlaub_verwaltung');
+            }
+            $this->redirectZurUrlaubsverwaltung($returnQuery);
+            return;
+        }
+
+        if (!is_array($antrag) || empty($antrag['id'])) {
+            $_SESSION['urlaub_verwaltung_flash_error'] = 'Urlaubsantrag nicht gefunden.';
+            $this->redirectZurUrlaubsverwaltung($returnQuery);
+            return;
+        }
+
+        $mitarbeiterIdAntrag = (int)($antrag['mitarbeiter_id'] ?? 0);
+        $statusAlt = (string)($antrag['status'] ?? '');
+
+        if (!in_array($statusAlt, ['offen', 'genehmigt'], true)) {
+            $_SESSION['urlaub_verwaltung_flash_error'] = 'Nur offene oder genehmigte Urlaubsanträge können storniert werden.';
+            $this->redirectZurUrlaubsverwaltung($returnQuery);
+            return;
+        }
+
+        if (!$this->darfUrlaubsantragBearbeiten($db, $actorId, $mitarbeiterIdAntrag, $darfAlle, $darfBereich, $darfSelf)) {
+            $_SESSION['urlaub_verwaltung_flash_error'] = 'Keine Berechtigung für diesen Urlaubsantrag.';
+            $this->redirectZurUrlaubsverwaltung($returnQuery);
+            return;
+        }
+
+        $alterKommentar = trim((string)($antrag['kommentar_genehmiger'] ?? ''));
+        $stornoZeile = 'Storno/Rücknahme: ' . $begruendung;
+        $neuerKommentar = ($alterKommentar === '') ? $stornoZeile : $alterKommentar . "\n\n" . $stornoZeile;
+
+        try {
+            $betroffen = $db->ausfuehren(
+                "UPDATE urlaubsantrag
+                 SET status = 'storniert',
+                     entscheidungs_mitarbeiter_id = :actor_id,
+                     entscheidungs_datum = NOW(),
+                     kommentar_genehmiger = :kommentar
+                 WHERE id = :id
+                   AND status IN ('offen', 'genehmigt')
+                 LIMIT 1",
+                [
+                    'actor_id' => $actorId,
+                    'kommentar' => $neuerKommentar,
+                    'id' => $antragId,
+                ]
+            );
+        } catch (\Throwable $e) {
+            $betroffen = 0;
+            if (class_exists('Logger')) {
+                Logger::error('Urlaubsverwaltung: Storno fehlgeschlagen', [
+                    'actor_id' => $actorId,
+                    'antrag_id' => $antragId,
+                    'status_alt' => $statusAlt,
+                    'exception' => $e->getMessage(),
+                ], $actorId, null, 'urlaub_verwaltung');
+            }
+        }
+
+        if ($betroffen !== 1) {
+            $_SESSION['urlaub_verwaltung_flash_error'] = 'Storno ist fehlgeschlagen. Bitte erneut versuchen.';
+            $this->redirectZurUrlaubsverwaltung($returnQuery);
+            return;
+        }
+
+        $_SESSION['urlaub_verwaltung_flash_ok'] = 'Urlaubsantrag wurde storniert/rückgängig gemacht.';
+
+        if (class_exists('Logger')) {
+            Logger::info('Urlaubsverwaltung: Antrag storniert', [
+                'antrag_id' => $antragId,
+                'mitarbeiter_id' => $mitarbeiterIdAntrag,
+                'status_alt' => $statusAlt,
+                'status_neu' => 'storniert',
+                'von' => (string)($antrag['von_datum'] ?? ''),
+                'bis' => (string)($antrag['bis_datum'] ?? ''),
+                'begruendung' => $begruendung,
+            ], $actorId, null, 'urlaub_verwaltung');
+        }
+
+        $this->redirectZurUrlaubsverwaltung($returnQuery);
+    }
+
+    /**
+     * Verwaltung aller sichtbaren Urlaubsanträge inkl. Storno/Rücknahme.
+     */
+    public function verwaltung(): void
+    {
+        if (!$this->authService->istAngemeldet()) {
+            header('Location: ?seite=login');
+            return;
+        }
+
+        $mitarbeiter = $this->authService->holeAngemeldetenMitarbeiter();
+        if ($mitarbeiter === null || !isset($mitarbeiter['id'])) {
+            http_response_code(403);
+            echo '<p>Fehler: Mitarbeiterdaten nicht gefunden.</p>';
+            return;
+        }
+
+        $actorId = (int)$mitarbeiter['id'];
+        if ($actorId <= 0) {
+            http_response_code(403);
+            echo '<p>Fehler: Ungültige Mitarbeiter-ID.</p>';
+            return;
+        }
+
+        $rechte = $this->ermittleUrlaubGenehmigungsrechte();
+        $darfAlle = $rechte['darf_alle'];
+        $darfBereich = $rechte['darf_bereich'];
+        $darfSelf = $rechte['darf_self'];
+
+        $db = Database::getInstanz();
+
+        if (!$darfAlle && !$darfBereich && !$darfSelf) {
+            http_response_code(403);
+            require __DIR__ . '/../views/layout/header.php';
+            echo '<section><h2>Keine Berechtigung</h2><p>Sie haben keine Berechtigung zur Urlaubsverwaltung.</p></section>';
+            require __DIR__ . '/../views/layout/footer.php';
+            return;
+        }
+
+        $istPost = (isset($_SERVER['REQUEST_METHOD']) && strtoupper((string)$_SERVER['REQUEST_METHOD']) === 'POST');
+        if ($istPost) {
+            $aktion = trim((string)($_POST['aktion'] ?? ''));
+            if ($aktion === 'direkt_eintragen') {
+                $this->verarbeiteUrlaubVerwaltungDirektEintragenPost($db, $actorId, $darfAlle, $darfBereich, $darfSelf);
+            } else {
+                $this->verarbeiteUrlaubVerwaltungStornoPost($db, $actorId, $darfAlle, $darfBereich, $darfSelf);
+            }
+            return;
+        }
+
+        $meldung = null;
+        if (isset($_SESSION['urlaub_verwaltung_flash_ok'])) {
+            $meldung = (string)$_SESSION['urlaub_verwaltung_flash_ok'];
+            unset($_SESSION['urlaub_verwaltung_flash_ok']);
+        }
+
+        $fehlermeldung = null;
+        if (isset($_SESSION['urlaub_verwaltung_flash_error'])) {
+            $fehlermeldung = (string)$_SESSION['urlaub_verwaltung_flash_error'];
+            unset($_SESSION['urlaub_verwaltung_flash_error']);
+        }
+
+        $filterMitarbeiterId = (int)($_GET['mitarbeiter_id'] ?? 0);
+        $filterStatus = trim((string)($_GET['status'] ?? 'aktiv'));
+        $filterJahr = (int)($_GET['jahr'] ?? (int)date('Y'));
+        if ($filterJahr < 2000 || $filterJahr > 2100) {
+            $filterJahr = (int)date('Y');
+        }
+
+        $erlaubteStatus = ['aktiv', 'alle', 'offen', 'genehmigt', 'abgelehnt', 'storniert'];
+        if (!in_array($filterStatus, $erlaubteStatus, true)) {
+            $filterStatus = 'aktiv';
+        }
+
+        try {
+            $mitarbeiterListe = (new MitarbeiterModel())->holeAlleAktiven();
+        } catch (\Throwable $e) {
+            $mitarbeiterListe = [];
+            if (class_exists('Logger')) {
+                Logger::error('Urlaubsverwaltung: Mitarbeiterliste konnte nicht geladen werden', [
+                    'exception' => $e->getMessage(),
+                ], $actorId, null, 'urlaub_verwaltung');
+            }
+        }
+
+        $params = [];
+        $sql =
+            "SELECT
+                ua.id,
+                ua.mitarbeiter_id,
+                ua.von_datum,
+                ua.bis_datum,
+                ua.tage_gesamt,
+                ua.status,
+                ua.antrags_datum,
+                ua.entscheidungs_datum,
+                ua.kommentar_mitarbeiter,
+                ua.kommentar_genehmiger,
+                COALESCE(
+                    NULLIF(CONCAT_WS(' ', NULLIF(TRIM(m.vorname), ''), NULLIF(TRIM(m.nachname), '')), ''),
+                    NULLIF(TRIM(m.benutzername), ''),
+                    CONCAT('Mitarbeiter #', m.id)
+                ) AS mitarbeiter_name,
+                COALESCE(
+                    NULLIF(CONCAT_WS(' ', NULLIF(TRIM(g.vorname), ''), NULLIF(TRIM(g.nachname), '')), ''),
+                    NULLIF(TRIM(g.benutzername), ''),
+                    CASE WHEN g.id IS NULL THEN NULL ELSE CONCAT('Mitarbeiter #', g.id) END
+                ) AS entscheidungs_mitarbeiter_name
+             FROM urlaubsantrag ua
+             INNER JOIN mitarbeiter m ON m.id = ua.mitarbeiter_id
+             LEFT JOIN mitarbeiter g ON g.id = ua.entscheidungs_mitarbeiter_id";
+
+        $where = [];
+
+        if ($darfAlle) {
+            // Vollzugriff: kein zusätzlicher Scope.
+        } elseif ($darfBereich) {
+            $sql .=
+                ' LEFT JOIN mitarbeiter_genehmiger mg
+                    ON mg.mitarbeiter_id = ua.mitarbeiter_id
+                   AND mg.genehmiger_mitarbeiter_id = :gid_scope';
+            $params['gid_scope'] = $actorId;
+
+            if ($darfSelf) {
+                $where[] = '(ua.mitarbeiter_id = :gid_self OR mg.genehmiger_mitarbeiter_id IS NOT NULL)';
+                $params['gid_self'] = $actorId;
+            } else {
+                $where[] = '(ua.mitarbeiter_id <> :gid_not_self AND mg.genehmiger_mitarbeiter_id IS NOT NULL)';
+                $params['gid_not_self'] = $actorId;
+            }
+        } else {
+            $where[] = 'ua.mitarbeiter_id = :gid_only_self';
+            $params['gid_only_self'] = $actorId;
+        }
+
+        if ($filterMitarbeiterId > 0) {
+            $where[] = 'ua.mitarbeiter_id = :filter_mid';
+            $params['filter_mid'] = $filterMitarbeiterId;
+        }
+
+        if ($filterStatus === 'aktiv') {
+            $where[] = "ua.status IN ('offen', 'genehmigt')";
+        } elseif ($filterStatus !== 'alle') {
+            $where[] = 'ua.status = :filter_status';
+            $params['filter_status'] = $filterStatus;
+        }
+
+        $jahrStart = sprintf('%04d-01-01', $filterJahr);
+        $jahrEnde = sprintf('%04d-12-31', $filterJahr);
+        $where[] = 'NOT (ua.bis_datum < :jahr_start OR ua.von_datum > :jahr_ende)';
+        $params['jahr_start'] = $jahrStart;
+        $params['jahr_ende'] = $jahrEnde;
+
+        if ($where !== []) {
+            $sql .= ' WHERE ' . implode(' AND ', $where);
+        }
+
+        $sql .= ' ORDER BY ua.von_datum DESC, ua.id DESC LIMIT 500';
+
+        try {
+            $antraege = $db->fetchAlle($sql, $params);
+        } catch (\Throwable $e) {
+            $antraege = [];
+            if (class_exists('Logger')) {
+                Logger::error('Urlaubsverwaltung: Anträge konnten nicht geladen werden', [
+                    'actor_id' => $actorId,
+                    'exception' => $e->getMessage(),
+                ], $actorId, null, 'urlaub_verwaltung');
+            }
+            $fehlermeldung = 'Urlaubsanträge konnten nicht geladen werden.';
+        }
+
+        $csrfToken = $this->holeOderErzeugeCsrfToken(self::CSRF_KEY_VERWALTUNG);
+
+        require __DIR__ . '/../views/urlaub/verwaltung.php';
     }
 
     /**

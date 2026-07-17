@@ -130,6 +130,31 @@ $fehlermeldung = $fehlermeldung ?? null;
         font-weight: 700;
     }
 
+    .plan-krank-lf {
+        background: #ffcdd2;
+        font-weight: 700;
+    }
+
+    .plan-krank-kk {
+        background: #ef9a9a;
+        font-weight: 700;
+    }
+
+    .plan-arzt {
+        background: #d1c4e9;
+        font-weight: 700;
+    }
+
+    .plan-kurzarbeit {
+        background: #b2dfdb;
+        font-weight: 700;
+    }
+
+    .plan-sonstiges {
+        background: #cfd8dc;
+        font-weight: 700;
+    }
+
     .plan-open a {
         display: block;
         color: inherit;
@@ -151,7 +176,7 @@ $fehlermeldung = $fehlermeldung ?? null;
 </style>
 
 <section>
-    <h2>Urlaub Jahres&uuml;bersicht <?php echo (int)$jahr; ?></h2>
+    <h2>Jahres&uuml;bersicht <?php echo (int)$jahr; ?></h2>
 
     <?php if (is_string($fehlermeldung) && $fehlermeldung !== ''): ?>
         <p class="error"><?php echo htmlspecialchars($fehlermeldung, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></p>
@@ -174,11 +199,16 @@ $fehlermeldung = $fehlermeldung ?? null;
             <span><i class="urlaub-jahresuebersicht-swatch plan-open"></i> O = beantragter Urlaub, noch nicht genehmigt</span>
             <span><i class="urlaub-jahresuebersicht-swatch plan-bf"></i> BF = Betriebsferien</span>
             <span><i class="urlaub-jahresuebersicht-swatch plan-ft"></i> FT = Feiertag</span>
+            <span><i class="urlaub-jahresuebersicht-swatch plan-krank-lf"></i> LF = Krank LF (Lohnfortzahlung)</span>
+            <span><i class="urlaub-jahresuebersicht-swatch plan-krank-kk"></i> KK = Krank KK (Krankenkasse)</span>
+            <span><i class="urlaub-jahresuebersicht-swatch plan-arzt"></i> A = Arzt</span>
+            <span><i class="urlaub-jahresuebersicht-swatch plan-kurzarbeit"></i> KA = Kurzarbeit</span>
+            <span><i class="urlaub-jahresuebersicht-swatch plan-sonstiges"></i> S = Sonstiges</span>
             <span>UeStd/Url stehen auf "offen", solange fuer den Mitarbeiter kein Monatsabschluss vorhanden ist.</span>
         </div>
 
         <?php if ($planung === []): ?>
-            <p>Keine Mitarbeiter fuer diese Urlaub Jahresuebersicht gefunden.</p>
+            <p>Keine Mitarbeiter fuer diese Jahresuebersicht gefunden.</p>
         <?php else: ?>
             <?php foreach ($planung as $monat): ?>
                 <?php

@@ -31,6 +31,9 @@ $csrfToken           = $csrfToken ?? '';
 $flashOk             = $flashOk ?? null;
 $flashFehler         = $flashFehler ?? null;
 $editBuchung         = $editBuchung ?? null;
+$neueBuchungTypDefault = in_array(($neueBuchungTypDefault ?? 'kommen'), ['kommen', 'gehen'], true) ? (string)$neueBuchungTypDefault : 'kommen';
+$neueBuchungZeitDefault = isset($neueBuchungZeitDefault) ? (string)$neueBuchungZeitDefault : '';
+$neueBuchungHinweis = isset($neueBuchungHinweis) ? (string)$neueBuchungHinweis : '';
 
 $zeigeMicroBuchungen = !empty($zeigeMicroBuchungen);
 $microBuchungenAusgeblendetAnzahl = isset($microBuchungenAusgeblendetAnzahl) ? (int)$microBuchungenAusgeblendetAnzahl : 0;
@@ -63,6 +66,37 @@ foreach ($buchungen as $b) {
     }
 }
 ?>
+
+<style>
+    .zeit-tool-stack {
+        display: grid;
+        gap: 0.9rem;
+        margin-top: 0.75rem;
+    }
+
+    .zeit-tool-card {
+        border: 1px solid #d5dde2;
+        border-radius: 8px;
+        background: #fff;
+        padding: 0.85rem 1rem;
+        max-width: 72rem;
+    }
+
+    .zeit-tool-card h3,
+    .zeit-tool-card h4 {
+        margin-top: 0;
+    }
+
+    .zeit-tool-card p:last-child,
+    .zeit-tool-card form:last-child {
+        margin-bottom: 0;
+    }
+
+    .zeit-tool-primary {
+        border-color: #b7c8d3;
+        background: #fbfdff;
+    }
+</style>
 
 <section>
     <h2>
@@ -296,6 +330,50 @@ foreach ($buchungen as $b) {
     <?php if ($istAdmin): ?>
         <hr>
 
+        <div class="zeit-tool-stack">
+            <div class="zeit-tool-card zeit-tool-primary">
+                <h3>Neue Buchung hinzufügen</h3>
+                <form method="post">
+                    <input type="hidden" name="csrf" value="<?php echo htmlspecialchars($csrfToken, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>">
+                    <input type="hidden" name="aktion" value="add">
+
+                    <label>
+                        Typ:
+                        <select name="typ">
+                            <option value="kommen" <?php echo $neueBuchungTypDefault === 'kommen' ? 'selected' : ''; ?>>kommen</option>
+                            <option value="gehen" <?php echo $neueBuchungTypDefault === 'gehen' ? 'selected' : ''; ?>>gehen</option>
+                        </select>
+                    </label>
+
+                    <label style="margin-left: 8px;">
+                        Zeit:
+                        <input type="time" name="zeit" step="1" value="<?php echo htmlspecialchars($neueBuchungZeitDefault, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>" required>
+                    </label>
+
+                    <label style="margin-left: 8px;">
+                        Begründung (Pflicht):
+                        <input type="text" name="begruendung" maxlength="255" required style="width: 320px;">
+                    </label>
+
+                    <label style="margin-left: 8px;">
+                        <input type="checkbox" name="nachtshift" value="1">
+                        Nachtschicht (nur für „kommen“)
+                    </label>
+
+                    <button type="submit" style="margin-left: 8px;">Hinzufügen</button>
+                </form>
+
+                <p style="margin-top:10px;color:#666;">
+                    <?php if ($neueBuchungHinweis !== ''): ?>
+                        <span><strong><?php echo htmlspecialchars($neueBuchungHinweis, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></strong></span><br>
+                    <?php endif; ?>
+                    Hinweis: Änderungen an Zeitbuchungen werden als <strong>manuell geändert</strong> markiert.
+                    Zusätzlich wird jede Änderung mit Begründung im <code>system_log</code> auditiert.
+                    Wenn für diesen Tag bereits Tageswerte gespeichert sind, werden diese als „Rohdaten geändert“ markiert.
+                    Die Begründung wird zusätzlich als Kommentar in der Zeitbuchung gespeichert und oben in der Tabelle angezeigt.
+                </p>
+            </div>
+
         <h3>Abwesenheiten / Tagesfelder</h3>
 
         <?php
@@ -332,6 +410,7 @@ foreach ($buchungen as $b) {
             $pauseAutoVorschlagMin = isset($pauseAutoVorschlagMin) ? (int)$pauseAutoVorschlagMin : 0;
         ?>
 
+        <div class="zeit-tool-card">
         <h4>Pause (Override)</h4>
 
         <?php if ($pauseOverrideAktiv): ?>
@@ -409,6 +488,10 @@ foreach ($buchungen as $b) {
                 sync();
             })();
         </script>
+        </div>
+
+        <div class="zeit-tool-card">
+        <h4>Kurzarbeit</h4>
 
         <form method="post" style="margin: 8px 0 18px 0;">
             <input type="hidden" name="csrf" value="<?php echo htmlspecialchars($csrfToken, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>">
@@ -442,7 +525,7 @@ foreach ($buchungen as $b) {
                 Hinweis: Tages-Override überschreibt den Kurzarbeit-Plan (für Report/PDF). Deaktivieren = Override entfernen, Plan greift wieder.
             </p>
         </form>
-
+        </div>
 
         <?php
             // Krank-Override (LFZ/KK) – Tageswerte
@@ -500,6 +583,7 @@ foreach ($buchungen as $b) {
             }
         ?>
 
+        <div class="zeit-tool-card">
         <h4>Krank (LFZ / KK)</h4>
 
         <form method="post" style="margin-bottom: 16px;">
@@ -538,7 +622,9 @@ foreach ($buchungen as $b) {
                 Hinweis: Tages-Override hat Vorrang vor der Zeitraum-Ableitung (Report/PDF). Deaktivieren = Override entfernen, Zeitraum greift wieder.
             </p>
         </form>
+        </div>
 
+        <div class="zeit-tool-card">
         <h4>Sonstiges</h4>
 
         <?php if (!is_array($sonstigesGruende) || $sonstigesGruende === []): ?>
@@ -602,44 +688,9 @@ foreach ($buchungen as $b) {
                 </p>
             </form>
         <?php endif; ?>
+        </div>
 
-        <h3>Neue Buchung hinzufügen</h3>
-        <form method="post">
-            <input type="hidden" name="csrf" value="<?php echo htmlspecialchars($csrfToken, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>">
-            <input type="hidden" name="aktion" value="add">
-
-            <label>
-                Typ:
-                <select name="typ">
-                    <option value="kommen">kommen</option>
-                    <option value="gehen">gehen</option>
-                </select>
-            </label>
-
-            <label style="margin-left: 8px;">
-                Zeit:
-                <input type="time" name="zeit" step="1" required>
-            </label>
-
-            <label style="margin-left: 8px;">
-                Begründung (Pflicht):
-                <input type="text" name="begruendung" maxlength="255" required style="width: 320px;">
-            </label>
-
-            <label style="margin-left: 8px;">
-                <input type="checkbox" name="nachtshift" value="1">
-                Nachtschicht (nur für „kommen“)
-            </label>
-
-            <button type="submit" style="margin-left: 8px;">Hinzufügen</button>
-        </form>
-
-        <p style="margin-top:10px;color:#666;">
-            Hinweis: Änderungen an Zeitbuchungen werden als <strong>manuell geändert</strong> markiert.
-            Zusätzlich wird jede Änderung mit Begründung im <code>system_log</code> auditiert.
-            Wenn für diesen Tag bereits Tageswerte gespeichert sind, werden diese als „Rohdaten geändert“ markiert.
-            Die Begründung wird zusätzlich als Kommentar in der Zeitbuchung gespeichert und oben in der Tabelle angezeigt.
-        </p>
+        </div>
     <?php endif; ?>
 </section>
 

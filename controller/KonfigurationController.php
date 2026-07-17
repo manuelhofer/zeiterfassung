@@ -553,9 +553,12 @@ class KonfigurationController
 
         $csrfToken = $this->holeOderErzeugeCsrfToken();
         $fehlermeldung = null;
+        $hinweismeldung = null;
 
         $editId = isset($_GET['id']) ? (int)$_GET['id'] : 0;
         $editId = max(0, $editId);
+        $wechselKkVonId = isset($_GET['wechsel_kk_von']) ? (int)$_GET['wechsel_kk_von'] : 0;
+        $wechselKkVonId = max(0, $wechselKkVonId);
 
         $istPost = (isset($_SERVER['REQUEST_METHOD']) && strtoupper((string)$_SERVER['REQUEST_METHOD']) === 'POST');
 
@@ -569,6 +572,121 @@ class KonfigurationController
             'kommentar' => '',
             'aktiv' => 1,
         ];
+
+        $formatKrankDatumAnzeige = static function (?string $datum): string {
+            $datum = trim((string)$datum);
+            if ($datum === '') {
+                return '';
+            }
+
+            if (preg_match('/^(\d{4})-(\d{2})-(\d{2})$/', $datum, $m) === 1) {
+                return $m[3] . '-' . $m[2] . '-' . $m[1];
+            }
+
+            if (preg_match('/^(\d{2})[-.](\d{2})[-.](\d{4})$/', $datum, $m) === 1) {
+                return $m[1] . '-' . $m[2] . '-' . $m[3];
+            }
+
+            return $datum;
+        };
+
+        $normalisiereKrankDatumEingabe = static function (string $datum): string {
+            $datum = trim($datum);
+            if ($datum === '') {
+                return '';
+            }
+
+            $tz = new DateTimeZone('Europe/Berlin');
+            if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $datum) === 1) {
+                $dt = DateTimeImmutable::createFromFormat('!Y-m-d', $datum, $tz);
+                $errors = DateTimeImmutable::getLastErrors();
+                $ok = $dt instanceof DateTimeImmutable
+                    && ($errors === false || ((int)($errors['warning_count'] ?? 0) === 0 && (int)($errors['error_count'] ?? 0) === 0));
+                return $ok ? $dt->format('Y-m-d') : $datum;
+            }
+
+            if (preg_match('/^\d{2}[-.]\d{2}[-.]\d{4}$/', $datum) === 1) {
+                $dt = DateTimeImmutable::createFromFormat('!d-m-Y', str_replace('.', '-', $datum), $tz);
+                $errors = DateTimeImmutable::getLastErrors();
+                $ok = $dt instanceof DateTimeImmutable
+                    && ($errors === false || ((int)($errors['warning_count'] ?? 0) === 0 && (int)($errors['error_count'] ?? 0) === 0));
+                return $ok ? $dt->format('Y-m-d') : $datum;
+            }
+
+            return $datum;
+        };
+
+        $pruefeKrankzeitraumRegeln = function (int $mitarbeiterId, string $typ, string $von, ?string $bis, int $id) use ($formatKrankDatumAnzeige): ?string {
+            $newBis = $bis ?? '9999-12-31';
+
+            if ($typ === 'kk') {
+                $lfOverlap = $this->datenbank->fetchEine(
+                    "SELECT id, von_datum, bis_datum FROM krankzeitraum
+                     WHERE aktiv = 1 AND mitarbeiter_id = :mid AND id <> :id AND typ = 'lfz'
+                       AND von_datum <= :newBis
+                       AND (bis_datum IS NULL OR bis_datum >= :newVon)
+                     ORDER BY von_datum DESC, id DESC
+                     LIMIT 1",
+                    [
+                        'mid' => $mitarbeiterId,
+                        'id' => $id,
+                        'newBis' => $newBis,
+                        'newVon' => $von,
+                    ]
+                );
+
+                if ($lfOverlap !== null) {
+                    $lfVon = (string)($lfOverlap['von_datum'] ?? '');
+                    $lfBis = (string)($lfOverlap['bis_datum'] ?? '');
+                    $lfVonAnzeige = $formatKrankDatumAnzeige($lfVon);
+                    $lfBisAnzeige = $lfBis !== '' ? $formatKrankDatumAnzeige($lfBis) : 'offen';
+                    return 'Der Zeitraum ist gesperrt: Mitarbeiter ist vom ' . $lfVonAnzeige . ' bis ' . $lfBisAnzeige . ' bereits Krank LF. Krank KK darf erst danach beginnen.';
+                }
+
+                $vorherigeLf = $this->datenbank->fetchEine(
+                    "SELECT id, von_datum, bis_datum FROM krankzeitraum
+                     WHERE aktiv = 1 AND mitarbeiter_id = :mid AND id <> :id AND typ = 'lfz'
+                       AND bis_datum IS NOT NULL
+                       AND bis_datum < :newVon
+                     ORDER BY bis_datum DESC, id DESC
+                     LIMIT 1",
+                    [
+                        'mid' => $mitarbeiterId,
+                        'id' => $id,
+                        'newVon' => $von,
+                    ]
+                );
+
+                if ($vorherigeLf === null) {
+                    return 'Krank KK kann erst angelegt werden, wenn vorher ein beendeter Krank-LF-Zeitraum vorhanden ist.';
+                }
+            }
+
+            $row = $this->datenbank->fetchEine(
+                "SELECT id, typ, von_datum, bis_datum FROM krankzeitraum
+                 WHERE aktiv = 1 AND mitarbeiter_id = :mid AND id <> :id
+                   AND von_datum <= :newBis
+                   AND (bis_datum IS NULL OR bis_datum >= :newVon)
+                 LIMIT 1",
+                [
+                    'mid' => $mitarbeiterId,
+                    'id' => $id,
+                    'newBis' => $newBis,
+                    'newVon' => $von,
+                ]
+            );
+
+            if ($row !== null) {
+                $ovId = (int)($row['id'] ?? 0);
+                $ovVon = (string)($row['von_datum'] ?? '');
+                $ovBis = (string)($row['bis_datum'] ?? '');
+                $ovVonAnzeige = $formatKrankDatumAnzeige($ovVon);
+                $ovBisAnzeige = $ovBis !== '' ? $formatKrankDatumAnzeige($ovBis) : 'offen';
+                return 'Überschneidung mit Zeitraum #' . $ovId . ' (' . $ovVonAnzeige . ' bis ' . $ovBisAnzeige . ').';
+            }
+
+            return null;
+        };
 
         // POST-Aktionen
         if ($istPost) {
@@ -588,12 +706,36 @@ class KonfigurationController
                         $fehlermeldung = 'Ungültige ID.';
                     } else {
                         try {
-                            $this->datenbank->ausfuehren(
-                                'UPDATE krankzeitraum SET aktiv = :a WHERE id = :id',
-                                ['a' => $aktiv, 'id' => $id]
-                            );
-                            header('Location: ?seite=konfiguration_admin&tab=krankzeitraum&ok=1');
-                            return;
+                            if ($aktiv === 1) {
+                                $row = $this->datenbank->fetchEine(
+                                    'SELECT id, mitarbeiter_id, typ, von_datum, bis_datum FROM krankzeitraum WHERE id = :id',
+                                    ['id' => $id]
+                                );
+
+                                if ($row === null) {
+                                    $fehlermeldung = 'Eintrag nicht gefunden.';
+                                } else {
+                                    $regelFehler = $pruefeKrankzeitraumRegeln(
+                                        (int)($row['mitarbeiter_id'] ?? 0),
+                                        (string)($row['typ'] ?? ''),
+                                        (string)($row['von_datum'] ?? ''),
+                                        ((string)($row['bis_datum'] ?? '') !== '') ? (string)$row['bis_datum'] : null,
+                                        $id
+                                    );
+                                    if ($regelFehler !== null) {
+                                        $fehlermeldung = $regelFehler;
+                                    }
+                                }
+                            }
+
+                            if ($fehlermeldung === null) {
+                                $this->datenbank->ausfuehren(
+                                    'UPDATE krankzeitraum SET aktiv = :a WHERE id = :id',
+                                    ['a' => $aktiv, 'id' => $id]
+                                );
+                                header('Location: ?seite=konfiguration_admin&tab=krankzeitraum&ok=1');
+                                return;
+                            }
                         } catch (Throwable $e) {
                             $fehlermeldung = 'Speichern fehlgeschlagen.';
                             if (class_exists('Logger')) {
@@ -619,8 +761,8 @@ class KonfigurationController
                         $typ = '';
                     }
 
-                    $von = isset($_POST['von_datum']) ? trim((string)$_POST['von_datum']) : '';
-                    $bis = isset($_POST['bis_datum']) ? trim((string)$_POST['bis_datum']) : '';
+                    $von = isset($_POST['von_datum']) ? $normalisiereKrankDatumEingabe((string)$_POST['von_datum']) : '';
+                    $bis = isset($_POST['bis_datum']) ? $normalisiereKrankDatumEingabe((string)$_POST['bis_datum']) : '';
                     if ($bis === '') {
                         $bis = null;
                     }
@@ -655,6 +797,17 @@ class KonfigurationController
                         $fehlermeldung = 'Bis-Datum darf nicht vor Von-Datum liegen.';
                     }
 
+                    if ($fehlermeldung === null && $aktiv === 1 && $typ === 'kk') {
+                        try {
+                            $regelFehler = $pruefeKrankzeitraumRegeln($mitarbeiterId, $typ, $von, $bis, $id);
+                            if ($regelFehler !== null) {
+                                $fehlermeldung = $regelFehler;
+                            }
+                        } catch (Throwable) {
+                            // defensiv: der bestehende Overlap-Check bleibt als Rueckfall aktiv
+                        }
+                    }
+
                     // Overlap-Check nur für aktive Zeiträume
                     if ($fehlermeldung === null && $aktiv === 1) {
                         $newVon = $von;
@@ -678,10 +831,9 @@ class KonfigurationController
                                 $ovId = (int)($row['id'] ?? 0);
                                 $ovVon = (string)($row['von_datum'] ?? '');
                                 $ovBis = (string)($row['bis_datum'] ?? '');
-                                if ($ovBis === '') {
-                                    $ovBis = 'offen';
-                                }
-                                $fehlermeldung = 'Überschneidung mit Zeitraum #' . $ovId . ' (' . $ovVon . ' bis ' . $ovBis . ').';
+                                $ovVonAnzeige = $formatKrankDatumAnzeige($ovVon);
+                                $ovBisAnzeige = $ovBis !== '' ? $formatKrankDatumAnzeige($ovBis) : 'offen';
+                                $fehlermeldung = 'Überschneidung mit Zeitraum #' . $ovId . ' (' . $ovVonAnzeige . ' bis ' . $ovBisAnzeige . ').';
                             }
                         } catch (Throwable) {
                             // defensiv: bei Check-Fehler nicht blockieren, aber warnen
@@ -742,6 +894,45 @@ class KonfigurationController
                         }
                     }
                 }
+            }
+        }
+
+        // Krank KK aus einem abgeschlossenen Krank-LF-Zeitraum vorbereiten.
+        if ($wechselKkVonId > 0 && !$istPost) {
+            try {
+                $row = $this->datenbank->fetchEine(
+                    "SELECT id, mitarbeiter_id, von_datum, bis_datum
+                     FROM krankzeitraum
+                     WHERE id = :id AND typ = 'lfz' AND aktiv = 1",
+                    ['id' => $wechselKkVonId]
+                );
+
+                if ($row === null) {
+                    $fehlermeldung = 'Krank-LF-Zeitraum nicht gefunden oder nicht aktiv.';
+                } else {
+                    $lfBis = (string)($row['bis_datum'] ?? '');
+                    if ($lfBis === '') {
+                        $fehlermeldung = 'Krank KK kann erst vorbereitet werden, wenn der Krank-LF-Zeitraum ein Bis-Datum hat.';
+                    } else {
+                        $dt = new DateTimeImmutable($lfBis, new DateTimeZone('Europe/Berlin'));
+                        $kkVon = $dt->modify('+1 day')->format('Y-m-d');
+                        $form = [
+                            'id' => 0,
+                            'mitarbeiter_id' => (int)($row['mitarbeiter_id'] ?? 0),
+                            'typ' => 'kk',
+                            'von_datum' => $kkVon,
+                            'bis_datum' => '',
+                            'kommentar' => '',
+                            'aktiv' => 1,
+                        ];
+                        $hinweismeldung = 'Krank KK wurde mit dem Folgetag nach Krank LF vorbereitet.';
+                    }
+                }
+
+                $editId = 0;
+            } catch (Throwable) {
+                $fehlermeldung = 'Krank-KK-Wechsel konnte nicht vorbereitet werden.';
+                $editId = 0;
             }
         }
 
@@ -818,8 +1009,12 @@ class KonfigurationController
                 <div class="erfolgsmeldung">Gespeichert.</div>
             <?php endif; ?>
 
+            <?php if (!empty($hinweismeldung)): ?>
+                <div class="notice"><?php echo htmlspecialchars((string)$hinweismeldung, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></div>
+            <?php endif; ?>
+
             <?php if (!empty($fehlermeldung)): ?>
-                <div class="fehlermeldung"><?php echo htmlspecialchars((string)$fehlermeldung, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></div>
+                <div class="error"><?php echo htmlspecialchars((string)$fehlermeldung, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></div>
             <?php endif; ?>
 
             <form method="post" action="?seite=konfiguration_admin&amp;tab=krankzeitraum">
@@ -880,14 +1075,17 @@ class KonfigurationController
                             // defensiv: keine Vorschlaege anzeigen
                         }
                     }
+                    $v6wVonAnzeige = $formatKrankDatumAnzeige($v6wVon);
+                    $v6wBisAnzeige = $formatKrankDatumAnzeige($v6wBis);
+                    $v6wKkVonAnzeige = $formatKrankDatumAnzeige($v6wKkVon);
                 ?>
 
                 <div id="lfz6w_hinweis" style="margin:-0.5rem 0 1rem 0; padding:0.6rem 0.75rem; background:#f7f7f7; border:1px solid #ddd; border-radius:6px; max-width:48rem;">
                     <strong>Vorschlag „Wechsel nach 6 Wochen“</strong><br>
                     <span style="color:#555;">
-                        Start am <span id="lfz6w_von"><?php echo htmlspecialchars($v6wVon, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></span> →
-                        Krank LF bis <span id="lfz6w_bis"><?php echo htmlspecialchars($v6wBis, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></span>,
-                        Krank KK ab <span id="lfz6w_kk"><?php echo htmlspecialchars($v6wKkVon, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></span>.
+                        Start am <span id="lfz6w_von"><?php echo htmlspecialchars($v6wVonAnzeige, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></span> →
+                        Krank LF bis <span id="lfz6w_bis"><?php echo htmlspecialchars($v6wBisAnzeige, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></span>,
+                        Krank KK ab <span id="lfz6w_kk"><?php echo htmlspecialchars($v6wKkVonAnzeige, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></span>.
                     </span>
                     <div style="margin-top:0.45rem;">
                         <button type="button" id="lfz6w_apply">Bis automatisch setzen</button>
@@ -906,13 +1104,32 @@ class KonfigurationController
                     var spKk = document.getElementById('lfz6w_kk');
                     var btn = document.getElementById('lfz6w_apply');
 
+                    function dateToIso(s){
+                        s = String(s || '').trim();
+                        if (/^\d{4}-\d{2}-\d{2}$/.test(s)) {
+                            return s;
+                        }
+                        var m = s.match(/^(\d{2})[-.](\d{2})[-.](\d{4})$/);
+                        if (m) {
+                            return m[3] + '-' + m[2] + '-' + m[1];
+                        }
+                        return '';
+                    }
+
+                    function isoToDisplay(s){
+                        s = String(s || '').trim();
+                        var m = s.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+                        return m ? (m[3] + '-' + m[2] + '-' + m[1]) : s;
+                    }
+
                     function isValidDateStr(s){
-                        return /^\d{4}-\d{2}-\d{2}$/.test(String(s || '').trim());
+                        return dateToIso(s) !== '';
                     }
 
                     function addDays(dateStr, days){
-                        if (!isValidDateStr(dateStr)) return null;
-                        var p = String(dateStr).split('-');
+                        var iso = dateToIso(dateStr);
+                        if (iso === '') return null;
+                        var p = iso.split('-');
                         var y = parseInt(p[0], 10);
                         var m = parseInt(p[1], 10) - 1;
                         var d = parseInt(p[2], 10);
@@ -940,9 +1157,9 @@ class KonfigurationController
                         }
 
                         box.style.display = 'block';
-                        if (spVon) spVon.textContent = von;
-                        if (spBis) spBis.textContent = bis;
-                        if (spKk) spKk.textContent = kk;
+                        if (spVon) spVon.textContent = isoToDisplay(dateToIso(von));
+                        if (spBis) spBis.textContent = isoToDisplay(bis);
+                        if (spKk) spKk.textContent = isoToDisplay(kk);
                         if (btn && btn.dataset) btn.dataset.lfzBis = bis;
                     }
 
@@ -1014,7 +1231,7 @@ class KonfigurationController
                         $typText = $typ === 'kk' ? 'Krank KK' : 'Krank LF';
                         $von = (string)($k['von_datum'] ?? '');
                         $bis = (string)($k['bis_datum'] ?? '');
-                        $zeitraum = $von . ' bis ' . ($bis !== '' ? $bis : 'offen');
+                        $zeitraum = $formatKrankDatumAnzeige($von) . ' bis ' . ($bis !== '' ? $formatKrankDatumAnzeige($bis) : 'offen');
                         $kommentar = (string)($k['kommentar'] ?? '');
                         $aktiv = (int)($k['aktiv'] ?? 0) === 1;
                         ?>
@@ -1027,6 +1244,9 @@ class KonfigurationController
                             <td><?php echo $aktiv ? 'Ja' : 'Nein'; ?></td>
                             <td>
                                 <a href="?seite=konfiguration_admin&amp;tab=krankzeitraum&amp;id=<?php echo (int)$id; ?>">Bearbeiten</a>
+                                <?php if ($typ === 'lfz' && $aktiv && $bis !== ''): ?>
+                                    <a href="?seite=konfiguration_admin&amp;tab=krankzeitraum&amp;wechsel_kk_von=<?php echo (int)$id; ?>" style="margin-left:0.75rem;">Wechsel zu KK</a>
+                                <?php endif; ?>
                                 <form method="post" action="?seite=konfiguration_admin&amp;tab=krankzeitraum" style="display:inline;">
                                     <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($csrfToken, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>">
                                     <input type="hidden" name="krank_action" value="toggle">
