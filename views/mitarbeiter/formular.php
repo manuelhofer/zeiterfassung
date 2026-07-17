@@ -40,6 +40,8 @@ $fehlermeldung = $fehlermeldung ?? null;
 $successmeldung = $successmeldung ?? null;
 
 $rollenIdsAusgewaehlt = array_map('intval', $rollenIdsAusgewaehlt);
+$formularModus = (($formularModus ?? 'stammdaten') === 'rechte') ? 'rechte' : 'stammdaten';
+$istRechteModus = $formularModus === 'rechte';
 
 $id                 = $mitarbeiter['id'] ?? null;
 $vorname            = trim((string)($mitarbeiter['vorname'] ?? ''));
@@ -72,7 +74,15 @@ $loginErlaubt       = $id === null
     ? false
     : (isset($mitarbeiter['ist_login_berechtigt']) ? (bool)$mitarbeiter['ist_login_berechtigt'] : false);
 
+$mitarbeiterName = trim($vorname . ' ' . $nachname);
 $ueberschrift = $id === null ? 'Neuen Mitarbeiter anlegen' : 'Mitarbeiter bearbeiten';
+if ($istRechteModus) {
+    $ueberschrift = 'Rollen & Rechte bearbeiten';
+    if ($mitarbeiterName !== '') {
+        $ueberschrift .= ' - ' . $mitarbeiterName;
+    }
+}
+$abbrechenUrl = $istRechteModus ? '?seite=mitarbeiter_rechte' : '?seite=mitarbeiter_admin';
 $stundenkontoStealthMode = $stundenkontoStealthMode ?? false;
 $stealthStyle = $stundenkontoStealthMode ? ' style="border: 3px solid #c00; padding: 12px;"' : '';
 ?>
@@ -100,7 +110,11 @@ $stealthStyle = $stundenkontoStealthMode ? ' style="border: 3px solid #c00; padd
 
     <form method="post" action="?seite=mitarbeiter_admin_speichern">
         <input type="hidden" name="id" value="<?php echo $id !== null ? (int)$id : ''; ?>">
+        <?php if ($istRechteModus): ?>
+            <input type="hidden" name="mitarbeiter_rechte_abschnitt" value="1">
+        <?php endif; ?>
 
+        <?php if (!$istRechteModus): ?>
         <fieldset>
             <legend>Stammdaten</legend>
 
@@ -135,7 +149,7 @@ $stealthStyle = $stundenkontoStealthMode ? ' style="border: 3px solid #c00; padd
             </div>
 
             <div>
-                <label for="urlaub_monatsanspruch">Urlaub (Stunden pro Monat)</label><br>
+                <label for="urlaub_monatsanspruch">Urlaub (Tage pro Monat)</label><br>
                 <input type="number" step="0.25" min="0" name="urlaub_monatsanspruch" id="urlaub_monatsanspruch"
                        value="<?php echo htmlspecialchars($urlaubMonatsanspr, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>">
             </div>
@@ -397,6 +411,9 @@ $stealthStyle = $stundenkontoStealthMode ? ' style="border: 3px solid #c00; padd
         </fieldset>
 
 
+        <?php endif; ?>
+
+        <?php if ($istRechteModus): ?>
         <fieldset>
             <legend>Rollen (Berechtigungen)</legend>
 
@@ -778,12 +795,27 @@ $stealthStyle = $stundenkontoStealthMode ? ' style="border: 3px solid #c00; padd
 
             <p><small>Leere Zeilen werden ignoriert. Der Mitarbeiter kann nicht sein eigener Genehmiger sein.</small></p>
         </fieldset>
+        <?php endif; ?>
 
         <p>
-            <button type="submit">Speichern</button>
-            <a href="?seite=mitarbeiter_admin">Abbrechen</a>
+            <button type="submit"><?php echo $istRechteModus ? 'Rollen & Rechte speichern' : 'Speichern'; ?></button>
+            <a href="<?php echo htmlspecialchars($abbrechenUrl, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>">Abbrechen</a>
         </p>
     </form>
+
+    <?php if ($id !== null): ?>
+        <p>
+            <?php if ($istRechteModus): ?>
+                <a href="?seite=mitarbeiter_admin_bearbeiten&amp;id=<?php echo (int)$id; ?>">Stammdaten bearbeiten</a>
+                |
+                <a href="?seite=mitarbeiter_stundenkonto&amp;mitarbeiter_id=<?php echo (int)$id; ?>">Stundenkonto fuer diesen Mitarbeiter oeffnen</a>
+            <?php else: ?>
+                <a href="?seite=mitarbeiter_stundenkonto&amp;mitarbeiter_id=<?php echo (int)$id; ?>">Stundenkonto fuer diesen Mitarbeiter oeffnen</a>
+                |
+                <a href="?seite=mitarbeiter_rechte&amp;id=<?php echo (int)$id; ?>">Rollen & Rechte bearbeiten</a>
+            <?php endif; ?>
+        </p>
+    <?php endif; ?>
 
     <?php
     // Stundenkonto (Korrekturen/Saldo)
@@ -802,7 +834,7 @@ $stealthStyle = $stundenkontoStealthMode ? ' style="border: 3px solid #c00; padd
     };
     ?>
 
-    <?php if ($id !== null): ?>
+    <?php if (false && $id !== null): ?>
         <hr>
         <h3>Stundenkonto</h3>
 

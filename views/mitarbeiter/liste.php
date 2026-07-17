@@ -64,6 +64,10 @@ $fehlermeldung    = $fehlermeldung ?? null;
                         <td><?php echo $aktiv ? 'Ja' : 'Nein'; ?></td>
                         <td>
                             <a href="?seite=mitarbeiter_admin_bearbeiten&amp;id=<?php echo (int)$id; ?>">Bearbeiten</a>
+                            |
+                            <a href="?seite=mitarbeiter_rechte&amp;id=<?php echo (int)$id; ?>">Rollen &amp; Rechte</a>
+                            |
+                            <a href="?seite=mitarbeiter_stundenkonto&amp;mitarbeiter_id=<?php echo (int)$id; ?>">Stundenkonto</a>
                         </td>
                     </tr>
                 <?php endforeach; ?>

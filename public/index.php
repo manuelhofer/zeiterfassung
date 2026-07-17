@@ -116,6 +116,8 @@ try {
         'zeit_heute',
         'urlaub_meine',
         'urlaub_genehmigung',
+        'urlaub_jahresuebersicht',
+        'urlaubsplanung',
         'report_monat',
         'report_monat_pdf',
         'report_monat_export_all',
@@ -125,6 +127,8 @@ try {
         'mitarbeiter_admin',
         'mitarbeiter_admin_bearbeiten',
         'mitarbeiter_admin_speichern',
+        'mitarbeiter_stundenkonto',
+        'mitarbeiter_rechte',
         'maschine_admin',
         'maschine_admin_bearbeiten',
         'maschine_admin_speichern',
@@ -201,6 +205,12 @@ try {
             $controller->genehmigungListe();
             break;
 
+        case 'urlaub_jahresuebersicht':
+        case 'urlaubsplanung':
+            $controller = new UrlaubJahresuebersichtController();
+            $controller->index();
+            break;
+
         case 'report_monat':
             $jahr  = isset($_GET['jahr']) ? (int)$_GET['jahr'] : (int)date('Y');
             $monat = isset($_GET['monat']) ? (int)$_GET['monat'] : (int)date('n');
@@ -253,6 +263,17 @@ try {
         case 'mitarbeiter_admin':
             $controller = new MitarbeiterAdminController();
             $controller->index();
+            break;
+
+        case 'mitarbeiter_stundenkonto':
+            $controller = new MitarbeiterAdminController();
+            $controller->stundenkonto();
+            break;
+
+        case 'mitarbeiter_rechte':
+            $_GET['rechte_modus'] = '1';
+            $controller = new MitarbeiterAdminController();
+            $controller->bearbeiten();
             break;
 
         case 'maschine_admin':

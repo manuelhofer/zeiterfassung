@@ -143,6 +143,76 @@ if (class_exists('AuthService')) {
 
 $seite = isset($_GET['seite']) ? (string)$_GET['seite'] : 'start';
 $tab = isset($_GET['tab']) ? (string)$_GET['tab'] : '';
+
+$navUrlaubAktiv = in_array($seite, [
+    'urlaub_meine',
+    'urlaub_genehmigung',
+    'urlaub_kontingent_admin',
+    'urlaub_kontingent_admin_bearbeiten',
+    'betriebsferien_admin',
+    'betriebsferien_admin_bearbeiten',
+], true);
+
+$navUebersichtenAktiv = in_array($seite, [
+    'report_monat',
+    'report_monat_pdf',
+    'report_monat_export_all',
+    'urlaub_jahresuebersicht',
+    'urlaubsplanung',
+], true);
+
+$navMitarbeiterAktiv = in_array($seite, [
+    'mitarbeiter_admin',
+    'mitarbeiter_admin_bearbeiten',
+    'mitarbeiter_stundenkonto',
+], true);
+
+$navRechteAktiv = in_array($seite, [
+    'mitarbeiter_rechte',
+    'rollen_admin',
+    'rollen_admin_bearbeiten',
+    'abteilung_admin',
+    'abteilung_admin_bearbeiten',
+], true);
+
+$navVerwaltungAktiv = in_array($seite, [
+    'maschine_admin',
+    'maschine_admin_bearbeiten',
+    'feiertag_admin',
+    'feiertag_admin_bearbeiten',
+    'zeit_rundungsregel_admin',
+    'konfiguration_admin',
+    'konfiguration_admin_bearbeiten',
+    'queue_admin',
+    'terminal_admin',
+    'terminal_admin_bearbeiten',
+], true);
+
+$hatRechteMenue = $hatMitarbeiterAdminRecht || $hatRollenAdminRecht || $hatAbteilungsAdminRecht;
+$hatVerwaltungMenue = $hatMaschineAdminRecht
+    || $hatFeiertagAdminRecht
+    || $hatRundungsregelAdminRecht
+    || $hatKonfigurationAdminRecht
+    || $hatKrankzeitraumAdminRecht
+    || $hatQueueAdminRecht
+    || $hatTerminalAdminRecht;
+
+$navVerwaltungStartUrl = '?seite=dashboard';
+if ($hatKonfigurationAdminRecht) {
+    $navVerwaltungStartUrl = '?seite=konfiguration_admin';
+} elseif ($hatMaschineAdminRecht) {
+    $navVerwaltungStartUrl = '?seite=maschine_admin';
+} elseif ($hatFeiertagAdminRecht) {
+    $navVerwaltungStartUrl = '?seite=feiertag_admin';
+} elseif ($hatRundungsregelAdminRecht) {
+    $navVerwaltungStartUrl = '?seite=zeit_rundungsregel_admin';
+} elseif ($hatKrankzeitraumAdminRecht) {
+    $navVerwaltungStartUrl = '?seite=konfiguration_admin&tab=krankzeitraum';
+} elseif ($hatQueueAdminRecht) {
+    $navVerwaltungStartUrl = '?seite=queue_admin';
+} elseif ($hatTerminalAdminRecht) {
+    $navVerwaltungStartUrl = '?seite=terminal_admin';
+}
 ?>
 
 <!DOCTYPE html>
@@ -187,6 +257,42 @@ $tab = isset($_GET['tab']) ? (string)$_GET['tab'] : '';
         nav a.active {
             font-weight: bold;
             text-decoration: underline;
+        }
+        .nav-menu {
+            position: relative;
+            display: inline-block;
+            margin-right: 1rem;
+        }
+        .nav-menu > a {
+            margin-right: 0;
+        }
+        .nav-menu.active > a {
+            font-weight: bold;
+            text-decoration: underline;
+        }
+        .nav-menu-items {
+            display: none;
+            position: absolute;
+            left: 0;
+            top: 100%;
+            min-width: 14rem;
+            background-color: #455a64;
+            box-shadow: 0 6px 14px rgba(0, 0, 0, 0.25);
+            z-index: 20;
+        }
+        .nav-menu:hover .nav-menu-items,
+        .nav-menu:focus-within .nav-menu-items {
+            display: block;
+        }
+        .nav-menu-items a {
+            display: block;
+            margin: 0;
+            padding: 0.45rem 0.75rem;
+            white-space: nowrap;
+        }
+        .nav-menu-items a:hover,
+        .nav-menu-items a:focus {
+            background-color: #546e7a;
         }
         main {
             padding: 1.5rem 1.25rem 2rem 1.25rem;
@@ -239,14 +345,103 @@ $tab = isset($_GET['tab']) ? (string)$_GET['tab'] : '';
 <nav>
     <a href="?seite=dashboard" class="<?php echo $seite === 'dashboard' ? 'active' : ''; ?>">Dashboard</a>
     <a href="?seite=zeit_heute" class="<?php echo $seite === 'zeit_heute' ? 'active' : ''; ?>">Heutige Zeiten</a>
+    <span class="nav-menu <?php echo $navUrlaubAktiv ? 'active' : ''; ?>">
+        <a href="?seite=urlaub_meine">Urlaub</a>
+        <span class="nav-menu-items">
+            <a href="?seite=urlaub_meine">Mein Urlaub</a>
+            <?php if ($hatUrlaubGenehmigungRecht): ?>
+                <a href="?seite=urlaub_genehmigung">Urlaub genehmigen</a>
+            <?php endif; ?>
+            <?php if ($hatUrlaubKontingentAdminRecht): ?>
+                <a href="?seite=urlaub_kontingent_admin">Urlaub-Kontingent</a>
+            <?php endif; ?>
+            <?php if ($hatBetriebsferienAdminRecht): ?>
+                <a href="?seite=betriebsferien_admin">Betriebsferien</a>
+            <?php endif; ?>
+        </span>
+    </span>
+    <span class="nav-menu <?php echo $navUebersichtenAktiv ? 'active' : ''; ?>">
+        <a href="?seite=report_monat">&Uuml;bersichten</a>
+        <span class="nav-menu-items">
+            <a href="?seite=report_monat">Monats&uuml;bersicht</a>
+            <?php if ($hatUrlaubGenehmigungRecht): ?>
+                <a href="?seite=urlaub_jahresuebersicht">Urlaub Jahres&uuml;bersicht</a>
+            <?php endif; ?>
+        </span>
+    </span>
+    <a href="?seite=auftrag" class="<?php echo in_array($seite, ['auftrag','auftrag_detail','auftragszeit_bearbeiten'], true) ? 'active' : ''; ?>">Auftr&auml;ge</a>
+    <?php if ($hatMitarbeiterAdminRecht): ?>
+        <span class="nav-menu <?php echo $navMitarbeiterAktiv ? 'active' : ''; ?>">
+            <a href="?seite=mitarbeiter_admin">Mitarbeiter</a>
+            <span class="nav-menu-items">
+                <a href="?seite=mitarbeiter_admin">Mitarbeiter&uuml;bersicht</a>
+                <a href="?seite=mitarbeiter_admin_bearbeiten">Mitarbeiter anlegen</a>
+                <a href="?seite=mitarbeiter_stundenkonto">Stundenkonto</a>
+            </span>
+        </span>
+    <?php endif; ?>
+    <?php if ($hatRechteMenue): ?>
+        <span class="nav-menu <?php echo $navRechteAktiv ? 'active' : ''; ?>">
+            <a href="<?php echo $hatMitarbeiterAdminRecht ? '?seite=mitarbeiter_rechte' : ($hatRollenAdminRecht ? '?seite=rollen_admin' : '?seite=abteilung_admin'); ?>">Rechte</a>
+            <span class="nav-menu-items">
+                <?php if ($hatMitarbeiterAdminRecht): ?>
+                    <a href="?seite=mitarbeiter_rechte">Mitarbeiter-Rollen &amp; Rechte</a>
+                <?php endif; ?>
+                <?php if ($hatRollenAdminRecht): ?>
+                    <a href="?seite=rollen_admin">Rollen verwalten</a>
+                <?php endif; ?>
+                <?php if ($hatAbteilungsAdminRecht): ?>
+                    <a href="?seite=abteilung_admin">Abteilungen</a>
+                <?php endif; ?>
+            </span>
+        </span>
+    <?php endif; ?>
+    <?php if ($hatVerwaltungMenue): ?>
+        <span class="nav-menu <?php echo $navVerwaltungAktiv ? 'active' : ''; ?>">
+            <a href="<?php echo htmlspecialchars($navVerwaltungStartUrl, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>">Verwaltung</a>
+            <span class="nav-menu-items">
+                <?php if ($hatMaschineAdminRecht): ?>
+                    <a href="?seite=maschine_admin">Maschinen</a>
+                <?php endif; ?>
+                <?php if ($hatFeiertagAdminRecht): ?>
+                    <a href="?seite=feiertag_admin">Feiertage</a>
+                <?php endif; ?>
+                <?php if ($hatRundungsregelAdminRecht): ?>
+                    <a href="?seite=zeit_rundungsregel_admin">Rundungsregeln</a>
+                <?php endif; ?>
+                <?php if ($hatKonfigurationAdminRecht): ?>
+                    <a href="?seite=konfiguration_admin">Konfiguration</a>
+                <?php endif; ?>
+                <?php if ($hatKrankzeitraumAdminRecht): ?>
+                    <a href="?seite=konfiguration_admin&amp;tab=krankzeitraum">Krank (LF/KK)</a>
+                <?php endif; ?>
+                <?php if ($hatQueueAdminRecht): ?>
+                    <a href="?seite=queue_admin">Offline-Queue</a>
+                <?php endif; ?>
+                <?php if ($hatTerminalAdminRecht): ?>
+                    <a href="?seite=terminal_admin">Terminals</a>
+                <?php endif; ?>
+            </span>
+        </span>
+    <?php endif; ?>
+    <?php if (false): ?>
     <a href="?seite=urlaub_meine" class="<?php echo $seite === 'urlaub_meine' ? 'active' : ''; ?>">Mein Urlaub</a>
     <?php if ($hatUrlaubGenehmigungRecht): ?>
         <a href="?seite=urlaub_genehmigung" class="<?php echo $seite === 'urlaub_genehmigung' ? 'active' : ''; ?>">Urlaub genehmigen</a>
+        <a href="?seite=urlaub_jahresuebersicht" class="<?php echo in_array($seite, ['urlaub_jahresuebersicht', 'urlaubsplanung'], true) ? 'active' : ''; ?>">Urlaub Jahresübersicht</a>
     <?php endif; ?>
     <a href="?seite=report_monat" class="<?php echo $seite === 'report_monat' ? 'active' : ''; ?>">Monatsübersicht</a>
     <a href="?seite=auftrag" class="<?php echo in_array($seite, ['auftrag','auftrag_detail','auftragszeit_bearbeiten'], true) ? 'active' : ''; ?>">Aufträge</a>
     <?php if ($hatMitarbeiterAdminRecht): ?>
-        <a href="?seite=mitarbeiter_admin" class="<?php echo $seite === 'mitarbeiter_admin' ? 'active' : ''; ?>">Mitarbeiter</a>
+        <span class="nav-menu <?php echo in_array($seite, ['mitarbeiter_admin','mitarbeiter_admin_bearbeiten','mitarbeiter_stundenkonto','mitarbeiter_rechte'], true) ? 'active' : ''; ?>">
+            <a href="?seite=mitarbeiter_admin">Mitarbeiter</a>
+            <span class="nav-menu-items">
+                <a href="?seite=mitarbeiter_admin">Mitarbeiteruebersicht</a>
+                <a href="?seite=mitarbeiter_admin_bearbeiten">Mitarbeiter anlegen</a>
+                <a href="?seite=mitarbeiter_rechte">Rollen &amp; Rechte</a>
+                <a href="?seite=mitarbeiter_stundenkonto">Stundenkonto</a>
+            </span>
+        </span>
     <?php endif; ?>
     <?php if ($hatAbteilungsAdminRecht): ?>
         <a href="?seite=abteilung_admin" class="<?php echo $seite === 'abteilung_admin' ? 'active' : ''; ?>">Abteilungen</a>
@@ -280,6 +475,7 @@ $tab = isset($_GET['tab']) ? (string)$_GET['tab'] : '';
     <?php endif; ?>
     <?php if ($hatTerminalAdminRecht): ?>
         <a href="?seite=terminal_admin" class="<?php echo $seite === 'terminal_admin' ? 'active' : ''; ?>">Terminals</a>
+    <?php endif; ?>
     <?php endif; ?>
     <a href="?seite=logout" style="float:right;">Logout</a>
 </nav>

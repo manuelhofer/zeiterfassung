@@ -19,6 +19,7 @@ $csrfToken = isset($csrfToken) && is_string($csrfToken) ? $csrfToken : '';
 
 $meldung      = $meldung ?? null;
 $fehlermeldung = $fehlermeldung ?? null;
+$markierterAntragId = isset($_GET['antrag_id']) ? (int)$_GET['antrag_id'] : 0;
 ?>
 
 <section>
@@ -59,7 +60,7 @@ $fehlermeldung = $fehlermeldung ?? null;
                     $saldoWarnungAktiv = (int)($a['saldo_warnung_aktiv'] ?? 0) === 1;
                     $kommentarMitarbeiter = (string)($a['kommentar_mitarbeiter'] ?? '');
                 ?>
-                <tr>
+                <tr id="antrag-<?php echo (int)$antragId; ?>"<?php echo ($markierterAntragId > 0 && $markierterAntragId === $antragId) ? ' style="outline:3px solid #ff9800; background:#fff3e0;"' : ''; ?>>
                     <td><?php echo htmlspecialchars($mitarbeiterName, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></td>
                     <td><?php echo htmlspecialchars($von, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></td>
                     <td><?php echo htmlspecialchars($bis, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></td>

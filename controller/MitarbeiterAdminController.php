@@ -265,6 +265,223 @@ class MitarbeiterAdminController
         require __DIR__ . '/../views/mitarbeiter/liste.php';
     }
 
+    /**
+     * Laedt die bestehenden Stundenkonto-Anzeigedaten fuer einen Mitarbeiter.
+     *
+     * @return array{saldo_text:?string,korrekturen:array<int,array<string,mixed>>,batches:array<int,array<string,mixed>>}
+     */
+    private function ladeStundenkontoDaten(int $mitarbeiterId): array
+    {
+        $saldoText = null;
+        $korrekturen = [];
+        $batches = [];
+
+        if ($mitarbeiterId <= 0) {
+            return [
+                'saldo_text' => null,
+                'korrekturen' => [],
+                'batches' => [],
+            ];
+        }
+
+        try {
+            // "Stand heute" = alle Korrekturen mit wirksam_datum < morgen
+            $morgen = (new \DateTimeImmutable('today'))->modify('+1 day')->format('Y-m-d');
+            $svc = StundenkontoService::getInstanz();
+            $saldoMinuten = $svc->holeSaldoMinutenBisDatumExklusiv($mitarbeiterId, $morgen);
+            $saldoText = $this->formatStundenkontoMinuten($saldoMinuten);
+
+            $db = Database::getInstanz();
+            $korrekturen = $db->fetchAlle(
+                "SELECT k.wirksam_datum, k.delta_minuten, k.typ, k.begruendung, k.erstellt_am,
+                        m.vorname AS erstellt_von_vorname, m.nachname AS erstellt_von_nachname
+                 FROM stundenkonto_korrektur k
+                 LEFT JOIN mitarbeiter m ON m.id = k.erstellt_von_mitarbeiter_id
+                 WHERE k.mitarbeiter_id = :mid
+                   AND k.stealth = 0
+                 ORDER BY k.wirksam_datum DESC, k.id DESC
+                 LIMIT 10",
+                ['mid' => $mitarbeiterId]
+            );
+
+            $batches = $db->fetchAlle(
+                "SELECT b.id, b.modus, b.von_datum, b.bis_datum, b.gesamt_minuten, b.minuten_pro_tag, b.nur_arbeitstage, b.begruendung, b.erstellt_am,
+                        m.vorname AS erstellt_von_vorname, m.nachname AS erstellt_von_nachname,
+                        (SELECT COUNT(1) FROM stundenkonto_korrektur k2 WHERE k2.batch_id = b.id AND k2.stealth = 0) AS anzahl_tage
+                 FROM stundenkonto_batch b
+                 LEFT JOIN mitarbeiter m ON m.id = b.erstellt_von_mitarbeiter_id
+                 WHERE b.mitarbeiter_id = :mid
+                   AND b.stealth = 0
+                 ORDER BY b.erstellt_am DESC, b.id DESC
+                 LIMIT 10",
+                ['mid' => $mitarbeiterId]
+            );
+        } catch (\Throwable) {
+            // Tabellen koennen in Legacy/Setup fehlen; dann einfach nichts anzeigen.
+            $saldoText = null;
+            $korrekturen = [];
+            $batches = [];
+        }
+
+        return [
+            'saldo_text' => $saldoText,
+            'korrekturen' => $korrekturen,
+            'batches' => $batches,
+        ];
+    }
+
+    private function formatStundenkontoMinuten(?int $minuten): string
+    {
+        if ($minuten === null) {
+            return '---';
+        }
+
+        $sign = $minuten < 0 ? '-' : '+';
+        $abs = abs($minuten);
+        $h = intdiv($abs, 60);
+        $m = $abs % 60;
+
+        return sprintf('%s%d:%02d', $sign, $h, $m);
+    }
+
+    private function stundenkontoRuecksprungUrl(int $mitarbeiterId): string
+    {
+        $returnTo = isset($_POST['return_to']) ? trim((string)$_POST['return_to']) : '';
+        if ($returnTo === 'stundenkonto') {
+            $url = '?seite=mitarbeiter_stundenkonto&mitarbeiter_id=' . (int)$mitarbeiterId;
+            $jahr = isset($_POST['return_umbuchung_jahr']) ? (int)$_POST['return_umbuchung_jahr'] : 0;
+            $monat = isset($_POST['return_umbuchung_monat']) ? (int)$_POST['return_umbuchung_monat'] : 0;
+            if ($jahr >= 1900 && $jahr <= 2200) {
+                $url .= '&umbuchung_jahr=' . $jahr;
+            }
+            if ($monat >= 1 && $monat <= 12) {
+                $url .= '&umbuchung_monat=' . $monat;
+            }
+            if (isset($_POST['stundenkonto_stealth']) && (string)$_POST['stundenkonto_stealth'] === '1') {
+                $url .= '&mode=stealth';
+            }
+            return $url;
+        }
+
+        return '?seite=mitarbeiter_admin_bearbeiten&id=' . (int)$mitarbeiterId;
+    }
+
+    public function stundenkonto(): void
+    {
+        if (!$this->pruefeZugriff()) {
+            return;
+        }
+
+        $fehlermeldung = null;
+        $successmeldung = null;
+
+        if (isset($_SESSION['mitarbeiter_admin_flash_error'])) {
+            $fehlermeldung = (string)$_SESSION['mitarbeiter_admin_flash_error'];
+            unset($_SESSION['mitarbeiter_admin_flash_error']);
+        }
+
+        if (isset($_SESSION['mitarbeiter_admin_flash_success'])) {
+            $successmeldung = (string)$_SESSION['mitarbeiter_admin_flash_success'];
+            unset($_SESSION['mitarbeiter_admin_flash_success']);
+        }
+
+        $mitarbeiterListe = [];
+        try {
+            $mitarbeiterListe = $this->mitarbeiterModel->holeAlleAktiven();
+        } catch (\Throwable $e) {
+            $mitarbeiterListe = [];
+            $fehlermeldung = $fehlermeldung ?? 'Die Mitarbeiterliste konnte nicht geladen werden.';
+            if (class_exists('Logger')) {
+                Logger::error('Stundenkonto: Mitarbeiterliste konnte nicht geladen werden', [
+                    'exception' => $e->getMessage(),
+                ], null, null, 'stundenkonto');
+            }
+        }
+
+        $id = isset($_GET['mitarbeiter_id']) ? (int)$_GET['mitarbeiter_id'] : 0;
+        $mitarbeiter = null;
+        if ($id > 0) {
+            $mitarbeiter = $this->mitarbeiterModel->holeNachId($id);
+            if ($mitarbeiter === null) {
+                $fehlermeldung = $fehlermeldung ?? 'Der ausgewaehlte Mitarbeiter wurde nicht gefunden.';
+                $id = 0;
+            }
+        }
+
+        $stundenkontoDarfVerwalten = $this->authService->hatRecht('STUNDENKONTO_VERWALTEN');
+        $stundenkontoStealthMode = isset($_GET['mode']) && (string)$_GET['mode'] === 'stealth';
+        $stundenkontoSaldoAktuellText = null;
+        $stundenkontoLetzteKorrekturen = [];
+        $stundenkontoLetzteBatches = [];
+        $stundenkontoUmbuchungTageswerte = [];
+        $stundenkontoUmbuchungMonatswerte = null;
+        $stundenkontoUmbuchungZusammenfassung = null;
+        $stundenkontoUmbuchungFehler = null;
+
+        $stundenkontoUmbuchungJahr = isset($_GET['umbuchung_jahr']) ? (int)$_GET['umbuchung_jahr'] : (int)date('Y');
+        $stundenkontoUmbuchungMonat = isset($_GET['umbuchung_monat']) ? (int)$_GET['umbuchung_monat'] : (int)date('n');
+        if ($stundenkontoUmbuchungMonat < 1) {
+            $stundenkontoUmbuchungMonat = 1;
+        } elseif ($stundenkontoUmbuchungMonat > 12) {
+            $stundenkontoUmbuchungMonat = 12;
+        }
+        if ($stundenkontoUmbuchungJahr < 1900 || $stundenkontoUmbuchungJahr > 2200) {
+            $stundenkontoUmbuchungJahr = (int)date('Y');
+        }
+        try {
+            $stundenkontoUmbuchungStart = new \DateTimeImmutable(sprintf('%04d-%02d-01', $stundenkontoUmbuchungJahr, $stundenkontoUmbuchungMonat));
+        } catch (\Throwable) {
+            $stundenkontoUmbuchungStart = new \DateTimeImmutable('first day of this month');
+        }
+        $stundenkontoUmbuchungJahr = (int)$stundenkontoUmbuchungStart->format('Y');
+        $stundenkontoUmbuchungMonat = (int)$stundenkontoUmbuchungStart->format('n');
+        $stundenkontoUmbuchungPrev = $stundenkontoUmbuchungStart->modify('-1 month');
+        $stundenkontoUmbuchungNext = $stundenkontoUmbuchungStart->modify('+1 month');
+        $stundenkontoUmbuchungPrevJahr = (int)$stundenkontoUmbuchungPrev->format('Y');
+        $stundenkontoUmbuchungPrevMonat = (int)$stundenkontoUmbuchungPrev->format('n');
+        $stundenkontoUmbuchungNextJahr = (int)$stundenkontoUmbuchungNext->format('Y');
+        $stundenkontoUmbuchungNextMonat = (int)$stundenkontoUmbuchungNext->format('n');
+
+        if ($id > 0 && $mitarbeiter !== null) {
+            $stundenkontoDaten = $this->ladeStundenkontoDaten($id);
+            $stundenkontoSaldoAktuellText = $stundenkontoDaten['saldo_text'];
+            $stundenkontoLetzteKorrekturen = $stundenkontoDaten['korrekturen'];
+            $stundenkontoLetzteBatches = $stundenkontoDaten['batches'];
+
+            try {
+                $reportDaten = ReportService::getInstanz()->holeMonatsdatenFuerMitarbeiter(
+                    $id,
+                    $stundenkontoUmbuchungJahr,
+                    $stundenkontoUmbuchungMonat
+                );
+                $stundenkontoUmbuchungTageswerte = is_array($reportDaten['tageswerte'] ?? null)
+                    ? $reportDaten['tageswerte']
+                    : [];
+                $stundenkontoUmbuchungMonatswerte = is_array($reportDaten['monatswerte'] ?? null)
+                    ? $reportDaten['monatswerte']
+                    : null;
+                $stundenkontoUmbuchungZusammenfassung = is_array($reportDaten['monatszusammenfassung'] ?? null)
+                    ? $reportDaten['monatszusammenfassung']
+                    : null;
+            } catch (\Throwable $e) {
+                $stundenkontoUmbuchungTageswerte = [];
+                $stundenkontoUmbuchungMonatswerte = null;
+                $stundenkontoUmbuchungZusammenfassung = null;
+                $stundenkontoUmbuchungFehler = 'Die Monatsdaten fuer die Sammelumbuchung konnten nicht geladen werden.';
+                if (class_exists('Logger')) {
+                    Logger::warn('Stundenkonto: Monatsdaten fuer Sammelumbuchung konnten nicht geladen werden', [
+                        'mitarbeiter_id' => $id,
+                        'jahr'           => $stundenkontoUmbuchungJahr,
+                        'monat'          => $stundenkontoUmbuchungMonat,
+                        'exception'      => $e->getMessage(),
+                    ], $id, null, 'stundenkonto');
+                }
+            }
+        }
+
+        require __DIR__ . '/../views/mitarbeiter/stundenkonto.php';
+    }
+
 
     /**
      * Formular zum Anlegen/Bearbeiten eines Mitarbeiters anzeigen.
@@ -276,6 +493,7 @@ class MitarbeiterAdminController
         }
 
         $id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+        $formularModus = (isset($_GET['rechte_modus']) && (string)$_GET['rechte_modus'] === '1') ? 'rechte' : 'stammdaten';
 
         $mitarbeiter   = null;
         $fehlermeldung = null;
@@ -296,6 +514,23 @@ class MitarbeiterAdminController
 
         if ($flashOk !== null && $flashOk !== '') {
             $successmeldung = $flashOk;
+        }
+
+        if ($formularModus === 'rechte' && $id <= 0) {
+            $mitarbeiterListe = [];
+            try {
+                $mitarbeiterListe = $this->mitarbeiterModel->holeAlleAktiven();
+            } catch (\Throwable $e) {
+                $fehlermeldung = 'Die Mitarbeiterliste konnte nicht geladen werden.';
+                if (class_exists('Logger')) {
+                    Logger::error('Fehler beim Laden der Mitarbeiterliste fuer Rollen/Rechte', [
+                        'exception' => $e->getMessage(),
+                    ], null, null, 'mitarbeiter');
+                }
+            }
+
+            require __DIR__ . '/../views/mitarbeiter/rechte_auswahl.php';
+            return;
         }
 
         $alleMitarbeiterGenehmiger = [];
@@ -805,7 +1040,70 @@ class MitarbeiterAdminController
             return;
         }
 
+        // Stundenkonto-Sammelumbuchung: Stunden von Quelltagen auf einen Zieltag verschieben.
+        if (isset($_POST['stundenkonto_umbuchung_only']) && (string)$_POST['stundenkonto_umbuchung_only'] === '1') {
+            $this->speichereStundenkontoUmbuchungNur();
+            return;
+        }
+
+        $rechteAbschnittSpeichern = isset($_POST['mitarbeiter_rechte_abschnitt'])
+            && (string)$_POST['mitarbeiter_rechte_abschnitt'] === '1';
+
         $id = isset($_POST['id']) ? (int)$_POST['id'] : 0;
+
+        if ($rechteAbschnittSpeichern) {
+            if ($id <= 0) {
+                $_SESSION['mitarbeiter_admin_flash_error'] = 'Bitte zuerst einen Mitarbeiter fuer Rollen & Rechte auswaehlen.';
+                header('Location: ?seite=mitarbeiter_rechte');
+                return;
+            }
+
+            $bestehend = $this->mitarbeiterModel->holeNachId($id);
+            if ($bestehend === null) {
+                $_SESSION['mitarbeiter_admin_flash_error'] = 'Der ausgewaehlte Mitarbeiter wurde nicht gefunden.';
+                header('Location: ?seite=mitarbeiter_rechte');
+                return;
+            }
+
+            $_POST['vorname'] = (string)($bestehend['vorname'] ?? '');
+            $_POST['nachname'] = (string)($bestehend['nachname'] ?? '');
+            $_POST['geburtsdatum'] = (string)($bestehend['geburtsdatum'] ?? '');
+            $_POST['eintrittsdatum'] = (string)($bestehend['eintrittsdatum'] ?? '');
+            $_POST['wochenarbeitszeit'] = (string)($bestehend['wochenarbeitszeit'] ?? '0.00');
+            $_POST['urlaub_monatsanspruch'] = (string)($bestehend['urlaub_monatsanspruch'] ?? '0.00');
+            $_POST['benutzername'] = (string)($bestehend['benutzername'] ?? '');
+            $_POST['email'] = (string)($bestehend['email'] ?? '');
+            $_POST['personalnummer'] = (string)($bestehend['personalnummer'] ?? '');
+            $_POST['rfid_code'] = (string)($bestehend['rfid_code'] ?? '');
+            $_POST['passwort_neu'] = '';
+            $_POST['aktiv'] = ((int)($bestehend['aktiv'] ?? 0) === 1) ? '1' : '0';
+            $_POST['ist_login_berechtigt'] = ((int)($bestehend['ist_login_berechtigt'] ?? 0) === 1) ? '1' : '0';
+
+            $abteilungenBestehend = [];
+            $stammabteilungBestehend = 0;
+            try {
+                $rowsAbt = Database::getInstanz()->fetchAlle(
+                    'SELECT abteilung_id, ist_stammabteilung FROM mitarbeiter_hat_abteilung WHERE mitarbeiter_id = :mid ORDER BY abteilung_id ASC',
+                    ['mid' => $id]
+                );
+                foreach ($rowsAbt as $rowAbt) {
+                    $aid = (int)($rowAbt['abteilung_id'] ?? 0);
+                    if ($aid <= 0) {
+                        continue;
+                    }
+                    $abteilungenBestehend[] = (string)$aid;
+                    if ((int)($rowAbt['ist_stammabteilung'] ?? 0) === 1) {
+                        $stammabteilungBestehend = $aid;
+                    }
+                }
+            } catch (\Throwable) {
+                $abteilungenBestehend = [];
+                $stammabteilungBestehend = 0;
+            }
+            $_POST['abteilungen_ids'] = $abteilungenBestehend;
+            $_POST['stammabteilung_id'] = (string)$stammabteilungBestehend;
+        }
+
         $mitarbeiterIdNachSave = null;
 
         $vorname  = trim((string)($_POST['vorname'] ?? ''));
@@ -1228,6 +1526,9 @@ class MitarbeiterAdminController
                 $_SESSION['mitarbeiter_admin_flash_error'] = 'Abteilungen konnten nicht gespeichert werden. Bitte Admin informieren.';
             }
 
+            if ($rechteAbschnittSpeichern) {
+                $rechteRuecksprungUrl = '?seite=mitarbeiter_rechte&id=' . (int)$mitarbeiterIdNachSave;
+
             // Rollen speichern
             try {
                 $rollenZuordnungModel = new MitarbeiterHatRolleModel();
@@ -1434,7 +1735,7 @@ class MitarbeiterAdminController
                             session_start();
                         }
                         $_SESSION['mitarbeiter_admin_flash_error'] = 'Abteilungs-Rollen konnten nicht gespeichert werden. Bitte Admin informieren.';
-                        header('Location: ?seite=mitarbeiter_admin_bearbeiten&id=' . (int)$mitarbeiterIdNachSave);
+                        header('Location: ' . $rechteRuecksprungUrl);
                         exit;
                     }
                 }
@@ -1480,7 +1781,7 @@ class MitarbeiterAdminController
 
                 if ($okGenehmiger !== true) {
                     $_SESSION['mitarbeiter_admin_flash_error'] = 'Genehmiger konnten nicht gespeichert werden. Bitte Admin informieren.';
-                    header('Location: ?seite=mitarbeiter_admin_bearbeiten&id=' . (int)$mitarbeiterIdNachSave);
+                    header('Location: ' . $rechteRuecksprungUrl);
                     exit;
                 }
             } catch (\Throwable $e) {
@@ -1493,7 +1794,7 @@ class MitarbeiterAdminController
                 }
 
                 $_SESSION['mitarbeiter_admin_flash_error'] = 'Genehmiger konnten nicht gespeichert werden. Bitte Admin informieren.';
-                header('Location: ?seite=mitarbeiter_admin_bearbeiten&id=' . (int)$mitarbeiterIdNachSave);
+                header('Location: ' . $rechteRuecksprungUrl);
                 exit;
             }
 
@@ -1559,9 +1860,16 @@ class MitarbeiterAdminController
                 }
 
                 $_SESSION['mitarbeiter_admin_flash_error'] = 'Rechte-Overrides konnten nicht gespeichert werden. Bitte Admin informieren.';
-                header('Location: ?seite=mitarbeiter_admin_bearbeiten&id=' . (int)$mitarbeiterIdNachSave);
+                header('Location: ' . $rechteRuecksprungUrl);
                 exit;
             }
+            }
+        }
+
+        if ($rechteAbschnittSpeichern && $mitarbeiterIdNachSave !== null) {
+            $_SESSION['mitarbeiter_admin_flash_success'] = 'Rollen & Rechte wurden gespeichert.';
+            header('Location: ?seite=mitarbeiter_rechte&id=' . (int)$mitarbeiterIdNachSave);
+            return;
         }
 
         header('Location: ?seite=mitarbeiter_admin');
@@ -1600,20 +1908,20 @@ class MitarbeiterAdminController
 
         if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $wirksam)) {
             $_SESSION['mitarbeiter_admin_flash_error'] = 'Wirksam-Datum ist ungültig.';
-            header('Location: ?seite=mitarbeiter_admin_bearbeiten&id=' . $mid);
+            header('Location: ' . $this->stundenkontoRuecksprungUrl($mid));
             exit;
         }
 
         if ($deltaRaw === '') {
             $_SESSION['mitarbeiter_admin_flash_error'] = 'Delta (Stunden) ist Pflicht.';
-            header('Location: ?seite=mitarbeiter_admin_bearbeiten&id=' . $mid);
+            header('Location: ' . $this->stundenkontoRuecksprungUrl($mid));
             exit;
         }
 
         $deltaNorm = str_replace(',', '.', $deltaRaw);
         if (!is_numeric($deltaNorm)) {
             $_SESSION['mitarbeiter_admin_flash_error'] = 'Delta (Stunden) muss eine Zahl sein.';
-            header('Location: ?seite=mitarbeiter_admin_bearbeiten&id=' . $mid);
+            header('Location: ' . $this->stundenkontoRuecksprungUrl($mid));
             exit;
         }
 
@@ -1622,13 +1930,13 @@ class MitarbeiterAdminController
 
         if ($deltaMinuten === 0) {
             $_SESSION['mitarbeiter_admin_flash_error'] = 'Delta darf nicht 0 sein.';
-            header('Location: ?seite=mitarbeiter_admin_bearbeiten&id=' . $mid);
+            header('Location: ' . $this->stundenkontoRuecksprungUrl($mid));
             exit;
         }
 
         if ($begruendung === '') {
             $_SESSION['mitarbeiter_admin_flash_error'] = 'Begründung ist Pflicht.';
-            header('Location: ?seite=mitarbeiter_admin_bearbeiten&id=' . $mid);
+            header('Location: ' . $this->stundenkontoRuecksprungUrl($mid));
             exit;
         }
 
@@ -1677,7 +1985,7 @@ class MitarbeiterAdminController
             }
 
             $_SESSION['mitarbeiter_admin_flash_success'] = 'Stundenkonto-Korrektur gespeichert.';
-            header('Location: ?seite=mitarbeiter_admin_bearbeiten&id=' . $mid);
+            header('Location: ' . $this->stundenkontoRuecksprungUrl($mid));
             exit;
         } catch (\Throwable $e) {
             if (class_exists('Logger')) {
@@ -1691,7 +1999,7 @@ class MitarbeiterAdminController
             }
 
             $_SESSION['mitarbeiter_admin_flash_error'] = 'Stundenkonto-Korrektur konnte nicht gespeichert werden. Bitte Admin informieren.';
-            header('Location: ?seite=mitarbeiter_admin_bearbeiten&id=' . $mid);
+            header('Location: ' . $this->stundenkontoRuecksprungUrl($mid));
             exit;
         }
     }
@@ -1729,13 +2037,13 @@ class MitarbeiterAdminController
         $gueltigeModi = ['gesamt_gleichmaessig', 'minuten_pro_tag'];
         if (!in_array($modus, $gueltigeModi, true)) {
             $_SESSION['mitarbeiter_admin_flash_error'] = 'Modus ist ungültig.';
-            header('Location: ?seite=mitarbeiter_admin_bearbeiten&id=' . $mid);
+            header('Location: ' . $this->stundenkontoRuecksprungUrl($mid));
             exit;
         }
 
         if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $von) || !preg_match('/^\d{4}-\d{2}-\d{2}$/', $bis)) {
             $_SESSION['mitarbeiter_admin_flash_error'] = 'Von/Bis-Datum ist ungültig.';
-            header('Location: ?seite=mitarbeiter_admin_bearbeiten&id=' . $mid);
+            header('Location: ' . $this->stundenkontoRuecksprungUrl($mid));
             exit;
         }
 
@@ -1744,26 +2052,26 @@ class MitarbeiterAdminController
             $dtBis = new \DateTimeImmutable($bis);
         } catch (\Throwable) {
             $_SESSION['mitarbeiter_admin_flash_error'] = 'Von/Bis-Datum ist ungültig.';
-            header('Location: ?seite=mitarbeiter_admin_bearbeiten&id=' . $mid);
+            header('Location: ' . $this->stundenkontoRuecksprungUrl($mid));
             exit;
         }
 
         if ($dtVon > $dtBis) {
             $_SESSION['mitarbeiter_admin_flash_error'] = 'Von-Datum darf nicht nach dem Bis-Datum liegen.';
-            header('Location: ?seite=mitarbeiter_admin_bearbeiten&id=' . $mid);
+            header('Location: ' . $this->stundenkontoRuecksprungUrl($mid));
             exit;
         }
 
         if ($deltaRaw === '') {
             $_SESSION['mitarbeiter_admin_flash_error'] = 'Delta (Stunden) ist Pflicht.';
-            header('Location: ?seite=mitarbeiter_admin_bearbeiten&id=' . $mid);
+            header('Location: ' . $this->stundenkontoRuecksprungUrl($mid));
             exit;
         }
 
         $deltaNorm = str_replace(',', '.', $deltaRaw);
         if (!is_numeric($deltaNorm)) {
             $_SESSION['mitarbeiter_admin_flash_error'] = 'Delta (Stunden) muss eine Zahl sein.';
-            header('Location: ?seite=mitarbeiter_admin_bearbeiten&id=' . $mid);
+            header('Location: ' . $this->stundenkontoRuecksprungUrl($mid));
             exit;
         }
 
@@ -1772,13 +2080,13 @@ class MitarbeiterAdminController
 
         if ($deltaMinuten === 0) {
             $_SESSION['mitarbeiter_admin_flash_error'] = 'Delta darf nicht 0 sein.';
-            header('Location: ?seite=mitarbeiter_admin_bearbeiten&id=' . $mid);
+            header('Location: ' . $this->stundenkontoRuecksprungUrl($mid));
             exit;
         }
 
         if ($begruendung === '') {
             $_SESSION['mitarbeiter_admin_flash_error'] = 'Begründung ist Pflicht.';
-            header('Location: ?seite=mitarbeiter_admin_bearbeiten&id=' . $mid);
+            header('Location: ' . $this->stundenkontoRuecksprungUrl($mid));
             exit;
         }
 
@@ -1816,14 +2124,14 @@ class MitarbeiterAdminController
 
         if (count($tage) === 0) {
             $_SESSION['mitarbeiter_admin_flash_error'] = 'Es wurden keine passenden Tage im Zeitraum gefunden.';
-            header('Location: ?seite=mitarbeiter_admin_bearbeiten&id=' . $mid);
+            header('Location: ' . $this->stundenkontoRuecksprungUrl($mid));
             exit;
         }
 
         // Guard: zu große Batchs vermeiden (Performance/Bedienbarkeit)
         if (count($tage) > 10000) {
             $_SESSION['mitarbeiter_admin_flash_error'] = 'Zu viele Tage im Zeitraum (>' . 10000 . '). Bitte Zeitraum splitten.';
-            header('Location: ?seite=mitarbeiter_admin_bearbeiten&id=' . $mid);
+            header('Location: ' . $this->stundenkontoRuecksprungUrl($mid));
             exit;
         }
 
@@ -1929,7 +2237,7 @@ class MitarbeiterAdminController
             }
 
             $_SESSION['mitarbeiter_admin_flash_success'] = 'Verteilbuchung gespeichert (Batch #' . $batchId . '): ' . count($tage) . ' Tage, Summe ' . $sumTxt . '.';
-            header('Location: ?seite=mitarbeiter_admin_bearbeiten&id=' . $mid);
+            header('Location: ' . $this->stundenkontoRuecksprungUrl($mid));
             exit;
         } catch (\Throwable $e) {
             try {
@@ -1956,9 +2264,311 @@ class MitarbeiterAdminController
             }
 
             $_SESSION['mitarbeiter_admin_flash_error'] = 'Verteilbuchung konnte nicht gespeichert werden. Bitte Admin informieren.';
-            header('Location: ?seite=mitarbeiter_admin_bearbeiten&id=' . $mid);
+            header('Location: ' . $this->stundenkontoRuecksprungUrl($mid));
             exit;
         }
+    }
+
+    private function speichereStundenkontoUmbuchungNur(): void
+    {
+        if (!$this->pruefeZugriff()) {
+            return;
+        }
+
+        if (session_status() !== PHP_SESSION_ACTIVE) {
+            session_start();
+        }
+
+        if (!$this->authService->hatRecht('STUNDENKONTO_VERWALTEN')) {
+            $_SESSION['mitarbeiter_admin_flash_error'] = 'Kein Zugriff: Stundenkonto verwalten.';
+            header('Location: ?seite=mitarbeiter_admin');
+            exit;
+        }
+
+        $mid = isset($_POST['id']) ? (int)$_POST['id'] : 0;
+        if ($mid <= 0) {
+            $_SESSION['mitarbeiter_admin_flash_error'] = 'Ungueltiger Mitarbeiter (ID fehlt).';
+            header('Location: ?seite=mitarbeiter_admin');
+            exit;
+        }
+
+        $zielDatum = trim((string)($_POST['stundenkonto_umbuchung_ziel_datum'] ?? ''));
+        $quellRaw = trim((string)($_POST['stundenkonto_umbuchung_quell_daten'] ?? ''));
+        $stundenRaw = trim((string)($_POST['stundenkonto_umbuchung_stunden'] ?? ''));
+        $quellStundenPost = $_POST['stundenkonto_umbuchung_quell_stunden'] ?? [];
+        $begruendung = trim((string)($_POST['stundenkonto_umbuchung_begruendung'] ?? ''));
+
+        $abbrechen = function (string $meldung) use ($mid): void {
+            $_SESSION['mitarbeiter_admin_flash_error'] = $meldung;
+            header('Location: ' . $this->stundenkontoRuecksprungUrl($mid));
+            exit;
+        };
+
+        if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $zielDatum)) {
+            $abbrechen('Zieldatum ist ungueltig.');
+        }
+
+        try {
+            $dtZiel = new \DateTimeImmutable($zielDatum);
+        } catch (\Throwable) {
+            $abbrechen('Zieldatum ist ungueltig.');
+        }
+        $zielDatum = $dtZiel->format('Y-m-d');
+
+        $quellDeltas = [];
+        $gesamtMinuten = 0;
+
+        if (is_array($quellStundenPost)) {
+            foreach ($quellStundenPost as $datumRaw => $stundenWertRaw) {
+                if (is_array($stundenWertRaw)) {
+                    continue;
+                }
+
+                $datum = trim((string)$datumRaw);
+                $stundenWert = trim((string)$stundenWertRaw);
+                if ($stundenWert === '') {
+                    continue;
+                }
+                if ($datum === '') {
+                    continue;
+                }
+                if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $datum)) {
+                    $abbrechen('Quelltag ist ungueltig: ' . $datum);
+                }
+                try {
+                    $dtQuelle = new \DateTimeImmutable($datum);
+                    $datumNorm = $dtQuelle->format('Y-m-d');
+                } catch (\Throwable) {
+                    $abbrechen('Quelltag ist ungueltig: ' . $datum);
+                }
+
+                $stundenNorm = str_replace(',', '.', $stundenWert);
+                if (!is_numeric($stundenNorm)) {
+                    $abbrechen('Abzugsstunden muessen eine Zahl sein: ' . $datumNorm);
+                }
+
+                $abzugMinuten = (int)round(((float)$stundenNorm) * 60);
+                if ($abzugMinuten < 0) {
+                    $abbrechen('Abzugsstunden duerfen nicht negativ sein: ' . $datumNorm);
+                }
+                if ($abzugMinuten === 0) {
+                    continue;
+                }
+                if ($datumNorm === $zielDatum) {
+                    $abbrechen('Quelltag darf nicht gleichzeitig Zieltag sein: ' . $datumNorm);
+                }
+
+                $quellDeltas[$datumNorm] = (int)($quellDeltas[$datumNorm] ?? 0) - $abzugMinuten;
+                $gesamtMinuten += $abzugMinuten;
+            }
+        }
+
+        $quellDaten = array_keys($quellDeltas);
+        sort($quellDaten);
+
+        if (count($quellDaten) === 0) {
+            if ($quellRaw === '') {
+                $abbrechen('Bitte mindestens einen Quelltag mit Abzugsstunden angeben.');
+            }
+
+            $teile = preg_split('/[\s,;]+/', $quellRaw);
+            $quellDatumMap = [];
+            if (is_array($teile)) {
+                foreach ($teile as $teil) {
+                    $datum = trim((string)$teil);
+                    if ($datum === '') {
+                        continue;
+                    }
+                    if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $datum)) {
+                        $abbrechen('Quelltag ist ungueltig: ' . $datum);
+                    }
+                    try {
+                        $dtQuelle = new \DateTimeImmutable($datum);
+                        $datumNorm = $dtQuelle->format('Y-m-d');
+                    } catch (\Throwable) {
+                        $abbrechen('Quelltag ist ungueltig: ' . $datum);
+                    }
+                    $quellDatumMap[$datumNorm] = true;
+                }
+            }
+
+            unset($quellDatumMap[$zielDatum]);
+            $quellDaten = array_keys($quellDatumMap);
+            sort($quellDaten);
+
+            if (count($quellDaten) === 0) {
+                $abbrechen('Bitte Quelltage angeben, die nicht dem Zieltag entsprechen.');
+            }
+
+            if ($stundenRaw === '') {
+                $abbrechen('Gesamtstunden sind Pflicht.');
+            }
+
+            $stundenNorm = str_replace(',', '.', $stundenRaw);
+            if (!is_numeric($stundenNorm)) {
+                $abbrechen('Gesamtstunden muessen eine Zahl sein.');
+            }
+
+            $gesamtMinuten = (int)round(((float)$stundenNorm) * 60);
+            if ($gesamtMinuten <= 0) {
+                $abbrechen('Gesamtstunden muessen groesser als 0 sein.');
+            }
+
+            $anzahlQuellen = count($quellDaten);
+            $basis = intdiv($gesamtMinuten, $anzahlQuellen);
+            $rest = $gesamtMinuten - ($basis * $anzahlQuellen);
+            foreach ($quellDaten as $idx => $datum) {
+                $abzug = $basis + ($idx < $rest ? 1 : 0);
+                $quellDeltas[$datum] = -1 * $abzug;
+            }
+        }
+
+        if (count($quellDaten) > 100) {
+            $abbrechen('Zu viele Quelltage. Bitte die Umbuchung splitten.');
+        }
+
+        if ($gesamtMinuten <= 0) {
+            $abbrechen('Bitte mindestens einen Quelltag mit Abzugsstunden angeben.');
+        }
+
+        if ($begruendung === '') {
+            $abbrechen('Begruendung ist Pflicht.');
+        }
+
+        $erstelltVon = $this->authService->holeAngemeldeteMitarbeiterId();
+        if ($erstelltVon === null || $erstelltVon <= 0) {
+            $_SESSION['mitarbeiter_admin_flash_error'] = 'Nicht angemeldet.';
+            header('Location: ?seite=login');
+            exit;
+        }
+
+        $stealth = isset($_POST['stundenkonto_stealth']) && (string)$_POST['stundenkonto_stealth'] === '1';
+
+        $alleDaten = array_merge($quellDaten, [$zielDatum]);
+        sort($alleDaten);
+        $vonDatum = (string)reset($alleDaten);
+        $bisDatum = (string)end($alleDaten);
+
+        $quellText = implode(', ', $quellDaten);
+        $batchBegruendung = $this->kuerzeStundenkontoText('[Umbuchung] auf ' . $zielDatum . ': ' . $begruendung);
+        $quelleBegruendung = $this->kuerzeStundenkontoText('Umbuchung Quelle -> ' . $zielDatum . ': ' . $begruendung);
+        $zielBegruendung = $this->kuerzeStundenkontoText('Umbuchung Ziel aus ' . $quellText . ': ' . $begruendung);
+
+        try {
+            $db = Database::getInstanz();
+            $pdo = $db->getPdo();
+            $pdo->beginTransaction();
+
+            $db->ausfuehren(
+                'INSERT INTO stundenkonto_batch (mitarbeiter_id, modus, von_datum, bis_datum, gesamt_minuten, minuten_pro_tag, nur_arbeitstage, begruendung, erstellt_von_mitarbeiter_id, stealth)
+                 VALUES (:mid, :modus, :von, :bis, :gesamt, :mpt, :nur, :begr, :vonmid, :stealth)',
+                [
+                    'mid'     => $mid,
+                    'modus'   => 'gesamt_gleichmaessig',
+                    'von'     => $vonDatum,
+                    'bis'     => $bisDatum,
+                    'gesamt'  => $gesamtMinuten,
+                    'mpt'     => null,
+                    'nur'     => 0,
+                    'begr'    => $batchBegruendung,
+                    'vonmid'  => $erstelltVon,
+                    'stealth' => $stealth ? 1 : 0,
+                ]
+            );
+
+            $batchId = (int)$db->letzteInsertId();
+
+            $stmt = $pdo->prepare(
+                'INSERT INTO stundenkonto_korrektur (mitarbeiter_id, wirksam_datum, delta_minuten, typ, batch_id, begruendung, erstellt_von_mitarbeiter_id, stealth)
+                 VALUES (:mid, :datum, :delta, \'verteilung\', :bid, :begr, :von, :stealth)'
+            );
+
+            foreach ($quellDeltas as $datum => $deltaMinuten) {
+                $stmt->execute([
+                    ':mid'     => $mid,
+                    ':datum'   => $datum,
+                    ':delta'   => (int)$deltaMinuten,
+                    ':bid'     => $batchId,
+                    ':begr'    => $quelleBegruendung,
+                    ':von'     => $erstelltVon,
+                    ':stealth' => $stealth ? 1 : 0,
+                ]);
+            }
+
+            $stmt->execute([
+                ':mid'     => $mid,
+                ':datum'   => $zielDatum,
+                ':delta'   => $gesamtMinuten,
+                ':bid'     => $batchId,
+                ':begr'    => $zielBegruendung,
+                ':von'     => $erstelltVon,
+                ':stealth' => $stealth ? 1 : 0,
+            ]);
+
+            $pdo->commit();
+
+            $h = intdiv($gesamtMinuten, 60);
+            $m = $gesamtMinuten % 60;
+            $sumTxt = sprintf('+%d:%02d', $h, $m);
+
+            if (class_exists('Logger')) {
+                Logger::info('Stundenkonto-Sammelumbuchung gebucht', [
+                    'batch_id'        => $batchId,
+                    'mitarbeiter_id'  => $mid,
+                    'quell_daten'     => $quellDaten,
+                    'ziel_datum'      => $zielDatum,
+                    'gesamt_minuten'  => $gesamtMinuten,
+                    'summe_text'      => $sumTxt,
+                    'begruendung'     => $begruendung,
+                    'erstellt_von'    => $erstelltVon,
+                    'stealth'         => $stealth ? 1 : 0,
+                ], $mid, null, 'stundenkonto');
+            }
+
+            $_SESSION['mitarbeiter_admin_flash_success'] = 'Sammelumbuchung gespeichert (Batch #' . $batchId . '): ' . $sumTxt . ' auf ' . $zielDatum . ' verschoben.';
+            header('Location: ' . $this->stundenkontoRuecksprungUrl($mid));
+            exit;
+        } catch (\Throwable $e) {
+            try {
+                $db = Database::getInstanz();
+                $pdo = $db->getPdo();
+                if ($pdo->inTransaction()) {
+                    $pdo->rollBack();
+                }
+            } catch (\Throwable) {
+                // ignore
+            }
+
+            if (class_exists('Logger')) {
+                Logger::error('Fehler beim Speichern der Stundenkonto-Sammelumbuchung', [
+                    'mitarbeiter_id' => $mid,
+                    'quell_daten'    => $quellDaten ?? [],
+                    'ziel_datum'     => $zielDatum,
+                    'gesamt_minuten' => $gesamtMinuten ?? 0,
+                    'begruendung'    => $begruendung,
+                    'exception'      => $e->getMessage(),
+                ], $mid, null, 'stundenkonto');
+            }
+
+            $_SESSION['mitarbeiter_admin_flash_error'] = 'Sammelumbuchung konnte nicht gespeichert werden. Bitte Admin informieren.';
+            header('Location: ' . $this->stundenkontoRuecksprungUrl($mid));
+            exit;
+        }
+    }
+
+    private function kuerzeStundenkontoText(string $text, int $maxLaenge = 255): string
+    {
+        if ($maxLaenge <= 0) {
+            return '';
+        }
+
+        if (function_exists('mb_strlen') && function_exists('mb_substr')) {
+            return mb_strlen($text, 'UTF-8') > $maxLaenge
+                ? mb_substr($text, 0, $maxLaenge, 'UTF-8')
+                : $text;
+        }
+
+        return strlen($text) > $maxLaenge ? substr($text, 0, $maxLaenge) : $text;
     }
 
 }
