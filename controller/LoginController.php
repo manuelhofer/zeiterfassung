@@ -118,7 +118,7 @@ class LoginController
     /**
      * Zeigt das Erstinstallations-Formular zum Anlegen des ersten Admin-Benutzers.
      */
-    private function zeigeInitialAdminFormular(?string $fehlermeldung = null): void
+    private function zeigeInitialAdminFormular(?string $fehlermeldung = null, array $formularwerte = []): void
     {
         $fehlermeldungVariable = $fehlermeldung;
         $fehlermeldung = $fehlermeldungVariable;
@@ -136,19 +136,25 @@ class LoginController
         $email        = isset($_POST['email']) ? trim((string)$_POST['email']) : '';
         $passwort     = isset($_POST['passwort']) ? (string)$_POST['passwort'] : '';
         $passwort2    = isset($_POST['passwort_bestaetigung']) ? (string)$_POST['passwort_bestaetigung'] : '';
+        $formularwerte = [
+            'vorname'      => $vorname,
+            'nachname'     => $nachname,
+            'benutzername' => $benutzername,
+            'email'        => $email,
+        ];
 
         if ($vorname === '' || $nachname === '' || $benutzername === '' || $passwort === '' || $passwort2 === '') {
-            $this->zeigeInitialAdminFormular('Bitte alle Pflichtfelder ausfüllen.');
+            $this->zeigeInitialAdminFormular('Bitte alle Pflichtfelder ausfüllen.', $formularwerte);
             return;
         }
 
         if ($passwort !== $passwort2) {
-            $this->zeigeInitialAdminFormular('Die eingegebenen Passwörter stimmen nicht überein.');
+            $this->zeigeInitialAdminFormular('Die eingegebenen Passwörter stimmen nicht überein.', $formularwerte);
             return;
         }
 
         if ($email !== '' && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            $this->zeigeInitialAdminFormular('Die eingegebene E-Mail-Adresse ist ungültig.');
+            $this->zeigeInitialAdminFormular('Die eingegebene E-Mail-Adresse ist ungültig.', $formularwerte);
             return;
         }
 
@@ -188,7 +194,7 @@ class LoginController
         }
 
         if ($mitarbeiterId === null) {
-            $this->zeigeInitialAdminFormular('Der Benutzer konnte nicht angelegt werden. Bitte prüfen Sie die Eingaben.');
+            $this->zeigeInitialAdminFormular('Der Benutzer konnte nicht angelegt werden. Bitte prüfen Sie die Eingaben.', $formularwerte);
             return;
         }
 

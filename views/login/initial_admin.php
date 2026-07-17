@@ -5,7 +5,9 @@ declare(strict_types=1);
  *
  * Erwartet:
  * - $fehlermeldung (string|null)
+ * - $formularwerte (array)
  */
+$formularwerte = is_array($formularwerte ?? null) ? $formularwerte : [];
 ?><!DOCTYPE html>
 <html lang="de">
 <head>
@@ -108,23 +110,23 @@ declare(strict_types=1);
 
         <div class="form-group">
             <label for="vorname">Vorname *</label>
-            <input type="text" name="vorname" id="vorname" required>
+            <input type="text" name="vorname" id="vorname" value="<?php echo htmlspecialchars((string)($formularwerte['vorname'] ?? ''), ENT_QUOTES, 'UTF-8'); ?>" required>
         </div>
 
         <div class="form-group">
             <label for="nachname">Nachname *</label>
-            <input type="text" name="nachname" id="nachname" required>
+            <input type="text" name="nachname" id="nachname" value="<?php echo htmlspecialchars((string)($formularwerte['nachname'] ?? ''), ENT_QUOTES, 'UTF-8'); ?>" required>
         </div>
 
         <div class="form-group">
             <label for="benutzername">Benutzername *</label>
-            <input type="text" name="benutzername" id="benutzername" required>
+            <input type="text" name="benutzername" id="benutzername" value="<?php echo htmlspecialchars((string)($formularwerte['benutzername'] ?? ''), ENT_QUOTES, 'UTF-8'); ?>" required>
             <div class="hint">Diesen Benutzernamen verwenden Sie später zum Login.</div>
         </div>
 
         <div class="form-group">
             <label for="email">E-Mail (optional)</label>
-            <input type="email" name="email" id="email">
+            <input type="email" name="email" id="email" value="<?php echo htmlspecialchars((string)($formularwerte['email'] ?? ''), ENT_QUOTES, 'UTF-8'); ?>">
         </div>
 
         <div class="form-group">

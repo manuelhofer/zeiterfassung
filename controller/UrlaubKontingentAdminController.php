@@ -69,6 +69,8 @@ class UrlaubKontingentAdminController
         if (!$this->istValidesJahr($jahr)) {
             $jahr = (int)date('Y');
         }
+        $aktuellesJahr = (int)date('Y');
+        $vorjahr = $aktuellesJahr - 1;
 
         $flashOk = null;
         if (isset($_SESSION['urlaub_kontingent_admin_flash_ok'])) {
@@ -124,6 +126,9 @@ class UrlaubKontingentAdminController
                     <input type="number" name="jahr" value="<?php echo (int)$jahr; ?>" min="2000" max="2100" style="width: 7rem;">
                 </label>
                 <button type="submit">Anzeigen</button>
+                <a href="?seite=urlaub_kontingent_admin&amp;jahr=<?php echo (int)$vorjahr; ?>" style="margin-left:0.75rem;">Vorjahr <?php echo (int)$vorjahr; ?></a>
+                |
+                <a href="?seite=urlaub_kontingent_admin&amp;jahr=<?php echo (int)$aktuellesJahr; ?>">Aktuelles Jahr <?php echo (int)$aktuellesJahr; ?></a>
             </form>
 
             <?php if (!empty($flashOk)): ?>
@@ -266,10 +271,13 @@ class UrlaubKontingentAdminController
         $standardAnspruch = $this->formatDecimal($monats * 12.0);
 
         $anspruchOverride = $kontingent['anspruch_override_tage'] ?? null;
+        $hatAnspruchOverride = $anspruchOverride !== null;
         $korrektur = $kontingent['korrektur_tage'] ?? '0.00';
         $notiz     = $kontingent['notiz'] ?? '';
 
         $csrfToken = $this->holeOderErzeugeCsrfToken(self::CSRF_KEY);
+        $aktuellesJahr = (int)date('Y');
+        $vorjahr = $aktuellesJahr - 1;
 
         // Auto-Übertrag (Vorjahr -> Jahr) anzeigen, damit "Manuell" korrekt verstanden wird.
         $autoUebertragTage = null;
@@ -322,6 +330,11 @@ class UrlaubKontingentAdminController
                     (ID: <?php echo (int)$mitarbeiterId; ?>, <?php echo $aktiv ? 'aktiv' : 'inaktiv'; ?>)
                     <br>
                     Jahr: <strong><?php echo (int)$jahr; ?></strong>
+                    <br>
+                    Jahr wechseln:
+                    <a href="?seite=urlaub_kontingent_admin_bearbeiten&amp;mitarbeiter_id=<?php echo (int)$mitarbeiterId; ?>&amp;jahr=<?php echo (int)$vorjahr; ?>">Vorjahr <?php echo (int)$vorjahr; ?></a>
+                    |
+                    <a href="?seite=urlaub_kontingent_admin_bearbeiten&amp;mitarbeiter_id=<?php echo (int)$mitarbeiterId; ?>&amp;jahr=<?php echo (int)$aktuellesJahr; ?>">Aktuelles Jahr <?php echo (int)$aktuellesJahr; ?></a>
                 </p>
 
                 <form method="post" action="?seite=urlaub_kontingent_admin_speichern">
@@ -343,7 +356,11 @@ class UrlaubKontingentAdminController
                                 <th>Anspruch (Override)</th>
                                 <td>
                                     <input type="text" name="anspruch_override_tage" value="<?php echo $anspruchOverride === null ? '' : htmlspecialchars($this->formatDecimal((float)$anspruchOverride), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>" placeholder="leer = Standard" style="width: 10rem;">
-                                    <small>Optional. Leer lassen, wenn Standard gelten soll.</small>
+                                    <?php if ($hatAnspruchOverride): ?>
+                                        <button type="submit" name="formular_aktion" value="anspruch_override_loeschen" style="margin-left:0.5rem;" onclick="return confirm('Anspruch-Override wirklich löschen? Danach gilt wieder der Standardanspruch.');">Override löschen</button>
+                                    <?php endif; ?>
+                                    <br>
+                                    <small>Optional. Leer lassen oder Override löschen, wenn Standard gelten soll. <code>0.00</code> ist ein gültiger Override auf null Tage.</small>
                                 </td>
                             </tr>
                             <tr>
@@ -416,6 +433,7 @@ class UrlaubKontingentAdminController
 
         $mitarbeiterId = isset($_POST['mitarbeiter_id']) ? (int)$_POST['mitarbeiter_id'] : 0;
         $jahr          = isset($_POST['jahr']) ? (int)$_POST['jahr'] : 0;
+        $formularAktion = isset($_POST['formular_aktion']) ? (string)$_POST['formular_aktion'] : 'speichern';
 
         $anspruchOverrideRaw = (string)($_POST['anspruch_override_tage'] ?? '');
         $korrekturRaw        = (string)($_POST['korrektur_tage'] ?? '0');
@@ -425,6 +443,42 @@ class UrlaubKontingentAdminController
             $_SESSION['urlaub_kontingent_admin_flash_ok'] = '';
             header('Location: ?seite=urlaub_kontingent_admin&jahr=' . (int)date('Y'));
             return;
+        }
+
+        if ($formularAktion === 'anspruch_override_loeschen') {
+            try {
+                $this->datenbank->ausfuehren(
+                    'UPDATE urlaub_kontingent_jahr
+                        SET anspruch_override_tage = NULL
+                      WHERE mitarbeiter_id = :mid
+                        AND jahr = :jahr',
+                    [
+                        'mid'  => $mitarbeiterId,
+                        'jahr' => $jahr,
+                    ]
+                );
+
+                if (class_exists('Logger')) {
+                    Logger::info('Urlaubsanspruch-Override geloescht', [
+                        'mitarbeiter_id' => $mitarbeiterId,
+                        'jahr'           => $jahr,
+                    ], $mitarbeiterId, null, 'urlaub');
+                }
+
+                $_SESSION['urlaub_kontingent_admin_flash_ok'] = 'Anspruch-Override gelöscht. Es gilt wieder der Standardanspruch.';
+            } catch (Throwable $e) {
+                if (class_exists('Logger')) {
+                    Logger::error('Fehler beim Loeschen des Urlaubsanspruch-Overrides', [
+                        'mitarbeiter_id' => $mitarbeiterId,
+                        'jahr'           => $jahr,
+                        'exception'      => $e->getMessage(),
+                    ], $mitarbeiterId, null, 'urlaub');
+                }
+                $_SESSION['urlaub_kontingent_admin_flash_error'] = 'Anspruch-Override konnte nicht gelöscht werden.';
+            }
+
+            header('Location: ?seite=urlaub_kontingent_admin_bearbeiten&mitarbeiter_id=' . $mitarbeiterId . '&jahr=' . $jahr);
+            exit;
         }
 
         $fehlermeldung = null;
