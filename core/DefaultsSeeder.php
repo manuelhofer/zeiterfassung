@@ -95,7 +95,7 @@ class DefaultsSeeder
                 'schluessel'    => 'maschinen_qr_url',
                 'wert'          => '',
                 'typ'           => 'string',
-                'beschreibung'  => 'Maschinen-QR: URL oder Basispfad für die Ausgabe. Leer = Domain-Root.',
+                'beschreibung'  => 'Maschinen-QR: Basis-URL oder Basispfad für die Ausgabe. Leer = automatisch aus der Installation ableiten (empfohlen). "/" = ausdrücklich Domain-Root. Sonst Pfad ("/zeiterfassung") oder volle URL ("https://host/pfad"); der relative Speicherpfad wird jeweils angehängt.',
             ],
         ];
 

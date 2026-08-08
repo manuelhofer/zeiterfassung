@@ -179,11 +179,18 @@ class MaschineQrCodeService
         }
 
         if (!is_string($maschinenQrUrl)) {
-            return '';
+            return $this->ermittleWebBasis();
         }
 
         $maschinenQrUrl = trim($maschinenQrUrl);
+
+        // Nicht gesetzt -> Basis automatisch aus der Installation ableiten.
         if ($maschinenQrUrl === '') {
+            return $this->ermittleWebBasis();
+        }
+
+        // Ausdruecklich '/' -> Domain-Root, also bewusst keine Automatik.
+        if ($maschinenQrUrl === '/') {
             return '';
         }
 
@@ -192,6 +199,58 @@ class MaschineQrCodeService
         }
 
         return $this->normalisiereRelativenPfad($maschinenQrUrl, '');
+    }
+
+    /**
+     * Ermittelt den Web-Basispfad der laufenden Installation.
+     *
+     * Hintergrund: Die Bilder liegen immer unter `public/<maschinen_qr_rel_pfad>`.
+     * Damit ist die Browser-URL vollstaendig bestimmt, sobald bekannt ist, unter
+     * welchem Pfad `public/` im Web haengt. Genau das wird hier ermittelt, damit
+     * niemand denselben Pfad ein zweites Mal von Hand pflegen muss.
+     *
+     * Reihenfolge:
+     * 1. `app.base_url` aus der Konfigurationsdatei (falls gesetzt),
+     * 2. sonst das Verzeichnis des laufenden Skripts (funktioniert sowohl bei
+     *    Installation im Unterordner als auch direkt auf der Domain-Wurzel),
+     * 3. sonst leer = Domain-Root.
+     */
+    private function ermittleWebBasis(): string
+    {
+        $basisAusKonfig = $this->holeBaseUrlAusKonfigdatei();
+        if ($basisAusKonfig !== '') {
+            if (preg_match('~^https?://~i', $basisAusKonfig) === 1) {
+                return rtrim($basisAusKonfig, '/');
+            }
+
+            return $this->normalisiereRelativenPfad($basisAusKonfig, '');
+        }
+
+        $skriptName = $_SERVER['SCRIPT_NAME'] ?? '';
+        if (is_string($skriptName) && $skriptName !== '') {
+            $verzeichnis = str_replace('\\', '/', dirname($skriptName));
+            $verzeichnis = trim($verzeichnis, '/');
+
+            if ($verzeichnis !== '' && $verzeichnis !== '.') {
+                return $verzeichnis;
+            }
+        }
+
+        return '';
+    }
+
+    private function holeBaseUrlAusKonfigdatei(): string
+    {
+        $pfad = __DIR__ . '/../config/config.php';
+        if (!is_file($pfad)) {
+            return '';
+        }
+
+        /** @var array<string,mixed> $konfig */
+        $konfig = require $pfad;
+        $baseUrl = $konfig['app']['base_url'] ?? '';
+
+        return is_string($baseUrl) ? trim($baseUrl) : '';
     }
 
     private function normalisiereRelativenPfad($konfigPfad, string $fallback): string
@@ -240,19 +299,49 @@ class MaschineQrCodeService
         return is_string($wert) && trim($wert) !== '';
     }
 
-    private function baueUrlPfad(string $dateiname): string
+    /**
+     * Baut aus einem gespeicherten `code_bild_pfad` die Browser-URL.
+     *
+     * Der gespeicherte Pfad ist relativ zu `public/` (z. B.
+     * `uploads/maschinen_codes/maschine_5_barcode.png`). Davor kommt die Basis
+     * aus `ermittleMaschinenQrUrl()` - entweder ausdruecklich konfiguriert oder
+     * automatisch aus der Installation abgeleitet.
+     *
+     * Rueckgabe: leerer String, wenn kein Bild hinterlegt ist.
+     */
+    public function baueBildUrl(string $gespeicherterPfad): string
     {
-        $relativerPfad = $this->relativerUrlPfad . '/' . $dateiname;
+        $gespeicherterPfad = trim($gespeicherterPfad);
+        if ($gespeicherterPfad === '') {
+            return '';
+        }
+
+        // Bereits eine vollstaendige URL (z. B. Bilder auf einem anderen Host).
+        if (preg_match('~^https?://~i', $gespeicherterPfad) === 1) {
+            return $gespeicherterPfad;
+        }
+
+        $relativerPfad = $this->normalisiereRelativenPfad($gespeicherterPfad, '');
+        if ($relativerPfad === '') {
+            return '';
+        }
+
+        return $this->baueUrlPfad($relativerPfad);
+    }
+
+    private function baueUrlPfad(string $relativerPfad): string
+    {
+        $relativerPfad = ltrim($relativerPfad, '/');
 
         if ($this->maschinenQrUrl === '') {
-            return '/' . ltrim($relativerPfad, '/');
+            return '/' . $relativerPfad;
         }
 
         if (preg_match('~^https?://~i', $this->maschinenQrUrl) === 1) {
-            return rtrim($this->maschinenQrUrl, '/') . '/' . ltrim($relativerPfad, '/');
+            return rtrim($this->maschinenQrUrl, '/') . '/' . $relativerPfad;
         }
 
-        return '/' . trim($this->maschinenQrUrl, '/') . '/' . ltrim($relativerPfad, '/');
+        return '/' . trim($this->maschinenQrUrl, '/') . '/' . $relativerPfad;
     }
 
     private function erzeugePng(string $daten, ?string $zielPfad, int $groesse = 6, int $rand = 2): void

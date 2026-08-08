@@ -453,8 +453,9 @@ class MaschineAdminController
         $beschreibung = (string)($maschine['beschreibung'] ?? '');
         $codeBildPfad = (string)($maschine['code_bild_pfad'] ?? '');
         $normalisierterCodeBildPfad = $this->normalisiereCodeBildPfad($codeBildPfad) ?? '';
-        $maschinenQrUrlKonfiguriert = $this->holeMaschinenQrUrl() !== '';
-        $codeBildUrl = $this->baueQrCodeUrlPfad($normalisierterCodeBildPfad);
+        // Die Bild-URL kommt aus dem Service, damit Erzeugung und Anzeige
+        // dieselbe Logik nutzen (Basis konfiguriert oder automatisch abgeleitet).
+        $codeBildUrl = (new MaschineQrCodeService())->baueBildUrl($normalisierterCodeBildPfad);
         $aktiv       = (int)($maschine['aktiv'] ?? 0) === 1;
         $scanDaten = $id > 0 ? $id . '_' . $name : '';
 
@@ -518,11 +519,7 @@ class MaschineAdminController
                 <?php if ($id > 0): ?>
                     <div style="margin: 1rem 0; padding: 0.75rem; border: 1px solid #ddd; border-radius: 6px; max-width: 520px;">
                         <div><strong>Maschinen-Barcode</strong></div>
-                        <?php if (!$maschinenQrUrlKonfiguriert): ?>
-                            <div style="margin-top: 0.5rem; color: #a00;">
-                                Bitte die Maschinen-QR-URL in der Konfiguration hinterlegen, damit der Barcode korrekt geladen werden kann.
-                            </div>
-                        <?php elseif ($codeBildUrl !== ''): ?>
+                        <?php if ($codeBildUrl !== ''): ?>
                             <div style="margin-top: 0.5rem;">
                                 <img src="<?php echo htmlspecialchars($codeBildUrl, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>" alt="Barcode Maschine <?php echo $id; ?>" style="max-width: 100%; height: auto;">
                             </div>
@@ -556,34 +553,6 @@ class MaschineAdminController
         require __DIR__ . '/../views/layout/footer.php';
     }
 
-    private function baueQrCodeUrlPfad(string $codeBildPfad): string
-    {
-        $codeBildPfad = trim($codeBildPfad);
-        if ($codeBildPfad === '') {
-            return '';
-        }
-
-        if (preg_match('~^https?://~i', $codeBildPfad) === 1) {
-            return $codeBildPfad;
-        }
-
-        $maschinenQrUrl = $this->holeMaschinenQrUrl();
-        $dateiname = basename($codeBildPfad);
-        if ($dateiname === '') {
-            return '';
-        }
-
-        if ($maschinenQrUrl === '') {
-            return '';
-        }
-
-        if (preg_match('~^https?://~i', $maschinenQrUrl) === 1) {
-            return rtrim($maschinenQrUrl, '/') . '/' . ltrim($dateiname, '/');
-        }
-
-        return '/' . trim($maschinenQrUrl, '/') . '/' . ltrim($dateiname, '/');
-    }
-
     private function normalisiereCodeBildPfad(?string $codeBildPfad): ?string
     {
         if ($codeBildPfad === null) {
@@ -602,41 +571,5 @@ class MaschineAdminController
         return ltrim($codeBildPfad, '/');
     }
 
-    private function holeMaschinenQrUrl(): string
-    {
-        $konfigService = $this->holeKonfigurationService();
-        if ($konfigService !== null) {
-            $maschinenQrUrl = $konfigService->get('maschinen_qr_url', null);
-            if (is_string($maschinenQrUrl) && trim($maschinenQrUrl) !== '') {
-                return trim($maschinenQrUrl);
-            }
-
-            $alterUrl = $konfigService->get('maschinen_qr_base_url', null);
-            if (is_string($alterUrl)) {
-                return trim($alterUrl);
-            }
-        }
-
-        return '';
-    }
-
-    /**
-     * @return object|null
-     */
-    private function holeKonfigurationService(): ?object
-    {
-        if (!class_exists('KonfigurationService')) {
-            $pfad = __DIR__ . '/../services/KonfigurationService.php';
-            if (is_file($pfad)) {
-                require_once $pfad;
-            }
-        }
-
-        if (class_exists('KonfigurationService')) {
-            return KonfigurationService::getInstanz();
-        }
-
-        return null;
-    }
 
 }

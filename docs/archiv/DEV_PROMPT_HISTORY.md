@@ -148,6 +148,8 @@ Webbasierte Zeiterfassung inkl. Mitarbeiter-/Rollen-/Genehmiger-Verwaltung, Urla
 - **D-006:** Micro-Patches sind Pflicht: 1 Patch = 1 Thema/1 Effekt; wegen `DEV_PROMPT_HISTORY.md` bleiben praktisch nur 2 weitere Dateien → Tasks müssen vor Umsetzung gesplittet werden.
 
 ## Bekannte Probleme / Bugs (B-IDs)
+- **B-089:** Maschinen-Barcode wurde in der Bearbeitungsmaske nie angezeigt, weil der Controller eine abweichende URL-Logik nutzte und bei leerem `maschinen_qr_url` immer `''` lieferte. **DONE in P-2026-08-08-03**.
+- **B-090:** Mitgelieferte Bibliothek `services/phpqrcode` erzeugt PHP-Deprecations ("Optional parameter declared before required parameter", `qrimage.php:30`, `qrvect.php:140`) auf jeder Seite, die `MaschineQrCodeService` instanziiert. Gilt ab PHP 8.0, betrifft also auch den Produktivserver (PHP 8.3). **OPEN**.
 - **B-079:** Monatsreport-PDF: Urlaubsblock nutzte `urlaub_verbleibend` aus Monatswerten und zog BF-Restjahr erneut ab (Doppelabzug/negative Werte). **DONE in P-2026-01-18-02**.
 - **B-081:** Monatsreport-HTML: Urlaubsblock zog BF-Restjahr zusaetzlich ab und konnte so inkonsistent/negativ werden. **DONE in P-2026-01-18-03**.
 - **B-082:** Urlaub: Eintrittsjahr/Anlage im laufenden Jahr wurde bisher nicht anteilig gerechnet (voller Jahresanspruch). Zudem wurde negativer Resturlaub beim Auto-Übertrag auf 0 gekappt → Minusurlaub gleicht sich im Folgejahr nicht aus. **DONE in P-2026-01-18-09**.
@@ -205,7 +207,46 @@ Webbasierte Zeiterfassung inkl. Mitarbeiter-/Rollen-/Genehmiger-Verwaltung, Urla
 - Offen aus P-2026-08-08-02: QR-/Barcode-Erzeugung und die Terminal-Buchungsflows sind unter PHP 8.5 noch nicht geprueft (brauchen einen angemeldeten Browser-Durchlauf).
 
 ## Letzter Patch (P-ID)
-P-2026-08-08-02 (Commit) – Datenbestand lokal eingespielt, PHP-8.5-Pruefung der Fachlogik
+P-2026-08-08-03 (Commit) – Maschinen-Barcode-URL wird automatisch abgeleitet
+
+## P-2026-08-08-03 maschinen-barcode-url-automatisch
+
+### EINGELESEN
+- `controller/MaschineAdminController.php`, `services/MaschineQrCodeService.php`, `core/DefaultsSeeder.php`, Konfigurationswerte `maschinen_qr_url` / `maschinen_qr_rel_pfad`.
+
+### DUPLIKAT-CHECK
+- Kein Duplikat: In der History gibt es Eintraege zur QR-Pfad-Konfiguration (P-2026-01-18-30 Barcode-Generator), aber keinen zur Ableitung der Anzeige-URL.
+
+### BUGREPORT (Ausgangslage)
+- Schritte: Verwaltung → Maschinen → Maschine bearbeiten.
+- Erwartung: Der erzeugte Barcode wird angezeigt.
+- Ist: Roter Hinweis „Bitte die Maschinen-QR-URL in der Konfiguration hinterlegen“, obwohl die PNG-Datei korrekt erzeugt wurde und per HTTP erreichbar war.
+- Ursache: `MaschineAdminController` hatte eine **zweite, abweichende** URL-Logik (`holeMaschinenQrUrl()` + `baueQrCodeUrlPfad()`). Sie haengte nur den Dateinamen an `maschinen_qr_url` (statt an den relativen Speicherpfad) und lieferte bei leerem Wert `''` – also nie ein Bild. Die richtige Logik lag als **toter Code** in `MaschineQrCodeService::baueUrlPfad()` und wurde nirgends aufgerufen.
+
+### DATEIEN
+- `services/MaschineQrCodeService.php`
+- `controller/MaschineAdminController.php`
+- `core/DefaultsSeeder.php`
+- `docs/archiv/DEV_PROMPT_HISTORY.md`, `docs/STATUS_SNAPSHOT.md`
+
+### DONE
+- **Automatische Ableitung:** Die Bild-URL wird jetzt aus der Web-Basis der Installation plus `maschinen_qr_rel_pfad` gebildet. Die Web-Basis kommt aus `app.base_url` (falls gesetzt), sonst aus dem Verzeichnis des laufenden Skripts (`SCRIPT_NAME`). Damit muss derselbe Pfad nicht mehr doppelt gepflegt werden.
+- **Bedeutung von `maschinen_qr_url` geklaert:** leer = automatisch ableiten (Normalfall), `/` = ausdruecklich Domain-Root, sonst Pfad oder volle URL als Basis (z. B. Bilder auf einem anderen Host). Beschreibungstext im `DefaultsSeeder` entsprechend korrigiert – vorher stand dort „Leer = Domain-Root“, was der Code nie umgesetzt hat.
+- **Doppelte Logik entfernt:** `holeMaschinenQrUrl()`, `baueQrCodeUrlPfad()` und das dadurch ungenutzte `holeKonfigurationService()` sind aus dem Controller raus; er nutzt jetzt `MaschineQrCodeService::baueBildUrl()`. Erzeugung und Anzeige laufen damit ueber dieselbe Logik.
+- **Hinweis in der Maske:** Der rote Text erscheint nicht mehr wegen fehlender Konfiguration, sondern nur noch, wenn tatsaechlich kein Bild hinterlegt ist („Noch kein Barcode gespeichert“).
+
+### AKZEPTANZKRITERIEN
+- Ohne jede Konfiguration zeigt die Maske „Maschine bearbeiten“ den Barcode – sowohl bei Installation in einem Unterordner (`/zeiterfassung`) als auch direkt auf der Domain-Wurzel.
+
+### TEST
+1. Alle Konfigurationsfaelle gegen den gespeicherten Pfad `uploads/maschinen_codes/maschine_5_barcode.png` geprueft: leer → `/zeiterfassung/uploads/...`, `/` → `/uploads/...`, `/zeiterfassung` → `/zeiterfassung/uploads/...`, `https://host/pfad` → `https://host/pfad/uploads/...`, Altlast `zeiterfassung/public` → `/uploads/...`, kein Bild → leerer String.
+2. Ableitung ohne `app.base_url` ueber `SCRIPT_NAME`: `/zeiterfassung/index.php` → `/zeiterfassung/...`, `/index.php` → `/...`, `/zeiterfassung/maschine_code.php` → `/zeiterfassung/...`.
+3. `php -l` auf allen drei geaenderten Dateien fehlerfrei.
+
+### OFFEN / NEUER BUG
+- **B-090 (neu):** Die mitgelieferte Bibliothek `services/phpqrcode` erzeugt PHP-Deprecations („Optional parameter declared before required parameter“ in `qrimage.php:30` und `qrvect.php:140`). Das betrifft **jede** Seite, die `MaschineQrCodeService` instanziiert, und gilt ab PHP 8.0 – also auch auf dem Produktivserver (PHP 8.3), wo es das Fehlerlog fuellt. Noch nicht behoben, weil eigenes Thema (Fremdbibliothek).
+- Bestandsinstallationen behalten den alten Beschreibungstext in der `config`-Tabelle; er wird vom `DefaultsSeeder` nicht ueberschrieben. Bei Bedarf per UPDATE nachziehen.
+
 
 ## P-2026-08-08-02 datenbestand-lokal-und-php85-check
 
