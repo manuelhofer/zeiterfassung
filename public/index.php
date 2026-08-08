@@ -127,6 +127,8 @@ try {
         'auftrag_neu',
         'auftrag_bearbeiten',
         'auftrag_speichern',
+        'auftrag_schritt_bearbeiten',
+        'auftrag_schritt_speichern',
         'auftragszeit_bearbeiten',
         'mitarbeiter_admin',
         'mitarbeiter_admin_bearbeiten',
@@ -278,6 +280,16 @@ try {
         case 'auftrag_speichern':
             $controller = new AuftragController();
             $controller->speichern();
+            break;
+
+        case 'auftrag_schritt_bearbeiten':
+            $controller = new AuftragController();
+            $controller->schrittBearbeiten();
+            break;
+
+        case 'auftrag_schritt_speichern':
+            $controller = new AuftragController();
+            $controller->schrittSpeichern();
             break;
 
         case 'auftragszeit_bearbeiten':

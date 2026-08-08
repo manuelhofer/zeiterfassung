@@ -392,6 +392,61 @@ class AuftragController
             }
         }
 
+        // Stammdaten des Auftrags und seine Arbeitsschritte laden.
+        //
+        // Das ist bewusst unabhaengig von den Buchungen: Ein frisch angelegter
+        // Auftrag hat noch keine Buchung, soll aber trotzdem QR-Code und
+        // Arbeitsschritte zeigen.
+        $auftragStamm = null;
+        $arbeitsschritte = [];
+        $auftragQrUrl = '';
+
+        try {
+            $auftragStamm = $this->db->fetchEine(
+                'SELECT * FROM auftrag WHERE auftragsnummer = :nr LIMIT 1',
+                ['nr' => $code]
+            );
+
+            if (is_array($auftragStamm)) {
+                $auftragId = (int)($auftragStamm['id'] ?? 0);
+
+                $arbeitsschritte = $this->db->fetchAlle(
+                    'SELECT * FROM auftrag_arbeitsschritt
+                      WHERE auftrag_id = :aid
+                      ORDER BY aktiv DESC, id ASC',
+                    ['aid' => $auftragId]
+                );
+
+                $qrService = new QrCodeService();
+
+                $auftragQrUrl = $qrService->baueBildUrl(
+                    $qrService->stelleBildBereit(
+                        $code,
+                        $qrService->dateinameAuftrag($auftragId),
+                        isset($auftragStamm['geaendert_am']) ? (string)$auftragStamm['geaendert_am'] : null
+                    )
+                );
+
+                foreach ($arbeitsschritte as $index => $schritt) {
+                    $schrittId = (int)($schritt['id'] ?? 0);
+                    $schrittCode = trim((string)($schritt['arbeitsschritt_code'] ?? ''));
+
+                    $arbeitsschritte[$index]['qr_url'] = $qrService->baueBildUrl(
+                        $qrService->stelleBildBereit(
+                            $schrittCode,
+                            $qrService->dateinameArbeitsschritt($schrittId),
+                            isset($schritt['geaendert_am']) ? (string)$schritt['geaendert_am'] : null
+                        )
+                    );
+                }
+            }
+        } catch (\Throwable $e) {
+            $this->protokolliere('Auftragsstammdaten konnten nicht geladen werden', [
+                'code'      => $code,
+                'exception' => $e->getMessage(),
+            ]);
+        }
+
         $sumStunden = $sumSekunden > 0 ? round($sumSekunden / 3600, 2) : 0.0;
 
         $sumProSchrittSorted = $sumProSchritt;
@@ -524,6 +579,128 @@ class AuftragController
                 <?php endif; ?>
 
                 <p><small>Hinweis: Arbeitsschritt-Code wird in den Details angezeigt, sofern beim Auftrag-Start erfasst (Scan/Manuell).</small></p>
+            <?php endif; ?>
+
+            <?php
+                // Ab hier die Stammdaten - bewusst ausserhalb des Buchungs-Zweigs,
+                // damit sie auch bei einem Auftrag ohne Buchung erscheinen.
+                $darfVerwalten = $this->darfAuftraegeVerwalten();
+                $stammCsrf = $this->holeOderErzeugeCsrfTokenStamm();
+                $escD = static function ($wert): string {
+                    return htmlspecialchars((string)$wert, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+                };
+            ?>
+
+            <?php if (!is_array($auftragStamm)): ?>
+                <h3>Stammdaten</h3>
+                <p>
+                    Zu dieser Auftragsnummer gibt es noch keinen Stammdatensatz – sie stammt
+                    bisher nur aus Buchungen.
+                    <?php if ($darfVerwalten): ?>
+                        <a href="?seite=auftrag_neu">Auftrag jetzt anlegen</a>, um Arbeitsschritte
+                        und QR-Codes zu pflegen.
+                    <?php endif; ?>
+                </p>
+            <?php else: ?>
+                <h3>Auftrag</h3>
+                <div style="display:flex;gap:2rem;flex-wrap:wrap;align-items:flex-start;margin-bottom:1rem;">
+                    <div>
+                        <table>
+                            <tbody>
+                                <tr><th style="text-align:left;">Kunde</th><td><?php echo $escD(($auftragStamm['kunde'] ?? '') !== '' ? $auftragStamm['kunde'] : '-'); ?></td></tr>
+                                <tr><th style="text-align:left;">Kurzbeschreibung</th><td><?php echo $escD(($auftragStamm['kurzbeschreibung'] ?? '') !== '' ? $auftragStamm['kurzbeschreibung'] : '-'); ?></td></tr>
+                                <tr><th style="text-align:left;">Status</th><td><?php echo $escD(($auftragStamm['status'] ?? '') !== '' ? $auftragStamm['status'] : '-'); ?></td></tr>
+                                <tr><th style="text-align:left;">Aktiv</th><td><?php echo ((int)($auftragStamm['aktiv'] ?? 0) === 1) ? 'Ja' : 'Nein'; ?></td></tr>
+                            </tbody>
+                        </table>
+                        <p style="margin-top:0.75rem;">
+                            <?php if ($darfVerwalten): ?>
+                                <a href="?seite=auftrag_bearbeiten&amp;id=<?php echo (int)$auftragStamm['id']; ?>">Auftrag bearbeiten</a> &middot;
+                            <?php endif; ?>
+                            <a href="?seite=auftrag_laufkarte&amp;code=<?php echo urlencode($code); ?>" target="_blank">Laufkarte als PDF drucken</a>
+                        </p>
+                    </div>
+
+                    <?php if ($auftragQrUrl !== ''): ?>
+                        <div style="text-align:center;">
+                            <div><strong>Auftrags-QR</strong></div>
+                            <img src="<?php echo $escD($auftragQrUrl); ?>" alt="QR-Code Auftrag <?php echo $escD($code); ?>" style="width:150px;height:150px;image-rendering:pixelated;">
+                            <div><small><?php echo $escD($code); ?></small></div>
+                            <div><a href="<?php echo $escD($auftragQrUrl); ?>" target="_blank">PNG herunterladen</a></div>
+                        </div>
+                    <?php endif; ?>
+                </div>
+
+                <h3>Arbeitsschritte (Stammdaten)</h3>
+                <?php if (count($arbeitsschritte) === 0): ?>
+                    <p>Noch keine Arbeitsschritte hinterlegt.</p>
+                <?php else: ?>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Nr.</th>
+                                <th>Code</th>
+                                <th>Bezeichnung</th>
+                                <th>QR-Code</th>
+                                <th>Aktiv</th>
+                                <?php if ($darfVerwalten): ?><th>Aktion</th><?php endif; ?>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($arbeitsschritte as $nr => $schritt): ?>
+                                <?php
+                                    $schrittId   = (int)($schritt['id'] ?? 0);
+                                    $schrittCode = (string)($schritt['arbeitsschritt_code'] ?? '');
+                                    $bezeichnung = trim((string)($schritt['bezeichnung'] ?? ''));
+                                    $schrittQr   = (string)($schritt['qr_url'] ?? '');
+                                    $schrittAktiv = (int)($schritt['aktiv'] ?? 0) === 1;
+                                ?>
+                                <tr<?php echo $schrittAktiv ? '' : ' style="color:#888;"'; ?>>
+                                    <td><?php echo $nr + 1; ?></td>
+                                    <td><code><?php echo $escD($schrittCode); ?></code></td>
+                                    <td><?php echo $bezeichnung !== '' ? $escD($bezeichnung) : '-'; ?></td>
+                                    <td>
+                                        <?php if ($schrittQr !== ''): ?>
+                                            <img src="<?php echo $escD($schrittQr); ?>" alt="QR-Code <?php echo $escD($schrittCode); ?>" style="width:90px;height:90px;image-rendering:pixelated;">
+                                        <?php else: ?>
+                                            -
+                                        <?php endif; ?>
+                                    </td>
+                                    <td><?php echo $schrittAktiv ? 'Ja' : 'Nein'; ?></td>
+                                    <?php if ($darfVerwalten): ?>
+                                        <td><a href="?seite=auftrag_schritt_bearbeiten&amp;id=<?php echo $schrittId; ?>">Bearbeiten</a></td>
+                                    <?php endif; ?>
+                                </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                <?php endif; ?>
+
+                <?php if ($darfVerwalten): ?>
+                    <div style="margin-top:1rem;padding:0.75rem;border:1px solid #ddd;border-radius:6px;max-width:640px;">
+                        <strong>Arbeitsschritt hinzufuegen</strong>
+                        <form method="post" action="?seite=auftrag_schritt_speichern" style="margin-top:0.5rem;">
+                            <input type="hidden" name="csrf_token" value="<?php echo $escD($stammCsrf); ?>">
+                            <input type="hidden" name="schritt_id" value="0">
+                            <input type="hidden" name="auftrag_id" value="<?php echo (int)$auftragStamm['id']; ?>">
+
+                            <div style="margin-bottom:0.5rem;">
+                                <label for="neuer_code"><strong>Code</strong></label><br>
+                                <input type="text" id="neuer_code" name="arbeitsschritt_code" required maxlength="100" style="width:100%;max-width:260px;">
+                                <br><small>Steht im QR-Code und wird am Terminal gescannt, z. B. <code>drehen</code>, <code>fraesen</code>, <code>saegen</code>.</small>
+                            </div>
+
+                            <div style="margin-bottom:0.5rem;">
+                                <label for="neue_bezeichnung"><strong>Bezeichnung</strong></label><br>
+                                <input type="text" id="neue_bezeichnung" name="bezeichnung" maxlength="255" style="width:100%;max-width:480px;">
+                                <br><small>Klartext fuer die Laufkarte, z. B. „Aussendurchmesser auf 40 mm drehen“.</small>
+                            </div>
+
+                            <input type="hidden" name="aktiv" value="1">
+                            <button type="submit">Hinzufuegen</button>
+                        </form>
+                    </div>
+                <?php endif; ?>
             <?php endif; ?>
         </section>
         <?php
@@ -913,6 +1090,255 @@ class AuftragController
 
                 <button type="submit">Speichern</button>
                 <a href="?seite=auftrag" style="margin-left:1rem;">Abbrechen</a>
+            </form>
+        </section>
+        <?php
+        require __DIR__ . '/../views/layout/footer.php';
+    }
+
+    /**
+     * Formular fuer einen vorhandenen Arbeitsschritt.
+     * Route: ?seite=auftrag_schritt_bearbeiten&id=...
+     */
+    public function schrittBearbeiten(): void
+    {
+        if (!$this->pruefeZugriff()) {
+            return;
+        }
+
+        if (!$this->darfAuftraegeVerwalten()) {
+            $this->zeigeKeinRecht();
+            return;
+        }
+
+        $id = (int)($_GET['id'] ?? 0);
+        if ($id <= 0) {
+            header('Location: ?seite=auftrag');
+            return;
+        }
+
+        $schritt = null;
+        try {
+            $schritt = $this->db->fetchEine(
+                'SELECT s.*, a.auftragsnummer
+                   FROM auftrag_arbeitsschritt s
+                   JOIN auftrag a ON a.id = s.auftrag_id
+                  WHERE s.id = :id
+                  LIMIT 1',
+                ['id' => $id]
+            );
+        } catch (\Throwable $e) {
+            $this->protokolliere('Arbeitsschritt konnte nicht geladen werden', [
+                'id'        => $id,
+                'exception' => $e->getMessage(),
+            ]);
+        }
+
+        if (!is_array($schritt)) {
+            $_SESSION['auftrag_flash_fehler'] = 'Der Arbeitsschritt wurde nicht gefunden.';
+            header('Location: ?seite=auftrag');
+            return;
+        }
+
+        $this->renderSchrittFormular($schritt, null);
+    }
+
+    /**
+     * Speichert einen Arbeitsschritt (anlegen oder aendern).
+     * Route: ?seite=auftrag_schritt_speichern (POST)
+     */
+    public function schrittSpeichern(): void
+    {
+        if (!$this->pruefeZugriff()) {
+            return;
+        }
+
+        if (!$this->darfAuftraegeVerwalten()) {
+            $this->zeigeKeinRecht();
+            return;
+        }
+
+        if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST') {
+            header('Location: ?seite=auftrag');
+            return;
+        }
+
+        $csrfToken = $this->holeOderErzeugeCsrfTokenStamm();
+        $postToken = (string)($_POST['csrf_token'] ?? '');
+        if ($csrfToken === '' || !hash_equals($csrfToken, $postToken)) {
+            $_SESSION['auftrag_flash_fehler'] = 'Die Sitzung ist abgelaufen. Bitte erneut versuchen.';
+            header('Location: ?seite=auftrag');
+            return;
+        }
+
+        $schrittId   = (int)($_POST['schritt_id'] ?? 0);
+        $auftragId   = (int)($_POST['auftrag_id'] ?? 0);
+        $schrittCode = trim((string)($_POST['arbeitsschritt_code'] ?? ''));
+        $bezeichnung = trim((string)($_POST['bezeichnung'] ?? ''));
+        $aktiv       = isset($_POST['aktiv']) ? 1 : 0;
+
+        // Auftragsnummer fuer die Rueckleitung ermitteln.
+        $auftragsnummer = '';
+        try {
+            $auftrag = $this->db->fetchEine('SELECT auftragsnummer FROM auftrag WHERE id = :id LIMIT 1', ['id' => $auftragId]);
+            if (is_array($auftrag)) {
+                $auftragsnummer = (string)($auftrag['auftragsnummer'] ?? '');
+            }
+        } catch (\Throwable $e) {
+            $this->protokolliere('Auftrag zum Arbeitsschritt nicht ermittelbar', [
+                'auftrag_id' => $auftragId,
+                'exception'  => $e->getMessage(),
+            ]);
+        }
+
+        if ($auftragsnummer === '') {
+            $_SESSION['auftrag_flash_fehler'] = 'Der zugehoerige Auftrag wurde nicht gefunden.';
+            header('Location: ?seite=auftrag');
+            return;
+        }
+
+        $daten = [
+            'id'                  => $schrittId,
+            'auftrag_id'          => $auftragId,
+            'auftragsnummer'      => $auftragsnummer,
+            'arbeitsschritt_code' => $schrittCode,
+            'bezeichnung'         => $bezeichnung,
+            'aktiv'               => $aktiv,
+        ];
+
+        if ($schrittCode === '') {
+            $this->renderSchrittFormular($daten, 'Bitte einen Code fuer den Arbeitsschritt angeben.');
+            return;
+        }
+
+        if (mb_strlen($schrittCode) > 100) {
+            $this->renderSchrittFormular($daten, 'Der Code darf hoechstens 100 Zeichen lang sein.');
+            return;
+        }
+
+        // Codes sind pro Auftrag eindeutig (UNIQUE auftrag_id + code).
+        try {
+            $vorhanden = $this->db->fetchEine(
+                'SELECT id FROM auftrag_arbeitsschritt
+                  WHERE auftrag_id = :aid AND arbeitsschritt_code = :code AND id <> :id
+                  LIMIT 1',
+                ['aid' => $auftragId, 'code' => $schrittCode, 'id' => $schrittId]
+            );
+
+            if (is_array($vorhanden)) {
+                $this->renderSchrittFormular(
+                    $daten,
+                    'Der Code "' . $schrittCode . '" ist bei diesem Auftrag schon vergeben.'
+                );
+                return;
+            }
+        } catch (\Throwable $e) {
+            $this->protokolliere('Pruefung auf doppelten Arbeitsschritt-Code fehlgeschlagen', [
+                'exception' => $e->getMessage(),
+            ]);
+        }
+
+        try {
+            if ($schrittId > 0) {
+                $this->db->ausfuehren(
+                    'UPDATE auftrag_arbeitsschritt
+                        SET arbeitsschritt_code = :code,
+                            bezeichnung = :bez,
+                            aktiv = :aktiv
+                      WHERE id = :id',
+                    [
+                        'code'  => $schrittCode,
+                        'bez'   => $bezeichnung !== '' ? $bezeichnung : null,
+                        'aktiv' => $aktiv,
+                        'id'    => $schrittId,
+                    ]
+                );
+                $_SESSION['auftrag_detail_flash_ok'] = 'Der Arbeitsschritt wurde gespeichert.';
+            } else {
+                $this->db->ausfuehren(
+                    'INSERT INTO auftrag_arbeitsschritt (auftrag_id, arbeitsschritt_code, bezeichnung, aktiv)
+                     VALUES (:aid, :code, :bez, :aktiv)',
+                    [
+                        'aid'   => $auftragId,
+                        'code'  => $schrittCode,
+                        'bez'   => $bezeichnung !== '' ? $bezeichnung : null,
+                        'aktiv' => $aktiv,
+                    ]
+                );
+                $_SESSION['auftrag_detail_flash_ok'] = 'Der Arbeitsschritt wurde angelegt.';
+            }
+        } catch (\Throwable $e) {
+            $this->protokolliere('Arbeitsschritt konnte nicht gespeichert werden', [
+                'schritt_id' => $schrittId,
+                'exception'  => $e->getMessage(),
+            ]);
+            $this->renderSchrittFormular($daten, 'Der Arbeitsschritt konnte nicht gespeichert werden.');
+            return;
+        }
+
+        header('Location: ?seite=auftrag_detail&code=' . urlencode($auftragsnummer));
+    }
+
+    /**
+     * Rendert das Formular fuer einen Arbeitsschritt.
+     *
+     * @param array<string,mixed> $schritt
+     */
+    private function renderSchrittFormular(array $schritt, ?string $fehlermeldung): void
+    {
+        $id             = (int)($schritt['id'] ?? 0);
+        $auftragId      = (int)($schritt['auftrag_id'] ?? 0);
+        $auftragsnummer = (string)($schritt['auftragsnummer'] ?? '');
+        $code           = (string)($schritt['arbeitsschritt_code'] ?? '');
+        $bezeichnung    = (string)($schritt['bezeichnung'] ?? '');
+        $aktiv          = (int)($schritt['aktiv'] ?? 1) === 1;
+        $csrfToken      = $this->holeOderErzeugeCsrfTokenStamm();
+
+        $esc = static function ($wert): string {
+            return htmlspecialchars((string)$wert, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+        };
+
+        require __DIR__ . '/../views/layout/header.php';
+        ?>
+        <section>
+            <h2>Arbeitsschritt bearbeiten</h2>
+
+            <p><a href="?seite=auftrag_detail&amp;code=<?php echo urlencode($auftragsnummer); ?>">&laquo; Zurueck zum Auftrag <?php echo $esc($auftragsnummer); ?></a></p>
+
+            <?php if (is_string($fehlermeldung) && $fehlermeldung !== ''): ?>
+                <div style="margin-bottom:1rem;padding:8px;border:1px solid #e0a0a0;background:#fbeaea;">
+                    <?php echo $esc($fehlermeldung); ?>
+                </div>
+            <?php endif; ?>
+
+            <form method="post" action="?seite=auftrag_schritt_speichern">
+                <input type="hidden" name="csrf_token" value="<?php echo $esc($csrfToken); ?>">
+                <input type="hidden" name="schritt_id" value="<?php echo $id; ?>">
+                <input type="hidden" name="auftrag_id" value="<?php echo $auftragId; ?>">
+
+                <div style="margin-bottom:0.75rem;">
+                    <label for="arbeitsschritt_code"><strong>Code</strong></label><br>
+                    <input type="text" id="arbeitsschritt_code" name="arbeitsschritt_code" required maxlength="100"
+                           value="<?php echo $esc($code); ?>" style="width:100%;max-width:260px;">
+                    <br><small>Aenderungen erzeugen automatisch einen neuen QR-Code. Bereits gedruckte Laufkarten werden dadurch ungueltig.</small>
+                </div>
+
+                <div style="margin-bottom:0.75rem;">
+                    <label for="bezeichnung"><strong>Bezeichnung</strong></label><br>
+                    <input type="text" id="bezeichnung" name="bezeichnung" maxlength="255"
+                           value="<?php echo $esc($bezeichnung); ?>" style="width:100%;max-width:480px;">
+                </div>
+
+                <div style="margin-bottom:1rem;">
+                    <label>
+                        <input type="checkbox" name="aktiv" value="1" <?php echo $aktiv ? 'checked' : ''; ?>>
+                        Aktiv
+                    </label>
+                    <br><small>Inaktive Schritte erscheinen nicht auf der Laufkarte. Geloescht wird nicht, damit vorhandene Buchungen zuordenbar bleiben.</small>
+                </div>
+
+                <button type="submit">Speichern</button>
+                <a href="?seite=auftrag_detail&amp;code=<?php echo urlencode($auftragsnummer); ?>" style="margin-left:1rem;">Abbrechen</a>
             </form>
         </section>
         <?php

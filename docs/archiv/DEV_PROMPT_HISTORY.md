@@ -207,7 +207,41 @@ Webbasierte Zeiterfassung inkl. Mitarbeiter-/Rollen-/Genehmiger-Verwaltung, Urla
 - Offen aus P-2026-08-08-02: QR-/Barcode-Erzeugung und die Terminal-Buchungsflows sind unter PHP 8.5 noch nicht geprueft (brauchen einen angemeldeten Browser-Durchlauf).
 
 ## Letzter Patch (P-ID)
-P-2026-08-08-09 (Commit) – Auftrag im Backend anlegen und bearbeiten
+P-2026-08-08-10 (Commit) – Arbeitsschritte je Auftrag mit QR-Codes
+
+## P-2026-08-08-10 arbeitsschritte-mit-qr-codes
+
+### EINGELESEN
+- `controller/AuftragController.php`, `services/QrCodeService.php`, `public/index.php`, Tabelle `auftrag_arbeitsschritt`.
+
+### DUPLIKAT-CHECK
+- Kein Duplikat: Die Detailansicht zeigte Arbeitsschritte bisher nur als Auswertung aus Buchungen; Stammdatenpflege gab es nicht.
+
+### DATEIEN
+- `controller/AuftragController.php`
+- `public/index.php`
+- `docs/archiv/DEV_PROMPT_HISTORY.md`, `docs/STATUS_SNAPSHOT.md`
+
+### DONE
+- **Auftragsdetail zeigt jetzt Stammdaten:** Kunde, Kurzbeschreibung, Status, Aktiv, dazu den Auftrags-QR-Code mit Downloadlink und Links zum Bearbeiten und zur Laufkarte.
+- **Arbeitsschritte (Stammdaten)** als eigene Tabelle mit Nummer, Code, Bezeichnung, QR-Bild und Aktiv-Kennzeichen – getrennt von der bestehenden Auswertung „Arbeitsschritte (Summe, abgeschlossen)“, die aus Buchungen kommt.
+- **Formular „Arbeitsschritt hinzufuegen“** direkt in der Detailansicht, plus Bearbeiten-Maske (`?seite=auftrag_schritt_bearbeiten&id=…`) mit Aktiv-Schalter. Geloescht wird nicht, damit vorhandene Buchungen zuordenbar bleiben.
+- Die Stammdaten-Bloecke liegen bewusst **ausserhalb** des Buchungs-Zweigs der Detailansicht. Sonst waeren sie bei einem frisch angelegten Auftrag (noch keine Buchung) unsichtbar gewesen.
+- Fuer Auftragsnummern, die nur aus Buchungen stammen und keinen Stammdatensatz haben, erscheint ein Hinweis mit Link zum Anlegen – ohne stillschweigend Datensaetze zu erzeugen.
+
+### AKZEPTANZKRITERIEN
+- Zu einem Auftrag lassen sich `saegen`, `drehen`, `fraesen`, `entgraten` anlegen; jeder erscheint mit eigenem QR-Code, und ein Scanner liest daraus exakt den `arbeitsschritt_code`.
+
+### TEST
+1. Vier Arbeitsschritte ueber den Controller angelegt; alle in der Datenbank mit Bezeichnung und `aktiv=1`.
+2. Fehlerfaelle: doppelter Code, leerer Code, 101 Zeichen und unbekannte Auftrag-ID werden abgelehnt. Beim unbekannten Auftrag wurde nachgewiesen, dass **nichts** geschrieben wird (0 Zeilen) – wichtig, weil auf `auftrag_id` kein Fremdschluessel liegt und die Pruefung im Code der einzige Schutz ist.
+3. Detailansicht gerendert: Stammdaten, Auftrags-QR und alle vier Schritte sichtbar, keine PHP-Meldungen.
+4. **Unabhaengige Gegenprobe mit `zbarimg`** (nicht mit der erzeugenden Bibliothek): Die PNG-Dateien dekodieren zu exakt `A-2026-0999`, `saegen`, `drehen`, `fraesen`, `entgraten`. Damit ist belegt, dass ein Scanner am Terminal genau den erwarteten Text liefert.
+5. Alle QR-Dateien per HTTP erreichbar (200, image/png).
+
+### NEXT
+- P-2026-08-08-11: Laufkarten-PDF mit Auftragskopf und allen Arbeitsschritten.
+
 
 ## P-2026-08-08-09 auftrag-anlegen-und-bearbeiten
 

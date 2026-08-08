@@ -17,6 +17,7 @@ Webbasierte Zeiterfassung inkl. Mitarbeiter-/Rollen-/Genehmiger-Verwaltung, Urla
 - Lokale Umgebung zum Testen: `docs/lokale_entwicklungsumgebung.md` (App unter `http://localhost/zeiterfassung`).
 
 ## Letzte Aenderungen (Auszug)
+- **P-2026-08-08-10 Arbeitsschritte mit QR-Codes:** Auftragsdetail zeigt Stammdaten und Auftrags-QR; Arbeitsschritte lassen sich anlegen und bearbeiten, jeder mit eigenem QR-Code. Mit `zbarimg` gegengeprueft: die Codes liefern exakt den Wert, den das Terminal erwartet.
 - **P-2026-08-08-09 Auftrag anlegen/bearbeiten:** Neue Routen `auftrag_neu` / `auftrag_bearbeiten` / `auftrag_speichern` mit CSRF und Recht `AUFTRAEGE_VERWALTEN`; die Auftragsliste zeigt jetzt auch Auftraege ohne Buchung (Status `angelegt`), inkl. Kunde/Kurzbeschreibung.
 - **P-2026-08-08-08 Recht AUFTRAEGE_VERWALTEN:** Neues Recht fuer das Anlegen/Bearbeiten von Auftraegen und Arbeitsschritten (Initialschema + idempotente Migration `sql/02_...`), im Rechte-Prompt dokumentiert. Ansehen und Laufkarte bleiben bewusst rechtefrei.
 - **P-2026-08-08-07 QrCodeService:** Neuer Dienst fuer QR-Codes beliebiger Nutzdaten (PNG-Datei fuer die Anzeige, Modulmatrix fuer das PDF), Erzeugung nur bei Bedarf. Web-Basis-Ableitung nach `Helper::ermittleWebBasis()` gezogen (keine zweite Kopie, vgl. B-089); `DefaultsSeeder` baut sein INSERT jetzt dynamisch auf.
@@ -37,7 +38,8 @@ Webbasierte Zeiterfassung inkl. Mitarbeiter-/Rollen-/Genehmiger-Verwaltung, Urla
 - **P-2026-01-24-07:** Dashboard: Zeitwarnungen waren trotz vorhandener Daten unsichtbar, weil `DashboardController` versehentlich `fetchEinzel(...)` (nicht existent) aufruft und dadurch in den Catch faellt → Fix auf `fetchEine(...)`.
 
 ## Letzter Patch (P-ID)
-- P-2026-08-08-09 (Commit; Auftrag im Backend anlegen und bearbeiten)
+- P-2026-08-08-10 (Commit; Arbeitsschritte je Auftrag mit QR-Codes)
+- Davor: P-2026-08-08-09 (Auftrag im Backend anlegen und bearbeiten)
 - Davor: P-2026-08-08-08 (Recht AUFTRAEGE_VERWALTEN)
 - Davor: P-2026-08-08-07 (QrCodeService fuer Auftraege und Arbeitsschritte)
 - Davor: P-2026-08-08-06 (Spezifikation Auftrags-QR und Laufkarte)
