@@ -204,8 +204,32 @@ Webbasierte Zeiterfassung inkl. Mitarbeiter-/Rollen-/Genehmiger-Verwaltung, Urla
 - Terminal (Auftrag): Stop-Detailmaske (Fallback) UX vereinfachen (keine Status-Auswahl "Abschliessen/Abbrechen" im Terminal).
 
 ## Nächster Schritt (konkret)
+
+**Stufe 1c der Terminal-Kopplung: Kopplungs-Endpunkt + Datenbankbenutzer.**
+Grundlage: `docs/spezifikation_terminal_installation.md`, Abschnitt 2a.
+Fertig sind Stufe 1a (`services/TerminalKopplungService.php`, Tabelle
+`terminal_kopplung`) und Stufe 1b (Knopf „Kopplungscode“ in der
+Terminalverwaltung).
+
+Zu bauen:
+1. Endpunkt, den ein Terminal aufruft (Vorschlag `?seite=terminal_kopplung`,
+   POST, ohne Anmeldung – der Kopplungscode **ist** der Nachweis). Nimmt Code
+   und Geraetekennung, antwortet als JSON.
+2. Code ueber `TerminalKopplungService::loeseCodeEin()` pruefen.
+3. Datenbankbenutzer je Terminal anlegen (`term_<name>`, zufaelliges Passwort)
+   mit den in der Spezifikation aufgelisteten, eingeschraenkten Rechten.
+   **Entscheidung liegt vor:** automatisch anlegen. Dafuer braucht der
+   Datenbankbenutzer des Backends `CREATE USER` und `GRANT OPTION` auf das
+   Schema – als Migration bereitstellen und dokumentieren.
+4. Antwort: Terminal-ID, Zugangsdaten, Einstellungen. Erneute Kopplung ersetzt
+   den vorhandenen Benutzer, statt einen zweiten anzulegen.
+5. Vorgehen wie bisher: kleine Schritte, jeder Schritt fuer sich geprueft.
+
+Danach Stufe 2 (Einrichtungsseite im Terminal), dann das Installationsskript.
+
+### Weitere offene Punkte
 - Praxis-Test: naechster Bug/Anomalie-Report (Micro-Patch).
-- Offen aus P-2026-08-08-02: QR-/Barcode-Erzeugung und die Terminal-Buchungsflows sind unter PHP 8.5 noch nicht geprueft (brauchen einen angemeldeten Browser-Durchlauf).
+- Offen aus P-2026-08-08-02: Strichcode-Erzeugung und die Terminal-Buchungsflows sind unter PHP 8.5 noch nicht im Browser geprueft (brauchen einen angemeldeten Durchlauf, den nur der Nutzer machen kann).
 
 ## Letzter Patch (P-ID)
 P-2026-08-08-31 (Commit) – Terminal-Kopplung: Code erzeugen im Backend (Stufe 1b)

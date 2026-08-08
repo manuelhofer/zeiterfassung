@@ -16,6 +16,13 @@ Webbasierte Zeiterfassung inkl. Mitarbeiter-/Rollen-/Genehmiger-Verwaltung, Urla
 - Gearbeitet wird direkt im Git-Workspace; ein Patch ist ein Commit mit Patch-ID im Betreff. Keine ZIP-Pakete mehr, kein 3-Dateien-Limit.
 - Lokale Umgebung zum Testen: `docs/lokale_entwicklungsumgebung.md` (App unter `http://localhost/zeiterfassung`).
 
+## Naechster Schritt
+**Stufe 1c der Terminal-Kopplung:** Kopplungs-Endpunkt fuer das Terminal plus
+automatische Anlage des eingeschraenkten Datenbankbenutzers.
+Grundlage: `docs/spezifikation_terminal_installation.md` (Abschnitt 2a);
+Einzelheiten im „Naechster Schritt“-Block von `docs/archiv/DEV_PROMPT_HISTORY.md`.
+Fertig: Stufe 1a (Dienst + Tabelle) und 1b (Code erzeugen im Backend).
+
 ## Letzte Aenderungen (Auszug)
 - **P-2026-08-08-31 Terminal-Kopplung, Stufe 1b:** Knopf „Kopplungscode“ in der Terminalverwaltung; der Code wird genau einmal angezeigt und ist danach nicht mehr abrufbar. Durchgaengig geprueft bis zum Einloesen.
 - **P-2026-08-08-30 Terminal-Kopplung, Stufe 1a:** Tabelle `terminal_kopplung` und `TerminalKopplungService` zum Erzeugen und Einloesen von Kopplungscodes (nur Hash gespeichert, einmalig, zeitlich begrenzt). Oberflaeche und DB-Benutzer-Anlage folgen.
