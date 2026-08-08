@@ -21,6 +21,16 @@ $mitarbeiterId = isset($mitarbeiterId) ? (int)$mitarbeiterId : 0;
 $hatReportMonatViewAll = !empty($hatReportMonatViewAll);
 $hatReportMonatExportAll = !empty($hatReportMonatExportAll);
 $mitarbeiterListe = $mitarbeiterListe ?? [];
+$istMonatVergangen = !empty($istMonatVergangen);
+$monatsabschlussStatusMap = isset($monatsabschlussStatusMap) && is_array($monatsabschlussStatusMap)
+    ? $monatsabschlussStatusMap
+    : [];
+$monatsabschlussSelectClass = 'monatsabschluss-status-select';
+if ($istMonatVergangen && $mitarbeiterId > 0) {
+    $monatsabschlussSelectClass .= !empty($monatsabschlussStatusMap[$mitarbeiterId])
+        ? ' monatsabschluss-status-erledigt'
+        : ' monatsabschluss-status-offen';
+}
 
 $darfZeitBearbeiten = !empty($darfZeitBearbeiten);
 $showMicro = !empty($showMicro);
@@ -624,6 +634,63 @@ if (is_array($tageswerte) && $tageswerte !== []) {
 ?>
 
 
+<style>
+    .monatsabschluss-status-select.monatsabschluss-status-erledigt,
+    .monatsabschluss-status-select option.monatsabschluss-status-erledigt {
+        background-color: #e8f5e9;
+    }
+
+    .monatsabschluss-status-select.monatsabschluss-status-offen,
+    .monatsabschluss-status-select option.monatsabschluss-status-offen {
+        background-color: #ffebee;
+    }
+
+    .report-filter-form {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: flex-end;
+        gap: 0.75rem;
+        margin-bottom: 0.75rem;
+    }
+
+    .report-filter-field {
+        display: flex;
+        flex-direction: column;
+        gap: 0.22rem;
+    }
+
+    .report-filter-check {
+        display: inline-flex;
+        flex-direction: row;
+        align-items: center;
+        gap: 0.35rem;
+        padding-bottom: 0.3rem;
+    }
+
+    .report-stepper {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+    }
+
+    .report-stepper button {
+        min-width: 2rem;
+        padding-left: 0.45rem;
+        padding-right: 0.45rem;
+    }
+
+    .report-stepper select,
+    .report-stepper input {
+        min-height: 2rem;
+    }
+
+    .report-mitarbeiter-stepper select {
+        min-width: 13rem;
+        max-width: 20rem;
+    }
+</style>
+
+
 
 <section>
     <h2>Monatsübersicht <?php echo (int)$jahr; ?> / <?php echo sprintf('%02d', (int)$monat); ?></h2>
@@ -632,58 +699,163 @@ if (is_array($tageswerte) && $tageswerte !== []) {
         <p><strong>Mitarbeiter:</strong> <?php echo htmlspecialchars($mitarbeiterAnzeigeName, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?> (ID <?php echo (int)$mitarbeiterId; ?>)</p>
     <?php endif; ?>
 
-    <form method="get" action="" style="margin-bottom: 0.75rem;">
+    <form method="get" action="" class="report-filter-form" id="report-monat-filter">
         <input type="hidden" name="seite" value="report_monat">
 
-        <label style="margin-right: 0.75rem;">
-            Jahr
-            <input type="number" name="jahr" value="<?php echo (int)$jahr; ?>" min="2000" max="2100" style="width: 6.5rem;">
-        </label>
+        <div class="report-filter-field">
+            <label for="report_monat">Monat</label>
+            <div class="report-stepper">
+                <button type="submit" name="monat_aktion" value="minus" aria-label="Vorheriger Monat">&lt;</button>
+                <select name="monat" id="report_monat">
+                    <?php for ($m = 1; $m <= 12; $m++): ?>
+                        <option value="<?php echo (int)$m; ?>"<?php echo ((int)$monat === (int)$m) ? ' selected' : ''; ?>>
+                            <?php echo sprintf('%02d', (int)$m); ?>
+                        </option>
+                    <?php endfor; ?>
+                </select>
+                <button type="submit" name="monat_aktion" value="plus" aria-label="Naechster Monat">&gt;</button>
+            </div>
+        </div>
 
-        <label style="margin-right: 0.75rem;">
-            Monat
-            <select name="monat">
-                <?php for ($m = 1; $m <= 12; $m++): ?>
-                    <option value="<?php echo (int)$m; ?>"<?php echo ((int)$monat === (int)$m) ? ' selected' : ''; ?>>
-                        <?php echo sprintf('%02d', (int)$m); ?>
-                    </option>
-                <?php endfor; ?>
-            </select>
-        </label>
+        <div class="report-filter-field">
+            <label for="report_jahr">Jahr</label>
+            <input type="number" name="jahr" id="report_jahr" value="<?php echo (int)$jahr; ?>" min="2000" max="2100" style="width: 6.5rem;">
+        </div>
 
         <?php if ($hatReportMonatViewAll): ?>
-            <label style="margin-right: 0.75rem;">
-                Mitarbeiter
+            <div class="report-filter-field">
+                <label for="report_mitarbeiter_id">Mitarbeiter</label>
                 <?php if (is_array($mitarbeiterListe) && count($mitarbeiterListe) > 0): ?>
-                    <select name="mitarbeiter_id">
-                        <?php foreach ($mitarbeiterListe as $m): ?>
-                            <?php
-                                $mid = (int)($m['id'] ?? 0);
-                                $vn  = trim((string)($m['vorname'] ?? ''));
-                                $nn  = trim((string)($m['nachname'] ?? ''));
-                                $label = trim($nn . ', ' . $vn);
-                                if ($label === ',') {
-                                    $label = 'Mitarbeiter ' . $mid;
-                                }
-                            ?>
-                            <option value="<?php echo $mid; ?>"<?php echo ($mid === (int)$mitarbeiterId) ? ' selected' : ''; ?>>
-                                <?php echo htmlspecialchars($label, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?> (ID <?php echo $mid; ?>)
-                            </option>
-                        <?php endforeach; ?>
-                    </select>
+                    <div class="report-stepper report-mitarbeiter-stepper">
+                        <button type="button" data-mitarbeiter-step="-1" aria-label="Vorheriger Mitarbeiter">&lt;</button>
+                        <select name="mitarbeiter_id" id="report_mitarbeiter_id" class="<?php echo htmlspecialchars($monatsabschlussSelectClass, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>">
+                            <?php foreach ($mitarbeiterListe as $m): ?>
+                                <?php
+                                    $mid = (int)($m['id'] ?? 0);
+                                    $vn  = trim((string)($m['vorname'] ?? ''));
+                                    $nn  = trim((string)($m['nachname'] ?? ''));
+                                    $label = trim($nn . ', ' . $vn);
+                                    if ($label === ',') {
+                                        $label = 'Mitarbeiter ' . $mid;
+                                    }
+                                    $abschlussOptionClass = '';
+                                    $abschlussOptionStyle = '';
+                                    $abschlussOptionTitle = '';
+                                    if ($istMonatVergangen && $mid > 0) {
+                                        if (!empty($monatsabschlussStatusMap[$mid])) {
+                                            $abschlussOptionClass = 'monatsabschluss-status-erledigt';
+                                            $abschlussOptionStyle = 'background-color: #e8f5e9;';
+                                            $abschlussOptionTitle = 'Monatsabschluss erledigt';
+                                        } else {
+                                            $abschlussOptionClass = 'monatsabschluss-status-offen';
+                                            $abschlussOptionStyle = 'background-color: #ffebee;';
+                                            $abschlussOptionTitle = 'Monatsabschluss offen';
+                                        }
+                                    }
+                                ?>
+                                <option value="<?php echo $mid; ?>"
+                                    class="<?php echo htmlspecialchars($abschlussOptionClass, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>"
+                                    style="<?php echo htmlspecialchars($abschlussOptionStyle, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>"
+                                    title="<?php echo htmlspecialchars($abschlussOptionTitle, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>"
+                                    <?php echo ($mid === (int)$mitarbeiterId) ? ' selected' : ''; ?>>
+                                    <?php echo htmlspecialchars($label, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?> (ID <?php echo $mid; ?>)
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                        <button type="button" data-mitarbeiter-step="1" aria-label="Naechster Mitarbeiter">&gt;</button>
+                    </div>
                 <?php else: ?>
                     <input type="number" name="mitarbeiter_id" value="<?php echo (int)$mitarbeiterId; ?>" min="1" style="width: 6.5rem;">
                 <?php endif; ?>
-            </label>
+            </div>
         <?php endif; ?>
 
-        <label style="margin-right: 0.75rem;">
+        <label class="report-filter-check">
             <input type="checkbox" name="show_micro" value="1"<?php echo $showMicro ? " checked" : ""; ?>>
             Mikro-Buchungen anzeigen
         </label>
 
         <button type="submit">Anzeigen</button>
     </form>
+
+    <script>
+        (function () {
+            var form = document.getElementById('report-monat-filter');
+            if (!form) {
+                return;
+            }
+
+            var submitTimer = null;
+            var isSubmitting = false;
+            var submitFilter = function () {
+                if (isSubmitting) {
+                    return;
+                }
+                isSubmitting = true;
+                if (typeof form.requestSubmit === 'function') {
+                    form.requestSubmit();
+                } else {
+                    form.submit();
+                }
+            };
+
+            var monthSelect = document.getElementById('report_monat');
+            if (monthSelect) {
+                monthSelect.addEventListener('change', submitFilter);
+            }
+
+            var yearInput = document.getElementById('report_jahr');
+            if (yearInput) {
+                yearInput.addEventListener('input', function () {
+                    var value = String(yearInput.value || '').trim();
+                    var year = parseInt(value, 10);
+                    if (!/^\d{4}$/.test(value) || year < 2000 || year > 2100) {
+                        return;
+                    }
+
+                    window.clearTimeout(submitTimer);
+                    submitTimer = window.setTimeout(submitFilter, 450);
+                });
+
+                yearInput.addEventListener('change', function () {
+                    var value = String(yearInput.value || '').trim();
+                    var year = parseInt(value, 10);
+                    if (/^\d{4}$/.test(value) && year >= 2000 && year <= 2100) {
+                        submitFilter();
+                    }
+                });
+            }
+
+            var select = document.getElementById('report_mitarbeiter_id');
+            if (!form || !select) {
+                return;
+            }
+
+            var buttons = form.querySelectorAll('[data-mitarbeiter-step]');
+            buttons.forEach(function (button) {
+                button.addEventListener('click', function () {
+                    var step = parseInt(button.getAttribute('data-mitarbeiter-step') || '0', 10);
+                    if (!step || select.options.length === 0) {
+                        return;
+                    }
+
+                    var nextIndex = select.selectedIndex + step;
+                    if (nextIndex >= select.options.length) {
+                        nextIndex = 0;
+                    } else if (nextIndex < 0) {
+                        nextIndex = select.options.length - 1;
+                    }
+
+                    select.selectedIndex = nextIndex;
+                    submitFilter();
+                });
+            });
+
+            select.addEventListener('change', function () {
+                submitFilter();
+            });
+        })();
+    </script>
 
     <p>
         <a href="?seite=report_monat_pdf&amp;jahr=<?php echo (int)$jahr; ?>&amp;monat=<?php echo (int)$monat; ?>&amp;mitarbeiter_id=<?php echo (int)$mitarbeiterId; ?><?php echo $showMicro ? '&amp;show_micro=1' : ''; ?>" target="_blank" rel="noopener">PDF anzeigen</a>
@@ -715,7 +887,7 @@ if (is_array($tageswerte) && $tageswerte !== []) {
 
 
     <?php
-        // Stundenkonto: Monatsabschluss-Knopf (Differenz Soll/Ist ins Stundenkonto buchen)
+        // Stundenkonto: Monatsabschluss-Knopf (Differenz Soll/Ist als geprueften Stand buchen)
         $monatsabschlussMsgText = '';
         $monatsabschlussMsgColor = '#333';
         $msg = isset($stundenkontoMonatsabschlussMsg) ? (string)$stundenkontoMonatsabschlussMsg : '';
@@ -794,15 +966,11 @@ if (is_array($tageswerte) && $tageswerte !== []) {
                 <br><em>Noch nicht gebucht.</em>
             <?php endif; ?>
 
-            <?php if (((int)($monatsabschlussBerechnetDeltaMinuten ?? 0) !== 0) || (!empty($monatsabschlussGebucht))): ?>
-                <form method="post" action="<?php echo htmlspecialchars($monatsabschlussActionUrl, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>" style="margin-top: 8px;">
-                    <input type="hidden" name="aktion" value="monatsabschluss_buchen">
-                    <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars((string)($csrfTokenMonatsabschluss ?? ''), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>">
-                    <button type="submit"><?php echo !empty($monatsabschlussGebucht) ? 'Monatsabschluss aktualisieren' : 'Monatsabschluss buchen'; ?></button>
-                </form>
-            <?php else: ?>
-                <div style="margin-top: 8px;"><em>Differenz ist 0 – keine Buchung noetig.</em></div>
-            <?php endif; ?>
+            <form method="post" action="<?php echo htmlspecialchars($monatsabschlussActionUrl, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>" style="margin-top: 8px;">
+                <input type="hidden" name="aktion" value="monatsabschluss_buchen">
+                <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars((string)($csrfTokenMonatsabschluss ?? ''), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>">
+                <button type="submit"><?php echo !empty($monatsabschlussGebucht) ? 'Monatsabschluss aktualisieren' : 'Monatsabschluss buchen'; ?></button>
+            </form>
         </div>
     <?php endif; ?>
 

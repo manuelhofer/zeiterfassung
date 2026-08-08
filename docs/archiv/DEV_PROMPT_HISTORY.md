@@ -207,7 +207,46 @@ Webbasierte Zeiterfassung inkl. Mitarbeiter-/Rollen-/Genehmiger-Verwaltung, Urla
 - Offen aus P-2026-08-08-02: QR-/Barcode-Erzeugung und die Terminal-Buchungsflows sind unter PHP 8.5 noch nicht geprueft (brauchen einen angemeldeten Browser-Durchlauf).
 
 ## Letzter Patch (P-ID)
-P-2026-08-08-16 (Commit) – Katalog wirkt in den Auftrag hinein
+P-2026-08-08-18 (Commit) – Monatsabschluss-Ampel und Status-Auswahl
+
+## P-2026-08-08-18 monatsabschluss-ampel-und-status-auswahl
+
+### EINGELESEN
+- Spiegelverzeichnis der Windows-/Codex-Arbeitskopie `/home/manuel/ntfs_platte/xampp1/htdocs/zeiterfassungspiegel` (nicht gepushter Stand), `controller/ReportController.php`, `views/report/monatsuebersicht.php`, `controller/AuftragController.php`.
+
+### DUPLIKAT-CHECK
+- Die Ampel war im Spiegelverzeichnis bereits fertig umgesetzt, aber nie gepusht. Sie wurde **uebernommen statt neu gebaut** – der dortige Stand ist erprobt.
+
+### DATEIEN
+- `controller/ReportController.php`, `views/report/monatsuebersicht.php` (aus dem Spiegel uebernommen)
+- `controller/AuftragController.php`
+- `docs/archiv/DEV_PROMPT_HISTORY.md`, `docs/STATUS_SNAPSHOT.md`
+
+### DONE
+- **Monatsabschluss-Ampel:** In der Monatsuebersicht sind die Mitarbeiter in der Auswahlliste rot hinterlegt, solange der Monatsabschluss offen ist, und gruen, sobald er gebucht wurde (`ladeMonatsabschlussStatusMap()` sucht die Abschlussbuchung in `stundenkonto_korrektur`). Nur bei vergangenen Monaten – im laufenden Monat bleibt die Liste neutral.
+- Damit kam auch die **Stepper-Bedienung** fuer Monat/Jahr/Mitarbeiter mit (`< 07 >`), die im Spiegel das alte Filterformular ersetzt hatte.
+- **Status ist jetzt eine Auswahlliste** statt eines Freitextfelds: offen, in Arbeit, wartet, abgeschlossen, storniert. Frei getippte Werte liessen sich nicht auswerten und gingen bei jedem Tippfehler auseinander. Serverseitig geprueft – ein Dropdown im Browser ist keine Sicherung. Vorhandene Altwerte aus der Freitext-Zeit bleiben waehlbar und werden nicht stillschweigend verworfen.
+
+### PRUEFUNG DER UEBERNAHME
+- `ReportController` war im Spiegel ein **reiner Zuwachs** (79 Zeilen mehr, 0 weniger) – gefahrlos uebernehmbar.
+- Bei `views/report/monatsuebersicht.php` standen 21 Zeilen nur in unserer Fassung; das war das **aeltere** Filterformular, das der Spiegel bewusst durch die Stepper ersetzt hat. Nichts ging verloren.
+- Die Ansicht bringt ihr CSS selbst mit; an den Stylesheets war nichts nachzuziehen (CSS-Dateien sind identisch).
+
+### TEST
+1. Vergangener Monat (2026/06): alle Mitarbeiter „Monatsabschluss offen“ (rot).
+2. Testbuchung fuer einen Mitarbeiter eingespielt: dieser wird „Monatsabschluss erledigt“ (gruen), die uebrigen bleiben rot. Testbuchung wieder entfernt.
+3. Laufender Monat (2026/08): keine Faerbung – korrekt, ein laufender Monat kann nicht abgeschlossen sein.
+4. Status-Auswahl: gueltiger Wert wird gespeichert, erfundener Wert (`hack&drop`) abgelehnt, vorhandener Altwert weiterhin erlaubt.
+5. Keine PHP-Meldungen.
+
+### OFFEN – weiterer nicht gepushter Stand im Spiegelverzeichnis
+Beim Vergleich zeigte sich, dass dort noch mehr Arbeit liegt, die nie ins Repository kam (Zeilen = Umfang der Abweichung):
+- `controller/UrlaubJahresuebersichtController.php` (123), `controller/UrlaubController.php` (97), `views/urlaub/jahresuebersicht.php` (42), `views/urlaub/verwaltung.php` (30)
+- `controller/DashboardController.php` (45), `views/dashboard/index.php` (26)
+- `views/zeit/tagesansicht.php` (24), `views/mitarbeiter/stundenkonto.php` (22), `views/mitarbeiter/liste.php` (14), `views/feiertag/liste.php` (11)
+- `modelle/MitarbeiterModel.php` (15), `controller/MitarbeiterAdminController.php` (10), `controller/KonfigurationController.php` (6)
+Diese Uebernahme steht noch aus und sollte einzeln geprueft werden – nicht pauschal kopieren.
+
 
 ## P-2026-08-08-16 katalog-in-auftrag
 

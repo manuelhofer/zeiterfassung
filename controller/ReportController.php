@@ -182,6 +182,66 @@ class ReportController
         return null;
     }
 
+    /**
+     * @param int[] $mitarbeiterIds
+     * @return array<int,bool>
+     */
+    private function ladeMonatsabschlussStatusMap(array $mitarbeiterIds, int $jahr, int $monat): array
+    {
+        $ids = [];
+        foreach ($mitarbeiterIds as $id) {
+            $id = (int)$id;
+            if ($id > 0) {
+                $ids[$id] = true;
+            }
+        }
+
+        if ($ids === []) {
+            return [];
+        }
+
+        try {
+            $dt = new \DateTimeImmutable(sprintf('%04d-%02d-01', $jahr, $monat), new \DateTimeZone('Europe/Berlin'));
+            $wirksam = $dt->modify('last day of this month')->format('Y-m-d');
+            $begruendung = sprintf('Monatsabschluss %04d-%02d', $jahr, $monat);
+
+            $params = [
+                ':wd' => $wirksam,
+                ':b' => $begruendung,
+            ];
+            $platzhalter = [];
+            $i = 0;
+            foreach (array_keys($ids) as $id) {
+                $key = ':mid' . $i;
+                $platzhalter[] = $key;
+                $params[$key] = $id;
+                $i++;
+            }
+
+            $rows = Database::getInstanz()->fetchAlle(
+                "SELECT mitarbeiter_id
+                 FROM stundenkonto_korrektur
+                 WHERE mitarbeiter_id IN (" . implode(',', $platzhalter) . ")
+                   AND wirksam_datum = :wd
+                   AND typ = 'manuell'
+                   AND begruendung = :b",
+                $params
+            );
+        } catch (\Throwable $e) {
+            return [];
+        }
+
+        $map = [];
+        foreach ($rows as $row) {
+            $mid = (int)($row['mitarbeiter_id'] ?? 0);
+            if ($mid > 0) {
+                $map[$mid] = true;
+            }
+        }
+
+        return $map;
+    }
+
     private function bucheOderAktualisiereMonatsabschluss(int $mitarbeiterId, int $jahr, int $monat, int $deltaMinuten, int $erstelltVonMitarbeiterId): bool
     {
         try {
@@ -514,6 +574,25 @@ class ReportController
                     }
                     return strcmp($av, $bv);
                 });
+            }
+        }
+
+        $monatsabschlussStatusMap = [];
+        if (!empty($istMonatVergangen)) {
+            $statusIds = [];
+            foreach ($mitarbeiterListe as $m) {
+                $mid = (int)($m['id'] ?? 0);
+                if ($mid > 0) {
+                    $statusIds[$mid] = true;
+                }
+            }
+            if ($mitarbeiterId > 0) {
+                $statusIds[$mitarbeiterId] = true;
+            }
+
+            $monatsabschlussStatusMap = $this->ladeMonatsabschlussStatusMap(array_keys($statusIds), $jahr, $monat);
+            if ($mitarbeiterId > 0) {
+                $monatsabschlussStatusMap[$mitarbeiterId] = !empty($monatsabschlussGebucht);
             }
         }
 

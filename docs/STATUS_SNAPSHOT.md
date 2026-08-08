@@ -17,6 +17,7 @@ Webbasierte Zeiterfassung inkl. Mitarbeiter-/Rollen-/Genehmiger-Verwaltung, Urla
 - Lokale Umgebung zum Testen: `docs/lokale_entwicklungsumgebung.md` (App unter `http://localhost/zeiterfassung`).
 
 ## Letzte Aenderungen (Auszug)
+- **P-2026-08-08-18 Monatsabschluss-Ampel + Status-Auswahl:** Mitarbeiter in der Monatsuebersicht rot (Abschluss offen) bzw. gruen (gebucht), inkl. Stepper-Bedienung – aus dem nicht gepushten Spiegelverzeichnis uebernommen. Auftragsstatus ist jetzt eine gepruefte Auswahlliste statt Freitext.
 - **P-2026-08-08-16 Katalog im Auftrag:** Standardschritte lassen sich per Mehrfachauswahl in einen Auftrag uebernehmen; fehlende Bezeichnungen werden beim Anzeigen aus dem Katalog ergaenzt (auch fuer am Terminal gescannte Codes). Der Buchungspfad des Terminals bleibt bewusst unberuehrt.
 - **P-2026-08-08-15 Strichcodes statt QR:** Alle Auftrags-, Arbeitsschritt- und Katalog-Codes sind jetzt Code 128 – derselbe Typ wie die vorhandenen Maschinen-Codes, passend zu den 1D-Handscannern im Betrieb. `QrCodeService` heisst jetzt `BarcodeService`.
 - **P-2026-08-08-14 Katalog-Druckblatt:** `?seite=arbeitsschritt_katalog_blatt` liefert QR-Karten zum Ausschneiden – alle Katalogschritte als Uebersicht oder ein Schritt in frei waehlbarer Stueckzahl (z. B. 20x `fraesen`). Sechs Karten je A4-Seite mit Schnittmarkierung; alle 20 Karten mit `zbarimg` als lesbar bestaetigt.
@@ -44,7 +45,9 @@ Webbasierte Zeiterfassung inkl. Mitarbeiter-/Rollen-/Genehmiger-Verwaltung, Urla
 - **P-2026-01-24-07:** Dashboard: Zeitwarnungen waren trotz vorhandener Daten unsichtbar, weil `DashboardController` versehentlich `fetchEinzel(...)` (nicht existent) aufruft und dadurch in den Catch faellt → Fix auf `fetchEine(...)`.
 
 ## Letzter Patch (P-ID)
-- P-2026-08-08-16 (Commit; Katalog wirkt in den Auftrag hinein)
+- P-2026-08-08-18 (Commit; Monatsabschluss-Ampel und Status-Auswahl)
+- Davor: P-2026-08-08-17 (Doku Auftraege und Katalog)
+- Davor: P-2026-08-08-16 (Katalog wirkt in den Auftrag hinein)
 - Davor: P-2026-08-08-15 (Strichcodes statt QR-Codes)
 - Davor: P-2026-08-08-14 (Druckblatt fuer Katalog-Codes)
 - Davor: P-2026-08-08-13 (Katalog-Verwaltung im Menue Auftraege)

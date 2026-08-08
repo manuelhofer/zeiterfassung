@@ -19,6 +19,25 @@ class AuftragController
     private const CSRF_KEY_AUFTRAGSZEIT_BEARBEITEN = 'auftragszeit_bearbeiten_csrf_token';
     private const CSRF_KEY_AUFTRAG_STAMM = 'auftrag_stamm_csrf_token';
 
+    /**
+     * Auswaehlbare Auftragsstatus.
+     *
+     * Bewusst eine feste Liste statt eines Freitextfelds: Frei eingetippte
+     * Werte lassen sich nicht auswerten und gehen bei jedem Tippfehler
+     * auseinander ("offen", "Offen", "offfen"). Der Status in der Auftragsliste
+     * wird ohnehin aus den Buchungen berechnet - dieses Feld ist nur die
+     * zusaetzliche Einschaetzung der Arbeitsvorbereitung.
+     *
+     * Altbestand mit abweichenden Werten bleibt erhalten und waehlbar.
+     */
+    private const STATUS_AUSWAHL = [
+        'offen'         => 'offen',
+        'in_arbeit'     => 'in Arbeit',
+        'wartet'        => 'wartet (Material/Freigabe)',
+        'abgeschlossen' => 'abgeschlossen',
+        'storniert'     => 'storniert',
+    ];
+
     private AuthService $authService;
     private Database $db;
 
@@ -1013,6 +1032,26 @@ class AuftragController
             return;
         }
 
+        // Das Dropdown im Browser ist keine Sicherung - der Wert wird hier
+        // geprueft. Unbekannte Werte sind nur erlaubt, wenn sie schon vorher am
+        // Auftrag standen (Altbestand aus der Freitext-Zeit).
+        if ($status !== '' && !isset(self::STATUS_AUSWAHL[$status])) {
+            $altwert = '';
+            if ($id > 0) {
+                try {
+                    $vorher = $this->db->fetchEine('SELECT status FROM auftrag WHERE id = :id LIMIT 1', ['id' => $id]);
+                    $altwert = is_array($vorher) ? trim((string)($vorher['status'] ?? '')) : '';
+                } catch (\Throwable $e) {
+                    $altwert = '';
+                }
+            }
+
+            if ($status !== $altwert) {
+                $this->renderAuftragFormular($daten, 'Der gewaehlte Status ist nicht zulaessig.');
+                return;
+            }
+        }
+
         // Doppelte Nummern abfangen, bevor die Datenbank einen Fehler wirft -
         // die Meldung soll verstaendlich sein, nicht technisch.
         try {
@@ -1135,9 +1174,19 @@ class AuftragController
 
                 <div style="margin-bottom:0.75rem;">
                     <label for="status"><strong>Status</strong></label><br>
-                    <input type="text" id="status" name="status" maxlength="50"
-                           value="<?php echo $esc($status); ?>" style="width:100%;max-width:260px;">
-                    <br><small>Freitext, z. B. "offen" oder "in Arbeit". Der Status in der Liste wird aus den Buchungen berechnet.</small>
+                    <select id="status" name="status" style="width:100%;max-width:260px;">
+                        <option value=""<?php echo $status === '' ? ' selected' : ''; ?>>(kein Status)</option>
+                        <?php foreach (self::STATUS_AUSWAHL as $wert => $beschriftung): ?>
+                            <option value="<?php echo $esc($wert); ?>"<?php echo $status === $wert ? ' selected' : ''; ?>>
+                                <?php echo $esc($beschriftung); ?>
+                            </option>
+                        <?php endforeach; ?>
+                        <?php if ($status !== '' && !isset(self::STATUS_AUSWAHL[$status])): ?>
+                            <?php /* Altbestand: frei eingetippte Werte bleiben waehlbar, statt still zu verschwinden. */ ?>
+                            <option value="<?php echo $esc($status); ?>" selected><?php echo $esc($status); ?> (Altwert)</option>
+                        <?php endif; ?>
+                    </select>
+                    <br><small>Freiwillige Angabe. Der Status in der Auftragsliste wird ohnehin aus den Buchungen berechnet.</small>
                 </div>
 
                 <div style="margin-bottom:1rem;">
