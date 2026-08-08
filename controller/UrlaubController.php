@@ -803,6 +803,57 @@ class UrlaubController
         return http_build_query($params);
     }
 
+    /**
+     * @return array<int,array<string,mixed>>
+     */
+    private function ladeAktiveSonstigesGruende(Database $db): array
+    {
+        return $db->fetchAlle(
+            'SELECT id, code, titel, default_stunden, begruendung_pflicht
+             FROM sonstiges_grund
+             WHERE aktiv = 1
+             ORDER BY sort_order ASC, titel ASC, id ASC'
+        );
+    }
+
+    /**
+     * @return array<string,mixed>|null
+     */
+    private function ladeAktivenSonstigesGrund(Database $db, int $id): ?array
+    {
+        if ($id <= 0) {
+            return null;
+        }
+
+        return $db->fetchEine(
+            'SELECT id, code, titel, default_stunden, begruendung_pflicht
+             FROM sonstiges_grund
+             WHERE id = :id AND aktiv = 1
+             LIMIT 1',
+            ['id' => $id]
+        );
+    }
+
+    private function baueSonstigesGrundLabel(array $grund): string
+    {
+        $code = trim((string)($grund['code'] ?? ''));
+        $titel = trim((string)($grund['titel'] ?? ''));
+
+        if ($code !== '' && $titel !== '') {
+            return $code . ' - ' . $titel;
+        }
+
+        if ($titel !== '') {
+            return $titel;
+        }
+
+        if ($code !== '') {
+            return $code;
+        }
+
+        return 'Sonstiger Grund #' . (int)($grund['id'] ?? 0);
+    }
+
     private function verarbeiteUrlaubVerwaltungDirektEintragenPost(
         Database $db,
         int $actorId,
@@ -822,6 +873,7 @@ class UrlaubController
         $von = trim((string)($_POST['urlaub_neu_von_datum'] ?? ''));
         $bis = trim((string)($_POST['urlaub_neu_bis_datum'] ?? ''));
         $begruendung = trim((string)($_POST['urlaub_neu_begruendung'] ?? ''));
+        $sonstigesGrundId = (int)($_POST['urlaub_neu_sonstiges_grund_id'] ?? 0);
 
         if ($mitarbeiterId <= 0) {
             $_SESSION['urlaub_verwaltung_flash_error'] = 'Bitte einen Mitarbeiter auswählen.';
@@ -859,6 +911,28 @@ class UrlaubController
             $_SESSION['urlaub_verwaltung_flash_error'] = 'Bitte eine Begründung für den direkten Urlaubseintrag angeben.';
             $this->redirectZurUrlaubsverwaltung($returnQuery);
             return;
+        }
+
+        $sonstigesGrund = null;
+        if ($sonstigesGrundId > 0) {
+            try {
+                $sonstigesGrund = $this->ladeAktivenSonstigesGrund($db, $sonstigesGrundId);
+            } catch (\Throwable $e) {
+                $sonstigesGrund = null;
+                if (class_exists('Logger')) {
+                    Logger::error('Urlaubsverwaltung: Sonstiges-Grund konnte nicht geladen werden', [
+                        'actor_id' => $actorId,
+                        'sonstiges_grund_id' => $sonstigesGrundId,
+                        'exception' => $e->getMessage(),
+                    ], $actorId, null, 'urlaub_verwaltung');
+                }
+            }
+
+            if ($sonstigesGrund === null) {
+                $_SESSION['urlaub_verwaltung_flash_error'] = 'Der ausgewaehlte Sonstiges-Grund ist nicht mehr aktiv oder nicht vorhanden.';
+                $this->redirectZurUrlaubsverwaltung($returnQuery);
+                return;
+            }
         }
 
         if (mb_strlen($begruendung, 'UTF-8') > 2000) {
@@ -899,6 +973,15 @@ class UrlaubController
         }
 
         $kommentarGenehmiger = 'Direkteintrag durch Urlaubsverwaltung: ' . $begruendung;
+        $sonstigesGrundLabel = null;
+        if ($sonstigesGrund !== null) {
+            $sonstigesGrundLabel = $this->baueSonstigesGrundLabel($sonstigesGrund);
+            $kommentarGenehmiger .= "\nSonstiger Grund: " . $sonstigesGrundLabel;
+        }
+
+        if (mb_strlen($kommentarGenehmiger, 'UTF-8') > 2000) {
+            $kommentarGenehmiger = mb_substr($kommentarGenehmiger, 0, 2000, 'UTF-8');
+        }
 
         try {
             $db->ausfuehren(
@@ -940,6 +1023,8 @@ class UrlaubController
                 'bis' => $bis,
                 'tage' => $tageGesamt,
                 'begruendung' => $begruendung,
+                'sonstiges_grund_id' => $sonstigesGrundId > 0 ? $sonstigesGrundId : null,
+                'sonstiges_grund' => $sonstigesGrundLabel,
             ], $actorId, null, 'urlaub_verwaltung');
         }
 
@@ -1254,6 +1339,18 @@ class UrlaubController
                 ], $actorId, null, 'urlaub_verwaltung');
             }
             $fehlermeldung = 'Urlaubsanträge konnten nicht geladen werden.';
+        }
+
+        try {
+            $sonstigesGruende = $this->ladeAktiveSonstigesGruende($db);
+        } catch (\Throwable $e) {
+            $sonstigesGruende = [];
+            if (class_exists('Logger')) {
+                Logger::error('Urlaubsverwaltung: Sonstiges-Gruende konnten nicht geladen werden', [
+                    'actor_id' => $actorId,
+                    'exception' => $e->getMessage(),
+                ], $actorId, null, 'urlaub_verwaltung');
+            }
         }
 
         $csrfToken = $this->holeOderErzeugeCsrfToken(self::CSRF_KEY_VERWALTUNG);

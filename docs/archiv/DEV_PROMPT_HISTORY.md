@@ -207,7 +207,31 @@ Webbasierte Zeiterfassung inkl. Mitarbeiter-/Rollen-/Genehmiger-Verwaltung, Urla
 - Offen aus P-2026-08-08-02: QR-/Barcode-Erzeugung und die Terminal-Buchungsflows sind unter PHP 8.5 noch nicht geprueft (brauchen einen angemeldeten Browser-Durchlauf).
 
 ## Letzter Patch (P-ID)
-P-2026-08-08-19 (Commit) – Ampel auch in der aufgeklappten Auswahlliste
+P-2026-08-08-20 (Commit) – Urlaubsbereich aus dem Spiegelverzeichnis nachgezogen
+
+## P-2026-08-08-20 urlaub-aus-spiegel
+
+### EINGELESEN
+- Spiegelverzeichnis `/home/manuel/ntfs_platte/xampp1/htdocs/zeiterfassungspiegel` (nicht gepushter Stand der Windows-Arbeitskopie).
+
+### DATEIEN
+- `controller/UrlaubJahresuebersichtController.php`, `controller/UrlaubController.php`
+- `views/urlaub/jahresuebersicht.php`, `views/urlaub/verwaltung.php`
+
+### DONE – drei Funktionen, alle aus dem Spiegel uebernommen
+1. **Monatsabschluss-Marker in der Urlaubs-Jahresuebersicht:** dieselbe Statusquelle wie in der Monatsuebersicht (manuelle Stundenkonto-Korrektur „Monatsabschluss YYYY-MM“ am Monatsletzten), dazu Urlaubssalden je Mitarbeiter direkt in der Uebersicht.
+2. **„Sonstiger Grund“ in der Urlaubsverwaltung:** Auswahlliste aus der Tabelle `sonstiges_grund` beim direkten Eintragen von Abwesenheiten, inklusive der je Grund hinterlegten Begruendungspflicht.
+3. **Farbige Kalenderzellen** in der Jahresuebersicht (Wochenende, Urlaub, Betriebsferien) – macht die Jahresmatrix ueberhaupt erst lesbar.
+
+### PRUEFUNG VOR DER UEBERNAHME
+- `UrlaubController` und `views/urlaub/verwaltung.php` waren im Spiegel **reiner Zuwachs** (0 Zeilen nur bei uns).
+- Bei `UrlaubJahresuebersichtController` (2 Zeilen) und `jahresuebersicht.php` (1 Zeile) waren die abweichenden Zeilen jeweils die **aeltere Fassung genau der Stellen**, die der Spiegel ersetzt hat. Es ging nichts verloren.
+- **Keine Schemaabhaengigkeit:** `sonstiges_grund_id` taucht an drei Stellen auf, alle drei nur im Log-Kontext – in keinem INSERT/UPDATE. Die Tabelle `sonstiges_grund` existiert bereits (1 Eintrag: SoU – Sonderurlaub). Es ist keine Migration noetig.
+
+### TEST
+- Beide Seiten mit simulierter Anmeldung gerendert: Jahresuebersicht (1,16 MB Ausgabe) und Urlaubsverwaltung (34 KB) – **keine PHP-Meldungen**.
+- `php -l` auf allen vier Dateien fehlerfrei.
+
 
 ## P-2026-08-08-19 ampel-in-der-auswahlliste
 

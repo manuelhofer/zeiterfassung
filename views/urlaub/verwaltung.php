@@ -21,6 +21,9 @@ $antraege = $antraege ?? [];
 /** @var array<int,array<string,mixed>> $mitarbeiterListe */
 $mitarbeiterListe = $mitarbeiterListe ?? [];
 
+/** @var array<int,array<string,mixed>> $sonstigesGruende */
+$sonstigesGruende = isset($sonstigesGruende) && is_array($sonstigesGruende) ? $sonstigesGruende : [];
+
 $csrfToken = isset($csrfToken) && is_string($csrfToken) ? $csrfToken : '';
 $meldung = $meldung ?? null;
 $fehlermeldung = $fehlermeldung ?? null;
@@ -336,6 +339,33 @@ $statusLabel = static function (string $status): string {
                 <div>
                     <label for="urlaub_neu_bis_datum"><strong>Bis</strong></label><br>
                     <input id="urlaub_neu_bis_datum" name="urlaub_neu_bis_datum" type="date" value="<?php echo htmlspecialchars($heute, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>" required>
+                </div>
+
+                <div>
+                    <label for="urlaub_neu_sonstiges_grund_id"><strong>Sonstiger Grund</strong> (optional)</label><br>
+                    <select id="urlaub_neu_sonstiges_grund_id" name="urlaub_neu_sonstiges_grund_id"<?php echo $sonstigesGruende === [] ? ' disabled' : ''; ?>>
+                        <?php if ($sonstigesGruende === []): ?>
+                            <option value="0">Keine aktiven Gr&uuml;nde</option>
+                        <?php else: ?>
+                            <option value="0">-- kein sonstiger Grund --</option>
+                            <?php foreach ($sonstigesGruende as $grund): ?>
+                                <?php
+                                $grundId = (int)($grund['id'] ?? 0);
+                                $grundCode = trim((string)($grund['code'] ?? ''));
+                                $grundTitel = trim((string)($grund['titel'] ?? ''));
+                                $grundLabel = $grundTitel !== '' ? $grundTitel : ('Grund #' . $grundId);
+                                if ($grundCode !== '') {
+                                    $grundLabel = $grundCode . ' - ' . $grundLabel;
+                                }
+                                ?>
+                                <?php if ($grundId > 0): ?>
+                                    <option value="<?php echo (int)$grundId; ?>">
+                                        <?php echo htmlspecialchars($grundLabel, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>
+                                    </option>
+                                <?php endif; ?>
+                            <?php endforeach; ?>
+                        <?php endif; ?>
+                    </select>
                 </div>
 
                 <div style="min-width:260px;flex:1;">

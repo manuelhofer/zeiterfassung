@@ -53,7 +53,9 @@ class UrlaubJahresuebersichtController
 
         $kannAntraegeGenehmigen = $this->ermittleGenehmigungsMap($angemeldeterId, $rechte, $mitarbeiterIds);
         $monatswerte = $this->ladeMonatswerte($mitarbeiterIds, $jahr);
+        $monatsabschluesse = $this->ladeMonatsabschluesse($mitarbeiterIds, $jahr);
         $stundenSalden = $this->ladeStundenkontoSalden($mitarbeiterIds, $jahr);
+        $urlaubSalden = $this->ladeUrlaubSalden($mitarbeiterIds, $jahr);
         $events = $this->baueEvents($mitarbeiterIds, $jahr);
 
         $planung = $this->bauePlanung(
@@ -61,7 +63,9 @@ class UrlaubJahresuebersichtController
             $jahr,
             $wochenendenAnzeigen,
             $monatswerte,
+            $monatsabschluesse,
             $stundenSalden,
+            $urlaubSalden,
             $events,
             $kannAntraegeGenehmigen
         );
@@ -252,6 +256,78 @@ class UrlaubJahresuebersichtController
     }
 
     /**
+     * Monatsabschluss-Marker aus dem Stundenkonto.
+     *
+     * Die Monatsuebersicht markiert einen Mitarbeiter als abgeschlossen, sobald
+     * eine manuelle Stundenkonto-Korrektur "Monatsabschluss YYYY-MM" am letzten
+     * Tag des Monats existiert. Die Jahresuebersicht muss dieselbe Wahrheit nutzen.
+     *
+     * @param int[] $mitarbeiterIds
+     * @return array<int,array<int,array{delta_minuten:int}>>
+     */
+    private function ladeMonatsabschluesse(array $mitarbeiterIds, int $jahr): array
+    {
+        if ($mitarbeiterIds === []) {
+            return [];
+        }
+
+        $params = [
+            'start' => sprintf('%04d-01-01', $jahr),
+            'ende' => sprintf('%04d-12-31', $jahr),
+            'prefix' => sprintf('Monatsabschluss %04d-%%', $jahr),
+        ];
+        $in = $this->baueInPlatzhalter($mitarbeiterIds, 'ma', $params);
+
+        try {
+            $rows = $this->db->fetchAlle(
+                "SELECT mitarbeiter_id, wirksam_datum, delta_minuten, begruendung
+                   FROM stundenkonto_korrektur
+                  WHERE typ = 'manuell'
+                    AND wirksam_datum BETWEEN :start AND :ende
+                    AND begruendung LIKE :prefix
+                    AND mitarbeiter_id IN (" . $in . ")",
+                $params
+            );
+        } catch (\Throwable $e) {
+            return [];
+        }
+
+        $out = [];
+        foreach ($rows as $row) {
+            $mid = (int)($row['mitarbeiter_id'] ?? 0);
+            $begruendung = (string)($row['begruendung'] ?? '');
+            $wirksam = (string)($row['wirksam_datum'] ?? '');
+
+            if ($mid <= 0 || !preg_match('/^Monatsabschluss\s+(\d{4})-(\d{2})$/', $begruendung, $m)) {
+                continue;
+            }
+
+            $monat = (int)$m[2];
+            if ((int)$m[1] !== $jahr || $monat < 1 || $monat > 12) {
+                continue;
+            }
+
+            try {
+                $letzterTag = (new \DateTimeImmutable(sprintf('%04d-%02d-01', $jahr, $monat), new \DateTimeZone('Europe/Berlin')))
+                    ->modify('last day of this month')
+                    ->format('Y-m-d');
+            } catch (\Throwable $e) {
+                continue;
+            }
+
+            if ($wirksam !== $letzterTag) {
+                continue;
+            }
+
+            $out[$monat][$mid] = [
+                'delta_minuten' => (int)($row['delta_minuten'] ?? 0),
+            ];
+        }
+
+        return $out;
+    }
+
+    /**
      * @param int[] $mitarbeiterIds
      * @return array<int,array<int,int>>
      */
@@ -290,6 +366,42 @@ class UrlaubJahresuebersichtController
                 if ($mid > 0) {
                     $out[$monat][$mid] = (int)($row['sum_min'] ?? 0);
                 }
+            }
+        }
+
+        return $out;
+    }
+
+    /**
+     * @param int[] $mitarbeiterIds
+     * @return array<int,float>
+     */
+    private function ladeUrlaubSalden(array $mitarbeiterIds, int $jahr): array
+    {
+        if ($mitarbeiterIds === []) {
+            return [];
+        }
+
+        $out = [];
+        try {
+            $urlaubService = UrlaubService::getInstanz();
+        } catch (\Throwable $e) {
+            return $out;
+        }
+
+        foreach ($mitarbeiterIds as $mid) {
+            $mid = (int)$mid;
+            if ($mid <= 0) {
+                continue;
+            }
+
+            try {
+                $saldo = $urlaubService->berechneUrlaubssaldoFuerJahr($mid, $jahr);
+                $out[$mid] = isset($saldo['verbleibend'])
+                    ? $this->parseDecimal((string)$saldo['verbleibend'])
+                    : 0.0;
+            } catch (\Throwable $e) {
+                $out[$mid] = 0.0;
             }
         }
 
@@ -778,7 +890,9 @@ class UrlaubJahresuebersichtController
     /**
      * @param array<int,array<string,mixed>> $mitarbeiterListe
      * @param array<int,array<int,array<string,mixed>>> $monatswerte
+     * @param array<int,array<int,array{delta_minuten:int}>> $monatsabschluesse
      * @param array<int,array<int,int>> $stundenSalden
+     * @param array<int,float> $urlaubSalden
      * @param array<int,array<int,array<int,array<string,mixed>>>> $events
      * @param array<int,bool> $kannAntraegeGenehmigen
      * @return array<int,array<string,mixed>>
@@ -788,7 +902,9 @@ class UrlaubJahresuebersichtController
         int $jahr,
         bool $wochenendenAnzeigen,
         array $monatswerte,
+        array $monatsabschluesse,
         array $stundenSalden,
+        array $urlaubSalden,
         array $events,
         array $kannAntraegeGenehmigen
     ): array {
@@ -820,7 +936,8 @@ class UrlaubJahresuebersichtController
                 }
 
                 $monatswert = $monatswerte[$monat][$mid] ?? null;
-                $istAbgeschlossen = is_array($monatswert);
+                $monatsabschluss = $monatsabschluesse[$monat][$mid] ?? null;
+                $istAbgeschlossen = is_array($monatswert) || is_array($monatsabschluss);
                 if ($istAbgeschlossen) {
                     $abgeschlossenCount++;
                 }
@@ -839,7 +956,9 @@ class UrlaubJahresuebersichtController
                         ? $this->formatStundenSaldo((int)($stundenSalden[$monat][$mid] ?? 0))
                         : 'offen',
                     'urlaub' => $istAbgeschlossen
-                        ? $this->formatTage((float)($monatswert['urlaubstage_verbleibend'] ?? 0))
+                        ? $this->formatTage(is_array($monatswert)
+                            ? (float)($monatswert['urlaubstage_verbleibend'] ?? 0)
+                            : (float)($urlaubSalden[$mid] ?? 0.0))
                         : 'offen',
                     'kann_genehmigen' => !empty($kannAntraegeGenehmigen[$mid]),
                     'cells' => $cells,

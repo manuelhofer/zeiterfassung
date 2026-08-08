@@ -161,6 +161,46 @@ $fehlermeldung = $fehlermeldung ?? null;
         text-decoration: underline;
     }
 
+    table.urlaub-jahresuebersicht-table td.plan-weekend {
+        background-color: #eeeeee;
+    }
+
+    table.urlaub-jahresuebersicht-table td.plan-u {
+        background-color: #bbdefb;
+    }
+
+    table.urlaub-jahresuebersicht-table td.plan-open {
+        background-color: #ffe0b2;
+    }
+
+    table.urlaub-jahresuebersicht-table td.plan-bf {
+        background-color: #fff9c4;
+    }
+
+    table.urlaub-jahresuebersicht-table td.plan-ft {
+        background-color: #dcedc8;
+    }
+
+    table.urlaub-jahresuebersicht-table td.plan-krank-lf {
+        background-color: #ffcdd2;
+    }
+
+    table.urlaub-jahresuebersicht-table td.plan-krank-kk {
+        background-color: #ef9a9a;
+    }
+
+    table.urlaub-jahresuebersicht-table td.plan-arzt {
+        background-color: #d1c4e9;
+    }
+
+    table.urlaub-jahresuebersicht-table td.plan-kurzarbeit {
+        background-color: #b2dfdb;
+    }
+
+    table.urlaub-jahresuebersicht-table td.plan-sonstiges {
+        background-color: #cfd8dc;
+    }
+
     .planung-monat-kopf {
         display: flex;
         flex-wrap: wrap;
@@ -220,7 +260,7 @@ $fehlermeldung = $fehlermeldung ?? null;
                 ?>
                 <div class="planung-monat-kopf">
                     <h3><?php echo htmlspecialchars($monatName, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></h3>
-                    <small>Monatswerte: <?php echo $abgeschlossen; ?> / <?php echo $gesamt; ?> Mitarbeiter</small>
+                    <small>Monatsabschluss: <?php echo $abgeschlossen; ?> / <?php echo $gesamt; ?> Mitarbeiter</small>
                 </div>
 
                 <div class="urlaub-jahresuebersicht-scroll">
