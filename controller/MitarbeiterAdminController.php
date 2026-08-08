@@ -240,7 +240,7 @@ class MitarbeiterAdminController
     }
 
     /**
-     * Platzhalter: Liste aller aktiven Mitarbeiter.
+     * Liste der aktiven oder inaktiven Mitarbeiter.
      */
     public function index(): void
     {
@@ -250,9 +250,15 @@ class MitarbeiterAdminController
 
         $fehlermeldung    = null;
         $mitarbeiterListe = [];
+        $listenStatus = (string)($_GET['status'] ?? 'aktiv');
+        if ($listenStatus !== 'inaktiv') {
+            $listenStatus = 'aktiv';
+        }
 
         try {
-            $mitarbeiterListe = $this->mitarbeiterModel->holeAlleAktiven();
+            $mitarbeiterListe = $listenStatus === 'inaktiv'
+                ? $this->mitarbeiterModel->holeAlleInaktiven()
+                : $this->mitarbeiterModel->holeAlleAktiven();
         } catch (\Throwable $e) {
             $fehlermeldung = 'Die Mitarbeiterliste konnte nicht geladen werden.';
             if (class_exists('Logger')) {

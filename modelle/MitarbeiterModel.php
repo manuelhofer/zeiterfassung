@@ -144,6 +144,21 @@ class MitarbeiterModel
         return $this->db->fetchAlle($sql);
     }
 
+    /**
+     * Holt alle inaktiven Mitarbeiter fuer die Admin-Liste.
+     *
+     * @return array<int,array<string,mixed>>
+     */
+    public function holeAlleInaktiven(): array
+    {
+        $sql = 'SELECT *
+                FROM mitarbeiter
+                WHERE aktiv = 0
+                ORDER BY nachname ASC, vorname ASC';
+
+        return $this->db->fetchAlle($sql);
+    }
+
 
     /**
      * Holt Mitarbeiter anhand einer Liste von IDs.

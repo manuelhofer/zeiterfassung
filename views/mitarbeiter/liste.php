@@ -6,20 +6,30 @@ declare(strict_types=1);
  * Erwartet:
  * - $mitarbeiterListe (array<int,array<string,mixed>>)
  * - $fehlermeldung (string|null)
+ * - $listenStatus (string)
  */
 require __DIR__ . '/../layout/header.php';
 
 $mitarbeiterListe = $mitarbeiterListe ?? [];
 $fehlermeldung    = $fehlermeldung ?? null;
+$listenStatus     = ($listenStatus ?? 'aktiv') === 'inaktiv' ? 'inaktiv' : 'aktiv';
+$zeigtInaktive    = $listenStatus === 'inaktiv';
 ?>
 
 <section>
     <div class="page-header">
         <div>
-            <h2>Mitarbeiterverwaltung</h2>
+            <h2><?php echo $zeigtInaktive ? 'Inaktive Mitarbeiter' : 'Mitarbeiterverwaltung'; ?></h2>
             <p>Mitarbeiter suchen, bearbeiten und die zugeh&ouml;rigen Verwaltungsbereiche &ouml;ffnen.</p>
         </div>
-        <a class="button-link" href="?seite=mitarbeiter_admin_bearbeiten">Neuen Mitarbeiter anlegen</a>
+        <div class="action-row">
+            <?php if ($zeigtInaktive): ?>
+                <a class="button-link secondary" href="?seite=mitarbeiter_admin">Zu den aktiven</a>
+            <?php else: ?>
+                <a class="button-link secondary" href="?seite=mitarbeiter_admin&amp;status=inaktiv">Zu den inaktiven</a>
+                <a class="button-link" href="?seite=mitarbeiter_admin_bearbeiten">Neuen Mitarbeiter anlegen</a>
+            <?php endif; ?>
+        </div>
     </div>
 
     <?php if ($fehlermeldung !== null): ?>
@@ -27,7 +37,7 @@ $fehlermeldung    = $fehlermeldung ?? null;
     <?php endif; ?>
 
     <?php if (count($mitarbeiterListe) === 0): ?>
-        <p>Es sind derzeit keine aktiven Mitarbeiter erfasst.</p>
+        <p>Es sind derzeit keine <?php echo $zeigtInaktive ? 'inaktiven' : 'aktiven'; ?> Mitarbeiter erfasst.</p>
     <?php else: ?>
         <div class="table-wrap">
         <table>

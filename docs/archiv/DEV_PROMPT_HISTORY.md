@@ -207,7 +207,26 @@ Webbasierte Zeiterfassung inkl. Mitarbeiter-/Rollen-/Genehmiger-Verwaltung, Urla
 - Offen aus P-2026-08-08-02: QR-/Barcode-Erzeugung und die Terminal-Buchungsflows sind unter PHP 8.5 noch nicht geprueft (brauchen einen angemeldeten Browser-Durchlauf).
 
 ## Letzter Patch (P-ID)
-P-2026-08-08-21 (Commit) – Deutsche Datumsformate aus dem Spiegelverzeichnis
+P-2026-08-08-22 (Commit) – Inaktive Mitarbeiter einsehbar
+
+## P-2026-08-08-22 inaktive-mitarbeiter
+
+### DATEIEN
+- `modelle/MitarbeiterModel.php`, `controller/MitarbeiterAdminController.php`, `views/mitarbeiter/liste.php`
+
+### DONE
+- Die Mitarbeiterverwaltung kennt jetzt zwei Ansichten: `?seite=mitarbeiter_admin` (aktive, wie bisher) und `?seite=mitarbeiter_admin&status=inaktiv`. Ausgeschiedene Mitarbeiter waren bisher aus dem Backend heraus nicht mehr erreichbar – ihre Daten (Zeiten, Urlaub, Stundenkonto) bleiben aber erhalten und muessen einsehbar sein.
+- Die Ansicht wechselt Ueberschrift und Leertext entsprechend; die Statuswahl wird serverseitig auf `aktiv`/`inaktiv` begrenzt.
+
+### TEST
+1. Ohne inaktive Mitarbeiter: aktive Liste 13 Zeilen, inaktive Liste leer.
+2. Einen Mitarbeiter testweise auf `aktiv=0` gesetzt: verschwindet aus der aktiven Liste (13 → 12 Datenzeilen) und erscheint in der inaktiven. Zustand danach zurueckgesetzt.
+3. Keine PHP-Meldungen.
+
+### DAMIT ABGESCHLOSSEN
+- Von den sechs im Spiegelverzeichnis gefundenen Funktionen sind jetzt fuenf uebernommen (P-2026-08-08-18, -20, -21, -22).
+- **Offen bleibt bewusst:** Die Dashboard-Zeitwarnungen ohne Zeitfenster (`DashboardController`, `views/dashboard/index.php`). Das ist die einzige Aenderung, die vorhandene Logik **ersetzt** statt ergaenzt: Bisher zeigt das Dashboard nur die letzten X Tage, im Spiegel bleibt jeder vergangene Tag mit unvollstaendigen Stempeln sichtbar, bis er korrigiert ist. Fachlich richtig – eine Luecke verschwindet nicht dadurch, dass sie alt wird –, aber bei vorhandenem Datenbestand koennen schlagartig sehr viele Warnungen erscheinen. Vor der Uebernahme sollte ausgezaehlt werden, wie viele es konkret waeren.
+
 
 ## P-2026-08-08-21 deutsche-datumsformate
 
