@@ -1097,6 +1097,81 @@ class AuftragController
     }
 
     /**
+     * Laufkarte zum Auftrag als PDF.
+     * Route: ?seite=auftrag_laufkarte&code=...
+     *
+     * Bewusst ohne Verwaltungsrecht: Wer in der Werkstatt eine Laufkarte
+     * nachdrucken muss, soll dafuer kein Recht zum Aendern brauchen.
+     */
+    public function laufkarte(): void
+    {
+        if (!$this->pruefeZugriff()) {
+            return;
+        }
+
+        $code = trim((string)($_GET['code'] ?? ''));
+        if ($code === '') {
+            header('Location: ?seite=auftrag');
+            return;
+        }
+
+        $auftrag = null;
+        $schritte = [];
+
+        try {
+            $auftrag = $this->db->fetchEine(
+                'SELECT * FROM auftrag WHERE auftragsnummer = :nr LIMIT 1',
+                ['nr' => $code]
+            );
+
+            if (is_array($auftrag)) {
+                // Nur aktive Schritte - inaktive gehoeren nicht auf einen Ausdruck.
+                $schritte = $this->db->fetchAlle(
+                    'SELECT * FROM auftrag_arbeitsschritt
+                      WHERE auftrag_id = :aid AND aktiv = 1
+                      ORDER BY id ASC',
+                    ['aid' => (int)($auftrag['id'] ?? 0)]
+                );
+            }
+        } catch (\Throwable $e) {
+            $this->protokolliere('Laufkarte konnte nicht geladen werden', [
+                'code'      => $code,
+                'exception' => $e->getMessage(),
+            ]);
+        }
+
+        if (!is_array($auftrag)) {
+            $_SESSION['auftrag_flash_fehler'] = 'Zu dieser Auftragsnummer gibt es keinen Stammdatensatz. Bitte den Auftrag zuerst anlegen.';
+            header('Location: ?seite=auftrag_detail&code=' . urlencode($code));
+            return;
+        }
+
+        $pdf = PDFService::getInstanz()->erzeugeLaufkartePdf($auftrag, $schritte);
+
+        if ($pdf === '') {
+            $_SESSION['auftrag_flash_fehler'] = 'Die Laufkarte konnte nicht erzeugt werden.';
+            header('Location: ?seite=auftrag_detail&code=' . urlencode($code));
+            return;
+        }
+
+        // Dateiname aus der Auftragsnummer, auf unbedenkliche Zeichen reduziert.
+        $dateiname = preg_replace('~[^A-Za-z0-9_.-]+~', '_', $code);
+        $dateiname = trim((string)$dateiname, '_');
+        if ($dateiname === '') {
+            $dateiname = 'auftrag';
+        }
+
+        header('Cache-Control: private, max-age=0, must-revalidate');
+        header('Pragma: no-cache');
+        header('X-Content-Type-Options: nosniff');
+        header('Content-Type: application/pdf');
+        header('Content-Length: ' . strlen($pdf));
+        header('Content-Disposition: inline; filename="laufkarte_' . $dateiname . '.pdf"');
+
+        echo $pdf;
+    }
+
+    /**
      * Formular fuer einen vorhandenen Arbeitsschritt.
      * Route: ?seite=auftrag_schritt_bearbeiten&id=...
      */

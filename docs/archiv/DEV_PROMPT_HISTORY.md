@@ -207,7 +207,44 @@ Webbasierte Zeiterfassung inkl. Mitarbeiter-/Rollen-/Genehmiger-Verwaltung, Urla
 - Offen aus P-2026-08-08-02: QR-/Barcode-Erzeugung und die Terminal-Buchungsflows sind unter PHP 8.5 noch nicht geprueft (brauchen einen angemeldeten Browser-Durchlauf).
 
 ## Letzter Patch (P-ID)
-P-2026-08-08-10 (Commit) – Arbeitsschritte je Auftrag mit QR-Codes
+P-2026-08-08-11 (Commit) – Laufkarten-PDF mit QR-Codes
+
+## P-2026-08-08-11 laufkarten-pdf
+
+### EINGELESEN
+- `services/PDFService.php` (Writer-Interna: `baueMinimalPdfMitSeiten`, `pdfTextCmd`, `pdfRectFill`, `pdfLine`, `wrapText`), `controller/AuftragController.php`, `controller/ReportController.php` (Muster fuer die PDF-Auslieferung).
+
+### DUPLIKAT-CHECK
+- Kein Duplikat: Bisher gab es nur das Monats-PDF; eine Laufkarte existierte nicht.
+
+### DATEIEN
+- `services/PDFService.php`
+- `controller/AuftragController.php`
+- `public/index.php`
+- `docs/archiv/DEV_PROMPT_HISTORY.md`, `docs/STATUS_SNAPSHOT.md`
+
+### DONE
+- **Neue Route** `?seite=auftrag_laufkarte&code=…` liefert die Laufkarte als PDF (A4 hoch, `Content-Disposition: inline`, Dateiname aus der Auftragsnummer auf unbedenkliche Zeichen reduziert).
+- **Layout:** Kopf mit Auftragsnummer, Kunde, Kurzbeschreibung, Status, Druckdatum und dem Auftrags-QR rechts oben; darunter je Arbeitsschritt ein Block mit Nummer, Code, Bezeichnung (umbrechend), QR-Code und den handschriftlichen Feldern Datum / Name / Menge / i. O.
+- **QR-Codes als Vektor**: `pdfQrMatrix()` zeichnet die Modulmatrix als gefuellte Rechtecke und fasst dabei waagerecht zusammenhaengende Module zu einem Rechteck zusammen. Das spart Zeichenbefehle (statt bis zu 441 Einzelrechtecken pro Code) und haelt die Datei klein - eine Seite mit fuenf Codes wiegt 19 KB.
+- Nur **aktive** Arbeitsschritte erscheinen; inaktive gehoeren nicht auf einen Ausdruck.
+- Mehrseitig mit verkuerztem Folgekopf (Auftragsnummer + Seitenzahl).
+- **Bewusst ohne Verwaltungsrecht:** Wer in der Werkstatt eine Laufkarte nachdruckt, braucht kein Recht zum Aendern.
+
+### AKZEPTANZKRITERIEN
+- Die Laufkarte laesst sich als PDF oeffnen und enthaelt den Auftrags-QR sowie je einen QR pro aktivem Arbeitsschritt - und diese Codes sind mit einem Scanner tatsaechlich lesbar.
+
+### TEST
+1. PDF erzeugt: 19 KB, A4, strukturell fehlerfrei laut `qpdf --check`.
+2. **Entscheidende Gegenprobe:** PDF mit `pdftoppm` nach PNG gerendert und mit `zbarimg` dekodiert - alle Codes ergeben exakt `A-2026-0999`, `saegen`, `drehen`, `fraesen`, `entgraten`. Die gezeichneten Vektor-QR sind also real scannbar, nicht nur optisch plausibel.
+3. Seitenumbruch mit 15 aktiven Schritten: 3 Seiten, alle 15 Codes plus Auftrags-QR ueber alle Seiten dekodierbar, Folgekopf korrekt.
+4. Ein auf `aktiv=0` gesetzter Schritt erscheint nicht im PDF (0 Treffer im extrahierten Text).
+5. Lange Bezeichnung bricht um; Auftrag ohne Schritte erzeugt eine Seite mit Hinweistext; unbekannte Auftragsnummer leitet mit Meldung zurueck statt ein leeres PDF zu liefern.
+6. Keine PHP-Meldungen in allen Faellen.
+
+### NEXT
+- Arbeitsschritt-Katalog: zentral gepflegte Standardschritte (z. B. `fraesen`), die auftragsunabhaengig ausgedruckt und an Maschinen gehaengt werden koennen.
+
 
 ## P-2026-08-08-10 arbeitsschritte-mit-qr-codes
 

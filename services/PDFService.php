@@ -131,6 +131,263 @@ class PDFService
     }
 
     /**
+     * Erzeugt die Laufkarte zu einem Auftrag als PDF (A4 hoch).
+     *
+     * Die Laufkarte begleitet das Werkstueck durch die Werkstatt: oben der
+     * Auftrag mit QR-Code, darunter je Arbeitsschritt ein Block mit QR-Code und
+     * freien Feldern zum handschriftlichen Eintragen.
+     *
+     * QR-Codes werden als Vektor gezeichnet (jedes dunkle Modul ein gefuelltes
+     * Rechteck). Der PDF-Writer dieses Projekts kann keine Bilder einbetten -
+     * und gezeichnete Rechtecke drucken ohnehin schaerfer als ein
+     * hochskaliertes Pixelbild und bleiben in der Datei winzig.
+     *
+     * @param array<string,mixed>            $auftrag         Zeile aus `auftrag`
+     * @param array<int,array<string,mixed>> $arbeitsschritte Zeilen aus `auftrag_arbeitsschritt`
+     */
+    public function erzeugeLaufkartePdf(array $auftrag, array $arbeitsschritte): string
+    {
+        try {
+            return $this->baueLaufkartePdf($auftrag, $arbeitsschritte);
+        } catch (\Throwable $e) {
+            if (class_exists('Logger')) {
+                Logger::error('Fehler beim Generieren der Laufkarte', [
+                    'auftrag'   => $auftrag['auftragsnummer'] ?? null,
+                    'exception' => $e->getMessage(),
+                ], null, null, 'pdf');
+            }
+            return '';
+        }
+    }
+
+    /**
+     * @param array<string,mixed>            $auftrag
+     * @param array<int,array<string,mixed>> $arbeitsschritte
+     */
+    private function baueLaufkartePdf(array $auftrag, array $arbeitsschritte): string
+    {
+        $qrService = new QrCodeService();
+
+        $auftragsnummer   = trim((string)($auftrag['auftragsnummer'] ?? ''));
+        $kunde            = trim((string)($auftrag['kunde'] ?? ''));
+        $kurzbeschreibung = trim((string)($auftrag['kurzbeschreibung'] ?? ''));
+        $status           = trim((string)($auftrag['status'] ?? ''));
+
+        // Seitengeometrie A4 (595 x 842 pt)
+        $links       = 40.0;
+        $rechts      = 555.0;
+        $breite      = $rechts - $links;
+        $obenStart   = 800.0;
+        $untenGrenze = 60.0;
+
+        $seiten  = [];
+        $content = '';
+        $seitenNr = 0;
+
+        // Kopfbereich einer Seite zeichnen, liefert die neue y-Position.
+        $kopf = function (bool $ersteSeite) use (
+            &$content, &$seitenNr, $qrService, $links, $rechts, $breite, $obenStart,
+            $auftragsnummer, $kunde, $kurzbeschreibung, $status
+        ): float {
+            $seitenNr++;
+            $content .= "0 0 0 RG\n0 0 0 rg\n0.8 w\n";
+
+            $y = $obenStart;
+
+            $content .= "BT\n";
+            $content .= $this->pdfTextCmd('/F2', 18, $links, $y, 'Laufkarte');
+            $content .= $this->pdfTextCmd('/F1', 9, $rechts, $y, 'Seite ' . $seitenNr, 'right');
+            $content .= "ET\n";
+            $y -= 24;
+
+            if ($ersteSeite) {
+                // Auftrags-QR rechts oben
+                $qrGroesse = 96.0;
+                $qrX = $rechts - $qrGroesse;
+                $qrY = $y - $qrGroesse + 10;
+                $content .= $this->pdfQrMatrix($qrService->holeModulMatrix($auftragsnummer), $qrX, $qrY, $qrGroesse);
+
+                $content .= "BT\n";
+                $content .= $this->pdfTextCmd('/F1', 7, $qrX + ($qrGroesse / 2), $qrY - 10, 'Auftrag scannen', 'center');
+                $content .= "ET\n";
+
+                $textBreite = (int)floor(($breite - $qrGroesse - 20) / 5.2);
+
+                $content .= "BT\n";
+                $content .= $this->pdfTextCmd('/F1', 9, $links, $y, 'Auftragsnummer');
+                $y -= 22;
+                $content .= $this->pdfTextCmd('/F2', 20, $links, $y, $this->trimMaxChars($auftragsnummer, 28));
+                $y -= 24;
+
+                foreach ([
+                    'Kunde'            => $kunde,
+                    'Kurzbeschreibung' => $kurzbeschreibung,
+                    'Status'           => $status,
+                ] as $label => $wert) {
+                    if ($wert === '') {
+                        continue;
+                    }
+                    $content .= $this->pdfTextCmd('/F1', 9, $links, $y, $label . ':');
+                    $content .= $this->pdfTextCmd('/F2', 10, $links + 85, $y, $this->trimMaxChars($wert, max(20, $textBreite)));
+                    $y -= 14;
+                }
+
+                $content .= $this->pdfTextCmd('/F1', 8, $links, $y, 'Gedruckt am ' . date('d.m.Y H:i'));
+                $content .= "ET\n";
+                $y -= 16;
+
+                // Unterkante des QR nicht ueberschreiben
+                $y = min($y, $qrY - 22);
+            } else {
+                $content .= "BT\n";
+                $content .= $this->pdfTextCmd('/F1', 10, $links, $y, 'Auftrag ' . $this->trimMaxChars($auftragsnummer, 40));
+                $content .= "ET\n";
+                $y -= 18;
+            }
+
+            $content .= $this->pdfLine($links, $y, $rechts, $y);
+            $y -= 20;
+
+            $content .= "BT\n";
+            $content .= $this->pdfTextCmd('/F2', 11, $links, $y, 'Arbeitsschritte');
+            $content .= "ET\n";
+
+            return $y - 18;
+        };
+
+        $y = $kopf(true);
+
+        if ($arbeitsschritte === []) {
+            $content .= "BT\n";
+            $content .= $this->pdfTextCmd('/F1', 10, $links, $y, 'Fuer diesen Auftrag sind keine aktiven Arbeitsschritte hinterlegt.');
+            $content .= "ET\n";
+        }
+
+        $zeilenHoehe = 92.0;
+        $nummer = 0;
+
+        foreach ($arbeitsschritte as $schritt) {
+            $code        = trim((string)($schritt['arbeitsschritt_code'] ?? ''));
+            $bezeichnung = trim((string)($schritt['bezeichnung'] ?? ''));
+            if ($code === '') {
+                continue;
+            }
+            $nummer++;
+
+            // Seitenumbruch, wenn der naechste Block nicht mehr passt.
+            if (($y - $zeilenHoehe) < $untenGrenze) {
+                $seiten[] = $content;
+                $content = '';
+                $y = $kopf(false);
+            }
+
+            $blockOben  = $y;
+            $blockUnten = $y - $zeilenHoehe + 8;
+
+            // Rahmen
+            $content .= "0.6 w\n";
+            $content .= $this->pdfLine($links, $blockOben, $rechts, $blockOben);
+
+            // QR links im Block
+            $qrGroesse = 70.0;
+            $qrX = $links + 4;
+            $qrY = $blockOben - $qrGroesse - 8;
+            $content .= $this->pdfQrMatrix($qrService->holeModulMatrix($code), $qrX, $qrY, $qrGroesse);
+
+            $textX = $qrX + $qrGroesse + 16;
+
+            $content .= "BT\n";
+            $content .= $this->pdfTextCmd('/F2', 14, $textX, $blockOben - 22, $nummer . '.  ' . $this->trimMaxChars($code, 32));
+
+            if ($bezeichnung !== '') {
+                $zeilen = $this->wrapText($bezeichnung, 62);
+                $ty = $blockOben - 38;
+                foreach (array_slice($zeilen, 0, 2) as $zeile) {
+                    $content .= $this->pdfTextCmd('/F1', 10, $textX, $ty, $zeile);
+                    $ty -= 12;
+                }
+            }
+
+            // Freie Felder zum Eintragen in der Werkstatt
+            $feldY = $blockUnten + 12;
+            $felder = ['Datum' => 90.0, 'Name' => 130.0, 'Menge' => 70.0, 'i. O.' => 45.0];
+            $fx = $textX;
+            $content .= "\n";
+            foreach ($felder as $label => $feldBreite) {
+                $content .= $this->pdfTextCmd('/F1', 8, $fx, $feldY + 10, $label);
+                $content .= "ET\n";
+                $content .= $this->pdfLine($fx, $feldY, $fx + $feldBreite - 10, $feldY);
+                $content .= "BT\n";
+                $fx += $feldBreite;
+            }
+            $content .= "ET\n";
+
+            $y -= $zeilenHoehe;
+        }
+
+        // Fusszeile auf der letzten Seite
+        $content .= "BT\n";
+        $content .= $this->pdfTextCmd('/F1', 7, $links, 44, 'Auftrags-QR und Arbeitsschritt-QR am Terminal scannen. Erzeugt von der Zeiterfassung.');
+        $content .= "ET\n";
+
+        $seiten[] = $content;
+
+        return $this->baueMinimalPdfMitSeiten($seiten);
+    }
+
+    /**
+     * Zeichnet eine QR-Modulmatrix als gefuellte Rechtecke.
+     *
+     * Waagerecht zusammenhaengende dunkle Module werden zu einem Rechteck
+     * zusammengefasst. Das reduziert die Zahl der Zeichenbefehle deutlich
+     * (statt bis zu 441 Einzelrechtecken pro Code) und haelt die Datei klein.
+     *
+     * @param array<int,string> $matrix Zeilen aus '0'/'1'
+     * @param float             $x      linke Kante
+     * @param float             $y      untere Kante
+     * @param float             $groesse Kantenlaenge des gesamten Codes in pt
+     */
+    private function pdfQrMatrix(array $matrix, float $x, float $y, float $groesse): string
+    {
+        $anzahl = count($matrix);
+        if ($anzahl === 0 || $groesse <= 0) {
+            return '';
+        }
+
+        $modul = $groesse / $anzahl;
+        $out = "0 0 0 rg\n";
+
+        foreach ($matrix as $zeilenIndex => $zeile) {
+            $laenge = strlen($zeile);
+            $spalte = 0;
+
+            // PDF zaehlt y von unten, die Matrix von oben.
+            $modulY = $y + $groesse - (($zeilenIndex + 1) * $modul);
+
+            while ($spalte < $laenge) {
+                if ($zeile[$spalte] !== '1') {
+                    $spalte++;
+                    continue;
+                }
+
+                $start = $spalte;
+                while ($spalte < $laenge && $zeile[$spalte] === '1') {
+                    $spalte++;
+                }
+
+                $out .= $this->pdfRectFill(
+                    $x + ($start * $modul),
+                    $modulY,
+                    ($spalte - $start) * $modul,
+                    $modul
+                );
+            }
+        }
+
+        return $out;
+    }
+
+    /**
      * Baut die Arbeitszeitliste optisch ähnlich zur Vorlage (vorlageausgabezeiten.pdf).
      *
      * @param array<int,array<string,mixed>> $tageswerte

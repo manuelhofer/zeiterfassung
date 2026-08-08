@@ -127,6 +127,7 @@ try {
         'auftrag_neu',
         'auftrag_bearbeiten',
         'auftrag_speichern',
+        'auftrag_laufkarte',
         'auftrag_schritt_bearbeiten',
         'auftrag_schritt_speichern',
         'auftragszeit_bearbeiten',
@@ -280,6 +281,11 @@ try {
         case 'auftrag_speichern':
             $controller = new AuftragController();
             $controller->speichern();
+            break;
+
+        case 'auftrag_laufkarte':
+            $controller = new AuftragController();
+            $controller->laufkarte();
             break;
 
         case 'auftrag_schritt_bearbeiten':
