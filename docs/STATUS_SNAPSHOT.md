@@ -17,6 +17,7 @@ Webbasierte Zeiterfassung inkl. Mitarbeiter-/Rollen-/Genehmiger-Verwaltung, Urla
 - Lokale Umgebung zum Testen: `docs/lokale_entwicklungsumgebung.md` (App unter `http://localhost/zeiterfassung`).
 
 ## Letzte Aenderungen (Auszug)
+- **P-2026-08-08-06 Spezifikation Auftrags-QR und Laufkarte:** Zielbild und Akzeptanzkriterien fuer Auftraege im Backend anlegen, Arbeitsschritte mit QR-Codes und Laufkarten-PDF (`docs/spezifikation_auftrag_qr_laufkarte.md`).
 - **P-2026-08-08-05 erzeugte Dateien:** `public/uploads/` ist von der Versionierung ausgenommen (nur `.gitkeep` bleibt); die ACL im Setup-Skript traegt jetzt Webserver **und** Projekteigentuemer ein, damit erzeugte Dateien von beiden Seiten ueberschreibbar bleiben.
 - **P-2026-08-08-04 phpqrcode warnungsfrei (B-090):** Vier Ursachen in der mitgelieferten QR-Bibliothek behoben (Pflichtparameter hinter optionalen Parametern, dynamische Eigenschaft `$cmyk`, wirkungsloses `ImageDestroy()`, fehlendes Cache-Verzeichnis). QR-Code- und Barcode-Erzeugung laufen unter PHP 8.5 ohne eine einzige Meldung; betraf auch den Produktivserver mit PHP 8.3.
 - **P-2026-08-08-03 Maschinen-Barcode-URL automatisch:** Die Anzeige-URL des Maschinen-Barcodes wird aus der Web-Basis der Installation plus `maschinen_qr_rel_pfad` abgeleitet, statt sie zusaetzlich von Hand pflegen zu muessen. `maschinen_qr_url` ist jetzt nur noch ein Override (leer = automatisch, `/` = Domain-Root, sonst Pfad/URL). Abweichende Zweitlogik im `MaschineAdminController` entfernt. Neuer Bug B-090 dokumentiert (phpqrcode-Deprecations).
@@ -33,7 +34,8 @@ Webbasierte Zeiterfassung inkl. Mitarbeiter-/Rollen-/Genehmiger-Verwaltung, Urla
 - **P-2026-01-24-07:** Dashboard: Zeitwarnungen waren trotz vorhandener Daten unsichtbar, weil `DashboardController` versehentlich `fetchEinzel(...)` (nicht existent) aufruft und dadurch in den Catch faellt → Fix auf `fetchEine(...)`.
 
 ## Letzter Patch (P-ID)
-- P-2026-08-08-05 (Commit; Umgang mit zur Laufzeit erzeugten Dateien)
+- P-2026-08-08-06 (Commit; Spezifikation Auftrags-QR und Laufkarte)
+- Davor: P-2026-08-08-05 (Umgang mit zur Laufzeit erzeugten Dateien)
 - Davor: P-2026-08-08-04 (phpqrcode laeuft unter aktuellem PHP warnungsfrei)
 - Davor: P-2026-08-08-03 (Maschinen-Barcode-URL wird automatisch abgeleitet)
 - Davor: P-2026-08-08-02 (Datenbestand lokal eingespielt, PHP-8.5-Pruefung der Fachlogik)

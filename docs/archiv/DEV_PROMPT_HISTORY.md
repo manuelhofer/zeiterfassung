@@ -207,7 +207,33 @@ Webbasierte Zeiterfassung inkl. Mitarbeiter-/Rollen-/Genehmiger-Verwaltung, Urla
 - Offen aus P-2026-08-08-02: QR-/Barcode-Erzeugung und die Terminal-Buchungsflows sind unter PHP 8.5 noch nicht geprueft (brauchen einen angemeldeten Browser-Durchlauf).
 
 ## Letzter Patch (P-ID)
-P-2026-08-08-05 (Commit) – Umgang mit zur Laufzeit erzeugten Dateien
+P-2026-08-08-06 (Commit) – Spezifikation Auftrags-QR und Laufkarte
+
+## P-2026-08-08-06 spezifikation-auftrag-qr-laufkarte
+
+### EINGELESEN
+- `controller/AuftragController.php`, `controller/TerminalController.php` (Scan-Verarbeitung), `services/AuftragszeitService.php`, `services/PDFService.php`, Tabellen `auftrag` / `auftrag_arbeitsschritt` / `auftragszeit`.
+
+### DUPLIKAT-CHECK
+- Kein Duplikat: `docs/archiv/auftrags_prompt_v1.md` beschreibt den Scan-Ablauf am Terminal (umgesetzt), aber nicht das Anlegen im Backend, QR-Codes fuer Arbeitsschritte oder eine Laufkarte.
+
+### DATEIEN
+- `docs/spezifikation_auftrag_qr_laufkarte.md` (neu)
+- `docs/prompt_uebersicht.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`, `docs/STATUS_SNAPSHOT.md`
+
+### DONE
+- Zielbild und Akzeptanzkriterien fuer die Erweiterung festgehalten, wie es der Master-Prompt fuer neue Funktionsbereiche verlangt.
+- **Zwei Vorab-Erkenntnisse aus der Code-Analyse, die den Zuschnitt bestimmen:**
+  1. Das Terminal liest `auftragscode` und `arbeitsschritt_code` als reinen Text und legt fehlende Stammdaten selbst an. Der QR-Code darf deshalb **nur den nackten Code** enthalten – dann funktioniert das Scannen ohne jede Terminal-Aenderung.
+  2. Die Auftragsliste baut ausschliesslich auf `auftragszeit` auf. Ein im Backend angelegter Auftrag ohne Buchung waere unsichtbar; die Abfrage muss erweitert werden.
+- Fuer das Laufkarten-PDF ist der Weg festgelegt: QR-Codes werden als Vektor gezeichnet (`QRcode::text()` liefert die Modulmatrix, jedes dunkle Modul wird ein Rechteck), weil `PDFService` ein handgeschriebener Writer ohne Bildunterstuetzung ist.
+
+### AKZEPTANZKRITERIEN
+- Die Spezifikation nennt fuer jeden Teil ein pruefbares Ergebnis (Abschnitt 6) und grenzt ab, was bewusst nicht dazugehoert (Abschnitt 7).
+
+### NEXT
+- P-2026-08-08-07: `QrCodeService` fuer beliebige Nutzdaten (PNG-Datei + Matrix).
+
 
 ## P-2026-08-08-05 erzeugte-dateien-ignorieren-und-rechte
 
