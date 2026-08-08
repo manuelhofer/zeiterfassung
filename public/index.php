@@ -132,6 +132,7 @@ try {
         'arbeitsschritt_katalog_neu',
         'arbeitsschritt_katalog_bearbeiten',
         'arbeitsschritt_katalog_speichern',
+        'arbeitsschritt_katalog_blatt',
         'auftrag_schritt_bearbeiten',
         'auftrag_schritt_speichern',
         'auftragszeit_bearbeiten',
@@ -305,6 +306,11 @@ try {
         case 'arbeitsschritt_katalog_speichern':
             $controller = new ArbeitsschrittKatalogController();
             $controller->speichern();
+            break;
+
+        case 'arbeitsschritt_katalog_blatt':
+            $controller = new ArbeitsschrittKatalogController();
+            $controller->blatt();
             break;
 
         case 'auftrag_laufkarte':

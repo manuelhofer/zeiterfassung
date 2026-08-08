@@ -335,6 +335,97 @@ class ArbeitsschrittKatalogController
         header('Location: ?seite=arbeitsschritt_katalog');
     }
 
+    /**
+     * Druckblatt mit QR-Karten zum Ausschneiden.
+     * Route: ?seite=arbeitsschritt_katalog_blatt[&id=…][&anzahl=…]
+     *
+     * Ohne Parameter: alle aktiven Katalogschritte, eine Karte je Schritt.
+     * Mit `id` und `anzahl`: derselbe Schritt mehrfach – der Fall
+     * „20-mal fraesen fuer 20 Fraesmaschinen“.
+     *
+     * Bewusst ohne Verwaltungsrecht: Einen Code nachdrucken, weil die Karte an
+     * der Maschine unleserlich geworden ist, muss ohne Aenderungsrecht gehen.
+     */
+    public function blatt(): void
+    {
+        if (!$this->pruefeZugriff()) {
+            return;
+        }
+
+        $id     = (int)($_GET['id'] ?? 0);
+        $anzahl = (int)($_GET['anzahl'] ?? 1);
+
+        // Obergrenze, damit ein vertippter Wert nicht hunderte Seiten erzeugt.
+        if ($anzahl < 1) {
+            $anzahl = 1;
+        }
+        if ($anzahl > 200) {
+            $anzahl = 200;
+        }
+
+        $karten = [];
+        $dateiname = 'arbeitsschritte';
+
+        try {
+            if ($id > 0) {
+                $eintrag = $this->db->fetchEine(
+                    'SELECT code, bezeichnung FROM arbeitsschritt_katalog WHERE id = :id LIMIT 1',
+                    ['id' => $id]
+                );
+
+                if (!is_array($eintrag)) {
+                    $_SESSION['katalog_flash_fehler'] = 'Der Arbeitsschritt wurde nicht gefunden.';
+                    header('Location: ?seite=arbeitsschritt_katalog');
+                    return;
+                }
+
+                for ($i = 0; $i < $anzahl; $i++) {
+                    $karten[] = $eintrag;
+                }
+
+                $dateiname = (string)($eintrag['code'] ?? 'arbeitsschritt');
+            } else {
+                $karten = $this->db->fetchAlle(
+                    'SELECT code, bezeichnung FROM arbeitsschritt_katalog
+                      WHERE aktiv = 1
+                      ORDER BY sort_order ASC, code ASC'
+                );
+                $dateiname = 'katalog';
+            }
+        } catch (\Throwable $e) {
+            $this->protokolliere('Druckblatt konnte nicht geladen werden', [
+                'id'        => $id,
+                'exception' => $e->getMessage(),
+            ]);
+            $_SESSION['katalog_flash_fehler'] = 'Das Druckblatt konnte nicht erzeugt werden.';
+            header('Location: ?seite=arbeitsschritt_katalog');
+            return;
+        }
+
+        $pdf = PDFService::getInstanz()->erzeugeArbeitsschrittKartenPdf($karten);
+
+        if ($pdf === '') {
+            $_SESSION['katalog_flash_fehler'] = 'Das Druckblatt konnte nicht erzeugt werden.';
+            header('Location: ?seite=arbeitsschritt_katalog');
+            return;
+        }
+
+        $dateiname = preg_replace('~[^A-Za-z0-9_.-]+~', '_', $dateiname);
+        $dateiname = trim((string)$dateiname, '_');
+        if ($dateiname === '') {
+            $dateiname = 'arbeitsschritte';
+        }
+
+        header('Cache-Control: private, max-age=0, must-revalidate');
+        header('Pragma: no-cache');
+        header('X-Content-Type-Options: nosniff');
+        header('Content-Type: application/pdf');
+        header('Content-Length: ' . strlen($pdf));
+        header('Content-Disposition: inline; filename="arbeitsschritt_' . $dateiname . '.pdf"');
+
+        echo $pdf;
+    }
+
     // ------------------------------------------------------------------
     // Interna
     // ------------------------------------------------------------------

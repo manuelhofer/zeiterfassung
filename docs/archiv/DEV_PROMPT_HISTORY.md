@@ -207,7 +207,44 @@ Webbasierte Zeiterfassung inkl. Mitarbeiter-/Rollen-/Genehmiger-Verwaltung, Urla
 - Offen aus P-2026-08-08-02: QR-/Barcode-Erzeugung und die Terminal-Buchungsflows sind unter PHP 8.5 noch nicht geprueft (brauchen einen angemeldeten Browser-Durchlauf).
 
 ## Letzter Patch (P-ID)
-P-2026-08-08-13 (Commit) – Katalog-Verwaltung im Menue Auftraege
+P-2026-08-08-14 (Commit) – Druckblatt fuer Katalog-QR-Codes
+
+## P-2026-08-08-14 katalog-druckblatt
+
+### EINGELESEN
+- `services/PDFService.php`, `controller/ArbeitsschrittKatalogController.php`.
+
+### DUPLIKAT-CHECK
+- Kein Duplikat: Das Laufkarten-PDF ist auftragsbezogen; ein auftragsunabhaengiges Kartenblatt gab es nicht.
+
+### DATEIEN
+- `services/PDFService.php`
+- `controller/ArbeitsschrittKatalogController.php`
+- `public/index.php`
+- `docs/archiv/DEV_PROMPT_HISTORY.md`, `docs/STATUS_SNAPSHOT.md`
+
+### DONE
+- **Neue Route** `?seite=arbeitsschritt_katalog_blatt`:
+  - ohne Parameter alle aktiven Katalogschritte als Uebersicht,
+  - mit `id` und `anzahl` derselbe Schritt mehrfach – der eigentliche Zweck: 20 Karten `fraesen` fuer 20 Fraesmaschinen.
+- **Kartenlayout:** sechs Karten je A4-Seite (2x3) mit gestrichelter Schnittmarkierung, QR-Code rund 45 mm (gross genug fuer einen Handscanner aus Armlaenge), darunter der Code fett, die Bezeichnung und der Hinweis „Erst Auftrag scannen, dann diesen Code“.
+- Stueckzahl wird auf 1..200 begrenzt, damit ein vertippter Wert nicht hunderte Seiten erzeugt.
+- **Bewusst ohne Verwaltungsrecht:** Eine unleserlich gewordene Karte nachzudrucken darf kein Aenderungsrecht erfordern.
+
+### AKZEPTANZKRITERIEN
+- Ein Katalogschritt laesst sich in frei waehlbarer Stueckzahl auf ein Druckblatt bringen, und jede einzelne gedruckte Karte ist mit einem Scanner lesbar.
+
+### TEST
+1. `id=3&anzahl=20` -> 4 Seiten A4, strukturell fehlerfrei laut `qpdf --check`.
+2. **Gegenprobe:** Alle Seiten nach PNG gerendert und mit `zbarimg` dekodiert – **20 von 20** Karten ergeben exakt `fraesen`.
+3. Uebersicht ohne Parameter: 2 Seiten, alle acht Katalogschritte dekodierbar.
+4. Ein auf `aktiv=0` gesetzter Schritt (`montage`) verschwindet aus der Uebersicht (nur noch sieben Codes), nach Reaktivierung wieder da.
+5. Grenzfaelle: `anzahl=0` wird auf 1 angehoben, `anzahl=9999` auf 200 gedeckelt (34 Seiten), unbekannte `id` leitet mit Meldung zurueck statt ein leeres PDF zu liefern.
+6. Keine PHP-Meldungen.
+
+### NEXT
+- P-2026-08-08-15: Katalogschritte in einen Auftrag uebernehmen.
+
 
 ## P-2026-08-08-13 katalog-verwaltung
 

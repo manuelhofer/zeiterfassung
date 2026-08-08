@@ -336,6 +336,117 @@ class PDFService
     }
 
     /**
+     * Erzeugt ein Druckblatt mit QR-Karten fuer Arbeitsschritte.
+     *
+     * Gedacht zum Ausschneiden und an die Maschine haengen: Wer mehrere
+     * Fraesmaschinen hat, druckt die Karte `fraesen` entsprechend oft und
+     * haengt sie an jede davon. Gescannt wird dann Auftrag (von der Laufkarte)
+     * plus Arbeitsschritt (von der Maschine).
+     *
+     * Sechs Karten je A4-Seite (2 Spalten x 3 Zeilen). Der QR-Code misst rund
+     * 45 mm - gross genug, um ihn mit einem Handscanner aus Armlaenge sicher
+     * zu lesen.
+     *
+     * @param array<int,array<string,mixed>> $karten je Eintrag `code` und optional `bezeichnung`
+     */
+    public function erzeugeArbeitsschrittKartenPdf(array $karten): string
+    {
+        try {
+            return $this->baueArbeitsschrittKartenPdf($karten);
+        } catch (\Throwable $e) {
+            if (class_exists('Logger')) {
+                Logger::error('Fehler beim Erzeugen des Arbeitsschritt-Druckblatts', [
+                    'anzahl'    => count($karten),
+                    'exception' => $e->getMessage(),
+                ], null, null, 'pdf');
+            }
+            return '';
+        }
+    }
+
+    /**
+     * @param array<int,array<string,mixed>> $karten
+     */
+    private function baueArbeitsschrittKartenPdf(array $karten): string
+    {
+        $qrService = new QrCodeService();
+
+        // Raster: 2 Spalten x 3 Zeilen auf A4 (595 x 842 pt)
+        $spalten     = 2;
+        $zeilen      = 3;
+        $randLinks   = 30.0;
+        $randUnten   = 30.0;
+        $kartenBreite = (595.0 - (2 * $randLinks)) / $spalten;   // ~267 pt
+        $kartenHoehe  = (842.0 - (2 * $randUnten)) / $zeilen;    // ~260 pt
+        $proSeite     = $spalten * $zeilen;
+
+        $seiten  = [];
+        $content = '';
+        $index   = 0;
+
+        foreach ($karten as $karte) {
+            $code = trim((string)($karte['code'] ?? ''));
+            if ($code === '') {
+                continue;
+            }
+            $bezeichnung = trim((string)($karte['bezeichnung'] ?? ''));
+
+            $platz = $index % $proSeite;
+            if ($platz === 0 && $index > 0) {
+                $seiten[] = $content;
+                $content = '';
+            }
+            if ($platz === 0) {
+                $content .= "0 0 0 RG\n0 0 0 rg\n0.4 w\n";
+            }
+
+            $spalte = $platz % $spalten;
+            $zeile  = intdiv($platz, $spalten);
+
+            $x = $randLinks + ($spalte * $kartenBreite);
+            // Zeile 0 liegt oben, PDF zaehlt y von unten.
+            $y = 842.0 - $randUnten - (($zeile + 1) * $kartenHoehe);
+
+            // Schnittmarkierung als gestrichelter Rahmen
+            $content .= "[3 3] 0 d\n0.5 0.5 0.5 RG\n";
+            $content .= $this->pdfNum($x) . ' ' . $this->pdfNum($y) . ' '
+                . $this->pdfNum($kartenBreite) . ' ' . $this->pdfNum($kartenHoehe) . " re S\n";
+            $content .= "[] 0 d\n0 0 0 RG\n";
+
+            // QR mittig in der oberen Haelfte
+            $qrGroesse = 128.0;
+            $qrX = $x + (($kartenBreite - $qrGroesse) / 2);
+            $qrY = $y + $kartenHoehe - $qrGroesse - 30;
+            $content .= $this->pdfQrMatrix($qrService->holeModulMatrix($code), $qrX, $qrY, $qrGroesse);
+
+            $mitte = $x + ($kartenBreite / 2);
+
+            $content .= "BT\n";
+            $content .= $this->pdfTextCmd('/F1', 8, $mitte, $y + $kartenHoehe - 18, 'Arbeitsschritt', 'center');
+            $content .= $this->pdfTextCmd('/F2', 20, $mitte, $qrY - 26, $this->trimMaxChars($code, 22), 'center');
+
+            if ($bezeichnung !== '') {
+                $content .= $this->pdfTextCmd('/F1', 11, $mitte, $qrY - 44, $this->trimMaxChars($bezeichnung, 32), 'center');
+            }
+
+            $content .= $this->pdfTextCmd('/F1', 7, $mitte, $y + 12, 'Erst Auftrag scannen, dann diesen Code', 'center');
+            $content .= "ET\n";
+
+            $index++;
+        }
+
+        if ($content !== '') {
+            $seiten[] = $content;
+        }
+
+        if ($seiten === []) {
+            $seiten[] = "BT\n" . $this->pdfTextCmd('/F1', 12, 40, 780, 'Keine aktiven Arbeitsschritte im Katalog.') . "ET\n";
+        }
+
+        return $this->baueMinimalPdfMitSeiten($seiten);
+    }
+
+    /**
      * Zeichnet eine QR-Modulmatrix als gefuellte Rechtecke.
      *
      * Waagerecht zusammenhaengende dunkle Module werden zu einem Rechteck
