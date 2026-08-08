@@ -202,7 +202,12 @@ Quelle: `sql/01_initial_schema.sql` (INSERT INTO `recht`). Aeltere Verlaufs-/Pat
 
 ### `TERMINAL_VERWALTEN`
 - Name (DB): Terminals verwalten
-- Zweck: Darf Terminals anlegen/bearbeiten.
+- Zweck: Darf Terminals anlegen/bearbeiten sowie **Kopplungscodes erzeugen**,
+  mit denen ein Geraet sich am Backend anmeldet (ab P-2026-08-08-31,
+  `TerminalAdminController::kopplung()`).
+- **Bewusst ohne Recht:** Der Kopplungs-Endpunkt, den das Terminal selbst
+  aufruft, ist ohne Anmeldung erreichbar – ein frisch installiertes Geraet hat
+  noch keinen Benutzer. Der Kopplungscode ist dort der Nachweis.
 - Prüfpunkte im Code:
   - `controller/DashboardController.php:359`
   - `controller/SmokeTestController.php:51`

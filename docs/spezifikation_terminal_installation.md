@@ -1,7 +1,8 @@
 # Spezifikation: Terminal-Installation per Skript
 
 *Version:* v2 (2026-08-08)
-*Status:* Entwurf, noch nicht umgesetzt
+*Status:* in Umsetzung – Stufe 1a und 1b fertig (P-2026-08-08-30, -31),
+Stufe 1c als Naechstes (Endpunkt + Datenbankbenutzer)
 *Grundlage:* `docs/master_prompt_zeiterfassung_v13.md`, Abschnitte 2.2 (Terminal),
 6.2 (Terminals), 8 (Terminal-UI); `docs/rfid_reader_setup.md`;
 `docs/terminal/rfid-ws_rollout.md`
