@@ -25,6 +25,25 @@ $istMonatVergangen = !empty($istMonatVergangen);
 $monatsabschlussStatusMap = isset($monatsabschlussStatusMap) && is_array($monatsabschlussStatusMap)
     ? $monatsabschlussStatusMap
     : [];
+/**
+ * Anzeigenummer eines Mitarbeiters.
+ *
+ * Fachlich zaehlt die Personalnummer, nicht die Datenbank-ID - die ist eine
+ * rein technische Groesse und sagt niemandem in der Verwaltung etwas. Ist keine
+ * Personalnummer gepflegt, wird ersatzweise die ID gezeigt, damit die Zeile
+ * eindeutig zuordenbar bleibt.
+ *
+ * @param array<string,mixed> $mitarbeiter
+ */
+$personalnummerAnzeige = static function (array $mitarbeiter): string {
+    $nummer = trim((string)($mitarbeiter['personalnummer'] ?? ''));
+    if ($nummer !== '') {
+        return $nummer;
+    }
+
+    return (string)(int)($mitarbeiter['id'] ?? 0);
+};
+
 $monatsabschlussSelectClass = 'monatsabschluss-status-select';
 if ($istMonatVergangen && $mitarbeiterId > 0) {
     $monatsabschlussSelectClass .= !empty($monatsabschlussStatusMap[$mitarbeiterId])
@@ -647,6 +666,24 @@ if (is_array($tageswerte) && $tageswerte !== []) {
     .monatsabschluss-status-select {
         background-color: #ffffff;
         color: #1a1a1a;
+        /*
+         * Ohne `appearance: none` zeichnet Firefox das aufgeklappte Menue als
+         * natives Widget und ignoriert dabei die Farben der einzelnen Optionen.
+         * Erst wenn das Feld als selbst gestaltet gilt, werden sie uebernommen.
+         * Der Pfeil wird deshalb hier selbst gezeichnet.
+         */
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        appearance: none;
+        padding-right: 1.6rem;
+        background-image:
+            linear-gradient(45deg, transparent 50%, #444 50%),
+            linear-gradient(135deg, #444 50%, transparent 50%);
+        background-position:
+            calc(100% - 0.9rem) calc(50% + 0.1rem),
+            calc(100% - 0.55rem) calc(50% + 0.1rem);
+        background-size: 0.35rem 0.35rem, 0.35rem 0.35rem;
+        background-repeat: no-repeat;
     }
 
     .monatsabschluss-status-select.monatsabschluss-status-erledigt,
@@ -712,7 +749,17 @@ if (is_array($tageswerte) && $tageswerte !== []) {
     <h2>Monatsübersicht <?php echo (int)$jahr; ?> / <?php echo sprintf('%02d', (int)$monat); ?></h2>
 
     <?php if ($mitarbeiterAnzeigeName !== ''): ?>
-        <p><strong>Mitarbeiter:</strong> <?php echo htmlspecialchars($mitarbeiterAnzeigeName, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?> (ID <?php echo (int)$mitarbeiterId; ?>)</p>
+        <?php
+            // Personalnummer des angezeigten Mitarbeiters aus der Liste holen.
+            $kopfNummer = (string)(int)$mitarbeiterId;
+            foreach ($mitarbeiterListe as $kopfM) {
+                if ((int)($kopfM['id'] ?? 0) === (int)$mitarbeiterId) {
+                    $kopfNummer = $personalnummerAnzeige($kopfM);
+                    break;
+                }
+            }
+        ?>
+        <p><strong>Mitarbeiter:</strong> <?php echo htmlspecialchars($mitarbeiterAnzeigeName, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?> (Nr. <?php echo htmlspecialchars($kopfNummer, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>)</p>
     <?php endif; ?>
 
     <form method="get" action="" class="report-filter-form" id="report-monat-filter">
@@ -780,7 +827,7 @@ if (is_array($tageswerte) && $tageswerte !== []) {
                                     style="<?php echo htmlspecialchars($abschlussOptionStyle, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>"
                                     title="<?php echo htmlspecialchars($abschlussOptionTitle, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>"
                                     <?php echo ($mid === (int)$mitarbeiterId) ? ' selected' : ''; ?>>
-                                    <?php echo htmlspecialchars($label, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?> (ID <?php echo $mid; ?>)<?php echo htmlspecialchars($abschlussOptionMarker, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>
+                                    <?php echo htmlspecialchars($label, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?> (Nr. <?php echo htmlspecialchars($personalnummerAnzeige($m), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>)<?php echo htmlspecialchars($abschlussOptionMarker, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>
                                 </option>
                             <?php endforeach; ?>
                         </select>

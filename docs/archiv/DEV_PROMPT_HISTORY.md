@@ -208,7 +208,26 @@ Webbasierte Zeiterfassung inkl. Mitarbeiter-/Rollen-/Genehmiger-Verwaltung, Urla
 - Offen aus P-2026-08-08-02: QR-/Barcode-Erzeugung und die Terminal-Buchungsflows sind unter PHP 8.5 noch nicht geprueft (brauchen einen angemeldeten Browser-Durchlauf).
 
 ## Letzter Patch (P-ID)
-P-2026-08-08-25 (Commit) – Namen auf Strichcode-Stand gebracht, Doku aktualisiert
+P-2026-08-08-26 (Commit) – Personalnummer statt Datenbank-ID, Ampelfarben in der Liste
+
+## P-2026-08-08-26 personalnummer-und-ampelfarben
+
+### DATEIEN
+- `views/report/monatsuebersicht.php`
+
+### DONE
+1. **Personalnummer statt Datenbank-ID:** In Kopfzeile und Mitarbeiterauswahl steht jetzt `(Nr. 234)` statt `(ID 16)`. Fachlich zaehlt die Personalnummer – die ID ist eine rein technische Groesse und sagt in der Verwaltung niemandem etwas. Ist keine Personalnummer gepflegt, wird ersatzweise die ID gezeigt, damit die Zeile eindeutig zuordenbar bleibt.
+2. **Ampelfarben in der aufgeklappten Liste:** `appearance: none` auf dem Auswahlfeld ergaenzt. Ohne das zeichnet Firefox das aufgeklappte Menue als natives Widget und ignoriert die Farben der einzelnen Optionen – auch die per `style` gesetzten. Erst wenn das Feld als selbst gestaltet gilt, werden sie uebernommen. Der Aufklapp-Pfeil wird deshalb per CSS selbst gezeichnet.
+
+### GRENZE DIESER PRUEFUNG
+- Die Farbdarstellung im aufgeklappten Menue laesst sich **nicht automatisiert nachweisen** – sie haengt vom Browser und vom Systemthema ab und ist im HTML nicht erkennbar. Geprueft ist nur, dass Regel und Inline-Stile ausgeliefert werden.
+- Deshalb bleiben die **Textzeichen** (`✓` / `● offen`) die verlaessliche Anzeige: Sie kommen in jedem Browser an und sind auch bei Rot-Gruen-Sehschwaeche eindeutig. Sollte Firefox die Farben weiterhin verschlucken, ist die Information trotzdem vollstaendig ablesbar.
+
+### TEST
+- Kopfzeile und Auswahl zeigen `(Nr. 234)` fuer den Mitarbeiter mit gepflegter Personalnummer, sonst die ID.
+- `appearance: none` und die Inline-Farben sind im ausgelieferten HTML vorhanden.
+- Laufender und vergangener Monat gerendert, keine PHP-Meldungen.
+
 
 ## P-2026-08-08-25 namen-und-doku-nachziehen
 
