@@ -2,28 +2,37 @@
 declare(strict_types=1);
 
 /**
- * QrCodeService
+ * BarcodeService
  *
- * Erzeugt QR-Codes fuer beliebige Nutzdaten – aktuell fuer Auftragsnummern und
- * Arbeitsschritt-Codes (siehe `docs/spezifikation_auftrag_qr_laufkarte.md`).
+ * Erzeugt Strichcodes (Code 128) fuer Auftragsnummern, Arbeitsschritt-Codes und
+ * Katalogeintraege – siehe `docs/spezifikation_auftrag_qr_laufkarte.md`.
+ *
+ * **Warum Code 128 und nicht QR:** Im Betrieb sind 1D-Handscanner im Einsatz,
+ * und die Maschinen-Codes des Projekts sind ebenfalls Code 128
+ * (`MaschineQrCodeService::erzeugeBarcodePng`). Ein einziger Codetyp bedeutet:
+ * ein Scannertyp, keine Sonderfaelle. Code 128 kann Buchstaben, Ziffern und
+ * Sonderzeichen, deshalb steht im Strichcode weiterhin **der Code selbst**
+ * (z. B. `fraesen`) – es braucht keine kuenstliche Nummer.
  *
  * Zwei Ausgabewege, weil zwei Ziele bedient werden:
  * - `stelleBildBereit()` schreibt eine PNG-Datei unterhalb von `public/` fuer
  *   die Anzeige im Backend.
- * - `holeModulMatrix()` liefert die reine Modulmatrix, damit das
- *   Laufkarten-PDF die Codes als Vektor zeichnen kann. Der PDF-Writer des
- *   Projekts kann keine Bilder einbetten, und gezeichnete Rechtecke drucken
- *   ohnehin schaerfer als ein hochskaliertes Pixelbild.
+ * - `holeBalken()` liefert die reine Balkenfolge, damit die PDFs den Code als
+ *   Vektor zeichnen koennen. Der PDF-Writer des Projekts kann keine Bilder
+ *   einbetten, und gezeichnete Balken drucken ohnehin schaerfer.
  *
- * Wichtig: Der QR-Code enthaelt **nur den nackten Code** (Auftragsnummer bzw.
- * Arbeitsschritt-Code), kein Praefix und keine URL. Das Terminal liest die
- * Scan-Felder als reinen Text weiter – deshalb funktionieren gedruckte Codes
- * ohne jede Aenderung am Terminal.
+ * Der Inhalt ist immer **nur der nackte Code** – kein Praefix, keine URL. Das
+ * Terminal liest seine Scan-Felder als reinen Text, deshalb funktionieren
+ * gedruckte Codes ohne jede Aenderung am Terminal.
  */
-class QrCodeService
+class BarcodeService
 {
     /** Standard-Speicherort unterhalb von `public/`, per Konfiguration aenderbar. */
     private const STANDARD_REL_PFAD = 'uploads/auftrag_codes';
+
+    /** Modulbreite und Hoehe der erzeugten PNG-Dateien (Bildschirmanzeige). */
+    private const PNG_MODULBREITE = 2;
+    private const PNG_HOEHE = 60;
 
     private string $basisVerzeichnis;
     private string $relativerPfad;
@@ -44,7 +53,7 @@ class QrCodeService
      * umbenannter Arbeitsschritt automatisch einen neuen Code, ohne dass bei
      * jedem Seitenaufruf gerechnet wird.
      *
-     * @param string      $nutzdaten   Inhalt des QR-Codes (z. B. `drehen`)
+     * @param string      $nutzdaten   Inhalt des Codes (z. B. `fraesen`)
      * @param string      $dateiname   Dateiname ohne Pfad (z. B. `schritt_12.png`)
      * @param string|null $geaendertAm Aenderungszeitpunkt des Datensatzes (Y-m-d H:i:s)
      *
@@ -68,7 +77,7 @@ class QrCodeService
         $zielOrdner = dirname($zielPfad);
         if (!is_dir($zielOrdner)) {
             if (!mkdir($zielOrdner, 0755, true) && !is_dir($zielOrdner)) {
-                $this->protokolliereFehler('QR-Zielordner konnte nicht angelegt werden', ['ordner' => $zielOrdner]);
+                $this->protokolliereFehler('Zielordner fuer Strichcodes konnte nicht angelegt werden', ['ordner' => $zielOrdner]);
                 return null;
             }
         }
@@ -109,46 +118,53 @@ class QrCodeService
     }
 
     /**
-     * Liefert die QR-Modulmatrix als Array von Zeilen aus '0'/'1'.
+     * Liefert die Balkenfolge eines Code-128-Strichcodes.
      *
-     * Gedacht fuer das Laufkarten-PDF: jedes '1' wird dort ein gefuelltes
-     * Rechteck. Bei einem Fehler kommt ein leeres Array zurueck, damit ein
-     * kaputter Code nie das ganze PDF verhindert.
+     * Rueckgabe:
+     * - `breite`  Gesamtbreite in Modulen (Grundlage fuer die Skalierung)
+     * - `balken`  Liste dunkler Balken als `['start' => Modul, 'breite' => Module]`
      *
-     * @return array<int,string>
+     * Gedacht fuer die PDFs: jeder Balken wird dort ein gefuelltes Rechteck.
+     * Bei einem Fehler kommt eine leere Liste zurueck, damit ein einzelner
+     * kaputter Code nie das ganze Dokument verhindert.
+     *
+     * @return array{breite:int,balken:array<int,array{start:int,breite:int}>}
      */
-    public function holeModulMatrix(string $nutzdaten): array
+    public function holeBalken(string $nutzdaten): array
     {
+        $leer = ['breite' => 0, 'balken' => []];
+
         $nutzdaten = trim($nutzdaten);
-        if ($nutzdaten === '' || !class_exists('QRcode')) {
-            return [];
+        if ($nutzdaten === '' || !class_exists('Picqer\\Barcode\\Types\\TypeCode128')) {
+            return $leer;
         }
 
         try {
-            $matrix = QRcode::text($nutzdaten);
+            $typ = new Picqer\Barcode\Types\TypeCode128();
+            $barcode = $typ->getBarcode($nutzdaten);
         } catch (\Throwable $e) {
-            $this->protokolliereFehler('QR-Matrix konnte nicht erzeugt werden', [
+            $this->protokolliereFehler('Strichcode konnte nicht berechnet werden', [
                 'exception' => $e->getMessage(),
             ]);
-            return [];
+            return $leer;
         }
 
-        if (!is_array($matrix)) {
-            return [];
-        }
+        $balken = [];
+        $position = 0;
 
-        $zeilen = [];
-        foreach ($matrix as $zeile) {
-            if (is_string($zeile) && $zeile !== '') {
-                $zeilen[] = $zeile;
+        foreach ($barcode->getBars() as $bar) {
+            $breite = $bar->getWidth();
+            if ($bar->isBar() && $breite > 0) {
+                $balken[] = ['start' => $position, 'breite' => $breite];
             }
+            $position += $breite;
         }
 
-        return $zeilen;
+        return ['breite' => max(1, $barcode->getWidth()), 'balken' => $balken];
     }
 
     /**
-     * Dateiname fuer den QR-Code eines Auftrags.
+     * Dateiname fuer den Strichcode eines Auftrags.
      */
     public function dateinameAuftrag(int $auftragId): string
     {
@@ -156,11 +172,19 @@ class QrCodeService
     }
 
     /**
-     * Dateiname fuer den QR-Code eines Arbeitsschritts.
+     * Dateiname fuer den Strichcode eines Arbeitsschritts am Auftrag.
      */
     public function dateinameArbeitsschritt(int $arbeitsschrittId): string
     {
         return 'schritt_' . $arbeitsschrittId . '.png';
+    }
+
+    /**
+     * Dateiname fuer den Strichcode eines Katalogeintrags.
+     */
+    public function dateinameKatalog(int $katalogId): string
+    {
+        return 'katalog_' . $katalogId . '.png';
     }
 
     // ------------------------------------------------------------------
@@ -192,24 +216,39 @@ class QrCodeService
 
     private function erzeugePngDatei(string $nutzdaten, string $zielPfad): bool
     {
-        if (!class_exists('QRcode')) {
-            $this->protokolliereFehler('QR-Bibliothek nicht verfuegbar', ['ziel' => $zielPfad]);
+        if (!class_exists('Picqer\\Barcode\\BarcodeGeneratorPNG')) {
+            $this->protokolliereFehler('Strichcode-Bibliothek nicht verfuegbar', ['ziel' => $zielPfad]);
+            return false;
+        }
+
+        if (!function_exists('imagecreate') && !extension_loaded('imagick')) {
+            $this->protokolliereFehler('Keine Bildunterstuetzung (GD/Imagick) vorhanden', ['ziel' => $zielPfad]);
             return false;
         }
 
         try {
-            // Groesse 6 / Rand 2 ergibt gut scanbare Bilder in Bildschirmgroesse.
-            QRcode::png($nutzdaten, $zielPfad, QR_ECLEVEL_M, 6, 2);
+            $generator = new Picqer\Barcode\BarcodeGeneratorPNG();
+            $pngDaten = $generator->getBarcode(
+                $nutzdaten,
+                Picqer\Barcode\BarcodeGenerator::TYPE_CODE_128,
+                self::PNG_MODULBREITE,
+                self::PNG_HOEHE
+            );
         } catch (\Throwable $e) {
-            $this->protokolliereFehler('QR-PNG konnte nicht erzeugt werden', [
+            $this->protokolliereFehler('Strichcode-PNG konnte nicht erzeugt werden', [
                 'ziel'      => $zielPfad,
                 'exception' => $e->getMessage(),
             ]);
             return false;
         }
 
-        if (!is_file($zielPfad)) {
-            $this->protokolliereFehler('QR-PNG wurde nicht geschrieben', ['ziel' => $zielPfad]);
+        if (!is_string($pngDaten) || $pngDaten === '') {
+            $this->protokolliereFehler('Strichcode-PNG war leer', ['ziel' => $zielPfad]);
+            return false;
+        }
+
+        if (file_put_contents($zielPfad, $pngDaten) === false) {
+            $this->protokolliereFehler('Strichcode-PNG konnte nicht geschrieben werden', ['ziel' => $zielPfad]);
             return false;
         }
 
@@ -253,10 +292,30 @@ class QrCodeService
 
     private function ladeBibliothek(): void
     {
-        if (!class_exists('QRcode')) {
-            $pfad = __DIR__ . '/phpqrcode/qrlib.php';
-            if (is_file($pfad)) {
-                require_once $pfad;
+        if (class_exists('Picqer\\Barcode\\BarcodeGeneratorPNG')) {
+            return;
+        }
+
+        $basisPfad = __DIR__ . '/barcode/Picqer/Barcode';
+        $dateien = [
+            $basisPfad . '/Barcode.php',
+            $basisPfad . '/BarcodeBar.php',
+            $basisPfad . '/BarcodeGenerator.php',
+            $basisPfad . '/BarcodeGeneratorPNG.php',
+            $basisPfad . '/Exceptions/BarcodeException.php',
+            $basisPfad . '/Exceptions/InvalidCharacterException.php',
+            $basisPfad . '/Exceptions/InvalidLengthException.php',
+            $basisPfad . '/Exceptions/InvalidCheckDigitException.php',
+            $basisPfad . '/Exceptions/UnknownTypeException.php',
+            $basisPfad . '/Renderers/RendererInterface.php',
+            $basisPfad . '/Renderers/PngRenderer.php',
+            $basisPfad . '/Types/TypeInterface.php',
+            $basisPfad . '/Types/TypeCode128.php',
+        ];
+
+        foreach ($dateien as $datei) {
+            if (is_file($datei)) {
+                require_once $datei;
             }
         }
     }
@@ -267,7 +326,7 @@ class QrCodeService
     private function protokolliereFehler(string $nachricht, array $kontext): void
     {
         if (class_exists('Logger')) {
-            Logger::error($nachricht, $kontext, null, null, 'auftrag_qr');
+            Logger::error($nachricht, $kontext, null, null, 'barcode');
         }
     }
 }

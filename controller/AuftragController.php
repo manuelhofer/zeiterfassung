@@ -395,11 +395,11 @@ class AuftragController
         // Stammdaten des Auftrags und seine Arbeitsschritte laden.
         //
         // Das ist bewusst unabhaengig von den Buchungen: Ein frisch angelegter
-        // Auftrag hat noch keine Buchung, soll aber trotzdem QR-Code und
+        // Auftrag hat noch keine Buchung, soll aber trotzdem Strichcode und
         // Arbeitsschritte zeigen.
         $auftragStamm = null;
         $arbeitsschritte = [];
-        $auftragQrUrl = '';
+        $auftragCodeUrl = '';
 
         try {
             $auftragStamm = $this->db->fetchEine(
@@ -417,12 +417,12 @@ class AuftragController
                     ['aid' => $auftragId]
                 );
 
-                $qrService = new QrCodeService();
+                $codeService = new BarcodeService();
 
-                $auftragQrUrl = $qrService->baueBildUrl(
-                    $qrService->stelleBildBereit(
+                $auftragCodeUrl = $codeService->baueBildUrl(
+                    $codeService->stelleBildBereit(
                         $code,
-                        $qrService->dateinameAuftrag($auftragId),
+                        $codeService->dateinameAuftrag($auftragId),
                         isset($auftragStamm['geaendert_am']) ? (string)$auftragStamm['geaendert_am'] : null
                     )
                 );
@@ -431,10 +431,10 @@ class AuftragController
                     $schrittId = (int)($schritt['id'] ?? 0);
                     $schrittCode = trim((string)($schritt['arbeitsschritt_code'] ?? ''));
 
-                    $arbeitsschritte[$index]['qr_url'] = $qrService->baueBildUrl(
-                        $qrService->stelleBildBereit(
+                    $arbeitsschritte[$index]['code_url'] = $codeService->baueBildUrl(
+                        $codeService->stelleBildBereit(
                             $schrittCode,
-                            $qrService->dateinameArbeitsschritt($schrittId),
+                            $codeService->dateinameArbeitsschritt($schrittId),
                             isset($schritt['geaendert_am']) ? (string)$schritt['geaendert_am'] : null
                         )
                     );
@@ -598,7 +598,7 @@ class AuftragController
                     bisher nur aus Buchungen.
                     <?php if ($darfVerwalten): ?>
                         <a href="?seite=auftrag_neu">Auftrag jetzt anlegen</a>, um Arbeitsschritte
-                        und QR-Codes zu pflegen.
+                        und Strichcodes zu pflegen.
                     <?php endif; ?>
                 </p>
             <?php else: ?>
@@ -621,12 +621,12 @@ class AuftragController
                         </p>
                     </div>
 
-                    <?php if ($auftragQrUrl !== ''): ?>
+                    <?php if ($auftragCodeUrl !== ''): ?>
                         <div style="text-align:center;">
-                            <div><strong>Auftrags-QR</strong></div>
-                            <img src="<?php echo $escD($auftragQrUrl); ?>" alt="QR-Code Auftrag <?php echo $escD($code); ?>" style="width:150px;height:150px;image-rendering:pixelated;">
+                            <div><strong>Auftrags-Strichcode</strong></div>
+                            <img src="<?php echo $escD($auftragCodeUrl); ?>" alt="Strichcode Auftrag <?php echo $escD($code); ?>" style="height:56px;width:auto;image-rendering:pixelated;">
                             <div><small><?php echo $escD($code); ?></small></div>
-                            <div><a href="<?php echo $escD($auftragQrUrl); ?>" target="_blank">PNG herunterladen</a></div>
+                            <div><a href="<?php echo $escD($auftragCodeUrl); ?>" target="_blank">PNG herunterladen</a></div>
                         </div>
                     <?php endif; ?>
                 </div>
@@ -641,7 +641,7 @@ class AuftragController
                                 <th>Nr.</th>
                                 <th>Code</th>
                                 <th>Bezeichnung</th>
-                                <th>QR-Code</th>
+                                <th>Strichcode</th>
                                 <th>Aktiv</th>
                                 <?php if ($darfVerwalten): ?><th>Aktion</th><?php endif; ?>
                             </tr>
@@ -652,7 +652,7 @@ class AuftragController
                                     $schrittId   = (int)($schritt['id'] ?? 0);
                                     $schrittCode = (string)($schritt['arbeitsschritt_code'] ?? '');
                                     $bezeichnung = trim((string)($schritt['bezeichnung'] ?? ''));
-                                    $schrittQr   = (string)($schritt['qr_url'] ?? '');
+                                    $schrittCodeBild   = (string)($schritt['code_url'] ?? '');
                                     $schrittAktiv = (int)($schritt['aktiv'] ?? 0) === 1;
                                 ?>
                                 <tr<?php echo $schrittAktiv ? '' : ' style="color:#888;"'; ?>>
@@ -660,8 +660,8 @@ class AuftragController
                                     <td><code><?php echo $escD($schrittCode); ?></code></td>
                                     <td><?php echo $bezeichnung !== '' ? $escD($bezeichnung) : '-'; ?></td>
                                     <td>
-                                        <?php if ($schrittQr !== ''): ?>
-                                            <img src="<?php echo $escD($schrittQr); ?>" alt="QR-Code <?php echo $escD($schrittCode); ?>" style="width:90px;height:90px;image-rendering:pixelated;">
+                                        <?php if ($schrittCodeBild !== ''): ?>
+                                            <img src="<?php echo $escD($schrittCodeBild); ?>" alt="Strichcode <?php echo $escD($schrittCode); ?>" style="height:44px;width:auto;image-rendering:pixelated;">
                                         <?php else: ?>
                                             -
                                         <?php endif; ?>
@@ -687,7 +687,7 @@ class AuftragController
                             <div style="margin-bottom:0.5rem;">
                                 <label for="neuer_code"><strong>Code</strong></label><br>
                                 <input type="text" id="neuer_code" name="arbeitsschritt_code" required maxlength="100" style="width:100%;max-width:260px;">
-                                <br><small>Steht im QR-Code und wird am Terminal gescannt, z. B. <code>drehen</code>, <code>fraesen</code>, <code>saegen</code>.</small>
+                                <br><small>Steht im Strichcode und wird am Terminal gescannt, z. B. <code>drehen</code>, <code>fraesen</code>, <code>saegen</code>.</small>
                             </div>
 
                             <div style="margin-bottom:0.5rem;">
@@ -1059,7 +1059,7 @@ class AuftragController
                     <label for="auftragsnummer"><strong>Auftragsnummer</strong></label><br>
                     <input type="text" id="auftragsnummer" name="auftragsnummer" required maxlength="100"
                            value="<?php echo $esc($auftragsnummer); ?>" style="width:100%;max-width:420px;">
-                    <br><small>Dieser Wert steht spaeter im QR-Code und wird am Terminal gescannt.</small>
+                    <br><small>Dieser Wert steht spaeter im Strichcode und wird am Terminal gescannt.</small>
                 </div>
 
                 <div style="margin-bottom:0.75rem;">
@@ -1395,7 +1395,7 @@ class AuftragController
                     <label for="arbeitsschritt_code"><strong>Code</strong></label><br>
                     <input type="text" id="arbeitsschritt_code" name="arbeitsschritt_code" required maxlength="100"
                            value="<?php echo $esc($code); ?>" style="width:100%;max-width:260px;">
-                    <br><small>Aenderungen erzeugen automatisch einen neuen QR-Code. Bereits gedruckte Laufkarten werden dadurch ungueltig.</small>
+                    <br><small>Aenderungen erzeugen automatisch einen neuen Strichcode. Bereits gedruckte Laufkarten werden dadurch ungueltig.</small>
                 </div>
 
                 <div style="margin-bottom:0.75rem;">

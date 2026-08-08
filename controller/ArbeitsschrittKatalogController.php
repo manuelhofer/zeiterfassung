@@ -8,7 +8,7 @@ declare(strict_types=1);
  * (siehe `docs/spezifikation_auftrag_qr_laufkarte.md`, Abschnitt 4a).
  *
  * Gedanke dahinter: `fraesen` ist bei jedem Auftrag dasselbe `fraesen`. Die
- * Arbeitsvorbereitung pflegt den Schritt einmal, druckt seinen QR-Code so oft
+ * Arbeitsvorbereitung pflegt den Schritt einmal, druckt seinen Strichcode so oft
  * aus wie noetig und haengt ihn an die Maschinen. Gescannt wird dann
  * Auftrag (von der Laufkarte) + Arbeitsschritt (von der Maschine).
  *
@@ -47,12 +47,12 @@ class ArbeitsschrittKatalogController
                 'SELECT * FROM arbeitsschritt_katalog ORDER BY aktiv DESC, sort_order ASC, code ASC'
             );
 
-            $qrService = new QrCodeService();
+            $codeService = new BarcodeService();
             foreach ($eintraege as $index => $eintrag) {
-                $eintraege[$index]['qr_url'] = $qrService->baueBildUrl(
-                    $qrService->stelleBildBereit(
+                $eintraege[$index]['code_url'] = $codeService->baueBildUrl(
+                    $codeService->stelleBildBereit(
                         trim((string)($eintrag['code'] ?? '')),
-                        $this->dateiname((int)($eintrag['id'] ?? 0)),
+                        $codeService->dateinameKatalog((int)($eintrag['id'] ?? 0)),
                         isset($eintrag['geaendert_am']) ? (string)$eintrag['geaendert_am'] : null
                     )
                 );
@@ -80,7 +80,7 @@ class ArbeitsschrittKatalogController
 
             <p>
                 Hier stehen die immer wiederkehrenden Arbeitsschritte – einmal gepflegt,
-                fuer jeden Auftrag nutzbar. Der QR-Code gehoert an die Maschine:
+                fuer jeden Auftrag nutzbar. Der Strichcode gehoert an die Maschine:
                 Wer mehrere Fraesmaschinen hat, druckt <code>fraesen</code> mehrfach aus
                 und haengt den Code an jede davon.
             </p>
@@ -101,7 +101,7 @@ class ArbeitsschrittKatalogController
                         + Arbeitsschritt hinzufuegen
                     </a>
                     <?php if (count($eintraege) > 0): ?>
-                        <a href="?seite=arbeitsschritt_katalog_blatt" target="_blank" style="margin-left:1rem;">Alle Codes als Druckblatt (PDF)</a>
+                        <a href="?seite=arbeitsschritt_katalog_blatt" target="_blank" style="margin-left:1rem;">Alle Strichcodes als Druckblatt (PDF)</a>
                     <?php endif; ?>
                 </p>
             <?php endif; ?>
@@ -114,7 +114,7 @@ class ArbeitsschrittKatalogController
                         <tr>
                             <th>Code</th>
                             <th>Bezeichnung</th>
-                            <th>QR-Code</th>
+                            <th>Strichcode</th>
                             <th>Sortierung</th>
                             <th>Aktiv</th>
                             <th>Drucken</th>
@@ -127,15 +127,15 @@ class ArbeitsschrittKatalogController
                                 $id    = (int)($eintrag['id'] ?? 0);
                                 $code  = (string)($eintrag['code'] ?? '');
                                 $bez   = trim((string)($eintrag['bezeichnung'] ?? ''));
-                                $qrUrl = (string)($eintrag['qr_url'] ?? '');
+                                $codeUrl = (string)($eintrag['code_url'] ?? '');
                                 $aktiv = (int)($eintrag['aktiv'] ?? 0) === 1;
                             ?>
                             <tr<?php echo $aktiv ? '' : ' style="color:#888;"'; ?>>
                                 <td><code><?php echo $esc($code); ?></code></td>
                                 <td><?php echo $bez !== '' ? $esc($bez) : '-'; ?></td>
                                 <td>
-                                    <?php if ($qrUrl !== ''): ?>
-                                        <img src="<?php echo $esc($qrUrl); ?>" alt="QR-Code <?php echo $esc($code); ?>" style="width:90px;height:90px;image-rendering:pixelated;">
+                                    <?php if ($codeUrl !== ''): ?>
+                                        <img src="<?php echo $esc($codeUrl); ?>" alt="Strichcode <?php echo $esc($code); ?>" style="height:44px;width:auto;image-rendering:pixelated;">
                                     <?php else: ?>
                                         -
                                     <?php endif; ?>
@@ -336,7 +336,7 @@ class ArbeitsschrittKatalogController
     }
 
     /**
-     * Druckblatt mit QR-Karten zum Ausschneiden.
+     * Druckblatt mit Strichcode-Karten zum Ausschneiden.
      * Route: ?seite=arbeitsschritt_katalog_blatt[&id=…][&anzahl=…]
      *
      * Ohne Parameter: alle aktiven Katalogschritte, eine Karte je Schritt.
@@ -468,10 +468,10 @@ class ArbeitsschrittKatalogController
                     <input type="text" id="code" name="code" required maxlength="100"
                            value="<?php echo $esc($code); ?>" style="width:100%;max-width:260px;">
                     <br><small>
-                        Steht im QR-Code und wird am Terminal gescannt, z. B. <code>fraesen</code>.
+                        Steht im Strichcode und wird am Terminal gescannt, z. B. <code>fraesen</code>.
                         Kurz und eindeutig halten – der Code taucht in allen Auswertungen auf.
                         <?php if ($id > 0): ?>
-                            <br><strong>Achtung:</strong> Eine Aenderung erzeugt einen neuen QR-Code.
+                            <br><strong>Achtung:</strong> Eine Aenderung erzeugt einen neuen Strichcode.
                             Bereits an Maschinen haengende Ausdrucke werden dadurch ungueltig.
                         <?php endif; ?>
                     </small>
@@ -563,11 +563,6 @@ class ArbeitsschrittKatalogController
         }
 
         return 10;
-    }
-
-    private function dateiname(int $id): string
-    {
-        return 'katalog_' . $id . '.png';
     }
 
     private function zeigeKeinRecht(): void

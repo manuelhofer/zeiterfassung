@@ -207,7 +207,41 @@ Webbasierte Zeiterfassung inkl. Mitarbeiter-/Rollen-/Genehmiger-Verwaltung, Urla
 - Offen aus P-2026-08-08-02: QR-/Barcode-Erzeugung und die Terminal-Buchungsflows sind unter PHP 8.5 noch nicht geprueft (brauchen einen angemeldeten Browser-Durchlauf).
 
 ## Letzter Patch (P-ID)
-P-2026-08-08-14 (Commit) – Druckblatt fuer Katalog-QR-Codes
+P-2026-08-08-15 (Commit) – Strichcodes statt QR-Codes
+
+## P-2026-08-08-15 strichcodes-statt-qr
+
+### EINGELESEN
+- `services/QrCodeService.php`, `services/MaschineQrCodeService.php` (dort schon Code 128), `services/barcode/Picqer/*`, `services/PDFService.php`, beide Auftrags-Controller.
+
+### ANLASS
+- Rueckmeldung aus der Praxis: Im Betrieb sind **1D-Handscanner** im Einsatz. QR-Codes waeren ein zweiter Codetyp neben den bereits vorhandenen Maschinen-Strichcodes gewesen.
+
+### DATEIEN
+- `services/QrCodeService.php` → `services/BarcodeService.php` (umbenannt und umgebaut)
+- `services/PDFService.php`, `controller/AuftragController.php`, `controller/ArbeitsschrittKatalogController.php`
+- `docs/spezifikation_auftrag_qr_laufkarte.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`, `docs/STATUS_SNAPSHOT.md`
+
+### DONE
+- **Alle neuen Codes sind jetzt Code 128** – derselbe Typ wie die vorhandenen Maschinen-Codes. Ein Codetyp, ein Scannertyp, keine Sonderfaelle.
+- **Keine kuenstlichen Nummern noetig:** Code 128 kann Buchstaben und Ziffern, deshalb steht weiterhin der Code selbst im Strichcode (`fraesen`, `A-2026-0999`). Eine generierte Nummer haette alle Auswertungen unleserlich gemacht.
+- `QrCodeService` heisst jetzt `BarcodeService`; `holeModulMatrix()` wurde zu `holeBalken()` (Balkenfolge in Modulen).
+- Im PDF ersetzt `pdfBarcode()` die alte `pdfQrMatrix()`; Laufkarte und Kartenblatt sind auf das breite Format umgestellt (Auftragscode 200x46 pt mit Klartext darunter, Schrittcode 150x38 pt, Karte rund 80x25 mm).
+- Anzeige im Backend: Bilder jetzt hoehenbegrenzt statt quadratisch; Beschriftungen durchgaengig „Strichcode“.
+- Alte QR-Bilddateien unter `public/uploads/auftrag_codes/` entfernt, damit nicht zwei Codetypen nebeneinander liegen.
+
+### AKZEPTANZKRITERIEN
+- Jeder gedruckte Code ist mit einem 1D-Scanner lesbar und liefert exakt den Text, den das Terminal erwartet.
+
+### TEST
+1. Laufkarte gerendert und dekodiert: `A-2026-0999`, `saegen`, `drehen`, `fraesen`, `entgraten` – alle als CODE-128 gelesen.
+2. Druckblatt `6x fraesen`: **Achtung, Messfalle** – `zbarimg` unterdrueckt identische Symbole innerhalb eines Bildes und meldete nur einen Treffer. Nach dem Ausschneiden der sechs Karten dekodiert **jede einzelne** als `fraesen`.
+3. Auftrag ohne Kunde/Beschreibung/Status: Diese Zeilen erscheinen nicht auf der Laufkarte (bewusst optional – das System ist eine Zeiterfassung, keine Warenwirtschaft).
+4. Keine PHP-Meldungen.
+
+### NEXT
+- Katalogschritte in einen Auftrag uebernehmen.
+
 
 ## P-2026-08-08-14 katalog-druckblatt
 

@@ -26,7 +26,21 @@ Zusaetzlich soll es moeglich sein, Auftraege **vorher im Backend anzulegen**:
    Werkstueck beilegen. Der Mitarbeiter scannt am Terminal vom Papier: erst den
    Auftrags-QR, dann den QR des Arbeitsschritts, den er beginnt.
 
-## 2. Was der QR-Code enthaelt
+## 2. Codetyp und Inhalt
+
+### Warum Strichcode (Code 128) und nicht QR
+
+Im Betrieb sind **1D-Handscanner** im Einsatz, und die Maschinen-Codes des
+Projekts sind bereits Code 128. Ein einziger Codetyp bedeutet: ein Scannertyp,
+keine Sonderfaelle, keine Schulung. Code 128 kann Buchstaben, Ziffern und
+Sonderzeichen – deshalb steht im Strichcode weiterhin **der Code selbst**
+(z. B. `fraesen`); eine kuenstliche Nummer waere unnoetig und wuerde die
+Auswertungen unleserlich machen.
+
+(Die erste Fassung dieser Spezifikation sah QR-Codes vor. Umgestellt am
+2026-08-08 auf Wunsch aus der Praxis – siehe P-2026-08-08-15.)
+
+### Was der Code enthaelt
 
 **Nur den nackten Code – kein Praefix, keine URL, kein JSON.**
 
@@ -57,7 +71,7 @@ noetig:
 - `auftrag_arbeitsschritt` – `auftrag_id`, `arbeitsschritt_code`,
   `bezeichnung`, `aktiv`
 
-QR-Bilder werden **nicht** in der Datenbank vermerkt. Sie sind aus dem Code
+Code-Bilder werden **nicht** in der Datenbank vermerkt. Sie sind aus dem Code
 jederzeit reproduzierbar und werden bei Bedarf erzeugt; ein zusaetzliches
 Pfad-Feld waere nur eine weitere Stelle, die aus dem Tritt geraten kann.
 (Bei Maschinen gibt es `code_bild_pfad` historisch – das bleibt unangetastet.)
@@ -76,6 +90,10 @@ Pfad-Feld waere nur eine weitere Stelle, die aus dem Tritt geraten kann.
 
 - Felder: Auftragsnummer (Pflicht, eindeutig), Kurzbeschreibung, Kunde, Status,
   Aktiv.
+- **Alles ausser der Auftragsnummer ist freiwillig.** Das hier ist ein
+  Zeiterfassungssystem, keine Warenwirtschaft: Wer Kunde oder Beschreibung
+  pflegen will, kann es; wer nicht, dem fehlt nichts. Leere Felder erscheinen
+  auch nicht auf der Laufkarte.
 - Doppelte Auftragsnummern werden mit einer verstaendlichen Meldung abgelehnt,
   nicht mit einem SQL-Fehler.
 - Speichern per POST mit CSRF-Token, danach Weiterleitung auf die
@@ -85,7 +103,7 @@ Pfad-Feld waere nur eine weitere Stelle, die aus dem Tritt geraten kann.
 
 Bestehende Bloecke (Buchungen, Summen) bleiben unveraendert. Neu darunter:
 
-- **Auftrags-QR-Code** mit Downloadlink.
+- **Auftrags-Strichcode** mit Downloadlink.
 - **Arbeitsschritte (Stammdaten)** als Tabelle: Code, Bezeichnung, QR-Code,
   Aktiv, Aktionen. Das ist bewusst getrennt von der bestehenden Auswertung
   „Arbeitsschritte (Summe, abgeschlossen)“, die aus Buchungen kommt.
@@ -98,16 +116,16 @@ Bestehende Bloecke (Buchungen, Summen) bleiben unveraendert. Neu darunter:
 PDF im Format A4 hoch:
 
 - Kopf: Auftragsnummer gross, Kunde, Kurzbeschreibung, Druckdatum, daneben der
-  Auftrags-QR-Code.
+  Auftrags-Strichcode.
 - Danach je Arbeitsschritt ein Block: laufende Nummer, Code, Bezeichnung,
-  QR-Code sowie freie Felder zum handschriftlichen Eintragen (Datum, Name,
+  Strichcode sowie freie Felder zum handschriftlichen Eintragen (Datum, Name,
   Menge) – es ist eine Laufkarte fuer die Werkstatt.
 - Mehrere Seiten, wenn die Schritte nicht auf eine Seite passen.
 
 **Technischer Hinweis:** `PDFService` ist ein handgeschriebener PDF-Writer ohne
-Bildunterstuetzung. Die QR-Codes werden deshalb **als Vektor gezeichnet**: Die
-Bibliothek liefert mit `QRcode::text()` die Modulmatrix, jedes dunkle Modul wird
-ein gefuelltes Rechteck (`pdfRectFill`). Das ist beim Drucken schaerfer als ein
+Bildunterstuetzung. Die Strichcodes werden deshalb **als Vektor gezeichnet**: Die
+Bibliothek liefert die Balkenfolge, jeder Balken wird ein gefuelltes Rechteck
+(`pdfRectFill`). Das ist beim Drucken schaerfer als ein
 eingebettetes Pixelbild, erzeugt kleinere Dateien und erspart eine
 XObject-Implementierung im PDF-Writer.
 
@@ -126,12 +144,12 @@ Auftrag erneut anzulegen.
 Die Arbeitsvorbereitung pflegt einmal einen **Katalog** von Standardschritten:
 `saegen`, `drehen`, `fraesen`, `entgraten`, `pruefen`, …
 
-Der QR-Code eines Katalogschritts haengt **an der Maschine**, nicht auf dem
+Der Strichcode eines Katalogschritts haengt **an der Maschine**, nicht auf dem
 Papier. Wer 20 Fraesmaschinen hat, druckt den Code `fraesen` 20-mal aus und
 haengt ihn an jede Maschine. Der Mitarbeiter scannt am Terminal:
 
-1. den Auftrags-QR von der Laufkarte (welches Werkstueck),
-2. den Arbeitsschritt-QR von der Maschine (welche Taetigkeit).
+1. den Auftrags-Strichcode von der Laufkarte (welches Werkstueck),
+2. den Arbeitsschritt-Strichcode von der Maschine (welche Taetigkeit).
 
 Damit passt derselbe gedruckte Code zu **jedem** Auftrag.
 
@@ -156,7 +174,7 @@ Code muss betriebsweit dasselbe bedeuten.
 ### Funktionen
 
 - **Katalogverwaltung** unter `?seite=arbeitsschritt_katalog` (Menue
-  „Auftraege“): Liste mit QR-Vorschau, Anlegen, Bearbeiten, Deaktivieren.
+  „Auftraege“): Liste mit Strichcode-Vorschau, Anlegen, Bearbeiten, Deaktivieren.
 - **Druckblatt** `?seite=arbeitsschritt_katalog_blatt`:
   - ohne Parameter: alle aktiven Katalogschritte als Uebersicht (eine Karte je
     Schritt),
@@ -199,9 +217,9 @@ Code muss betriebsweit dasselbe bedeuten.
    Auftragsliste und laesst sich oeffnen.
 2. Zu einem Auftrag lassen sich Arbeitsschritte `drehen`, `fraesen`, `saegen`
    anlegen; jeder erscheint in der Stammdaten-Tabelle mit eigenem QR-Code.
-3. Die Laufkarte enthaelt den Auftrags-QR und je einen QR pro aktivem
+3. Die Laufkarte enthaelt den Auftrags-Strichcode und je einen Strichcode pro aktivem
    Arbeitsschritt und laesst sich als PDF oeffnen und drucken.
-4. Ein aus der Laufkarte gescannter Arbeitsschritt-QR liefert im
+4. Ein aus der Laufkarte gescannter Arbeitsschritt-Strichcode liefert im
    Terminal-Formularfeld exakt den `arbeitsschritt_code` – die Buchung laeuft
    ohne Terminal-Aenderung durch.
 5. Ohne das Recht `AUFTRAEGE_VERWALTEN` sind Anlege- und Bearbeitungsfunktionen

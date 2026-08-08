@@ -137,10 +137,9 @@ class PDFService
      * Auftrag mit QR-Code, darunter je Arbeitsschritt ein Block mit QR-Code und
      * freien Feldern zum handschriftlichen Eintragen.
      *
-     * QR-Codes werden als Vektor gezeichnet (jedes dunkle Modul ein gefuelltes
-     * Rechteck). Der PDF-Writer dieses Projekts kann keine Bilder einbetten -
-     * und gezeichnete Rechtecke drucken ohnehin schaerfer als ein
-     * hochskaliertes Pixelbild und bleiben in der Datei winzig.
+     * Strichcodes (Code 128) werden als Vektor gezeichnet. Der PDF-Writer dieses
+     * Projekts kann keine Bilder einbetten - und gezeichnete Balken drucken
+     * ohnehin schaerfer als ein hochskaliertes Pixelbild.
      *
      * @param array<string,mixed>            $auftrag         Zeile aus `auftrag`
      * @param array<int,array<string,mixed>> $arbeitsschritte Zeilen aus `auftrag_arbeitsschritt`
@@ -166,7 +165,7 @@ class PDFService
      */
     private function baueLaufkartePdf(array $auftrag, array $arbeitsschritte): string
     {
-        $qrService = new QrCodeService();
+        $codeService = new BarcodeService();
 
         $auftragsnummer   = trim((string)($auftrag['auftragsnummer'] ?? ''));
         $kunde            = trim((string)($auftrag['kunde'] ?? ''));
@@ -186,7 +185,7 @@ class PDFService
 
         // Kopfbereich einer Seite zeichnen, liefert die neue y-Position.
         $kopf = function (bool $ersteSeite) use (
-            &$content, &$seitenNr, $qrService, $links, $rechts, $breite, $obenStart,
+            &$content, &$seitenNr, $codeService, $links, $rechts, $breite, $obenStart,
             $auftragsnummer, $kunde, $kurzbeschreibung, $status
         ): float {
             $seitenNr++;
@@ -201,17 +200,19 @@ class PDFService
             $y -= 24;
 
             if ($ersteSeite) {
-                // Auftrags-QR rechts oben
-                $qrGroesse = 96.0;
-                $qrX = $rechts - $qrGroesse;
-                $qrY = $y - $qrGroesse + 10;
-                $content .= $this->pdfQrMatrix($qrService->holeModulMatrix($auftragsnummer), $qrX, $qrY, $qrGroesse);
+                // Auftrags-Strichcode rechts oben
+                $codeBreite = 200.0;
+                $codeHoehe  = 46.0;
+                $qrX = $rechts - $codeBreite;
+                $qrY = $y - $codeHoehe;
+                $content .= $this->pdfBarcode($codeService->holeBalken($auftragsnummer), $qrX, $qrY, $codeBreite, $codeHoehe);
 
                 $content .= "BT\n";
-                $content .= $this->pdfTextCmd('/F1', 7, $qrX + ($qrGroesse / 2), $qrY - 10, 'Auftrag scannen', 'center');
+                $content .= $this->pdfTextCmd('/F1', 8, $qrX + ($codeBreite / 2), $qrY - 11, $auftragsnummer, 'center');
+                $content .= $this->pdfTextCmd('/F1', 7, $qrX + ($codeBreite / 2), $qrY - 21, 'Auftrag scannen', 'center');
                 $content .= "ET\n";
 
-                $textBreite = (int)floor(($breite - $qrGroesse - 20) / 5.2);
+                $textBreite = (int)floor(($breite - $codeBreite - 20) / 5.2);
 
                 $content .= "BT\n";
                 $content .= $this->pdfTextCmd('/F1', 9, $links, $y, 'Auftragsnummer');
@@ -236,8 +237,8 @@ class PDFService
                 $content .= "ET\n";
                 $y -= 16;
 
-                // Unterkante des QR nicht ueberschreiben
-                $y = min($y, $qrY - 22);
+                // Unterkante des Strichcodes samt Beschriftung nicht ueberschreiben
+                $y = min($y, $qrY - 32);
             } else {
                 $content .= "BT\n";
                 $content .= $this->pdfTextCmd('/F1', 10, $links, $y, 'Auftrag ' . $this->trimMaxChars($auftragsnummer, 40));
@@ -288,13 +289,18 @@ class PDFService
             $content .= "0.6 w\n";
             $content .= $this->pdfLine($links, $blockOben, $rechts, $blockOben);
 
-            // QR links im Block
-            $qrGroesse = 70.0;
+            // Strichcode links im Block
+            $codeBreite = 150.0;
+            $codeHoehe  = 38.0;
             $qrX = $links + 4;
-            $qrY = $blockOben - $qrGroesse - 8;
-            $content .= $this->pdfQrMatrix($qrService->holeModulMatrix($code), $qrX, $qrY, $qrGroesse);
+            $qrY = $blockOben - $codeHoehe - 10;
+            $content .= $this->pdfBarcode($codeService->holeBalken($code), $qrX, $qrY, $codeBreite, $codeHoehe);
 
-            $textX = $qrX + $qrGroesse + 16;
+            $content .= "BT\n";
+            $content .= $this->pdfTextCmd('/F1', 8, $qrX + ($codeBreite / 2), $qrY - 10, $code, 'center');
+            $content .= "ET\n";
+
+            $textX = $qrX + $codeBreite + 18;
 
             $content .= "BT\n";
             $content .= $this->pdfTextCmd('/F2', 14, $textX, $blockOben - 22, $nummer . '.  ' . $this->trimMaxChars($code, 32));
@@ -327,7 +333,7 @@ class PDFService
 
         // Fusszeile auf der letzten Seite
         $content .= "BT\n";
-        $content .= $this->pdfTextCmd('/F1', 7, $links, 44, 'Auftrags-QR und Arbeitsschritt-QR am Terminal scannen. Erzeugt von der Zeiterfassung.');
+        $content .= $this->pdfTextCmd('/F1', 7, $links, 44, 'Auftrags-Strichcode und Arbeitsschritt-Strichcode am Terminal scannen. Erzeugt von der Zeiterfassung.');
         $content .= "ET\n";
 
         $seiten[] = $content;
@@ -336,16 +342,16 @@ class PDFService
     }
 
     /**
-     * Erzeugt ein Druckblatt mit QR-Karten fuer Arbeitsschritte.
+     * Erzeugt ein Druckblatt mit Strichcode-Karten fuer Arbeitsschritte.
      *
      * Gedacht zum Ausschneiden und an die Maschine haengen: Wer mehrere
      * Fraesmaschinen hat, druckt die Karte `fraesen` entsprechend oft und
      * haengt sie an jede davon. Gescannt wird dann Auftrag (von der Laufkarte)
      * plus Arbeitsschritt (von der Maschine).
      *
-     * Sechs Karten je A4-Seite (2 Spalten x 3 Zeilen). Der QR-Code misst rund
-     * 45 mm - gross genug, um ihn mit einem Handscanner aus Armlaenge sicher
-     * zu lesen.
+     * Sechs Karten je A4-Seite (2 Spalten x 3 Zeilen). Der Strichcode ist rund
+     * 80 mm breit und 25 mm hoch - gross genug fuer einen Handscanner aus
+     * Armlaenge.
      *
      * @param array<int,array<string,mixed>> $karten je Eintrag `code` und optional `bezeichnung`
      */
@@ -369,7 +375,7 @@ class PDFService
      */
     private function baueArbeitsschrittKartenPdf(array $karten): string
     {
-        $qrService = new QrCodeService();
+        $codeService = new BarcodeService();
 
         // Raster: 2 Spalten x 3 Zeilen auf A4 (595 x 842 pt)
         $spalten     = 2;
@@ -413,20 +419,21 @@ class PDFService
                 . $this->pdfNum($kartenBreite) . ' ' . $this->pdfNum($kartenHoehe) . " re S\n";
             $content .= "[] 0 d\n0 0 0 RG\n";
 
-            // QR mittig in der oberen Haelfte
-            $qrGroesse = 128.0;
-            $qrX = $x + (($kartenBreite - $qrGroesse) / 2);
-            $qrY = $y + $kartenHoehe - $qrGroesse - 30;
-            $content .= $this->pdfQrMatrix($qrService->holeModulMatrix($code), $qrX, $qrY, $qrGroesse);
+            // Strichcode mittig in der oberen Haelfte
+            $codeBreite = $kartenBreite - 40;
+            $codeHoehe  = 70.0;
+            $qrX = $x + 20;
+            $qrY = $y + $kartenHoehe - $codeHoehe - 40;
+            $content .= $this->pdfBarcode($codeService->holeBalken($code), $qrX, $qrY, $codeBreite, $codeHoehe);
 
             $mitte = $x + ($kartenBreite / 2);
 
             $content .= "BT\n";
             $content .= $this->pdfTextCmd('/F1', 8, $mitte, $y + $kartenHoehe - 18, 'Arbeitsschritt', 'center');
-            $content .= $this->pdfTextCmd('/F2', 20, $mitte, $qrY - 26, $this->trimMaxChars($code, 22), 'center');
+            $content .= $this->pdfTextCmd('/F2', 20, $mitte, $qrY - 24, $this->trimMaxChars($code, 22), 'center');
 
             if ($bezeichnung !== '') {
-                $content .= $this->pdfTextCmd('/F1', 11, $mitte, $qrY - 44, $this->trimMaxChars($bezeichnung, 32), 'center');
+                $content .= $this->pdfTextCmd('/F1', 11, $mitte, $qrY - 42, $this->trimMaxChars($bezeichnung, 32), 'center');
             }
 
             $content .= $this->pdfTextCmd('/F1', 7, $mitte, $y + 12, 'Erst Auftrag scannen, dann diesen Code', 'center');
@@ -447,52 +454,38 @@ class PDFService
     }
 
     /**
-     * Zeichnet eine QR-Modulmatrix als gefuellte Rechtecke.
+     * Zeichnet einen Code-128-Strichcode als gefuellte Rechtecke.
      *
-     * Waagerecht zusammenhaengende dunkle Module werden zu einem Rechteck
-     * zusammengefasst. Das reduziert die Zahl der Zeichenbefehle deutlich
-     * (statt bis zu 441 Einzelrechtecken pro Code) und haelt die Datei klein.
+     * Der `BarcodeService` liefert die Balken in Modulen; hier werden sie auf
+     * die gewuenschte Breite skaliert. Gezeichnete Balken drucken schaerfer als
+     * ein hochskaliertes Pixelbild - und der PDF-Writer dieses Projekts kann
+     * ohnehin keine Bilder einbetten.
      *
-     * @param array<int,string> $matrix Zeilen aus '0'/'1'
-     * @param float             $x      linke Kante
-     * @param float             $y      untere Kante
-     * @param float             $groesse Kantenlaenge des gesamten Codes in pt
+     * @param array{breite:int,balken:array<int,array{start:int,breite:int}>} $daten
+     * @param float $x      linke Kante
+     * @param float $y      untere Kante
+     * @param float $breite Gesamtbreite in pt
+     * @param float $hoehe  Balkenhoehe in pt
      */
-    private function pdfQrMatrix(array $matrix, float $x, float $y, float $groesse): string
+    private function pdfBarcode(array $daten, float $x, float $y, float $breite, float $hoehe): string
     {
-        $anzahl = count($matrix);
-        if ($anzahl === 0 || $groesse <= 0) {
+        $module = (int)($daten['breite'] ?? 0);
+        $balken = $daten['balken'] ?? [];
+
+        if ($module <= 0 || $balken === [] || $breite <= 0 || $hoehe <= 0) {
             return '';
         }
 
-        $modul = $groesse / $anzahl;
+        $modulBreite = $breite / $module;
         $out = "0 0 0 rg\n";
 
-        foreach ($matrix as $zeilenIndex => $zeile) {
-            $laenge = strlen($zeile);
-            $spalte = 0;
-
-            // PDF zaehlt y von unten, die Matrix von oben.
-            $modulY = $y + $groesse - (($zeilenIndex + 1) * $modul);
-
-            while ($spalte < $laenge) {
-                if ($zeile[$spalte] !== '1') {
-                    $spalte++;
-                    continue;
-                }
-
-                $start = $spalte;
-                while ($spalte < $laenge && $zeile[$spalte] === '1') {
-                    $spalte++;
-                }
-
-                $out .= $this->pdfRectFill(
-                    $x + ($start * $modul),
-                    $modulY,
-                    ($spalte - $start) * $modul,
-                    $modul
-                );
-            }
+        foreach ($balken as $bar) {
+            $out .= $this->pdfRectFill(
+                $x + ((int)$bar['start'] * $modulBreite),
+                $y,
+                (int)$bar['breite'] * $modulBreite,
+                $hoehe
+            );
         }
 
         return $out;

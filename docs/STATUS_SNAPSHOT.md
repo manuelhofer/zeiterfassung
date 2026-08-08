@@ -17,6 +17,7 @@ Webbasierte Zeiterfassung inkl. Mitarbeiter-/Rollen-/Genehmiger-Verwaltung, Urla
 - Lokale Umgebung zum Testen: `docs/lokale_entwicklungsumgebung.md` (App unter `http://localhost/zeiterfassung`).
 
 ## Letzte Aenderungen (Auszug)
+- **P-2026-08-08-15 Strichcodes statt QR:** Alle Auftrags-, Arbeitsschritt- und Katalog-Codes sind jetzt Code 128 – derselbe Typ wie die vorhandenen Maschinen-Codes, passend zu den 1D-Handscannern im Betrieb. `QrCodeService` heisst jetzt `BarcodeService`.
 - **P-2026-08-08-14 Katalog-Druckblatt:** `?seite=arbeitsschritt_katalog_blatt` liefert QR-Karten zum Ausschneiden – alle Katalogschritte als Uebersicht oder ein Schritt in frei waehlbarer Stueckzahl (z. B. 20x `fraesen`). Sechs Karten je A4-Seite mit Schnittmarkierung; alle 20 Karten mit `zbarimg` als lesbar bestaetigt.
 - **P-2026-08-08-13 Arbeitsschritt-Katalog:** Zentrale Standardschritte (z. B. `fraesen`) unter `?seite=arbeitsschritt_katalog`, erreichbar ueber das neue Aufklappmenue „Auftraege“. Einmal pflegen, QR beliebig oft ausdrucken und an die Maschinen haengen.
 - **P-2026-08-08-12 Katalog-Tabelle:** Neue Tabelle `arbeitsschritt_katalog` (Initialschema + Migration `sql/03_...`), Spezifikation um Abschnitt 4a erweitert.
@@ -42,7 +43,8 @@ Webbasierte Zeiterfassung inkl. Mitarbeiter-/Rollen-/Genehmiger-Verwaltung, Urla
 - **P-2026-01-24-07:** Dashboard: Zeitwarnungen waren trotz vorhandener Daten unsichtbar, weil `DashboardController` versehentlich `fetchEinzel(...)` (nicht existent) aufruft und dadurch in den Catch faellt → Fix auf `fetchEine(...)`.
 
 ## Letzter Patch (P-ID)
-- P-2026-08-08-14 (Commit; Druckblatt fuer Katalog-QR-Codes)
+- P-2026-08-08-15 (Commit; Strichcodes statt QR-Codes)
+- Davor: P-2026-08-08-14 (Druckblatt fuer Katalog-Codes)
 - Davor: P-2026-08-08-13 (Katalog-Verwaltung im Menue Auftraege)
 - Davor: P-2026-08-08-12 (Arbeitsschritt-Katalog: Tabelle und Spezifikation)
 - Davor: P-2026-08-08-11 (Laufkarten-PDF mit QR-Codes)
