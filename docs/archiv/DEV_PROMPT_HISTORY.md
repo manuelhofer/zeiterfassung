@@ -6,11 +6,14 @@ status: fertig_praxistest
 stack: PHP (plain), MariaDB/MySQL, Apache
 source_of_truth_db_schema: sql/01_initial_schema.sql
 workflow:
-  output: zip_only
-  max_files_per_patch: 3
-zip_naming:
+  output: git_commit          # seit v13 (2026-08-08); vorher: zip_only
+  max_files_per_patch: null   # seit v13 kein hartes Limit, weiterhin 1 Thema pro Patch
+patch_naming:
+  pattern: "P-YYYY-MM-DD-XX <kurzbeschreibung>"   # im Commit-Betreff
+  example: "P-2026-08-08-01 lokale-dev-umgebung"
+legacy_zip_naming:
+  hinweis: "Eintraege vor 2026-08-08 nennen ZIP-Dateinamen; das ist Historie."
   pattern: "P-YYYY-MM-DD-XX_kurzbeschreibung.zip"
-  example: "P-2025-12-21-04_rohzeit-buchen.zip"
 ---
 
 # SNAPSHOT (immer aktuell)
@@ -31,6 +34,7 @@ Webbasierte Zeiterfassung inkl. Mitarbeiter-/Rollen-/Genehmiger-Verwaltung, Urla
 - Terminal: `public/terminal.php` (Routing über `?aktion=...`)
 
 ## Zuletzt erledigt
+- **P-2026-08-08-01 lokale Entwicklungsumgebung + Doku-Neuordnung:** Setup-Skript `scripts/dev/setup_lokale_umgebung_arch.sh` (Apache + php-fpm + MariaDB LTS + phpMyAdmin, App unter `http://localhost/zeiterfassung`), neue `README.md` in der Projektwurzel als Einstieg nach dem Klonen, `docs/lokale_entwicklungsumgebung.md`, Master-Prompt **v13** (v12 ins Archiv; ZIP-Zwang, 3-Dateien-Limit und SHA256-Nachweis entfallen mit Begruendung; PHP-Baseline min. 8.2 und sauber auf aktuellem PHP), `docs/archiv/ALTE_PROMPTS.md` als Begruendungsliste zum Archiv. Keine Fachlogik geaendert.
 - **2026-07-17 Stundenkonto-Sammelumbuchung lokal:** Separate Umbuchungsmaske aus dem Stundenkonto heraus; normale Stundenkonto-Seite bleibt ohne Monatsfilter, die Sammelumbuchung zeigt Monats-Tageswerte und verschiebt eingegebene Abzuege gesammelt auf einen Zieltag (netto 0), inkl. Stealth-Unterstuetzung.
 - **2026-07-17 Header-Menue lokal:** Top-Navigation in Dropdown-Gruppen `Urlaub`, `Uebersichten`, `Mitarbeiter`, `Rechte` und `Verwaltung` aufgeraeumt; bestehende Zielseiten/Rechtebedingungen bleiben erhalten.
 - **2026-07-17 Mitarbeiter/Rollen-Rechte UI lokal:** Rollen, Rechte-Overrides und Genehmiger aus dem normalen Mitarbeiterformular in `?seite=mitarbeiter_rechte` ausgelagert; Stammdaten-Speichern laesst bestehende Rechte-Zuordnungen unangetastet.
@@ -197,13 +201,51 @@ Webbasierte Zeiterfassung inkl. Mitarbeiter-/Rollen-/Genehmiger-Verwaltung, Urla
 - Terminal (Auftrag): Stop-Detailmaske (Fallback) UX vereinfachen (keine Status-Auswahl "Abschliessen/Abbrechen" im Terminal).
 
 ## Nächster Schritt (konkret)
-- Praxis-Test: naechster Bug/Anomalie-Report (Micro-Patch).
+- Lokale Umgebung im Praxiseinsatz gegenpruefen: Kernablaeufe aus `docs/wartungscheckliste.md` unter PHP 8.5 durchklicken (Monatsuebersicht, Monats-PDF, QR-/Barcode-Erzeugung, Terminal-Flows) und auftretende Deprecation-Meldungen als eigene Micro-Patches beheben.
+- Danach wieder: Praxis-Test, naechster Bug/Anomalie-Report (Micro-Patch).
 
 ## Letzter Patch (P-ID)
-P-2026-01-25-02_dashboard-zeitwarnungen-derived-table.zip
+P-2026-08-08-01 (Commit) – lokale Entwicklungsumgebung + Doku/Master-Prompt v13
 
 
 
+## P-2026-08-08-01 lokale-dev-umgebung-und-doku
+
+### EINGELESEN
+- Arbeitsstand: Git-Arbeitskopie auf `main` (Basis: fade6d2 „Erweitere Verwaltung und Urlaubsfunktionen“).
+- Gelesen: `docs/master_prompt_zeiterfassung_v12.md`, `docs/prompt_uebersicht.md`, `docs/STATUS_SNAPSHOT.md`, `docs/README.md`, `docs/archiv/README.md`, `docs/installationsanleitung.md`, `sql/01_initial_schema.sql`, `sql/offline_db_schema.sql`, `config/config.php`.
+- Hinweis: Der frueher vorgeschriebene SHA256-Nachweis entfaellt ab v13 – der gelesene Stand ist durch den Commit eindeutig belegt.
+
+### DUPLIKAT-CHECK
+- Kein Duplikat: Es gab bisher weder eine dokumentierte lokale Laufumgebung noch eine `README.md` in der Projektwurzel.
+- Bewusst nicht doppelt gemacht: Die Doku-Aufraeumung vom 2026-07-17 (Prompt-Uebersicht, Archiv-README) wurde erweitert, nicht neu erfunden.
+
+### DATEIEN
+- `README.md` (neu)
+- `docs/master_prompt_zeiterfassung_v13.md` (neu; v12 nach `docs/archiv/` verschoben)
+- `docs/lokale_entwicklungsumgebung.md` (neu)
+- `docs/archiv/ALTE_PROMPTS.md` (neu)
+- `scripts/dev/setup_lokale_umgebung_arch.sh` (neu)
+- `docs/README.md`, `docs/prompt_uebersicht.md`, `docs/archiv/README.md`, `docs/installationsanleitung.md`, `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md` (aktualisiert)
+
+### DONE
+- **Lokale Umgebung:** Apache 2.4 + php-fpm (PHP 8.5) + MariaDB 11.8 LTS + phpMyAdmin nativ installiert (kein Docker, wie vom Master-Prompt gefordert). App unter `http://localhost/zeiterfassung`, Terminal unter `.../terminal.php`, phpMyAdmin unter `/phpmyadmin`. Apache zeigt per Alias direkt in die Git-Arbeitskopie; Schreibrechte nur per ACL auf `public/uploads` und `public/img`.
+- **Master-Prompt v13:** Fachliche Abschnitte (2–18 sowie v4-/v7-Ergaenzungen) wortgleich aus v12 uebernommen. Neu/geaendert sind ausschliesslich die Meta-Regeln: Arbeit im Git-Workspace statt ZIP, Patch-ID im Commit-Betreff, Pre-Flight-Gate vereinfacht (kein SHA256-Block, kein „DATEIEN (max. 3)“), Zuschnitt-Regel „1 Patch = 1 Thema“ bleibt. Abschnitt 1a listet jede entfallene Regel mit Begruendung – Hintergrund: das frueher genutzte Chat-Werkzeug brach nach etwa fuenf Minuten Bearbeitungszeit ohne Ergebnis ab, daher die kuenstlich kleinen Patches.
+- **PHP-Baseline definiert:** mindestens PHP 8.2 (Debian 12 / Raspberry Pi OS Bookworm), muss zugleich auf aktuellem PHP warnungsfrei laufen (getestet gegen 8.5).
+- **Einstieg nach dem Klonen:** `README.md` in der Projektwurzel mit Lesereihenfolge, Schnellstart und Projektstruktur; Master-Prompt bekommt Abschnitt 0 mit derselben Reihenfolge.
+- **Archiv begruendet:** `docs/archiv/ALTE_PROMPTS.md` erklaert pro Datei, was sie war, wann/warum sie archiviert wurde und was davon noch gilt. Geloescht wurde nichts.
+
+### AKZEPTANZKRITERIEN
+- `http://localhost/zeiterfassung` liefert im Browser die Anwendung (beim leeren Datenbestand die Maske „Erstinstallation“), `http://localhost/phpmyadmin` den Login – beide ohne PHP-Warnungen im Seiteninhalt.
+- Wer das Repository frisch klont, findet ueber `README.md` → Master-Prompt v13 → Status-Snapshot alle Regeln und weiss, welche Prompts nur noch Referenz sind.
+
+### TEST
+1. `sudo bash scripts/dev/setup_lokale_umgebung_arch.sh` → Dienste `mariadb`, `php-fpm`, `httpd` aktiv; Schema mit 33 Tabellen importiert.
+2. `curl -o /dev/null -w "%{http_code}" http://localhost/zeiterfassung/` → 200 (Erstinstallations-Maske), ebenso `/zeiterfassung/terminal.php` und `/phpmyadmin/`.
+3. Seiteninhalt auf `Deprecated|Warning|Fatal` durchsucht → keine Treffer.
+
+### OFFEN
+- Die tiefer liegenden Flows (Monats-PDF, QR-/Barcode-Erzeugung, Terminal-Buchungen) sind unter PHP 8.5 noch nicht durchgeklickt – siehe „Naechster Schritt“.
 
 
 ## P-2026-01-25-02_dashboard-zeitwarnungen-derived-table.zip

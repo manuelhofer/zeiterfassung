@@ -1,44 +1,42 @@
-# Zeiterfassung & Mitarbeiter-/Auftragsmanagement – Projektstruktur
+# Dokumentation – Übersicht
 
-Dieses Verzeichnis enthält Projektdokumentation, u. a. den Master-Prompt.
-Der eigentliche PHP-Code befindet sich in den Verzeichnissen `core`, `controller`,
-`modelle`, `services` und `views`.
+Dieses Verzeichnis enthält die Projektdokumentation. Der Einstieg für alle, die
+das Repository frisch geklont haben, ist die [`README.md`](../README.md) in der
+Projektwurzel.
 
-## Verzeichnisse (Überblick)
+## Regeln und Projektstand
 
-- `public/` – Einstiegspunkte (z. B. `index.php`), CSS, JS
-- `core/` – Basisfunktionen (Datenbank, Autoloader, Logging, Helper)
-- `modelle/` – reine DB-Modelle (Mitarbeiter, Zeitbuchungen, Urlaubsanträge, …)
-- `services/` – Geschäftslogik (ZeitService, UrlaubService, RundungsService, …)
-- `controller/` – Request-Verarbeitung und Übergabe an Views
-- `views/` – PHP-Views/HTML-Templates
-- `sql/` – aktuelles Datenbankschema und optionale SQL-Hilfen
-- `docs/` – Dokumentation, Master-Prompt, Notizen
+- **[Master-Prompt v13](master_prompt_zeiterfassung_v13.md)** – das verbindliche
+  Regelwerk: Arbeitsweise, Architektur, vollständige Fachlogik. Bei Widerspruch
+  zu älteren Texten gilt diese Datei.
+- [Status-Snapshot](STATUS_SNAPSHOT.md) – aktueller Stand in Kurzform.
+- [Rechte-Prompt](rechte_prompt.md) – Source of Truth für alle Rechte-Codes.
+- [Prompt-Übersicht](prompt_uebersicht.md) – welche Prompt-Datei wofür gilt.
+- [Voller Verlauf](archiv/DEV_PROMPT_HISTORY.md) – Projekthistorie, wird bei
+  jedem Patch gepflegt.
+
+## Installation und Betrieb
+
+- [Lokale Entwicklungsumgebung](lokale_entwicklungsumgebung.md) – App unter
+  `http://localhost/zeiterfassung` (Apache + php-fpm + MariaDB + phpMyAdmin).
+- [Installationsanleitung](installationsanleitung.md) – Produktivsetup auf
+  Debian/Apache.
+- [RFID-Reader-Setup](rfid_reader_setup.md) – Leser am Terminal.
+- [Wartungscheckliste](wartungscheckliste.md) – was vor und nach Änderungen zu
+  prüfen ist.
+- [Admin-Handbuch](admin_handbuch.md) – Bedienung im Backend.
+- [Git-Wiki & Repo-Beschreibung](git_wiki_und_beschreibung.md)
+
+## Archiv
+
+Historische Prompts und Spezifikationen liegen in [`archiv/`](archiv/).
+Was dort warum liegt und was davon noch gilt, steht in
+[`archiv/ALTE_PROMPTS.md`](archiv/ALTE_PROMPTS.md). Archivierte Dateien sind
+Referenzmaterial, keine gültige Arbeitsanweisung.
 
 ## Konfiguration (Zugangsdaten)
 
-Die Datei `config/config.php` enthält **keine** echten Zugangsdaten mehr. Lege
-deine produktiven Werte stattdessen in `config/config.local.php` (nicht
-versioniert) oder per Umgebungsvariablen ab. Eine Vorlage findest du in
-`config/config.php.example`.
-Es gibt bewusst **nur eine** Konfigurationsquelle im Projekt: `config/config.php`.
-
-## Prompt-Archivierung
-
-- Aktueller Kurzstatus: [`docs/STATUS_SNAPSHOT.md`](STATUS_SNAPSHOT.md)
-- Prompt-Uebersicht: [`docs/prompt_uebersicht.md`](prompt_uebersicht.md)
-- Voller Verlauf: [`docs/archiv/DEV_PROMPT_HISTORY.md`](archiv/DEV_PROMPT_HISTORY.md)
-
-Historische Prompts und der vollstaendige Verlauf liegen in `docs/archiv`.
-Welche Prompt-Datei aktuell wofuer relevant ist, steht in der
-Prompt-Uebersicht.
-
-Weitere alte Spezifikationen liegen ebenfalls im Archivordner `docs/archiv`.
-
-## Weitere Dokumentation
-
-- Admin-Handbuch: [`docs/admin_handbuch.md`](admin_handbuch.md)
-- Installationsanleitung: [`docs/installationsanleitung.md`](installationsanleitung.md)
-- Wartungscheckliste: [`docs/wartungscheckliste.md`](wartungscheckliste.md)
-- RFID-Reader-Setup: [`docs/rfid_reader_setup.md`](rfid_reader_setup.md)
-- Git-Wiki & Repo-Beschreibung: [`docs/git_wiki_und_beschreibung.md`](git_wiki_und_beschreibung.md)
+`config/config.php` enthält **keine** echten Zugangsdaten. Produktive Werte
+gehören nach `config/config.local.php` (nicht versioniert) oder in
+Umgebungsvariablen. Vorlage: `config/config.php.example`. Es gibt bewusst nur
+**eine** Konfigurationsquelle im Projekt.

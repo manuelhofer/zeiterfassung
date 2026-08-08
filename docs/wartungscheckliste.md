@@ -14,6 +14,39 @@ zu schuetzen.
 
 ## Technischer Schnellcheck
 
+### Linux / lokale Entwicklungsumgebung
+
+Aus dem Projektverzeichnis (siehe `docs/lokale_entwicklungsumgebung.md`):
+
+```bash
+git status --short
+php -v
+```
+
+Alle PHP-Dateien auf Syntaxfehler pruefen:
+
+```bash
+find . -name '*.php' -not -path './.git/*' -print0 \
+  | xargs -0 -n1 php -l \
+  | grep -v '^No syntax errors' \
+  || echo 'OK: alle PHP-Dateien syntaktisch sauber'
+```
+
+Nur die geaenderten Dateien pruefen (schneller, im Alltag meist ausreichend):
+
+```bash
+git diff --name-only --diff-filter=ACM | grep '\.php$' | xargs -r -n1 php -l
+```
+
+Nach dem Klicktest zusaetzlich das Log auf PHP-Meldungen ansehen – hier tauchen
+Deprecations auf, die im Browser unsichtbar bleiben:
+
+```bash
+sudo tail -50 /var/log/httpd/error_log
+```
+
+### Windows / XAMPP (aeltere Arbeitsumgebung)
+
 PowerShell aus dem Projektverzeichnis:
 
 ```powershell

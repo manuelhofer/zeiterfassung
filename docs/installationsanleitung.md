@@ -5,12 +5,20 @@ Zeiterfassungs-Backends. Sie enthält die notwendigen Schritte von den
 Voraussetzungen bis zur ersten erfolgreichen Anmeldung. Für
 Terminal-spezifische Setups (RFID, Offline-DB) gibt es zusätzliche Hinweise.
 
+Nur zum Ausprobieren oder Entwickeln auf dem eigenen Rechner? Dann ist
+`docs/lokale_entwicklungsumgebung.md` der schnellere Weg – diese Anleitung hier
+beschreibt die Installation auf einem Server.
+
 ## Voraussetzungen
 
-- PHP (empfohlen: 8.1+) mit Erweiterungen: `pdo`, `pdo_mysql`, `mbstring`,
-  `json`
+- PHP mit Erweiterungen: `pdo`, `pdo_mysql`, `mbstring`, `json`, `gd`
+  (`gd` wird für QR-Codes und Barcodes gebraucht)
+  - **Mindestversion: PHP 8.2** (Debian 12 / Raspberry Pi OS Bookworm)
+  - Neuere PHP-Versionen werden unterstützt; entwickelt und getestet wird
+    gegen die jeweils aktuelle Version. Details zur Versionsbaseline:
+    `docs/master_prompt_zeiterfassung_v13.md`, Abschnitt 1 Punkt 4.
 - Webserver (Apache oder Nginx)
-- MySQL oder MariaDB
+- MySQL oder MariaDB (empfohlen: die LTS-Linie von MariaDB)
 - Git (für den Klon)
 
 ## 1) Projekt holen
