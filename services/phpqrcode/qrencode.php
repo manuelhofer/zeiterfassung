@@ -417,6 +417,10 @@
         public $margin = 4;
         public $back_color = 0xFFFFFF;
         public $fore_color = 0x000000;
+        // LOKALE ANPASSUNG (P-2026-08-08-04): $cmyk wird in factory() gesetzt,
+        // war aber nie deklariert. Seit PHP 8.2 ist das Anlegen dynamischer
+        // Eigenschaften deprecated. Bei Bibliotheks-Update mit anpassen.
+        public $cmyk = false;
         
         public $structured = 0; // not supported yet
         

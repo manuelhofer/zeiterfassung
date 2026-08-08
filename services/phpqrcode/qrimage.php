@@ -27,7 +27,14 @@
     class QRimage {
 
         //----------------------------------------------------------------------
-        public static function png($frame, $filename = false, $pixelPerPoint = 4, $outerFrame = 4,$saveandprint=FALSE, $back_color, $fore_color)
+        // LOKALE ANPASSUNG (P-2026-08-08-04):
+        // $back_color und $fore_color haben jetzt dieselben Standardwerte wie in
+        // image() weiter unten und im Rest der Bibliothek. Vorher standen hier
+        // Pflichtparameter hinter optionalen Parametern - das erzeugt seit PHP 8.0
+        // bei jedem Laden der Datei eine Deprecation-Meldung und liess Aufrufe mit
+        // weniger Argumenten (z. B. QRtools::buildCache) fatal fehlschlagen.
+        // Bei einem Bibliotheks-Update bitte wieder mit anpassen.
+        public static function png($frame, $filename = false, $pixelPerPoint = 4, $outerFrame = 4,$saveandprint=FALSE, $back_color = 0xFFFFFF, $fore_color = 0x000000)
         {
             $image = self::image($frame, $pixelPerPoint, $outerFrame, $back_color, $fore_color);
 
@@ -44,7 +51,9 @@
                 }
             }
 
-            ImageDestroy($image);
+            // LOKALE ANPASSUNG (P-2026-08-08-04): ImageDestroy() entfernt.
+            // Seit PHP 8.0 wirkungslos (GD-Bilder sind Objekte und werden vom
+            // Garbage Collector aufgeraeumt), seit PHP 8.5 zusaetzlich deprecated.
         }
 
         //----------------------------------------------------------------------
@@ -59,7 +68,7 @@
                 ImageJpeg($image, $filename, $q);
             }
 
-            ImageDestroy($image);
+            // LOKALE ANPASSUNG (P-2026-08-08-04): siehe png(), ImageDestroy entfernt.
         }
 
         //----------------------------------------------------------------------
@@ -100,7 +109,7 @@
 
             $target_image =ImageCreate($imgW * $pixelPerPoint, $imgH * $pixelPerPoint);
             ImageCopyResized($target_image, $base_image, 0, 0, 0, 0, $imgW * $pixelPerPoint, $imgH * $pixelPerPoint, $imgW, $imgH);
-            ImageDestroy($base_image);
+            // LOKALE ANPASSUNG (P-2026-08-08-04): siehe oben, ImageDestroy entfernt.
 
             return $target_image;
         }

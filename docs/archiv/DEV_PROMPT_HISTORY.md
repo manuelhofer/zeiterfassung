@@ -149,7 +149,7 @@ Webbasierte Zeiterfassung inkl. Mitarbeiter-/Rollen-/Genehmiger-Verwaltung, Urla
 
 ## Bekannte Probleme / Bugs (B-IDs)
 - **B-089:** Maschinen-Barcode wurde in der Bearbeitungsmaske nie angezeigt, weil der Controller eine abweichende URL-Logik nutzte und bei leerem `maschinen_qr_url` immer `''` lieferte. **DONE in P-2026-08-08-03**.
-- **B-090:** Mitgelieferte Bibliothek `services/phpqrcode` erzeugt PHP-Deprecations ("Optional parameter declared before required parameter", `qrimage.php:30`, `qrvect.php:140`) auf jeder Seite, die `MaschineQrCodeService` instanziiert. Gilt ab PHP 8.0, betrifft also auch den Produktivserver (PHP 8.3). **OPEN**.
+- **B-090:** Mitgelieferte Bibliothek `services/phpqrcode` erzeugte PHP-Deprecations und Datei-Warnungen bei jeder QR-Erzeugung (Pflichtparameter hinter optionalen Parametern, dynamische Eigenschaft `$cmyk`, `ImageDestroy()`, fehlendes Cache-Verzeichnis). **DONE in P-2026-08-08-04**.
 - **B-079:** Monatsreport-PDF: Urlaubsblock nutzte `urlaub_verbleibend` aus Monatswerten und zog BF-Restjahr erneut ab (Doppelabzug/negative Werte). **DONE in P-2026-01-18-02**.
 - **B-081:** Monatsreport-HTML: Urlaubsblock zog BF-Restjahr zusaetzlich ab und konnte so inkonsistent/negativ werden. **DONE in P-2026-01-18-03**.
 - **B-082:** Urlaub: Eintrittsjahr/Anlage im laufenden Jahr wurde bisher nicht anteilig gerechnet (voller Jahresanspruch). Zudem wurde negativer Resturlaub beim Auto-Übertrag auf 0 gekappt → Minusurlaub gleicht sich im Folgejahr nicht aus. **DONE in P-2026-01-18-09**.
@@ -207,7 +207,42 @@ Webbasierte Zeiterfassung inkl. Mitarbeiter-/Rollen-/Genehmiger-Verwaltung, Urla
 - Offen aus P-2026-08-08-02: QR-/Barcode-Erzeugung und die Terminal-Buchungsflows sind unter PHP 8.5 noch nicht geprueft (brauchen einen angemeldeten Browser-Durchlauf).
 
 ## Letzter Patch (P-ID)
-P-2026-08-08-03 (Commit) – Maschinen-Barcode-URL wird automatisch abgeleitet
+P-2026-08-08-04 (Commit) – phpqrcode laeuft unter aktuellem PHP warnungsfrei
+
+## P-2026-08-08-04 phpqrcode-warnungsfrei
+
+### EINGELESEN
+- `services/phpqrcode/` (qrconfig.php, qrimage.php, qrvect.php, qrencode.php, qrspec.php, qrmask.php, qrtools.php), `services/MaschineQrCodeService.php`.
+
+### DUPLIKAT-CHECK
+- Kein Duplikat: B-090 wurde in P-2026-08-08-03 nur dokumentiert, nicht behoben.
+
+### BUGREPORT (B-090)
+- Schritte: Eine Seite aufrufen, die `MaschineQrCodeService` instanziiert (z. B. Maschine speichern), Fehlerlog ansehen.
+- Ist: Deprecation-Meldungen und Datei-Warnungen bei jeder QR-Erzeugung.
+- Betroffen war auch der Produktivserver: Die Meldungen gelten ab PHP 8.0 bzw. 8.2, dort laeuft PHP 8.3.
+
+### DATEIEN
+- `services/phpqrcode/qrimage.php`
+- `services/phpqrcode/qrvect.php`
+- `services/phpqrcode/qrencode.php`
+- `services/phpqrcode/qrconfig.php`
+- `docs/archiv/DEV_PROMPT_HISTORY.md`, `docs/STATUS_SNAPSHOT.md`
+
+### DONE
+Vier Ursachen in der mitgelieferten Bibliothek behoben, jede Aenderung im Code als **LOKALE ANPASSUNG (P-2026-08-08-04)** kommentiert, damit sie bei einem Bibliotheks-Update nicht verlorengeht:
+1. **Pflichtparameter hinter optionalen Parametern** (`QRimage::png`, `QRvect::svg`): `$back_color`/`$fore_color` haben jetzt dieselben Standardwerte wie im Rest der Bibliothek (`0xFFFFFF`/`0x000000`). Nebeneffekt: `QRtools::buildCache()` ruft `QRimage::png()` mit nur vier Argumenten auf und waere bisher mit einem `ArgumentCountError` gestorben – das ist damit ebenfalls erledigt.
+2. **Dynamische Eigenschaft** `QRencode::$cmyk` wird in `factory()` gesetzt, war aber nie deklariert (seit PHP 8.2 deprecated) → als `public $cmyk = false;` deklariert.
+3. **`ImageDestroy()`** (3 Stellen in `qrimage.php`) entfernt: seit PHP 8.0 wirkungslos, seit PHP 8.5 zusaetzlich deprecated.
+4. **Fehlendes Cache-Verzeichnis:** `QR_CACHEABLE` stand auf `true`, das Cache-Verzeichnis liegt im Codebaum und existierte nicht → bei jeder QR-Erzeugung ein Schwall `file_put_contents`-/`mkdir`-Warnungen. Cache abgeschaltet; die Bibliothek rechnet die Masken im Speicher (beide Cache-Stellen haben einen sauberen Else-Zweig). Bei der geringen Zahl erzeugter Codes unerheblich – und der Webserver braucht keine Schreibrechte im Programmverzeichnis.
+
+### AKZEPTANZKRITERIEN
+- Ein Durchlauf mit `error_reporting(E_ALL)`, der QR-Code und Barcode erzeugt, gibt **keine einzige** Meldung aus und liefert beide PNG-Dateien.
+
+### TEST
+1. `MaschineQrCodeService` mit eigenem Basisverzeichnis instanziiert, `erzeugeMaschinenQrCode(5)` und `erzeugeMaschinenBarcode(5, "test")` aufgerufen, `error_reporting(E_ALL)`: 0 Meldungen (vorher 13 verschiedene).
+2. Ergebnisdateien geprueft: QR-Code 150x150 PNG, Barcode 202x60 PNG.
+3. `php -l` auf allen vier geaenderten Bibliotheksdateien fehlerfrei.
 
 ## P-2026-08-08-03 maschinen-barcode-url-automatisch
 

@@ -5,7 +5,14 @@
  * Config file, feel free to modify
  */
      
-    define('QR_CACHEABLE', true);                                                               // use cache - more disk reads but less CPU power, masks and format templates are stored there
+    // LOKALE ANPASSUNG (P-2026-08-08-04): Cache abgeschaltet.
+    // Das Cache-Verzeichnis liegt innerhalb des Codebaums und existiert nicht.
+    // Ergebnis waren bei jeder QR-Erzeugung zahlreiche file_put_contents-/mkdir-
+    // Warnungen. Masken werden jetzt im Speicher berechnet - bei der geringen
+    // Zahl erzeugter Codes (nur beim Speichern einer Maschine) unerheblich, und
+    // der Webserver braucht keine Schreibrechte im Programmverzeichnis.
+    // Bei einem Bibliotheks-Update bitte wieder mit anpassen.
+    define('QR_CACHEABLE', false);                                                              // use cache - more disk reads but less CPU power, masks and format templates are stored there
     define('QR_CACHE_DIR', dirname(__FILE__).DIRECTORY_SEPARATOR.'cache'.DIRECTORY_SEPARATOR);  // used when QR_CACHEABLE === true
     define('QR_LOG_DIR', dirname(__FILE__).DIRECTORY_SEPARATOR);                                // default error logs dir   
     

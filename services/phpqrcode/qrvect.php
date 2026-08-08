@@ -137,7 +137,12 @@
         }
         
         //----------------------------------------------------------------------
-        public static function svg($frame, $filename = false, $pixelPerPoint = 4, $outerFrame = 4,$saveandprint=FALSE, $back_color, $fore_color) 
+        // LOKALE ANPASSUNG (P-2026-08-08-04):
+        // Standardwerte ergaenzt, analog zu eps() und vectSVG() in dieser Datei.
+        // Vorher standen Pflichtparameter hinter optionalen Parametern, was seit
+        // PHP 8.0 eine Deprecation-Meldung erzeugt.
+        // Bei einem Bibliotheks-Update bitte wieder mit anpassen.
+        public static function svg($frame, $filename = false, $pixelPerPoint = 4, $outerFrame = 4,$saveandprint=FALSE, $back_color = 0xFFFFFF, $fore_color = 0x000000)
         {
             $vect = self::vectSVG($frame, $pixelPerPoint, $outerFrame, $back_color, $fore_color);
             
