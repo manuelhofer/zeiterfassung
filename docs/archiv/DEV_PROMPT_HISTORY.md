@@ -201,11 +201,41 @@ Webbasierte Zeiterfassung inkl. Mitarbeiter-/Rollen-/Genehmiger-Verwaltung, Urla
 - Terminal (Auftrag): Stop-Detailmaske (Fallback) UX vereinfachen (keine Status-Auswahl "Abschliessen/Abbrechen" im Terminal).
 
 ## Nächster Schritt (konkret)
-- Lokale Umgebung im Praxiseinsatz gegenpruefen: Kernablaeufe aus `docs/wartungscheckliste.md` unter PHP 8.5 durchklicken (Monatsuebersicht, Monats-PDF, QR-/Barcode-Erzeugung, Terminal-Flows) und auftretende Deprecation-Meldungen als eigene Micro-Patches beheben.
-- Danach wieder: Praxis-Test, naechster Bug/Anomalie-Report (Micro-Patch).
+- Praxis-Test: naechster Bug/Anomalie-Report (Micro-Patch).
+- Offen aus P-2026-08-08-02: QR-/Barcode-Erzeugung und die Terminal-Buchungsflows sind unter PHP 8.5 noch nicht geprueft (brauchen einen angemeldeten Browser-Durchlauf).
 
 ## Letzter Patch (P-ID)
-P-2026-08-08-01 (Commit) – lokale Entwicklungsumgebung + Doku/Master-Prompt v13
+P-2026-08-08-02 (Commit) – Datenbestand lokal eingespielt, PHP-8.5-Pruefung der Fachlogik
+
+## P-2026-08-08-02 datenbestand-lokal-und-php85-check
+
+### EINGELESEN
+- Arbeitsstand: Git-Arbeitskopie auf `main`, Basis 14bdf42 (P-2026-08-08-01).
+- Server-Dump vom 2026-08-08 04:00 (phpMyAdmin 5.2.1, Server MariaDB 11.8.3-deb11, PHP 8.3.26) aus der Produktivinstallation.
+
+### DUPLIKAT-CHECK
+- Kein Duplikat: Ein Abgleich des Produktivschemas gegen `sql/01_initial_schema.sql` ist bisher nirgends dokumentiert.
+
+### DATEIEN
+- `docs/lokale_entwicklungsumgebung.md` (Abschnitt 6a ergaenzt)
+- `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md` (aktualisiert)
+
+### DONE
+- **Schema-Abgleich Produktiv vs. Repo:** Der Serverdump und `sql/01_initial_schema.sql` sind **strukturgleich** – 33 Tabellen, identische Spalten und Spaltentypen, keine Abweichung in beide Richtungen. Das Repo-Schema ist damit nachweislich auf dem Produktivstand.
+- **Produktivumgebung dokumentiert:** Der Server laeuft auf Debian 11 mit MariaDB 11.8.3 und PHP 8.3.26. Das liegt innerhalb der in v13 festgelegten Baseline (min. 8.2).
+- **Datenbestand lokal eingespielt:** 13 Mitarbeiter, 9.671 Zeitbuchungen (2025-01-01 bis 2026-07-17), 669 Stundenkonto-Korrekturen, 241 System-Log-Eintraege. Der Dump bleibt bewusst ausserhalb des Repositories (personenbezogene Daten, oeffentliches Repo) – Begruendung in `docs/lokale_entwicklungsumgebung.md`, Abschnitt 6a.
+- **PHP-8.5-Pruefung der Fachlogik (offener Punkt aus P-2026-08-08-01 erledigt):** `ReportService`, `PDFService`, `UrlaubService`, `StundenkontoService` und `FeiertagService` wurden mit echten Daten direkt aufgerufen (24 Pruefungen ueber mehrere Mitarbeiter und Monate, `error_reporting(E_ALL)`). Ergebnis: **keine Deprecations, Warnings oder Notices**; Monats-PDFs werden mit gueltigem PDF-Kopf erzeugt.
+
+### AKZEPTANZKRITERIEN
+- Die lokale Anwendung zeigt nach dem Import die normale Login-Maske statt der Erstinstallation, und die Monatsdaten/PDFs mehrerer Mitarbeiter lassen sich ohne PHP-Meldung erzeugen.
+
+### TEST
+1. Schema-Diff ueber `information_schema` zwischen Dump und Repo-Schema in zwei Wegwerf-Datenbanken → keine Unterschiede.
+2. Import in die lokale DB nach vorherigem Backup → 33 Tabellen, 9.671 Zeitbuchungen.
+3. Direktaufruf der Services unter PHP 8.5.8 → 24x OK, 0 Meldungen.
+
+### OFFEN
+- QR-/Barcode-Erzeugung (`MaschineQrCodeService`, Picqer/phpqrcode) und die Terminal-Buchungsflows sind noch nicht unter PHP 8.5 geprueft; dafuer ist ein angemeldeter Durchlauf im Browser noetig.
 
 
 

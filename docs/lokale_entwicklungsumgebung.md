@@ -153,6 +153,60 @@ von `http://localhost/zeiterfassung` erscheint deshalb die Maske
 **Erstinstallation**, in der der erste Administrator angelegt wird
 (`views/login/initial_admin.php`). Danach laeuft der normale Login.
 
+## 6a. Echten Datenbestand einspielen (Server-Dump)
+
+Zum Entwickeln ist ein realistischer Datenbestand oft wertvoller als eine leere
+Datenbank – etwa fuer Monatsuebersichten, PDFs und Saldenberechnungen. Ein
+phpMyAdmin-Export vom Server laesst sich direkt einspielen:
+
+```bash
+# 1. Aktuellen lokalen Stand sichern (dauert Sekunden, erspart Aerger)
+mariadb-dump -h 127.0.0.1 -u zeiterfassung -pzeiterfassung --databases zeiterfassung \
+  > ~/zeiterfassung_lokal_backup.sql
+
+# 2. Datenbank leeren (phpMyAdmin-Exporte enthalten kein DROP TABLE)
+mariadb -h 127.0.0.1 -u zeiterfassung -pzeiterfassung -e \
+  "DROP DATABASE zeiterfassung; CREATE DATABASE zeiterfassung
+   CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
+
+# 3. Dump einspielen
+mariadb -h 127.0.0.1 -u zeiterfassung -pzeiterfassung zeiterfassung < dump.sql
+```
+
+Dasselbe geht in phpMyAdmin unter *Importieren*; bei grossen Dumps ist die
+Kommandozeile schneller und laeuft nicht in Upload-Limits.
+
+**Vorher pruefen, ob das Schema auseinanderlaeuft.** Ein Server-Dump zeigt den
+echten Produktivstand – Abweichungen zu `sql/01_initial_schema.sql` sind ein
+Befund, kein Detail. Vergleich ohne Risiko fuer die Arbeits-Datenbank:
+
+```bash
+# Dump und Repo-Schema in zwei Wegwerf-Datenbanken laden und Spalten vergleichen
+mariadb -h 127.0.0.1 -u zeiterfassung -pzeiterfassung -e \
+  "CREATE DATABASE zf_check_prod; CREATE DATABASE zf_check_repo;"
+mariadb -h 127.0.0.1 -u zeiterfassung -pzeiterfassung zf_check_prod < dump.sql
+sed -e '/^CREATE DATABASE/,+2d' -e '/^USE `zeiterfassung`;/d' sql/01_initial_schema.sql \
+  | mariadb -h 127.0.0.1 -u zeiterfassung -pzeiterfassung zf_check_repo
+
+mariadb -h 127.0.0.1 -u zeiterfassung -pzeiterfassung -N -B -e "
+  SELECT CONCAT(p.table_name,'.',p.column_name,' nur in PROD')
+    FROM information_schema.columns p
+   WHERE p.table_schema='zf_check_prod'
+     AND NOT EXISTS (SELECT 1 FROM information_schema.columns r
+                      WHERE r.table_schema='zf_check_repo'
+                        AND r.table_name=p.table_name
+                        AND r.column_name=p.column_name);"
+
+mariadb -h 127.0.0.1 -u zeiterfassung -pzeiterfassung -e \
+  "DROP DATABASE zf_check_prod; DROP DATABASE zf_check_repo;"
+```
+
+**Solche Dumps gehoeren niemals ins Repository.** Sie enthalten
+personenbezogene Daten – Klarnamen, E-Mail-Adressen, Geburtsdaten,
+RFID-Codes und Passwort-Hashes –, und das Repository ist oeffentlich. Der
+Datenbestand bleibt lokal; im Repo steht ausschliesslich das Schema mit den
+technischen Startwerten (Rollen, Rechte, Pausenfenster).
+
 ## 7. Taeglicher Betrieb
 
 ```bash
