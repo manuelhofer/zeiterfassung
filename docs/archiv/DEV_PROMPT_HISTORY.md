@@ -208,7 +208,28 @@ Webbasierte Zeiterfassung inkl. Mitarbeiter-/Rollen-/Genehmiger-Verwaltung, Urla
 - Offen aus P-2026-08-08-02: QR-/Barcode-Erzeugung und die Terminal-Buchungsflows sind unter PHP 8.5 noch nicht geprueft (brauchen einen angemeldeten Browser-Durchlauf).
 
 ## Letzter Patch (P-ID)
-P-2026-08-08-28 (Commit) – Spezifikation Terminal-Installation
+P-2026-08-08-29 (Commit) – Terminal-Spezifikation v2: Kopplung statt Zugangsdaten im Skript
+
+## P-2026-08-08-29 terminal-spezifikation-kopplung
+
+### ANLASS
+- Vorschlag aus der Praxis: Das Terminal soll sich per Handshake am Backend anmelden, statt die Zugangsdaten im Installationsskript mitzuschleppen. Der Vorschlag loest genau die Schwachstelle, die in v1 als offener Sicherheitspunkt markiert war.
+
+### DATEIEN
+- `docs/spezifikation_terminal_installation.md` (v1 → v2)
+
+### DONE – Architektur geaendert
+- **Aufgabenteilung neu:** Das Skript macht nur noch Maschine und Betriebssystem (Pakete, Code, Webserver, Kiosk, Peripherie). Server-Adresse, Zugangsdaten und Konfiguration kommen aus der **Kopplung** ueber den Browser. Damit kennt das Skript keine Zugangsdaten mehr, und dasselbe Abbild passt auf beliebig viele Geraete.
+- **Einrichtungsseite im Terminal:** Fehlt die Konfiguration, zeigt das Terminal eine Einrichtungsseite statt der Bedienoberflaeche – dieselbe Mechanik wie die bestehende Maske „Erstinstallation“ des Backends. Nichts Neues zu erfinden, nur zu uebertragen.
+- **Kopplungsablauf festgelegt:** Backend erzeugt einen einmaligen, zeitlich begrenzten Kopplungscode; das Terminal meldet sich damit an und erhaelt Zugangsdaten, Terminal-ID und Einstellungen.
+- **Eigener Datenbankbenutzer je Terminal** (so entschieden): einzeln sperrbar, eingeschraenkte Rechte (kein DELETE, kein DROP, kein Zugriff auf Stundenkonto/Lohn), in den Datenbankprotokollen unterscheidbar. Rechtevorschlag je Tabelle ist in der Spezifikation aufgelistet.
+- **Preis dieser Loesung offen benannt:** Damit das Backend Benutzer anlegen kann, braucht sein eigener Datenbankbenutzer `CREATE USER` und `GRANT OPTION`. Wer die Weboberflaeche uebernimmt, koennte damit Datenbankbenutzer anlegen – begrenzt durch die eigenen Rechte des Backends. Als Ausweichweg ist beschrieben, dass das Backend die SQL-Anweisung stattdessen nur anzeigt und der Administrator sie einmal ausfuehrt. **Diese Entscheidung steht noch aus.**
+- **Sicherheitsabschnitt umgeschrieben:** Der frueher offene Punkt gilt als geloest; was bleibt (Zugangsdaten liegen weiterhin lesbar auf dem Geraet, Kopplung ueber das Netz, Abmeldung ausgemusterter Geraete) ist benannt.
+- **Stufenplan angepasst:** Kopplung im Backend und Einrichtungsseite im Terminal sind jetzt Stufe 1 und 2 – der eigentliche Kern, und beide **ohne ein einziges Geraet** baubar und pruefbar.
+
+### NEXT
+- Entscheidung zum Anlegen der Datenbankbenutzer (automatisch mit erhoehten Rechten oder SQL zum Selbstausfuehren), danach Stufe 1.
+
 
 ## P-2026-08-08-28 spezifikation-terminal-installation
 
