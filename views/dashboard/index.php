@@ -9,6 +9,26 @@ declare(strict_types=1);
 require __DIR__ . '/../layout/header.php';
 
 $mitarbeiterName = $mitarbeiterName ?? 'Unbekannt';
+$zeitUnstimmigkeitenZeitraumLabel = isset($zeitUnstimmigkeitenZeitraumLabel) && is_string($zeitUnstimmigkeitenZeitraumLabel)
+    ? $zeitUnstimmigkeitenZeitraumLabel
+    : 'alle vergangenen Tage';
+
+$dashboardDatumDeutsch = static function (string $wert): string {
+    $wert = trim($wert);
+    if ($wert === '') {
+        return '';
+    }
+
+    try {
+        if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $wert) === 1) {
+            return (new DateTimeImmutable($wert))->format('d.m.Y');
+        }
+    } catch (Throwable $e) {
+        return $wert;
+    }
+
+    return $wert;
+};
 ?>
 
 <section>
@@ -58,7 +78,7 @@ $mitarbeiterName = $mitarbeiterName ?? 'Unbekannt';
         <div class="warning-panel">
             <div style="display:flex; justify-content: space-between; align-items: baseline; gap: 1rem; flex-wrap: wrap;">
                 <strong style="color:#b00020;">Achtung: Unvollständige Zeitbuchungen</strong>
-                <span style="color:#666; font-size: 0.95rem;">(letzte <?php echo (int)($zeitUnstimmigkeitenTage ?? 14); ?> Tage)</span>
+                <span style="color:#666; font-size: 0.95rem;">(<?php echo htmlspecialchars($zeitUnstimmigkeitenZeitraumLabel, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>)</span>
             </div>
             <div style="margin-top: 0.45rem; color:#333;">
                 Mindestens ein Mitarbeiter hat eine <strong>ungleiche Anzahl</strong> von Kommen/Gehen-Stempeln (z. B. „Kommen“ ohne „Gehen“, „Gehen“ ohne „Kommen“ oder doppelte Stempel).
@@ -71,7 +91,7 @@ $mitarbeiterName = $mitarbeiterName ?? 'Unbekannt';
                     <tr>
                         <th style="text-align:left; border-bottom: 1px solid #ddd; padding: 0.4rem 0.5rem;">Mitarbeiter</th>
                         <th style="text-align:left; border-bottom: 1px solid #ddd; padding: 0.4rem 0.5rem;">Datum</th>
-                        <th style="text-align:right; border-bottom: 1px solid #ddd; padding: 0.4rem 0.5rem;">Öffnen</th>
+                        <th style="text-align:right; border-bottom: 1px solid #ddd; padding: 0.4rem 0.5rem;">Buchungen</th>
                         <th style="text-align:right; border-bottom: 1px solid #ddd; padding: 0.4rem 0.5rem;">Kommen</th>
                         <th style="text-align:right; border-bottom: 1px solid #ddd; padding: 0.4rem 0.5rem;">Gehen</th>
                         <th style="text-align:left; border-bottom: 1px solid #ddd; padding: 0.4rem 0.5rem;">Aktion</th>
@@ -112,7 +132,7 @@ $mitarbeiterName = $mitarbeiterName ?? 'Unbekannt';
                                 <?php echo htmlspecialchars($name !== '' ? $name : ('ID ' . (string)$mid), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>
                             </td>
                             <td style="border-bottom: 1px solid #eee; padding: 0.4rem 0.5rem; white-space: nowrap;">
-                                <?php echo htmlspecialchars($datum, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>
+                                <?php echo htmlspecialchars($dashboardDatumDeutsch($datum), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>
                             </td>
                             <td style="border-bottom: 1px solid #eee; padding: 0.4rem 0.5rem; text-align:right; white-space: nowrap;">
                                 <?php echo (int)($w['anzahl_buchungen'] ?? 0); ?>

@@ -207,7 +207,32 @@ Webbasierte Zeiterfassung inkl. Mitarbeiter-/Rollen-/Genehmiger-Verwaltung, Urla
 - Offen aus P-2026-08-08-02: QR-/Barcode-Erzeugung und die Terminal-Buchungsflows sind unter PHP 8.5 noch nicht geprueft (brauchen einen angemeldeten Browser-Durchlauf).
 
 ## Letzter Patch (P-ID)
-P-2026-08-08-22 (Commit) – Inaktive Mitarbeiter einsehbar
+P-2026-08-08-23 (Commit) – Zeitwarnungen verschwinden nicht mehr
+
+## P-2026-08-08-23 zeitwarnungen-bleiben-stehen
+
+### DATEIEN
+- `controller/DashboardController.php`, `views/dashboard/index.php`
+
+### ANLASS
+- Letzte offene Funktion aus dem Spiegelverzeichnis; vom Nutzer ausdruecklich so beauftragt („wie im Spiegel, die verschwinden nicht“).
+
+### DONE
+- Das Dashboard zeigte Zeitwarnungen bisher nur fuer die letzten X Tage (Konfiguration `dashboard_zeitwarnungen_tage`, zuletzt 31). Ein unvollstaendiger Kommen/Gehen-Stempel verschwand damit nach Ablauf der Frist aus dem Blick, **ohne korrigiert worden zu sein**.
+- Jetzt bleibt **jeder vergangene Tag mit unvollstaendigen Stempeln sichtbar, bis er korrigiert ist**. Die Zeitraumangabe im Dashboard lautet entsprechend „alle vergangenen Tage“.
+
+### ABWAEGUNG
+- Dies ist die einzige der sechs Spiegel-Funktionen, die vorhandene Logik **ersetzt** statt sie zu ergaenzen. Das Risiko war, dass bei grossem Datenbestand schlagartig sehr viele Altwarnungen erscheinen.
+- **Vor der Uebernahme ausgezaehlt:** Im gesamten Bestand (10.031 Zeitbuchungen) gibt es genau **einen** betroffenen Tag – das bekannte offene „kommen“ von Mitarbeiter 15 am 16.07.2026. Die Umstellung ist damit gefahrlos und bewirkt genau das Gewollte: Diese eine Luecke bleibt sichtbar, bis sie jemand schliesst.
+
+### TEST
+1. Dashboard gerendert: keine PHP-Meldungen.
+2. Der betroffene Tag erscheint (16.07.2026, Mitarbeiter Kleespies), Zeitraumangabe „alle vergangenen Tage“.
+3. Datenbankseitige Gegenprobe der Trefferzahl: genau 1 Tag mit ungerader Stempelzahl in der gesamten Vergangenheit.
+
+### DAMIT ABGESCHLOSSEN
+- Alle sechs im Spiegelverzeichnis gefundenen Funktionen sind uebernommen (P-2026-08-08-18, -20, -21, -22, -23). Der nicht gepushte Stand der Windows-Arbeitskopie ist damit vollstaendig ins Repository ueberfuehrt.
+
 
 ## P-2026-08-08-22 inaktive-mitarbeiter
 

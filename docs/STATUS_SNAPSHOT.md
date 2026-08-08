@@ -17,6 +17,7 @@ Webbasierte Zeiterfassung inkl. Mitarbeiter-/Rollen-/Genehmiger-Verwaltung, Urla
 - Lokale Umgebung zum Testen: `docs/lokale_entwicklungsumgebung.md` (App unter `http://localhost/zeiterfassung`).
 
 ## Letzte Aenderungen (Auszug)
+- **P-2026-08-08-23 Zeitwarnungen bleiben stehen:** Unvollstaendige Kommen/Gehen-Stempel verschwinden nicht mehr nach Ablauf einer Frist, sondern bleiben sichtbar bis zur Korrektur. Damit ist der gesamte Spiegel-Stand uebernommen.
 - **P-2026-08-08-22 Inaktive Mitarbeiter:** `?seite=mitarbeiter_admin&status=inaktiv` zeigt ausgeschiedene Mitarbeiter, die bisher aus dem Backend nicht mehr erreichbar waren.
 - **P-2026-08-08-21 Deutsche Datumsformate:** Tagesansicht, Stundenkonto, Feiertagsliste und Krankzeitraum-Pflege zeigen `01.06.2026` statt `2026-06-01`. Gespeichert wird weiterhin ISO.
 - **P-2026-08-08-20 Urlaub aus dem Spiegel:** Monatsabschluss-Marker und Urlaubssalden in der Jahresuebersicht, „Sonstiger Grund“ in der Urlaubsverwaltung, farbige Kalenderzellen. Keine Migration noetig.
@@ -49,7 +50,8 @@ Webbasierte Zeiterfassung inkl. Mitarbeiter-/Rollen-/Genehmiger-Verwaltung, Urla
 - **P-2026-01-24-07:** Dashboard: Zeitwarnungen waren trotz vorhandener Daten unsichtbar, weil `DashboardController` versehentlich `fetchEinzel(...)` (nicht existent) aufruft und dadurch in den Catch faellt → Fix auf `fetchEine(...)`.
 
 ## Letzter Patch (P-ID)
-- P-2026-08-08-22 (Commit; Inaktive Mitarbeiter einsehbar)
+- P-2026-08-08-23 (Commit; Zeitwarnungen verschwinden nicht mehr)
+- Davor: P-2026-08-08-22 (Inaktive Mitarbeiter einsehbar)
 - Davor: P-2026-08-08-21 (Deutsche Datumsformate)
 - Davor: P-2026-08-08-20 (Urlaubsbereich aus dem Spiegelverzeichnis)
 - Davor: P-2026-08-08-19 (Ampel auch in der aufgeklappten Auswahlliste)

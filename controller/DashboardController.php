@@ -157,19 +157,11 @@ class DashboardController
             $darfZeitUnstimmigkeitenSehen = false;
         }
 
-        // Zeitraum fuer die Dashboard-Pruefung (in Tagen).
-        // Default: 31 Tage, damit Monatsfehler nicht "verschwinden", nur weil sie etwas aelter als 14 Tage sind.
-        // Optional per Config-Key `dashboard_zeitwarnungen_tage` anpassbar.
-        $zeitUnstimmigkeitenTage = 31;
-        try {
-            $cfg = ConfigService::getInstanz();
-            $zeitUnstimmigkeitenTage = $cfg->getInt('dashboard_zeitwarnungen_tage', 31);
-        } catch (Throwable $e) {
-            $zeitUnstimmigkeitenTage = 31;
-        }
-        $zeitUnstimmigkeitenTage = (int)$zeitUnstimmigkeitenTage;
-        if ($zeitUnstimmigkeitenTage < 1) { $zeitUnstimmigkeitenTage = 1; }
-        if ($zeitUnstimmigkeitenTage > 365) { $zeitUnstimmigkeitenTage = 365; }
+        // Zeitwarnungen duerfen nicht nach X Tagen verschwinden:
+        // Jeder vergangene Tag mit unvollstaendigen Kommen/Gehen-Stempeln bleibt sichtbar,
+        // bis er korrigiert wurde.
+        $zeitUnstimmigkeitenTage = 0;
+        $zeitUnstimmigkeitenZeitraumLabel = 'alle vergangenen Tage';
 
         if ($darfZeitUnstimmigkeitenSehen && class_exists('Database')) {
             try {
@@ -181,10 +173,6 @@ class DashboardController
                     $tz = new DateTimeZone('Europe/Berlin');
                     $now = new DateTimeImmutable('now', $tz);
                     $todayIso = (new DateTimeImmutable('today', $tz))->format('Y-m-d');
-
-                    $startDate = (new DateTimeImmutable('today', $tz))
-                        ->modify('-' . $zeitUnstimmigkeitenTage . ' days')
-                        ->format('Y-m-d');
 
                     $sqlZeitwarnungen = "SELECT * FROM (\n"
                         . "  SELECT\n"
@@ -199,16 +187,13 @@ class DashboardController
                         . "  JOIN mitarbeiter m ON m.id = z.mitarbeiter_id\n"
                         . "  WHERE m.aktiv = 1\n"
                         . "    AND z.typ IN ('kommen','gehen')\n"
-                        . "    AND z.zeitstempel >= :start_dt\n"
                         . "    AND z.zeitstempel < :today_dt\n"
                         . "  GROUP BY m.id, m.vorname, m.nachname, DATE(z.zeitstempel)\n"
                         . ") AS t\n"
                         . "WHERE t.anzahl_kommen <> t.anzahl_gehen\n"
-                        . "ORDER BY t.datum DESC, t.name ASC\n"
-                        . "LIMIT 20";
+                        . "ORDER BY t.datum DESC, t.name ASC";
 
                     $rows = $db->fetchAlle($sqlZeitwarnungen, [
-                        'start_dt' => $startDate . ' 00:00:00',
                         'today_dt' => $todayIso . ' 00:00:00',
                     ]);
 
@@ -366,15 +351,13 @@ class DashboardController
                             . "FROM tageswerte_mitarbeiter tw\n"
                             . "JOIN mitarbeiter m ON m.id = tw.mitarbeiter_id\n"
                             . "WHERE m.aktiv = 1\n"
-                            . "  AND tw.datum >= :start_date\n"
                             . "  AND tw.datum < :today_date\n"
                             . "  AND (\n"
                             . "        (COALESCE(tw.kommen_korr, tw.kommen_roh) IS NULL AND COALESCE(tw.gehen_korr, tw.gehen_roh) IS NOT NULL)\n"
                             . "     OR (COALESCE(tw.kommen_korr, tw.kommen_roh) IS NOT NULL AND COALESCE(tw.gehen_korr, tw.gehen_roh) IS NULL)\n"
                             . "      )\n"
-                            . "ORDER BY datum DESC, m.nachname ASC, m.vorname ASC\n"
-                            . "LIMIT 20",
-                            ['start_date' => $startDate, 'today_date' => $todayIso]
+                            . "ORDER BY datum DESC, m.nachname ASC, m.vorname ASC",
+                            ['today_date' => $todayIso]
                         );
 
                         if (is_array($rowsTw)) {
@@ -420,6 +403,18 @@ class DashboardController
                             $dedup[] = $w;
                         }
                         $zeitUnstimmigkeiten = $dedup;
+                    }
+
+                    if (is_array($zeitUnstimmigkeiten) && count($zeitUnstimmigkeiten) > 1) {
+                        usort($zeitUnstimmigkeiten, static function (array $a, array $b): int {
+                            $datumA = (string)($a['datum'] ?? '');
+                            $datumB = (string)($b['datum'] ?? '');
+                            if ($datumA !== $datumB) {
+                                return strcmp($datumB, $datumA);
+                            }
+
+                            return strcasecmp((string)($a['name'] ?? ''), (string)($b['name'] ?? ''));
+                        });
                     }
 
                     if (count($zeitUnstimmigkeiten) === 0) {
