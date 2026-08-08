@@ -219,7 +219,12 @@ P-2026-08-08-26 (Commit) – Personalnummer statt Datenbank-ID, Ampelfarben in d
 1. **Personalnummer statt Datenbank-ID:** In Kopfzeile und Mitarbeiterauswahl steht jetzt `(Nr. 234)` statt `(ID 16)`. Fachlich zaehlt die Personalnummer – die ID ist eine rein technische Groesse und sagt in der Verwaltung niemandem etwas. Ist keine Personalnummer gepflegt, wird ersatzweise die ID gezeigt, damit die Zeile eindeutig zuordenbar bleibt.
 2. **Ampelfarben in der aufgeklappten Liste:** `appearance: none` auf dem Auswahlfeld ergaenzt. Ohne das zeichnet Firefox das aufgeklappte Menue als natives Widget und ignoriert die Farben der einzelnen Optionen – auch die per `style` gesetzten. Erst wenn das Feld als selbst gestaltet gilt, werden sie uebernommen. Der Aufklapp-Pfeil wird deshalb per CSS selbst gezeichnet.
 
-### GRENZE DIESER PRUEFUNG
+### NACHGEREICHTE PRUEFUNG (2026-08-08, Chrome 148)
+- Mit einer Testseite, die Markup und CSS 1:1 uebernimmt, in einem Chromium-Browser die berechneten Stile ausgelesen: Der Eintrag „erledigt“ hat `rgb(232,245,233)` auf `rgb(27,94,32)`, der Eintrag „offen“ `rgb(255,235,238)` auf `rgb(183,28,28)` – exakt die Werte aus dem Stylesheet.
+- **Ergebnis:** Das Markup ist korrekt, andere Browser faerben die Eintraege. Dass Firefox unter Linux die aufgeklappte Liste einfarbig laesst, ist eine Eigenheit dieser Kombination: Dort zeichnet GTK das Menue und verwirft die Optionsfarben. `appearance: none` wirkt nur auf das geschlossene Feld, nicht auf das Popup.
+- **Entscheidung:** Bleibt so. Die Textzeichen (`✓` / `● offen`) tragen die Information verlaesslich in jedem Browser. Eine selbstgebaute Auswahlliste waere die einzige Alternative – viel Eigenbau (Tastatur, Fokus, Zusammenspiel mit den Stepper-Knoepfen) fuer einen rein optischen Gewinn in genau einer Browser/Betriebssystem-Kombination.
+
+### FRUEHERE EINSCHAETZUNG
 - Die Farbdarstellung im aufgeklappten Menue laesst sich **nicht automatisiert nachweisen** – sie haengt vom Browser und vom Systemthema ab und ist im HTML nicht erkennbar. Geprueft ist nur, dass Regel und Inline-Stile ausgeliefert werden.
 - Deshalb bleiben die **Textzeichen** (`✓` / `● offen`) die verlaessliche Anzeige: Sie kommen in jedem Browser an und sind auch bei Rot-Gruen-Sehschwaeche eindeutig. Sollte Firefox die Farben weiterhin verschlucken, ist die Information trotzdem vollstaendig ablesbar.
 
