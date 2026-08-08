@@ -635,14 +635,30 @@ if (is_array($tageswerte) && $tageswerte !== []) {
 
 
 <style>
+    /*
+     * Monatsabschluss-Ampel in der Mitarbeiterauswahl.
+     *
+     * Wichtig: Browser zeichnen die aufgeklappte Liste normalerweise mit dem
+     * Systemthema und ignorieren dabei die Farben der einzelnen <option>. Erst
+     * wenn das <select> selbst Vorder- und Hintergrundfarbe gesetzt bekommt,
+     * uebernimmt es die Darstellung selbst - dann greifen auch die
+     * Optionsfarben. Deshalb steht hier eine ausdrueckliche Grundfarbe.
+     */
+    .monatsabschluss-status-select {
+        background-color: #ffffff;
+        color: #1a1a1a;
+    }
+
     .monatsabschluss-status-select.monatsabschluss-status-erledigt,
     .monatsabschluss-status-select option.monatsabschluss-status-erledigt {
         background-color: #e8f5e9;
+        color: #1b5e20;
     }
 
     .monatsabschluss-status-select.monatsabschluss-status-offen,
     .monatsabschluss-status-select option.monatsabschluss-status-offen {
         background-color: #ffebee;
+        color: #b71c1c;
     }
 
     .report-filter-form {
@@ -744,12 +760,17 @@ if (is_array($tageswerte) && $tageswerte !== []) {
                                     if ($istMonatVergangen && $mid > 0) {
                                         if (!empty($monatsabschlussStatusMap[$mid])) {
                                             $abschlussOptionClass = 'monatsabschluss-status-erledigt';
-                                            $abschlussOptionStyle = 'background-color: #e8f5e9;';
+                                            $abschlussOptionStyle = 'background-color: #e8f5e9; color: #1b5e20;';
                                             $abschlussOptionTitle = 'Monatsabschluss erledigt';
+                                            // Zusaetzliches Textzeichen: Farbe allein ist nicht
+                                            // barrierefrei und wird je nach Browser/Thema nicht
+                                            // gezeichnet. Das Zeichen kommt immer an.
+                                            $abschlussOptionMarker = ' ✓';
                                         } else {
                                             $abschlussOptionClass = 'monatsabschluss-status-offen';
-                                            $abschlussOptionStyle = 'background-color: #ffebee;';
+                                            $abschlussOptionStyle = 'background-color: #ffebee; color: #b71c1c;';
                                             $abschlussOptionTitle = 'Monatsabschluss offen';
+                                            $abschlussOptionMarker = ' ● offen';
                                         }
                                     }
                                 ?>
@@ -758,7 +779,7 @@ if (is_array($tageswerte) && $tageswerte !== []) {
                                     style="<?php echo htmlspecialchars($abschlussOptionStyle, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>"
                                     title="<?php echo htmlspecialchars($abschlussOptionTitle, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>"
                                     <?php echo ($mid === (int)$mitarbeiterId) ? ' selected' : ''; ?>>
-                                    <?php echo htmlspecialchars($label, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?> (ID <?php echo $mid; ?>)
+                                    <?php echo htmlspecialchars($label, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?> (ID <?php echo $mid; ?>)<?php echo htmlspecialchars($abschlussOptionMarker, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>
                                 </option>
                             <?php endforeach; ?>
                         </select>

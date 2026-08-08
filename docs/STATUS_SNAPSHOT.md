@@ -17,6 +17,7 @@ Webbasierte Zeiterfassung inkl. Mitarbeiter-/Rollen-/Genehmiger-Verwaltung, Urla
 - Lokale Umgebung zum Testen: `docs/lokale_entwicklungsumgebung.md` (App unter `http://localhost/zeiterfassung`).
 
 ## Letzte Aenderungen (Auszug)
+- **P-2026-08-08-19 Ampel in der Auswahlliste:** Auch die aufgeklappte Mitarbeiterliste ist jetzt rot/gruen; zusaetzlich Textzeichen (`✓` / `● offen`), weil Farbe allein je nach Browser und Systemthema nicht ankommt und nicht barrierefrei ist.
 - **P-2026-08-08-18 Monatsabschluss-Ampel + Status-Auswahl:** Mitarbeiter in der Monatsuebersicht rot (Abschluss offen) bzw. gruen (gebucht), inkl. Stepper-Bedienung – aus dem nicht gepushten Spiegelverzeichnis uebernommen. Auftragsstatus ist jetzt eine gepruefte Auswahlliste statt Freitext.
 - **P-2026-08-08-16 Katalog im Auftrag:** Standardschritte lassen sich per Mehrfachauswahl in einen Auftrag uebernehmen; fehlende Bezeichnungen werden beim Anzeigen aus dem Katalog ergaenzt (auch fuer am Terminal gescannte Codes). Der Buchungspfad des Terminals bleibt bewusst unberuehrt.
 - **P-2026-08-08-15 Strichcodes statt QR:** Alle Auftrags-, Arbeitsschritt- und Katalog-Codes sind jetzt Code 128 – derselbe Typ wie die vorhandenen Maschinen-Codes, passend zu den 1D-Handscannern im Betrieb. `QrCodeService` heisst jetzt `BarcodeService`.
@@ -45,7 +46,8 @@ Webbasierte Zeiterfassung inkl. Mitarbeiter-/Rollen-/Genehmiger-Verwaltung, Urla
 - **P-2026-01-24-07:** Dashboard: Zeitwarnungen waren trotz vorhandener Daten unsichtbar, weil `DashboardController` versehentlich `fetchEinzel(...)` (nicht existent) aufruft und dadurch in den Catch faellt → Fix auf `fetchEine(...)`.
 
 ## Letzter Patch (P-ID)
-- P-2026-08-08-18 (Commit; Monatsabschluss-Ampel und Status-Auswahl)
+- P-2026-08-08-19 (Commit; Ampel auch in der aufgeklappten Auswahlliste)
+- Davor: P-2026-08-08-18 (Monatsabschluss-Ampel und Status-Auswahl)
 - Davor: P-2026-08-08-17 (Doku Auftraege und Katalog)
 - Davor: P-2026-08-08-16 (Katalog wirkt in den Auftrag hinein)
 - Davor: P-2026-08-08-15 (Strichcodes statt QR-Codes)

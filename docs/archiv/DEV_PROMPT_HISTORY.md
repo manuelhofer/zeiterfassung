@@ -207,7 +207,27 @@ Webbasierte Zeiterfassung inkl. Mitarbeiter-/Rollen-/Genehmiger-Verwaltung, Urla
 - Offen aus P-2026-08-08-02: QR-/Barcode-Erzeugung und die Terminal-Buchungsflows sind unter PHP 8.5 noch nicht geprueft (brauchen einen angemeldeten Browser-Durchlauf).
 
 ## Letzter Patch (P-ID)
-P-2026-08-08-18 (Commit) – Monatsabschluss-Ampel und Status-Auswahl
+P-2026-08-08-19 (Commit) – Ampel auch in der aufgeklappten Auswahlliste
+
+## P-2026-08-08-19 ampel-in-der-auswahlliste
+
+### BUGREPORT
+- Schritte: Monatsuebersicht eines vergangenen Monats oeffnen, Mitarbeiterliste aufklappen.
+- Erwartung: Jeder Name rot oder gruen hinterlegt.
+- Ist: Nur das zugeklappte Feld war gefaerbt, die aufgeklappte Liste blieb einfarbig – obwohl jede `<option>` ihre Farbe im Markup mitbrachte.
+- Ursache: Browser zeichnen die aufgeklappte Liste mit dem Systemthema und ignorieren dabei die Farben der einzelnen Optionen. Erst wenn das `<select>` selbst Vorder- **und** Hintergrundfarbe gesetzt bekommt, uebernimmt der Browser die Darstellung selbst – dann greifen auch die Optionsfarben. Bei einem dunklen Systemthema faellt das besonders auf.
+
+### DATEIEN
+- `views/report/monatsuebersicht.php`
+- `docs/archiv/DEV_PROMPT_HISTORY.md`, `docs/STATUS_SNAPSHOT.md`
+
+### DONE
+- Grundfarbe auf dem `<select>` gesetzt, damit die Optionsfarben ueberhaupt gezeichnet werden; zusaetzlich passende Textfarben (dunkelgruen bzw. dunkelrot) statt nur Hintergrund.
+- **Zusaetzlich ein Textzeichen je Eintrag** – `✓` fuer erledigt, `● offen` fuer offen. Farbe allein ist nicht barrierefrei (Rot-Gruen-Sehschwaeche betrifft rund jeden zwoelften Mann) und haengt vom Browser und Systemthema ab. Das Zeichen kommt immer an.
+
+### TEST
+- Vergangener Monat: Optionen tragen Hintergrund- und Textfarbe sowie das passende Zeichen; ein Mitarbeiter mit gebuchtem Abschluss erscheint gruen mit `✓`, die uebrigen rot mit `● offen`.
+
 
 ## P-2026-08-08-18 monatsabschluss-ampel-und-status-auswahl
 
