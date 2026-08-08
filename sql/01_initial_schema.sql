@@ -64,6 +64,28 @@ CREATE TABLE `auftrag_arbeitsschritt` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
+-- Tabellenstruktur für Tabelle `arbeitsschritt_katalog`
+--
+-- Zentrale, auftragsunabhängige Standard-Arbeitsschritte (z. B. `fraesen`).
+-- Die Arbeitsvorbereitung pflegt sie einmal; ihr QR-Code kann beliebig oft
+-- ausgedruckt und an Maschinen gehängt werden. Beim Scannen entsteht wie
+-- bisher ein Eintrag in `auftrag_arbeitsschritt` für den jeweiligen Auftrag –
+-- der Katalog ist die Vorlage, nicht die Buchung.
+-- --------------------------------------------------------
+CREATE TABLE `arbeitsschritt_katalog` (
+  `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `code` varchar(100) NOT NULL,
+  `bezeichnung` varchar(255) DEFAULT NULL,
+  `sort_order` int(11) NOT NULL DEFAULT 0,
+  `aktiv` tinyint(1) NOT NULL DEFAULT 1,
+  `erstellt_am` datetime NOT NULL DEFAULT current_timestamp(),
+  `geaendert_am` datetime NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uniq_arbeitsschritt_katalog_code` (`code`),
+  KEY `idx_arbeitsschritt_katalog_aktiv` (`aktiv`, `sort_order`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
 -- Tabellenstruktur für Tabelle `auftragszeit`
 -- --------------------------------------------------------
 CREATE TABLE `auftragszeit` (

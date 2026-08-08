@@ -11,6 +11,9 @@ gebraucht - Neuinstallationen bekommen alles ueber `01_initial_schema.sql`.
 - `02_migration_recht_auftraege_verwalten.sql`: legt das Recht
   `AUFTRAEGE_VERWALTEN` an und ordnet es den Superuser-Rollen zu
   (Patch P-2026-08-08-08).
+- `03_migration_arbeitsschritt_katalog.sql`: legt die Tabelle
+  `arbeitsschritt_katalog` fuer zentrale Standard-Arbeitsschritte an
+  (Patch P-2026-08-08-12).
 
 Einspielen:
 

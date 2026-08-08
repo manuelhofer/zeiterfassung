@@ -111,10 +111,82 @@ ein gefuelltes Rechteck (`pdfRectFill`). Das ist beim Drucken schaerfer als ein
 eingebettetes Pixelbild, erzeugt kleinere Dateien und erspart eine
 XObject-Implementierung im PDF-Writer.
 
+## 4a. Arbeitsschritt-Katalog (Erweiterung v2, 2026-08-08)
+
+### Das Problem
+
+Arbeitsschritte je Auftrag zu pflegen ist richtig, wenn der Schritt zum
+Werkstueck gehoert („Aussendurchmesser auf 40 mm drehen“). Fuer die
+**wiederkehrenden Taetigkeiten** ist es aber unnoetige Arbeit: `fraesen` ist
+bei jedem Auftrag dasselbe `fraesen`. Es waere absurd, das fuer jeden neuen
+Auftrag erneut anzulegen.
+
+### Zielbild
+
+Die Arbeitsvorbereitung pflegt einmal einen **Katalog** von Standardschritten:
+`saegen`, `drehen`, `fraesen`, `entgraten`, `pruefen`, …
+
+Der QR-Code eines Katalogschritts haengt **an der Maschine**, nicht auf dem
+Papier. Wer 20 Fraesmaschinen hat, druckt den Code `fraesen` 20-mal aus und
+haengt ihn an jede Maschine. Der Mitarbeiter scannt am Terminal:
+
+1. den Auftrags-QR von der Laufkarte (welches Werkstueck),
+2. den Arbeitsschritt-QR von der Maschine (welche Taetigkeit).
+
+Damit passt derselbe gedruckte Code zu **jedem** Auftrag.
+
+### Warum das ohne Terminal-Aenderung funktioniert
+
+`AuftragszeitService::starteAuftrag()` legt einen fehlenden Arbeitsschritt zum
+Auftrag automatisch an (`INSERT … ON DUPLICATE KEY UPDATE`). Wird `fraesen`
+fuer Auftrag `A-2026-0999` gescannt, entsteht dort genau ein Eintrag
+`auftrag_arbeitsschritt(auftrag_id=…, arbeitsschritt_code='fraesen')`. Der
+Katalog ist also eine **Vorlage**, keine zweite Buchungsquelle – gezaehlt wird
+weiterhin ueber `auftragszeit`.
+
+### Datenbank
+
+Neue Tabelle `arbeitsschritt_katalog`: `code` (global eindeutig),
+`bezeichnung`, `sort_order`, `aktiv`.
+
+Global eindeutig ist hier richtig – anders als bei `auftrag_arbeitsschritt`,
+wo der Code nur pro Auftrag eindeutig sein muss. Ein an der Maschine haengender
+Code muss betriebsweit dasselbe bedeuten.
+
+### Funktionen
+
+- **Katalogverwaltung** unter `?seite=arbeitsschritt_katalog` (Menue
+  „Auftraege“): Liste mit QR-Vorschau, Anlegen, Bearbeiten, Deaktivieren.
+- **Druckblatt** `?seite=arbeitsschritt_katalog_blatt`:
+  - ohne Parameter: alle aktiven Katalogschritte als Uebersicht (eine Karte je
+    Schritt),
+  - mit `id` und `anzahl`: derselbe Schritt in frei waehlbarer Stueckzahl –
+    genau der Fall „20-mal `fraesen`“.
+  - Karten mit Schnittmarkierung, damit sie sich ausschneiden und an die
+    Maschine haengen lassen.
+- **Uebernahme in einen Auftrag:** Im Auftragsdetail lassen sich
+  Katalogschritte per Mehrfachauswahl uebernehmen. Sie erscheinen dann auf der
+  Laufkarte. Bereits vorhandene Codes werden uebersprungen, nicht doppelt
+  angelegt.
+- **Bezeichnung beim Scannen:** Legt das Terminal einen Arbeitsschritt
+  automatisch an und der Code steht im Katalog, wird die Bezeichnung von dort
+  uebernommen. Sonst stuenden in der Auswertung nur nackte Codes. Streng
+  defensiv: nie eine vorhandene Bezeichnung ueberschreiben, und ein Fehler
+  dabei darf eine Buchung niemals verhindern.
+
+### Abgrenzung
+
+- Der Katalog **erzwingt nichts**. Ein am Terminal gescannter Code, der nicht
+  im Katalog steht, wird weiterhin angenommen und gezaehlt – wie bisher.
+- Keine Reihenfolge, keine Pflichtschritte, keine Vorgabezeiten.
+
 ## 5. Rechte
 
-- Neues Recht **`AUFTRAEGE_VERWALTEN`**: Auftraege und Arbeitsschritte anlegen,
-  bearbeiten, deaktivieren.
+- Neues Recht **`AUFTRAEGE_VERWALTEN`**: Auftraege, deren Arbeitsschritte und
+  den Arbeitsschritt-Katalog anlegen, bearbeiten, deaktivieren.
+  Fuer den Katalog wird bewusst **kein eigenes Recht** eingefuehrt: Wer
+  Auftraege pflegen darf, pflegt auch die Vorlagen dafuer. Ein weiteres Recht
+  waere zusaetzliche Verwaltung ohne erkennbaren Nutzen.
 - **Unveraendert:** Auftragsliste, Detailansicht und Laufkarte bleiben fuer alle
   angemeldeten Benutzer sichtbar. Wer in der Werkstatt eine Laufkarte
   nachdrucken muss, soll dafuer kein Verwaltungsrecht brauchen.
@@ -134,6 +206,11 @@ XObject-Implementierung im PDF-Writer.
    ohne Terminal-Aenderung durch.
 5. Ohne das Recht `AUFTRAEGE_VERWALTEN` sind Anlege- und Bearbeitungsfunktionen
    nicht erreichbar, Ansicht und Laufkarte dagegen schon.
+6. Ein Katalogschritt `fraesen` laesst sich einmal anlegen, 20-mal auf ein
+   Druckblatt bringen und in beliebige Auftraege uebernehmen.
+7. Wird ein Katalog-Code am Terminal fuer einen Auftrag gescannt, bei dem er
+   noch nicht hinterlegt ist, entsteht der Arbeitsschritt automatisch – mit der
+   Bezeichnung aus dem Katalog.
 
 ## 7. Bewusst nicht Teil dieser Erweiterung
 
