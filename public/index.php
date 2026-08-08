@@ -176,6 +176,7 @@ try {
         'kurzarbeit_admin_speichern',
         'kurzarbeit_admin_toggle',
         'terminal_admin_toggle',
+        'terminal_admin_kopplung',
     ];
 
     if (in_array($seite, $geschuetzteSeiten, true) && !$auth->istAngemeldet()) {
@@ -520,6 +521,11 @@ try {
         case 'terminal_admin':
             $controller = new TerminalAdminController();
             $controller->index();
+            break;
+
+        case 'terminal_admin_kopplung':
+            $controller = new TerminalAdminController();
+            $controller->kopplung();
             break;
 
         case 'terminal_admin_bearbeiten':

@@ -17,6 +17,7 @@ Webbasierte Zeiterfassung inkl. Mitarbeiter-/Rollen-/Genehmiger-Verwaltung, Urla
 - Lokale Umgebung zum Testen: `docs/lokale_entwicklungsumgebung.md` (App unter `http://localhost/zeiterfassung`).
 
 ## Letzte Aenderungen (Auszug)
+- **P-2026-08-08-31 Terminal-Kopplung, Stufe 1b:** Knopf „Kopplungscode“ in der Terminalverwaltung; der Code wird genau einmal angezeigt und ist danach nicht mehr abrufbar. Durchgaengig geprueft bis zum Einloesen.
 - **P-2026-08-08-30 Terminal-Kopplung, Stufe 1a:** Tabelle `terminal_kopplung` und `TerminalKopplungService` zum Erzeugen und Einloesen von Kopplungscodes (nur Hash gespeichert, einmalig, zeitlich begrenzt). Oberflaeche und DB-Benutzer-Anlage folgen.
 - **P-2026-08-08-29 Terminal-Spezifikation v2:** Terminal meldet sich per Kopplungscode am Backend an und erhaelt einen eigenen, eingeschraenkten Datenbankbenutzer. Das Installationsskript kennt damit keine Zugangsdaten mehr. Offen: ob das Backend die DB-Benutzer selbst anlegt (braucht `CREATE USER`/`GRANT OPTION`) oder die SQL nur anzeigt.
 - **P-2026-08-08-28 Spezifikation Terminal-Installation:** Zielbild fuer ein Skript, das ein Linux-Geraet in einem Durchlauf zum Hallenterminal macht (Pakete, Kiosk, RFID beide Varianten, Scanner, Touchscreen, Selbsttest). Noch nicht umgesetzt; Grenzen und ein Sicherheitshinweis zu den DB-Zugangsdaten auf dem Geraet sind benannt.

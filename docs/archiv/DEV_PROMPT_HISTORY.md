@@ -208,7 +208,33 @@ Webbasierte Zeiterfassung inkl. Mitarbeiter-/Rollen-/Genehmiger-Verwaltung, Urla
 - Offen aus P-2026-08-08-02: QR-/Barcode-Erzeugung und die Terminal-Buchungsflows sind unter PHP 8.5 noch nicht geprueft (brauchen einen angemeldeten Browser-Durchlauf).
 
 ## Letzter Patch (P-ID)
-P-2026-08-08-30 (Commit) – Terminal-Kopplung: Codes (Stufe 1a)
+P-2026-08-08-31 (Commit) – Terminal-Kopplung: Code erzeugen im Backend (Stufe 1b)
+
+## P-2026-08-08-31 terminal-kopplung-backend
+
+### DATEIEN
+- `controller/TerminalAdminController.php`, `public/index.php`
+
+### DONE
+- In der **vorhandenen** Terminalverwaltung ein Knopf „Kopplungscode“ je Zeile – keine zweite Maske. Wer ein Terminal anlegt, macht das weiterhin dort, wo er es immer gemacht hat.
+- Der erzeugte Code wird **einmal gross und gut lesbar** angezeigt, mit dem ausdruecklichen Hinweis, dass er danach nicht mehr abrufbar ist und 30 Minuten gilt.
+- Weitergereicht wird er ueber die Sitzung und dort **sofort verbraucht**: Er steht damit nicht in der Adresszeile (und nicht im Browserverlauf) und bleibt auch nicht in der Sitzung liegen. Ein zweiter Aufruf der Liste zeigt ihn nicht mehr.
+- Solange ein Code offen ist, steht in der Zeile „Code offen bis …“ – ohne den Code selbst.
+- Geschuetzt durch das vorhandene Recht `TERMINAL_VERWALTEN` und CSRF-Token.
+
+### GEFUNDENER FEHLER
+- Erster Testlauf scheiterte an `Undefined property: TerminalAdminController::$db` – der Controller heisst seine Datenbank-Eigenschaft `$datenbank`, nicht `$db`. Beim Uebernehmen des Musters aus einem anderen Controller uebersehen; behoben und nachgetestet.
+
+### TEST
+1. Falsches CSRF-Token und unbekannte Terminal-ID werden mit Meldung abgewiesen.
+2. Regulaerer Aufruf erzeugt den Code (`92HTMC5W`) fuer das richtige Terminal.
+3. Liste zeigt Code, Einmal-Hinweis und „Code offen bis …“; beim zweiten Aufruf ist der Code verschwunden.
+4. **Durchgaengig geprueft:** Der im Backend erzeugte Code laesst sich anschliessend ueber `TerminalKopplungService::loeseCodeEin()` einloesen und liefert das richtige Terminal – Stufe 1a und 1b greifen also ineinander.
+5. Keine PHP-Meldungen.
+
+### NEXT (Stufe 1c)
+- Kopplungs-Endpunkt fuer das Terminal inkl. Anlage des eingeschraenkten Datenbankbenutzers.
+
 
 ## P-2026-08-08-30 terminal-kopplung-codes
 

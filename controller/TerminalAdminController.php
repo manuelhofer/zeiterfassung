@@ -11,6 +11,8 @@ class TerminalAdminController
     private const CSRF_KEY = 'terminal_admin_csrf_token';
     private const FLASH_OK_KEY = 'terminal_admin_flash_nachricht';
     private const FLASH_ERR_KEY = 'terminal_admin_flash_error';
+    private const FLASH_CODE_KEY = 'terminal_admin_flash_kopplungscode';
+    private const FLASH_CODE_TERMINAL_KEY = 'terminal_admin_flash_kopplung_terminal';
 
     private AuthService $authService;
     private Database $datenbank;
@@ -132,10 +134,32 @@ class TerminalAdminController
             }
         }
 
+        $kopplungService = class_exists('TerminalKopplungService') ? TerminalKopplungService::getInstanz() : null;
+
+        // Frisch erzeugter Code: steht genau einmal in der Sitzung und wird
+        // hier sofort verbraucht. Er ist nirgends sonst wieder abrufbar.
+        $neuerCode = isset($_SESSION[self::FLASH_CODE_KEY]) ? (string)$_SESSION[self::FLASH_CODE_KEY] : '';
+        $neuerCodeTerminal = isset($_SESSION[self::FLASH_CODE_TERMINAL_KEY]) ? (string)$_SESSION[self::FLASH_CODE_TERMINAL_KEY] : '';
+        unset($_SESSION[self::FLASH_CODE_KEY], $_SESSION[self::FLASH_CODE_TERMINAL_KEY]);
+
         require __DIR__ . '/../views/layout/header.php';
         ?>
         <section>
             <h2>Terminalverwaltung</h2>
+
+            <?php if ($neuerCode !== ''): ?>
+                <div style="margin:0.75rem 0;padding:0.9rem;border:2px solid #2b6cb0;border-radius:6px;background:#eef5fc;max-width:560px;">
+                    <div><strong>Kopplungscode fuer <?php echo htmlspecialchars($neuerCodeTerminal, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></strong></div>
+                    <div style="font-size:2rem;font-family:monospace;letter-spacing:0.25rem;margin:0.5rem 0;">
+                        <?php echo htmlspecialchars($neuerCode, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>
+                    </div>
+                    <div><small>
+                        Am Terminal eingeben. <strong>Der Code wird nur dieses eine Mal angezeigt</strong> –
+                        er ist danach nicht mehr abrufbar. Er gilt 30 Minuten und laesst sich nur einmal einloesen;
+                        geht er verloren, einfach einen neuen erzeugen.
+                    </small></div>
+                </div>
+            <?php endif; ?>
 
             <p>
                 <a href="?seite=terminal_admin_bearbeiten">Neues Terminal anlegen</a>
@@ -226,6 +250,19 @@ class TerminalAdminController
                                 </td>
                                 <td>
                                     <a href="?seite=terminal_admin_bearbeiten&amp;id=<?php echo $id; ?>">Bearbeiten</a>
+                                    <form method="post" action="?seite=terminal_admin_kopplung" style="display:inline; margin-left:0.5rem;">
+                                        <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($csrfToken, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>">
+                                        <input type="hidden" name="id" value="<?php echo $id; ?>">
+                                        <button type="submit" style="padding: 0.15rem 0.5rem;">Kopplungscode</button>
+                                    </form>
+                                    <?php
+                                        $offeneKopplung = $kopplungService !== null ? $kopplungService->holeOffeneKopplung($id) : null;
+                                        if (is_array($offeneKopplung)):
+                                    ?>
+                                        <br><small style="color:#666;">Code offen bis
+                                            <?php echo htmlspecialchars((string)($offeneKopplung['gueltig_bis'] ?? ''), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>
+                                        </small>
+                                    <?php endif; ?>
                                 </td>
                             </tr>
                         <?php endforeach; ?>
@@ -324,6 +361,69 @@ class TerminalAdminController
     /**
      * Formular zum Anlegen/Bearbeiten eines Terminals.
      */
+    /**
+     * Erzeugt einen Kopplungscode fuer ein Terminal.
+     * Route: ?seite=terminal_admin_kopplung (POST)
+     *
+     * Der Code wird ueber die Sitzung genau einmal an die Liste
+     * weitergereicht und dort sofort verbraucht - er landet weder in der
+     * Adresszeile noch dauerhaft in der Sitzung.
+     */
+    public function kopplung(): void
+    {
+        if (!$this->pruefeZugriff()) {
+            return;
+        }
+
+        if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST') {
+            header('Location: ?seite=terminal_admin');
+            return;
+        }
+
+        $csrfToken = $this->holeOderErzeugeCsrfToken();
+        if ($csrfToken === '' || !hash_equals($csrfToken, (string)($_POST['csrf_token'] ?? ''))) {
+            $_SESSION[self::FLASH_ERR_KEY] = 'Die Sitzung ist abgelaufen. Bitte erneut versuchen.';
+            header('Location: ?seite=terminal_admin');
+            return;
+        }
+
+        $id = (int)($_POST['id'] ?? 0);
+        if ($id <= 0 || !class_exists('TerminalKopplungService')) {
+            $_SESSION[self::FLASH_ERR_KEY] = 'Der Kopplungscode konnte nicht erzeugt werden.';
+            header('Location: ?seite=terminal_admin');
+            return;
+        }
+
+        $terminal = null;
+        try {
+            $terminal = $this->datenbank->fetchEine('SELECT id, name FROM terminal WHERE id = :id LIMIT 1', ['id' => $id]);
+        } catch (\Throwable $e) {
+            $terminal = null;
+        }
+
+        if (!is_array($terminal)) {
+            $_SESSION[self::FLASH_ERR_KEY] = 'Das Terminal wurde nicht gefunden.';
+            header('Location: ?seite=terminal_admin');
+            return;
+        }
+
+        $mitarbeiterId = null;
+        if (method_exists($this->authService, 'holeAngemeldeteMitarbeiterId')) {
+            $mitarbeiterId = $this->authService->holeAngemeldeteMitarbeiterId();
+        }
+
+        $code = TerminalKopplungService::getInstanz()->erzeugeCode($id, $mitarbeiterId);
+
+        if ($code === null) {
+            $_SESSION[self::FLASH_ERR_KEY] = 'Der Kopplungscode konnte nicht erzeugt werden.';
+        } else {
+            $_SESSION[self::FLASH_CODE_KEY] = $code;
+            $_SESSION[self::FLASH_CODE_TERMINAL_KEY] = (string)($terminal['name'] ?? ('Terminal ' . $id));
+        }
+
+        header('Location: ?seite=terminal_admin');
+    }
+
     public function bearbeiten(): void
     {
         if (!$this->pruefeZugriff()) {
