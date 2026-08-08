@@ -135,6 +135,7 @@ try {
         'arbeitsschritt_katalog_blatt',
         'auftrag_schritt_bearbeiten',
         'auftrag_schritt_speichern',
+        'auftrag_schritte_aus_katalog',
         'auftragszeit_bearbeiten',
         'mitarbeiter_admin',
         'mitarbeiter_admin_bearbeiten',
@@ -321,6 +322,11 @@ try {
         case 'auftrag_schritt_bearbeiten':
             $controller = new AuftragController();
             $controller->schrittBearbeiten();
+            break;
+
+        case 'auftrag_schritte_aus_katalog':
+            $controller = new AuftragController();
+            $controller->schritteAusKatalog();
             break;
 
         case 'auftrag_schritt_speichern':

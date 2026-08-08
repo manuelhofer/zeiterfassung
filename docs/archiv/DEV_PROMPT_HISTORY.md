@@ -207,7 +207,38 @@ Webbasierte Zeiterfassung inkl. Mitarbeiter-/Rollen-/Genehmiger-Verwaltung, Urla
 - Offen aus P-2026-08-08-02: QR-/Barcode-Erzeugung und die Terminal-Buchungsflows sind unter PHP 8.5 noch nicht geprueft (brauchen einen angemeldeten Browser-Durchlauf).
 
 ## Letzter Patch (P-ID)
-P-2026-08-08-15 (Commit) – Strichcodes statt QR-Codes
+P-2026-08-08-16 (Commit) – Katalog wirkt in den Auftrag hinein
+
+## P-2026-08-08-16 katalog-in-auftrag
+
+### EINGELESEN
+- `controller/AuftragController.php`, `services/AuftragszeitService.php` (Buchungspfad), `services/PDFService.php`.
+
+### DUPLIKAT-CHECK
+- Kein Duplikat: Bisher waren Katalog und Auftrag voellig getrennt.
+
+### DATEIEN
+- `controller/AuftragController.php`, `public/index.php`
+- `docs/archiv/DEV_PROMPT_HISTORY.md`, `docs/STATUS_SNAPSHOT.md`
+
+### DONE
+- **Uebernahme aus dem Katalog:** In der Auftrags-Detailansicht lassen sich Standardschritte per Mehrfachauswahl uebernehmen. Angezeigt werden nur Schritte, die es beim Auftrag noch nicht gibt; bereits vorhandene Codes werden uebersprungen und **nicht** ueberschrieben – eine am Auftrag gepflegte Bezeichnung ist die speziellere und gewinnt.
+- **Fehlende Bezeichnungen werden beim Anzeigen aus dem Katalog ergaenzt** (Detailansicht und Laufkarte), gekennzeichnet mit „(aus Katalog)“.
+
+### ABWEICHUNG VOM URSPRUENGLICHEN PLAN (bewusst)
+- Geplant war, die Bezeichnung schon beim automatischen Anlegen im Terminal-Buchungspfad zu setzen. **Verworfen**, weil dafuer `AuftragszeitService` bzw. die Offline-Queue-SQL haette angefasst werden muessen: Fehlt auf einer Installation die Katalog-Tabelle (Migration 03 noch nicht eingespielt), waere eine Buchung in der Halle gescheitert. Das ist inakzeptabel – eine Buchung darf nie an Stammdaten haengen.
+- Die Loesung „beim Anzeigen nachschlagen“ ist nicht nur sicherer, sie wirkt auch fuer Buchungen, die ueber die Offline-Queue nachlaufen, und braucht keinerlei Aenderung am Terminal. Faellt der Katalog aus, bleibt es beim nackten Code – wie vorher.
+
+### AKZEPTANZKRITERIEN
+- Ein am Terminal gescannter Katalog-Code erscheint in Auftrag und Laufkarte mit seiner Klartext-Bezeichnung, ohne dass jemand etwas nachpflegt.
+
+### TEST
+1. Auftrag mit einem „vom Terminal“ angelegten Schritt `bohren` ohne Bezeichnung: Detailansicht zeigt „Bohren (aus Katalog)“.
+2. Uebernahme von `saegen`, `drehen` und dem bereits vorhandenen `bohren`: Meldung „2 Arbeitsschritte wurden uebernommen. 1 waren bereits vorhanden und blieben unveraendert.“ – `bohren` blieb unveraendert.
+3. Leere Auswahl und falsches CSRF-Token werden abgewiesen.
+4. Laufkarte enthaelt alle drei Schritte mit Klartext, alle Strichcodes dekodierbar (`bohren`, `saegen`, `drehen`, `A-KATALOG-TEST`).
+5. Keine PHP-Meldungen.
+
 
 ## P-2026-08-08-15 strichcodes-statt-qr
 

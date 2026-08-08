@@ -399,6 +399,7 @@ class AuftragController
         // Arbeitsschritte zeigen.
         $auftragStamm = null;
         $arbeitsschritte = [];
+        $katalogVerfuegbar = [];
         $auftragCodeUrl = '';
 
         try {
@@ -416,6 +417,29 @@ class AuftragController
                       ORDER BY aktiv DESC, id ASC',
                     ['aid' => $auftragId]
                 );
+
+                $arbeitsschritte = $this->ergaenzeBezeichnungenAusKatalog($arbeitsschritte);
+
+                // Katalogschritte, die es bei diesem Auftrag noch nicht gibt
+                try {
+                    $vorhandeneCodes = [];
+                    foreach ($arbeitsschritte as $vorhanden) {
+                        $vorhandeneCodes[trim((string)($vorhanden['arbeitsschritt_code'] ?? ''))] = true;
+                    }
+
+                    foreach ($this->db->fetchAlle(
+                        'SELECT id, code, bezeichnung FROM arbeitsschritt_katalog
+                          WHERE aktiv = 1 ORDER BY sort_order ASC, code ASC'
+                    ) as $katalogEintrag) {
+                        $katalogCode = trim((string)($katalogEintrag['code'] ?? ''));
+                        if ($katalogCode !== '' && !isset($vorhandeneCodes[$katalogCode])) {
+                            $katalogVerfuegbar[] = $katalogEintrag;
+                        }
+                    }
+                } catch (\Throwable $e) {
+                    // Ohne Katalog bleibt der Auftrag trotzdem bedienbar.
+                    $katalogVerfuegbar = [];
+                }
 
                 $codeService = new BarcodeService();
 
@@ -658,7 +682,12 @@ class AuftragController
                                 <tr<?php echo $schrittAktiv ? '' : ' style="color:#888;"'; ?>>
                                     <td><?php echo $nr + 1; ?></td>
                                     <td><code><?php echo $escD($schrittCode); ?></code></td>
-                                    <td><?php echo $bezeichnung !== '' ? $escD($bezeichnung) : '-'; ?></td>
+                                    <td>
+                                        <?php echo $bezeichnung !== '' ? $escD($bezeichnung) : '-'; ?>
+                                        <?php if (!empty($schritt['bezeichnung_aus_katalog'])): ?>
+                                            <small style="color:#666;">(aus Katalog)</small>
+                                        <?php endif; ?>
+                                    </td>
                                     <td>
                                         <?php if ($schrittCodeBild !== ''): ?>
                                             <img src="<?php echo $escD($schrittCodeBild); ?>" alt="Strichcode <?php echo $escD($schrittCode); ?>" style="height:44px;width:auto;image-rendering:pixelated;">
@@ -700,6 +729,36 @@ class AuftragController
                             <button type="submit">Hinzufuegen</button>
                         </form>
                     </div>
+
+                    <?php if (count($katalogVerfuegbar) > 0): ?>
+                        <div style="margin-top:1rem;padding:0.75rem;border:1px solid #ddd;border-radius:6px;max-width:640px;">
+                            <strong>Aus dem Arbeitsschritt-Katalog uebernehmen</strong>
+                            <p style="margin:0.4rem 0;"><small>
+                                Standardschritte, die es bei diesem Auftrag noch nicht gibt. Uebernommene
+                                Schritte erscheinen auf der Laufkarte.
+                                <a href="?seite=arbeitsschritt_katalog">Katalog pflegen</a>
+                            </small></p>
+                            <form method="post" action="?seite=auftrag_schritte_aus_katalog">
+                                <input type="hidden" name="csrf_token" value="<?php echo $escD($stammCsrf); ?>">
+                                <input type="hidden" name="auftrag_id" value="<?php echo (int)$auftragStamm['id']; ?>">
+                                <?php foreach ($katalogVerfuegbar as $kat): ?>
+                                    <?php
+                                        $katId  = (int)($kat['id'] ?? 0);
+                                        $katCode = (string)($kat['code'] ?? '');
+                                        $katBez  = trim((string)($kat['bezeichnung'] ?? ''));
+                                    ?>
+                                    <label style="display:block;margin:0.15rem 0;">
+                                        <input type="checkbox" name="katalog_ids[]" value="<?php echo $katId; ?>">
+                                        <code><?php echo $escD($katCode); ?></code>
+                                        <?php if ($katBez !== ''): ?>
+                                            &ndash; <?php echo $escD($katBez); ?>
+                                        <?php endif; ?>
+                                    </label>
+                                <?php endforeach; ?>
+                                <button type="submit" style="margin-top:0.5rem;">Ausgewaehlte uebernehmen</button>
+                            </form>
+                        </div>
+                    <?php endif; ?>
                 <?php endif; ?>
             <?php endif; ?>
         </section>
@@ -1132,6 +1191,10 @@ class AuftragController
                       ORDER BY id ASC',
                     ['aid' => (int)($auftrag['id'] ?? 0)]
                 );
+
+                // Fehlende Bezeichnungen aus dem Katalog nachschlagen, damit auf
+                // der Laufkarte nicht nur nackte Codes stehen.
+                $schritte = $this->ergaenzeBezeichnungenAusKatalog($schritte);
             }
         } catch (\Throwable $e) {
             $this->protokolliere('Laufkarte konnte nicht geladen werden', [
@@ -1418,6 +1481,195 @@ class AuftragController
         </section>
         <?php
         require __DIR__ . '/../views/layout/footer.php';
+    }
+
+    /**
+     * Uebernimmt ausgewaehlte Katalogschritte in einen Auftrag.
+     * Route: ?seite=auftrag_schritte_aus_katalog (POST)
+     */
+    public function schritteAusKatalog(): void
+    {
+        if (!$this->pruefeZugriff()) {
+            return;
+        }
+
+        if (!$this->darfAuftraegeVerwalten()) {
+            $this->zeigeKeinRecht();
+            return;
+        }
+
+        if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST') {
+            header('Location: ?seite=auftrag');
+            return;
+        }
+
+        $csrfToken = $this->holeOderErzeugeCsrfTokenStamm();
+        if ($csrfToken === '' || !hash_equals($csrfToken, (string)($_POST['csrf_token'] ?? ''))) {
+            $_SESSION['auftrag_flash_fehler'] = 'Die Sitzung ist abgelaufen. Bitte erneut versuchen.';
+            header('Location: ?seite=auftrag');
+            return;
+        }
+
+        $auftragId = (int)($_POST['auftrag_id'] ?? 0);
+        $auswahl   = $_POST['katalog_ids'] ?? [];
+        $ids       = [];
+
+        if (is_array($auswahl)) {
+            foreach ($auswahl as $wert) {
+                $id = (int)$wert;
+                if ($id > 0) {
+                    $ids[$id] = $id;
+                }
+            }
+        }
+
+        $auftragsnummer = '';
+        try {
+            $auftrag = $this->db->fetchEine('SELECT auftragsnummer FROM auftrag WHERE id = :id LIMIT 1', ['id' => $auftragId]);
+            if (is_array($auftrag)) {
+                $auftragsnummer = (string)($auftrag['auftragsnummer'] ?? '');
+            }
+        } catch (\Throwable $e) {
+            $this->protokolliere('Auftrag fuer Katalog-Uebernahme nicht ermittelbar', [
+                'auftrag_id' => $auftragId,
+                'exception'  => $e->getMessage(),
+            ]);
+        }
+
+        if ($auftragsnummer === '') {
+            $_SESSION['auftrag_flash_fehler'] = 'Der zugehoerige Auftrag wurde nicht gefunden.';
+            header('Location: ?seite=auftrag');
+            return;
+        }
+
+        if ($ids === []) {
+            $_SESSION['auftrag_detail_flash_fehler'] = 'Es war kein Arbeitsschritt ausgewaehlt.';
+            header('Location: ?seite=auftrag_detail&code=' . urlencode($auftragsnummer));
+            return;
+        }
+
+        $uebernommen = 0;
+        $uebersprungen = 0;
+
+        try {
+            $platzhalter = implode(',', array_fill(0, count($ids), '?'));
+            $eintraege = $this->db->fetchAlle(
+                'SELECT code, bezeichnung FROM arbeitsschritt_katalog WHERE id IN (' . $platzhalter . ')',
+                array_values($ids)
+            );
+
+            foreach ($eintraege as $eintrag) {
+                $code = trim((string)($eintrag['code'] ?? ''));
+                if ($code === '') {
+                    continue;
+                }
+
+                // Vorhandene Codes werden uebersprungen, nicht ueberschrieben -
+                // eine bereits gepflegte Bezeichnung am Auftrag ist die
+                // speziellere und soll gewinnen.
+                $betroffen = $this->db->ausfuehren(
+                    'INSERT INTO auftrag_arbeitsschritt (auftrag_id, arbeitsschritt_code, bezeichnung, aktiv)
+                     VALUES (:aid, :code, :bez, 1)
+                     ON DUPLICATE KEY UPDATE arbeitsschritt_code = arbeitsschritt_code',
+                    [
+                        'aid'  => $auftragId,
+                        'code' => $code,
+                        'bez'  => ($eintrag['bezeichnung'] ?? null) !== '' ? $eintrag['bezeichnung'] : null,
+                    ]
+                );
+
+                // MySQL liefert 1 fuer INSERT, 0 wenn der Eintrag schon existierte.
+                if ($betroffen > 0) {
+                    $uebernommen++;
+                } else {
+                    $uebersprungen++;
+                }
+            }
+        } catch (\Throwable $e) {
+            $this->protokolliere('Katalogschritte konnten nicht uebernommen werden', [
+                'auftrag_id' => $auftragId,
+                'exception'  => $e->getMessage(),
+            ]);
+            $_SESSION['auftrag_detail_flash_fehler'] = 'Die Arbeitsschritte konnten nicht uebernommen werden.';
+            header('Location: ?seite=auftrag_detail&code=' . urlencode($auftragsnummer));
+            return;
+        }
+
+        $meldung = $uebernommen === 1
+            ? 'Ein Arbeitsschritt wurde uebernommen.'
+            : $uebernommen . ' Arbeitsschritte wurden uebernommen.';
+
+        if ($uebersprungen > 0) {
+            $meldung .= ' ' . $uebersprungen . ' waren bereits vorhanden und blieben unveraendert.';
+        }
+
+        $_SESSION['auftrag_detail_flash_ok'] = $meldung;
+        header('Location: ?seite=auftrag_detail&code=' . urlencode($auftragsnummer));
+    }
+
+    /**
+     * Ergaenzt fehlende Bezeichnungen aus dem Arbeitsschritt-Katalog.
+     *
+     * Legt das Terminal beim Scannen einen Arbeitsschritt automatisch an, hat
+     * dieser nur den Code und keine Bezeichnung. Statt in den Buchungspfad
+     * einzugreifen, wird die Bezeichnung hier beim Anzeigen nachgeschlagen:
+     *
+     * - Eine Buchung kann dadurch niemals scheitern – das ist die oberste
+     *   Regel in der Halle.
+     * - Es wirkt auch fuer Buchungen, die ueber die Offline-Queue nachlaufen.
+     * - Eine am Auftrag gepflegte Bezeichnung bleibt unberuehrt; sie ist die
+     *   speziellere und gewinnt.
+     *
+     * Faellt der Katalog aus (z. B. Tabelle fehlt, weil die Migration noch
+     * nicht eingespielt ist), bleibt einfach alles wie vorher.
+     *
+     * @param array<int,array<string,mixed>> $schritte
+     * @return array<int,array<string,mixed>>
+     */
+    private function ergaenzeBezeichnungenAusKatalog(array $schritte): array
+    {
+        $offeneCodes = [];
+        foreach ($schritte as $schritt) {
+            $bezeichnung = trim((string)($schritt['bezeichnung'] ?? ''));
+            $code = trim((string)($schritt['arbeitsschritt_code'] ?? ''));
+            if ($bezeichnung === '' && $code !== '') {
+                $offeneCodes[$code] = $code;
+            }
+        }
+
+        if ($offeneCodes === []) {
+            return $schritte;
+        }
+
+        $ausKatalog = [];
+        try {
+            $platzhalter = implode(',', array_fill(0, count($offeneCodes), '?'));
+            $treffer = $this->db->fetchAlle(
+                'SELECT code, bezeichnung FROM arbeitsschritt_katalog WHERE code IN (' . $platzhalter . ')',
+                array_values($offeneCodes)
+            );
+
+            foreach ($treffer as $eintrag) {
+                $code = trim((string)($eintrag['code'] ?? ''));
+                $bez  = trim((string)($eintrag['bezeichnung'] ?? ''));
+                if ($code !== '' && $bez !== '') {
+                    $ausKatalog[$code] = $bez;
+                }
+            }
+        } catch (\Throwable $e) {
+            // Bewusst still: Ohne Katalog bleibt es beim nackten Code.
+            return $schritte;
+        }
+
+        foreach ($schritte as $index => $schritt) {
+            $code = trim((string)($schritt['arbeitsschritt_code'] ?? ''));
+            if (trim((string)($schritt['bezeichnung'] ?? '')) === '' && isset($ausKatalog[$code])) {
+                $schritte[$index]['bezeichnung'] = $ausKatalog[$code];
+                $schritte[$index]['bezeichnung_aus_katalog'] = true;
+            }
+        }
+
+        return $schritte;
     }
 
     /**
