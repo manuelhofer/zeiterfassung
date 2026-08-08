@@ -207,7 +207,43 @@ Webbasierte Zeiterfassung inkl. Mitarbeiter-/Rollen-/Genehmiger-Verwaltung, Urla
 - Offen aus P-2026-08-08-02: QR-/Barcode-Erzeugung und die Terminal-Buchungsflows sind unter PHP 8.5 noch nicht geprueft (brauchen einen angemeldeten Browser-Durchlauf).
 
 ## Letzter Patch (P-ID)
-P-2026-08-08-08 (Commit) – Recht AUFTRAEGE_VERWALTEN
+P-2026-08-08-09 (Commit) – Auftrag im Backend anlegen und bearbeiten
+
+## P-2026-08-08-09 auftrag-anlegen-und-bearbeiten
+
+### EINGELESEN
+- `controller/AuftragController.php`, `public/index.php` (Routing/Whitelist), `views/layout/header.php`, `core/Database.php`.
+
+### DUPLIKAT-CHECK
+- Kein Duplikat: Auftraege entstanden bisher ausschliesslich beim Scannen am Terminal; im Backend gab es nur Auswertung.
+
+### DATEIEN
+- `controller/AuftragController.php`
+- `public/index.php`
+- `docs/archiv/DEV_PROMPT_HISTORY.md`, `docs/STATUS_SNAPSHOT.md`
+
+### DONE
+- **Neue Routen** `?seite=auftrag_neu`, `?seite=auftrag_bearbeiten&id=…`, `?seite=auftrag_speichern` (POST) mit CSRF-Token und Recht `AUFTRAEGE_VERWALTEN` (Legacy-Rollen wie im uebrigen Controller mitgeprueft).
+- **Auftragsliste zeigt jetzt auch buchungslose Auftraege.** Die Abfrage startete bisher bei `auftragszeit`; ein im Backend angelegter Auftrag waere unsichtbar gewesen. Grundmenge ist jetzt eine UNION aus `auftrag.auftragsnummer` und `auftragszeit.auftragscode`, Status `angelegt` bei 0 Buchungen. Alle Spalten sind aggregiert, damit die Abfrage auch unter `ONLY_FULL_GROUP_BY` laeuft.
+- Suche filtert auf der Grundmenge statt auf den verbundenen Buchungen – sonst faende sie einen Auftrag ohne Buchung nicht.
+- Liste um Kunde und Kurzbeschreibung ergaenzt, Knopf „+ Auftrag hinzufuegen“ (nur mit Recht sichtbar).
+- Doppelte Auftragsnummern werden vorher abgefangen und verstaendlich gemeldet, statt in einen SQL-Fehler zu laufen.
+- Flash-Meldungen der Liste werden jetzt auch angezeigt; `auftrag_flash_fehler` wurde zwar gesetzt, aber nirgends ausgegeben.
+
+### AKZEPTANZKRITERIEN
+- Ein neu angelegter Auftrag ohne jede Buchung erscheint in der Liste mit Status „angelegt“ und laesst sich oeffnen und wieder bearbeiten.
+
+### TEST
+1. Listen-Abfrage direkt gegen die Datenbank: Auftrag ohne Buchung erscheint als `angelegt` (0 Buchungen), Auftrag mit Buchung unveraendert als `abgeschlossen`; dieselbe Abfrage laeuft unter `SET sql_mode='ONLY_FULL_GROUP_BY,...'` fehlerfrei.
+2. Seiten mit simulierter Anmeldung gerendert (Liste, Anlegen, Bearbeiten, Detail): keine PHP-Meldungen, Knopf nur bei vorhandenem Recht sichtbar.
+3. Speichern-Pfade: leere Nummer, 101 Zeichen, bereits vorhandene Nummer und falsches CSRF-Token werden abgelehnt; ein gueltiger Auftrag landet in der Datenbank.
+
+### HINWEIS
+- Beim Testen entstanden die Beispielauftraege `A-2026-0815` und `A-2026-0999` in der lokalen Datenbank. Sie sind reine Testdaten und koennen geloescht werden.
+
+### NEXT
+- P-2026-08-08-10: Arbeitsschritte je Auftrag verwalten (Tabelle mit QR-Codes + Formular).
+
 
 ## P-2026-08-08-08 recht-auftraege-verwalten
 

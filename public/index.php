@@ -124,6 +124,9 @@ try {
         'report_monat_export_all',
         'auftrag',
         'auftrag_detail',
+        'auftrag_neu',
+        'auftrag_bearbeiten',
+        'auftrag_speichern',
         'auftragszeit_bearbeiten',
         'mitarbeiter_admin',
         'mitarbeiter_admin_bearbeiten',
@@ -260,6 +263,21 @@ try {
         case 'auftrag_detail':
             $controller = new AuftragController();
             $controller->detail();
+            break;
+
+        case 'auftrag_neu':
+            $controller = new AuftragController();
+            $controller->neu();
+            break;
+
+        case 'auftrag_bearbeiten':
+            $controller = new AuftragController();
+            $controller->bearbeiten();
+            break;
+
+        case 'auftrag_speichern':
+            $controller = new AuftragController();
+            $controller->speichern();
             break;
 
         case 'auftragszeit_bearbeiten':

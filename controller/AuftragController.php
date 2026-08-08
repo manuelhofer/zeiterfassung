@@ -17,6 +17,7 @@ declare(strict_types=1);
 class AuftragController
 {
     private const CSRF_KEY_AUFTRAGSZEIT_BEARBEITEN = 'auftragszeit_bearbeiten_csrf_token';
+    private const CSRF_KEY_AUFTRAG_STAMM = 'auftrag_stamm_csrf_token';
 
     private AuthService $authService;
     private Database $db;
@@ -103,32 +104,59 @@ class AuftragController
             $where = '';
             $params = [];
             if ($like !== null) {
-                $where = 'WHERE (a.auftragsnummer LIKE :q ESCAPE "\\\\" OR az.auftragscode LIKE :q ESCAPE "\\\\")';
+                // Gefiltert wird auf der Grundmenge der Auftragsnummern, nicht auf
+                // den verbundenen Buchungen. Sonst faende die Suche einen Auftrag
+                // ohne Buchung nicht.
+                $where = 'WHERE nummern.auftragsnummer LIKE :q ESCAPE "\\\\"';
                 $params['q'] = $like;
             }
 
-            // Auswertung ueber existierende Buchungen
+            // Grundmenge sind alle bekannten Auftragsnummern - aus den Stammdaten
+            // (`auftrag`) UND aus den Buchungen (`auftragszeit`).
+            //
+            // Wichtig: Frueher startete diese Abfrage bei `auftragszeit`. Ein im
+            // Backend angelegter Auftrag ohne Buchung war damit unsichtbar. Ueber
+            // die UNION-Grundmenge erscheint er sofort - mit 0 Buchungen und dem
+            // Status "angelegt".
+            //
+            // Alle Spalten sind aggregiert (MAX/COUNT/SUM), damit die Abfrage auch
+            // unter ONLY_FULL_GROUP_BY laeuft (vgl. B-085 / P-2026-01-25-02).
             $sql = "
                 SELECT
-                    COALESCE(a.auftragsnummer, az.auftragscode) AS auftragsnummer,
+                    nummern.auftragsnummer AS auftragsnummer,
                     MAX(a.aktiv) AS auftrag_aktiv,
-                    COUNT(*) AS buchungen,
+                    MAX(a.kurzbeschreibung) AS kurzbeschreibung,
+                    MAX(a.kunde) AS kunde,
+                    COUNT(az.id) AS buchungen,
                     SUM(CASE WHEN az.status = 'laufend' THEN 1 ELSE 0 END) AS laufend,
                     SUM(CASE WHEN az.status = 'pausiert' THEN 1 ELSE 0 END) AS pausiert,
                     CASE
                         WHEN SUM(CASE WHEN az.status = 'laufend' THEN 1 ELSE 0 END) > 0 THEN 'laufend'
                         WHEN SUM(CASE WHEN az.status = 'pausiert' THEN 1 ELSE 0 END) > 0 THEN 'pausiert'
+                        WHEN COUNT(az.id) = 0 THEN 'angelegt'
                         ELSE 'abgeschlossen'
                     END AS status,
                     SUM(CASE WHEN az.endzeit IS NOT NULL THEN TIMESTAMPDIFF(SECOND, az.startzeit, az.endzeit) ELSE 0 END) AS sekunden,
                     MIN(az.startzeit) AS erste_startzeit,
                     MAX(COALESCE(az.endzeit, az.startzeit)) AS letzte_zeit,
                     COALESCE(MAX(a.geaendert_am), MAX(COALESCE(az.endzeit, az.startzeit))) AS zuletzt_bearbeitet
-                FROM auftragszeit az
-                LEFT JOIN auftrag a ON a.id = az.auftrag_id
+                FROM (
+                    SELECT auftragsnummer AS auftragsnummer
+                      FROM auftrag
+                     WHERE auftragsnummer IS NOT NULL AND auftragsnummer <> ''
+                    UNION
+                    SELECT DISTINCT az2.auftragscode
+                      FROM auftragszeit az2
+                     WHERE az2.auftragscode IS NOT NULL AND az2.auftragscode <> ''
+                ) AS nummern
+                LEFT JOIN auftrag a
+                       ON a.auftragsnummer = nummern.auftragsnummer
+                LEFT JOIN auftragszeit az
+                       ON az.auftragscode = nummern.auftragsnummer
+                       OR (a.id IS NOT NULL AND az.auftrag_id = a.id)
                 {$where}
-                GROUP BY COALESCE(a.auftragsnummer, az.auftragscode)
-                ORDER BY letzte_zeit DESC
+                GROUP BY nummern.auftragsnummer
+                ORDER BY COALESCE(MAX(COALESCE(az.endzeit, az.startzeit)), MAX(a.geaendert_am)) DESC
                 LIMIT 200
             ";
 
@@ -147,6 +175,30 @@ class AuftragController
         ?>
         <section>
             <h2>Auftraege</h2>
+
+            <?php
+                $flashFehlerListe = isset($_SESSION['auftrag_flash_fehler']) ? (string)$_SESSION['auftrag_flash_fehler'] : '';
+                $flashOkListe = isset($_SESSION['auftrag_flash_ok']) ? (string)$_SESSION['auftrag_flash_ok'] : '';
+                unset($_SESSION['auftrag_flash_fehler'], $_SESSION['auftrag_flash_ok']);
+            ?>
+            <?php if ($flashOkListe !== ''): ?>
+                <p style="padding:8px;border:1px solid #9ad29a;background:#e9f7e9;">
+                    <?php echo htmlspecialchars($flashOkListe, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>
+                </p>
+            <?php endif; ?>
+            <?php if ($flashFehlerListe !== ''): ?>
+                <p style="padding:8px;border:1px solid #e0a0a0;background:#fbeaea;">
+                    <?php echo htmlspecialchars($flashFehlerListe, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>
+                </p>
+            <?php endif; ?>
+
+            <?php if ($this->darfAuftraegeVerwalten()): ?>
+                <p>
+                    <a href="?seite=auftrag_neu" style="display:inline-block;padding:6px 12px;border:1px solid #2b6cb0;border-radius:4px;background:#2b6cb0;color:#fff;text-decoration:none;">
+                        + Auftrag hinzufuegen
+                    </a>
+                </p>
+            <?php endif; ?>
 
             <form method="get" action="" style="margin-bottom: 1rem;">
                 <input type="hidden" name="seite" value="auftrag">
@@ -175,6 +227,8 @@ class AuftragController
                     <thead>
                         <tr>
                             <th>Auftragsnummer</th>
+                            <th>Kunde</th>
+                            <th>Kurzbeschreibung</th>
                             <th>Buchungen</th>
                             <th>Laufend</th>
                             <th>Status</th>
@@ -200,12 +254,17 @@ class AuftragController
                                 $letzte = (string)($row['letzte_zeit'] ?? '');
                                 $zuletztBearbeitet = (string)($row['zuletzt_bearbeitet'] ?? '');
 
+                                $kunde = trim((string)($row['kunde'] ?? ''));
+                                $kurzbeschreibung = trim((string)($row['kurzbeschreibung'] ?? ''));
+
                                 $nrEsc = htmlspecialchars($nr, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
                                 $aktivText = $aktivRaw === null ? '-' : (((int)$aktivRaw === 1) ? 'Ja' : 'Nein');
                                 $statusText = $status !== '' ? $status : '-';
                             ?>
                             <tr>
                                 <td><?php echo $nrEsc; ?></td>
+                                <td><?php echo $kunde !== '' ? htmlspecialchars($kunde, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') : '-'; ?></td>
+                                <td><?php echo $kurzbeschreibung !== '' ? htmlspecialchars($kurzbeschreibung, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') : '-'; ?></td>
                                 <td><?php echo $buchungen; ?></td>
                                 <td><?php echo $laufend; ?></td>
                                 <td><?php echo htmlspecialchars($statusText, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></td>
@@ -602,6 +661,290 @@ class AuftragController
         require __DIR__ . '/../views/layout/footer.php';
     }
 
+    /**
+     * Formular fuer einen neuen Auftrag.
+     * Route: ?seite=auftrag_neu
+     */
+    public function neu(): void
+    {
+        if (!$this->pruefeZugriff()) {
+            return;
+        }
+
+        if (!$this->darfAuftraegeVerwalten()) {
+            $this->zeigeKeinRecht();
+            return;
+        }
+
+        $this->renderAuftragFormular([
+            'id'               => 0,
+            'auftragsnummer'   => '',
+            'kurzbeschreibung' => '',
+            'kunde'            => '',
+            'status'           => '',
+            'aktiv'            => 1,
+        ], null);
+    }
+
+    /**
+     * Formular fuer einen vorhandenen Auftrag.
+     * Route: ?seite=auftrag_bearbeiten&id=...
+     */
+    public function bearbeiten(): void
+    {
+        if (!$this->pruefeZugriff()) {
+            return;
+        }
+
+        if (!$this->darfAuftraegeVerwalten()) {
+            $this->zeigeKeinRecht();
+            return;
+        }
+
+        $id = (int)($_GET['id'] ?? 0);
+        if ($id <= 0) {
+            header('Location: ?seite=auftrag');
+            return;
+        }
+
+        $auftrag = null;
+        try {
+            $auftrag = $this->db->fetchEine('SELECT * FROM auftrag WHERE id = :id LIMIT 1', ['id' => $id]);
+        } catch (\Throwable $e) {
+            $this->protokolliere('Auftrag konnte nicht geladen werden', ['id' => $id, 'exception' => $e->getMessage()]);
+        }
+
+        if (!is_array($auftrag)) {
+            $_SESSION['auftrag_flash_fehler'] = 'Der Auftrag wurde nicht gefunden.';
+            header('Location: ?seite=auftrag');
+            return;
+        }
+
+        $this->renderAuftragFormular($auftrag, null);
+    }
+
+    /**
+     * Speichert einen Auftrag (anlegen oder aendern).
+     * Route: ?seite=auftrag_speichern (POST)
+     */
+    public function speichern(): void
+    {
+        if (!$this->pruefeZugriff()) {
+            return;
+        }
+
+        if (!$this->darfAuftraegeVerwalten()) {
+            $this->zeigeKeinRecht();
+            return;
+        }
+
+        if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST') {
+            header('Location: ?seite=auftrag');
+            return;
+        }
+
+        $csrfToken = $this->holeOderErzeugeCsrfTokenStamm();
+        $postToken = (string)($_POST['csrf_token'] ?? '');
+        if ($csrfToken === '' || !hash_equals($csrfToken, $postToken)) {
+            $_SESSION['auftrag_flash_fehler'] = 'Die Sitzung ist abgelaufen. Bitte erneut versuchen.';
+            header('Location: ?seite=auftrag');
+            return;
+        }
+
+        $id               = (int)($_POST['id'] ?? 0);
+        $auftragsnummer   = trim((string)($_POST['auftragsnummer'] ?? ''));
+        $kurzbeschreibung = trim((string)($_POST['kurzbeschreibung'] ?? ''));
+        $kunde            = trim((string)($_POST['kunde'] ?? ''));
+        $status           = trim((string)($_POST['status'] ?? ''));
+        $aktiv            = isset($_POST['aktiv']) ? 1 : 0;
+
+        $daten = [
+            'id'               => $id,
+            'auftragsnummer'   => $auftragsnummer,
+            'kurzbeschreibung' => $kurzbeschreibung,
+            'kunde'            => $kunde,
+            'status'           => $status,
+            'aktiv'            => $aktiv,
+        ];
+
+        if ($auftragsnummer === '') {
+            $this->renderAuftragFormular($daten, 'Bitte eine Auftragsnummer angeben.');
+            return;
+        }
+
+        if (mb_strlen($auftragsnummer) > 100) {
+            $this->renderAuftragFormular($daten, 'Die Auftragsnummer darf hoechstens 100 Zeichen lang sein.');
+            return;
+        }
+
+        // Doppelte Nummern abfangen, bevor die Datenbank einen Fehler wirft -
+        // die Meldung soll verstaendlich sein, nicht technisch.
+        try {
+            $vorhanden = $this->db->fetchEine(
+                'SELECT id FROM auftrag WHERE auftragsnummer = :nr AND id <> :id LIMIT 1',
+                ['nr' => $auftragsnummer, 'id' => $id]
+            );
+
+            if (is_array($vorhanden)) {
+                $this->renderAuftragFormular(
+                    $daten,
+                    'Die Auftragsnummer "' . $auftragsnummer . '" gibt es bereits. Bitte eine andere waehlen oder den vorhandenen Auftrag oeffnen.'
+                );
+                return;
+            }
+        } catch (\Throwable $e) {
+            $this->protokolliere('Pruefung auf doppelte Auftragsnummer fehlgeschlagen', ['exception' => $e->getMessage()]);
+        }
+
+        try {
+            if ($id > 0) {
+                $this->db->ausfuehren(
+                    'UPDATE auftrag
+                        SET auftragsnummer = :nr,
+                            kurzbeschreibung = :kurz,
+                            kunde = :kunde,
+                            status = :status,
+                            aktiv = :aktiv
+                      WHERE id = :id',
+                    [
+                        'nr'     => $auftragsnummer,
+                        'kurz'   => $kurzbeschreibung !== '' ? $kurzbeschreibung : null,
+                        'kunde'  => $kunde !== '' ? $kunde : null,
+                        'status' => $status !== '' ? $status : null,
+                        'aktiv'  => $aktiv,
+                        'id'     => $id,
+                    ]
+                );
+                $_SESSION['auftrag_detail_flash_ok'] = 'Der Auftrag wurde gespeichert.';
+            } else {
+                $this->db->ausfuehren(
+                    'INSERT INTO auftrag (auftragsnummer, kurzbeschreibung, kunde, status, aktiv)
+                     VALUES (:nr, :kurz, :kunde, :status, :aktiv)',
+                    [
+                        'nr'     => $auftragsnummer,
+                        'kurz'   => $kurzbeschreibung !== '' ? $kurzbeschreibung : null,
+                        'kunde'  => $kunde !== '' ? $kunde : null,
+                        'status' => $status !== '' ? $status : null,
+                        'aktiv'  => $aktiv,
+                    ]
+                );
+                $_SESSION['auftrag_detail_flash_ok'] = 'Der Auftrag wurde angelegt. Jetzt koennen Arbeitsschritte ergaenzt werden.';
+            }
+        } catch (\Throwable $e) {
+            $this->protokolliere('Auftrag konnte nicht gespeichert werden', [
+                'id'        => $id,
+                'exception' => $e->getMessage(),
+            ]);
+            $this->renderAuftragFormular($daten, 'Der Auftrag konnte nicht gespeichert werden.');
+            return;
+        }
+
+        header('Location: ?seite=auftrag_detail&code=' . urlencode($auftragsnummer));
+    }
+
+    /**
+     * Rendert das Auftragsformular (anlegen und bearbeiten in einem).
+     *
+     * @param array<string,mixed> $auftrag
+     */
+    private function renderAuftragFormular(array $auftrag, ?string $fehlermeldung): void
+    {
+        $id               = (int)($auftrag['id'] ?? 0);
+        $auftragsnummer   = (string)($auftrag['auftragsnummer'] ?? '');
+        $kurzbeschreibung = (string)($auftrag['kurzbeschreibung'] ?? '');
+        $kunde            = (string)($auftrag['kunde'] ?? '');
+        $status           = (string)($auftrag['status'] ?? '');
+        $aktiv            = (int)($auftrag['aktiv'] ?? 1) === 1;
+        $csrfToken        = $this->holeOderErzeugeCsrfTokenStamm();
+
+        $esc = static function ($wert): string {
+            return htmlspecialchars((string)$wert, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+        };
+
+        require __DIR__ . '/../views/layout/header.php';
+        ?>
+        <section>
+            <h2><?php echo $id > 0 ? 'Auftrag bearbeiten' : 'Auftrag anlegen'; ?></h2>
+
+            <p><a href="?seite=auftrag">&laquo; Zurueck zur Liste</a></p>
+
+            <?php if (is_string($fehlermeldung) && $fehlermeldung !== ''): ?>
+                <div style="margin-bottom:1rem;padding:8px;border:1px solid #e0a0a0;background:#fbeaea;">
+                    <?php echo $esc($fehlermeldung); ?>
+                </div>
+            <?php endif; ?>
+
+            <form method="post" action="?seite=auftrag_speichern">
+                <input type="hidden" name="csrf_token" value="<?php echo $esc($csrfToken); ?>">
+                <input type="hidden" name="id" value="<?php echo $id; ?>">
+
+                <div style="margin-bottom:0.75rem;">
+                    <label for="auftragsnummer"><strong>Auftragsnummer</strong></label><br>
+                    <input type="text" id="auftragsnummer" name="auftragsnummer" required maxlength="100"
+                           value="<?php echo $esc($auftragsnummer); ?>" style="width:100%;max-width:420px;">
+                    <br><small>Dieser Wert steht spaeter im QR-Code und wird am Terminal gescannt.</small>
+                </div>
+
+                <div style="margin-bottom:0.75rem;">
+                    <label for="kunde"><strong>Kunde</strong></label><br>
+                    <input type="text" id="kunde" name="kunde" maxlength="255"
+                           value="<?php echo $esc($kunde); ?>" style="width:100%;max-width:420px;">
+                </div>
+
+                <div style="margin-bottom:0.75rem;">
+                    <label for="kurzbeschreibung"><strong>Kurzbeschreibung</strong></label><br>
+                    <input type="text" id="kurzbeschreibung" name="kurzbeschreibung" maxlength="255"
+                           value="<?php echo $esc($kurzbeschreibung); ?>" style="width:100%;max-width:620px;">
+                </div>
+
+                <div style="margin-bottom:0.75rem;">
+                    <label for="status"><strong>Status</strong></label><br>
+                    <input type="text" id="status" name="status" maxlength="50"
+                           value="<?php echo $esc($status); ?>" style="width:100%;max-width:260px;">
+                    <br><small>Freitext, z. B. "offen" oder "in Arbeit". Der Status in der Liste wird aus den Buchungen berechnet.</small>
+                </div>
+
+                <div style="margin-bottom:1rem;">
+                    <label>
+                        <input type="checkbox" name="aktiv" value="1" <?php echo $aktiv ? 'checked' : ''; ?>>
+                        Aktiv
+                    </label>
+                </div>
+
+                <button type="submit">Speichern</button>
+                <a href="?seite=auftrag" style="margin-left:1rem;">Abbrechen</a>
+            </form>
+        </section>
+        <?php
+        require __DIR__ . '/../views/layout/footer.php';
+    }
+
+    /**
+     * Einheitlicher Hinweis, wenn das Verwaltungsrecht fehlt.
+     */
+    private function zeigeKeinRecht(): void
+    {
+        require __DIR__ . '/../views/layout/header.php';
+        ?>
+        <section>
+            <h2>Keine Berechtigung</h2>
+            <p>Zum Anlegen und Bearbeiten von Auftraegen wird das Recht <code>AUFTRAEGE_VERWALTEN</code> benoetigt.</p>
+            <p><a href="?seite=auftrag">&laquo; Zurueck zur Auftragsliste</a></p>
+        </section>
+        <?php
+        require __DIR__ . '/../views/layout/footer.php';
+    }
+
+    /**
+     * @param array<string,mixed> $kontext
+     */
+    private function protokolliere(string $nachricht, array $kontext): void
+    {
+        if (class_exists('Logger')) {
+            Logger::error($nachricht, $kontext, null, null, 'auftrag');
+        }
+    }
+
     private function ermittleAuftragscode(array $auftragszeit, AuftragModel $auftragModel): string
     {
         $auftragscode = trim((string)($auftragszeit['auftragscode'] ?? ''));
@@ -633,6 +976,46 @@ class AuftragController
                 $token = bin2hex((string)mt_rand());
             }
             $_SESSION[self::CSRF_KEY_AUFTRAGSZEIT_BEARBEITEN] = $token;
+        }
+
+        return (string)$token;
+    }
+
+    /**
+     * Darf der angemeldete Benutzer Auftragsstammdaten pflegen?
+     *
+     * Bewusst nur fuer Anlegen/Bearbeiten. Ansehen der Auftraege und das
+     * Laufkarten-PDF bleiben ohne dieses Recht erreichbar - wer in der Werkstatt
+     * eine Laufkarte nachdruckt, soll dafuer kein Verwaltungsrecht brauchen.
+     *
+     * Die Legacy-Rollen werden wie an den anderen Stellen dieses Controllers
+     * mitgeprueft, damit bestehende Installationen ohne Rechtevergabe
+     * weiterarbeiten koennen.
+     */
+    private function darfAuftraegeVerwalten(): bool
+    {
+        $legacyAdmin = (
+            $this->authService->hatRolle('Chef')
+            || $this->authService->hatRolle('Personalbüro')
+            || $this->authService->hatRolle('Personalbuero')
+        );
+
+        return $this->authService->hatRecht('AUFTRAEGE_VERWALTEN') || $legacyAdmin;
+    }
+
+    /**
+     * CSRF-Token fuer die Stammdatenformulare (Auftrag, Arbeitsschritte).
+     */
+    private function holeOderErzeugeCsrfTokenStamm(): string
+    {
+        $token = $_SESSION[self::CSRF_KEY_AUFTRAG_STAMM] ?? null;
+        if (!is_string($token) || $token === '') {
+            try {
+                $token = bin2hex(random_bytes(32));
+            } catch (\Throwable $e) {
+                $token = bin2hex((string)mt_rand());
+            }
+            $_SESSION[self::CSRF_KEY_AUFTRAG_STAMM] = $token;
         }
 
         return (string)$token;
