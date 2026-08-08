@@ -69,6 +69,46 @@ Status-Snapshot.
 2. Konfiguriere die Bridge-Einstellungen in `config/config.php` bzw. `config/config.local.php`.
 3. Teste den Scan am Terminal und prüfe die Logs bei Problemen.
 
+## Auftraege, Arbeitsschritte und Laufkarte
+
+Dieser Ablauf ist optional. Wer Auftraege wie bisher nur am Terminal scannt,
+muss hier nichts tun – das Terminal legt fehlende Datensaetze weiterhin selbst
+an.
+
+**1. Arbeitsschritt-Katalog einmalig anlegen** (Menue *Auftraege →
+Arbeitsschritt-Katalog*)
+
+Hier stehen die wiederkehrenden Taetigkeiten: `saegen`, `drehen`, `fraesen`,
+`entgraten` … Einmal gepflegt, fuer jeden Auftrag nutzbar.
+
+Ueber *x drucken* laesst sich ein Schritt in beliebiger Stueckzahl als
+Kartenblatt ausgeben. Bei mehreren Fraesmaschinen also z. B. 20 Karten
+`fraesen` – ausschneiden und an jede Maschine haengen.
+
+**2. Auftrag anlegen** (Menue *Auftraege → Auftrag anlegen*)
+
+Pflicht ist nur die Auftragsnummer. Kunde, Kurzbeschreibung und Status sind
+freiwillig; was leer bleibt, erscheint auch nicht auf dem Ausdruck.
+
+**3. Arbeitsschritte zuordnen** (in der Auftrags-Detailansicht)
+
+Entweder frei eintippen (fuer werkstueckspezifische Schritte wie
+„Aussendurchmesser auf 40 mm drehen“) oder aus dem Katalog uebernehmen.
+
+**4. Laufkarte drucken** (Detailansicht, *Laufkarte als PDF drucken*)
+
+Enthaelt den Auftrags-Strichcode und je Arbeitsschritt einen Strichcode plus
+Felder fuer Datum, Name, Menge und i. O. Die Karte begleitet das Werkstueck.
+
+**5. Am Terminal**
+
+Erst den Auftrag scannen (von der Laufkarte), dann den Arbeitsschritt –
+entweder von der Laufkarte oder von der Karte an der Maschine.
+
+**Wichtig beim Aendern:** Wird ein Code umbenannt, entsteht ein neuer
+Strichcode. Bereits gedruckte Laufkarten und Maschinenkarten werden dadurch
+ungueltig und muessen neu gedruckt werden.
+
 ## Verlinkte Referenzen
 - Projektübersicht und Konfiguration: [`docs/README.md`](README.md)
 - Status/Letzte Änderungen: [`docs/STATUS_SNAPSHOT.md`](STATUS_SNAPSHOT.md)

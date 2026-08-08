@@ -513,6 +513,16 @@ Für jeden Mitarbeiter müssen mindestens gespeichert werden:
      - optional `kurzbeschreibung`, `kunde`, `status`, `aktiv`, Timestamps
    - Diese Felder werden **nicht** am Terminal gepflegt (Touch, kein Keyboard), sondern nur im Backend oder über Importe/Schnittstellen.
 
+4. **Backend-Pflege, Strichcodes und Laufkarte (ab 2026-08-08)**
+   - Aufträge können **zusätzlich** im Backend angelegt werden (`?seite=auftrag_neu`) – als Ergänzung, nicht als Ersatz für Punkt 1. Wer seine Aufträge weiterhin nur scannt, merkt davon nichts.
+   - Ausser der Auftragsnummer ist **alles freiwillig**. Dies ist ein Zeiterfassungssystem, keine Warenwirtschaft: Leere Felder erscheinen auch nicht auf dem Ausdruck.
+   - Je Auftrag lassen sich **Arbeitsschritte** pflegen; zusätzlich gibt es einen betriebsweiten **Arbeitsschritt-Katalog** (`arbeitsschritt_katalog`) für wiederkehrende Tätigkeiten wie `fraesen`.
+   - Für Auftrag und Arbeitsschritte werden **Strichcodes (Code 128)** erzeugt – derselbe Codetyp wie bei den Maschinen. Der Code enthält **nur den nackten Wert**, damit das Terminal ihn unverändert übernimmt.
+   - Ausdrucke: **Laufkarte** je Auftrag (`?seite=auftrag_laufkarte`) und **Kartenblatt** je Katalogschritt (`?seite=arbeitsschritt_katalog_blatt`, mit Stückzahl – z. B. 20 Karten `fraesen` für 20 Fräsmaschinen).
+   - **Unverändert bleibt:** Das Terminal nimmt weiterhin jeden gescannten Code an und legt fehlende Stammdaten selbst an. Eine Buchung darf niemals daran scheitern, dass ein Stammdatensatz fehlt.
+   - Recht: `AUFTRAEGE_VERWALTEN` (nur fürs Pflegen; Ansehen und Ausdrucke bleiben frei).
+   - Details: `docs/spezifikation_auftrag_qr_laufkarte.md`.
+
 ---
 
 ## 8. Terminal-UI, Navigation & Auto-Logout

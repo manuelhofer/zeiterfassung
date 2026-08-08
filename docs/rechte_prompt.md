@@ -82,8 +82,11 @@ Quelle: `sql/01_initial_schema.sql` (INSERT INTO `recht`). Aeltere Verlaufs-/Pat
   (`AuftragszeitService::starteAuftrag`) – dort darf nie eine Buchung an einem
   fehlenden Recht scheitern.
 - Prüfpunkte im Code:
-  - `controller/AuftragController.php` (Anlegen/Bearbeiten von Auftrag und
-    Arbeitsschritten)
+  - `controller/AuftragController.php` (`darfAuftraegeVerwalten()`) – Auftrag
+    anlegen/bearbeiten, Arbeitsschritte pflegen, Katalogschritte übernehmen
+  - `controller/ArbeitsschrittKatalogController.php` (`darfVerwalten()`) –
+    Arbeitsschritt-Katalog pflegen
+  - `views/layout/header.php` – steuert das Aufklappmenü „Aufträge“
 - Eingeführt mit: P-2026-08-08-08. Bestandsinstallationen ziehen das Recht mit
   `sql/02_migration_recht_auftraege_verwalten.sql` nach.
 
