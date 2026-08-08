@@ -207,7 +207,40 @@ Webbasierte Zeiterfassung inkl. Mitarbeiter-/Rollen-/Genehmiger-Verwaltung, Urla
 - Offen aus P-2026-08-08-02: QR-/Barcode-Erzeugung und die Terminal-Buchungsflows sind unter PHP 8.5 noch nicht geprueft (brauchen einen angemeldeten Browser-Durchlauf).
 
 ## Letzter Patch (P-ID)
-P-2026-08-08-06 (Commit) – Spezifikation Auftrags-QR und Laufkarte
+P-2026-08-08-07 (Commit) – QrCodeService fuer Auftraege und Arbeitsschritte
+
+## P-2026-08-08-07 qrcodeservice-fuer-auftraege
+
+### EINGELESEN
+- `services/MaschineQrCodeService.php`, `core/Helper.php`, `core/DefaultsSeeder.php`, `services/phpqrcode/qrencode.php`.
+
+### DUPLIKAT-CHECK
+- Kein Duplikat: Es gab bisher nur QR-Erzeugung fuer Maschinen; fuer Auftraege/Arbeitsschritte nichts.
+
+### DATEIEN
+- `services/QrCodeService.php` (neu)
+- `core/Helper.php`, `core/DefaultsSeeder.php`, `services/MaschineQrCodeService.php`
+- `docs/archiv/DEV_PROMPT_HISTORY.md`, `docs/STATUS_SNAPSHOT.md`
+
+### DONE
+- **Neuer `QrCodeService`** fuer beliebige Nutzdaten mit zwei Ausgabewegen: `stelleBildBereit()` schreibt eine PNG-Datei unterhalb von `public/` (Anzeige im Backend), `holeModulMatrix()` liefert die reine Modulmatrix (fuer das Laufkarten-PDF, das die Codes als Vektor zeichnet).
+- **Erzeugung nur bei Bedarf:** Neu geschrieben wird nur, wenn die Datei fehlt oder aelter ist als `geaendert_am` des Datensatzes. Ein umbenannter Arbeitsschritt bekommt damit automatisch einen neuen Code, ohne dass bei jedem Seitenaufruf gerechnet wird.
+- **Web-Basis-Ableitung nach `Helper::ermittleWebBasis()` gezogen** und `MaschineQrCodeService` darauf umgestellt. Zwei Kopien derselben URL-Logik waren die Ursache von B-089 – dieser Fehler wird hier nicht wiederholt.
+- **Konfiguration** `auftrag_qr_rel_pfad` (Default `uploads/auftrag_codes`) im `DefaultsSeeder` ergaenzt.
+- **`DefaultsSeeder` robuster gemacht:** Platzhalter und Parameter des INSERT werden jetzt aus der Default-Liste aufgebaut. Vorher waren beide fest verdrahtet (8 Platzhalter, 32 Parameter von Hand), so dass jeder neue Default-Wert an drei Stellen synchron nachgezogen werden musste.
+
+### AKZEPTANZKRITERIEN
+- Ein Aufruf mit den Nutzdaten `drehen` erzeugt eine lesbare PNG-Datei im konfigurierten Verzeichnis und liefert eine im Browser gueltige URL – ohne dass etwas konfiguriert werden muss.
+
+### TEST
+1. Mit `error_reporting(E_ALL)`: PNG fuer Auftrag (`auftrag_5.png`) und Arbeitsschritt (`schritt_12.png`) erzeugt, beide 150x150 PNG; URL `/zeiterfassung/uploads/auftrag_codes/auftrag_5.png`; Matrix 21x21; leere Nutzdaten liefern `null` bzw. leeres Array statt Fehler. 0 Meldungen.
+2. Zwischenspeicherung: zweiter Aufruf ohne Aenderung schreibt die Datei nicht neu; mit neuerem `geaendert_am` wird sie neu erzeugt.
+3. `DefaultsSeeder::ensureDefaults()` legt `auftrag_qr_rel_pfad` an (Beleg, dass der dynamische Aufbau mit neun Eintraegen funktioniert).
+4. `MaschineQrCodeService::baueBildUrl()` liefert nach der Umstellung unveraendert `/zeiterfassung/uploads/maschinen_codes/...`.
+
+### NEXT
+- P-2026-08-08-08: Recht `AUFTRAEGE_VERWALTEN`.
+
 
 ## P-2026-08-08-06 spezifikation-auftrag-qr-laufkarte
 

@@ -206,51 +206,17 @@ class MaschineQrCodeService
      *
      * Hintergrund: Die Bilder liegen immer unter `public/<maschinen_qr_rel_pfad>`.
      * Damit ist die Browser-URL vollstaendig bestimmt, sobald bekannt ist, unter
-     * welchem Pfad `public/` im Web haengt. Genau das wird hier ermittelt, damit
+     * welchem Pfad `public/` im Web haengt. Genau das wird ermittelt, damit
      * niemand denselben Pfad ein zweites Mal von Hand pflegen muss.
      *
-     * Reihenfolge:
-     * 1. `app.base_url` aus der Konfigurationsdatei (falls gesetzt),
-     * 2. sonst das Verzeichnis des laufenden Skripts (funktioniert sowohl bei
-     *    Installation im Unterordner als auch direkt auf der Domain-Wurzel),
-     * 3. sonst leer = Domain-Root.
+     * Die eigentliche Ableitung steht in `Helper::ermittleWebBasis()`, weil sie
+     * auch vom `QrCodeService` (Auftraege/Arbeitsschritte) gebraucht wird – zwei
+     * Kopien derselben Logik waren schon einmal die Ursache eines Fehlers
+     * (siehe B-089).
      */
     private function ermittleWebBasis(): string
     {
-        $basisAusKonfig = $this->holeBaseUrlAusKonfigdatei();
-        if ($basisAusKonfig !== '') {
-            if (preg_match('~^https?://~i', $basisAusKonfig) === 1) {
-                return rtrim($basisAusKonfig, '/');
-            }
-
-            return $this->normalisiereRelativenPfad($basisAusKonfig, '');
-        }
-
-        $skriptName = $_SERVER['SCRIPT_NAME'] ?? '';
-        if (is_string($skriptName) && $skriptName !== '') {
-            $verzeichnis = str_replace('\\', '/', dirname($skriptName));
-            $verzeichnis = trim($verzeichnis, '/');
-
-            if ($verzeichnis !== '' && $verzeichnis !== '.') {
-                return $verzeichnis;
-            }
-        }
-
-        return '';
-    }
-
-    private function holeBaseUrlAusKonfigdatei(): string
-    {
-        $pfad = __DIR__ . '/../config/config.php';
-        if (!is_file($pfad)) {
-            return '';
-        }
-
-        /** @var array<string,mixed> $konfig */
-        $konfig = require $pfad;
-        $baseUrl = $konfig['app']['base_url'] ?? '';
-
-        return is_string($baseUrl) ? trim($baseUrl) : '';
+        return Helper::ermittleWebBasis();
     }
 
     private function normalisiereRelativenPfad($konfigPfad, string $fallback): string

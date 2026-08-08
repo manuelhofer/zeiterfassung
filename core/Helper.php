@@ -147,4 +147,61 @@ class Helper
     {
         return $datum->format('Y-m-d H:i:s');
     }
+
+    /**
+     * Ermittelt den Web-Basispfad der laufenden Installation.
+     *
+     * Wird gebraucht, um aus einem Pfad unterhalb von `public/` eine URL zu
+     * bauen, die im Browser funktioniert – egal ob die Anwendung direkt auf der
+     * Domain-Wurzel oder in einem Unterordner (`/zeiterfassung`) haengt.
+     *
+     * Reihenfolge:
+     * 1. `app.base_url` aus der Konfigurationsdatei, falls gesetzt,
+     * 2. sonst das Verzeichnis des laufenden Skripts (`SCRIPT_NAME`),
+     * 3. sonst leer = Domain-Wurzel.
+     *
+     * Rueckgabe ohne fuehrenden/abschliessenden Schraegstrich (z. B.
+     * `zeiterfassung`) oder eine vollstaendige URL, wenn `base_url` eine solche
+     * ist. Leerer String bedeutet Domain-Wurzel.
+     */
+    public static function ermittleWebBasis(): string
+    {
+        $basisAusKonfig = self::holeBaseUrlAusKonfigdatei();
+        if ($basisAusKonfig !== '') {
+            if (preg_match('~^https?://~i', $basisAusKonfig) === 1) {
+                return rtrim($basisAusKonfig, '/');
+            }
+
+            return trim(str_replace('\\', '/', $basisAusKonfig), '/');
+        }
+
+        $skriptName = $_SERVER['SCRIPT_NAME'] ?? '';
+        if (is_string($skriptName) && $skriptName !== '') {
+            $verzeichnis = str_replace('\\', '/', dirname($skriptName));
+            $verzeichnis = trim($verzeichnis, '/');
+
+            if ($verzeichnis !== '' && $verzeichnis !== '.') {
+                return $verzeichnis;
+            }
+        }
+
+        return '';
+    }
+
+    /**
+     * Liest `app.base_url` aus der Konfigurationsdatei.
+     */
+    private static function holeBaseUrlAusKonfigdatei(): string
+    {
+        $pfad = __DIR__ . '/../config/config.php';
+        if (!is_file($pfad)) {
+            return '';
+        }
+
+        /** @var array<string,mixed> $konfig */
+        $konfig = require $pfad;
+        $baseUrl = $konfig['app']['base_url'] ?? '';
+
+        return is_string($baseUrl) ? trim($baseUrl) : '';
+    }
 }

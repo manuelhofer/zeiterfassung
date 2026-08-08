@@ -92,6 +92,12 @@ class DefaultsSeeder
                 'beschreibung'  => 'Maschinen-QR: Relativer Speicherpfad unterhalb von public. Default uploads/maschinen_codes.',
             ],
             [
+                'schluessel'    => 'auftrag_qr_rel_pfad',
+                'wert'          => 'uploads/auftrag_codes',
+                'typ'           => 'string',
+                'beschreibung'  => 'Auftrags-QR: Relativer Speicherpfad unterhalb von public für QR-Codes von Aufträgen und Arbeitsschritten. Default uploads/auftrag_codes.',
+            ],
+            [
                 'schluessel'    => 'maschinen_qr_url',
                 'wert'          => '',
                 'typ'           => 'string',
@@ -100,59 +106,32 @@ class DefaultsSeeder
         ];
 
         // INSERT IGNORE ist sicher: es werden nur fehlende Keys eingefügt.
+        //
+        // Hinweis: Platzhalter und Parameter werden aus $defaults aufgebaut.
+        // Vorher waren beide fest verdrahtet, so dass ein neuer Default-Wert an
+        // drei Stellen nachgezogen werden musste – eine unnötige Fehlerquelle.
+        $platzhalter = [];
+        $parameter   = [];
+
+        foreach (array_values($defaults) as $index => $eintrag) {
+            $nr = $index + 1;
+            $platzhalter[] = '(:k' . $nr . ', :w' . $nr . ', :t' . $nr . ', :b' . $nr . ')';
+
+            $parameter['k' . $nr] = $eintrag['schluessel'];
+            $parameter['w' . $nr] = $eintrag['wert'];
+            $parameter['t' . $nr] = $eintrag['typ'];
+            $parameter['b' . $nr] = $eintrag['beschreibung'];
+        }
+
+        if ($platzhalter === []) {
+            return;
+        }
+
         $sql = 'INSERT IGNORE INTO config (schluessel, wert, typ, beschreibung)
-                VALUES
-                    (:k1, :w1, :t1, :b1),
-                    (:k2, :w2, :t2, :b2),
-                    (:k3, :w3, :t3, :b3),
-                    (:k4, :w4, :t4, :b4),
-                    (:k5, :w5, :t5, :b5),
-                    (:k6, :w6, :t6, :b6),
-                    (:k7, :w7, :t7, :b7),
-                    (:k8, :w8, :t8, :b8)';
+                VALUES ' . implode(",\n                       ", $platzhalter);
 
         try {
-            $betroffen = $db->ausfuehren($sql, [
-                'k1' => $defaults[0]['schluessel'],
-                'w1' => $defaults[0]['wert'],
-                't1' => $defaults[0]['typ'],
-                'b1' => $defaults[0]['beschreibung'],
-
-                'k2' => $defaults[1]['schluessel'],
-                'w2' => $defaults[1]['wert'],
-                't2' => $defaults[1]['typ'],
-                'b2' => $defaults[1]['beschreibung'],
-
-                'k3' => $defaults[2]['schluessel'],
-                'w3' => $defaults[2]['wert'],
-                't3' => $defaults[2]['typ'],
-                'b3' => $defaults[2]['beschreibung'],
-
-                'k4' => $defaults[3]['schluessel'],
-                'w4' => $defaults[3]['wert'],
-                't4' => $defaults[3]['typ'],
-                'b4' => $defaults[3]['beschreibung'],
-
-                'k5' => $defaults[4]['schluessel'],
-                'w5' => $defaults[4]['wert'],
-                't5' => $defaults[4]['typ'],
-                'b5' => $defaults[4]['beschreibung'],
-
-                'k6' => $defaults[5]['schluessel'],
-                'w6' => $defaults[5]['wert'],
-                't6' => $defaults[5]['typ'],
-                'b6' => $defaults[5]['beschreibung'],
-
-                'k7' => $defaults[6]['schluessel'],
-                'w7' => $defaults[6]['wert'],
-                't7' => $defaults[6]['typ'],
-                'b7' => $defaults[6]['beschreibung'],
-
-                'k8' => $defaults[7]['schluessel'],
-                'w8' => $defaults[7]['wert'],
-                't8' => $defaults[7]['typ'],
-                'b8' => $defaults[7]['beschreibung'],
-            ]);
+            $betroffen = $db->ausfuehren($sql, $parameter);
 
             if ($betroffen > 0 && class_exists('Logger')) {
                 Logger::info('Default-Config-Werte wurden automatisch angelegt (fehlende Keys).', [
