@@ -58,6 +58,28 @@ if (!function_exists('zeit_format_uhrzeit')) {
     }
 }
 
+if (!function_exists('zeit_format_datum_deutsch')) {
+    function zeit_format_datum_deutsch(string $datum): string
+    {
+        $datum = trim($datum);
+        if ($datum === '') {
+            return '';
+        }
+
+        try {
+            if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $datum) === 1) {
+                return (new DateTimeImmutable($datum))->format('d.m.Y');
+            }
+        } catch (Throwable $e) {
+            return $datum;
+        }
+
+        return $datum;
+    }
+}
+
+$datumAnzeigeDeutsch = zeit_format_datum_deutsch((string)$datum);
+
 $hatRohUndGerundet = false;
 foreach ($buchungen as $b) {
     if (is_array($b) && isset($b['zeitstempel_gerundet'])) {
@@ -100,7 +122,7 @@ foreach ($buchungen as $b) {
 
 <section>
     <h2>
-        Tagesansicht <?php echo htmlspecialchars($datum, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>
+        Tagesansicht <?php echo htmlspecialchars($datumAnzeigeDeutsch, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>
         <?php if ($darfAndereMitarbeiter && $zielMitarbeiterName !== ''): ?>
             <small>(<?php echo htmlspecialchars($zielMitarbeiterName, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>)</small>
         <?php endif; ?>

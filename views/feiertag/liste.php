@@ -12,6 +12,15 @@ declare(strict_types=1);
  */
 ?>
 <?php require __DIR__ . '/../layout/header.php'; ?>
+<?php
+$fmtDatum = static function (string $datum): string {
+    $datum = trim($datum);
+    if (preg_match('/^(\d{4})-(\d{2})-(\d{2})$/', $datum, $m) === 1) {
+        return $m[3] . '.' . $m[2] . '.' . $m[1];
+    }
+    return $datum;
+};
+?>
 
 <section>
     <h2>Feiertage für das Jahr <?php echo htmlspecialchars((string)$jahr, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></h2>
@@ -47,7 +56,7 @@ declare(strict_types=1);
             <tbody>
             <?php foreach ($feiertage as $ft): ?>
                 <tr>
-                    <td><?php echo htmlspecialchars((string)($ft['datum'] ?? ''), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></td>
+                    <td><?php echo htmlspecialchars($fmtDatum((string)($ft['datum'] ?? '')), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></td>
                     <td><?php echo htmlspecialchars((string)($ft['name'] ?? ''), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></td>
                     <td><?php echo htmlspecialchars((string)($ft['bundesland'] ?? ''), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></td>
                     <td><?php echo !empty($ft['ist_gesetzlich']) ? 'Ja' : 'Nein'; ?></td>

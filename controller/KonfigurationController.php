@@ -580,11 +580,11 @@ class KonfigurationController
             }
 
             if (preg_match('/^(\d{4})-(\d{2})-(\d{2})$/', $datum, $m) === 1) {
-                return $m[3] . '-' . $m[2] . '-' . $m[1];
+                return $m[3] . '.' . $m[2] . '.' . $m[1];
             }
 
             if (preg_match('/^(\d{2})[-.](\d{2})[-.](\d{4})$/', $datum, $m) === 1) {
-                return $m[1] . '-' . $m[2] . '-' . $m[3];
+                return $m[1] . '.' . $m[2] . '.' . $m[3];
             }
 
             return $datum;
@@ -1119,7 +1119,7 @@ class KonfigurationController
                     function isoToDisplay(s){
                         s = String(s || '').trim();
                         var m = s.match(/^(\d{4})-(\d{2})-(\d{2})$/);
-                        return m ? (m[3] + '-' + m[2] + '-' + m[1]) : s;
+                        return m ? (m[3] + '.' + m[2] + '.' + m[1]) : s;
                     }
 
                     function isValidDateStr(s){

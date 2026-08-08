@@ -107,6 +107,24 @@ $fmtDatum = static function (string $datum): string {
     }
 };
 
+$fmtDatumZeit = static function (string $wert): string {
+    $wert = trim($wert);
+    if ($wert === '') {
+        return $wert;
+    }
+    try {
+        if (preg_match('/^\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2}$/', $wert) === 1) {
+            return (new \DateTimeImmutable($wert))->format('d.m.Y H:i:s');
+        }
+        if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $wert) === 1) {
+            return (new \DateTimeImmutable($wert))->format('d.m.Y');
+        }
+    } catch (\Throwable) {
+        return $wert;
+    }
+    return $wert;
+};
+
 $kontoLink = static function (int $mid, bool $stealth): string {
     $params = [
         'seite' => 'mitarbeiter_stundenkonto',
@@ -385,7 +403,7 @@ $umbuchungLink = static function (int $mid, int $monat, int $jahr, bool $stealth
                             <td><?php echo htmlspecialchars($fmtMin($dmin), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></td>
                             <td><?php echo htmlspecialchars($typ, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></td>
                             <td><?php echo htmlspecialchars($begr, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></td>
-                            <td><?php echo htmlspecialchars($erst, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></td>
+                            <td><?php echo htmlspecialchars($fmtDatumZeit($erst), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></td>
                             <td><?php echo htmlspecialchars($von, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></td>
                         </tr>
                     <?php endforeach; ?>
@@ -460,7 +478,7 @@ $umbuchungLink = static function (int $mid, int $monat, int $jahr, bool $stealth
                             <td><?php echo htmlspecialchars($proTagTxt, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></td>
                             <td><?php echo $nur ? 'Ja' : 'Nein'; ?></td>
                             <td><?php echo htmlspecialchars($begr, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></td>
-                            <td><?php echo htmlspecialchars($erst, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></td>
+                            <td><?php echo htmlspecialchars($fmtDatumZeit($erst), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></td>
                             <td><?php echo htmlspecialchars($vonName, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></td>
                         </tr>
                     <?php endforeach; ?>

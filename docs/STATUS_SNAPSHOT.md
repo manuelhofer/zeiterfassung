@@ -17,6 +17,7 @@ Webbasierte Zeiterfassung inkl. Mitarbeiter-/Rollen-/Genehmiger-Verwaltung, Urla
 - Lokale Umgebung zum Testen: `docs/lokale_entwicklungsumgebung.md` (App unter `http://localhost/zeiterfassung`).
 
 ## Letzte Aenderungen (Auszug)
+- **P-2026-08-08-21 Deutsche Datumsformate:** Tagesansicht, Stundenkonto, Feiertagsliste und Krankzeitraum-Pflege zeigen `01.06.2026` statt `2026-06-01`. Gespeichert wird weiterhin ISO.
 - **P-2026-08-08-20 Urlaub aus dem Spiegel:** Monatsabschluss-Marker und Urlaubssalden in der Jahresuebersicht, „Sonstiger Grund“ in der Urlaubsverwaltung, farbige Kalenderzellen. Keine Migration noetig.
 - **P-2026-08-08-19 Ampel in der Auswahlliste:** Auch die aufgeklappte Mitarbeiterliste ist jetzt rot/gruen; zusaetzlich Textzeichen (`✓` / `● offen`), weil Farbe allein je nach Browser und Systemthema nicht ankommt und nicht barrierefrei ist.
 - **P-2026-08-08-18 Monatsabschluss-Ampel + Status-Auswahl:** Mitarbeiter in der Monatsuebersicht rot (Abschluss offen) bzw. gruen (gebucht), inkl. Stepper-Bedienung – aus dem nicht gepushten Spiegelverzeichnis uebernommen. Auftragsstatus ist jetzt eine gepruefte Auswahlliste statt Freitext.
@@ -47,7 +48,8 @@ Webbasierte Zeiterfassung inkl. Mitarbeiter-/Rollen-/Genehmiger-Verwaltung, Urla
 - **P-2026-01-24-07:** Dashboard: Zeitwarnungen waren trotz vorhandener Daten unsichtbar, weil `DashboardController` versehentlich `fetchEinzel(...)` (nicht existent) aufruft und dadurch in den Catch faellt → Fix auf `fetchEine(...)`.
 
 ## Letzter Patch (P-ID)
-- P-2026-08-08-20 (Commit; Urlaubsbereich aus dem Spiegelverzeichnis)
+- P-2026-08-08-21 (Commit; Deutsche Datumsformate)
+- Davor: P-2026-08-08-20 (Urlaubsbereich aus dem Spiegelverzeichnis)
 - Davor: P-2026-08-08-19 (Ampel auch in der aufgeklappten Auswahlliste)
 - Davor: P-2026-08-08-18 (Monatsabschluss-Ampel und Status-Auswahl)
 - Davor: P-2026-08-08-17 (Doku Auftraege und Katalog)

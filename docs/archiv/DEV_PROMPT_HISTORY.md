@@ -207,7 +207,23 @@ Webbasierte Zeiterfassung inkl. Mitarbeiter-/Rollen-/Genehmiger-Verwaltung, Urla
 - Offen aus P-2026-08-08-02: QR-/Barcode-Erzeugung und die Terminal-Buchungsflows sind unter PHP 8.5 noch nicht geprueft (brauchen einen angemeldeten Browser-Durchlauf).
 
 ## Letzter Patch (P-ID)
-P-2026-08-08-20 (Commit) – Urlaubsbereich aus dem Spiegelverzeichnis nachgezogen
+P-2026-08-08-21 (Commit) – Deutsche Datumsformate aus dem Spiegelverzeichnis
+
+## P-2026-08-08-21 deutsche-datumsformate
+
+### DATEIEN
+- `views/zeit/tagesansicht.php`, `views/mitarbeiter/stundenkonto.php`, `views/feiertag/liste.php`, `controller/KonfigurationController.php`
+
+### DONE
+- Datumsangaben erscheinen in der Oberflaeche jetzt als `01.06.2026` statt `2026-06-01`: Tagesansicht, Stundenkonto, Feiertagsliste und die Krankzeitraum-Pflege in der Konfiguration.
+- In der Konfiguration wird die Eingabe zusaetzlich per JavaScript umgesetzt; gespeichert wird unveraendert im ISO-Format – die Aenderung betrifft ausschliesslich die Darstellung.
+
+### PRUEFUNG VOR DER UEBERNAHME
+- Die wenigen nur bei uns vorhandenen Zeilen waren jeweils die alte, rohe Datumsausgabe genau an den Stellen, die der Spiegel ersetzt hat.
+
+### TEST
+- Tagesansicht, Stundenkonto und Feiertagsliste gerendert: in allen drei Seiten deutsches Datumsformat nachweisbar, **keine PHP-Meldungen**.
+
 
 ## P-2026-08-08-20 urlaub-aus-spiegel
 
