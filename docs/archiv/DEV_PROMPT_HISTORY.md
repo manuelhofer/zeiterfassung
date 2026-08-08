@@ -148,6 +148,7 @@ Webbasierte Zeiterfassung inkl. Mitarbeiter-/Rollen-/Genehmiger-Verwaltung, Urla
 - **D-006:** Micro-Patches sind Pflicht: 1 Patch = 1 Thema/1 Effekt; wegen `DEV_PROMPT_HISTORY.md` bleiben praktisch nur 2 weitere Dateien → Tasks müssen vor Umsetzung gesplittet werden.
 
 ## Bekannte Probleme / Bugs (B-IDs)
+- **B-092:** Die Route `?seite=betriebsferien_admin_toggle` ruft `BetriebsferienAdminController::toggleAktiv()` auf – **diese Methode existiert nicht**. Ein Aufruf endet in einem Fatal. Kein Menuepunkt und kein Formular verlinkt darauf, der Fehler ist also latent. Stammt aus dem Januar-Upload (bd61831), nicht aus der Arbeit vom 2026-08-08. Gefunden bei der Routenpruefung vor der Uebergabe. **OPEN** – bewusst nicht ungefragt geaendert: Entweder die Methode nachruesten (Aktiv-Schalter wie bei anderen Verwaltungslisten) oder die tote Route entfernen. **Vorher klaeren, was gewollt ist.**
 - **B-091:** Monatsuebersicht brach im laufenden Monat mit einem Fatal ab (`$abschlussOptionMarker` nur im Vergangenheits-Zweig gesetzt). Regression aus P-2026-08-08-19. **DONE in P-2026-08-08-24**.
 - **B-089:** Maschinen-Barcode wurde in der Bearbeitungsmaske nie angezeigt, weil der Controller eine abweichende URL-Logik nutzte und bei leerem `maschinen_qr_url` immer `''` lieferte. **DONE in P-2026-08-08-03**.
 - **B-090:** Mitgelieferte Bibliothek `services/phpqrcode` erzeugte PHP-Deprecations und Datei-Warnungen bei jeder QR-Erzeugung (Pflichtparameter hinter optionalen Parametern, dynamische Eigenschaft `$cmyk`, `ImageDestroy()`, fehlendes Cache-Verzeichnis). **DONE in P-2026-08-08-04**.
@@ -202,6 +203,22 @@ Webbasierte Zeiterfassung inkl. Mitarbeiter-/Rollen-/Genehmiger-Verwaltung, Urla
 - Praxis-Test: Bugs/Anomalien sammeln und als Micro-Patches beheben.
 - Auftragsmodul: Scan-Flow/UX nur bei Bedarf weiter verfeinern (Praxis-Feedback).
 - Terminal (Auftrag): Stop-Detailmaske (Fallback) UX vereinfachen (keine Status-Auswahl "Abschliessen/Abbrechen" im Terminal).
+
+## Zustand der lokalen Entwicklungsdatenbank (Stand 2026-08-08)
+
+Damit sich niemand ueber Daten wundert, die nicht aus dem Betrieb stammen:
+
+- **Zeitbuchungen:** 10.032, davon **360 kuenstlich ergaenzt** (Kommentar
+  `Import Altzeiten 2026 (lokal ergaenzt bis 08.08.2026)`), um den Bestand bis
+  zum 07.08.2026 zu fuellen. Mit einem `DELETE` ueber diesen Kommentar wieder
+  entfernbar.
+- **Auftraege:** 3, davon 2 Testauftraege (`A-2026-0815`, `A-2026-0999`) mit
+  Arbeitsschritten – reine Anschauungsdaten.
+- **Arbeitsschritt-Katalog:** 8 Beispieleintraege (saegen, drehen, fraesen,
+  bohren, schleifen, entgraten, montage, pruefen). Als Startbestand brauchbar.
+- **Terminals:** keine; keine offenen Kopplungen (Testdaten entfernt).
+- Der eigentliche Datenbestand stammt aus dem Serverdump vom 2026-08-08 und
+  enthaelt echte Personendaten – deshalb liegt er **nicht** im Repository.
 
 ## Nächster Schritt (konkret)
 
