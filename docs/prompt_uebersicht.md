@@ -25,6 +25,9 @@ Datei ist wofuer zustaendig, und was ist nur noch Referenz?
     Arbeitsschritt-Katalog mit Strichcodes (Code 128), Laufkarte und
     Kartenblatt als PDF. Solange in Umsetzung, gilt sie als Auftrag; danach
     wandert sie ins Archiv.
+- `docs/spezifikation_terminal_installation.md`
+  - Entwurf: Terminal per Skript aufsetzen (Pakete, Kiosk, RFID, Scanner,
+    Touchscreen, Selbsttest). Noch nicht umgesetzt.
 - `docs/lokale_entwicklungsumgebung.md`
   - Lokale Umgebung (Apache + php-fpm + MariaDB + phpMyAdmin), damit die App
     im Browser laeuft.

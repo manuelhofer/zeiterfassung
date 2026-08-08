@@ -208,7 +208,35 @@ Webbasierte Zeiterfassung inkl. Mitarbeiter-/Rollen-/Genehmiger-Verwaltung, Urla
 - Offen aus P-2026-08-08-02: QR-/Barcode-Erzeugung und die Terminal-Buchungsflows sind unter PHP 8.5 noch nicht geprueft (brauchen einen angemeldeten Browser-Durchlauf).
 
 ## Letzter Patch (P-ID)
-P-2026-08-08-26 (Commit) – Personalnummer statt Datenbank-ID, Ampelfarben in der Liste
+P-2026-08-08-28 (Commit) – Spezifikation Terminal-Installation
+
+## P-2026-08-08-28 spezifikation-terminal-installation
+
+### ANLASS
+- Fuer das Backend gibt es einen dokumentierten Weg vom leeren Server bis zum ersten Admin. Fuer Terminals fehlte das Gegenstueck.
+
+### DATEIEN
+- `docs/spezifikation_terminal_installation.md` (neu)
+- `docs/prompt_uebersicht.md`, `docs/README.md`
+
+### DONE – Zielbild festgehalten, noch keine Umsetzung
+- **Warum ein Skript und keine Weboberflaeche:** Ein frisches Geraet hat weder Webserver noch PHP – es gibt nichts, was eine Setup-Seite ausliefern koennte. Nach der Installation uebernimmt wieder das Backend ueber die vorhandene Tabelle `terminal`.
+- **Distributionsunabhaengig** ueber eine Erkennungsschicht fuer die vier Paketmanager-Familien (apt, pacman, dnf, zypper) statt einer Festlegung auf eine Distribution.
+- **Zwei Phasen**, weil das Aktivieren von SPI fuer den RC522-Leser einen Neustart erfordert; Phase 2 laeuft danach ueber einen systemd-Einmaldienst weiter.
+- **Beide RFID-Varianten** abgedeckt; die vorhandene Anleitung `docs/terminal/rfid-ws_rollout.md` wird automatisiert, nicht ersetzt.
+- **Der Barcode-Scanner ist als Stolperstein benannt:** Er braucht keine Treiber, tippt aber wie eine Tastatur. Bei falschem Tastaturlayout kommen vertauschte Zeichen im Eingabefeld an, und das Terminal bucht klaglos einen falschen Code. Das Setzen des Layouts ist deshalb Pflichtschritt, und der Selbsttest laesst ausdruecklich einen bekannten Code scannen und vergleicht.
+- **Grenzen offen benannt:** USB-RFID-Leser sind von einer Tastatur nicht unterscheidbar, Touchscreen-Drehung ist geraeteabhaengig, SPI braucht einen Neustart, exotische Distributionen brauchen Handarbeit.
+- **Sicherheitshinweis aufgenommen:** Das Terminal traegt die Zugangsdaten zur Hauptdatenbank auf dem Geraet. Wer physisch an ein Hallenterminal kommt, kommt damit an die gesamte Datenbank samt Personendaten. Empfehlung: eigener, eingeschraenkter Datenbankbenutzer fuer Terminals – zu entscheiden **vor** dem ersten Rollout.
+
+### UMSETZUNG IN STUFEN (geplant)
+1. Grundsystem (Pakete, Code, Konfiguration, Ausweichdatenbank) – im Container testbar.
+2. Kiosk (Autologin, Browser im Vollbild) – in einer VM testbar.
+3. Peripherie (RFID, Touchscreen, Tastaturlayout) – braucht echte Hardware.
+4. Selbsttest.
+
+### NEXT
+- Stufe 1 bauen und im Container gegen mindestens zwei Paketmanager-Familien pruefen.
+
 
 ## P-2026-08-08-26 personalnummer-und-ampelfarben
 

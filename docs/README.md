@@ -15,6 +15,8 @@ Projektwurzel.
 - [Spezifikation Aufträge & Laufkarte](spezifikation_auftrag_barcode_laufkarte.md) –
   Aufträge im Backend anlegen, Arbeitsschritte und Katalog mit Strichcodes,
   Laufkarte und Kartenblatt als PDF.
+- [Spezifikation Terminal-Installation](spezifikation_terminal_installation.md) –
+  Entwurf: Terminal per Skript aufsetzen (noch nicht umgesetzt).
 - [Voller Verlauf](archiv/DEV_PROMPT_HISTORY.md) – Projekthistorie, wird bei
   jedem Patch gepflegt.
 

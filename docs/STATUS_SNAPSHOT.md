@@ -17,6 +17,7 @@ Webbasierte Zeiterfassung inkl. Mitarbeiter-/Rollen-/Genehmiger-Verwaltung, Urla
 - Lokale Umgebung zum Testen: `docs/lokale_entwicklungsumgebung.md` (App unter `http://localhost/zeiterfassung`).
 
 ## Letzte Aenderungen (Auszug)
+- **P-2026-08-08-28 Spezifikation Terminal-Installation:** Zielbild fuer ein Skript, das ein Linux-Geraet in einem Durchlauf zum Hallenterminal macht (Pakete, Kiosk, RFID beide Varianten, Scanner, Touchscreen, Selbsttest). Noch nicht umgesetzt; Grenzen und ein Sicherheitshinweis zu den DB-Zugangsdaten auf dem Geraet sind benannt.
 - **P-2026-08-08-26 Personalnummer + Ampelfarben:** Monatsuebersicht zeigt `(Nr. …)` statt der Datenbank-ID (Rueckfall auf die ID, wenn keine Personalnummer gepflegt ist); `appearance: none` sorgt dafuer, dass Firefox die Optionsfarben im aufgeklappten Menue ueberhaupt zeichnet.
 - **P-2026-08-08-25 Namen und Doku:** Spezifikation heisst jetzt `spezifikation_auftrag_barcode_laufkarte.md` (v2, Status umgesetzt), Konfigurationsschluessel `auftrag_code_rel_pfad` mit Migration `sql/04_...` und Rueckfall auf den alten Namen. README, Doku-Index und Prompt-Uebersicht aktualisiert.
 - **P-2026-08-08-24 Fix Monatsuebersicht (B-091):** Im laufenden Monat brach die Seite mit einem Fatal ab – Regression aus P-19, weil eine Variable nur im Vergangenheits-Zweig gesetzt wurde. Behoben; laufender, vergangener und zukuenftiger Monat geprueft.
