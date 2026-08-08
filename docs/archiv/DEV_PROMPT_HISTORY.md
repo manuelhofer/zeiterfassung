@@ -208,7 +208,29 @@ Webbasierte Zeiterfassung inkl. Mitarbeiter-/Rollen-/Genehmiger-Verwaltung, Urla
 - Offen aus P-2026-08-08-02: QR-/Barcode-Erzeugung und die Terminal-Buchungsflows sind unter PHP 8.5 noch nicht geprueft (brauchen einen angemeldeten Browser-Durchlauf).
 
 ## Letzter Patch (P-ID)
-P-2026-08-08-24 (Commit) – Fix: Monatsuebersicht im laufenden Monat
+P-2026-08-08-25 (Commit) – Namen auf Strichcode-Stand gebracht, Doku aktualisiert
+
+## P-2026-08-08-25 namen-und-doku-nachziehen
+
+### ANLASS
+- Nach der Umstellung von QR auf Strichcode (P-2026-08-08-15) trugen zwei Namen weiterhin „qr“ im Bezeichner und waren damit irrefuehrend.
+
+### DATEIEN
+- `docs/spezifikation_auftrag_qr_laufkarte.md` → `docs/spezifikation_auftrag_barcode_laufkarte.md`
+- `sql/04_migration_auftrag_code_rel_pfad.sql` (neu), `sql/README.md`
+- `services/BarcodeService.php`, `core/DefaultsSeeder.php`
+- `README.md`, `docs/README.md`, `docs/prompt_uebersicht.md`, `docs/master_prompt_zeiterfassung_v13.md`, `controller/ArbeitsschrittKatalogController.php`
+
+### DONE
+- **Spezifikation umbenannt** und auf v2 gehoben: Titel, Status („umgesetzt“) und ein Hinweis, dass die erste Fassung QR-Codes vorsah und wie die Datei vorher hiess. Alle Verweise nachgezogen.
+- **Konfigurationsschluessel** `auftrag_qr_rel_pfad` → `auftrag_code_rel_pfad`, mit idempotenter Migration `sql/04_...`. Der `BarcodeService` liest ersatzweise weiter den alten Schluessel, damit eine Installation ohne eingespielte Migration ihren eingestellten Pfad behaelt statt auf den Standard zu fallen.
+- **Dokumentation auf Stand gebracht:** Root-`README.md` nennt jetzt Auftragsanlage, Arbeitsschritt-Katalog, Strichcodes und die beiden Ausdrucke; `docs/README.md` und die Prompt-Uebersicht verweisen auf die Spezifikation; `sql/README.md` listet die Migrationen 03 und 04.
+
+### TEST
+1. Migration zweimal eingespielt: alter Schluessel entfernt, neuer vorhanden, Wert unveraendert `uploads/auftrag_codes`.
+2. `BarcodeService` liefert danach weiterhin den korrekten Speicherpfad.
+3. Keine Verweise auf den alten Dateinamen ausserhalb der Historie; der alte Schluessel steht nur noch im Rueckfall-Zweig.
+
 
 ## P-2026-08-08-24 fix-monatsuebersicht-laufender-monat
 

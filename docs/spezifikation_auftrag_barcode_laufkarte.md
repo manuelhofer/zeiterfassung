@@ -1,7 +1,10 @@
-# Spezifikation: Auftraege mit QR-Codes und Laufkarte
+# Spezifikation: Auftraege mit Strichcodes, Laufkarte und Arbeitsschritt-Katalog
 
-*Version:* v1 (2026-08-08)
-*Status:* in Umsetzung
+*Version:* v2 (2026-08-08)
+*Status:* umgesetzt (P-2026-08-08-06 bis -16, -24)
+*Hinweis:* Die erste Fassung sah QR-Codes vor; umgestellt auf Code 128, weil im
+Betrieb 1D-Handscanner im Einsatz sind. Der Dateiname hiess bis P-2026-08-08-24
+`spezifikation_auftrag_qr_laufkarte.md`.
 *Grundlage:* `docs/master_prompt_zeiterfassung_v13.md`, Abschnitte 7 (Auftraege)
 und 11 (Auftragszeiten)
 

@@ -5,7 +5,7 @@ declare(strict_types=1);
  * BarcodeService
  *
  * Erzeugt Strichcodes (Code 128) fuer Auftragsnummern, Arbeitsschritt-Codes und
- * Katalogeintraege – siehe `docs/spezifikation_auftrag_qr_laufkarte.md`.
+ * Katalogeintraege – siehe `docs/spezifikation_auftrag_barcode_laufkarte.md`.
  *
  * **Warum Code 128 und nicht QR:** Im Betrieb sind 1D-Handscanner im Einsatz,
  * und die Maschinen-Codes des Projekts sind ebenfalls Code 128
@@ -271,7 +271,16 @@ class BarcodeService
 
         if (class_exists('KonfigurationService')) {
             try {
-                $wert = KonfigurationService::getInstanz()->get('auftrag_qr_rel_pfad', null);
+                $konfig = KonfigurationService::getInstanz();
+                $wert = $konfig->get('auftrag_code_rel_pfad', null);
+
+                // Rueckfall auf den alten Schluessel: Der Wert hiess bis
+                // P-2026-08-08-24 `auftrag_qr_rel_pfad`. Installationen, die die
+                // Migration noch nicht eingespielt haben, sollen trotzdem ihren
+                // eingestellten Pfad behalten statt auf den Standard zu fallen.
+                if (!is_string($wert) || trim($wert) === '') {
+                    $wert = $konfig->get('auftrag_qr_rel_pfad', null);
+                }
             } catch (\Throwable $e) {
                 $wert = null;
             }

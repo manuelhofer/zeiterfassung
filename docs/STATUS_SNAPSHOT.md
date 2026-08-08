@@ -17,6 +17,7 @@ Webbasierte Zeiterfassung inkl. Mitarbeiter-/Rollen-/Genehmiger-Verwaltung, Urla
 - Lokale Umgebung zum Testen: `docs/lokale_entwicklungsumgebung.md` (App unter `http://localhost/zeiterfassung`).
 
 ## Letzte Aenderungen (Auszug)
+- **P-2026-08-08-25 Namen und Doku:** Spezifikation heisst jetzt `spezifikation_auftrag_barcode_laufkarte.md` (v2, Status umgesetzt), Konfigurationsschluessel `auftrag_code_rel_pfad` mit Migration `sql/04_...` und Rueckfall auf den alten Namen. README, Doku-Index und Prompt-Uebersicht aktualisiert.
 - **P-2026-08-08-24 Fix Monatsuebersicht (B-091):** Im laufenden Monat brach die Seite mit einem Fatal ab – Regression aus P-19, weil eine Variable nur im Vergangenheits-Zweig gesetzt wurde. Behoben; laufender, vergangener und zukuenftiger Monat geprueft.
 - **P-2026-08-08-23 Zeitwarnungen bleiben stehen:** Unvollstaendige Kommen/Gehen-Stempel verschwinden nicht mehr nach Ablauf einer Frist, sondern bleiben sichtbar bis zur Korrektur. Damit ist der gesamte Spiegel-Stand uebernommen.
 - **P-2026-08-08-22 Inaktive Mitarbeiter:** `?seite=mitarbeiter_admin&status=inaktiv` zeigt ausgeschiedene Mitarbeiter, die bisher aus dem Backend nicht mehr erreichbar waren.
@@ -51,7 +52,8 @@ Webbasierte Zeiterfassung inkl. Mitarbeiter-/Rollen-/Genehmiger-Verwaltung, Urla
 - **P-2026-01-24-07:** Dashboard: Zeitwarnungen waren trotz vorhandener Daten unsichtbar, weil `DashboardController` versehentlich `fetchEinzel(...)` (nicht existent) aufruft und dadurch in den Catch faellt → Fix auf `fetchEine(...)`.
 
 ## Letzter Patch (P-ID)
-- P-2026-08-08-24 (Commit; Fix Monatsuebersicht im laufenden Monat)
+- P-2026-08-08-25 (Commit; Namen auf Strichcode-Stand, Doku aktualisiert)
+- Davor: P-2026-08-08-24 (Fix Monatsuebersicht im laufenden Monat)
 - Davor: P-2026-08-08-23 (Zeitwarnungen verschwinden nicht mehr)
 - Davor: P-2026-08-08-22 (Inaktive Mitarbeiter einsehbar)
 - Davor: P-2026-08-08-21 (Deutsche Datumsformate)

@@ -5,6 +5,12 @@ Pausenregeln, Urlaubsverwaltung mit Genehmigungsworkflow, Auftragszeiten per
 Scan, Auswertungen als Monats-PDF – dazu eine Terminal-Oberfläche (Kiosk) für
 die Halle inklusive RFID-Login und Offline-Queue.
 
+Aufträge lassen sich im Backend anlegen und mit Arbeitsschritten versehen; für
+wiederkehrende Tätigkeiten gibt es einen betriebsweiten Arbeitsschritt-Katalog.
+Alle Codes sind Strichcodes (Code 128) und lassen sich als **Laufkarte** je
+Auftrag oder als **Kartenblatt** für die Maschinen ausdrucken – Details in
+[docs/spezifikation_auftrag_barcode_laufkarte.md](docs/spezifikation_auftrag_barcode_laufkarte.md).
+
 **Technik:** reines PHP (kein Framework), MariaDB/MySQL, Apache. Läuft auf
 Debian; das Terminal und eine Backup-Datenbank laufen auch auf einem
 Raspberry Pi.

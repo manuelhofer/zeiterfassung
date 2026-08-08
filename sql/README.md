@@ -14,6 +14,10 @@ gebraucht - Neuinstallationen bekommen alles ueber `01_initial_schema.sql`.
 - `03_migration_arbeitsschritt_katalog.sql`: legt die Tabelle
   `arbeitsschritt_katalog` fuer zentrale Standard-Arbeitsschritte an
   (Patch P-2026-08-08-12).
+- `04_migration_auftrag_code_rel_pfad.sql`: benennt den Konfigurationsschluessel
+  `auftrag_qr_rel_pfad` in `auftrag_code_rel_pfad` um, nachdem die Codes von QR
+  auf Strichcode umgestellt wurden (Patch P-2026-08-08-24). Rein kosmetisch -
+  ohne die Migration liest die Anwendung ersatzweise den alten Schluessel.
 
 Einspielen:
 

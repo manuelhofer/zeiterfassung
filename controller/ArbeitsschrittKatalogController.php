@@ -5,7 +5,7 @@ declare(strict_types=1);
  * ArbeitsschrittKatalogController
  *
  * Verwaltung der zentralen, auftragsunabhaengigen Standard-Arbeitsschritte
- * (siehe `docs/spezifikation_auftrag_qr_laufkarte.md`, Abschnitt 4a).
+ * (siehe `docs/spezifikation_auftrag_barcode_laufkarte.md`, Abschnitt 4a).
  *
  * Gedanke dahinter: `fraesen` ist bei jedem Auftrag dasselbe `fraesen`. Die
  * Arbeitsvorbereitung pflegt den Schritt einmal, druckt seinen Strichcode so oft

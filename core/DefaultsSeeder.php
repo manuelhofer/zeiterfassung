@@ -92,10 +92,10 @@ class DefaultsSeeder
                 'beschreibung'  => 'Maschinen-QR: Relativer Speicherpfad unterhalb von public. Default uploads/maschinen_codes.',
             ],
             [
-                'schluessel'    => 'auftrag_qr_rel_pfad',
+                'schluessel'    => 'auftrag_code_rel_pfad',
                 'wert'          => 'uploads/auftrag_codes',
                 'typ'           => 'string',
-                'beschreibung'  => 'Auftrags-QR: Relativer Speicherpfad unterhalb von public für QR-Codes von Aufträgen und Arbeitsschritten. Default uploads/auftrag_codes.',
+                'beschreibung'  => 'Auftrags-Strichcodes: Relativer Speicherpfad unterhalb von public für die Code-Bilder von Aufträgen, Arbeitsschritten und Katalogeinträgen. Default uploads/auftrag_codes.',
             ],
             [
                 'schluessel'    => 'maschinen_qr_url',

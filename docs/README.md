@@ -12,6 +12,9 @@ Projektwurzel.
 - [Status-Snapshot](STATUS_SNAPSHOT.md) – aktueller Stand in Kurzform.
 - [Rechte-Prompt](rechte_prompt.md) – Source of Truth für alle Rechte-Codes.
 - [Prompt-Übersicht](prompt_uebersicht.md) – welche Prompt-Datei wofür gilt.
+- [Spezifikation Aufträge & Laufkarte](spezifikation_auftrag_barcode_laufkarte.md) –
+  Aufträge im Backend anlegen, Arbeitsschritte und Katalog mit Strichcodes,
+  Laufkarte und Kartenblatt als PDF.
 - [Voller Verlauf](archiv/DEV_PROMPT_HISTORY.md) – Projekthistorie, wird bei
   jedem Patch gepflegt.
 
