@@ -58,6 +58,7 @@ Quelle: `sql/01_initial_schema.sql` (INSERT INTO `recht`). Aeltere Verlaufs-/Pat
 | KURZARBEIT_VERWALTEN          | Kurzarbeit verwalten                        | JA                | —                     |
 | DASHBOARD_ZEITWARNUNGEN_SEHEN | Dashboard: Zeitwarnungen sehen              | JA                | —                     |
 | STUNDENKONTO_VERWALTEN       | Stundenkonto verwalten                       | JA                | —                     |
+| AUFTRAEGE_VERWALTEN           | Aufträge verwalten                          | JA                | —                     |
 
 ## 2. Kanonische Rechte (im Code aktiv genutzt)
 > Diese Codes werden aktuell im PHP-Code geprüft (Controller/Header).
@@ -68,6 +69,23 @@ Quelle: `sql/01_initial_schema.sql` (INSERT INTO `recht`). Aeltere Verlaufs-/Pat
 - Prüfpunkte im Code:
   - `controller/AbteilungAdminController.php:38`
   - `views/layout/header.php:66`
+
+### `AUFTRAEGE_VERWALTEN`
+- Name (DB): Aufträge verwalten
+- Zweck: Darf Aufträge und deren Arbeitsschritte im Backend anlegen, bearbeiten
+  und deaktivieren (inkl. der zugehörigen QR-Codes).
+- **Bewusst nicht geschützt:** Auftragsliste, Detailansicht und das
+  Laufkarten-PDF bleiben für alle angemeldeten Benutzer erreichbar. Wer in der
+  Werkstatt eine Laufkarte nachdrucken muss, soll dafür kein Verwaltungsrecht
+  brauchen.
+- Unberührt bleibt außerdem das automatische Anlegen beim Scannen am Terminal
+  (`AuftragszeitService::starteAuftrag`) – dort darf nie eine Buchung an einem
+  fehlenden Recht scheitern.
+- Prüfpunkte im Code:
+  - `controller/AuftragController.php` (Anlegen/Bearbeiten von Auftrag und
+    Arbeitsschritten)
+- Eingeführt mit: P-2026-08-08-08. Bestandsinstallationen ziehen das Recht mit
+  `sql/02_migration_recht_auftraege_verwalten.sql` nach.
 
 ### `BETRIEBSFERIEN_VERWALTEN`
 - Name (DB): Betriebsferien verwalten

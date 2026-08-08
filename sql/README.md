@@ -4,8 +4,19 @@
 - `01_initial_schema.sql`: **vollständiges** Datenbankschema für `zeiterfassung` (Neuinstallation).
 
 ## Migrationen (Updates bestehender Installationen)
-- Entfernt: Es gibt keine Instanzen, die ueber Migrationen aktualisiert werden muessen.
-- Falls spaeter doch Updates noetig sind, werden Migrationen separat bereitgestellt.
+Migrationen sind fortlaufend nummeriert und **idempotent**: Mehrfaches
+Ausfuehren ist unschaedlich. Sie werden nur fuer bestehende Installationen
+gebraucht - Neuinstallationen bekommen alles ueber `01_initial_schema.sql`.
+
+- `02_migration_recht_auftraege_verwalten.sql`: legt das Recht
+  `AUFTRAEGE_VERWALTEN` an und ordnet es den Superuser-Rollen zu
+  (Patch P-2026-08-08-08).
+
+Einspielen:
+
+```bash
+mysql -u <USER> -p zeiterfassung < sql/02_migration_recht_auftraege_verwalten.sql
+```
 
 ## Offline-DB (Terminal, optional)
 - `offline_db_schema.sql`: Minimal-Schema für eine **lokale** Terminal-DB `zeiterfassung_offline`.

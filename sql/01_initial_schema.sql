@@ -396,7 +396,7 @@ CREATE TABLE `recht` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `uniq_recht_code` (`code`),
   KEY `idx_recht_aktiv` (`aktiv`)
-) ENGINE=InnoDB AUTO_INCREMENT=30 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=31 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Daten für Tabelle `recht`
 -- --------------------------------------------------------
@@ -429,7 +429,8 @@ INSERT INTO `recht` (`id`, `code`, `name`, `beschreibung`, `aktiv`, `erstellt_am
 (26, 'KRANKZEITRAUM_VERWALTEN', 'Krankzeitraum verwalten', 'Darf Krank-Zeiträume pro Mitarbeiter pflegen (Lohnfortzahlung/Krankenkasse).', 1, '2026-01-03 09:17:30', '2026-01-03 09:17:30'),
 (27, 'KURZARBEIT_VERWALTEN', 'Kurzarbeit verwalten', 'Darf Kurzarbeit planen und Zeiträume pflegen.', 1, '2026-01-03 09:17:30', '2026-01-03 09:17:30'),
 (28, 'DASHBOARD_ZEITWARNUNGEN_SEHEN', 'Dashboard: Zeitwarnungen sehen', 'Darf den Dashboard-Warnblock für unplausible/unvollständige Kommen/Gehen-Stempel sehen.', 1, '2026-01-07 08:36:06', '2026-01-07 08:36:06'),
-(29, 'STUNDENKONTO_VERWALTEN', 'Stundenkonto verwalten', 'Darf Stundenkonto-Korrekturen und Verteilungen im Backend erfassen.', 1, '2026-01-17 16:49:40', '2026-01-17 16:49:40');
+(29, 'STUNDENKONTO_VERWALTEN', 'Stundenkonto verwalten', 'Darf Stundenkonto-Korrekturen und Verteilungen im Backend erfassen.', 1, '2026-01-17 16:49:40', '2026-01-17 16:49:40'),
+(30, 'AUFTRAEGE_VERWALTEN', 'Aufträge verwalten', 'Darf Aufträge und deren Arbeitsschritte im Backend anlegen, bearbeiten und deaktivieren. Ansehen der Aufträge und Drucken der Laufkarte bleibt ohne dieses Recht möglich.', 1, '2026-08-08 07:00:00', '2026-08-08 07:00:00');
 
 -- --------------------------------------------------------
 -- Tabellenstruktur für Tabelle `rolle`
@@ -493,7 +494,8 @@ INSERT INTO `rolle_hat_recht` (`rolle_id`, `recht_id`, `erstellt_am`) VALUES
 (1, 26, '2026-01-04 06:40:56'),
 (1, 27, '2026-01-04 06:40:56'),
 (1, 28, '2026-01-07 08:36:06'),
-(1, 29, '2026-01-17 16:49:40');
+(1, 29, '2026-01-17 16:49:40'),
+(1, 30, '2026-08-08 07:00:00');
 
 -- --------------------------------------------------------
 -- Tabellenstruktur für Tabelle `sonstiges_grund`

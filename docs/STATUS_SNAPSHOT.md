@@ -17,6 +17,7 @@ Webbasierte Zeiterfassung inkl. Mitarbeiter-/Rollen-/Genehmiger-Verwaltung, Urla
 - Lokale Umgebung zum Testen: `docs/lokale_entwicklungsumgebung.md` (App unter `http://localhost/zeiterfassung`).
 
 ## Letzte Aenderungen (Auszug)
+- **P-2026-08-08-08 Recht AUFTRAEGE_VERWALTEN:** Neues Recht fuer das Anlegen/Bearbeiten von Auftraegen und Arbeitsschritten (Initialschema + idempotente Migration `sql/02_...`), im Rechte-Prompt dokumentiert. Ansehen und Laufkarte bleiben bewusst rechtefrei.
 - **P-2026-08-08-07 QrCodeService:** Neuer Dienst fuer QR-Codes beliebiger Nutzdaten (PNG-Datei fuer die Anzeige, Modulmatrix fuer das PDF), Erzeugung nur bei Bedarf. Web-Basis-Ableitung nach `Helper::ermittleWebBasis()` gezogen (keine zweite Kopie, vgl. B-089); `DefaultsSeeder` baut sein INSERT jetzt dynamisch auf.
 - **P-2026-08-08-06 Spezifikation Auftrags-QR und Laufkarte:** Zielbild und Akzeptanzkriterien fuer Auftraege im Backend anlegen, Arbeitsschritte mit QR-Codes und Laufkarten-PDF (`docs/spezifikation_auftrag_qr_laufkarte.md`).
 - **P-2026-08-08-05 erzeugte Dateien:** `public/uploads/` ist von der Versionierung ausgenommen (nur `.gitkeep` bleibt); die ACL im Setup-Skript traegt jetzt Webserver **und** Projekteigentuemer ein, damit erzeugte Dateien von beiden Seiten ueberschreibbar bleiben.
@@ -35,7 +36,8 @@ Webbasierte Zeiterfassung inkl. Mitarbeiter-/Rollen-/Genehmiger-Verwaltung, Urla
 - **P-2026-01-24-07:** Dashboard: Zeitwarnungen waren trotz vorhandener Daten unsichtbar, weil `DashboardController` versehentlich `fetchEinzel(...)` (nicht existent) aufruft und dadurch in den Catch faellt → Fix auf `fetchEine(...)`.
 
 ## Letzter Patch (P-ID)
-- P-2026-08-08-07 (Commit; QrCodeService fuer Auftraege und Arbeitsschritte)
+- P-2026-08-08-08 (Commit; Recht AUFTRAEGE_VERWALTEN)
+- Davor: P-2026-08-08-07 (QrCodeService fuer Auftraege und Arbeitsschritte)
 - Davor: P-2026-08-08-06 (Spezifikation Auftrags-QR und Laufkarte)
 - Davor: P-2026-08-08-05 (Umgang mit zur Laufzeit erzeugten Dateien)
 - Davor: P-2026-08-08-04 (phpqrcode laeuft unter aktuellem PHP warnungsfrei)

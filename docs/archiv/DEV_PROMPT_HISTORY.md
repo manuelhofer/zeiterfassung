@@ -207,7 +207,38 @@ Webbasierte Zeiterfassung inkl. Mitarbeiter-/Rollen-/Genehmiger-Verwaltung, Urla
 - Offen aus P-2026-08-08-02: QR-/Barcode-Erzeugung und die Terminal-Buchungsflows sind unter PHP 8.5 noch nicht geprueft (brauchen einen angemeldeten Browser-Durchlauf).
 
 ## Letzter Patch (P-ID)
-P-2026-08-08-07 (Commit) – QrCodeService fuer Auftraege und Arbeitsschritte
+P-2026-08-08-08 (Commit) – Recht AUFTRAEGE_VERWALTEN
+
+## P-2026-08-08-08 recht-auftraege-verwalten
+
+### EINGELESEN
+- `docs/rechte_prompt.md`, `sql/01_initial_schema.sql`, `sql/README.md`, `services/AuthService.php` (Superuser-Bypass), Tabellen `recht` / `rolle_hat_recht`.
+
+### DUPLIKAT-CHECK
+- Kein Duplikat: Im Rechte-Inventar gibt es kein Recht fuer Auftraege; `MASCHINEN_VERWALTEN` ist das naechstliegende, deckt aber nur Maschinen ab.
+
+### DATEIEN
+- `sql/01_initial_schema.sql`, `sql/02_migration_recht_auftraege_verwalten.sql` (neu), `sql/README.md`
+- `docs/rechte_prompt.md`
+- `docs/archiv/DEV_PROMPT_HISTORY.md`, `docs/STATUS_SNAPSHOT.md`
+
+### DONE
+- Recht `AUFTRAEGE_VERWALTEN` (ID 30) im Initialschema angelegt und der Chef-Rolle zugeordnet.
+- Migration `sql/02_migration_recht_auftraege_verwalten.sql` fuer Bestandsinstallationen: idempotent (`INSERT IGNORE`, `code` ist UNIQUE), ordnet das Recht allen Superuser-Rollen zu.
+- `sql/README.md` korrigiert: Dort stand, es gebe keine Instanzen, die Migrationen brauchen. Das trifft nicht mehr zu (Produktivinstallation vorhanden); der Abschnitt beschreibt jetzt Nummerierung, Idempotenz und das Einspielen.
+- Im Rechte-Prompt dokumentiert – inklusive der bewussten Abgrenzung: Ansehen der Auftraege und das Laufkarten-PDF bleiben ohne dieses Recht erreichbar, und das automatische Anlegen beim Scannen am Terminal bleibt voellig unberuehrt.
+
+### AKZEPTANZKRITERIEN
+- Eine Neuinstallation aus `01_initial_schema.sql` enthaelt das Recht inklusive Chef-Zuordnung, und die Migration laesst sich anschliessend ohne Doppeleintrag darueber laufen.
+
+### TEST
+1. Frische Datenbank aus dem Initialschema: 33 Tabellen, 30 Rechte, `AUFTRAEGE_VERWALTEN` vorhanden, Chef-Zuordnung vorhanden.
+2. Migration auf diese frische Datenbank angewendet: weiterhin genau 1 Zeile, keine doppelte Zuordnung.
+3. Migration zweimal auf der lokalen Arbeitsdatenbank ausgefuehrt: unveraendert 1 Recht, 1 Zuordnung.
+
+### NEXT
+- P-2026-08-08-09: Auftrag im Backend anlegen und bearbeiten (inkl. Liste, die auch buchungslose Auftraege zeigt).
+
 
 ## P-2026-08-08-07 qrcodeservice-fuer-auftraege
 
