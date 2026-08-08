@@ -521,7 +521,7 @@ Für jeden Mitarbeiter müssen mindestens gespeichert werden:
    - Ausdrucke: **Laufkarte** je Auftrag (`?seite=auftrag_laufkarte`) und **Kartenblatt** je Katalogschritt (`?seite=arbeitsschritt_katalog_blatt`, mit Stückzahl – z. B. 20 Karten `fraesen` für 20 Fräsmaschinen).
    - **Unverändert bleibt:** Das Terminal nimmt weiterhin jeden gescannten Code an und legt fehlende Stammdaten selbst an. Eine Buchung darf niemals daran scheitern, dass ein Stammdatensatz fehlt.
    - Recht: `AUFTRAEGE_VERWALTEN` (nur fürs Pflegen; Ansehen und Ausdrucke bleiben frei).
-   - Details: `docs/spezifikation_auftrag_qr_laufkarte.md`.
+   - Details: `docs/spezifikation_auftrag_barcode_laufkarte.md`.
 
 ---
 

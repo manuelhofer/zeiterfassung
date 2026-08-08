@@ -757,6 +757,7 @@ if (is_array($tageswerte) && $tageswerte !== []) {
                                     $abschlussOptionClass = '';
                                     $abschlussOptionStyle = '';
                                     $abschlussOptionTitle = '';
+                                    $abschlussOptionMarker = '';
                                     if ($istMonatVergangen && $mid > 0) {
                                         if (!empty($monatsabschlussStatusMap[$mid])) {
                                             $abschlussOptionClass = 'monatsabschluss-status-erledigt';

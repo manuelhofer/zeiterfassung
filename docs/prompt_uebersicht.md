@@ -20,10 +20,11 @@ Datei ist wofuer zustaendig, und was ist nur noch Referenz?
   - Source of Truth fuer Rechte-Codes und Berechtigungslogik.
 - `docs/wartungscheckliste.md`
   - Praktische Checkliste vor/nach Aenderungen.
-- `docs/spezifikation_auftrag_qr_laufkarte.md`
-  - Aktive Spezifikation: Auftraege im Backend anlegen, Arbeitsschritte mit
-    QR-Codes, Laufkarten-PDF. Solange in Umsetzung, gilt sie als Auftrag;
-    danach wandert sie ins Archiv.
+- `docs/spezifikation_auftrag_barcode_laufkarte.md`
+  - Aktive Spezifikation: Auftraege im Backend anlegen, Arbeitsschritte und
+    Arbeitsschritt-Katalog mit Strichcodes (Code 128), Laufkarte und
+    Kartenblatt als PDF. Solange in Umsetzung, gilt sie als Auftrag; danach
+    wandert sie ins Archiv.
 - `docs/lokale_entwicklungsumgebung.md`
   - Lokale Umgebung (Apache + php-fpm + MariaDB + phpMyAdmin), damit die App
     im Browser laeuft.

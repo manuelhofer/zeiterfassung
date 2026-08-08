@@ -148,6 +148,7 @@ Webbasierte Zeiterfassung inkl. Mitarbeiter-/Rollen-/Genehmiger-Verwaltung, Urla
 - **D-006:** Micro-Patches sind Pflicht: 1 Patch = 1 Thema/1 Effekt; wegen `DEV_PROMPT_HISTORY.md` bleiben praktisch nur 2 weitere Dateien → Tasks müssen vor Umsetzung gesplittet werden.
 
 ## Bekannte Probleme / Bugs (B-IDs)
+- **B-091:** Monatsuebersicht brach im laufenden Monat mit einem Fatal ab (`$abschlussOptionMarker` nur im Vergangenheits-Zweig gesetzt). Regression aus P-2026-08-08-19. **DONE in P-2026-08-08-24**.
 - **B-089:** Maschinen-Barcode wurde in der Bearbeitungsmaske nie angezeigt, weil der Controller eine abweichende URL-Logik nutzte und bei leerem `maschinen_qr_url` immer `''` lieferte. **DONE in P-2026-08-08-03**.
 - **B-090:** Mitgelieferte Bibliothek `services/phpqrcode` erzeugte PHP-Deprecations und Datei-Warnungen bei jeder QR-Erzeugung (Pflichtparameter hinter optionalen Parametern, dynamische Eigenschaft `$cmyk`, `ImageDestroy()`, fehlendes Cache-Verzeichnis). **DONE in P-2026-08-08-04**.
 - **B-079:** Monatsreport-PDF: Urlaubsblock nutzte `urlaub_verbleibend` aus Monatswerten und zog BF-Restjahr erneut ab (Doppelabzug/negative Werte). **DONE in P-2026-01-18-02**.
@@ -207,7 +208,34 @@ Webbasierte Zeiterfassung inkl. Mitarbeiter-/Rollen-/Genehmiger-Verwaltung, Urla
 - Offen aus P-2026-08-08-02: QR-/Barcode-Erzeugung und die Terminal-Buchungsflows sind unter PHP 8.5 noch nicht geprueft (brauchen einen angemeldeten Browser-Durchlauf).
 
 ## Letzter Patch (P-ID)
-P-2026-08-08-23 (Commit) – Zeitwarnungen verschwinden nicht mehr
+P-2026-08-08-24 (Commit) – Fix: Monatsuebersicht im laufenden Monat
+
+## P-2026-08-08-24 fix-monatsuebersicht-laufender-monat
+
+### BUGREPORT (B-091)
+- Schritte: `?seite=report_monat` ohne Parameter aufrufen (= laufender Monat).
+- Erwartung: Monatsuebersicht wie gewohnt.
+- Ist: Seite bricht mitten in der Mitarbeiter-Auswahlliste ab, im Dropdown steht „…FehlerInterner Fehler…“, darunter bleibt die Seite leer.
+- **Regression aus P-2026-08-08-19 – selbst verursacht.**
+
+### URSACHE
+- Fuer die Ampel wurde in P-19 ein Textzeichen je Option eingefuehrt (`$abschlussOptionMarker`). Gesetzt wurde die Variable **nur innerhalb** von `if ($istMonatVergangen && $mid > 0)`, aber nicht davor initialisiert – anders als die drei Geschwistervariablen daneben.
+- Im laufenden Monat ist `$istMonatVergangen` false, der Zweig laeuft nie, die Variable bleibt undefiniert. `htmlspecialchars(null)` ist unter PHP 8 ein `TypeError` und damit fatal. Die Ausgabe war zu diesem Zeitpunkt schon mitten im `<option>` – daher die Fehlermeldung im Dropdown.
+- Fachlich ist es richtig, dass im laufenden Monat nichts gefaerbt wird: Ein laufender Monat kann noch nicht abgeschlossen sein.
+
+### WARUM DER TEST DAS NICHT GEFUNDEN HAT
+- Der Test zu P-19 prueft nur einen **vergangenen** Monat, weil es dort um die Farben ging. Genau der Pfad ohne Faerbung – der haeufigste im Alltag – blieb ungeprueft. Konsequenz: Bei Verzweigungen nach Zeitraum immer beide Seiten pruefen, nicht nur die interessante.
+
+### DATEIEN
+- `views/report/monatsuebersicht.php`
+
+### DONE
+- `$abschlussOptionMarker` wird jetzt neben den drei anderen Optionsvariablen initialisiert.
+
+### TEST
+- Vier Faelle gerendert: laufender Monat (2026/08), zwei vergangene (2026/06, 2026/07) und ein zukuenftiger (2027/01). Alle liefern die vollstaendige Seite, **keine PHP-Meldungen**.
+- Faerbung greift nur bei vergangenen Monaten (18 Treffer inkl. CSS-Regeln), bei laufendem und zukuenftigem Monat bleiben nur die 4 CSS-Regeln uebrig – also keine gefaerbte Option.
+
 
 ## P-2026-08-08-23 zeitwarnungen-bleiben-stehen
 
