@@ -17,6 +17,8 @@ Webbasierte Zeiterfassung inkl. Mitarbeiter-/Rollen-/Genehmiger-Verwaltung, Urla
 - Lokale Umgebung zum Testen: `docs/lokale_entwicklungsumgebung.md` (App unter `http://localhost/zeiterfassung`).
 
 ## Letzte Aenderungen (Auszug)
+- **P-2026-08-08-13 Arbeitsschritt-Katalog:** Zentrale Standardschritte (z. B. `fraesen`) unter `?seite=arbeitsschritt_katalog`, erreichbar ueber das neue Aufklappmenue „Auftraege“. Einmal pflegen, QR beliebig oft ausdrucken und an die Maschinen haengen.
+- **P-2026-08-08-12 Katalog-Tabelle:** Neue Tabelle `arbeitsschritt_katalog` (Initialschema + Migration `sql/03_...`), Spezifikation um Abschnitt 4a erweitert.
 - **P-2026-08-08-11 Laufkarten-PDF:** `?seite=auftrag_laufkarte&code=…` erzeugt die druckbare Laufkarte (Auftragskopf mit QR, je Arbeitsschritt ein Block mit QR und Feldern zum Eintragen, mehrseitig). QR-Codes werden als Vektor gezeichnet; mit `pdftoppm` + `zbarimg` gegengeprueft, dass sie scannbar sind.
 - **P-2026-08-08-10 Arbeitsschritte mit QR-Codes:** Auftragsdetail zeigt Stammdaten und Auftrags-QR; Arbeitsschritte lassen sich anlegen und bearbeiten, jeder mit eigenem QR-Code. Mit `zbarimg` gegengeprueft: die Codes liefern exakt den Wert, den das Terminal erwartet.
 - **P-2026-08-08-09 Auftrag anlegen/bearbeiten:** Neue Routen `auftrag_neu` / `auftrag_bearbeiten` / `auftrag_speichern` mit CSRF und Recht `AUFTRAEGE_VERWALTEN`; die Auftragsliste zeigt jetzt auch Auftraege ohne Buchung (Status `angelegt`), inkl. Kunde/Kurzbeschreibung.
@@ -39,7 +41,9 @@ Webbasierte Zeiterfassung inkl. Mitarbeiter-/Rollen-/Genehmiger-Verwaltung, Urla
 - **P-2026-01-24-07:** Dashboard: Zeitwarnungen waren trotz vorhandener Daten unsichtbar, weil `DashboardController` versehentlich `fetchEinzel(...)` (nicht existent) aufruft und dadurch in den Catch faellt → Fix auf `fetchEine(...)`.
 
 ## Letzter Patch (P-ID)
-- P-2026-08-08-11 (Commit; Laufkarten-PDF mit QR-Codes)
+- P-2026-08-08-13 (Commit; Katalog-Verwaltung im Menue Auftraege)
+- Davor: P-2026-08-08-12 (Arbeitsschritt-Katalog: Tabelle und Spezifikation)
+- Davor: P-2026-08-08-11 (Laufkarten-PDF mit QR-Codes)
 - Davor: P-2026-08-08-10 (Arbeitsschritte je Auftrag mit QR-Codes)
 - Davor: P-2026-08-08-09 (Auftrag im Backend anlegen und bearbeiten)
 - Davor: P-2026-08-08-08 (Recht AUFTRAEGE_VERWALTEN)

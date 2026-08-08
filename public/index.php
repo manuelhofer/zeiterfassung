@@ -128,6 +128,10 @@ try {
         'auftrag_bearbeiten',
         'auftrag_speichern',
         'auftrag_laufkarte',
+        'arbeitsschritt_katalog',
+        'arbeitsschritt_katalog_neu',
+        'arbeitsschritt_katalog_bearbeiten',
+        'arbeitsschritt_katalog_speichern',
         'auftrag_schritt_bearbeiten',
         'auftrag_schritt_speichern',
         'auftragszeit_bearbeiten',
@@ -280,6 +284,26 @@ try {
 
         case 'auftrag_speichern':
             $controller = new AuftragController();
+            $controller->speichern();
+            break;
+
+        case 'arbeitsschritt_katalog':
+            $controller = new ArbeitsschrittKatalogController();
+            $controller->index();
+            break;
+
+        case 'arbeitsschritt_katalog_neu':
+            $controller = new ArbeitsschrittKatalogController();
+            $controller->neu();
+            break;
+
+        case 'arbeitsschritt_katalog_bearbeiten':
+            $controller = new ArbeitsschrittKatalogController();
+            $controller->bearbeiten();
+            break;
+
+        case 'arbeitsschritt_katalog_speichern':
+            $controller = new ArbeitsschrittKatalogController();
             $controller->speichern();
             break;
 

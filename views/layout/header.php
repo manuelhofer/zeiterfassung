@@ -16,6 +16,7 @@ $angemeldeterMitarbeiterId = 0;
 $hatMitarbeiterAdminRecht     = false;
 $hatAbteilungsAdminRecht      = false;
 $hatMaschineAdminRecht        = false;
+$hatAuftragAdminRecht         = false;
 $hatRollenAdminRecht          = false;
 $hatFeiertagAdminRecht        = false;
 $hatRundungsregelAdminRecht   = false;
@@ -66,6 +67,7 @@ if (class_exists('AuthService')) {
             $hatMitarbeiterAdminRecht      = $auth->hatRecht('MITARBEITER_VERWALTEN') || $hatLegacyAdminRolle;
             $hatAbteilungsAdminRecht       = $auth->hatRecht('ABTEILUNG_VERWALTEN') || $hatLegacyAdminRolle;
             $hatMaschineAdminRecht         = $auth->hatRecht('MASCHINEN_VERWALTEN') || $hatLegacyAdminRolle;
+            $hatAuftragAdminRecht          = $auth->hatRecht('AUFTRAEGE_VERWALTEN') || $hatLegacyAdminRolle;
             $hatRollenAdminRecht           = $auth->hatRecht('ROLLEN_RECHTE_VERWALTEN') || $hatLegacyAdminRolle;
             $hatFeiertagAdminRecht         = $auth->hatRecht('FEIERTAGE_VERWALTEN') || $hatLegacyAdminRolle;
             $hatBetriebsferienAdminRecht   = $auth->hatRecht('BETRIEBSFERIEN_VERWALTEN') || $hatLegacyAdminRolle;
@@ -83,6 +85,7 @@ if (class_exists('AuthService')) {
             $hatMitarbeiterAdminRecht      = $hatLegacyAdminRolle;
             $hatAbteilungsAdminRecht       = $hatLegacyAdminRolle;
             $hatMaschineAdminRecht         = $hatLegacyAdminRolle;
+            $hatAuftragAdminRecht          = $hatLegacyAdminRolle;
             $hatRollenAdminRecht           = $hatLegacyAdminRolle;
             $hatFeiertagAdminRecht         = $hatLegacyAdminRolle;
             $hatRundungsregelAdminRecht    = $hatLegacyAdminRolle;
@@ -843,7 +846,27 @@ if ($hatKonfigurationAdminRecht) {
             <?php endif; ?>
         </span>
     </span>
-    <a href="?seite=auftrag" class="<?php echo in_array($seite, ['auftrag','auftrag_detail','auftragszeit_bearbeiten'], true) ? 'active' : ''; ?>">Auftr&auml;ge</a>
+    <?php
+        $navAuftraegeSeiten = [
+            'auftrag', 'auftrag_detail', 'auftragszeit_bearbeiten',
+            'auftrag_neu', 'auftrag_bearbeiten',
+            'auftrag_schritt_bearbeiten',
+            'arbeitsschritt_katalog', 'arbeitsschritt_katalog_neu', 'arbeitsschritt_katalog_bearbeiten',
+        ];
+        $navAuftraegeAktiv = in_array($seite, $navAuftraegeSeiten, true);
+    ?>
+    <?php if ($hatAuftragAdminRecht): ?>
+        <span class="nav-menu <?php echo $navAuftraegeAktiv ? 'active' : ''; ?>">
+            <a href="?seite=auftrag">Auftr&auml;ge</a>
+            <span class="nav-menu-items">
+                <a href="?seite=auftrag">Auftrags&uuml;bersicht</a>
+                <a href="?seite=auftrag_neu">Auftrag anlegen</a>
+                <a href="?seite=arbeitsschritt_katalog">Arbeitsschritt-Katalog</a>
+            </span>
+        </span>
+    <?php else: ?>
+        <a href="?seite=auftrag" class="<?php echo $navAuftraegeAktiv ? 'active' : ''; ?>">Auftr&auml;ge</a>
+    <?php endif; ?>
     <?php if ($hatMitarbeiterAdminRecht): ?>
         <span class="nav-menu <?php echo $navMitarbeiterAktiv ? 'active' : ''; ?>">
             <a href="?seite=mitarbeiter_admin">Mitarbeiter</a>

@@ -207,7 +207,41 @@ Webbasierte Zeiterfassung inkl. Mitarbeiter-/Rollen-/Genehmiger-Verwaltung, Urla
 - Offen aus P-2026-08-08-02: QR-/Barcode-Erzeugung und die Terminal-Buchungsflows sind unter PHP 8.5 noch nicht geprueft (brauchen einen angemeldeten Browser-Durchlauf).
 
 ## Letzter Patch (P-ID)
-P-2026-08-08-11 (Commit) – Laufkarten-PDF mit QR-Codes
+P-2026-08-08-13 (Commit) – Katalog-Verwaltung im Menue Auftraege
+
+## P-2026-08-08-13 katalog-verwaltung
+
+### EINGELESEN
+- `controller/AuftragController.php` (Muster), `views/layout/header.php` (Navigation), `services/QrCodeService.php`, Tabelle `arbeitsschritt_katalog`.
+
+### DUPLIKAT-CHECK
+- Kein Duplikat: Der Katalog ist neu; bisher gab es Arbeitsschritte nur je Auftrag.
+
+### DATEIEN
+- `controller/ArbeitsschrittKatalogController.php` (neu)
+- `views/layout/header.php`, `public/index.php`
+- `docs/archiv/DEV_PROMPT_HISTORY.md`, `docs/STATUS_SNAPSHOT.md`
+
+### DONE
+- **Neuer Controller** mit Liste (inkl. QR-Vorschau), Anlegen, Bearbeiten und Deaktivieren. Codes sind betriebsweit eindeutig; doppelte, leere und zu lange Codes werden verstaendlich abgelehnt, CSRF geprueft.
+- **Menue umgebaut:** „Auftraege“ ist jetzt ein Aufklappmenue mit Auftragsuebersicht, Auftrag anlegen und Arbeitsschritt-Katalog. Ohne das Recht bleibt es ein einfacher Link auf die Uebersicht, damit niemand Menuepunkte sieht, die er nicht benutzen darf.
+- Jede Zeile hat ein kleines Formular „x drucken“ mit Stueckzahl – damit ist der Fall „20-mal fraesen fuer 20 Fraesmaschinen“ direkt aus der Liste erreichbar (das PDF folgt im naechsten Patch).
+- Beim Bearbeiten steht ein Warnhinweis: Eine Code-Aenderung erzeugt einen neuen QR-Code und macht bereits an Maschinen haengende Ausdrucke ungueltig.
+- **Kein eigenes Recht** fuer den Katalog: Wer Auftraege pflegen darf, pflegt auch die Vorlagen dafuer. Die Legacy-Rollen-Pruefung folgt dem Hausstil (dasselbe Muster steckt in 15 Controllern) – eine neue Abstraktion nur fuer zwei davon waere inkonsistenter als die Wiederholung.
+
+### AKZEPTANZKRITERIEN
+- Ein Katalogschritt `fraesen` laesst sich einmal anlegen, erscheint mit QR-Code in der Liste, und der Code ist mit einem Scanner als `fraesen` lesbar.
+
+### TEST
+1. Acht Standardschritte angelegt (saegen, drehen, fraesen, bohren, schleifen, entgraten, montage, pruefen) – alle in der Datenbank mit Bezeichnung und Sortierung.
+2. Fehlerfaelle: doppelter Code, leerer Code, 101 Zeichen und falsches CSRF-Token werden abgelehnt.
+3. Liste gerendert: acht Eintraege mit QR-Vorschau, Druckformular und Bearbeiten-Link; keine PHP-Meldungen.
+4. Menue enthaelt Auftragsuebersicht, Auftrag anlegen und Arbeitsschritt-Katalog.
+5. Mit `zbarimg` gegengeprueft: `katalog_3.png` -> `fraesen`, `katalog_8.png` -> `pruefen`.
+
+### NEXT
+- P-2026-08-08-14: Druckblatt (PDF) mit frei waehlbarer Stueckzahl.
+
 
 ## P-2026-08-08-11 laufkarten-pdf
 
