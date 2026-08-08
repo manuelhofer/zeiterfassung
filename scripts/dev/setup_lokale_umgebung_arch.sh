@@ -324,10 +324,18 @@ schritt "8/9  Dateirechte (Schreibzugriff fuer den Webserver)"
 # Der Code bleibt dem angemeldeten Benutzer gehoeren (Git-Arbeitskopie!).
 # Der Webserver bekommt per ACL nur dort Schreibrechte, wo er sie braucht -
 # inklusive Default-ACL, damit auch neu erzeugte Dateien passen.
+#
+# Wichtig: Die ACL gilt fuer *beide* Seiten. Sonst gehoeren vom Webserver
+# erzeugte Dateien dem Benutzer 'http' und lassen sich weder per CLI-Skript noch
+# beim Aufraeumen ueberschreiben (Symptom: "Permission denied" beim Erzeugen
+# eines Barcodes ausserhalb des Browsers).
+ENTWICKLER="$(stat -c %U "$PROJEKT")"
+echo "Entwicklerkonto (Eigentuemer des Projekts): $ENTWICKLER"
+
 for verzeichnis in "$PROJEKT/public/uploads" "$PROJEKT/public/img"; do
     if [ -d "$verzeichnis" ]; then
-        setfacl -R    -m "u:$WEBUSER:rwX" "$verzeichnis"
-        setfacl -R -d -m "u:$WEBUSER:rwX" "$verzeichnis"
+        setfacl -R    -m "u:$WEBUSER:rwX" -m "u:$ENTWICKLER:rwX" "$verzeichnis"
+        setfacl -R -d -m "u:$WEBUSER:rwX" -m "u:$ENTWICKLER:rwX" "$verzeichnis"
         echo "ACL gesetzt: $verzeichnis"
     fi
 done

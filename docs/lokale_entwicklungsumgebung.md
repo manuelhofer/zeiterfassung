@@ -114,12 +114,25 @@ das Arbeiten mit Git muehsam. Der Webserver bekommt deshalb **nur** per ACL
 Schreibrechte auf die Verzeichnisse, in die er wirklich schreibt:
 
 ```bash
-sudo setfacl -R    -m u:http:rwX public/uploads public/img
-sudo setfacl -R -d -m u:http:rwX public/uploads public/img
+sudo setfacl -R    -m u:http:rwX -m u:$USER:rwX public/uploads public/img
+sudo setfacl -R -d -m u:http:rwX -m u:$USER:rwX public/uploads public/img
 ```
 
 Die zweite Zeile setzt die Default-ACL, damit auch spaeter erzeugte Dateien
-(z. B. generierte QR-Code-Bilder) fuer beide Seiten nutzbar bleiben.
+passende Rechte bekommen.
+
+**Beide Benutzer eintragen, nicht nur `http`.** Sonst gehoeren die vom
+Webserver erzeugten Dateien dem Benutzer `http`, und der eigene Benutzer faellt
+auf `other` zurueck – Lesen ja, Ueberschreiben nein. Das faellt erst auf, wenn
+man dieselbe Datei einmal ausserhalb des Browsers erzeugen will:
+
+```
+file_put_contents(.../maschine_5_barcode.png): Failed to open stream: Permission denied
+```
+
+Die erzeugten Dateien selbst gehoeren nicht ins Repository – sie entstehen im
+Betrieb. `.gitignore` schliesst den Inhalt von `public/uploads/` aus und behaelt
+nur die `.gitkeep`-Dateien, damit die Verzeichnisse erhalten bleiben.
 
 ## 5. Stolpersteine (real aufgetreten)
 

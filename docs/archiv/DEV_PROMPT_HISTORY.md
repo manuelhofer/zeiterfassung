@@ -207,7 +207,39 @@ Webbasierte Zeiterfassung inkl. Mitarbeiter-/Rollen-/Genehmiger-Verwaltung, Urla
 - Offen aus P-2026-08-08-02: QR-/Barcode-Erzeugung und die Terminal-Buchungsflows sind unter PHP 8.5 noch nicht geprueft (brauchen einen angemeldeten Browser-Durchlauf).
 
 ## Letzter Patch (P-ID)
-P-2026-08-08-04 (Commit) – phpqrcode laeuft unter aktuellem PHP warnungsfrei
+P-2026-08-08-05 (Commit) – Umgang mit zur Laufzeit erzeugten Dateien
+
+## P-2026-08-08-05 erzeugte-dateien-ignorieren-und-rechte
+
+### EINGELESEN
+- `.gitignore`, `scripts/dev/setup_lokale_umgebung_arch.sh`, `docs/lokale_entwicklungsumgebung.md`, ACL-Stand von `public/uploads`.
+
+### DUPLIKAT-CHECK
+- Kein Duplikat: Die `.gitignore` enthielt bisher nur `config/config.local.php`; eine Regel fuer erzeugte Dateien gab es nicht.
+
+### DATEIEN
+- `.gitignore`
+- `scripts/dev/setup_lokale_umgebung_arch.sh`
+- `docs/lokale_entwicklungsumgebung.md`
+- `docs/archiv/DEV_PROMPT_HISTORY.md`, `docs/STATUS_SNAPSHOT.md`
+
+### DONE
+- **Erzeugte Dateien nicht mehr versionieren:** Der Inhalt von `public/uploads/` ist ausgeschlossen, die `.gitkeep`-Dateien bleiben erhalten. Maschinen-QR-Codes und -Barcodes entstehen beim Speichern einer Maschine und gehoeren zur Installation, nicht zum Quellcode. Vorher waren sie nur "noch nicht hinzugefuegt" und waeren beim naechsten `git add .` mitgewandert.
+- **ACL fuer beide Seiten:** Das Setup-Skript traegt jetzt zusaetzlich den Eigentuemer des Projektverzeichnisses ein (ermittelt per `stat -c %U`, funktioniert also unabhaengig vom Benutzernamen). Vorher kannte die ACL nur `http`; vom Webserver erzeugte Dateien gehoerten damit `http:http`, und der eigene Benutzer fiel auf `other` zurueck – lesen ja, ueberschreiben nein. Aufgefallen beim Erzeugen eines Barcodes ausserhalb des Browsers: `file_put_contents(...): Permission denied`.
+- Beides in `docs/lokale_entwicklungsumgebung.md`, Abschnitt 4.5 erklaert – samt Symptom, damit es beim naechsten Mal schneller gefunden wird.
+
+### AKZEPTANZKRITERIEN
+- `git status` bleibt sauber, nachdem im Browser ein Maschinen-Barcode neu erzeugt wurde; die `.gitkeep`-Dateien bleiben versioniert.
+
+### TEST
+1. `git check-ignore -v` auf beide erzeugten PNG-Dateien: greift ueber `public/uploads/maschinen_codes/*`.
+2. `git ls-files public/uploads` zeigt weiterhin `.gitkeep`.
+3. `bash -n` auf dem Setup-Skript fehlerfrei.
+
+### HINWEIS FUER BESTEHENDE ARBEITSPLAETZE
+- Die erweiterte ACL wirkt fuer neue Dateien automatisch. Bereits vom Webserver erzeugte Dateien einmalig nachziehen:
+  `sudo setfacl -R -m u:http:rwX -m u:$USER:rwX public/uploads public/img`
+
 
 ## P-2026-08-08-04 phpqrcode-warnungsfrei
 

@@ -1,1 +1,12 @@
+# Lokale Konfiguration mit echten Zugangsdaten (Vorlage: config/config.php.example)
 config/config.local.php
+
+# Zur Laufzeit erzeugte Dateien.
+# Die Verzeichnisse selbst bleiben im Repo (.gitkeep), ihr Inhalt entsteht erst
+# im Betrieb: Maschinen-QR-Codes und -Barcodes werden beim Speichern einer
+# Maschine geschrieben und gehoeren zur Installation, nicht zum Quellcode.
+public/uploads/*
+!public/uploads/.gitkeep
+!public/uploads/maschinen_codes/
+public/uploads/maschinen_codes/*
+!public/uploads/maschinen_codes/.gitkeep
