@@ -86,6 +86,28 @@ CREATE TABLE `arbeitsschritt_katalog` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
+-- Tabellenstruktur für Tabelle `terminal_kopplung`
+--
+-- Kopplungscodes, mit denen sich ein Terminal am Backend anmeldet.
+-- Gespeichert wird nur der Hash des Codes, nie der Code selbst.
+-- --------------------------------------------------------
+CREATE TABLE `terminal_kopplung` (
+  `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `terminal_id` bigint(20) UNSIGNED NOT NULL,
+  `code_hash` char(64) NOT NULL,
+  `gueltig_bis` datetime NOT NULL,
+  `verbraucht_am` datetime DEFAULT NULL,
+  `verbraucht_von_host` varchar(190) DEFAULT NULL,
+  `erstellt_von_mitarbeiter_id` bigint(20) UNSIGNED DEFAULT NULL,
+  `erstellt_am` datetime NOT NULL DEFAULT current_timestamp(),
+  `geaendert_am` datetime NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uniq_terminal_kopplung_hash` (`code_hash`),
+  KEY `idx_terminal_kopplung_terminal` (`terminal_id`),
+  KEY `idx_terminal_kopplung_gueltig` (`gueltig_bis`, `verbraucht_am`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
 -- Tabellenstruktur für Tabelle `auftragszeit`
 -- --------------------------------------------------------
 CREATE TABLE `auftragszeit` (

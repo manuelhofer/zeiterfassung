@@ -208,7 +208,41 @@ Webbasierte Zeiterfassung inkl. Mitarbeiter-/Rollen-/Genehmiger-Verwaltung, Urla
 - Offen aus P-2026-08-08-02: QR-/Barcode-Erzeugung und die Terminal-Buchungsflows sind unter PHP 8.5 noch nicht geprueft (brauchen einen angemeldeten Browser-Durchlauf).
 
 ## Letzter Patch (P-ID)
-P-2026-08-08-29 (Commit) – Terminal-Spezifikation v2: Kopplung statt Zugangsdaten im Skript
+P-2026-08-08-30 (Commit) – Terminal-Kopplung: Codes (Stufe 1a)
+
+## P-2026-08-08-30 terminal-kopplung-codes
+
+### EINGELESEN
+- `docs/spezifikation_terminal_installation.md` (v2, Abschnitt 2a), Tabelle `terminal`, `core/Logger.php`.
+
+### DATEIEN
+- `services/TerminalKopplungService.php` (neu)
+- `sql/05_migration_terminal_kopplung.sql` (neu), `sql/01_initial_schema.sql`, `sql/README.md`
+
+### DONE – erster Baustein der Terminal-Kopplung
+- Tabelle `terminal_kopplung` und Dienst zum **Erzeugen und Einloesen** von Kopplungscodes. Bewusst ohne Oberflaeche und ohne Datenbankbenutzer-Anlage – dieser Teil ist fuer sich pruefbar und traegt alles Weitere.
+- **Nur der Hash wird gespeichert**, nie der Code. Er wird einmal angezeigt und ist danach nicht rekonstruierbar – wie ein Passwort.
+- **Einmalig und zeitlich begrenzt** (Standard 30 Minuten). Das Verbrauchen laeuft als bedingtes UPDATE, damit auch bei zwei gleichzeitigen Anfragen nur eine gewinnen kann.
+- **Ein gueltiger Code je Geraet:** Eine Neuvergabe entwertet den vorherigen, sonst weiss niemand mehr, welcher Zettel noch zaehlt.
+- **Alphabet ohne Verwechslungen** (kein O/0, kein I/1/L) und Eingabe-Normalisierung, weil der Code an einem Touchscreen in der Halle von einem Zettel abgetippt wird. Bindestriche stoeren nicht.
+- Fehlversuche werden protokolliert, aber die Meldung nennt **nicht**, ob der Code unbekannt, abgelaufen oder verbraucht war – das hilft nur beim Durchprobieren.
+
+### GEFUNDENER FEHLER IM EIGENEN ENTWURF
+- Der erste Test schlug fehl: Nach einer Neuvergabe war der **alte** Code weiterhin gueltig. Ursache: Das Entwerten setzte `gueltig_bis = NOW()`, die Pruefung laesst aber `gueltig_bis >= NOW()` gelten – der alte Code blieb also eine Sekunde lang brauchbar. Behoben, indem beim Entwerten eine Sekunde in die Vergangenheit gesetzt wird.
+
+### TEST
+1. Code erzeugt: 8 Zeichen; in der Datenbank ist **kein Klartext** auffindbar, nur der Hash.
+2. Einloesen liefert den Terminal-Datensatz; ein zweites Einloesen desselben Codes wird abgelehnt.
+3. Erfundener Code, abgelaufener Code und ein durch Neuvergabe entwerteter Code werden abgelehnt.
+4. Eingabe mit Bindestrich wird normalisiert.
+5. `holeOffeneKopplung()` zeigt Gueltigkeit an und enthaelt den Code nicht.
+6. Neuinstallation aus dem Initialschema: 35 Tabellen inkl. `terminal_kopplung`; Migration laeuft idempotent darueber.
+7. Keine PHP-Meldungen.
+
+### NEXT (Stufe 1b)
+- Backend-Maske „Terminal anmelden“: Terminal anlegen, Code erzeugen und einmalig anzeigen.
+- Danach Stufe 1c: Kopplungs-Endpunkt inkl. Anlage des eingeschraenkten Datenbankbenutzers.
+
 
 ## P-2026-08-08-29 terminal-spezifikation-kopplung
 
