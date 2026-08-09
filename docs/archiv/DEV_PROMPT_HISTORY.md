@@ -35,179 +35,66 @@ Webbasierte Zeiterfassung inkl. Mitarbeiter-/Rollen-/Genehmiger-Verwaltung, Urla
 
 ## Zuletzt erledigt
 
-> **Achtung, Luecke:** Diese Liste wurde zwischen P-2026-08-08-02 und -36 nicht
-> mitgepflegt. Der vollstaendige, aktuelle Kurzueberblick steht in
-> `docs/STATUS_SNAPSHOT.md`; die Einzelheiten je Patch stehen unten im Verlauf.
+Steht in `git log --oneline` – genauer und immer aktuell als eine von Hand
+gepflegte Liste. Die Einzelheiten je Patch (Tests, Begruendungen, gefundene
+Fehler) stehen unten im Verlauf.
 
-- **P-2026-08-09-02 Doku nach Lesehaeufigkeit:** Der Master-Prompt v13 (~36.000 Token) ist aufgeteilt: `CHATSTART.md` als werkzeugneutraler Einstieg mit Lesekarte, `docs/arbeitsregeln.md` fuer alles, was bei jedem Patch gilt, `docs/fachregeln/*.md` fuer die Fachlogik nach Thema. `CLAUDE.md` ist nur ein Zeiger darauf. Startlektuere von ~74.000 auf ~15.400 Token.
-- **P-2026-08-09-01 Einrichtungsseite im Terminal:** Fehlt `config/config.local.php`, zeigt `public/terminal.php` statt der Bedienoberflaeche eine Einrichtungsseite. Dort werden Server-Adresse und Kopplungscode eingegeben (Bildschirmtastatur, fuer den Code nur die moeglichen Zeichen); das Terminal ruft den Kopplungs-Endpunkt auf und schreibt seine Konfiguration selbst. Damit ist Stufe 2 der Terminal-Installation fertig – ein Geraet mit laufendem Webserver macht sich ab jetzt allein zum Terminal.
-- **P-2026-08-08-01 lokale Entwicklungsumgebung + Doku-Neuordnung:** Setup-Skript `scripts/dev/setup_lokale_umgebung_arch.sh` (Apache + php-fpm + MariaDB LTS + phpMyAdmin, App unter `http://localhost/zeiterfassung`), neue `README.md` in der Projektwurzel als Einstieg nach dem Klonen, `docs/lokale_entwicklungsumgebung.md`, Master-Prompt **v13** (v12 ins Archiv; ZIP-Zwang, 3-Dateien-Limit und SHA256-Nachweis entfallen mit Begruendung; PHP-Baseline min. 8.2 und sauber auf aktuellem PHP), `docs/archiv/ALTE_PROMPTS.md` als Begruendungsliste zum Archiv. Keine Fachlogik geaendert.
-- **2026-07-17 Stundenkonto-Sammelumbuchung lokal:** Separate Umbuchungsmaske aus dem Stundenkonto heraus; normale Stundenkonto-Seite bleibt ohne Monatsfilter, die Sammelumbuchung zeigt Monats-Tageswerte und verschiebt eingegebene Abzuege gesammelt auf einen Zieltag (netto 0), inkl. Stealth-Unterstuetzung.
-- **2026-07-17 Header-Menue lokal:** Top-Navigation in Dropdown-Gruppen `Urlaub`, `Uebersichten`, `Mitarbeiter`, `Rechte` und `Verwaltung` aufgeraeumt; bestehende Zielseiten/Rechtebedingungen bleiben erhalten.
-- **2026-07-17 Mitarbeiter/Rollen-Rechte UI lokal:** Rollen, Rechte-Overrides und Genehmiger aus dem normalen Mitarbeiterformular in `?seite=mitarbeiter_rechte` ausgelagert; Stammdaten-Speichern laesst bestehende Rechte-Zuordnungen unangetastet.
-- **2026-07-17 Mitarbeiter/Stundenkonto UI lokal:** Stundenkonto aus dem Mitarbeiterformular als eigene Seite `?seite=mitarbeiter_stundenkonto` mit Mitarbeiter-Auswahl ausgelagert; bestehende Buchungslogik bleibt erhalten, Ruecksprung nach Buchung fuehrt optional zur neuen Seite.
-- **2026-07-17 Urlaub-Jahresuebersicht V1 lokal:** Read-only Jahresuebersicht unter `?seite=urlaub_jahresuebersicht` mit echten Urlaub-Genehmigungsrechten, U/O/BF/FT-Kalenderzellen, Monatswerten nur bei vorhandenen abgeschlossenen Monatsdaten und O-Link zur Genehmigungsliste.
-- **2026-07-17 lokale Doku-Aufraeumung:** Root-`index.php` leitet auf `public/index.php`; `docs/wartungscheckliste.md`, `docs/prompt_uebersicht.md` und `docs/archiv/README.md` ergaenzt/verlinkt; Master-/Rechte-Prompt und aktive Doku an reale Pfade/Schema-Stand angepasst; keine Fachlogik geaendert.
-- **P-2026-01-25-02:** Dashboard: Zeitwarnungen-Query als Derived-Table (ONLY_FULL_GROUP_BY/SQLMODE-sicher) + Bind-Parameter (start_ts, today); Debug-Fehlertext nur für Legacy-Admin im UI.
-- **P-2026-01-24-08:** Dashboard: Zeitwarnungen-Query nutzt keine PDO-Parameter mehr (Inline-ISO-Datum), weil MariaDB/PDO in der Praxis trotz vorhandener Daten leere Resultsets lieferte; Query entspricht dem phpMyAdmin-Test und Zeitwarnungen werden wieder sichtbar.
-- **P-2026-01-25-01:** Dashboard: Zeitwarnungen-Query GROUP BY erweitert (MariaDB/ONLY_FULL_GROUP_BY kompatibel) + Sortierung ueber m.nachname/m.vorname; bei Fehlern wird jetzt ins error_log geschrieben und im Dashboard ein kurzer Hinweis angezeigt.
-- **P-2026-01-24-07:** Dashboard: Zeitwarnungen waren trotz vorhandener Daten unsichtbar, weil `DashboardController` versehentlich `fetchEinzel(...)` (nicht existent) aufruft und dadurch in den Catch faellt → Fix auf `fetchEine(...)`.
-- **P-2026-01-24-05:** Dashboard: Zeitwarnungen werden nicht mehr durch die Nachtschicht-Grenzfall-Heuristik komplett ausgefiltert; Eintraege bleiben sichtbar (zus. Flag), damit der Warnhinweis im Dashboard wieder erscheint.
-- **P-2026-01-24-04:** Dashboard: Zeitwarnungen erkennen jetzt echte Kommen/Gehen-Ungleichgewichte (z. B. 2x "Kommen" ohne "Gehen"), nicht nur ungerade Gesamtanzahl; UI-Text angepasst.
-- **P-2026-01-24-03:** Dashboard: Zeitwarnungen nutzen jetzt zusaetzlich `tageswerte_mitarbeiter` (roh/korr) als Fallback, damit "FEHLT"-Tage auch dann im Dashboard auftauchen, wenn keine ungeraden Rohstempel erkannt werden; Dedupe mid+datum.
-- **P-2026-01-24-01:** Dashboard: Zeitwarnung (unvollstaendige Kommen/Gehen) prueft standardmaessig **31 Tage** (statt 14); Zeitraum optional via Config `dashboard_zeitwarnungen_tage`.
-- **P-2026-01-23-02:** Urlaubssaldo: Betriebsferien-Abzug ueber zentrale BF-Zaehllogik (wie Anzeige) berechnet → kein Drift mehr (z. B. 9.50 vs 10.00).
-- **P-2026-01-23-01:** Urlaub (Betriebsferien + Urlaubsantraege): Heiligabend (24.12) und Silvester (31.12) werden als **0.5 Urlaubstage** gewertet → Betriebsferien-Liste passt zum Urlaubssaldo.
-- **P-2026-01-22-02:** Terminal Urlaub-Uebersicht: Betriebsferien-"benoetigte Urlaubstage" nutzt Mitarbeiter-spezifische BF-Logik (Skip bei Arbeit/Kennzeichen/Krank) + Reihenfolge: Jahresanspruch | Uebertrag | Korrektur | Effektiv.
-- **P-2026-01-22-01:** Monatsuebersicht/PDF: Rundung->0-Bloecke (gehen_korr<=kommen_korr) wie Mikro behandeln (ausblenden) + Block-IST=0.00.
-- **P-2026-01-21-03:** Monatsuebersicht/PDF: Pause/Meta in Mehrfach-Bloecken an Primaer-Zeile (>=60min), nicht immer in erster Zeile.
-- **P-2026-01-21-02:** Monatsuebersicht/PDF: IST je Block anzeigen (Folgezeilen bei Mehrfach-Bloecken, Summen unveraendert).
-- **P-2026-01-21-01:** Monatsreport-PDF: Mikro-Filter an Monatsuebersicht angeglichen (Rohdiff + abs, config `micro_buchung_max_sekunden`).
-- **P-2026-01-20-07:** Monatsuebersicht/PDF: Mehrfach-Kommen/Gehen wird als **eigene Block-Zeilen** angezeigt (keine Min/Max-Kollaps). Mikro-Buchungen bleiben standardmaessig ausgeblendet.
-- **P-2026-01-20-06:** Monatsuebersicht/PDF: IST-Stunden pro Tag = Summe echter Arbeitsbloecke (Mehrfach-Kommen/Gehen), nicht Min/Max-Spanne.
-- **P-2026-01-20-04:** Open Source: Projekt unter **GNU AGPLv3 (copyleft)** gestellt (`LICENSE`) + UI-Footer-Hinweis "Erdacht von Manuel Kleespies".
-- **P-2026-01-20-02:** Open Source: (alt) MIT License – durch P-2026-01-20-04 ersetzt.
-- **P-2026-01-20-01:** Terminal: Nebenauftrag stoppen – Dropdown waehlt automatisch den ersten laufenden Nebenauftrag (kein "--- auswaehlen ---"). Status-Auswahl entfernt (einfach "stoppen"); Auftragscode-Scan hat Vorrang vor Dropdown.
-- **P-2026-01-18-36:** Auftrag: Hauptauftrag Start/Stop beendet Nebenauftraege **nicht** automatisch (Online+Offline). Terminal-Text: „gestoppt“ statt „beendet“.
-- **P-2026-01-18-35:** Auftrag: Auto-Stop Nebenauftrag bei Hauptauftrag-Stop (Praxis-Test zeigte: Verhalten unerwuenscht → in P-2026-01-18-36 rueckgaengig).
-- **P-2026-01-18-34:** Terminal: Nebenauftrag-Start ist serverseitig geblockt, wenn kein Hauptauftrag laeuft (Online-DB + Offline-Session-Fallback).
-- **P-2026-01-18-33:** Doku: Auftrags-Prompt v1 hinzugefuegt + DevPrompt/History aktualisiert (Patch 31/32 nachgetragen).
-- **P-2026-01-18-32:** Terminal: Scan-Flow – Enter im Maschinenfeld = Submit (Maschine optional).
-- **P-2026-01-18-31:** Terminal: Maschine-Scan tolerant (Ziffern aus Scan-Text) + Maschinenfeld als Text.
-- **P-2026-01-18-30:** Maschinen-Backend: Barcode-Generator (Code 39) pro Maschine (SVG, optional PNG) + Anzeige/Download im Maschinenformular.
+Die frueher hier gefuehrte Liste war zwischen P-2026-08-08-02 und -36 nicht
+mitgepflegt worden und lag damit 35 Patches hinter dem tatsaechlichen Stand –
+genau der Grund, warum sie entfaellt (P-2026-08-09-03).
 
-- **P-2026-01-18-29:** Terminal: Hauptauftrag starten – Arbeitsschritt-Code ist Pflicht (Server-Validierung + Formular).
-- **P-2026-01-18-28:** Terminal: Nebenauftrag – Offline-UI-Status via Session-Merker (Stop-Button sichtbar nach Start).
-- **P-2026-01-18-27:** Terminal: Startscreen – wenn ein Hauptauftrag laeuft, wird „Auftrag starten“ ausgeblendet; stattdessen wird „Auftrag stoppen“ als Primaeraktion gezeigt (Doppelstarts vermeiden).
-- **P-2026-01-18-26:** Terminal: Nebenauftrag-Start (Offline-Queue) legt jetzt auch einen Minimaldatensatz in `auftrag` an (Queue-Aktion `auftrag_ensure`), damit spaetere Auswertungen/Zuordnung stabil bleiben.
-- **P-2026-01-18-25:** Terminal: Nebenauftrag starten – Arbeitsschritt-Code (Scan) wird erfasst und in `auftragszeit.arbeitsschritt_code` gespeichert.
-- **P-2026-01-18-24:** Backend: Auftrag-Detail – Arbeitsschritt-Code sichtbar + Summen pro Arbeitsschritt + Gesamtstunden (abgeschlossen).
-- **P-2026-01-18-23:** Terminal: Startscreen – Auftrag-/Nebenauftrag-Buttons sind kontextabhaengig (Stop/Nebenauftrag nur wenn ein Auftrag laeuft).
-- **P-2026-01-18-22:** Terminal: Auftrag starten – Arbeitsschritt-Code (Scan) als Pflichtfeld erfasst und gespeichert (Controller+Service+View).
-- **P-2026-01-18-21:** DB/Schema: `auftragszeit` um `arbeitsschritt_code` (Scan-Grundlage) erweitert.
-- **P-2026-01-18-20:** Backend: Top-Menue – Link "Auftraege" ist jetzt im Header klickbar (active fuer `auftrag`/`auftrag_detail`).
-- **P-2026-01-18-19:** Backend: Auftraege – neue Routen `?seite=auftrag` + `?seite=auftrag_detail`. 
-- **P-2026-01-18-17:** Doku: Master+Dev Prompt v12 (Auftragsmodul als eigener Prompt geplant).
-- **P-2026-01-18-16:** Doku: Projekt auf **FERTIG/Praxis-Test** gesetzt; neue kurze Prompt-Dateien v11 (Master+Dev).
-- **P-2026-01-18-15:** Backend: Mein Urlaub – `BF (Rest Jahr)` Anzeige nutzt AuthService (korrekte Session-ID).
-- **P-2026-01-18-13:** Backend: Report-Routen clampen `jahr/monat` defensiv (monat=0/13 verursacht keine DateTime-Fehler mehr).
-- **P-2026-01-18-12:** SoT: `sql/01_initial_schema.sql` enthaelt `mitarbeiter.eintrittsdatum` (Neuinstallation konsistent).
-- **P-2026-01-18-11:** Mitarbeiter-Admin: Eintrittsdatum im Formular pflegbar (lesen/speichern).
-- **P-2026-01-18-12:** SoT: sql/01_initial_schema.sql enthaelt mitarbeiter.eintrittsdatum (Neuinstallation konsistent).
-- **P-2026-01-18-08:** UrlaubService: Wenn `mitarbeiter.urlaub_monatsanspruch` = 0.00, wird ein Standardanspruch genutzt (`config:urlaub_standard_monatsanspruch` oder `config:urlaub_standard_jahresanspruch`, sonst Fallback 2.50=30 Tage/Jahr) + Hinweistext. Fix fuer „Urlaubtage (abzgl. BF)“ wird sonst durch Betriebsferien unplausibel negativ.
-- **P-2026-01-18-07:** UrlaubService: Betriebsferien-Abzug/Restjahr robust (tageswerte nutzt `ist_stunden`, BF Restjahr zaehlt keine Tage mit Arbeit/Kennzeichen/Krankzeitraum) – Teilfix fuer **B-080**.
-- **P-2026-01-18-06:** Monatsreport (HTML+PDF): Urlaubtage (abzgl. BF) darf wieder **negativ** sein (keine 0-Deckelung). TODO: Urlaub-Saldo-Drift zwischen „Meine Urlaubsantraege“ und Monatsreport-PDF (Screenshot: -10 trotz 20 uebrig) nachziehen.
-- **P-2026-01-18-03:** Monatsreport-HTML: Urlaubsblock nutzt UrlaubService-Jahressaldo (inkl. BF); BF (Rest Jahr) bleibt Info; kein Doppelabzug.
-- **P-2026-01-18-02:** Monatsreport-PDF: Urlaubsblock nutzt UrlaubService-Jahressaldo (inkl. BF) und zeigt "Urlaubtage (abzgl. BF)"; kein Doppel-Abzug.
-- **P-2026-01-18-01:** Monatsuebersicht: PDF-Link uebernimmt `?show_micro=1`, wenn die Checkbox „Mikro-Buchungen anzeigen“ aktiv ist.
-- **P-2026-01-17-29:** Bugfix B-078: Monatsuebersicht + Monatsreport-PDF wieder standardmaessig **aggregiert pro Tag** (1 Zeile/Tag: erster Start + letzter Endzeit); Detail-/Mikro-Buchungen nur mit `?show_micro=1`.
-- **P-2026-01-17-28:** Stabilitaet: Regression „Mikro-Buchungen“ in Monatsuebersicht/PDF als Bug **B-078** dokumentiert (Fix folgt als Micro-Patch).
-- **P-2026-01-17-27:** Monatsreport-HTML: Zusatzblock zeigt "Urlaubtage (abzgl. BF)" + "BF (Rest Jahr)" neben dem Stundenkonto (Rest des Jahres).
-- **P-2026-01-17-26:** Monatsreport-PDF: Zusatzblock rechts zeigt "Urlaubtage (abzgl. BF)" + "BF (Rest Jahr)" (Rest des Jahres), Basis: UrlaubService-Arbeitstage.
-- **P-2026-01-17-25:** Doku Rechte: `STUNDENKONTO_VERWALTEN` ist aktiv (Inventar=JA, reale Pruefpunkte).
-- **P-2026-01-17-24:** Stundenkonto: Audit-Logs in `system_log` fuer Korrektur/Verteilung/Monatsabschluss.
-- **P-2026-01-17-23:** Monatsuebersicht: Monatsabschluss-Knopf (Differenz Soll/Ist als Stundenkonto-Buchung, idempotent/aktualisierbar, nur fuer vergangene Monate).
-- **P-2026-01-17-22:** Backend-Admin: Stundenkonto-Verteilbuchung (Batch) buchen + letzte Batchs anzeigen (Mo-Fr optional).
-- **P-2026-01-17-21:** Backend-Admin: Stundenkonto-Saldo anzeigen + manuelle Korrektur buchen (Recht `STUNDENKONTO_VERWALTEN`).
-- **P-2026-01-17-20:** Monatsreport-PDF: Summenblock zeigt Stundenkonto (Stand bis Vormonat).
-- **P-2026-01-17-19:** Terminal: Arbeitszeit-Uebersicht zeigt Gutstunden/Minusstunden (Stand bis Vormonat).
-- **P-2026-01-17-18:** Backend: Monatsuebersicht zeigt Gutstunden/Minusstunden (Stand bis Vormonat).
-- **P-2026-01-17-17:** Stundenkonto: Neuer `StundenkontoService` (read-only) liefert Saldo bis Vormonat (Basis fuer Terminal/Report/PDF).
-- **P-2026-01-17-16:** Stundenkonto: `sql/01_initial_schema.sql` (SoT) um Tabellen `stundenkonto_batch` + `stundenkonto_korrektur` ergaenzt (Neuinstallation konsistent).
-- **P-2026-01-17-15:** Stundenkonto: SQL-Migration sauber einsortiert (kanonisch als `21_migration_stundenkonto.sql`); `13_migration_stundenkonto.sql` ist als Legacy-Alias markiert.
-- **P-2026-01-17-13:** Zusatz-Prompt 2: Stundenkonto (Gutstunden/Minusstunden) Scope/Plan dokumentiert.
-- **P-2026-01-17-12:** Monatsuebersicht: Mikro-Buchungen werden am Rohstempel erkannt (Rundung blaeht Mikro nicht mehr auf) und bei deaktivierter Checkbox wirklich ausgeblendet.
-- **P-2026-01-17-10:** Terminal: Arbeitszeit-Übersicht-Seite – Monatsstatus robust (ReportService-Fehler blockiert nicht), Labels Soll/Ist, Zurück-Button wie alle anderen.
-- **P-2026-01-17-09:** Terminal: Logout – Mitarbeiterpanel ist klickbarer Link zur Arbeitszeit-Übersicht-Seite.
-- **P-2026-01-17-08:** Terminal: Urlaub beantragen + Stoerungsmodus – Mitarbeiterpanel ist klickbarer Link zur Arbeitszeit-Übersicht-Seite.
-- **P-2026-01-17-07:** Terminal: Auftrag stoppen – Mitarbeiterpanel Link zur Arbeitszeit-Übersicht-Seite.
-- **P-2026-01-17-06:** Terminal: Auftrag starten – Mitarbeiterpanel Link zur Arbeitszeit-Übersicht-Seite.
-- **P-2026-01-17-05:** Terminal: Mitarbeitername unten ist klickbar → Arbeitszeit-Übersicht als eigene Seite (mit Zurück).
-- **P-2026-01-17-04:** Terminal: Monatsstatus – live heute + Helper (konsistente Berechnung in allen Flows).
-- **P-2026-01-17-03:** Terminal: Monatsstatus – „Geleistete Arbeitsstunden bis heute“ zaehlt nur Arbeitszeit (keine Urlaub/Krank/Feiertag etc.).
-- **P-2026-01-17-02:** Terminal: Startscreen – Labels im Block "Monatsstatus" (Uebersicht) vereinheitlicht.
-- **P-2026-01-17-01:** Terminal: Startscreen – Monatsstatus Duplikat-Fix.
-- **P-2026-01-16-07:** Terminal: Stoerungsmodus – wenn Queue wieder ok, automatisch zurueck zum Start (inkl. Button "Neu pruefen").
-- **P-2026-01-16-06:** Terminal: Logout – Mitarbeiterpanel zeigt Arbeitszeit-Uebersicht (Soll Monat/Soll bis heute/Ist bis heute).
-- **P-2026-01-16-05:** Terminal: Auftrag Start/Stop – Labels im Mitarbeiterpanel vereinheitlicht (ohne "(Soll)"/"(Ist)").
-- **P-2026-01-16-04:** Terminal: Stoerungsmodus – Mitarbeiterpanel (Arbeitszeit-Uebersicht) + Fehlerdetails-Fix (`$stoerungEintrag`).
-- **P-2026-01-16-03:** Terminal: Nebenauftrag stoppen – Monatsstatus/Arbeitszeit-Uebersicht im Mitarbeiterpanel (Startscreen) verfuegbar.
-- **P-2026-01-16-02:** Terminal: Nebenauftrag starten – Monatsstatus/Arbeitszeit-Uebersicht im Mitarbeiterpanel (Startscreen) verfuegbar.
-- **P-2026-01-16-01:** Terminal: Urlaub beantragen – Mitarbeiterpanel zeigt Arbeitszeit-Uebersicht (Soll Monat/Soll bis heute/Ist bis heute).
+## Routing
 
-
-## Routing (Backend, Stand aus Code)
-- Öffentlich: `login`, `logout`
-- Mitarbeiter: `dashboard`, `zeit_heute`, `urlaub_meine`, `urlaub_genehmigung`, `report_monat`, `report_monat_pdf`
-- Rechte-basiert: `report_monat_export_all`, `smoke_test`
-- Admin: `mitarbeiter_admin*`, `abteilung_admin*`, `rollen_admin*`, `feiertag_admin*`, `maschine_admin*`, `betriebsferien_admin*`, `kurzarbeit_admin*`, `urlaub_kontingent_admin*`, `konfiguration_admin*`, `queue_admin`, `zeit_rundungsregel_admin*`, `terminal_admin*`
+Die gueltige Routenliste steht in `public/index.php` (Backend) und
+`public/terminal.php` (Terminal). Eine Kopie hier veraltet unbemerkt.
 
 ## Datenbank
 - **Source of Truth**: `sql/01_initial_schema.sql` (aktuelle DB-Struktur)
 - Wichtige Tabellen: `mitarbeiter`, `zeitbuchung`, `terminal`, `urlaubsantrag`, `mitarbeiter_genehmiger`, `db_injektionsqueue`, `system_log`
 
 ## Entscheidungen (D-IDs)
-- **D-001:** Das Repo nutzt `sql/01_initial_schema.sql` als Schema-Referenz (SQL-Datei in ZIP).
-- **D-002:** Pro Patch-Iteration werden **maximal 3 Dateien** geändert und als ZIP geliefert.
+- **D-001:** Das Repo nutzt `sql/01_initial_schema.sql` als Schema-Referenz.
+- **D-002:** ~~Pro Patch-Iteration maximal 3 Dateien, Lieferung als ZIP.~~
+  **Ueberholt seit Master-Prompt v13** (Arbeit direkt im Git-Workspace). Das
+  Limit war eine reine Zeitbegrenzung des damaligen Chat-Workflows; geblieben
+  ist „1 Thema pro Patch".
 - **D-003:** `DEV_PROMPT_HISTORY.md` bleibt vollständig, bekommt aber diesen SNAPSHOT oben zur schnellen Übergabe in neue Chats.
 - **D-004:** Zeitbuchungen (Kommen/Gehen) werden immer als **Rohzeit** gespeichert. Rundung erfolgt ausschließlich bei **Auswertungen/Export/PDF**.
-- **D-005:** **Pre-Flight Gate** ist Pflicht: Vor jeder Implementierung werden Inputs (ZIP/Prompts/SQL) gelesen, SHA256 dokumentiert und ein Duplicate-Check gegen SNAPSHOT/LOG durchgeführt.
-- **D-006:** Micro-Patches sind Pflicht: 1 Patch = 1 Thema/1 Effekt; wegen `DEV_PROMPT_HISTORY.md` bleiben praktisch nur 2 weitere Dateien → Tasks müssen vor Umsetzung gesplittet werden.
+- **D-005:** **Pre-Flight Gate** ist Pflicht: Vor jeder Implementierung werden
+  die Inputs gelesen und ein Duplicate-Check gegen History und `git log`
+  gemacht. (Der frueher geforderte SHA256-Nachweis entfaellt seit v13 – der
+  Commit-Hash leistet das genauer.)
+- **D-006:** Micro-Patches sind Pflicht: **1 Patch = 1 Thema = 1 Effekt.** (Die
+  frueher mitgenannte Begruendung „es bleiben nur 2 weitere Dateien" ist mit
+  D-002 entfallen; die Regel selbst gilt weiter.)
 
 ## Bekannte Probleme / Bugs (B-IDs)
+
+**Offen:**
+
 - **B-092:** Die Route `?seite=betriebsferien_admin_toggle` ruft `BetriebsferienAdminController::toggleAktiv()` auf – **diese Methode existiert nicht**. Ein Aufruf endet in einem Fatal. Kein Menuepunkt und kein Formular verlinkt darauf, der Fehler ist also latent. Stammt aus dem Januar-Upload (bd61831), nicht aus der Arbeit vom 2026-08-08. Gefunden bei der Routenpruefung vor der Uebergabe. **OPEN** – bewusst nicht ungefragt geaendert: Entweder die Methode nachruesten (Aktiv-Schalter wie bei anderen Verwaltungslisten) oder die tote Route entfernen. **Vorher klaeren, was gewollt ist.**
-- **B-091:** Monatsuebersicht brach im laufenden Monat mit einem Fatal ab (`$abschlussOptionMarker` nur im Vergangenheits-Zweig gesetzt). Regression aus P-2026-08-08-19. **DONE in P-2026-08-08-24**.
-- **B-089:** Maschinen-Barcode wurde in der Bearbeitungsmaske nie angezeigt, weil der Controller eine abweichende URL-Logik nutzte und bei leerem `maschinen_qr_url` immer `''` lieferte. **DONE in P-2026-08-08-03**.
-- **B-090:** Mitgelieferte Bibliothek `services/phpqrcode` erzeugte PHP-Deprecations und Datei-Warnungen bei jeder QR-Erzeugung (Pflichtparameter hinter optionalen Parametern, dynamische Eigenschaft `$cmyk`, `ImageDestroy()`, fehlendes Cache-Verzeichnis). **DONE in P-2026-08-08-04**.
-- **B-079:** Monatsreport-PDF: Urlaubsblock nutzte `urlaub_verbleibend` aus Monatswerten und zog BF-Restjahr erneut ab (Doppelabzug/negative Werte). **DONE in P-2026-01-18-02**.
-- **B-081:** Monatsreport-HTML: Urlaubsblock zog BF-Restjahr zusaetzlich ab und konnte so inkonsistent/negativ werden. **DONE in P-2026-01-18-03**.
-- **B-082:** Urlaub: Eintrittsjahr/Anlage im laufenden Jahr wurde bisher nicht anteilig gerechnet (voller Jahresanspruch). Zudem wurde negativer Resturlaub beim Auto-Übertrag auf 0 gekappt → Minusurlaub gleicht sich im Folgejahr nicht aus. **DONE in P-2026-01-18-09**.
 - **B-080:** Urlaubssaldo wirkt teils verwirrend (User-Feedback: "Urlaubsberechnung stimmt nicht") – BF/Feiertage/Arbeitszeit-Abgrenzung nochmals pruefen. **OPEN** (Teilfix: P-2026-01-18-07).
-- **B-078:** Monatsuebersicht + Monatsreport-PDF: „Mikro-Buchungen“ (mehrere Rohstempel-Reihen pro Tag) wurden als Detail-Zeilen wieder angezeigt (Regression gegen **P-2026-01-17-12**). Standard ist wieder **aggregiert pro Tag**; Detail-/Mikro-Buchungen nur optional via `?show_micro=1`. **DONE in P-2026-01-17-29**.
-- **B-076:** Urlaubssaldo: Betriebsferien (Zwangsurlaub) werden nicht abgezogen, wenn ein aktiver Krankzeitraum (LFZ/KK) den Tag umfasst (ohne Tages-Override in `tageswerte_mitarbeiter`). **DONE in P-2026-01-07-23**.
-- **B-077:** Monatsreport/PDF: Krankzeitraum muss Betriebsferien im Tagesraster übersteuern (kein BF-Kürzel, Urlaub 0, Krank 8.00) – Krank hat Vorrang vor Betriebsferien. **DONE in P-2026-01-08-01**.
-- **B-074:** Urlaub: Kontingent wurde in "Mein Urlaub" ignoriert, weil SQL-Queries im UrlaubService literales `\n` enthielten (Syntaxfehler) → Hinweis "DB-Update fehlt?". **DONE in P-2026-01-07-03**.
-- **B-075:** Urlaub: Urlaubsantrag konnte gespeichert werden, obwohl der Zeitraum **0.00 verrechenbare Urlaubstage** ergibt (z. B. komplett Wochenende/Feiertag/Betriebsferien) → verwirrende Einträge in "Meine Urlaubsanträge". **DONE in P-2026-01-07-04**.
-- **B-037:** Monatsreport-PDF: Bemerkungen-Block nutzte `$sumStartY` vor Definition (PHP-Notice, Positionierung inkonsistent) → Summenblock-Positionen vor Bemerkungen definiert. **DONE in P-2026-01-04-47**.
-- **B-038:** Monatsübersicht: "Ist (gesamt)" zählte Kurzarbeit fälschlich als IST (MasterPrompt: Kurzarbeit reduziert Soll, nicht IST). **DONE in P-2026-01-05-13**.
-- **B-012:** Backend: Reiter/Seite `urlaub_kontingent_admin` erzeugte einen „Internal Server Error“ (500). Ursache: Parse-Error (doppelter Block nach `pruefeZugriff()` im Controller). **DONE in P-2026-01-01-72**.
-- **B-013:** Monatsreport-PDF zeigte in manchen Umgebungen nur eine leere Seite („oben ein Strich“). Ursache: PDF-Content-Stream enthielt literales `\\n` (z. B. `S\\n40.00`) durch `sprintf(...\n...)` in **einfachen** Quotes → Parser bricht ab. **DONE in P-2026-01-02-05**.
-- **B-014:** Monatsreport-PDF konnte durch Warnungen/Output-Buffering/Kompression beschädigt oder abgebrochen werden. Mit Error-Handler + Buffer-Cleanup + defensiven ini_set-Absicherungen behoben. **DONE in P-2026-01-02-06**.
-- **B-015:** Monatsreport-PDF konnte bei `LC_NUMERIC=de_DE` durch Dezimalkomma in PDF-Kommandos abbrechen. Locale-sichere PDF-Number-Helper + Caching in FeiertagService. **DONE in P-2026-01-02-07**.
-- **B-016:** Monatsreport-PDF Rendering weiterhin in einzelnen Viewer-Setups instabil: PDF-Kopf/Binary-Markierung + WinAnsiEncoding + /ProcSet + Stream-Termination + no-gzip/no-transform Headers ergänzt. **DONE in P-2026-01-02-08**.
-- **B-018:** Dashboard Smoke-Test: Tabellen-Check nutzte falschen Tabellenname `feiertage` statt `feiertag` (falsches FAIL). **DONE in P-2026-01-02-11**.
-- **B-019:** AuftragModel suchte in Tabelle `auftrag` fälschlich nach Spalte `auftragscode` (existiert nicht); korrekt ist `auftragsnummer`. **DONE in P-2026-01-02-17**.
-- **B-020:** `sql/01_initial_schema.sql`: Nach `kurzarbeit_plan` stand eine doppelte `) ENGINE=...`-Zeile → Neuanlage/Import bricht ab. **DONE in P-2026-01-03-04**.
-- **B-021:** `sql/01_initial_schema.sql`: Tabelle `feiertag` fehlte `) ENGINE=...` → Neuanlage/Import bricht ab. **DONE in P-2026-01-03-08**.
-- **B-022:** Pausenregeln: `KonfigurationController` speicherte neue `pausenfenster` mit Spalte `angelegt_von_mitarbeiter_id`, die im Schema nicht existiert → Speichern schlug fehl. **DONE in P-2026-01-03-12**.
-- **B-023:** Terminal: `TerminalController::auftragStoppen()` übergab einen zusätzlichen Typ-Parameter an `AuftragszeitService::stoppeAuftrag()` → `ArgumentCountError` beim Stoppen von Hauptaufträgen. **DONE in P-2026-01-03-26**.
-- **B-028:** Terminal: Kommen/Gehen konnte durch Doppelklick oder Doppel-Scan innerhalb weniger Sekunden doppelt gebucht werden → Doppelbuchung wird jetzt per Session-De-Bounce verhindert. **DONE in P-2026-01-03-33**.
-- **B-024:** Monatsübersicht/PDF: Betriebsferien (8h Urlaub) wurden fälschlich **zusätzlich** zur Arbeitszeit gezählt, wenn an einem Betriebsferien-Tag tatsächlich gearbeitet wurde → Ist-Summe war zu hoch. **DONE in P-2026-01-03-27**.
-- **B-025:** Urlaubssaldo: Betriebsferien-Tage wurden als genommener Urlaub gezählt, obwohl an diesen Tagen gearbeitet wurde (oder bereits andere Kennzeichen wie krank gesetzt waren) → Resturlaub zu niedrig. **DONE in P-2026-01-03-28**.
-- **B-026:** Monatsübersicht: Manuell geänderte Zeiten/Tage waren nicht rot markiert („rot hinterlegt“ fehlte). **DONE in P-2026-01-03-29**.
-- **B-027:** Monatsreport-PDF: Manuell geänderte Zeiten/Tage waren nicht rot hinterlegt („rot hinterlegt“ fehlte). **DONE in P-2026-01-03-30**.
-- **B-029:** Monatsübersicht/PDF: Rot-Markierung basierte auf `felder_manuell_geaendert` (Tageskennzeichen wie Kurzarbeit wurden rot). Gewünscht: Rot nur bei manuell geänderten Kommen/Gehen. Monatsübersicht **DONE in P-2026-01-03-35**, PDF **DONE in P-2026-01-03-36**.
-- **B-030:** Monatsübersicht/PDF: Kurzarbeit-Volltag soll wie Betriebsferien wirken (i. d. R. Tages-Soll/8h), aber nicht zusätzlich, wenn am selben Tag gearbeitet wurde. **DONE in P-2026-01-03-37**.
-- **B-031:** Terminal: Login per RFID/Mitarbeiter-ID war fälschlich an `ist_login_berechtigt` gekoppelt (Checkbox „Login über Benutzername/E-Mail erlaubt“) → normale Mitarbeiter konnten sich nicht am Terminal anmelden. **DONE in P-2026-01-03-40**.
-- **B-032:** Terminal: Nach Login wurden Auftrag-/Nebenauftrag-Buttons auch ohne Anwesenheit angezeigt; zudem fehlten Helper-Methoden (`setzeTerminalAnwesenheitStatus`, `istTerminalMitarbeiterHeuteAnwesend`) → UI zeigt bei Nicht-Anwesenheit nur „Kommen“ (+ optional Urlaub) und Online/Offline-Anwesenheit ist konsistent. **DONE in P-2026-01-03-42**.
-- **B-033:** Terminal: Einige Stop-Aktionen (Haupt-/Nebenauftrag stoppen) waren per Direkt-URL auch ohne Anwesenheit erreichbar; außerdem konnte „Kommen“ trotz bestehender Anwesenheit manuell ausgelöst werden → serverseitige Anwesenheits-Guards ergänzt. **DONE in P-2026-01-03-43**.
-- **B-034:** Terminal: Wenn Mitarbeiter nach Login **nicht anwesend** ist, soll das Menü wirklich nur „Kommen“ (+ optional „Urlaub beantragen“) zeigen – keine Übersicht/Details. **DONE in P-2026-01-03-44**.
-- **B-035:** Terminal: Wenn Mitarbeiter nach Login **nicht anwesend** ist, soll das Terminal-Hauptmenü auch **keinen Urlaubssaldo/Status-Box** anzeigen (nur „Kommen“ + optional „Urlaub beantragen“). **DONE in P-2026-01-04-08**.
-- **B-036:** Terminal: Numerische Codes (Personalnummer vs Mitarbeiter-ID) können mehrdeutig sein → Login darf nicht „still“ den falschen Mitarbeiter wählen; bei Mehrdeutigkeit abbrechen. **DONE in P-2026-01-04-10**.
-- **B-070:** Monatsreport/PDF: Kalender-Feiertage werden in der Tagesliste als **Feiertag** geführt und bei **keiner Arbeitszeit** mit Tagesstunden (Fallback 8.00 / Tages-Soll) befüllt; Abgrenzung gegen Urlaub/Betriebsferien. **DONE in P-2026-01-04-17**.
-- **B-071:** FeiertagService: Jahres-Init wurde fälschlich als „fertig“ behandelt, sobald irgendein Feiertag für das Jahr existierte → fehlende bundeseinheitliche Feiertage (z. B. 01.01.) konnten unbemerkt fehlen. Jetzt werden fehlende Basis-Feiertage **idempotent nachgeseedet**. **DONE in P-2026-01-04-18**.
-- **B-072:** Smoke-Test: Queue-Übersicht nutzte bisher immer die Haupt-DB; bei konfigurierter Offline-DB waren Zähler/„Letzte 10“ inkonsistent zu `queue_admin` (dort Offline-DB bevorzugt). **DONE in P-2026-01-04-26**.
-- **B-073:** Urlaub: `UrlaubService` selektierte `urlaub_kontingent_jahr.uebertrag_tage`; wenn die Spalte fehlte, fiel der komplette Kontingent-Block aus (Korrektur/Override ignoriert, Hinweis „DB-Update fehlt?“). **DONE in P-2026-01-07-01**.
-- **B-017:** Monatsübersicht zeigte bei Mitarbeiterwechsel teils nur „Tage mit Eintrag“ statt kompletter Monatstabelle. **DONE in P-2026-01-02-09**.
-- **B-001:** `ZeitbuchungModel::holeFuerMitarbeiterUndZeitraum()` joint `terminal` und selektiert `t.bezeichnung` – laut DB ist die Spalte `terminal.name`. **DONE in P-2025-12-20-02**.
-- **B-002:** `core/OfflineQueueManager.php` referenzierte `Database`-Methoden, die nicht existierten (potenzieller Fatal Error, sobald genutzt). **DONE in P-2025-12-20-04**.
-- **B-003:** Konfiguration lag doppelt (`/config.php` und `/config/config.php`) – Master-Prompt fordert **genau eine** zentrale Config. **DONE in P-2025-12-20-03**.
-- **B-004:** Genehmiger-Auswahl beim Mitarbeiter (Dropdown) speichert/lädt nun robuster (Fehlerfeedback + Nachladen inaktiver Genehmiger im Dropdown). **DONE in P-2025-12-20-08**.
-- **B-010:** Terminal: `_autologout.php` Fallback ging auf `aktion=start` (Logout nicht garantiert) + Fokus-Ziel-Auswahl ohne ID-Priorität. **DONE in P-2025-12-31-17**.
-- **B-011:** Terminal: Startscreen bekam in manchen Pfaden keinen `$csrfToken` gesetzt (Formulare sendeten leeren Token). **DONE in P-2025-12-31-35**.
+
+**Erledigt:** 48 weitere B-IDs sind behoben; sie stehen unten
+unter „Erledigte Bugs (Archiv)". Sie hier oben zu fuehren hat die zwei offenen
+Punkte verdeckt.
 
 ## Offene Tasks (T-IDs, priorisiert)
+- **T-101 `passwort_hash` vor dem Terminal verbergen.** Der Terminal-Benutzer
+  darf `mitarbeiter` komplett lesen, also auch die Passwort-Hashes. Ein
+  spaltenweises Recht scheitert daran, dass `MitarbeiterModel` mit `SELECT *`
+  arbeitet (ueber den `ReportService` auch im Terminalpfad) und Spaltenrechte in
+  MySQL/MariaDB kein `SELECT *` erlauben. Loesung: entweder eine Sicht ohne
+  diese Spalte oder feste Spaltenlisten. Bis dahin bleibt: Wer ein Terminal
+  stiehlt, bekommt Passwort-Hashes zum Offline-Knacken.
+- **T-102 Buchungen tragen keine `terminal_id`.** `zeitbuchung.terminal_id` und
+  `auftragszeit.terminal_id` bleiben leer, weil der `TerminalController` nie
+  eine ID uebergibt – bisher wusste ein Terminal auch nicht, welches es ist.
+  Seit P-2026-08-09-01 steht sie in `config.local.php` (`terminal.id`).
 - Praxis-Test: Bugs/Anomalien sammeln und als Micro-Patches beheben.
+- Offen aus P-2026-08-08-02: Strichcode-Erzeugung und die Terminal-Buchungsflows
+  sind unter PHP 8.5 noch nicht im Browser geprueft (brauchen einen angemeldeten
+  Durchlauf, den nur der Nutzer machen kann).
 - Auftragsmodul: Scan-Flow/UX nur bei Bedarf weiter verfeinern (Praxis-Feedback).
 - Terminal (Auftrag): Stop-Detailmaske (Fallback) UX vereinfachen (keine Status-Auswahl "Abschliessen/Abbrechen" im Terminal).
 
@@ -259,25 +146,127 @@ einer Zuordnungstabelle halten statt verstreut im Code.
 
 Danach Stufe 4 (Kiosk), 5 (Peripherie), 6 (Selbsttest).
 
-### Weitere offene Punkte
-- **T-101 `passwort_hash` vor dem Terminal verbergen.** Der Terminal-Benutzer
-  darf `mitarbeiter` komplett lesen, also auch die Passwort-Hashes. Ein
-  spaltenweises Recht scheitert daran, dass `MitarbeiterModel` mit `SELECT *`
-  arbeitet (ueber den `ReportService` auch im Terminalpfad) und Spaltenrechte in
-  MySQL/MariaDB kein `SELECT *` erlauben. Loesung: entweder eine Sicht ohne
-  diese Spalte oder feste Spaltenlisten. Bis dahin bleibt: Wer ein Terminal
-  stiehlt, bekommt Passwort-Hashes zum Offline-Knacken.
-- **T-102 Buchungen tragen keine `terminal_id`.** `zeitbuchung.terminal_id` und
-  `auftragszeit.terminal_id` bleiben leer, weil der `TerminalController` nie
-  eine ID uebergibt – bisher wusste ein Terminal auch nicht, welches es ist.
-  Seit P-2026-08-09-01 steht sie in `config.local.php` (`terminal.id`); damit
-  liesse sich auswerten, an welchem Geraet gestempelt wurde. Aufgefallen beim
-  Schreiben der Einrichtungsseite, bewusst nicht mitgemacht (anderes Thema).
-- Praxis-Test: naechster Bug/Anomalie-Report (Micro-Patch).
-- Offen aus P-2026-08-08-02: Strichcode-Erzeugung und die Terminal-Buchungsflows sind unter PHP 8.5 noch nicht im Browser geprueft (brauchen einen angemeldeten Durchlauf, den nur der Nutzer machen kann).
+Weitere offene Punkte stehen oben unter „Offene Tasks (T-IDs)".
 
 ## Letzter Patch (P-ID)
-P-2026-08-09-02 (Commit) – Doku nach Lesehaeufigkeit aufgeteilt
+P-2026-08-09-03 (Commit) – Snapshot entschlackt
+
+## P-2026-08-09-03 snapshot-entschlacken
+
+### EINGELESEN
+- `docs/STATUS_SNAPSHOT.md`, Snapshot-Teil dieser Datei, `docs/arbeitsregeln.md` (Abschnitt 6).
+
+### DATEIEN
+- `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Der Snapshot beider Dateien zusammen kostet unter 10.000 Token und enthaelt keine Angabe, die `git log` oder der Code schon liefert.
+
+### DONE
+- **Die dreifach gepflegte Aenderungsliste ist weg.** „Zuletzt erledigt" in
+  dieser Datei, „Letzte Aenderungen" und die „Letzter Patch"-Kette im
+  STATUS_SNAPSHOT sagten dasselbe wie `git log --oneline` – zusammen rund
+  32 KB. Beide Stellen verweisen jetzt auf Git.
+- **48 erledigte Bugs sind aus dem Snapshot nach unten gewandert**
+  („Erledigte Bugs (Archiv)"). Oben stehen nur noch die **zwei offenen** – die
+  waren vorher zwischen den erledigten kaum zu finden.
+- **Die Routenliste entfaellt.** Sie war eine Kopie aus `public/index.php` und
+  wurde als „Stand aus Code" gefuehrt – also genau die Art Angabe, die
+  unbemerkt veraltet.
+- **T-101 und T-102 stehen nur noch an einer Stelle** (Offene Tasks) statt
+  zusaetzlich unter „Naechster Schritt".
+- **Ueberholte D-IDs sind als solche gekennzeichnet**, nicht geloescht: D-002
+  (3-Dateien-Limit, ZIP) und der SHA256-Teil von D-005 gelten seit v13 nicht
+  mehr; D-006 behaelt seine Regel, verliert aber die weggefallene Begruendung.
+
+### BEFUND
+Die Liste „Zuletzt erledigt" war zwischen P-2026-08-08-02 und -36 **nicht
+mitgepflegt** worden und lag damit 35 Patches hinter dem Stand, waehrend der
+STATUS_SNAPSHOT aktuell war. Wer beide las, bekam Widersprueche. Genau das ist
+der Grund, doppelte Listen abzuschaffen statt sie besser zu pflegen: Eine
+Kopie, die von Hand nachgezogen werden muss, wird irgendwann nicht nachgezogen.
+
+### WIRKUNG
+| | vorher | nachher |
+| --- | ---: | ---: |
+| Snapshot dieser Datei | 34.257 B | 8.343 B |
+| `STATUS_SNAPSHOT.md` | 16.575 B | ~3.900 B |
+
+Startlektuere insgesamt (`CHATSTART.md` + `arbeitsregeln.md` +
+`STATUS_SNAPSHOT.md` + `CLAUDE.md` + History-Snapshot): **~74.000 → ~13.000
+Token.**
+
+### TEST
+1. Kein Inhalt geloescht, nur verschoben: Die 48 erledigten B-IDs sind
+   vollstaendig im Archivblock derselben Datei, gezaehlt (2 offen + 48 erledigt
+   = 50 wie vorher).
+2. Interne Links geprueft, keine toten Verweise.
+3. Struktur des Snapshots entspricht weiterhin `docs/arbeitsregeln.md`
+   Abschnitt 6 (Source of Truth, Entry Points, offene Bugs, offene Tasks,
+   naechster Schritt).
+4. Kein Code angefasst.
+
+### NEXT
+- Zurueck zur Sacharbeit: Stufe 3 der Terminal-Installation
+  (`scripts/terminal/install_terminal.sh`).
+
+
+## Erledigte Bugs (Archiv)
+
+Chronologisch gewachsen, hier nur noch zum Nachschlagen. Die Fachregeln, die
+aus diesen Fehlern folgen, stehen inzwischen in `docs/fachregeln/` – dort
+werden sie auch gelesen.
+
+- **B-091:** Monatsuebersicht brach im laufenden Monat mit einem Fatal ab (`$abschlussOptionMarker` nur im Vergangenheits-Zweig gesetzt). Regression aus P-2026-08-08-19. **DONE in P-2026-08-08-24**.
+- **B-089:** Maschinen-Barcode wurde in der Bearbeitungsmaske nie angezeigt, weil der Controller eine abweichende URL-Logik nutzte und bei leerem `maschinen_qr_url` immer `''` lieferte. **DONE in P-2026-08-08-03**.
+- **B-090:** Mitgelieferte Bibliothek `services/phpqrcode` erzeugte PHP-Deprecations und Datei-Warnungen bei jeder QR-Erzeugung (Pflichtparameter hinter optionalen Parametern, dynamische Eigenschaft `$cmyk`, `ImageDestroy()`, fehlendes Cache-Verzeichnis). **DONE in P-2026-08-08-04**.
+- **B-079:** Monatsreport-PDF: Urlaubsblock nutzte `urlaub_verbleibend` aus Monatswerten und zog BF-Restjahr erneut ab (Doppelabzug/negative Werte). **DONE in P-2026-01-18-02**.
+- **B-081:** Monatsreport-HTML: Urlaubsblock zog BF-Restjahr zusaetzlich ab und konnte so inkonsistent/negativ werden. **DONE in P-2026-01-18-03**.
+- **B-082:** Urlaub: Eintrittsjahr/Anlage im laufenden Jahr wurde bisher nicht anteilig gerechnet (voller Jahresanspruch). Zudem wurde negativer Resturlaub beim Auto-Übertrag auf 0 gekappt → Minusurlaub gleicht sich im Folgejahr nicht aus. **DONE in P-2026-01-18-09**.
+- **B-078:** Monatsuebersicht + Monatsreport-PDF: „Mikro-Buchungen“ (mehrere Rohstempel-Reihen pro Tag) wurden als Detail-Zeilen wieder angezeigt (Regression gegen **P-2026-01-17-12**). Standard ist wieder **aggregiert pro Tag**; Detail-/Mikro-Buchungen nur optional via `?show_micro=1`. **DONE in P-2026-01-17-29**.
+- **B-076:** Urlaubssaldo: Betriebsferien (Zwangsurlaub) werden nicht abgezogen, wenn ein aktiver Krankzeitraum (LFZ/KK) den Tag umfasst (ohne Tages-Override in `tageswerte_mitarbeiter`). **DONE in P-2026-01-07-23**.
+- **B-077:** Monatsreport/PDF: Krankzeitraum muss Betriebsferien im Tagesraster übersteuern (kein BF-Kürzel, Urlaub 0, Krank 8.00) – Krank hat Vorrang vor Betriebsferien. **DONE in P-2026-01-08-01**.
+- **B-074:** Urlaub: Kontingent wurde in "Mein Urlaub" ignoriert, weil SQL-Queries im UrlaubService literales `\n` enthielten (Syntaxfehler) → Hinweis "DB-Update fehlt?". **DONE in P-2026-01-07-03**.
+- **B-075:** Urlaub: Urlaubsantrag konnte gespeichert werden, obwohl der Zeitraum **0.00 verrechenbare Urlaubstage** ergibt (z. B. komplett Wochenende/Feiertag/Betriebsferien) → verwirrende Einträge in "Meine Urlaubsanträge". **DONE in P-2026-01-07-04**.
+- **B-037:** Monatsreport-PDF: Bemerkungen-Block nutzte `$sumStartY` vor Definition (PHP-Notice, Positionierung inkonsistent) → Summenblock-Positionen vor Bemerkungen definiert. **DONE in P-2026-01-04-47**.
+- **B-038:** Monatsübersicht: "Ist (gesamt)" zählte Kurzarbeit fälschlich als IST (MasterPrompt: Kurzarbeit reduziert Soll, nicht IST). **DONE in P-2026-01-05-13**.
+- **B-012:** Backend: Reiter/Seite `urlaub_kontingent_admin` erzeugte einen „Internal Server Error“ (500). Ursache: Parse-Error (doppelter Block nach `pruefeZugriff()` im Controller). **DONE in P-2026-01-01-72**.
+- **B-013:** Monatsreport-PDF zeigte in manchen Umgebungen nur eine leere Seite („oben ein Strich“). Ursache: PDF-Content-Stream enthielt literales `\\n` (z. B. `S\\n40.00`) durch `sprintf(...\n...)` in **einfachen** Quotes → Parser bricht ab. **DONE in P-2026-01-02-05**.
+- **B-014:** Monatsreport-PDF konnte durch Warnungen/Output-Buffering/Kompression beschädigt oder abgebrochen werden. Mit Error-Handler + Buffer-Cleanup + defensiven ini_set-Absicherungen behoben. **DONE in P-2026-01-02-06**.
+- **B-015:** Monatsreport-PDF konnte bei `LC_NUMERIC=de_DE` durch Dezimalkomma in PDF-Kommandos abbrechen. Locale-sichere PDF-Number-Helper + Caching in FeiertagService. **DONE in P-2026-01-02-07**.
+- **B-016:** Monatsreport-PDF Rendering weiterhin in einzelnen Viewer-Setups instabil: PDF-Kopf/Binary-Markierung + WinAnsiEncoding + /ProcSet + Stream-Termination + no-gzip/no-transform Headers ergänzt. **DONE in P-2026-01-02-08**.
+- **B-018:** Dashboard Smoke-Test: Tabellen-Check nutzte falschen Tabellenname `feiertage` statt `feiertag` (falsches FAIL). **DONE in P-2026-01-02-11**.
+- **B-019:** AuftragModel suchte in Tabelle `auftrag` fälschlich nach Spalte `auftragscode` (existiert nicht); korrekt ist `auftragsnummer`. **DONE in P-2026-01-02-17**.
+- **B-020:** `sql/01_initial_schema.sql`: Nach `kurzarbeit_plan` stand eine doppelte `) ENGINE=...`-Zeile → Neuanlage/Import bricht ab. **DONE in P-2026-01-03-04**.
+- **B-021:** `sql/01_initial_schema.sql`: Tabelle `feiertag` fehlte `) ENGINE=...` → Neuanlage/Import bricht ab. **DONE in P-2026-01-03-08**.
+- **B-022:** Pausenregeln: `KonfigurationController` speicherte neue `pausenfenster` mit Spalte `angelegt_von_mitarbeiter_id`, die im Schema nicht existiert → Speichern schlug fehl. **DONE in P-2026-01-03-12**.
+- **B-023:** Terminal: `TerminalController::auftragStoppen()` übergab einen zusätzlichen Typ-Parameter an `AuftragszeitService::stoppeAuftrag()` → `ArgumentCountError` beim Stoppen von Hauptaufträgen. **DONE in P-2026-01-03-26**.
+- **B-028:** Terminal: Kommen/Gehen konnte durch Doppelklick oder Doppel-Scan innerhalb weniger Sekunden doppelt gebucht werden → Doppelbuchung wird jetzt per Session-De-Bounce verhindert. **DONE in P-2026-01-03-33**.
+- **B-024:** Monatsübersicht/PDF: Betriebsferien (8h Urlaub) wurden fälschlich **zusätzlich** zur Arbeitszeit gezählt, wenn an einem Betriebsferien-Tag tatsächlich gearbeitet wurde → Ist-Summe war zu hoch. **DONE in P-2026-01-03-27**.
+- **B-025:** Urlaubssaldo: Betriebsferien-Tage wurden als genommener Urlaub gezählt, obwohl an diesen Tagen gearbeitet wurde (oder bereits andere Kennzeichen wie krank gesetzt waren) → Resturlaub zu niedrig. **DONE in P-2026-01-03-28**.
+- **B-026:** Monatsübersicht: Manuell geänderte Zeiten/Tage waren nicht rot markiert („rot hinterlegt“ fehlte). **DONE in P-2026-01-03-29**.
+- **B-027:** Monatsreport-PDF: Manuell geänderte Zeiten/Tage waren nicht rot hinterlegt („rot hinterlegt“ fehlte). **DONE in P-2026-01-03-30**.
+- **B-029:** Monatsübersicht/PDF: Rot-Markierung basierte auf `felder_manuell_geaendert` (Tageskennzeichen wie Kurzarbeit wurden rot). Gewünscht: Rot nur bei manuell geänderten Kommen/Gehen. Monatsübersicht **DONE in P-2026-01-03-35**, PDF **DONE in P-2026-01-03-36**.
+- **B-030:** Monatsübersicht/PDF: Kurzarbeit-Volltag soll wie Betriebsferien wirken (i. d. R. Tages-Soll/8h), aber nicht zusätzlich, wenn am selben Tag gearbeitet wurde. **DONE in P-2026-01-03-37**.
+- **B-031:** Terminal: Login per RFID/Mitarbeiter-ID war fälschlich an `ist_login_berechtigt` gekoppelt (Checkbox „Login über Benutzername/E-Mail erlaubt“) → normale Mitarbeiter konnten sich nicht am Terminal anmelden. **DONE in P-2026-01-03-40**.
+- **B-032:** Terminal: Nach Login wurden Auftrag-/Nebenauftrag-Buttons auch ohne Anwesenheit angezeigt; zudem fehlten Helper-Methoden (`setzeTerminalAnwesenheitStatus`, `istTerminalMitarbeiterHeuteAnwesend`) → UI zeigt bei Nicht-Anwesenheit nur „Kommen“ (+ optional Urlaub) und Online/Offline-Anwesenheit ist konsistent. **DONE in P-2026-01-03-42**.
+- **B-033:** Terminal: Einige Stop-Aktionen (Haupt-/Nebenauftrag stoppen) waren per Direkt-URL auch ohne Anwesenheit erreichbar; außerdem konnte „Kommen“ trotz bestehender Anwesenheit manuell ausgelöst werden → serverseitige Anwesenheits-Guards ergänzt. **DONE in P-2026-01-03-43**.
+- **B-034:** Terminal: Wenn Mitarbeiter nach Login **nicht anwesend** ist, soll das Menü wirklich nur „Kommen“ (+ optional „Urlaub beantragen“) zeigen – keine Übersicht/Details. **DONE in P-2026-01-03-44**.
+- **B-035:** Terminal: Wenn Mitarbeiter nach Login **nicht anwesend** ist, soll das Terminal-Hauptmenü auch **keinen Urlaubssaldo/Status-Box** anzeigen (nur „Kommen“ + optional „Urlaub beantragen“). **DONE in P-2026-01-04-08**.
+- **B-036:** Terminal: Numerische Codes (Personalnummer vs Mitarbeiter-ID) können mehrdeutig sein → Login darf nicht „still“ den falschen Mitarbeiter wählen; bei Mehrdeutigkeit abbrechen. **DONE in P-2026-01-04-10**.
+- **B-070:** Monatsreport/PDF: Kalender-Feiertage werden in der Tagesliste als **Feiertag** geführt und bei **keiner Arbeitszeit** mit Tagesstunden (Fallback 8.00 / Tages-Soll) befüllt; Abgrenzung gegen Urlaub/Betriebsferien. **DONE in P-2026-01-04-17**.
+- **B-071:** FeiertagService: Jahres-Init wurde fälschlich als „fertig“ behandelt, sobald irgendein Feiertag für das Jahr existierte → fehlende bundeseinheitliche Feiertage (z. B. 01.01.) konnten unbemerkt fehlen. Jetzt werden fehlende Basis-Feiertage **idempotent nachgeseedet**. **DONE in P-2026-01-04-18**.
+- **B-072:** Smoke-Test: Queue-Übersicht nutzte bisher immer die Haupt-DB; bei konfigurierter Offline-DB waren Zähler/„Letzte 10“ inkonsistent zu `queue_admin` (dort Offline-DB bevorzugt). **DONE in P-2026-01-04-26**.
+- **B-073:** Urlaub: `UrlaubService` selektierte `urlaub_kontingent_jahr.uebertrag_tage`; wenn die Spalte fehlte, fiel der komplette Kontingent-Block aus (Korrektur/Override ignoriert, Hinweis „DB-Update fehlt?“). **DONE in P-2026-01-07-01**.
+- **B-017:** Monatsübersicht zeigte bei Mitarbeiterwechsel teils nur „Tage mit Eintrag“ statt kompletter Monatstabelle. **DONE in P-2026-01-02-09**.
+- **B-001:** `ZeitbuchungModel::holeFuerMitarbeiterUndZeitraum()` joint `terminal` und selektiert `t.bezeichnung` – laut DB ist die Spalte `terminal.name`. **DONE in P-2025-12-20-02**.
+- **B-002:** `core/OfflineQueueManager.php` referenzierte `Database`-Methoden, die nicht existierten (potenzieller Fatal Error, sobald genutzt). **DONE in P-2025-12-20-04**.
+- **B-003:** Konfiguration lag doppelt (`/config.php` und `/config/config.php`) – Master-Prompt fordert **genau eine** zentrale Config. **DONE in P-2025-12-20-03**.
+- **B-004:** Genehmiger-Auswahl beim Mitarbeiter (Dropdown) speichert/lädt nun robuster (Fehlerfeedback + Nachladen inaktiver Genehmiger im Dropdown). **DONE in P-2025-12-20-08**.
+- **B-010:** Terminal: `_autologout.php` Fallback ging auf `aktion=start` (Logout nicht garantiert) + Fokus-Ziel-Auswahl ohne ID-Priorität. **DONE in P-2025-12-31-17**.
+- **B-011:** Terminal: Startscreen bekam in manchen Pfaden keinen `$csrfToken` gesetzt (Formulare sendeten leeren Token). **DONE in P-2025-12-31-35**.
+
+---
 
 ## P-2026-08-09-02 doku-nach-lesehaeufigkeit
 
