@@ -159,7 +159,51 @@ Danach Stufe 5 (Peripherie: RFID, Touchscreen), 6 (Selbsttest mit Scan-Proben).
 Weitere offene Punkte stehen oben unter „Offene Tasks (T-IDs)".
 
 ## Letzter Patch (P-ID)
-P-2026-08-09-05 (Commit) – Offline-Passwort wird nicht mehr rotiert
+P-2026-08-09-06 (Commit) – Netzpruefung meldet nicht mehr falsch
+
+## P-2026-08-09-06 netzpruefung-ohne-iproute2
+
+### EINGELESEN
+- `scripts/terminal/install_terminal.sh` (Schritt 1),
+  Eintrag zu P-2026-08-09-05 in dieser Datei (der Lauf, der es zeigte).
+
+### DATEIEN
+- `scripts/terminal/install_terminal.sh` (Schritt 1)
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Auf einem System ohne `iproute2` meldet das Skript „Netzpruefung uebersprungen“
+statt einer Warnung ueber eine fehlende Standardroute.
+
+### DONE
+Die Pruefung unterscheidet jetzt zwei Faelle, die vorher zusammenfielen: `ip`
+fehlt (schlankes Abbild – nur ein Hinweis, keine Warnung) und `ip` ist da, aber
+es gibt keine Standardroute (weiterhin Warnung).
+
+Der alte Einzeiler `ip route show default 2>/dev/null | grep -q .` schluckt die
+Fehlermeldung „command not found“ mit und liefert dann leere Ausgabe – dasselbe
+Ergebnis wie bei einer echt fehlenden Route.
+
+### TEST
+Der Block wurde per `awk` aus dem Skript herausgeloest und in Debian-12-Containern
+ausgefuehrt – herausgeloest, nicht nachgebaut, damit die Pruefung nicht an einer
+Kopie haengt:
+
+- **ohne `iproute2`, Netz vorhanden:** „Netzpruefung uebersprungen“, keine Warnung.
+- **mit `iproute2`, Standardroute vorhanden:** keine Ausgabe, keine Warnung.
+- **mit `iproute2`, Standardroute geloescht** (`ip route del default` in einem
+  privilegierten Container): die Warnung erscheint wie vorgesehen.
+
+`bash -n`: fehlerfrei. `php -l`: keine PHP-Datei geaendert, entfaellt.
+
+### Was bewusst nicht erreicht wurde
+- **`iproute2` wird nicht zur Paketliste ergaenzt.** Auf einem echten Debian ist
+  es Teil des Standardsystems; nur sehr schlanke Abbilder haben es nicht, und
+  dort braucht das Skript es auch nicht.
+
+### NEXT
+Doku auf den Stand nach dem Container-Lauf bringen (P-2026-08-09-07),
+danach Stufe 4 (Kiosk).
 
 ## P-2026-08-09-05 offline-passwort-nicht-rotieren
 

@@ -139,7 +139,14 @@ if [ -z "$FAMILIE" ]; then
 fi
 echo "Familie: $FAMILIE"
 
-if ! ip route show default 2>/dev/null | grep -q .; then
+# Zwei Dinge, die nicht verwechselt werden duerfen: Keine Standardroute ist ein
+# Grund zur Warnung. Ein fehlendes 'ip' bedeutet nur, dass iproute2 noch nicht
+# installiert ist - ueblich in schlanken Abbildern und Containern. Beides als
+# "Keine Standardroute" zu melden schickt denjenigen, der ein frisches Geraet
+# einrichtet, auf die Suche nach einem Netzfehler, den es nicht gibt.
+if ! command -v ip >/dev/null 2>&1; then
+    echo "Netzpruefung uebersprungen - 'ip' nicht vorhanden (iproute2 fehlt)."
+elif ! ip route show default 2>/dev/null | grep -q .; then
     warnung "Keine Standardroute - ohne Netz schlagen Paketinstallation und Klon fehl."
 fi
 
