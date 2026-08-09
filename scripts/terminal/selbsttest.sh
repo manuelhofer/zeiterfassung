@@ -103,6 +103,32 @@ else
     melde_frei "Webserver nicht geprueft" "curl ist nicht installiert."
 fi
 
+# Auf einem Terminal darf die Backend-Oberflaeche nicht erreichbar sein
+# (T-103). Geprueft wird die Anmeldemaske: Sie muss auf terminal.php
+# weiterleiten statt ein Formular auszuliefern.
+if command -v curl >/dev/null 2>&1; then
+    BACKEND_URL="$(printf '%s' "$TERMINAL_URL" | sed 's|terminal\.php.*|index.php?seite=login|')"
+    BACKEND_STATUS="$(curl -s -o /dev/null -w '%{http_code}' --max-time 10 "$BACKEND_URL" 2>/dev/null)"
+    BACKEND_ZIEL="$(curl -s -o /dev/null -w '%{redirect_url}' --max-time 10 "$BACKEND_URL" 2>/dev/null)"
+
+    case "$BACKEND_STATUS" in
+        30*)
+            if printf '%s' "$BACKEND_ZIEL" | grep -q 'terminal\.php'; then
+                melde_ok "Backend-Oberflaeche ist gesperrt (leitet auf terminal.php)"
+            else
+                melde_fehlt "Backend leitet weiter, aber nicht auf terminal.php" "Ziel: $BACKEND_ZIEL"
+            fi
+            ;;
+        200)
+            melde_fehlt "Die Backend-Anmeldung ist auf diesem Geraet erreichbar" \
+                "installation_typ in config/config.local.php muss 'terminal' sein. Erst ab P-2026-08-09-19 gesperrt." ;;
+        000|"")
+            melde_frei "Backend-Sperre nicht pruefbar" "$BACKEND_URL nicht erreichbar." ;;
+        *)
+            melde_ok "Backend-Oberflaeche liefert kein Anmeldeformular (HTTP $BACKEND_STATUS)" ;;
+    esac
+fi
+
 # ---------------------------------------------------------------------------
 schritt "2  Kopplung und Hauptdatenbank"
 # ---------------------------------------------------------------------------

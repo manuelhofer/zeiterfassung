@@ -7,6 +7,54 @@ require __DIR__ . '/../core/Autoloader.php';
 
 $konfig = require __DIR__ . '/../config/config.php';
 
+// ---------------------------------------------------------------------------
+// Auf einem Terminal gibt es hier nichts zu holen (T-103)
+// ---------------------------------------------------------------------------
+// Der Webserver eines Terminals zeigt auf `public/` - damit liegt neben
+// `terminal.php` auch dieser Front-Controller im Zugriff, und ein Hallengeraet
+// lieferte bis P-2026-08-09-19 die Anmeldemaske des Backends aus.
+//
+// Was das schuetzt, und was ausdruecklich nicht: Der Datenbankbenutzer des
+// Geraets darf Mitarbeiterstammdaten, Zeitbuchungen und Stundenkonten **lesen**
+// (siehe Rechteliste in docs/spezifikation_terminal_installation.md). Wer das
+// Geraet aufschraubt, liest die Zugangsdaten aus `config.local.php` und kommt
+// an diese Daten - daran aendert diese Sperre nichts. Sie nimmt lediglich die
+// Backend-Oberflaeche aus dem Weg, die auf einem Hallengeraet nichts zu suchen
+// hat. Der Schutz der Daten liegt bei der Rechteliste, nicht hier.
+//
+// Bewusst **ohne Ausnahme fuer den Kopplungs-Endpunkt**: Der laeuft auf dem
+// Backend. Ein Terminal, das ihn selbst anboete, wuerde Datenbankbenutzer
+// verteilen - genau das, was die Kopplung verhindern soll.
+//
+// Rueckweg fuer die Wartung: `installation_typ` in `config/config.local.php`
+// auf 'backend' setzen. Das braucht Zugriff auf die Datei, und das ist die
+// richtige Huerde.
+$istTerminal = ($konfig['app']['installation_typ'] ?? 'backend') === 'terminal';
+
+// Zweiter Fall, sonst bliebe eine Luecke von Tagen: Zwischen dem Aufsetzen und
+// dem Koppeln gibt es noch keine `config.local.php`, also gilt der Standard
+// 'backend' - und ein Geraet, das schon in der Halle haengt, zeigte bis dahin
+// die Anmeldemaske. Woran ein solches Geraet zu erkennen ist:
+// `config/geraet.local.php` legt ausschliesslich install_terminal.sh an.
+//
+// Nur wenn `config.local.php` fehlt. Ist sie da und nennt 'backend', ist das
+// eine ausdrueckliche Entscheidung und gewinnt.
+if (!$istTerminal
+    && !is_file(__DIR__ . '/../config/config.local.php')
+    && is_file(__DIR__ . '/../config/geraet.local.php')
+) {
+    $istTerminal = true;
+}
+
+if ($istTerminal) {
+    // Weiterleiten statt 404: Auf einem Kiosk ist die Terminal-Oberflaeche das,
+    // was der Aufrufer gemeint hat - bei einem noch nicht gekoppelten Geraet
+    // ist das die Einrichtungsseite. Ein Fehlerbild waere hier nur im Weg.
+    header('Location: terminal.php', true, 302);
+    header('Cache-Control: no-store');
+    exit;
+}
+
 // Zeitzone setzen
 if (isset($konfig['timezone']) && is_string($konfig['timezone']) && $konfig['timezone'] !== '') {
     date_default_timezone_set($konfig['timezone']);

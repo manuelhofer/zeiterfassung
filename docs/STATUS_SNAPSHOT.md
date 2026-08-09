@@ -43,8 +43,6 @@ keines gelaufen.** Der Container deckt nur `apt` ab, und openSUSE bleibt die
 unsicherste Familie (versionsgebundene Paketnamen, php-fpm auf TCP statt
 Socket, `cage` je nach Version gar nicht vorhanden).
 
-Ausserdem offen und ohne Bauarbeit zu klaeren: **T-103** (Backend-Anmeldung ist
-auf dem Terminal erreichbar) – braucht eine Ansage.
 
 Grundlage: `docs/spezifikation_terminal_installation.md` (Abschnitte 6, 7, 8).
 
@@ -64,16 +62,12 @@ der Spezifikation** (Abschnitt 11) – hier bewusst nicht ein zweites Mal.
 ## Offene Tasks
 - **T-102 Buchungen tragen keine `terminal_id`.** Seit P-2026-08-09-01 steht die
   ID in `config.local.php` (`terminal.id`) und liesse sich durchreichen.
-- **T-103 Auf dem Terminal ist die Backend-Anmeldung erreichbar.** Der
-  Document-Root zeigt auf `public/`, also liefert `http://<terminal>/` das
-  Anmeldeformular des Backends – im Container geprueft. Erst klaeren, ob das
-  gewollt ist (Fernwartung) oder ob ein Terminal nur `terminal.php` ausliefern
-  soll.
-- **T-104 Distributionserkennung steht zweimal.** `install_terminal.sh` und
-  `install_kiosk.sh` bringen denselben Block ueber `/etc/os-release` mit. Wer
-  eine Paketfamilie ergaenzt, muss an zwei Stellen denken. Zusammenlegen erst,
-  wenn eine dritte Stelle dazukommt – dafuer muesste das im Container
-  geprueft Skript der Stufe 3 angefasst und erneut geprueft werden.
+- **T-104 Distributionserkennung steht dreimal.** `install_terminal.sh`,
+  `install_kiosk.sh` und `install_peripherie.sh` bringen denselben Block ueber
+  `/etc/os-release` mit. Wer eine Paketfamilie ergaenzt, muss an drei Stellen
+  denken. Die dritte Stelle war die Bedingung, die hier fuer ein Zusammenlegen
+  genannt war – jetzt lohnt es sich. Kostet: Die geprueften Skripte der Stufen
+  3 bis 5 werden angefasst und muessen erneut durch den Containerlauf.
 - Praxis-Test: Bugs und Anomalien sammeln, als Micro-Patches beheben.
 - Offen aus P-2026-08-08-02: Strichcode-Erzeugung und Terminal-Buchungsflows
   sind unter PHP 8.5 noch nicht im Browser geprueft (brauchen einen

@@ -707,7 +707,44 @@ Die Kopplung loest das: Jedes Terminal bekommt **einen eigenen Benutzer mit
 eingeschraenkten Rechten**, einzeln sperrbar. Auf dem Geraet liegt damit nur
 noch, was dieses eine Terminal ohnehin darf.
 
-Was weiterhin gilt:
+### Das Backend laeuft auf einem Terminal nicht mit (P-2026-08-09-19)
+
+Der Webserver eines Terminals zeigt auf `public/` – damit lag neben
+`terminal.php` auch `index.php` im Zugriff, und ein Hallengeraet lieferte die
+**Anmeldemaske des Backends** aus. `public/index.php` bricht deshalb sofort ab
+und leitet auf `terminal.php` um, wenn eines von beiden zutrifft:
+
+- `installation_typ` steht auf `terminal`, **oder**
+- es gibt eine `config/geraet.local.php`, aber noch keine
+  `config.local.php`. Das ist ein aufgesetztes, noch nicht gekoppeltes Geraet –
+  sonst bliebe zwischen Aufstellen und Koppeln ein Fenster von Tagen offen, in
+  dem in der Halle die Anmeldemaske haengt. Steht in einer vorhandenen
+  `config.local.php` ausdruecklich `backend`, gewinnt diese Entscheidung.
+
+**Ohne Ausnahme fuer den Kopplungs-Endpunkt.** Der laeuft auf dem Backend; ein
+Terminal, das ihn selbst anboete, verteilte Datenbankbenutzer – genau das, was
+die Kopplung verhindern soll.
+
+**Was das nicht ist: ein Datenschutz.** Es ist **dieselbe Datenbank** wie die
+des Backends – das Terminal bekommt bei der Kopplung nur einen eigenen Benutzer
+auf demselben Schema. Was es unterscheidet, sind die **Rechte**, nicht die
+Daten. An einem gekoppelten Testgeraet nachgemessen:
+
+| Fuer das Terminal lesbar | Gesperrt |
+| --- | --- |
+| Namen, Personalnummern, E-Mail, Geburtsdatum | Passwort-Hashes |
+| Zeitbuchungen **aller** Mitarbeiter | Kopplungscodes anderer Terminals |
+| Urlaubsantraege, Stundenkonto-Korrekturen, Rollen und Rechte | |
+
+Wer das Geraet aufschraubt, liest die Zugangsdaten aus `config.local.php` und
+kommt an die linke Spalte – mit oder ohne Backend-Oberflaeche. Diese Sperre
+verkleinert die Angriffsflaeche; der Schutz der Daten liegt bei der Rechteliste
+weiter oben. Der Selbsttest (Abschnitt 8) prueft die Sperre mit.
+
+Rueckweg fuer die Fernwartung: `installation_typ` in `config.local.php` auf
+`backend` setzen. Das braucht Zugriff auf die Datei – die richtige Huerde.
+
+### Was weiterhin gilt
 
 - Die Zugangsdaten liegen trotzdem lesbar auf dem Geraet – der Schaden ist
   begrenzt, aber nicht null. Physischer Schutz der Geraete bleibt sinnvoll.
@@ -716,6 +753,7 @@ Was weiterhin gilt:
 - Ein ausgemustertes Terminal muss im Backend **entkoppelt** werden (Knopf in
   der Terminalverwaltung, siehe 2a), sonst bleibt sein Datenbankbenutzer
   gueltig. Nur stilllegen (`aktiv = 0`) reicht dafuer nicht.
+
 
 ## 11. Umsetzung in Stufen
 

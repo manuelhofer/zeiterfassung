@@ -70,6 +70,100 @@ in den Statusbericht.
   D-002 entfallen; die Regel selbst gilt weiter.)
 
 
+## P-2026-08-09-19 terminal-ohne-backend
+
+### EINGELESEN
+- `public/index.php` (Kopf), `config/config.php` (wie `installation_typ`
+  zustande kommt), `core/Auth.php` (die Abfrage hinter der Anmeldung).
+- `controller/TerminalEinrichtungController.php` – welche Datenbank die
+  Kopplung dem Geraet eintraegt.
+- Befundlauf an einem gekoppelten Wegwerf-Terminal: was es tatsaechlich lesen
+  kann.
+
+### DATEIEN
+- `public/index.php`
+- `scripts/terminal/selbsttest.sh`
+- `docs/spezifikation_terminal_installation.md`
+- `docs/STATUS_SNAPSHOT.md`
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Auf einem Geraet mit `installation_typ = 'terminal'` liefert `public/index.php`
+keine Backend-Oberflaeche mehr, sondern leitet auf `terminal.php` um.
+
+### DONE
+T-103 entschieden und umgesetzt: Auf einem Terminal gibt es kein Backend.
+
+**Die Begruendung war eine andere als angenommen.** Die Vermutung lautete, das
+sei ohnehin harmlos, weil „die Daten fuer das Backend auf dem Terminal gar
+nicht da sind". Der Befundlauf zeigt das Gegenteil: Es ist **dieselbe
+Datenbank**. Das Terminal bekommt bei der Kopplung nur einen eigenen Benutzer
+auf demselben Schema; unterschiedlich sind die **Rechte**, nicht die Daten.
+Gemessen an einem gekoppelten Testgeraet – lesbar: Namen, Personalnummern,
+E-Mail, Geburtsdatum, Zeitbuchungen **aller** Mitarbeiter, Urlaubsantraege,
+Stundenkonto-Korrekturen, Rollen und Rechte. Gesperrt: Passwort-Hashes und
+Kopplungscodes anderer Terminals.
+
+Die Sperre ist also noetig, **weil** die Daten da sind – nicht, obwohl sie es
+nicht waeren.
+
+- `public/index.php` bricht vor allem Weiteren ab und leitet auf
+  `terminal.php` um, wenn `installation_typ = 'terminal'` gilt **oder** eine
+  `config/geraet.local.php` ohne `config.local.php` vorliegt. Der zweite Fall
+  deckt das Fenster zwischen Aufstellen und Koppeln ab – oft Tage, in denen in
+  der Halle die Anmeldemaske haengt. Jene Datei legt ausschliesslich
+  `install_terminal.sh` an, ist also ein verlaesslicher Marker.
+- **Weiterleitung statt 404.** Wer auf einem Kiosk bei `/` landet, meint die
+  Terminal-Oberflaeche; bei einem ungekoppelten Geraet ist das die
+  Einrichtungsseite. Ein Fehlerbild waere dort nur im Weg.
+- **Keine Ausnahme fuer den Kopplungs-Endpunkt.** Der laeuft auf dem Backend.
+- **Rueckweg fuer die Wartung:** `installation_typ` in `config.local.php` auf
+  `backend` setzen. Das braucht Zugriff auf die Datei – die richtige Huerde.
+- Der Selbsttest prueft die Sperre mit: Die Anmeldemaske muss auf
+  `terminal.php` umleiten. Tut sie es nicht, ist das ein Fund mit Hinweis.
+
+### TEST
+**13 von 13**, gegen eine echte Installation auf einem eigenen PHP-Server
+(damit die Entwicklungsumgebung unangetastet bleibt), in vier Zustaenden:
+
+- *Backend:* `?seite=login` liefert 200, geschuetzte Seiten leiten wie bisher
+  auf den Login – unveraendert.
+- *Terminal:* `?seite=login`, `?seite=dashboard`, `?seite=mitarbeiter_admin`,
+  `?seite=terminal_kopplung` und `/` alle 302 auf `terminal.php`;
+  `terminal.php` und der Health-Endpunkt weiter 200.
+- *Aufgesetzt, aber nicht gekoppelt* (nur `geraet.local.php`): gesperrt,
+  `terminal.php` zeigt die Einrichtungsseite.
+- *Rueckweg:* `installation_typ = 'backend'` trotz vorhandener
+  `geraet.local.php` – wieder erreichbar.
+
+Der neue Punkt im Selbsttest wurde in beide Richtungen geprueft: meldet OK bei
+gesperrtem Backend, FEHLT bei erreichbarem. `php -l` und `bash -n` fehlerfrei.
+
+### Gefundene Fehler im eigenen Entwurf
+- Der erste Entwurf deckte nur `installation_typ = 'terminal'` ab und liess
+  damit genau das Fenster offen, in dem ein Geraet schon in der Halle haengt,
+  aber noch nicht gekoppelt ist. Zweite Bedingung nachgezogen.
+- Beim Einfuegen in die Spezifikation ist eine **zweite Ueberschrift „## 10."**
+  entstanden und die Aufzaehlung „Was weiterhin gilt" wurde mitten
+  durchgeschnitten. Abschnitt 10 danach am Stueck neu gesetzt – eine Aussage,
+  eine Stelle.
+
+### Was bewusst nicht erreicht wurde
+- **Kein Datenschutz.** Wer das Geraet aufschraubt, liest die Zugangsdaten und
+  kommt an alles, was der Terminal-Benutzer lesen darf. Die Sperre verkleinert
+  die Angriffsflaeche; der Schutz liegt bei der Rechteliste.
+- **Nebenbefund, nicht als Schutz eingeplant:** Seit P-2026-08-09-16 scheitert
+  die Anmeldung auf einem Terminal ohnehin, weil `core/Auth.php` die Spalte
+  `passwort_hash` liest. Sich darauf zu verlassen waere ein Zufall statt eines
+  Entwurfs – bei einem Geraet, das **vor** jenem Patch gekoppelt wurde,
+  funktioniert die Anmeldung sehr wohl. Genau solche Geraete meldet der
+  Selbsttest.
+- **`public/maschine_code.php`** ist nicht gesperrt. Es hat keinen Aufrufer im
+  Code und gehoert getrennt betrachtet; notiert, nicht mitgemacht.
+
+### NEXT
+Der Geraetetest auf einem Bildschirm.
+
 ## P-2026-08-09-18 terminal-selbsttest
 
 ### EINGELESEN
