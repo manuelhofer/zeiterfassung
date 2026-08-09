@@ -1,9 +1,11 @@
 # Spezifikation: Terminal-Installation per Skript
 
 *Version:* v2 (2026-08-08)
-*Status:* in Umsetzung – **Stufe 1 (Kopplung im Backend) vollstaendig**
-(P-2026-08-08-30, -31, -35, -36) und **Stufe 2 (Einrichtungsseite im Terminal)
-vollstaendig** (P-2026-08-09-01); als Naechstes Stufe 3, das Grundsystem-Skript
+*Status:* in Umsetzung – **Stufe 1 (Kopplung im Backend)** vollstaendig
+(P-2026-08-08-30, -31, -35, -36), **Stufe 2 (Einrichtungsseite im Terminal)**
+vollstaendig (P-2026-08-09-01), **Stufe 3 (Grundsystem-Skript)** geschrieben
+(P-2026-08-09-04, auf echter Hardware noch nicht gelaufen); als Naechstes
+Stufe 4, der Kiosk
 *Grundlage:* `docs/fachregeln/terminal_und_offline.md`;
 `docs/rfid_reader_setup.md`; `docs/terminal/rfid-ws_rollout.md`
 
@@ -363,8 +365,10 @@ deaktiviert). Phase 3 ist die Kopplung am Geraet und braucht kein Skript.
 1. Distribution und Paketmanager erkennen, Vorbedingungen pruefen (root,
    Netzwerk).
 2. Pakete installieren: Webserver, PHP mit `pdo_mysql`/`mbstring`/`gd`,
-   MariaDB (nur fuer die lokale Ausweichdatenbank), Git, Grafikstack, Browser,
-   Python (nur bei RC522).
+   MariaDB (nur fuer die lokale Ausweichdatenbank), Git. **Grafikstack und
+   Browser** gehoeren zum Kiosk und werden dort installiert (Stufe 4) – sie
+   ohne den Kiosk mitzunehmen brachte nur Wartezeit und liess sich im Container
+   nicht pruefen. Python nur bei RC522 (Stufe 5).
 3. Code aus Git holen, Webserver auf `public/` zeigen lassen.
 4. **Keine** `config.local.php` schreiben – das Terminal startet bewusst
    unkonfiguriert und zeigt die Einrichtungsseite. Stattdessen: lokale
@@ -384,6 +388,59 @@ deaktiviert). Phase 3 ist die Kopplung am Geraet und braucht kein Skript.
 ### Phase 3 – Kopplung am Geraet (kein Skript)
 11. Am Touchscreen Server-Adresse und Kopplungscode eingeben; das Terminal holt
     sich alles Weitere selbst (Abschnitt 2a).
+
+## 5a. Das Grundsystem-Skript (umgesetzt, P-2026-08-09-04)
+
+`scripts/terminal/install_terminal.sh` setzt Phase 1 um. Aufruf:
+
+```bash
+sudo ./scripts/terminal/install_terminal.sh [antwortdatei]
+```
+
+Ohne Argument wird `terminal.conf` neben dem Skript gesucht; Vorlage ist
+`terminal.conf.example`. Fehlt sie, fragt das Skript nach – aber **nur**, wenn
+ein Mensch davorsitzt. Ein unbeaufsichtigter Lauf (Image-Bau) darf nicht an
+einer Eingabeaufforderung haengenbleiben.
+
+**Alles Distributionsabhaengige steht in einer einzigen Tabelle** im Skript:
+Paketliste, Dienstname, Webserver-Benutzer und Ablageort der
+Webserver-Konfiguration je Familie (`apt`, `pacman`, `dnf`, `zypper`). Verstreute
+Sonderfaelle waren der uebliche Grund, warum solche Skripte nach der zweiten
+Distribution unwartbar werden.
+
+**PHP haengt ueberall gleich am Webserver:** `php-fpm` plus `mod_proxy_fcgi`,
+statt je Familie ein anderes PHP-Modul. Unterschiedlich ist nur der Socketpfad –
+und den sucht das Skript (`/run/php-fpm/*.sock`, `/run/php/*.sock`, …), mit
+`127.0.0.1:9000` als Rueckfall. Damit ist die erzeugte Apache-Konfiguration fuer
+alle vier Familien dieselbe Datei.
+
+**Das Passwort der Ausweichdatenbank wird bei einem zweiten Lauf
+wiederverwendet**, nicht erneuert. Ein bereits gekoppeltes Terminal traegt es in
+seiner `config.local.php`; ein frisches Passwort wuerde ihm stillschweigend die
+Offline-Queue kappen – der Ausfall faellt dann erst beim naechsten Netzausfall
+auf, also genau dann, wenn er am meisten schadet.
+
+**Der Code gehoert root**, der Webserver-Benutzer darf ihn nur lesen.
+Schreibrechte bekommt er ausschliesslich fuer `config/` – dort legt die Kopplung
+`config.local.php` an – und fuer `public/uploads/`. Unter SELinux (Fedora/RHEL)
+setzt das Skript zusaetzlich die Kontexte und den Schalter
+`httpd_can_network_connect_db`; ohne ihn erreicht das Terminal die
+Hauptdatenbank des Backends nicht, und zwar ohne erkennbare Ursache.
+
+**Das Tastaturlayout wird an drei Stellen gesetzt** (X11, Konsole, bei Debian
+zusaetzlich `/etc/default/keyboard`), weil je nach Distribution eine andere
+davon greift. Dazu die Zeitzone: Die Uhr im Terminal-Header laeuft nach der
+Systemzeit, ein Geraet in UTC zeigt der Halle stundenversetzte Buchungszeiten.
+
+**Am Ende steht eine Liste mit OK/FEHLT** (Webserver, `pdo_mysql`,
+Ausweichdatenbank, `geraet.local.php`, Schreibrecht auf `config/`, HTTP-Antwort
+von `terminal.php`) sowie alle Warnungen des Laufs gesammelt. Das ist die kleine
+Fassung von Abschnitt 8; der vollstaendige Selbsttest mit Scan-Proben kommt mit
+Stufe 6.
+
+**Bewusst nicht im Skript:** Kiosk (Stufe 4), Peripherie (Stufe 5), Selbsttest
+mit Hardware (Stufe 6). Ein Lauf ohne systemd (Container) bricht nicht ab,
+sondern warnt – sonst waere die Stufe nicht im Container pruefbar.
 
 ## 6. Peripherie
 
@@ -476,8 +533,12 @@ Was weiterhin gilt:
    nimmt Adresse und Code entgegen, schreibt `config.local.php`. Ohne Hardware
    testbar. **Fertig** (P-2026-08-09-01).
 3. **Grundsystem-Skript** – Pakete, Code, Webserver. Im Container testbar.
+   **Geschrieben** (P-2026-08-09-04): `scripts/terminal/install_terminal.sh`,
+   siehe Abschnitt 5a. Geprueft sind bisher nur die Bausteine (Syntax,
+   Distributionserkennung, erzeugte Apache- und PHP-Dateien) – ein vollstaendiger
+   Lauf auf einem frischen System steht aus.
+4. **Kiosk** – Autologin, Browser im Vollbild, Grafikstack. In einer VM testbar.
    **Als Naechstes.**
-4. **Kiosk** – Autologin, Browser im Vollbild. In einer VM testbar.
 5. **Peripherie** – RFID, Touchscreen, Tastaturlayout. Braucht echte Hardware.
 6. **Selbsttest** – rundet ab und macht das Ergebnis pruefbar.
 

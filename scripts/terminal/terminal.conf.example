@@ -1,0 +1,49 @@
+# ===========================================================================
+#  Antwortdatei fuer scripts/terminal/install_terminal.sh
+# ===========================================================================
+#
+#  Nutzung:
+#      cp terminal.conf.example terminal.conf
+#      # anpassen
+#      sudo ./install_terminal.sh
+#
+#  Ohne diese Datei fragt das Skript nach, sofern jemand davorsitzt, und nimmt
+#  sonst die hier gezeigten Standardwerte. Der Sinn der Datei: Wer zwanzig
+#  Terminals aufsetzt, will nicht zwanzigmal dieselben Fragen beantworten.
+#
+#  Die Datei enthaelt bewusst KEINE Zugangsdaten. Server-Adresse, Terminal-ID
+#  und Datenbankbenutzer holt sich das Geraet beim Koppeln selbst - deshalb
+#  passt dieselbe Datei auf alle Geraete.
+#
+#  Format: Shell-Zuweisungen, die das Skript einliest.
+# ===========================================================================
+
+# --- Codequelle ------------------------------------------------------------
+# Bleibt GIT_REPO leer, nimmt das Skript das 'origin' der Arbeitskopie, aus der
+# es gerade gestartet wurde.
+GIT_REPO=""
+GIT_BRANCH="main"
+
+# Wohin der Code gehoert. Der Webserver wird auf das Unterverzeichnis public/
+# gerichtet.
+ZIEL_VERZEICHNIS="/opt/zeiterfassung"
+
+# --- Landeseinstellungen ---------------------------------------------------
+# Pflicht, kein Beiwerk: Der Barcode-Scanner tippt wie eine Tastatur. Bei
+# falschem Layout kommen 'y', 'z' und Sonderzeichen vertauscht an, und das
+# Terminal bucht klaglos einen falschen Code.
+TASTATURLAYOUT="de"
+
+# Die Uhr im Terminal-Header laeuft nach der Systemzeit.
+ZEITZONE="Europe/Berlin"
+
+# --- Lokale Ausweichdatenbank ----------------------------------------------
+# Fuer den Offline-Betrieb (Tabelle db_injektionsqueue). Das Passwort erzeugt
+# das Skript selbst und legt es in config/geraet.local.php ab; bei einem
+# zweiten Lauf wird das vorhandene wiederverwendet.
+OFFLINE_DB_NAME="zeiterfassung_offline"
+OFFLINE_DB_USER="zeiterfassung_offline"
+
+# --- Spaetere Stufen -------------------------------------------------------
+# RFID_VARIANTE (usb | rc522) und BILDSCHIRM_DREHUNG kommen mit Stufe 5
+# (Peripherie) dazu und werden von diesem Skript noch nicht ausgewertet.

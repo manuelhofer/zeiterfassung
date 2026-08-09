@@ -26,14 +26,17 @@ Urlaubsverwaltung, Auswertungen sowie Terminal-UI (Kiosk) inkl. Offline-Queue.
   (App unter `http://localhost/zeiterfassung`).
 
 ## Naechster Schritt
-**Stufe 3 der Terminal-Installation: das Grundsystem-Skript.**
-`scripts/terminal/install_terminal.sh` bringt ein frisches Linux-Geraet bis zur
-laufenden Weboberflaeche: Pakete, Code aus Git, Webserver auf `public/`,
-Tastaturlayout und die lokale Ausweichdatenbank samt `config/geraet.local.php`.
-Bewusst **ohne** `config.local.php` – die schreibt sich das Terminal bei der
-Kopplung selbst.
+**Erst pruefen, dann weiterbauen: `scripts/terminal/install_terminal.sh` einmal
+vollstaendig laufen lassen** – Container (Debian) oder VM. Das Skript ist
+geschrieben (P-2026-08-09-04), aber noch nie am Stueck gelaufen; geprueft sind
+bisher nur seine Bausteine.
 
-Grundlage: `docs/spezifikation_terminal_installation.md` (Abschnitte 3 bis 5);
+Danach **Stufe 4 der Terminal-Installation: der Kiosk** – Autologin fuer einen
+eigenen Benutzer, Browser im Vollbild auf `terminal.php`, Bildschirmschoner aus,
+Neustart des Browsers nach einem Absturz. Dazu gehoeren die Pakete fuer
+Grafikstack und Browser, die Stufe 3 bewusst ausgelassen hat.
+
+Grundlage: `docs/spezifikation_terminal_installation.md` (Abschnitte 5a und 7);
 Einzelheiten im „Naechster Schritt"-Block von
 `docs/archiv/DEV_PROMPT_HISTORY.md`.
 

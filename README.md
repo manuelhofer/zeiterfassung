@@ -78,6 +78,7 @@ Für den **Produktivserver** (Debian/Apache) gilt stattdessen
 | `config/` | Konfiguration (`config.php`, lokale Werte in `config.local.php`) |
 | `sql/` | Initialschema und SQL-Hilfen |
 | `scripts/dev/` | Helfer für die lokale Entwicklungsumgebung |
+| `scripts/terminal/` | Installationsskript für ein Hallenterminal |
 | `docs/` | Arbeitsregeln, Fachregeln, Handbücher, Archiv |
 
 Einstiegspunkte: Backend `public/index.php` (`?seite=…`), Terminal
@@ -92,8 +93,10 @@ Einstiegspunkte: Backend `public/index.php` (`?seite=…`), Terminal
 **Terminals konfigurieren sich selbst.** Fehlt `config/config.local.php`, zeigt
 `public/terminal.php` statt der Bedienoberfläche eine Einrichtungsseite: dort
 werden Server-Adresse und ein im Backend erzeugter Kopplungscode eingegeben, und
-das Terminal schreibt seine Konfiguration daraus selbst. Einzelheiten:
-[Terminal-Installation](docs/spezifikation_terminal_installation.md).
+das Terminal schreibt seine Konfiguration daraus selbst. Das Grundsystem eines
+Geräts richtet `scripts/terminal/install_terminal.sh` ein – Pakete, Code,
+Webserver und lokale Ausweichdatenbank, aber bewusst **keine** Zugangsdaten.
+Einzelheiten: [Terminal-Installation](docs/spezifikation_terminal_installation.md).
 
 ## Mitarbeiten
 

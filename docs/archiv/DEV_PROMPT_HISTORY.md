@@ -116,40 +116,174 @@ Damit sich niemand ueber Daten wundert, die nicht aus dem Betrieb stammen:
 
 ## Nächster Schritt (konkret)
 
-**Stufe 3 der Terminal-Installation: das Grundsystem-Skript.**
-Grundlage: `docs/spezifikation_terminal_installation.md`, Abschnitte 3 bis 5.
-**Stufe 1 und 2 sind vollstaendig** – Kopplungscodes (P-2026-08-08-30),
-Erzeugen im Backend (-31), Datenbankbenutzer (-35), Kopplungs-Endpunkt (-36)
-und die Einrichtungsseite am Geraet (P-2026-08-09-01) greifen ineinander und
-sind durchgaengig geprueft. Damit ist der Kern fertig: Ein Geraet mit
-laufendem Webserver macht sich ab jetzt selbst zum Terminal.
+**Zuerst: das Grundsystem-Skript einmal wirklich laufen lassen.**
+`scripts/terminal/install_terminal.sh` ist geschrieben (P-2026-08-09-04), aber
+noch nie am Stueck ausgefuehrt worden – geprueft sind bisher nur seine
+Bausteine. Sinnvollster Aufbau: ein Debian-Container (oder eine VM, dann auch
+mit systemd) mit
 
-Zu bauen ist `scripts/terminal/install_terminal.sh` (Phase 1 der
-Spezifikation):
-1. Distribution und Paketmanager ueber `/etc/os-release` erkennen (`apt`,
-   `pacman`, `dnf`, `zypper`), Vorbedingungen pruefen (root, Netz).
-2. Pakete installieren: Webserver, PHP mit `pdo_mysql`/`mbstring`/`gd`,
-   MariaDB (nur fuer die Ausweichdatenbank), Git, Grafikstack, Browser.
-3. Code aus Git holen, Webserver auf `public/` zeigen lassen.
-4. **Keine** `config.local.php` schreiben. Stattdessen lokale
-   Ausweichdatenbank anlegen und ihre Zugangsdaten nach
-   `config/geraet.local.php` schreiben – das Format steht in Abschnitt 2b der
-   Spezifikation und wird von der Einrichtungsseite bereits gelesen.
-5. Tastaturlayout systemweit setzen (Abschnitt 6.3 – Pflichtschritt, kein
-   Beiwerk: bei falschem Layout bucht das Terminal klaglos falsche Codes).
-6. Idempotent bleiben und alles nach
-   `/var/log/zeiterfassung-terminal-setup.log` protokollieren.
+```bash
+sudo ./scripts/terminal/install_terminal.sh
+```
 
-Zu bedenken: Das Skript ist der erste Teil, der sich **nicht** mehr im Browser
-pruefen laesst – Container oder VM einplanen, und die Paketnamen je Familie in
-einer Zuordnungstabelle halten statt verstreut im Code.
+und danach der Blick auf die OK/FEHLT-Liste am Ende sowie auf
+`/var/log/zeiterfassung-terminal-setup.log`. Erwartung: `terminal.php`
+antwortet mit HTTP 200 und zeigt die Einrichtungsseite, `config/geraet.local.php`
+existiert, `config/config.local.php` **nicht**. Was dabei auffaellt, wird als
+Micro-Patch am Skript nachgezogen – ein Container ist billiger als ein Geraet
+in der Halle.
 
-Danach Stufe 4 (Kiosk), 5 (Peripherie), 6 (Selbsttest).
+Wahrscheinliche Stolpersteine, in dieser Reihenfolge: der php-fpm-Socketpfad
+(wird gesucht, aber openSUSE lauscht per Vorgabe auf TCP), `a2dissite
+000-default` unter Debian, und die Frage, ob `mariadb -u root` im Container
+ohne Passwort durchgeht.
+
+**Danach Stufe 4 der Terminal-Installation: der Kiosk.**
+Grundlage: `docs/spezifikation_terminal_installation.md`, Abschnitt 7.
+1. Eigenen Benutzer `terminal` anlegen (nicht root) und Autologin einrichten.
+2. Grafikstack und Browser installieren – die Pakete hat Stufe 3 bewusst
+   ausgelassen, weil sie ohne den Kiosk nur Wartezeit gewesen waeren.
+3. Browser im Vollbild auf `…/public/terminal.php`, ohne Bedienelemente,
+   Bildschirmschoner und Energiesparen aus, Mauszeiger ausblenden.
+4. Neustart des Browsers nach einem Absturz (systemd-Dienst mit `Restart=`).
+5. Wayland (`cage`) bevorzugt, X11 mit minimalem Fenstermanager als Rueckfall –
+   je nachdem, was die Distribution mitbringt.
+
+Am sinnvollsten als **zweites Skript** oder als klar abgegrenzter Abschnitt,
+der sich einzeln aufrufen laesst: Ein Kiosk ist in einer VM zu pruefen, das
+Grundsystem im Container – zusammen in einem Lauf waere beides schwerer zu
+testen.
+
+Danach Stufe 5 (Peripherie: RFID, Touchscreen), 6 (Selbsttest mit Scan-Proben).
 
 Weitere offene Punkte stehen oben unter „Offene Tasks (T-IDs)".
 
 ## Letzter Patch (P-ID)
-P-2026-08-09-03 (Commit) – Snapshot entschlackt
+P-2026-08-09-04 (Commit) – Grundsystem-Skript fuer Terminals
+
+## P-2026-08-09-04 terminal-grundsystem-skript
+
+### EINGELESEN
+- `CHATSTART.md`, `docs/arbeitsregeln.md`, `docs/STATUS_SNAPSHOT.md`,
+  Snapshot-Teil dieser Datei (inkl. „Naechster Schritt“).
+- `docs/spezifikation_terminal_installation.md` (Abschnitte 2b, 3 bis 5, 9, 11),
+  `docs/fachregeln/terminal_und_offline.md`.
+- `controller/TerminalEinrichtungController.php` (`leseGeraeteEinstellungen()`,
+  `baueKonfigDatei()`) – um das Dateiformat nicht zu erraten.
+- `scripts/dev/setup_lokale_umgebung_arch.sh` (Stil und bereits geloeste
+  Stolpersteine), `sql/offline_db_schema.sql`, `core/OfflineQueueManager.php`
+  (welche Rechte die Queue wirklich braucht), `docs/installationsanleitung.md`.
+- Duplicate-Check: `git log -S"install_terminal" --all` und `grep` ueber das
+  Repo – das Skript kam bisher nur in der Doku vor, es gab keinen Code.
+
+### DATEIEN
+- **neu** `scripts/terminal/install_terminal.sh`
+- **neu** `scripts/terminal/terminal.conf.example`
+- `.gitignore` (Antwortdatei `scripts/terminal/terminal.conf` ausgenommen)
+- `docs/spezifikation_terminal_installation.md` (Status, Abschnitt 5a neu,
+  Phase-1-Liste, Stufenplan)
+- `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`, `README.md`
+- `docs/prompt_uebersicht.md`: Die Zeile zur Terminal-Spezifikation fuehrte den
+  Stufenstand ein zweites Mal mit („Stufe 3–6 offen") und war mit diesem Patch
+  sofort falsch. Der Stand steht jetzt nur noch im Kopf der Spezifikation –
+  dieselbe Aussage zweimal zu pflegen ist laut CHATSTART.md Abschnitt 5 ein
+  Fehler, nicht Redundanz.
+
+### AKZEPTANZKRITERIUM
+Nach `sudo ./scripts/terminal/install_terminal.sh` liefert
+`http://localhost/terminal.php` auf einem frisch aufgesetzten Geraet die
+Einrichtungsseite (HTTP 200) und `config/geraet.local.php` enthaelt die
+Zugangsdaten der lokalen Ausweichdatenbank – **ohne** dass eine
+`config.local.php` entstanden ist.
+
+### DONE
+Phase 1 der Spezifikation als ein Skript, idempotent und mit Protokoll nach
+`/var/log/zeiterfassung-terminal-setup.log` (Rueckfall `/tmp`, falls `/var/log`
+nicht beschreibbar ist):
+
+1. **Vorbedingungen** – root, Distributionserkennung ueber `/etc/os-release`,
+   Hinweis bei fehlender Standardroute. Unbekannte Distribution bricht ab,
+   statt mit falschen Paketnamen weiterzumachen.
+2. **Antwortdatei** `terminal.conf` neben dem Skript (Vorlage
+   `terminal.conf.example`), sonst Rueckfrage – aber nur an einem TTY, damit ein
+   unbeaufsichtigter Lauf nicht haengenbleibt.
+3. **Eine Zuordnungstabelle** fuer alle vier Familien (`apt`, `pacman`, `dnf`,
+   `zypper`): Pakete, Dienstname, Webserver-Benutzer, Ablageort der
+   Webserver-Konfiguration.
+4. **PHP am Webserver einheitlich** ueber `php-fpm` + `mod_proxy_fcgi`; der
+   Socketpfad wird gesucht (`/run/php-fpm/*.sock`, `/run/php/*.sock`, …), mit
+   `127.0.0.1:9000` als Rueckfall. Dadurch ist die erzeugte Apache-Datei fuer
+   alle Familien dieselbe.
+5. **Code aus Git** nach `/opt/zeiterfassung` (einstellbar); vorhandene
+   Arbeitskopie nur `pull --ff-only`.
+6. **Lokale Ausweichdatenbank** samt eigenem Benutzer, Rechte nur auf dieser
+   Datenbank – inklusive `CREATE`/`DELETE`, weil der `OfflineQueueManager` die
+   Tabelle bei Bedarf selbst anlegt und verarbeitete Eintraege entfernt.
+7. **`config/geraet.local.php`** im Format aus Abschnitt 2b: erst daneben
+   schreiben, mit `php -l` gegenlesen, dann umbenennen.
+8. **Dateirechte**: Code gehoert root, der Webserver darf nur lesen –
+   schreiben ausschliesslich in `config/` (dorthin schreibt die Kopplung) und
+   `public/uploads/`. Unter SELinux zusaetzlich Kontexte und
+   `httpd_can_network_connect_db`.
+9. **Tastaturlayout** an drei Stellen (X11, `vconsole`, bei Debian
+   `/etc/default/keyboard`) plus Zeitzone.
+10. **Ergebnisliste** OK/FEHLT und gesammelte Warnungen am Ende.
+
+### TEST
+Ein vollstaendiger Lauf war **nicht** moeglich: Das Skript installiert Pakete
+und schreibt die Webserver-Konfiguration des Rechners – auf dem
+Entwicklungsrechner waere das ein Eingriff in die laufende Umgebung. Geprueft
+wurden stattdessen die Bausteine, jeweils mit dem Code aus dem Skript selbst
+(per `awk` herausgeloest, nicht nachgebaut – eine Kopie waere sofort
+auseinandergelaufen):
+
+- `bash -n` ueber Skript und Vorlage: fehlerfrei.
+- **Distributionserkennung** mit 15 echten `ID`/`ID_LIKE`-Kombinationen
+  (debian, raspbian, ubuntu, linuxmint, arch, cachyos, manjaro, fedora, rhel,
+  rocky, almalinux, opensuse-tumbleweed, opensuse-leap, sles, alpine):
+  14× die erwartete Familie, alpine korrekt „unbekannt“.
+- **`geraet.local.php`** aus dem Heredoc erzeugt → `php -l` fehlerfrei; danach
+  in `config/` gelegt und `TerminalEinrichtungController::leseGeraeteEinstellungen()`
+  per Reflection darauf angesetzt: liefert `offline_db` und `rfid_ws` genau wie
+  erwartet. Damit ist die Schnittstelle zwischen Stufe 3 und Stufe 2 belegt und
+  nicht nur behauptet. Die Testdatei wurde wieder entfernt.
+- **Apache-Konfiguration** aus dem Heredoc erzeugt und mit `httpd -t` gegen eine
+  Minimalkonfiguration geprueft: `Syntax OK` (erwartete Warnung, weil
+  `/opt/zeiterfassung/public` auf diesem Rechner nicht existiert).
+- `php -l`: keine PHP-Datei geaendert, entfaellt.
+
+### Gefundene Fehler im eigenen Entwurf
+- Erster Entwurf pruefte `php -m` nur auf Rueckgabewert – das ist immer 0 und
+  haette ein fehlendes `pdo_mysql` als „OK“ gemeldet. Jetzt
+  `php -r 'exit(extension_loaded("pdo_mysql") ? 0 : 1);'`.
+- Die Pruefung des Schreibrechts auf `config/` lief ueber `sudo`; auf einem
+  frisch aufgesetzten Debian ist `sudo` oft gar nicht installiert. Jetzt
+  `runuser` (util-linux).
+- Der Wartelauf auf MariaDB haette ohne `mysqladmin` zehn Sekunden ins Leere
+  geschlafen.
+- Nicht offensichtlich, aber gefaehrlich: Ein zweiter Lauf haette das Passwort
+  der Ausweichdatenbank erneuert und damit einem bereits gekoppelten Terminal
+  still die Offline-Queue gekappt – der Ausfall waere erst beim naechsten
+  Netzausfall aufgefallen. Das Skript liest das vorhandene Passwort deshalb aus
+  `geraet.local.php` und verwendet es weiter.
+
+### Was bewusst nicht erreicht wurde
+- **Grafikstack und Browser werden nicht installiert.** Sie gehoeren zum Kiosk
+  (Stufe 4); ohne ihn waeren sie nur Wartezeit gewesen und im Container nicht
+  pruefbar. In der Spezifikation (Abschnitt 5, Phase 1) entsprechend vermerkt.
+- **Kein Neustart, kein Phase-2-Dienst.** Beides haengt an SPI/RC522 und
+  gehoert zu Stufe 5.
+- **Der Selbsttest ist die kleine Fassung** – Webserver, PHP-Modul, Datenbank,
+  Dateien, HTTP-Antwort. Die Scan-Proben aus Abschnitt 8 brauchen Hardware und
+  kommen mit Stufe 6.
+- **openSUSE ist die unsicherste Familie**: Die Paketnamen (`php8`, `php8-fpm`)
+  sind versionsgebunden und aendern sich mit der naechsten PHP-Generation, und
+  php-fpm lauscht dort per Vorgabe auf TCP statt auf einem Socket. Erkannt,
+  abgefangen (Rueckfall auf `127.0.0.1:9000`), aber nicht ausprobiert.
+
+### NEXT
+Skript in einem Debian-Container laufen lassen und nachziehen, was dabei
+auffaellt. Danach Stufe 4 (Kiosk).
 
 ## P-2026-08-09-03 snapshot-entschlacken
 

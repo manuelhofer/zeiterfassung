@@ -20,7 +20,7 @@ Lesekarte, welche Datei zu welcher Aufgabe gehoert.
 | [`docs/rechte_prompt.md`](rechte_prompt.md) | Source of Truth fuer Rechte-Codes und ihre Pruefpunkte |
 | [`docs/wartungscheckliste.md`](wartungscheckliste.md) | Praktische Checkliste vor und nach Aenderungen |
 | [`docs/spezifikation_auftrag_barcode_laufkarte.md`](spezifikation_auftrag_barcode_laufkarte.md) | Auftraege im Backend, Arbeitsschritte, Katalog, Strichcodes, Laufkarte (umgesetzt) |
-| [`docs/spezifikation_terminal_installation.md`](spezifikation_terminal_installation.md) | Terminal per Skript aufsetzen und koppeln. Stufe 1 und 2 umgesetzt, Stufe 3–6 offen |
+| [`docs/spezifikation_terminal_installation.md`](spezifikation_terminal_installation.md) | Terminal per Skript aufsetzen und koppeln. Welche Stufe fertig ist, steht dort im Kopf – bewusst nur an dieser einen Stelle |
 | [`docs/lokale_entwicklungsumgebung.md`](lokale_entwicklungsumgebung.md) | Lokale Umgebung (Apache + php-fpm + MariaDB + phpMyAdmin) |
 | [`docs/installationsanleitung.md`](installationsanleitung.md) | Produktivinstallation auf Debian/Apache |
 

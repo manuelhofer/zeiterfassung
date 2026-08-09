@@ -6,6 +6,11 @@ config/config.local.php
 # sie beim Koppeln aus. Gehoert zur Maschine, nicht zum Quellcode.
 config/geraet.local.php
 
+# Antwortdatei des Terminal-Installationsskripts (Vorlage:
+# scripts/terminal/terminal.conf.example). Sie beschreibt ein konkretes Geraet
+# bzw. eine konkrete Serie und gehoert nicht ins Repository.
+scripts/terminal/terminal.conf
+
 # Zur Laufzeit erzeugte Dateien.
 # Die Verzeichnisse selbst bleiben im Repo (.gitkeep), ihr Inhalt entsteht erst
 # im Betrieb: Maschinen-QR-Codes und -Barcodes werden beim Speichern einer
