@@ -2,8 +2,8 @@
 
 *Version:* v2 (2026-08-08)
 *Status:* in Umsetzung – **Stufe 1 (Kopplung im Backend) vollstaendig**
-(P-2026-08-08-30, -31, -35, -36); als Naechstes Stufe 2, die Einrichtungsseite
-im Terminal
+(P-2026-08-08-30, -31, -35, -36) und **Stufe 2 (Einrichtungsseite im Terminal)
+vollstaendig** (P-2026-08-09-01); als Naechstes Stufe 3, das Grundsystem-Skript
 *Grundlage:* `docs/master_prompt_zeiterfassung_v13.md`, Abschnitte 2.2 (Terminal),
 6.2 (Terminals), 8 (Terminal-UI); `docs/rfid_reader_setup.md`;
 `docs/terminal/rfid-ws_rollout.md`
@@ -43,6 +43,92 @@ Das Terminal verhaelt sich dabei genauso wie das Backend beim ersten Start:
 Fehlt die Konfiguration, erscheint statt der Terminal-Oberflaeche eine
 **Einrichtungsseite** – dieselbe Mechanik wie die vorhandene Maske
 „Erstinstallation“ (`views/login/initial_admin.php`).
+
+## 2b. Die Einrichtungsseite (umgesetzt, P-2026-08-09-01)
+
+`public/terminal.php` prueft vor allem Anderen, ob `config/config.local.php`
+existiert. Fehlt sie, uebernimmt `TerminalEinrichtungController` und zeigt
+`views/terminal/einrichtung.php` – unabhaengig davon, welche `?aktion=…`
+aufgerufen wurde. Einzige Ausnahme ist `?aktion=health`: Eine Ueberwachung soll
+auch ein frisches Geraet abfragen koennen.
+
+**Woran „nicht eingerichtet“ erkannt wird – und woran ausdruecklich nicht:**
+Nur an der **fehlenden Datei**, nicht an einer fehlgeschlagenen
+Datenbankverbindung. Ein Terminal ohne Netz ist kein unkonfiguriertes Terminal:
+Der Offline-Betrieb mit Queue ist eine gewollte Betriebsart (Master-Prompt 2.2).
+Wuerde ein Netzausfall die Einrichtungsseite hervorholen, stuende die Halle bei
+jeder Stoerung vor einer Maske, die nach einem Kopplungscode fragt – und die
+Buchungen waeren weg.
+
+**Bedienung:** Zwei Felder (Server-Adresse, Kopplungscode) mit eigener
+Bildschirmtastatur, weil ein Kiosk keine Tastatur hat. Fuer den Code enthaelt
+die Tastatur **nur** die Zeichen, die im Code vorkommen koennen (kein O/0, kein
+I/1/L); Kleinschreibung und Bindestriche sind erlaubt und werden serverseitig
+normalisiert.
+
+**Adresse:** Es genuegt der Rechnername (`192.168.10.5`,
+`server/zeiterfassung`). Fehlt das Schema, wird `http://` ergaenzt; probiert
+werden `…/index.php` und `…/public/index.php`, weil der Webserver je nach
+Installation auf `public/` oder auf das Projektverzeichnis zeigt. Ein
+Fehlversuch auf dem falschen Pfad verbraucht den Kopplungscode nicht – der
+Endpunkt laeuft dort gar nicht. **Weiterleitungen werden nicht verfolgt**,
+sondern angezeigt: Eine Umleitung kann auf einen anderen Rechner zeigen, und
+dorthin gehen Zugangsdaten.
+
+**Geschrieben wird** `config/config.local.php` mit `installation_typ =
+'terminal'`, den Zugangsdaten aus der Antwort und den Terminal-Einstellungen.
+Erst vollstaendig daneben schreiben, gegenlesen, dann umbenennen: Eine halb
+geschriebene Konfiguration waere schlimmer als gar keine – sie koennte das
+Geraet dauerhaft lahmlegen, weil dann auch die Einrichtungsseite nicht mehr
+erscheint.
+
+**Wenn das Schreiben scheitert** (Verzeichnis nicht beschreibbar), zeigt die
+Seite den vollstaendigen Dateiinhalt zum Uebernehmen an. Grund: Der
+Kopplungscode ist zu diesem Zeitpunkt verbraucht; ein blosses „Fehler“ wuerde
+den Monteur zwingen, im Backend einen neuen Code zu holen. Fehlende
+Schreibrechte werden ausserdem schon **vor** dem Koppeln als Hinweis angezeigt.
+
+**Eine vorhandene Konfiguration wird nie ueberschrieben.** Sonst liesse sich ein
+laufendes Terminal ueber diese Seite auf einen fremden Server umbiegen. Ein
+Geraet neu koppeln heisst deshalb: `config.local.php` loeschen.
+
+**Die Warnung aus der Antwort** (Kopplung lief ueber HTTP) wird nach dem
+Speichern gross angezeigt. Sonst merkt niemand, dass die Zugangsdaten im Netz
+mitlesbar waren.
+
+### Was das Skript hinterlaesst: `config/geraet.local.php`
+
+Zwei Dinge kann die Kopplung nicht liefern, weil sie der **Maschine** gehoeren
+und nicht dem Backend: die Zugangsdaten der lokalen Ausweichdatenbank und die
+Einstellung der RFID-Bridge. Dafuer gibt es eine optionale Datei, die das
+Installationsskript (Stufe 3/5) anlegt und die Einrichtungsseite beim Koppeln
+einliest:
+
+```php
+<?php
+return [
+    'offline_db' => [
+        'enabled' => true,
+        'host'    => 'localhost',
+        'dbname'  => 'zeiterfassung_offline',
+        'charset' => 'utf8mb4',
+        'user'    => '…',
+        'pass'    => '…',
+    ],
+    'terminal' => [
+        'rfid_ws' => ['enabled' => false, 'url' => 'ws://127.0.0.1:8765'],
+    ],
+];
+```
+
+Uebernommen werden **nur** diese beiden Bloecke. Die Zugangsdaten zur
+Hauptdatenbank kommen ausschliesslich aus der Kopplung – sonst waere die
+Trennung zwischen Skript und Kopplung wieder aufgeweicht.
+
+Fehlt die Datei, koppelt das Terminal trotzdem; `offline_db.enabled` steht dann
+auf `false` und die Seite sagt ausdruecklich, dass dieses Geraet bei einem
+Netzausfall **nichts zwischenspeichern** kann. Das ist die ehrlichere Variante,
+als eine Ausweichdatenbank zu behaupten, die es nicht gibt.
 
 ## 2a. Kopplung (Handshake)
 
@@ -280,7 +366,10 @@ deaktiviert). Phase 3 ist die Kopplung am Geraet und braucht kein Skript.
    Python (nur bei RC522).
 3. Code aus Git holen, Webserver auf `public/` zeigen lassen.
 4. **Keine** `config.local.php` schreiben – das Terminal startet bewusst
-   unkonfiguriert und zeigt die Einrichtungsseite.
+   unkonfiguriert und zeigt die Einrichtungsseite. Stattdessen: lokale
+   Ausweichdatenbank anlegen und ihre Zugangsdaten nach
+   `config/geraet.local.php` schreiben (Abschnitt 2b) – das ist alles, was das
+   Skript an Konfiguration hinterlaesst.
 5. Tastaturlayout systemweit setzen (siehe 6.3).
 6. Bei RC522: SPI aktivieren, Phase-2-Dienst einrichten, **Neustart**.
 
@@ -299,12 +388,13 @@ deaktiviert). Phase 3 ist die Kopplung am Geraet und braucht kein Skript.
 
 ### 6.1 RFID – USB-Leser (Keyboard-Wedge)
 Braucht keine Treiber; der Leser tippt wie eine Tastatur. Das Skript setzt
-`terminal.rfid_ws.enabled = false` und bietet einen Scan-Test an.
+`rfid_ws.enabled = false` in `config/geraet.local.php` (Abschnitt 2b) und bietet
+einen Scan-Test an.
 
 ### 6.2 RFID – RC522 ueber SPI
 SPI aktivieren (Boot-Konfiguration, danach Neustart), Python-Abhaengigkeiten
 installieren, `docs/terminal/rfid_ws.py` und `rfid-ws.service` einrichten,
-`terminal.rfid_ws.enabled = true` setzen. Die Anleitung dazu liegt bereits in
+`rfid_ws.enabled = true` in `config/geraet.local.php` setzen. Die Anleitung dazu liegt bereits in
 `docs/terminal/rfid-ws_rollout.md` – das Skript automatisiert genau diese
 Schritte.
 
@@ -383,8 +473,9 @@ Was weiterhin gilt:
    **Fertig** (P-2026-08-08-30, -31, -35, -36).
 2. **Einrichtungsseite im Terminal** – erscheint bei fehlender Konfiguration,
    nimmt Adresse und Code entgegen, schreibt `config.local.php`. Ohne Hardware
-   testbar. **Als Naechstes.**
+   testbar. **Fertig** (P-2026-08-09-01).
 3. **Grundsystem-Skript** – Pakete, Code, Webserver. Im Container testbar.
+   **Als Naechstes.**
 4. **Kiosk** – Autologin, Browser im Vollbild. In einer VM testbar.
 5. **Peripherie** – RFID, Touchscreen, Tastaturlayout. Braucht echte Hardware.
 6. **Selbsttest** – rundet ab und macht das Ergebnis pruefbar.

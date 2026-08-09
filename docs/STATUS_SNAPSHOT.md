@@ -17,15 +17,19 @@ Webbasierte Zeiterfassung inkl. Mitarbeiter-/Rollen-/Genehmiger-Verwaltung, Urla
 - Lokale Umgebung zum Testen: `docs/lokale_entwicklungsumgebung.md` (App unter `http://localhost/zeiterfassung`).
 
 ## Naechster Schritt
-**Stufe 2 der Terminal-Installation: die Einrichtungsseite im Terminal.** Fehlt
-die Konfiguration, zeigt `public/terminal.php` statt der Bedienoberflaeche eine
-Seite fuer Server-Adresse und Kopplungscode, ruft damit den Kopplungs-Endpunkt
-auf und schreibt `config.local.php`.
-Grundlage: `docs/spezifikation_terminal_installation.md` (Abschnitte 2 und 11);
+**Stufe 3 der Terminal-Installation: das Grundsystem-Skript.**
+`scripts/terminal/install_terminal.sh` bringt ein frisches Linux-Geraet bis zur
+laufenden Weboberflaeche: Pakete, Code aus Git, Webserver auf `public/`,
+Tastaturlayout und die lokale Ausweichdatenbank samt `config/geraet.local.php`.
+Bewusst **ohne** `config.local.php` – die schreibt sich das Terminal bei der
+Kopplung selbst.
+Grundlage: `docs/spezifikation_terminal_installation.md` (Abschnitte 3 bis 5);
 Einzelheiten im „Naechster Schritt“-Block von `docs/archiv/DEV_PROMPT_HISTORY.md`.
-**Stufe 1 (Kopplung im Backend) ist vollstaendig** und durchgaengig geprueft.
+**Stufe 1 (Kopplung im Backend) und Stufe 2 (Einrichtungsseite am Geraet) sind
+vollstaendig** und durchgaengig geprueft.
 
 ## Letzte Aenderungen (Auszug)
+- **P-2026-08-09-01 Einrichtungsseite im Terminal:** Fehlt `config/config.local.php`, zeigt `public/terminal.php` statt der Bedienoberflaeche eine Einrichtungsseite: Server-Adresse und Kopplungscode eintippen (Bildschirmtastatur; fuer den Code nur die Zeichen, die darin vorkommen koennen), fertig. Das Terminal ruft den Kopplungs-Endpunkt auf und schreibt seine Konfiguration selbst – erst daneben, dann umbenennen, damit keine halbe Datei entstehen kann. Scheitert das Schreiben, wird der Inhalt zum Abtippen angezeigt, statt den verbrauchten Code wegzuwerfen. Eine vorhandene Konfiguration wird nie ueberschrieben. Geprueft mit zwei getrennten Installationen ueber echte Webserver, inklusive Anmeldung am gekoppelten Terminal. Neu: `config/geraet.local.php` fuer das, was der Maschine gehoert (Ausweichdatenbank, RFID-Bridge). Damit ist Stufe 2 vollstaendig.
 - **P-2026-08-08-36 Terminal-Kopplung, Endpunkt:** `?seite=terminal_kopplung` (POST, JSON, ohne Anmeldung – der Code ist der Nachweis) loest den Kopplungscode ein, legt den Datenbankbenutzer an und antwortet mit Terminal-ID, Zugangsdaten und Einstellungen. Fehlversuche werden gebremst, ein stillgelegtes Terminal koppelt nicht, und bei einem Fehler bleibt kein halber Zustand zurueck. Ueber den laufenden Webserver geprueft, inklusive echter Datenbankverbindung mit den gelieferten Zugangsdaten. Damit ist Stufe 1 vollstaendig.
 - **P-2026-08-08-35 Terminal-Kopplung, Datenbankbenutzer:** Jedes Terminal bekommt einen eigenen Datenbankbenutzer mit eng gefassten Rechten – stempeln und buchen ja, loeschen/Rechte vergeben/Stundenkonto aendern nein. 35 Proben gegen die laufende Datenbank. Dabei zeigte sich, dass die Rechteliste der Spezifikation zu eng war und das Terminal an vier Stellen lahmgelegt haette; sie ist jetzt aus dem Code hergeleitet. Offen als T-101: `passwort_hash` bleibt fuer das Terminal lesbar.
 - **P-2026-08-08-31 Terminal-Kopplung, Stufe 1b:** Knopf „Kopplungscode“ in der Terminalverwaltung; der Code wird genau einmal angezeigt und ist danach nicht mehr abrufbar. Durchgaengig geprueft bis zum Einloesen.
@@ -68,7 +72,8 @@ Einzelheiten im „Naechster Schritt“-Block von `docs/archiv/DEV_PROMPT_HISTOR
 - **P-2026-01-24-07:** Dashboard: Zeitwarnungen waren trotz vorhandener Daten unsichtbar, weil `DashboardController` versehentlich `fetchEinzel(...)` (nicht existent) aufruft und dadurch in den Catch faellt → Fix auf `fetchEine(...)`.
 
 ## Letzter Patch (P-ID)
-- P-2026-08-08-36 (Commit; Kopplungs-Endpunkt, Stufe 1 vollstaendig)
+- P-2026-08-09-01 (Commit; Einrichtungsseite im Terminal, Stufe 2 vollstaendig)
+- Davor: P-2026-08-08-36 (Kopplungs-Endpunkt, Stufe 1 vollstaendig)
 - Davor: P-2026-08-08-35 (eigener Datenbankbenutzer je Terminal)
 - Davor: P-2026-08-08-34 (Uebergabepruefung, B-092 dokumentiert)
 - Davor: P-2026-08-08-33 (Doku-Luecken vor der Uebergabe geschlossen)

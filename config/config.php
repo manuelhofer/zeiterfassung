@@ -12,6 +12,13 @@ declare(strict_types=1);
  */
 
 $lokaleConfig = __DIR__ . '/config.local.php';
+
+// Der realpath-Cache merkt sich auch, dass eine Datei **nicht** existiert.
+// Ohne dieses Leeren koennte ein Arbeitsprozess eine gerade erst angelegte
+// `config.local.php` minutenlang uebersehen (z. B. direkt nach der Kopplung
+// eines Terminals) und weiter mit den Defaults arbeiten.
+clearstatcache(true, $lokaleConfig);
+
 if (is_file($lokaleConfig)) {
     /** @var array<string,mixed> $cfg */
     $cfg = require $lokaleConfig;

@@ -22,14 +22,31 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
+$aktion = isset($_GET['aktion']) ? (string)$_GET['aktion'] : 'start';
+
+// ------------------------------------------------------------
+// Stufe 2 der Terminal-Installation: Einrichtung am Geraet
+// ------------------------------------------------------------
+// Das Installationsskript bringt ein Terminal bis hierher, kennt aber bewusst
+// keine Zugangsdaten. Fehlt deshalb `config/config.local.php`, gibt es nichts
+// zu bedienen – dann erscheint statt der Oberflaeche die Einrichtungsseite
+// (Server-Adresse + Kopplungscode). Dieselbe Mechanik wie die Erstinstallation
+// im Backend, siehe `docs/spezifikation_terminal_installation.md`, Abschnitt 2.
+//
+// Bewusst **vor** allem Datenbank-Kram: Ohne Konfiguration gibt es keine
+// sinnvolle Verbindung, und der Healthcheck bleibt trotzdem erreichbar, damit
+// eine Ueberwachung auch ein frisches Geraet abfragen kann.
+if ($aktion !== 'health' && !TerminalEinrichtungController::istEingerichtet()) {
+    (new TerminalEinrichtungController())->bearbeiten();
+    exit;
+}
+
 // Defaults/Seeds (idempotent, defensive)
 try {
     DefaultsSeeder::ensureDefaults();
 } catch (Throwable $e) {
     /* niemals hard-crashen lassen */
 }
-
-$aktion = isset($_GET['aktion']) ? (string)$_GET['aktion'] : 'start';
 
 // ------------------------------------------------------------
 // T-050 (optional): Health/Ping Endpoint (JSON)

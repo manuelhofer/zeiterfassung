@@ -34,6 +34,12 @@ Webbasierte Zeiterfassung inkl. Mitarbeiter-/Rollen-/Genehmiger-Verwaltung, Urla
 - Terminal: `public/terminal.php` (Routing über `?aktion=...`)
 
 ## Zuletzt erledigt
+
+> **Achtung, Luecke:** Diese Liste wurde zwischen P-2026-08-08-02 und -36 nicht
+> mitgepflegt. Der vollstaendige, aktuelle Kurzueberblick steht in
+> `docs/STATUS_SNAPSHOT.md`; die Einzelheiten je Patch stehen unten im Verlauf.
+
+- **P-2026-08-09-01 Einrichtungsseite im Terminal:** Fehlt `config/config.local.php`, zeigt `public/terminal.php` statt der Bedienoberflaeche eine Einrichtungsseite. Dort werden Server-Adresse und Kopplungscode eingegeben (Bildschirmtastatur, fuer den Code nur die moeglichen Zeichen); das Terminal ruft den Kopplungs-Endpunkt auf und schreibt seine Konfiguration selbst. Damit ist Stufe 2 der Terminal-Installation fertig – ein Geraet mit laufendem Webserver macht sich ab jetzt allein zum Terminal.
 - **P-2026-08-08-01 lokale Entwicklungsumgebung + Doku-Neuordnung:** Setup-Skript `scripts/dev/setup_lokale_umgebung_arch.sh` (Apache + php-fpm + MariaDB LTS + phpMyAdmin, App unter `http://localhost/zeiterfassung`), neue `README.md` in der Projektwurzel als Einstieg nach dem Klonen, `docs/lokale_entwicklungsumgebung.md`, Master-Prompt **v13** (v12 ins Archiv; ZIP-Zwang, 3-Dateien-Limit und SHA256-Nachweis entfallen mit Begruendung; PHP-Baseline min. 8.2 und sauber auf aktuellem PHP), `docs/archiv/ALTE_PROMPTS.md` als Begruendungsliste zum Archiv. Keine Fachlogik geaendert.
 - **2026-07-17 Stundenkonto-Sammelumbuchung lokal:** Separate Umbuchungsmaske aus dem Stundenkonto heraus; normale Stundenkonto-Seite bleibt ohne Monatsfilter, die Sammelumbuchung zeigt Monats-Tageswerte und verschiebt eingegebene Abzuege gesammelt auf einen Zieltag (netto 0), inkl. Stealth-Unterstuetzung.
 - **2026-07-17 Header-Menue lokal:** Top-Navigation in Dropdown-Gruppen `Urlaub`, `Uebersichten`, `Mitarbeiter`, `Rechte` und `Verwaltung` aufgeraeumt; bestehende Zielseiten/Rechtebedingungen bleiben erhalten.
@@ -222,34 +228,35 @@ Damit sich niemand ueber Daten wundert, die nicht aus dem Betrieb stammen:
 
 ## Nächster Schritt (konkret)
 
-**Stufe 2 der Terminal-Installation: die Einrichtungsseite im Terminal.**
-Grundlage: `docs/spezifikation_terminal_installation.md`, Abschnitte 2 und 11.
-**Stufe 1 ist vollstaendig** – Kopplungscodes (P-2026-08-08-30), Erzeugen im
-Backend (-31), Datenbankbenutzer (-35) und Kopplungs-Endpunkt (-36) greifen
-ineinander und sind durchgaengig geprueft.
+**Stufe 3 der Terminal-Installation: das Grundsystem-Skript.**
+Grundlage: `docs/spezifikation_terminal_installation.md`, Abschnitte 3 bis 5.
+**Stufe 1 und 2 sind vollstaendig** – Kopplungscodes (P-2026-08-08-30),
+Erzeugen im Backend (-31), Datenbankbenutzer (-35), Kopplungs-Endpunkt (-36)
+und die Einrichtungsseite am Geraet (P-2026-08-09-01) greifen ineinander und
+sind durchgaengig geprueft. Damit ist der Kern fertig: Ein Geraet mit
+laufendem Webserver macht sich ab jetzt selbst zum Terminal.
 
-Zu bauen:
-1. `public/terminal.php` erkennt eine **fehlende Konfiguration** (keine
-   `config/config.local.php` bzw. keine Datenbankverbindung) und zeigt statt
-   der Bedienoberflaeche eine Einrichtungsseite. Dieselbe Mechanik gibt es
-   schon fuer das Backend (`views/login/initial_admin.php`) – uebertragen,
-   nicht neu erfinden.
-2. Die Seite fragt **Server-Adresse** und **Kopplungscode** ab, touchtauglich
-   (grosse Felder, Bildschirmtastatur, kein Zwang zur Kleinschreibung).
-3. Sie ruft `?seite=terminal_kopplung` des Backends auf und schreibt aus der
-   Antwort `config/config.local.php` (Vorlage: `config/config.php.example`),
-   inklusive `installation_typ = 'terminal'` und der gelieferten Einstellungen.
-4. Ein Feld `warnung` in der Antwort (Kopplung lief ueber HTTP) muss sichtbar
-   angezeigt werden – sonst merkt niemand, dass die Zugangsdaten im Netz
-   mitlesbar waren.
-5. Danach lokale Ausweichdatenbank anlegen und in den normalen Terminalbetrieb
-   wechseln.
+Zu bauen ist `scripts/terminal/install_terminal.sh` (Phase 1 der
+Spezifikation):
+1. Distribution und Paketmanager ueber `/etc/os-release` erkennen (`apt`,
+   `pacman`, `dnf`, `zypper`), Vorbedingungen pruefen (root, Netz).
+2. Pakete installieren: Webserver, PHP mit `pdo_mysql`/`mbstring`/`gd`,
+   MariaDB (nur fuer die Ausweichdatenbank), Git, Grafikstack, Browser.
+3. Code aus Git holen, Webserver auf `public/` zeigen lassen.
+4. **Keine** `config.local.php` schreiben. Stattdessen lokale
+   Ausweichdatenbank anlegen und ihre Zugangsdaten nach
+   `config/geraet.local.php` schreiben – das Format steht in Abschnitt 2b der
+   Spezifikation und wird von der Einrichtungsseite bereits gelesen.
+5. Tastaturlayout systemweit setzen (Abschnitt 6.3 – Pflichtschritt, kein
+   Beiwerk: bei falschem Layout bucht das Terminal klaglos falsche Codes).
+6. Idempotent bleiben und alles nach
+   `/var/log/zeiterfassung-terminal-setup.log` protokollieren.
 
-Zu bedenken: Das Schreiben von `config.local.php` braucht Schreibrechte im
-Verzeichnis `config/` – schlaegt es fehl, muss die Seite das klar sagen und den
-Inhalt zum Abtippen anzeigen, statt still zu scheitern.
+Zu bedenken: Das Skript ist der erste Teil, der sich **nicht** mehr im Browser
+pruefen laesst – Container oder VM einplanen, und die Paketnamen je Familie in
+einer Zuordnungstabelle halten statt verstreut im Code.
 
-Danach Stufe 3 (Grundsystem-Skript), 4 (Kiosk), 5 (Peripherie), 6 (Selbsttest).
+Danach Stufe 4 (Kiosk), 5 (Peripherie), 6 (Selbsttest).
 
 ### Weitere offene Punkte
 - **T-101 `passwort_hash` vor dem Terminal verbergen.** Der Terminal-Benutzer
@@ -259,11 +266,68 @@ Danach Stufe 3 (Grundsystem-Skript), 4 (Kiosk), 5 (Peripherie), 6 (Selbsttest).
   MySQL/MariaDB kein `SELECT *` erlauben. Loesung: entweder eine Sicht ohne
   diese Spalte oder feste Spaltenlisten. Bis dahin bleibt: Wer ein Terminal
   stiehlt, bekommt Passwort-Hashes zum Offline-Knacken.
+- **T-102 Buchungen tragen keine `terminal_id`.** `zeitbuchung.terminal_id` und
+  `auftragszeit.terminal_id` bleiben leer, weil der `TerminalController` nie
+  eine ID uebergibt – bisher wusste ein Terminal auch nicht, welches es ist.
+  Seit P-2026-08-09-01 steht sie in `config.local.php` (`terminal.id`); damit
+  liesse sich auswerten, an welchem Geraet gestempelt wurde. Aufgefallen beim
+  Schreiben der Einrichtungsseite, bewusst nicht mitgemacht (anderes Thema).
 - Praxis-Test: naechster Bug/Anomalie-Report (Micro-Patch).
 - Offen aus P-2026-08-08-02: Strichcode-Erzeugung und die Terminal-Buchungsflows sind unter PHP 8.5 noch nicht im Browser geprueft (brauchen einen angemeldeten Durchlauf, den nur der Nutzer machen kann).
 
 ## Letzter Patch (P-ID)
-P-2026-08-08-36 (Commit) – Terminal-Kopplung: Endpunkt (Stufe 1 vollstaendig)
+P-2026-08-09-01 (Commit) – Terminal-Einrichtungsseite (Stufe 2 vollstaendig)
+
+## P-2026-08-09-01 terminal-einrichtungsseite
+
+### EINGELESEN
+- `docs/spezifikation_terminal_installation.md` (Abschnitte 2, 2a, 5, 11), `public/terminal.php`, `controller/LoginController.php` + `views/login/initial_admin.php` (vorhandene Erstinstallations-Mechanik), `controller/TerminalKopplungController.php`, `config/config.php` + `config.php.example`, `views/terminal/_layout_top.php` und `public/css/terminal.css`.
+
+### DATEIEN
+- `controller/TerminalEinrichtungController.php` (neu), `views/terminal/einrichtung.php` (neu)
+- `public/terminal.php`, `config/config.php`, `.gitignore`
+- `docs/spezifikation_terminal_installation.md`, `README.md`
+
+### AKZEPTANZKRITERIUM
+Ein Terminal ohne `config/config.local.php` zeigt statt der Bedienoberflaeche eine Einrichtungsseite; nach Eingabe von Server-Adresse und Kopplungscode schreibt es seine Konfiguration selbst und zeigt beim naechsten Aufruf den normalen RFID-Startbildschirm.
+
+### DONE – Stufe 2 ist damit vollstaendig
+- **Erkennung:** `public/terminal.php` prueft vor allem Datenbank-Kram, ob `config/config.local.php` existiert. Fehlt sie, uebernimmt die Einrichtungsseite – egal welche `?aktion=…` aufgerufen wurde. Ausnahme `?aktion=health`, damit eine Ueberwachung auch ein frisches Geraet abfragen kann.
+- **Bewusst nicht an der Datenbankverbindung festgemacht.** Die Vorgabe nannte „keine `config.local.php` **bzw. keine Datenbankverbindung**“. Das zweite Kriterium waere ein schwerer Fehler: Ein Terminal ohne Netz ist kein unkonfiguriertes Terminal, der Offline-Betrieb mit Queue ist eine gewollte Betriebsart. Bei jeder Netzstoerung stuende sonst die Halle vor einer Maske, die nach einem Kopplungscode fragt – und die zwischengespeicherten Buchungen waeren verloren.
+- **Touch-Bedienung:** zwei grosse Felder mit eigener Bildschirmtastatur. Fuer den Kopplungscode enthaelt sie **nur** die Zeichen, die im Code vorkommen koennen (kein O/0, kein I/1/L) – damit ist das Abtippen vom Zettel praktisch fehlerfrei. Kleinschreibung und Bindestriche bleiben erlaubt, der Server normalisiert.
+- **Adresse ohne Pfadwissen:** Es genuegt `192.168.10.5` oder `server/zeiterfassung`. Probiert werden `…/index.php` und `…/public/index.php`, weil der Webserver je nach Installation auf `public/` oder auf das Projektverzeichnis zeigt. Ein Fehlversuch auf dem falschen Pfad verbraucht den Code nicht – dort laeuft der Endpunkt gar nicht.
+- **Weiterleitungen werden angezeigt, nicht verfolgt.** Eine Umleitung kann auf einen anderen Rechner zeigen, und dorthin gehen Zugangsdaten.
+- **Schreiben in zwei Schritten:** erst vollstaendig daneben, gegenlesen, dann umbenennen. Eine halb geschriebene `config.local.php` waere schlimmer als gar keine – sie wuerde eingelesen und koennte das Geraet **dauerhaft** lahmlegen, weil dann auch die Einrichtungsseite nicht mehr erscheint. Rechte 0640, die Datei enthaelt ein Passwort.
+- **Scheitert das Schreiben, wird der Dateiinhalt zum Uebernehmen angezeigt.** Der Code ist zu diesem Zeitpunkt verbraucht; ein blosses „Fehler“ wuerde den Monteur zwingen, im Backend einen neuen zu holen. Fehlende Schreibrechte stehen ausserdem schon vor dem Koppeln als Hinweis auf der Seite.
+- **Eine vorhandene Konfiguration wird nie ueberschrieben** – sonst liesse sich ein laufendes Terminal ueber diese Seite auf einen fremden Server umbiegen.
+- **Die Warnung „lief ueber HTTP“** aus der Antwort wird nach dem Speichern gross angezeigt (Punkt 4 der Vorgabe).
+- **Neue Schnittstelle `config/geraet.local.php`** fuer das, was der **Maschine** gehoert und beim Koppeln gar nicht geliefert werden kann: Zugangsdaten der lokalen Ausweichdatenbank und die RFID-Bridge. Uebernommen werden nur diese beiden Bloecke; die Hauptdatenbank kommt ausschliesslich aus der Kopplung. Fehlt die Datei, koppelt das Terminal trotzdem und sagt ausdruecklich, dass es bei einem Netzausfall nichts zwischenspeichern kann.
+
+### GEFUNDENE FEHLER IM EIGENEN ENTWURF
+- **`curl_close()` ist seit PHP 8.5 veraltet** und erzeugte bei jedem Kopplungsversuch eine Deprecation-Meldung – ein Verstoss gegen die PHP-Baseline aus dem Master-Prompt. Der Aufruf ist seit PHP 8.0 ohnehin wirkungslos und wurde entfernt (auf der Mindestversion 8.2 unbedenklich).
+- **Der realpath-Cache merkt sich auch, dass eine Datei nicht existiert.** Ohne Gegenmassnahme haette ein Arbeitsprozess die gerade geschriebene `config.local.php` bis zu zwei Minuten uebersehen und das frisch gekoppelte Terminal weiter zur Einrichtung geschickt. `config/config.php` leert den Eintrag deshalb jetzt gezielt, bevor es prueft.
+
+### BESTAETIGT: der dokumentierte Stolperstein ist real
+Beim ersten Durchlauf schlug die Anmeldung des Terminal-Benutzers fehl. Ursache war genau das, was in der Spezifikation als Stolperstein steht: Anonyme Konten (`''@'localhost'`) verdecken ein `%`-Konto, wenn Terminal und Datenbank auf demselben Rechner liegen. Mit `terminal_db_host_muster = localhost` lief es sofort. Kein Codefehler – aber der Beleg, dass der Hinweis in der Doku gebraucht wird.
+
+### TEST (zwei getrennte Installationen, ueber echte Webserver)
+Aufbau wie in der Praxis: Backend unter Apache (`http://localhost/zeiterfassung`), das Terminal als **eigene** Installation ohne `config.local.php` auf einem zweiten Webserver.
+1. Unkonfiguriertes Geraet: `start`, `kommen`, `logout`, `auftrag_starten` landen alle auf der Einrichtungsseite; `health` antwortet weiterhin (503, weil keine Datenbank).
+2. Kopplung mit `localhost/zeiterfassung` (ohne Schema, ohne Pfad zu `index.php`) und Code in Kleinschreibung **mit Bindestrich**: erfolgreich.
+3. **Durchstich:** Direkt danach – derselbe Serverprozess – zeigt `terminal.php` den normalen RFID-Startbildschirm, `health` meldet `hauptdb_verfuegbar: true`.
+4. Echte Anmeldung mit einem vorhandenen RFID-Code: Hauptmenue inklusive rechteabhaengiger Knoepfe wird korrekt aufgebaut – der eingeschraenkte Datenbankbenutzer traegt den gesamten Terminalpfad.
+5. Mit `config/geraet.local.php`: Offline-Block wird uebernommen, `health` meldet `queue_speicherort: offline`. Ohne die Datei: `enabled => false` plus sichtbarer Hinweis.
+6. Fehlerpfade: leere Adresse, leerer Code, unbekannter Code, toter Port, Webserver ohne Zeiterfassung (404), unbrauchbare Adresse, fehlendes CSRF-Token – jeweils verstaendliche Meldung, **keine** Konfiguration angelegt.
+7. Weiterleitung (302 von einem Testserver): Zieladresse wird genannt, ihr wird nicht gefolgt.
+8. `config/` schreibgeschuetzt: Hinweis schon vor dem Koppeln; nach dem Koppeln wird der vollstaendige Dateiinhalt inklusive Zugangsdaten zum Abtippen angezeigt.
+9. Bei vorhandener Konfiguration ist die Einrichtungsseite nicht mehr erreichbar (GET wie POST landen auf dem Startbildschirm), die Konfiguration bleibt unveraendert.
+10. Ohne cURL (`disable_functions=curl_init`): Erfolg, Verbindungsfehler und Weiterleitung verhalten sich gleich – die Rueckfallebene ueber Streams traegt.
+11. Unter `error_reporting=E_ALL` auf PHP 8.5 keine einzige Meldung, weder im Erfolgs- noch in einem Fehlerpfad.
+12. Testdaten wieder entfernt: Terminal, Kopplungen, Datenbankbenutzer und Protokolleintraege geloescht, `terminal_db_host_muster` zurueck auf `%`.
+
+### NEXT (Stufe 3)
+- Grundsystem-Skript: Pakete, Code, Webserver, lokale Ausweichdatenbank samt `config/geraet.local.php`.
+
 
 ## P-2026-08-08-36 terminal-kopplung-endpunkt
 

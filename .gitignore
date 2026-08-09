@@ -1,6 +1,11 @@
 # Lokale Konfiguration mit echten Zugangsdaten (Vorlage: config/config.php.example)
 config/config.local.php
 
+# Geraetelokale Einstellungen eines Terminals (lokale Ausweichdatenbank,
+# RFID-Bridge). Legt das Installationsskript an, die Einrichtungsseite liest
+# sie beim Koppeln aus. Gehoert zur Maschine, nicht zum Quellcode.
+config/geraet.local.php
+
 # Zur Laufzeit erzeugte Dateien.
 # Die Verzeichnisse selbst bleiben im Repo (.gitkeep), ihr Inhalt entsteht erst
 # im Betrieb: Maschinen-QR-Codes und -Barcodes werden beim Speichern einer

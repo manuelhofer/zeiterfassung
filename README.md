@@ -85,6 +85,12 @@ Einstiegspunkte: Backend `public/index.php` (`?seite=…`), Terminal
 `config/config.local.php` (nicht versioniert) – Vorlage:
 `config/config.php.example`.
 
+**Terminals konfigurieren sich selbst.** Fehlt `config/config.local.php`, zeigt
+`public/terminal.php` statt der Bedienoberfläche eine Einrichtungsseite: dort
+werden Server-Adresse und ein im Backend erzeugter Kopplungscode eingegeben, und
+das Terminal schreibt seine Konfiguration daraus selbst. Einzelheiten:
+[Terminal-Installation](docs/spezifikation_terminal_installation.md).
+
 ## Mitarbeiten
 
 Kurzfassung der Regeln aus dem Master-Prompt:
