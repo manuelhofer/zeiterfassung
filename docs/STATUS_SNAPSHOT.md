@@ -12,7 +12,8 @@ Webbasierte Zeiterfassung inkl. Mitarbeiter-/Rollen-/Genehmiger-Verwaltung, Urla
 - Terminal: `public/terminal.php` (Routing ueber `?aktion=...`)
 
 ## Arbeitsweise (seit 2026-08-08)
-- Aktiver Master-Prompt: `docs/master_prompt_zeiterfassung_v13.md` (v12 liegt im Archiv).
+- Verbindliche Regeln: `docs/arbeitsregeln.md`; Fachlogik in `docs/fachregeln/`.
+  Einstieg fuer KI-Assistenten: `CHATSTART.md`.
 - Gearbeitet wird direkt im Git-Workspace; ein Patch ist ein Commit mit Patch-ID im Betreff. Keine ZIP-Pakete mehr, kein 3-Dateien-Limit.
 - Lokale Umgebung zum Testen: `docs/lokale_entwicklungsumgebung.md` (App unter `http://localhost/zeiterfassung`).
 
@@ -72,7 +73,8 @@ vollstaendig** und durchgaengig geprueft.
 - **P-2026-01-24-07:** Dashboard: Zeitwarnungen waren trotz vorhandener Daten unsichtbar, weil `DashboardController` versehentlich `fetchEinzel(...)` (nicht existent) aufruft und dadurch in den Catch faellt → Fix auf `fetchEine(...)`.
 
 ## Letzter Patch (P-ID)
-- P-2026-08-09-01 (Commit; Einrichtungsseite im Terminal, Stufe 2 vollstaendig)
+- P-2026-08-09-02 (Commit; Doku nach Lesehaeufigkeit aufgeteilt)
+- Davor: P-2026-08-09-01 (Einrichtungsseite im Terminal, Stufe 2 vollstaendig)
 - Davor: P-2026-08-08-36 (Kopplungs-Endpunkt, Stufe 1 vollstaendig)
 - Davor: P-2026-08-08-35 (eigener Datenbankbenutzer je Terminal)
 - Davor: P-2026-08-08-34 (Uebergabepruefung, B-092 dokumentiert)

@@ -5,8 +5,7 @@
 *Hinweis:* Die erste Fassung sah QR-Codes vor; umgestellt auf Code 128, weil im
 Betrieb 1D-Handscanner im Einsatz sind. Der Dateiname hiess bis P-2026-08-08-24
 `spezifikation_auftrag_qr_laufkarte.md`.
-*Grundlage:* `docs/master_prompt_zeiterfassung_v13.md`, Abschnitte 7 (Auftraege)
-und 11 (Auftragszeiten)
+*Grundlage:* `docs/fachregeln/auftraege_und_codes.md`
 
 ---
 

@@ -4,9 +4,8 @@
 *Status:* in Umsetzung – **Stufe 1 (Kopplung im Backend) vollstaendig**
 (P-2026-08-08-30, -31, -35, -36) und **Stufe 2 (Einrichtungsseite im Terminal)
 vollstaendig** (P-2026-08-09-01); als Naechstes Stufe 3, das Grundsystem-Skript
-*Grundlage:* `docs/master_prompt_zeiterfassung_v13.md`, Abschnitte 2.2 (Terminal),
-6.2 (Terminals), 8 (Terminal-UI); `docs/rfid_reader_setup.md`;
-`docs/terminal/rfid-ws_rollout.md`
+*Grundlage:* `docs/fachregeln/terminal_und_offline.md`;
+`docs/rfid_reader_setup.md`; `docs/terminal/rfid-ws_rollout.md`
 
 ---
 
@@ -55,7 +54,8 @@ auch ein frisches Geraet abfragen koennen.
 **Woran „nicht eingerichtet“ erkannt wird – und woran ausdruecklich nicht:**
 Nur an der **fehlenden Datei**, nicht an einer fehlgeschlagenen
 Datenbankverbindung. Ein Terminal ohne Netz ist kein unkonfiguriertes Terminal:
-Der Offline-Betrieb mit Queue ist eine gewollte Betriebsart (Master-Prompt 2.2).
+Der Offline-Betrieb mit Queue ist eine gewollte Betriebsart
+(`docs/fachregeln/terminal_und_offline.md`, Abschnitt 5).
 Wuerde ein Netzausfall die Einrichtungsseite hervorholen, stuende die Halle bei
 jeder Stoerung vor einer Maske, die nach einem Kopplungscode fragt – und die
 Buchungen waeren weg.
@@ -247,8 +247,9 @@ Kein `DELETE`, kein `DROP`, kein `ALTER`, kein `CREATE` – nirgends.
   P-2026-01-17-19 Gut- und Minusstunden an. Schreiben darf es dort nichts –
   Buchungen aufs Stundenkonto bleiben Sache des Backends. `stundenkonto_batch`
   bleibt ganz gesperrt.
-- **`urlaubsantrag` braucht UPDATE.** Genehmiger koennen laut Master-Prompt
-  (Abschnitt 13) auch am Terminal entscheiden.
+- **`urlaubsantrag` braucht UPDATE.** Genehmiger koennen laut
+  `docs/fachregeln/urlaub_abwesenheit_feiertage.md` auch am Terminal
+  entscheiden.
 - **`feiertag` braucht INSERT.** Der `UrlaubService` generiert die Feiertage
   eines Jahres bei Bedarf nach. Ohne dieses Recht rechnet ein Terminal im
   Januar ohne die Feiertage des neuen Jahres – und das faellt niemandem auf.

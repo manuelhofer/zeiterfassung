@@ -13,11 +13,12 @@ ist aber **aktiv** und wird bei jedem Patch weiter gepflegt.
 
 ## Aktuelle Orientierung
 
-- `../../README.md`
-- `../STATUS_SNAPSHOT.md`
-- `../prompt_uebersicht.md`
-- `../master_prompt_zeiterfassung_v13.md`
-- `../rechte_prompt.md`
+- `../../CHATSTART.md` – der Einstieg
+- `../arbeitsregeln.md` – wie gearbeitet wird
+- `../fachregeln/` – die Fachlogik, nach Thema getrennt
+- `../STATUS_SNAPSHOT.md` – aktueller Stand
+- `../rechte_prompt.md` – Rechte-Codes
+- `../prompt_uebersicht.md` – welche Datei wofuer gilt
 
 ## Hinweise zu alten Verweisen
 
@@ -30,4 +31,4 @@ ist aber **aktiv** und wird bei jedem Patch weiter gepflegt.
   SHA256-Nachweis) stammen aus dem frueheren Chat-Workflow und gelten seit
   Master-Prompt v13 nicht mehr. Gearbeitet wird direkt im Git-Workspace;
   ein ZIP wird nur auf ausdrueckliche Anforderung erstellt. Begruendung:
-  `../master_prompt_zeiterfassung_v13.md`, Abschnitt 1a.
+  `master_prompt_zeiterfassung_v13.md`, Abschnitt 1a.

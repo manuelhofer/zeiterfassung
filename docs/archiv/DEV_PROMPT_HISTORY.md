@@ -39,6 +39,7 @@ Webbasierte Zeiterfassung inkl. Mitarbeiter-/Rollen-/Genehmiger-Verwaltung, Urla
 > mitgepflegt. Der vollstaendige, aktuelle Kurzueberblick steht in
 > `docs/STATUS_SNAPSHOT.md`; die Einzelheiten je Patch stehen unten im Verlauf.
 
+- **P-2026-08-09-02 Doku nach Lesehaeufigkeit:** Der Master-Prompt v13 (~36.000 Token) ist aufgeteilt: `CHATSTART.md` als werkzeugneutraler Einstieg mit Lesekarte, `docs/arbeitsregeln.md` fuer alles, was bei jedem Patch gilt, `docs/fachregeln/*.md` fuer die Fachlogik nach Thema. `CLAUDE.md` ist nur ein Zeiger darauf. Startlektuere von ~74.000 auf ~15.400 Token.
 - **P-2026-08-09-01 Einrichtungsseite im Terminal:** Fehlt `config/config.local.php`, zeigt `public/terminal.php` statt der Bedienoberflaeche eine Einrichtungsseite. Dort werden Server-Adresse und Kopplungscode eingegeben (Bildschirmtastatur, fuer den Code nur die moeglichen Zeichen); das Terminal ruft den Kopplungs-Endpunkt auf und schreibt seine Konfiguration selbst. Damit ist Stufe 2 der Terminal-Installation fertig – ein Geraet mit laufendem Webserver macht sich ab jetzt allein zum Terminal.
 - **P-2026-08-08-01 lokale Entwicklungsumgebung + Doku-Neuordnung:** Setup-Skript `scripts/dev/setup_lokale_umgebung_arch.sh` (Apache + php-fpm + MariaDB LTS + phpMyAdmin, App unter `http://localhost/zeiterfassung`), neue `README.md` in der Projektwurzel als Einstieg nach dem Klonen, `docs/lokale_entwicklungsumgebung.md`, Master-Prompt **v13** (v12 ins Archiv; ZIP-Zwang, 3-Dateien-Limit und SHA256-Nachweis entfallen mit Begruendung; PHP-Baseline min. 8.2 und sauber auf aktuellem PHP), `docs/archiv/ALTE_PROMPTS.md` als Begruendungsliste zum Archiv. Keine Fachlogik geaendert.
 - **2026-07-17 Stundenkonto-Sammelumbuchung lokal:** Separate Umbuchungsmaske aus dem Stundenkonto heraus; normale Stundenkonto-Seite bleibt ohne Monatsfilter, die Sammelumbuchung zeigt Monats-Tageswerte und verschiebt eingegebene Abzuege gesammelt auf einen Zieltag (netto 0), inkl. Stealth-Unterstuetzung.
@@ -276,7 +277,114 @@ Danach Stufe 4 (Kiosk), 5 (Peripherie), 6 (Selbsttest).
 - Offen aus P-2026-08-08-02: Strichcode-Erzeugung und die Terminal-Buchungsflows sind unter PHP 8.5 noch nicht im Browser geprueft (brauchen einen angemeldeten Durchlauf, den nur der Nutzer machen kann).
 
 ## Letzter Patch (P-ID)
-P-2026-08-09-01 (Commit) – Terminal-Einrichtungsseite (Stufe 2 vollstaendig)
+P-2026-08-09-02 (Commit) – Doku nach Lesehaeufigkeit aufgeteilt
+
+## P-2026-08-09-02 doku-nach-lesehaeufigkeit
+
+### EINGELESEN
+- `docs/master_prompt_zeiterfassung_v13.md` (vollstaendig, 1346 Zeilen), `docs/STATUS_SNAPSHOT.md`, `docs/rechte_prompt.md`, `docs/prompt_uebersicht.md`, `docs/README.md`, `README.md`, `docs/archiv/README.md`, `docs/archiv/ALTE_PROMPTS.md`, Snapshot der History.
+
+### DATEIEN
+- `CHATSTART.md` (neu), `CLAUDE.md` (neu), `docs/arbeitsregeln.md` (neu)
+- `docs/fachregeln/` (neu): `README.md`, `zeit_rundung_pausen.md`, `urlaub_abwesenheit_feiertage.md`, `rollen_rechte_genehmiger.md`, `terminal_und_offline.md`, `auftraege_und_codes.md`, `auswertung_und_pdf.md`, `stammdaten_und_datenbank.md`
+- `docs/master_prompt_zeiterfassung_v13.md` → `docs/archiv/` (verschoben)
+- Verweise nachgezogen: `README.md`, `docs/README.md`, `docs/prompt_uebersicht.md`, `docs/archiv/README.md`, `docs/archiv/ALTE_PROMPTS.md`, `docs/STATUS_SNAPSHOT.md`, `docs/installationsanleitung.md`, `docs/lokale_entwicklungsumgebung.md`, `docs/spezifikation_terminal_installation.md`, `docs/spezifikation_auftrag_barcode_laufkarte.md`
+
+### AKZEPTANZKRITERIUM
+Wer eine neue Sitzung beginnt, liest `CHATSTART.md` + `docs/arbeitsregeln.md` + `docs/STATUS_SNAPSHOT.md` und weiss danach, wie gearbeitet wird und wo die Fachregel zu seinem Thema steht – ohne die ~36.000 Token des Master-Prompts zu lesen.
+
+### ANLASS
+Der Nutzer stellte fest, dass eine frische Sitzung nach „lies die Prompts" rund
+ein Viertel des Kontextfensters verbraucht hat. Nachgemessen:
+
+| Datei | Bytes | ~Token |
+| --- | ---: | ---: |
+| `master_prompt_zeiterfassung_v13.md` | 69.355 | ~36.000 |
+| History-Snapshot (bis „Letzter Patch") | 34.257 | ~17.500 |
+| `STATUS_SNAPSHOT.md` | 16.536 | ~8.500 |
+| `rechte_prompt.md` | 18.575 | ~9.500 |
+| **Summe** | | **~74.000** |
+
+### DONE
+- **`CHATSTART.md` als werkzeugneutraler Einstieg.** Projekt in Kurzform, Regeln
+  in Kurzform, und vor allem eine **Lesekarte**: „arbeitest du an X, lies Y".
+  Bewusst nicht `CLAUDE.md` als Traeger – die Grundlage soll fuer jede KI und
+  jedes Werkzeug gelten (Cursor, Copilot, Aider, beliebiger Chat).
+- **`CLAUDE.md` ist nur ein Zeiger** (~1 KB) auf `CHATSTART.md` plus wenige
+  Claude-Code-Besonderheiten. Sie wird automatisch geladen, spart damit den
+  „lies die Prompts"-Schritt – enthaelt aber **keine** Projektinhalte, damit
+  keine zweite, driftende Fassung entsteht.
+- **`docs/arbeitsregeln.md`** buendelt alles, was bei **jedem** Patch gilt:
+  Projektstatus, Pre-Flight-Gate, Zuschnitt, Commit- und Patch-ID-Konvention,
+  Pflichtpruefungen, History-Pflege, Technik und Stil.
+- **`docs/fachregeln/*.md`** teilt die Fachlogik nach Domaene auf. Jede Datei
+  nennt oben ihre Herkunft im Master-Prompt.
+- **Master-Prompt v13 ins Archiv**, in `ALTE_PROMPTS.md` begruendet. Er wird nur
+  noch fuer Abschnitt 1a gebraucht (warum die v12-Regeln entfielen) – diese
+  Begruendung beschreibt eine Arbeitsweise, die es nicht mehr gibt, und wurde
+  deshalb bewusst nicht mitgenommen.
+
+### ABBILDUNG – wohin jeder Abschnitt gewandert ist
+Damit nachpruefbar bleibt, dass nichts verlorenging:
+
+| Master-Prompt v13 | Neuer Ort |
+| --- | --- |
+| 0 Einstieg, Rolle des Assistenten | `CHATSTART.md` |
+| Projektstatus | `CHATSTART.md` + `docs/arbeitsregeln.md` §1 |
+| 1 Allgemeine Regeln (Punkte 1–9), 18, 19, 20 | `docs/arbeitsregeln.md` |
+| 1a (v12 → v13, Begruendung) | bleibt im archivierten Master-Prompt |
+| 2.1 Hauptsystem | `CHATSTART.md` §1 + `fachregeln/stammdaten_und_datenbank.md` §6 |
+| 2.2 Terminal, RFID-Anbindung, Offline-Queue | `fachregeln/terminal_und_offline.md` |
+| 3 Rollen/Genehmiger | `fachregeln/rollen_rechte_genehmiger.md` |
+| 4 Abteilungen, 5 Mitarbeiterdaten, 6.1 Maschinen, 17 DB-Design | `fachregeln/stammdaten_und_datenbank.md` |
+| „5. Inbetriebnahme: Kopplung", 6.2 Terminals, 8 Terminal-UI, 15 RFID-Verwaltung | `fachregeln/terminal_und_offline.md` |
+| 7 Auftraege, 11 Auftragszeiten | `fachregeln/auftraege_und_codes.md` |
+| 9 Kommen/Gehen, Rundung, Pausen; 10.1 Tageswerte; 10.2 Korrekturmaske | `fachregeln/zeit_rundung_pausen.md` |
+| 10.3 Monatsuebersicht/PDF | `fachregeln/auswertung_und_pdf.md` |
+| 12 Urlaub, 13 Genehmigung, 14 Betriebsferien/Feiertage | `fachregeln/urlaub_abwesenheit_feiertage.md` |
+| 16 Backend-Funktionen | `fachregeln/stammdaten_und_datenbank.md` §6 |
+| v4 A) Rechteverwaltung, B) Self-Approval | `fachregeln/rollen_rechte_genehmiger.md` (B zusaetzlich in `urlaub_…`) |
+| v4 C) Monats-PDF als Chef | `fachregeln/auswertung_und_pdf.md` |
+| v4 D) Audit-Trail | `fachregeln/zeit_rundung_pausen.md` §7 |
+| v7 A–J) Scope-Rechtemodell | `fachregeln/rollen_rechte_genehmiger.md` |
+
+### KORREKTUR AM EIGENEN PLAN
+Der erste Entwurf sah vor, die Abschnitte **v4 und v7 ins Archiv** zu geben,
+weil sie mit „Legacy / bereits umgesetzt" ueberschrieben sind. Beim Lesen zeigte
+sich: Sie enthalten **geltende** Regeln – das Scope-Rechtemodell
+(`mitarbeiter_hat_rolle_scope`, `hatRecht()`, deny sticht allow), die
+Self-Approval-Ausnahme und die Audit-Pflicht bei Zeitkorrekturen. Sie sind
+deshalb vollstaendig in die Fachregeln uebernommen worden. „Legacy" bezog sich
+auf das Alter des Textes, nicht auf die Gueltigkeit der Regel.
+
+### ERGAENZT, NICHT NUR VERSCHOBEN
+In die Fachregeln sind Regeln eingeflossen, die bisher **nur** in der
+Bug-Historie standen und damit praktisch unauffindbar waren – z. B. Krank hat
+Vorrang vor Betriebsferien (B-077), Betriebsferien zaehlen nicht doppelt, wenn
+gearbeitet wurde (B-024/B-025), Rot-Markierung nur fuer Kommen/Gehen (B-029),
+Terminal-Login haengt nicht an `ist_login_berechtigt` (B-031), die PDF-Fallen
+(literales `\n`, Locale, Output-Buffering).
+
+### WIRKUNG
+Startlektuere von **~74.000 auf ~15.400 Token** (`CHATSTART.md` +
+`arbeitsregeln.md` + `STATUS_SNAPSHOT.md` + `CLAUDE.md`). Die groesste
+Fachregel-Datei kostet ~5.200 Token und wird nur gelesen, wenn man dort
+arbeitet. `STATUS_SNAPSHOT.md` ist mit ~8.300 Token noch der groesste Posten –
+das entschlackt P-2026-08-09-03.
+
+### TEST
+1. Alle internen Markdown-Links in Wurzel, `docs/`, `docs/fachregeln/` und den
+   beiden Archiv-Uebersichten maschinell aufgeloest: keine toten Verweise.
+2. Kein Verweis auf `docs/master_prompt_zeiterfassung_v13.md` am alten Ort mehr
+   (ausser in historischen History-Eintraegen, die bewusst unveraendert bleiben).
+3. Abschnitt fuer Abschnitt gegen den Master-Prompt abgeglichen (Tabelle oben);
+   kein Abschnitt ohne neuen Ort.
+4. Kein Code angefasst – reine Dokumentation.
+
+### NEXT
+- P-2026-08-09-03: `STATUS_SNAPSHOT.md` und den History-Snapshot entschlacken
+  (doppelte Aenderungslisten raus, erledigte Bugs in den Verlauf).
+
 
 ## P-2026-08-09-01 terminal-einrichtungsseite
 

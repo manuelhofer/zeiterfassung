@@ -1,17 +1,19 @@
 # Dokumentation – Übersicht
 
 Dieses Verzeichnis enthält die Projektdokumentation. Der Einstieg für alle, die
-das Repository frisch geklont haben, ist die [`README.md`](../README.md) in der
-Projektwurzel.
+das Repository frisch geklont haben, ist [`CHATSTART.md`](../CHATSTART.md) in
+der Projektwurzel – dort steht auch die Lesekarte, welche Datei zu welcher
+Aufgabe gehört.
 
 ## Regeln und Projektstand
 
-- **[Master-Prompt v13](master_prompt_zeiterfassung_v13.md)** – das verbindliche
-  Regelwerk: Arbeitsweise, Architektur, vollständige Fachlogik. Bei Widerspruch
-  zu älteren Texten gilt diese Datei.
-- [Status-Snapshot](STATUS_SNAPSHOT.md) – aktueller Stand in Kurzform.
+- **[Arbeitsregeln](arbeitsregeln.md)** – wie gearbeitet wird: Patch-Zuschnitt,
+  Patch-ID, Pre-Flight-Gate, Pflichtprüfungen, Code-Stil, PHP-Baseline.
+- **[Fachregeln](fachregeln/)** – die Fachlogik, nach Thema getrennt. Nur die
+  passende Datei lesen, nicht alle.
+- [Status-Snapshot](STATUS_SNAPSHOT.md) – aktueller Stand und nächster Schritt.
 - [Rechte-Prompt](rechte_prompt.md) – Source of Truth für alle Rechte-Codes.
-- [Prompt-Übersicht](prompt_uebersicht.md) – welche Prompt-Datei wofür gilt.
+- [Prompt-Übersicht](prompt_uebersicht.md) – welche Datei wofür gilt.
 - [Spezifikation Aufträge & Laufkarte](spezifikation_auftrag_barcode_laufkarte.md) –
   Aufträge im Backend anlegen, Arbeitsschritte und Katalog mit Strichcodes,
   Laufkarte und Kartenblatt als PDF.

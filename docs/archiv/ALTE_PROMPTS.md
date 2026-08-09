@@ -10,8 +10,9 @@ Diese Datei ist die Begruendungsliste zum Archivordner. Fuer **jede** Datei in
 Grundregel im Projekt: **Es wird nichts geloescht.** Alte Prompts bleiben
 lesbar, damit nachvollziehbar ist, warum das System so gebaut ist, wie es
 gebaut ist. Sie sind aber **keine gueltige Arbeitsanweisung** mehr – gueltig
-ist allein der aktive Master-Prompt
-[`docs/master_prompt_zeiterfassung_v13.md`](../master_prompt_zeiterfassung_v13.md).
+sind [`docs/arbeitsregeln.md`](../arbeitsregeln.md) und die Dateien in
+[`docs/fachregeln/`](../fachregeln/); der Einstieg dazu ist
+[`CHATSTART.md`](../../CHATSTART.md).
 
 ---
 
@@ -29,12 +30,30 @@ mehrere parallele Textsorten entstanden:
 
 Seit v13 wird direkt im Git-Workspace gearbeitet. Der Verlauf steckt jetzt
 zusaetzlich in der Git-Historie, und die Kurzfassungen werden nicht mehr
-gebraucht: Es gibt genau **einen** aktiven Master-Prompt plus den kurzen
-`docs/STATUS_SNAPSHOT.md`.
+gebraucht.
+
+Seit P-2026-08-09-02 gibt es auch **keinen** Master-Prompt mehr: Sein Inhalt
+ist nach Lesehaeufigkeit aufgeteilt in `docs/arbeitsregeln.md` (gilt immer) und
+`docs/fachregeln/*.md` (nach Bedarf), mit `CHATSTART.md` als Einstieg.
 
 ---
 
 ## Master-Prompts (abgeloest)
+
+### `master_prompt_zeiterfassung_v13.md`
+- **Was:** Von 2026-08-08 bis 2026-08-09 der aktive Master-Prompt: Arbeitsweise,
+  Architektur und komplette Fachlogik in einem Dokument (~69 KB).
+- **Warum archiviert:** Als ein Dokument war er zu gross geworden. Wer einen
+  Tippfehler im Terminal beheben wollte, las zwangslaeufig auch Pausenregeln,
+  PDF-Spalten und Genehmigerlogik – rund 36.000 Token allein fuer diese eine
+  Datei. Aufgeteilt nach Lesehaeufigkeit (P-2026-08-09-02).
+- **Was davon noch gilt:** Fachlich **alles** – der Inhalt steckt vollstaendig
+  in `docs/arbeitsregeln.md` und `docs/fachregeln/*.md`. Jede Fachregel-Datei
+  nennt oben, aus welchen Abschnitten sie stammt.
+- **Wofuer man ihn noch braucht:** **Abschnitt 1a** – die Begruendung, welche
+  Regeln aus v12 entfielen und warum (ZIP-Zwang, 3-Dateien-Limit,
+  SHA256-Nachweis). Diese Begruendung wurde bewusst nicht mitgenommen: Sie
+  erklaert eine Arbeitsweise, die es nicht mehr gibt.
 
 ### `master_prompt_zeiterfassung_v12.md`
 - **Was:** Bis 2026-08-08 der aktive Master-Prompt.

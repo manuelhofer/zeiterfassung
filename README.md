@@ -24,15 +24,19 @@ ausdrücklichen Auftrag.
 
 **Zuerst lesen – in dieser Reihenfolge:**
 
-1. **[`docs/master_prompt_zeiterfassung_v13.md`](docs/master_prompt_zeiterfassung_v13.md)**
-   – das verbindliche Regelwerk: Arbeitsweise, Architektur, komplette
-   Fachlogik. Der Abschnitt „0. Einstieg nach dem Klonen“ führt durch den Rest.
-2. [`docs/STATUS_SNAPSHOT.md`](docs/STATUS_SNAPSHOT.md) – aktueller Stand in
-   Kurzform.
-3. [`docs/rechte_prompt.md`](docs/rechte_prompt.md) – Source of Truth für alle
-   Rechte-Codes.
-4. [`docs/archiv/DEV_PROMPT_HISTORY.md`](docs/archiv/DEV_PROMPT_HISTORY.md) –
-   Snapshot oben, darunter der vollständige Projektverlauf.
+1. **[`CHATSTART.md`](CHATSTART.md)** – der Einstieg: Was ist das Projekt, wie
+   wird gearbeitet, und die **Lesekarte**, welche Datei zu welcher Aufgabe
+   gehört. Gilt für Menschen wie für KI-Assistenten.
+2. [`docs/arbeitsregeln.md`](docs/arbeitsregeln.md) – die verbindlichen Regeln
+   für jede Änderung.
+3. [`docs/STATUS_SNAPSHOT.md`](docs/STATUS_SNAPSHOT.md) – aktueller Stand und
+   nächster Schritt.
+4. Die passende Datei aus [`docs/fachregeln/`](docs/fachregeln/) – **nur die
+   zum Thema**, nicht alle.
+
+Die Fachlogik lag früher komplett im Master-Prompt v13. Der liegt jetzt im
+Archiv und wird nur noch für historische Fragen gebraucht; sein Inhalt steckt
+in `docs/arbeitsregeln.md` und `docs/fachregeln/`.
 
 Wer wissen will, warum im Archiv so viele alte Prompts liegen und was davon
 noch gilt: [`docs/archiv/ALTE_PROMPTS.md`](docs/archiv/ALTE_PROMPTS.md).
@@ -74,7 +78,7 @@ Für den **Produktivserver** (Debian/Apache) gilt stattdessen
 | `config/` | Konfiguration (`config.php`, lokale Werte in `config.local.php`) |
 | `sql/` | Initialschema und SQL-Hilfen |
 | `scripts/dev/` | Helfer für die lokale Entwicklungsumgebung |
-| `docs/` | Dokumentation, Master-Prompt, Handbücher, Archiv |
+| `docs/` | Arbeitsregeln, Fachregeln, Handbücher, Archiv |
 
 Einstiegspunkte: Backend `public/index.php` (`?seite=…`), Terminal
 `public/terminal.php` (`?aktion=…`).
@@ -93,7 +97,7 @@ das Terminal schreibt seine Konfiguration daraus selbst. Einzelheiten:
 
 ## Mitarbeiten
 
-Kurzfassung der Regeln aus dem Master-Prompt:
+Kurzfassung – vollständig in [`docs/arbeitsregeln.md`](docs/arbeitsregeln.md):
 
 - **Ein Patch = ein Thema** mit einem Akzeptanzkriterium in einem Satz.
 - Patch-ID `P-YYYY-MM-DD-XX` in den Commit-Betreff, z. B.

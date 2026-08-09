@@ -16,7 +16,7 @@ beschreibt die Installation auf einem Server.
   - **Mindestversion: PHP 8.2** (Debian 12 / Raspberry Pi OS Bookworm)
   - Neuere PHP-Versionen werden unterstützt; entwickelt und getestet wird
     gegen die jeweils aktuelle Version. Details zur Versionsbaseline:
-    `docs/master_prompt_zeiterfassung_v13.md`, Abschnitt 1 Punkt 4.
+    `docs/arbeitsregeln.md`, Abschnitt 7.
 - Webserver (Apache oder Nginx)
 - MySQL oder MariaDB (empfohlen: die LTS-Linie von MariaDB)
 - Git (für den Klon)
