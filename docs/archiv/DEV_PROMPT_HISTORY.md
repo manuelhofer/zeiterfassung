@@ -91,6 +91,18 @@ Punkte verdeckt.
   `auftragszeit.terminal_id` bleiben leer, weil der `TerminalController` nie
   eine ID uebergibt – bisher wusste ein Terminal auch nicht, welches es ist.
   Seit P-2026-08-09-01 steht sie in `config.local.php` (`terminal.id`).
+- **T-103 Auf dem Terminal ist die Backend-Anmeldung erreichbar.** Der
+  Document-Root zeigt auf `public/`, wie in der Serverinstallation. Damit
+  liefert `http://<terminal>/` das Anmeldeformular des Backends samt Feldern
+  `benutzername`/`passwort` – beim Container-Lauf zu P-2026-08-09-05 mit
+  HTTP 200 belegt. Der Kioskbrowser hat zwar keine Adresszeile, aber jeder
+  Rechner im selben Netz erreicht die Seite. Ob eine Anmeldung dort auch
+  gelingt, haengt an den Rechten des Terminal-Datenbankbenutzers und wurde
+  **nicht** geprueft (dafuer braucht es ein erreichbares Backend).
+  **Erst klaeren, was gewollt ist:** Fernwartung am Geraet ist ein
+  nachvollziehbarer Grund, ein Terminal auf `terminal.php` zu beschraenken
+  ebenso. Abschnitt 10 der Terminal-Spezifikation behandelt den Punkt bisher
+  nicht.
 - Praxis-Test: Bugs/Anomalien sammeln und als Micro-Patches beheben.
 - Offen aus P-2026-08-08-02: Strichcode-Erzeugung und die Terminal-Buchungsflows
   sind unter PHP 8.5 noch nicht im Browser geprueft (brauchen einen angemeldeten
@@ -116,29 +128,19 @@ Damit sich niemand ueber Daten wundert, die nicht aus dem Betrieb stammen:
 
 ## Nächster Schritt (konkret)
 
-**Zuerst: das Grundsystem-Skript einmal wirklich laufen lassen.**
-`scripts/terminal/install_terminal.sh` ist geschrieben (P-2026-08-09-04), aber
-noch nie am Stueck ausgefuehrt worden – geprueft sind bisher nur seine
-Bausteine. Sinnvollster Aufbau: ein Debian-Container (oder eine VM, dann auch
-mit systemd) mit
+**Erledigt: Der Container-Lauf hat stattgefunden** (09.08.2026, Debian 12 mit
+systemd als PID 1). Das Skript lief auf Anhieb durch, sechs von sechs Punkten
+OK. Die drei vorher vermuteten Stolpersteine waren allesamt keine: Der
+php-fpm-Socket wurde unter `/run/php/php-fpm.sock` gefunden, `a2dissite
+000-default` griff, und `mariadb -u root` geht im Container per
+`unix_socket`-Authentifizierung ohne Passwort durch. Gefunden wurden dafuer zwei
+andere Fehler, beide behoben (P-2026-08-09-05, -06) – nachzulesen in den
+Eintraegen unten. Offen bleibt: **auf echter Hardware und auf `pacman`, `dnf`
+und `zypper` ist das Skript nicht gelaufen.** Der Container deckt nur `apt` ab,
+und openSUSE bleibt die unsicherste Familie (versionsgebundene Paketnamen,
+php-fpm auf TCP statt Socket).
 
-```bash
-sudo ./scripts/terminal/install_terminal.sh
-```
-
-und danach der Blick auf die OK/FEHLT-Liste am Ende sowie auf
-`/var/log/zeiterfassung-terminal-setup.log`. Erwartung: `terminal.php`
-antwortet mit HTTP 200 und zeigt die Einrichtungsseite, `config/geraet.local.php`
-existiert, `config/config.local.php` **nicht**. Was dabei auffaellt, wird als
-Micro-Patch am Skript nachgezogen – ein Container ist billiger als ein Geraet
-in der Halle.
-
-Wahrscheinliche Stolpersteine, in dieser Reihenfolge: der php-fpm-Socketpfad
-(wird gesucht, aber openSUSE lauscht per Vorgabe auf TCP), `a2dissite
-000-default` unter Debian, und die Frage, ob `mariadb -u root` im Container
-ohne Passwort durchgeht.
-
-**Danach Stufe 4 der Terminal-Installation: der Kiosk.**
+**Stufe 4 der Terminal-Installation: der Kiosk.**
 Grundlage: `docs/spezifikation_terminal_installation.md`, Abschnitt 7.
 1. Eigenen Benutzer `terminal` anlegen (nicht root) und Autologin einrichten.
 2. Grafikstack und Browser installieren – die Pakete hat Stufe 3 bewusst
@@ -159,7 +161,84 @@ Danach Stufe 5 (Peripherie: RFID, Touchscreen), 6 (Selbsttest mit Scan-Proben).
 Weitere offene Punkte stehen oben unter „Offene Tasks (T-IDs)".
 
 ## Letzter Patch (P-ID)
-P-2026-08-09-06 (Commit) – Netzpruefung meldet nicht mehr falsch
+P-2026-08-09-07 (Commit) – Doku auf den Stand nach dem Container-Lauf
+
+## P-2026-08-09-07 stufe-3-geprueft
+
+### EINGELESEN
+- `docs/STATUS_SNAPSHOT.md`, Snapshot-Teil dieser Datei,
+  `docs/spezifikation_terminal_installation.md` (Kopf, Abschnitte 5a, 10, 11),
+  `docs/arbeitsregeln.md` (Abschnitt 6), `CHATSTART.md` (Abschnitt 5:
+  dieselbe Aussage nicht zweimal fuehren).
+
+### DATEIEN
+- `docs/spezifikation_terminal_installation.md` (Kopf, Abschnitt 11)
+- `docs/STATUS_SNAPSHOT.md` (Naechster Schritt, T-103)
+- `docs/archiv/DEV_PROMPT_HISTORY.md` (Naechster Schritt, T-103, dieser Eintrag)
+
+### AKZEPTANZKRITERIUM
+Wer nur `docs/STATUS_SNAPSHOT.md` liest, sieht als naechsten Schritt Stufe 4
+(Kiosk) und nicht mehr den bereits erledigten Container-Lauf.
+
+### DONE
+- **Stufe 3 steht auf „fertig, im Container geprueft"** – im Kopf der
+  Spezifikation und in ihrem Stufenplan. Beide Stellen nennen die Einschraenkung
+  mit: nur `apt`, nur Container, keine echte Hardware. Ein blosses „fertig"
+  waere die bequemere, aber falsche Aussage.
+- **Der „Naechster Schritt"-Block** nennt jetzt Stufe 4 und haelt fest, was der
+  Lauf ueber die vermuteten Stolpersteine ergeben hat – alle drei waren keine.
+  Das gehoert dokumentiert, sonst prueft der Naechste dieselben Vermutungen
+  noch einmal.
+- **T-103 aufgenommen** (Backend-Anmeldung auf dem Terminal erreichbar), im
+  Snapshot kurz, in der History mit dem, was geprueft ist und was nicht.
+- **Der Stufenstand steht nicht mehr im Snapshot.** Er fuehrte
+  „Stufe 1 und Stufe 2 sind vollstaendig“ als eigene Aussage – dieselbe
+  Angabe wie im Stufenplan der Spezifikation, nur kuerzer und ohne die
+  Einschraenkungen. Jetzt steht dort ein Verweis. Das ist derselbe Fall, den
+  P-2026-08-09-04 in `docs/prompt_uebersicht.md` beseitigt hat: Wer eine
+  Stufenangabe an zwei Stellen pflegt, pflegt sie irgendwann an einer.
+
+### TEST
+Keine Codeaenderung. Geprueft wurde die Doku selbst:
+
+- `grep -rniE "stufe [1-6]"` ueber `docs/` (ohne `archiv/`): Danach nennt nur
+  noch die Spezifikation den Stufenstand. Der Snapshot spricht Stufe 3 und 4
+  nur noch dort an, wo es um den naechsten Schritt geht – das ist seine
+  Aufgabe, keine zweite Statusliste. Genau dieser Grep hat die Dopplung
+  ueberhaupt erst gezeigt; der erste Entwurf dieses Patches haette sie
+  fortgeschrieben.
+- `grep` ueber `docs/`, `README.md` und `CHATSTART.md` nach „noch nie am
+  Stueck“, „steht aus“ und „nie gelaufen“: kein Treffer mehr, der den Lauf als
+  offen fuehrt.
+- Die Einschraenkung „auf echter Hardware nicht gelaufen“ steht bewusst an
+  beiden verbliebenen Stellen (Kopf und Stufenplan der Spezifikation) – ein
+  Kopf ohne sie waere die bequeme Halbwahrheit.
+- `php -l`: keine PHP-Datei geaendert, entfaellt.
+
+### Wie der Container-Lauf aufgebaut war
+Damit der naechste Durchgang nicht bei null anfaengt – die Testumgebung liegt
+bewusst **nicht** im Repository (Abschnitt 7 der Arbeitsregeln: keine Container
+in der Produktion; hier waren sie nur Pruefwerkzeug):
+
+- Abbild: `debian:12` plus `systemd systemd-sysv dbus`, `CMD ["/sbin/init"]`.
+  Gestartet mit `--privileged --cgroupns=host -v /sys/fs/cgroup:/sys/fs/cgroup:rw`
+  und `--tmpfs /run`.
+- Codequelle: ein **Bare-Klon** des Repos, in den Container kopiert, in
+  `terminal.conf` als `GIT_REPO` eingetragen. So laeuft der Klon-Pfad des
+  Skripts wirklich durch, statt per Bind-Mount uebersprungen zu werden – und
+  der `chown -R root:www-data` aus Schritt 9 fasst die Arbeitskopie auf dem
+  Entwicklungsrechner nicht an.
+- Zweiter Container ohne systemd (`debian:12` mit `sleep infinity`) fuer die
+  Zusicherung aus Abschnitt 5a.
+
+### Was bewusst nicht erreicht wurde
+- **Kein vollstaendiger Durchgang durch alle Dateien unter `docs/`** – geprueft
+  wurde dort, wo dieser Patch die Doku beruehrt.
+- **T-103 wurde nur notiert, nicht geloest.** Ob ein Terminal die
+  Backend-Oberflaeche ausliefern soll, ist eine Entscheidung und kein Bug.
+
+### NEXT
+Stufe 4 (Kiosk) – Einzelheiten im Block „Naechster Schritt (konkret)“ oben.
 
 ## P-2026-08-09-06 netzpruefung-ohne-iproute2
 

@@ -3,9 +3,9 @@
 *Version:* v2 (2026-08-08)
 *Status:* in Umsetzung – **Stufe 1 (Kopplung im Backend)** vollstaendig
 (P-2026-08-08-30, -31, -35, -36), **Stufe 2 (Einrichtungsseite im Terminal)**
-vollstaendig (P-2026-08-09-01), **Stufe 3 (Grundsystem-Skript)** geschrieben
-(P-2026-08-09-04, auf echter Hardware noch nicht gelaufen); als Naechstes
-Stufe 4, der Kiosk
+vollstaendig (P-2026-08-09-01), **Stufe 3 (Grundsystem-Skript)** vollstaendig
+im Container geprueft (P-2026-08-09-04 bis -06, auf echter Hardware noch nicht
+gelaufen); als Naechstes Stufe 4, der Kiosk
 *Grundlage:* `docs/fachregeln/terminal_und_offline.md`;
 `docs/rfid_reader_setup.md`; `docs/terminal/rfid-ws_rollout.md`
 
@@ -537,10 +537,13 @@ Was weiterhin gilt:
    nimmt Adresse und Code entgegen, schreibt `config.local.php`. Ohne Hardware
    testbar. **Fertig** (P-2026-08-09-01).
 3. **Grundsystem-Skript** – Pakete, Code, Webserver. Im Container testbar.
-   **Geschrieben** (P-2026-08-09-04): `scripts/terminal/install_terminal.sh`,
-   siehe Abschnitt 5a. Geprueft sind bisher nur die Bausteine (Syntax,
-   Distributionserkennung, erzeugte Apache- und PHP-Dateien) – ein vollstaendiger
-   Lauf auf einem frischen System steht aus.
+   **Fertig** (P-2026-08-09-04): `scripts/terminal/install_terminal.sh`, siehe
+   Abschnitt 5a. Am 09.08.2026 vollstaendig auf Debian 12 im Container gelaufen
+   (systemd als PID 1): Ergebnisliste sechs von sechs OK, zweiter Lauf ohne
+   Warnung, Lauf ohne systemd bricht wie zugesichert nicht ab. Der Lauf brachte
+   zwei Fehler ans Licht, beide behoben (P-2026-08-09-05, -06). **Auf echter
+   Hardware und auf den anderen drei Paketfamilien ist es weiterhin nicht
+   gelaufen** – der Container deckt nur `apt` ab.
 4. **Kiosk** – Autologin, Browser im Vollbild, Grafikstack. In einer VM testbar.
    **Als Naechstes.**
 5. **Peripherie** – RFID, Touchscreen, Tastaturlayout. Braucht echte Hardware.

@@ -26,22 +26,19 @@ Urlaubsverwaltung, Auswertungen sowie Terminal-UI (Kiosk) inkl. Offline-Queue.
   (App unter `http://localhost/zeiterfassung`).
 
 ## Naechster Schritt
-**Erst pruefen, dann weiterbauen: `scripts/terminal/install_terminal.sh` einmal
-vollstaendig laufen lassen** – Container (Debian) oder VM. Das Skript ist
-geschrieben (P-2026-08-09-04), aber noch nie am Stueck gelaufen; geprueft sind
-bisher nur seine Bausteine.
-
-Danach **Stufe 4 der Terminal-Installation: der Kiosk** – Autologin fuer einen
-eigenen Benutzer, Browser im Vollbild auf `terminal.php`, Bildschirmschoner aus,
+**Stufe 4 der Terminal-Installation: der Kiosk** – Autologin fuer einen eigenen
+Benutzer, Browser im Vollbild auf `terminal.php`, Bildschirmschoner aus,
 Neustart des Browsers nach einem Absturz. Dazu gehoeren die Pakete fuer
-Grafikstack und Browser, die Stufe 3 bewusst ausgelassen hat.
+Grafikstack und Browser, die Stufe 3 bewusst ausgelassen hat. Am sinnvollsten
+als zweites Skript – ein Kiosk braucht eine VM, das Grundsystem lief im
+Container.
 
 Grundlage: `docs/spezifikation_terminal_installation.md` (Abschnitte 5a und 7);
 Einzelheiten im „Naechster Schritt"-Block von
 `docs/archiv/DEV_PROMPT_HISTORY.md`.
 
-**Stufe 1 (Kopplung im Backend) und Stufe 2 (Einrichtungsseite am Geraet) sind
-vollstaendig** und durchgaengig geprueft.
+**Welche Stufen fertig sind und wie weit sie geprueft sind, steht im Stufenplan
+der Spezifikation** (Abschnitt 11) – hier bewusst nicht ein zweites Mal.
 
 ## Offene Bugs
 - **B-092:** Die Route `?seite=betriebsferien_admin_toggle` ruft
@@ -60,6 +57,11 @@ vollstaendig** und durchgaengig geprueft.
   ohne diese Spalte oder feste Spaltenlisten.
 - **T-102 Buchungen tragen keine `terminal_id`.** Seit P-2026-08-09-01 steht die
   ID in `config.local.php` (`terminal.id`) und liesse sich durchreichen.
+- **T-103 Auf dem Terminal ist die Backend-Anmeldung erreichbar.** Der
+  Document-Root zeigt auf `public/`, also liefert `http://<terminal>/` das
+  Anmeldeformular des Backends – im Container geprueft. Erst klaeren, ob das
+  gewollt ist (Fernwartung) oder ob ein Terminal nur `terminal.php` ausliefern
+  soll.
 - Praxis-Test: Bugs und Anomalien sammeln, als Micro-Patches beheben.
 - Offen aus P-2026-08-08-02: Strichcode-Erzeugung und Terminal-Buchungsflows
   sind unter PHP 8.5 noch nicht im Browser geprueft (brauchen einen
