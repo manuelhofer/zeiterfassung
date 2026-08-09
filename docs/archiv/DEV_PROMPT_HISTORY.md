@@ -70,6 +70,75 @@ in den Statusbericht.
   D-002 entfallen; die Regel selbst gilt weiter.)
 
 
+## P-2026-08-09-12 snapshot-nur-noch-stand
+
+### EINGELESEN
+- `docs/STATUS_SNAPSHOT.md`, `CHATSTART.md` (Abschnitte 1 bis 3), `README.md`
+  (Kopf), `docs/arbeitsregeln.md` (Abschnitt 1) – im direkten Vergleich, um zu
+  sehen, welche Aussage wo ein zweites Mal steht.
+- `docs/git_wiki_und_beschreibung.md`, `docs/wartungscheckliste.md`,
+  `docs/fachregeln/terminal_und_offline.md` – gegengelesen, ob dort etwas
+  ueberholt ist. Ergebnis unten.
+
+### DATEIEN
+- `docs/STATUS_SNAPSHOT.md`
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+`docs/STATUS_SNAPSHOT.md` enthaelt nur noch Angaben, die sich aendern –
+Projektziel, Einstiegspunkte und Arbeitsweise stehen ausschliesslich in
+`CHATSTART.md`.
+
+### DONE
+Nach P-2026-08-09-10 war der Snapshot zwar die einzige Statusquelle, trug aber
+weiter vier Abschnitte mit sich, die kein Status sind und wortgleich in
+`CHATSTART.md` stehen: **Projektziel**, **Entry-Points** und **Arbeitsweise**.
+Beide Dateien liegen im Kaltstartpfad – die Dopplung wurde also bei jedem
+Einstieg zweimal gelesen.
+
+- Die drei Abschnitte sind entfallen; stattdessen ein Zweizeiler, der auf
+  `CHATSTART.md` und `arbeitsregeln.md` verweist.
+- **`Projektstatus` bleibt** – „fertig, im Praxis-Test" ist eine Angabe, die
+  sich aendern kann, und gehoert damit hierher. Dass `CHATSTART.md` sie in
+  Abschnitt 1 ebenfalls nennt, ist der gleiche gewollte Fall wie die
+  Regel-Kurzfassung dort: Werkzeuge, die nur eine Datei lesen, brauchen sie.
+- **„Grober Verlauf" ist entfallen.** Der Absatz fasste von Hand zusammen, was
+  `git log` genauer sagt – und war bereits ueberholt: Er endete bei
+  „Kopplung und Einrichtungsseite" und kannte die beiden Installationsskripte
+  nicht. Genau der Fall, vor dem Abschnitt 6 der Arbeitsregeln warnt, hier im
+  Kleinen eingetreten.
+
+### TEST
+- Zeilen `docs/STATUS_SNAPSHOT.md`: 104 → 86. Kaltstart-Set (`CHATSTART.md`,
+  `arbeitsregeln.md`, `STATUS_SNAPSHOT.md`, `CLAUDE.md`) damit 19,1 KB.
+- Gegenprobe: Projektziel, Einstiegspunkte und Arbeitsweise sind in
+  `CHATSTART.md` vollstaendig vorhanden – nichts davon ist verloren, nur nicht
+  mehr doppelt.
+- `php -l`: keine PHP-Datei geaendert, entfaellt.
+
+### Was der Gegendurchgang sonst ergeben hat (bewusst nicht geaendert)
+- **`docs/fachregeln/terminal_und_offline.md`** beschreibt ein Terminal als
+  „Linux-PC mit Window-Manager". Mit `cage` gibt es keinen Fenstermanager im
+  klassischen Sinn. Die Datei behandelt aber die **Fachlogik** des Terminals,
+  nicht seine Installation; die genaue Antwort steht in Abschnitt 7 der
+  Terminal-Spezifikation. Umformulieren waere Kosmetik in der falschen Datei.
+- **`docs/wartungscheckliste.md`** kennt keinen Punkt zur Kiosk-Installation –
+  richtig so: Sie prueft Ablaeufe der Anwendung nach Aenderungen, nicht das
+  Aufsetzen eines Geraets. Dafuer hat das Skript seine eigene Ergebnisliste.
+- **`docs/git_wiki_und_beschreibung.md`** wiederholt die Ordnerstruktur aus den
+  Arbeitsregeln. Es ist aber kein Projektdokument, sondern der **Text fuer das
+  GitHub-Wiki** – eine Kopie ausserhalb des Repositories ist dort der Zweck.
+- **`docs/rfid_reader_setup.md` und `docs/terminal/rfid-ws_rollout.md`**
+  bleiben unberuehrt, bis Stufe 5 gebaut ist (wie in P-2026-08-09-08 begruendet).
+- **Die Reihenfolge der Startlektuere steht in `README.md` und `CHATSTART.md`.**
+  `README.md` ist die Tuer fuer Menschen nach dem Klonen und verweist mit
+  Punkt 1 auf `CHATSTART.md`; vier Zeilen Wegweiser sind kein zweiter
+  Regelsatz.
+
+### NEXT
+Unveraendert der Kiosk auf einem echten Bildschirm – siehe
+`docs/STATUS_SNAPSHOT.md`.
+
 ## P-2026-08-09-11 ein-verzeichnis-statt-zwei
 
 ### EINGELESEN

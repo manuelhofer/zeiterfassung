@@ -8,27 +8,13 @@ Alles, was der Code oder Git schon weiss, steht bewusst **nicht** hier. Der
 volle Verlauf je Patch liegt in `docs/archiv/DEV_PROMPT_HISTORY.md` – die wird
 nur gelesen, wenn ein bestimmter Patch nachzuschlagen ist.
 
+**Was das Projekt ist, wo die Einstiegspunkte liegen und wie gearbeitet wird,
+steht in [`CHATSTART.md`](../CHATSTART.md) und
+[`arbeitsregeln.md`](arbeitsregeln.md)** – hier steht nur, was sich aendert.
+
 ## Projektstatus
 - **FERTIG** – System ist im **Praxis-Test**.
 - Weiterentwicklung nur bei **Bugs** oder **ausdruecklicher Beauftragung**.
-
-## Projektziel (kurz)
-Webbasierte Zeiterfassung inkl. Mitarbeiter-/Rollen-/Genehmiger-Verwaltung,
-Urlaubsverwaltung, Auswertungen sowie Terminal-UI (Kiosk) inkl. Offline-Queue.
-
-## Entry-Points
-- Backend: `public/index.php` (Routing ueber `?seite=...`)
-- Terminal: `public/terminal.php` (Routing ueber `?aktion=...`)
-- Source of Truth der DB-Struktur: `sql/01_initial_schema.sql`
-
-## Arbeitsweise
-- Einstieg fuer KI-Assistenten: `CHATSTART.md` (mit Lesekarte).
-- Verbindliche Regeln: `docs/arbeitsregeln.md`. Fachlogik nach Thema:
-  `docs/fachregeln/`.
-- Gearbeitet wird direkt im Git-Workspace; ein Patch ist ein Commit mit
-  Patch-ID im Betreff. Keine ZIP-Pakete, kein Dateilimit.
-- Lokale Umgebung zum Testen: `docs/lokale_entwicklungsumgebung.md`
-  (App unter `http://localhost/zeiterfassung`).
 
 ## Naechster Schritt (konkret)
 
@@ -95,10 +81,6 @@ der Spezifikation** (Abschnitt 11) – hier bewusst nicht ein zweites Mal.
 - Terminal (Auftrag): Stop-Detailmaske (Fallback) UX vereinfachen.
 
 ## Was zuletzt passiert ist
-Steht in `git log --oneline` – genauer und immer aktuell als eine gepflegte
-Liste. Ausfuehrlich je Patch (mit Tests und Begruendungen) in
+`git log --oneline` – genauer und immer aktuell als jede von Hand gepflegte
+Zusammenfassung. Ausfuehrlich je Patch (mit Tests und Begruendungen) in
 `docs/archiv/DEV_PROMPT_HISTORY.md`.
-
-Grober Verlauf: Januar 2026 Reports, Urlaub und Stundenkonto stabilisiert;
-August 2026 lokale Entwicklungsumgebung, Auftraege mit Strichcodes und
-Laufkarte, danach die Terminal-Installation (Kopplung und Einrichtungsseite).
