@@ -90,6 +90,16 @@ class DefaultsSeeder
                 'beschreibung'  => 'Terminal-Kopplung: Host-Muster für den Datenbankbenutzer eines Terminals (z. B. % oder 192.168.10.%). Default %.',
             ],
             [
+                // Adresse, unter der ein Terminal die Datenbank erreicht. Leer
+                // = automatisch ableiten (siehe TerminalKopplungController).
+                // Nötig, weil in der Backend-Konfiguration meist 'localhost'
+                // steht – für ein Terminal im Hallennetz wertlos.
+                'schluessel'    => 'terminal_db_host_extern',
+                'wert'          => '',
+                'typ'           => 'string',
+                'beschreibung'  => 'Terminal-Kopplung: Adresse der Datenbank aus Sicht des Terminals. Leer = automatisch (konfigurierter DB-Host, sonst die Adresse, unter der das Terminal das Backend erreicht hat).',
+            ],
+            [
                 'schluessel'    => 'micro_buchung_max_sekunden',
                 'wert'          => '180',
                 'typ'           => 'int',

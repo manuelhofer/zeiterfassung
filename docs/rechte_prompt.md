@@ -208,6 +208,10 @@ Quelle: `sql/01_initial_schema.sql` (INSERT INTO `recht`). Aeltere Verlaufs-/Pat
 - **Bewusst ohne Recht:** Der Kopplungs-Endpunkt, den das Terminal selbst
   aufruft, ist ohne Anmeldung erreichbar – ein frisch installiertes Geraet hat
   noch keinen Benutzer. Der Kopplungscode ist dort der Nachweis.
+  Umgesetzt in `?seite=terminal_kopplung` (`TerminalKopplungController`, nur
+  POST, ab P-2026-08-08-36). Abgesichert ist er dadurch, dass der Code einmalig
+  und zeitlich begrenzt gilt, dass Fehlversuche je Absender gebremst werden und
+  dass ein inaktives Terminal abgewiesen wird.
 - Prüfpunkte im Code:
   - `controller/DashboardController.php:359`
   - `controller/SmokeTestController.php:51`

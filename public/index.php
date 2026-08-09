@@ -195,6 +195,14 @@ try {
             $controller->logout();
             break;
 
+        // Kopplungs-Endpunkt fuer Terminals. Bewusst **ohne** Anmeldung: Ein
+        // frisch installiertes Geraet hat noch keinen Benutzer - der
+        // Kopplungscode ist der Nachweis (siehe TerminalKopplungController).
+        case 'terminal_kopplung':
+            $controller = new TerminalKopplungController();
+            $controller->koppeln();
+            break;
+
         case 'dashboard':
             $controller = new DashboardController();
             $controller->index();

@@ -1,8 +1,9 @@
 # Spezifikation: Terminal-Installation per Skript
 
 *Version:* v2 (2026-08-08)
-*Status:* in Umsetzung – Stufe 1a, 1b und der Datenbankbenutzer aus 1c fertig
-(P-2026-08-08-30, -31, -35); als Naechstes der Kopplungs-Endpunkt
+*Status:* in Umsetzung – **Stufe 1 (Kopplung im Backend) vollstaendig**
+(P-2026-08-08-30, -31, -35, -36); als Naechstes Stufe 2, die Einrichtungsseite
+im Terminal
 *Grundlage:* `docs/master_prompt_zeiterfassung_v13.md`, Abschnitte 2.2 (Terminal),
 6.2 (Terminals), 8 (Terminal-UI); `docs/rfid_reader_setup.md`;
 `docs/terminal/rfid-ws_rollout.md`
@@ -60,6 +61,62 @@ Fehlt die Konfiguration, erscheint statt der Terminal-Oberflaeche eine
    antwortet mit Zugangsdaten, Terminal-ID und Einstellungen.
 5. Das Terminal schreibt `config.local.php`, legt seine lokale
    Ausweichdatenbank an und startet in den Kioskmodus.
+
+### Der Endpunkt (umgesetzt, P-2026-08-08-36)
+
+`POST …/public/index.php?seite=terminal_kopplung`, Antwort als JSON, ohne
+Anmeldung erreichbar.
+
+| Feld | Pflicht | Inhalt |
+| --- | --- | --- |
+| `code` | ja | Kopplungscode aus dem Backend (Bindestriche und Kleinschreibung sind egal) |
+| `host` | nein | Kennung des Geraets, z. B. Hostname und MAC-Adresse – nur zur Nachvollziehbarkeit |
+
+Antwort bei Erfolg:
+
+```json
+{
+  "ok": true,
+  "terminal": {
+    "id": 7, "name": "Halle 9 links", "standort_beschreibung": "…",
+    "abteilung_id": null, "modus": "terminal",
+    "auto_logout_timeout_sekunden": 45,
+    "offline_erlaubt_kommen_gehen": true,
+    "offline_erlaubt_auftraege": false
+  },
+  "db": { "host": "…", "dbname": "zeiterfassung", "user": "term_halle_9_links_7",
+          "pass": "…", "charset": "utf8mb4" },
+  "warnung": "… nur, wenn die Kopplung unverschluesselt lief"
+}
+```
+
+Bei Misserfolg `{"ok": false, "fehler": "…"}` mit passendem HTTP-Status
+(400 ohne Code, 403 ungueltiger Code oder stillgelegtes Terminal, 429 zu viele
+Fehlversuche, 500 Serverproblem).
+
+Festgelegtes Verhalten:
+
+- **Ein Fehlschlag sagt nicht, warum.** Ob der Code unbekannt, abgelaufen oder
+  bereits verbraucht war, steht nur im Serverprotokoll – alles andere hilft
+  beim Durchprobieren.
+- **Fehlversuche werden gebremst** (je Absender-IP, Standard 10 Versuche in 10
+  Minuten). Waehrend der Sperre wird auch ein gueltiger Code abgewiesen, ohne
+  ihn zu verbrauchen.
+- **Der Code ist nach dem Aufruf verbraucht**, auch wenn es danach schiefgeht.
+  Dann muss im Backend ein neuer erzeugt werden; die Fehlermeldung sagt das.
+- **Kein halber Zustand:** Laesst sich die Kopplung nicht speichern, wird der
+  eben angelegte Datenbankbenutzer wieder entfernt. Ein Zugang, von dem das
+  Backend nichts weiss, waere spaeter nicht mehr zuzuordnen und bliebe fuer
+  immer gueltig.
+- **Ein stillgelegtes Terminal koppelt nicht** (`aktiv = 0`).
+- **`db.host` ist die Adresse aus Sicht des Terminals**, nicht die des Backends:
+  `config: terminal_db_host_extern`, sonst der konfigurierte Datenbank-Host,
+  und wenn der lokal ist, die Adresse, unter der das Terminal das Backend
+  erreicht hat. Sonst bekaeme das Terminal `localhost` und spraeche sich selbst
+  an.
+- **Ohne HTTPS** enthaelt die Antwort ein Feld `warnung`, damit die
+  Einrichtungsseite es anzeigen kann. Die Zugangsdaten waren dann im Netz
+  mitlesbar.
 
 ### Warum ein eigener Benutzer je Terminal
 
@@ -323,9 +380,10 @@ Was weiterhin gilt:
 
 1. **Kopplung im Backend** – Maske „Terminal anmelden“, Kopplungscode,
    Endpunkt, Anlage des Datenbankbenutzers. Ohne Hardware testbar.
+   **Fertig** (P-2026-08-08-30, -31, -35, -36).
 2. **Einrichtungsseite im Terminal** – erscheint bei fehlender Konfiguration,
    nimmt Adresse und Code entgegen, schreibt `config.local.php`. Ohne Hardware
-   testbar.
+   testbar. **Als Naechstes.**
 3. **Grundsystem-Skript** – Pakete, Code, Webserver. Im Container testbar.
 4. **Kiosk** – Autologin, Browser im Vollbild. In einer VM testbar.
 5. **Peripherie** – RFID, Touchscreen, Tastaturlayout. Braucht echte Hardware.

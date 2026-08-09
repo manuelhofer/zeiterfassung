@@ -222,29 +222,34 @@ Damit sich niemand ueber Daten wundert, die nicht aus dem Betrieb stammen:
 
 ## Nächster Schritt (konkret)
 
-**Stufe 1c der Terminal-Kopplung, zweiter Teil: der Kopplungs-Endpunkt.**
-Grundlage: `docs/spezifikation_terminal_installation.md`, Abschnitt 2a.
-Fertig sind Stufe 1a (`services/TerminalKopplungService.php`, Tabelle
-`terminal_kopplung`), Stufe 1b (Knopf „Kopplungscode“ in der
-Terminalverwaltung) und der Datenbankbenutzer
-(`services/TerminalDbBenutzerService.php`, P-2026-08-08-35).
+**Stufe 2 der Terminal-Installation: die Einrichtungsseite im Terminal.**
+Grundlage: `docs/spezifikation_terminal_installation.md`, Abschnitte 2 und 11.
+**Stufe 1 ist vollstaendig** – Kopplungscodes (P-2026-08-08-30), Erzeugen im
+Backend (-31), Datenbankbenutzer (-35) und Kopplungs-Endpunkt (-36) greifen
+ineinander und sind durchgaengig geprueft.
 
-Zu bauen ist jetzt nur noch das Bindeglied:
-1. Endpunkt, den ein Terminal aufruft (`?seite=terminal_kopplung`, POST, ohne
-   Anmeldung – der Kopplungscode **ist** der Nachweis). Nimmt Code und
-   Geraetekennung (Hostname/MAC), antwortet als JSON.
-2. Code ueber `TerminalKopplungService::loeseCodeEin()` pruefen.
-3. Bei Erfolg `TerminalDbBenutzerService::legeAnOderErsetze()` aufrufen und den
-   angelegten Benutzer in `terminal.db_benutzer` / `db_benutzer_host` sowie
-   `gekoppelt_am` / `gekoppelt_host` festhalten. Bei erneuter Kopplung wird der
-   alte Benutzer damit gezielt ersetzt (der Dienst kann das bereits).
-4. Antwort: Terminal-ID, Zugangsdaten, Einstellungen (Name, Abteilung,
-   Auto-Logout, Offline-Flags) – alles, was `config.local.php` am Terminal
-   braucht. Fehlschlaege ohne Hinweis darauf, **warum** der Code nicht galt.
-5. Kein halber Zustand: Schlaegt das Speichern fehl, muss der eben angelegte
-   Datenbankbenutzer wieder weg (`entferne()`).
+Zu bauen:
+1. `public/terminal.php` erkennt eine **fehlende Konfiguration** (keine
+   `config/config.local.php` bzw. keine Datenbankverbindung) und zeigt statt
+   der Bedienoberflaeche eine Einrichtungsseite. Dieselbe Mechanik gibt es
+   schon fuer das Backend (`views/login/initial_admin.php`) – uebertragen,
+   nicht neu erfinden.
+2. Die Seite fragt **Server-Adresse** und **Kopplungscode** ab, touchtauglich
+   (grosse Felder, Bildschirmtastatur, kein Zwang zur Kleinschreibung).
+3. Sie ruft `?seite=terminal_kopplung` des Backends auf und schreibt aus der
+   Antwort `config/config.local.php` (Vorlage: `config/config.php.example`),
+   inklusive `installation_typ = 'terminal'` und der gelieferten Einstellungen.
+4. Ein Feld `warnung` in der Antwort (Kopplung lief ueber HTTP) muss sichtbar
+   angezeigt werden – sonst merkt niemand, dass die Zugangsdaten im Netz
+   mitlesbar waren.
+5. Danach lokale Ausweichdatenbank anlegen und in den normalen Terminalbetrieb
+   wechseln.
 
-Danach Stufe 2 (Einrichtungsseite im Terminal), dann das Installationsskript.
+Zu bedenken: Das Schreiben von `config.local.php` braucht Schreibrechte im
+Verzeichnis `config/` – schlaegt es fehl, muss die Seite das klar sagen und den
+Inhalt zum Abtippen anzeigen, statt still zu scheitern.
+
+Danach Stufe 3 (Grundsystem-Skript), 4 (Kiosk), 5 (Peripherie), 6 (Selbsttest).
 
 ### Weitere offene Punkte
 - **T-101 `passwort_hash` vor dem Terminal verbergen.** Der Terminal-Benutzer
@@ -258,7 +263,49 @@ Danach Stufe 2 (Einrichtungsseite im Terminal), dann das Installationsskript.
 - Offen aus P-2026-08-08-02: Strichcode-Erzeugung und die Terminal-Buchungsflows sind unter PHP 8.5 noch nicht im Browser geprueft (brauchen einen angemeldeten Durchlauf, den nur der Nutzer machen kann).
 
 ## Letzter Patch (P-ID)
-P-2026-08-08-35 (Commit) – Terminal-Kopplung: Datenbankbenutzer je Terminal (Stufe 1c, Teil 1)
+P-2026-08-08-36 (Commit) – Terminal-Kopplung: Endpunkt (Stufe 1 vollstaendig)
+
+## P-2026-08-08-36 terminal-kopplung-endpunkt
+
+### EINGELESEN
+- `docs/spezifikation_terminal_installation.md` (Abschnitt 2a), `services/TerminalKopplungService.php`, `services/TerminalDbBenutzerService.php`, `public/index.php`, `core/Logger.php`, Tabelle `system_log`.
+
+### DATEIEN
+- `controller/TerminalKopplungController.php` (neu)
+- `public/index.php`, `core/DefaultsSeeder.php`, `sql/06_migration_terminal_db_benutzer.sql`
+- `docs/spezifikation_terminal_installation.md`, `docs/rechte_prompt.md`
+
+### AKZEPTANZKRITERIUM
+Ein Terminal, das den im Backend erzeugten Kopplungscode an `?seite=terminal_kopplung` schickt, bekommt Terminal-ID, funktionierende Zugangsdaten und seine Einstellungen als JSON zurueck – und derselbe Code funktioniert danach nicht mehr.
+
+### DONE – Stufe 1 ist damit vollstaendig
+- **Der Endpunkt** (`?seite=terminal_kopplung`, nur POST, JSON) loest den Code ein, legt den Datenbankbenutzer an und haelt in `terminal` fest, welcher Benutzer zu welchem Geraet gehoert. Bewusst **ohne Anmeldung** – ein frisches Geraet hat keinen Benutzer, der Code ist der Nachweis.
+- **Ein Fehlschlag sagt nicht, warum.** Unbekannt, abgelaufen oder verbraucht – das steht nur im Serverprotokoll. Alles andere hilft nur beim Durchprobieren.
+- **Fehlversuche werden gebremst** (Standard 10 in 10 Minuten je Absender-IP, gezaehlt ueber `system_log`). Waehrend der Sperre wird auch ein gueltiger Code abgewiesen, **ohne ihn zu verbrauchen** – sonst waere die Bremse selbst eine Moeglichkeit, fremde Codes zu entwerten. `X-Forwarded-For` wird bewusst nicht ausgewertet: den Kopf darf jeder frei setzen.
+- **Kein halber Zustand:** Schlaegt das Speichern fehl, wird der eben angelegte Datenbankbenutzer wieder entfernt. Ein Zugang, von dem das Backend nichts weiss, waere spaeter nicht zuzuordnen und bliebe fuer immer gueltig.
+- **Ein stillgelegtes Terminal koppelt nicht** (`aktiv = 0`) – ein ausgemustertes Geraet soll sich nicht zurueckholen koennen.
+- **Klare Meldung, wenn dem Server die Rechte fehlen** (`CREATE USER`): Das ist ein Einrichtungsfehler und darf beim Monteur nicht als „Code ungueltig“ ankommen – sonst sucht er am falschen Ende.
+- **Ohne HTTPS** enthaelt die Antwort ein Feld `warnung`; die Einrichtungsseite kann es anzeigen. Zugangsdaten gehen bei der Kopplung ueber das Netz.
+
+### GEFUNDENES PROBLEM IM EIGENEN ENTWURF
+- Die erste Fassung haette dem Terminal den Datenbank-Host **aus der Backend-Konfiguration** geschickt. Dort steht ueblicherweise `localhost` – ein Terminal in der Halle haette damit sich selbst angesprochen und die Kopplung waere still nutzlos gewesen. Jetzt: `config: terminal_db_host_extern`, sonst der konfigurierte Host, und wenn der lokal ist, die Adresse, unter der das Terminal das Backend erreicht hat (Portangabe wird entfernt, IPv6 beruecksichtigt).
+
+### TEST (ueber den laufenden Webserver, nicht nur im Code)
+1. GET wird mit 405 abgewiesen, fehlender Code mit 400, erfundener Code mit 403 – und die Meldung nennt den Grund nicht.
+2. Regulaere Kopplung: 200, richtige Terminal-ID, Name, Auto-Logout (45 s) und beide Offline-Schalter korrekt uebertragen.
+3. **Durchstich:** Mit den gelieferten Zugangsdaten wurde eine echte Datenbankverbindung aufgebaut, gelesen – und ein `DELETE` wurde weiterhin verweigert.
+4. `db_benutzer`, `db_benutzer_host`, `gekoppelt_am` und die Geraetekennung stehen danach im Terminal-Datensatz.
+5. Derselbe Code ein zweites Mal: 403.
+6. Erneute Kopplung: neues Passwort, altes gilt nicht mehr, genau ein Datenbankbenutzer je Terminal.
+7. Stillgelegtes Terminal: 403 mit nachvollziehbarer Meldung.
+8. Bremse: nach mehreren Fehlversuchen 429, auch fuer einen gueltigen Code – der dabei nicht verbraucht wurde.
+9. Ableitung der Datenbank-Adresse mit `HTTP_HOST` inkl. Portangabe geprueft.
+10. Unter `error_reporting=E_ALL` auf PHP 8.5 keine einzige Meldung; die Antwort ist in allen Faellen gueltiges JSON.
+11. Nachgereicht zu P-35: `INSERT INTO system_log` mit der richtigen Spalte `loglevel` geprueft (die Probe im vorherigen Test hatte einen falschen Spaltennamen und war deshalb nicht aussagekraeftig).
+
+### NEXT (Stufe 2)
+- Einrichtungsseite im Terminal: erkennt fehlende Konfiguration, fragt Adresse und Code ab, schreibt `config.local.php`.
+
 
 ## P-2026-08-08-35 terminal-kopplung-datenbankbenutzer
 

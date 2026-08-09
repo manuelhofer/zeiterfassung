@@ -71,6 +71,17 @@ WHERE NOT EXISTS (
     SELECT 1 FROM `config` WHERE `schluessel` = 'terminal_db_host_muster'
 );
 
+-- Adresse, unter der ein Terminal die Datenbank erreicht. Leer = automatisch:
+-- der konfigurierte Datenbank-Host, und wenn der lokal ist (`localhost`), die
+-- Adresse, unter der das Terminal das Backend erreicht hat. Nur noetig, wenn
+-- Datenbank und Backend auf verschiedenen Rechnern liegen.
+INSERT INTO `config` (`schluessel`, `wert`, `typ`, `beschreibung`)
+SELECT 'terminal_db_host_extern', '', 'string',
+       'Terminal-Kopplung: Adresse der Datenbank aus Sicht des Terminals. Leer = automatisch.'
+WHERE NOT EXISTS (
+    SELECT 1 FROM `config` WHERE `schluessel` = 'terminal_db_host_extern'
+);
+
 -- Kontrolle (optional):
 -- SHOW COLUMNS FROM `terminal` LIKE 'db\_benutzer%';
 -- SELECT schluessel, wert FROM config WHERE schluessel = 'terminal_db_host_muster';
