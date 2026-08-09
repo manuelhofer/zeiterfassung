@@ -33,7 +33,8 @@ Hand gepflegt.
 | --- | --- |
 | [`lokale_entwicklungsumgebung.md`](lokale_entwicklungsumgebung.md) | Lokale Umgebung (Apache + php-fpm + MariaDB + phpMyAdmin), App unter `http://localhost/zeiterfassung` |
 | [`installationsanleitung.md`](installationsanleitung.md) | Produktivinstallation auf Debian/Apache |
-| [`rfid_reader_setup.md`](rfid_reader_setup.md) | RFID-Leser am Terminal |
+| [`rfid_reader_setup.md`](rfid_reader_setup.md) | RFID-Leser am Terminal – **von Hand**; der Normalweg ist `scripts/terminal/install_peripherie.sh` |
+| [`terminal/rfid-ws_rollout.md`](terminal/rfid-ws_rollout.md) | WebSocket-Bridge von Hand aufsetzen, samt Vorlagen (`rfid_ws.py`, `rfid-ws.service`) |
 | [`wartungscheckliste.md`](wartungscheckliste.md) | Was vor und nach Änderungen zu prüfen ist |
 | [`admin_handbuch.md`](admin_handbuch.md) | Bedienung im Backend |
 | [`git_wiki_und_beschreibung.md`](git_wiki_und_beschreibung.md) | Repo-Beschreibung und Wiki-Texte |

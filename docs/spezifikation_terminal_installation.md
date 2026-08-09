@@ -821,6 +821,10 @@ funktional geschlossen und gegen die Datenbank durchgespielt; Stufe 3 bis 6
 sind gebaut und im Container geprueft, aber nur auf **einer von vier
 Paketfamilien** (`apt`).
 
+Nach dem Zusammenlegen der Paketfamilien-Erkennung (P-2026-08-09-20) wurden
+alle vier Skripte **gemeinsam in einem frischen Container** durchgespielt und
+anschliessend wiederholt: kein einziger fehlender Punkt im zweiten Lauf.
+
 Was damit ausdruecklich **noch nicht** belegt ist, weil ein Container es nicht
 zeigen kann: dass ein Bild erscheint, dass ein Leser Zeichen liefert und dass
 ein gedrehter Touchscreen richtig trifft. Das ist der Geraetetest.

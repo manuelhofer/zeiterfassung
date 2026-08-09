@@ -70,6 +70,95 @@ in den Statusbericht.
   D-002 entfallen; die Regel selbst gilt weiter.)
 
 
+## P-2026-08-09-21 doku-durchgang-stufe-5-und-6
+
+### EINGELESEN
+- `docs/rfid_reader_setup.md` und `docs/terminal/rfid-ws_rollout.md` – die
+  beiden Dateien, die P-2026-08-09-12 ausdruecklich zurueckgestellt hatte
+  („bleiben, bis Stufe 5 gebaut ist"). Sie ist gebaut.
+- `docs/fachregeln/terminal_und_offline.md`, Abschnitt 1 – ebenfalls dort als
+  bekannt-ungenau vermerkt.
+- `docs/README.md`, `docs/spezifikation_terminal_installation.md` (Abschnitte 3
+  und 11).
+- Maschinelle Durchsicht: Links, genannte Repo-Pfade, Abschnittsverweise,
+  doppelte Ueberschriften, ueberholte Formulierungen.
+
+### DATEIEN
+- `docs/rfid_reader_setup.md`
+- `docs/terminal/rfid-ws_rollout.md`
+- `docs/fachregeln/terminal_und_offline.md`
+- `docs/README.md`
+- `docs/spezifikation_terminal_installation.md`
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Keine Datei beschreibt einen Stand, den es nicht mehr gibt, und die beiden
+RFID-Anleitungen sagen, dass der Normalweg jetzt ein Skript ist.
+
+### DONE
+Zwei Rueckstellungen aus P-2026-08-09-12 eingeloest, drei sachliche Fehler
+behoben:
+
+- **`rfid_reader_setup.md`** bekommt vorn den Verweis auf
+  `install_peripherie.sh` und bleibt darunter als Handweg und Fehlersuche
+  stehen. Zwei echte Fehler darin behoben:
+  - Es hiess, `terminal.rfid_ws.enabled` sei in `config.local.php` zu setzen.
+    Auf einem Terminal kommt der Wert aus `geraet.local.php` und wandert
+    **beim Koppeln** hinueber – bei einem bereits gekoppelten Geraet wirkt eine
+    Aenderung dort also gar nicht. Das stand nirgends und ist genau die Falle,
+    in die man einmal tappt.
+  - Die Ueberschrift „Variante 2: SPI/RC522" versprach mehr, als da ist:
+    `rfid_ws.py` liest einen **seriellen** Anschluss, nicht den SPI-Bus. Fuer
+    RC522-Aufbauten mit vorgeschaltetem Mikrocontroller passt es; ein direkt am
+    SPI haengender RC522 braucht ein anderes Leseprogramm. Jetzt benannt.
+- **`rfid-ws_rollout.md`** nennt die Unterschiede zwischen Skript und Handweg,
+  allen voran den Dienstbenutzer: Das Skript legt `rfidws` an, die Vorlage
+  nannte `www-data`. Wer beides mischt, bekommt einen Dienst ohne Zugriff auf
+  den seriellen Anschluss.
+- **`terminal_und_offline.md`** beschrieb ein Terminal als „Linux-PC mit
+  Window-Manager". Mit `cage` gibt es keinen im herkoemmlichen Sinn – `cage`
+  **ist** der Compositor. Nur der X11-Rueckfall startet `openbox`, und der
+  Grund dafuer steht jetzt dabei. P-2026-08-09-12 hatte das als Kosmetik
+  eingestuft und liegen gelassen; es ist keine Kosmetik, sondern eine falsche
+  Aussage in der Datei, die erklaert, was ein Terminal ist.
+- **`docs/README.md`** fuehrt jetzt auch `terminal/rfid-ws_rollout.md` und sagt
+  bei beiden RFID-Dateien dazu, dass sie den Handweg beschreiben.
+- **Spezifikation, Abschnitt 3:** die gemeinsame `_paketfamilie.sh` benannt,
+  samt der Abgrenzung, was dort bewusst **nicht** hineingehoert.
+  **Abschnitt 11:** vermerkt, dass nach dem Zusammenlegen alle vier Skripte
+  gemeinsam in einem frischen Container liefen.
+
+### TEST
+Maschinell ueber den gesamten Bestand ausserhalb `docs/archiv/`:
+
+- **Markdown-Links: 0 tot.**
+- **Genannte Repo-Pfade:** fuenf ohne Datei, alle erwartet und an Ort und
+  Stelle erklaert – `config/geraet.local.php` und
+  `scripts/terminal/terminal.conf` entstehen erst auf dem Geraet,
+  `sql/19_…`/`sql/20_…` sind erledigte Migrationen im Rechte-Fahrplan,
+  `sql/zeiterfassung_aktuell.sql` ist der nicht versionierte Dump.
+- **Abschnittsverweise:** einer scheinbar daneben („Abschnitt 12"), tatsaechlich
+  ein Verweis auf den Master-Prompt v13 in
+  `fachregeln/urlaub_abwesenheit_feiertage.md`, nicht auf die Spezifikation.
+  Kein Fehler; der Pruefer kennt nur eine Quelle.
+- **Doppelte Ueberschriften: keine.**
+- **Ueberholte Formulierungen** („zwei Befehlen", „Stufen 1 bis 4",
+  „als Naechstes Stufe 5", „steht zweimal"): keine mehr.
+- **Alle vier Skripte** sind in der Doku genannt, jedes in mindestens vier
+  Dateien.
+- Kaltstart-Set: **18.818 B** – unter dem Richtwert aus Arbeitsregel 10.
+
+### Was bewusst nicht erreicht wurde
+- **`docs/rechte_prompt.md`** nennt in seinem Fahrplan weiter zwei Migrationen,
+  die es nicht mehr gibt. Wie in P-2026-08-09-14 entschieden: Der Abschnitt ist
+  ein Verlaufsprotokoll seiner Zeit.
+- **Die Fachregeln zu Urlaub, Rundung und Auswertung** sind weiterhin nicht
+  gegen den Code gelesen. Das waere ein eigener Auftrag und keine
+  Nebenbeschaeftigung eines Doku-Durchgangs.
+
+### NEXT
+Der Geraetetest auf einem Bildschirm.
+
 ## P-2026-08-09-20 paketfamilie-an-einer-stelle
 
 ### EINGELESEN

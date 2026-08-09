@@ -1,6 +1,19 @@
 # RFID WebSocket Bridge – Rollout (Terminal)
 
-Diese Anleitung beschreibt die **Standard-Installation** des RFID-WebSocket-Dienstes auf einem Terminal.
+> **Der Normalweg ist seit P-2026-08-09-17 das Skript:**
+> `sudo ./scripts/terminal/install_peripherie.sh` mit `RFID_VARIANTE="bridge"`
+> in der Antwortdatei. Es legt Python-Umgebung, Dienstbenutzer, Dienst und
+> Konfiguration an und trägt `rfid_ws.enabled = true` ein.
+>
+> Diese Anleitung ist der **Weg von Hand** – für Fehlersuche und für Geräte, die
+> nicht mit dem Skript aufgesetzt wurden.
+>
+> **Unterschiede zwischen Skript und dieser Anleitung:** Das Skript legt einen
+> eigenen Dienstbenutzer `rfidws` an (in `dialout`/`uucp`/`spi`) statt `www-data`
+> zu verwenden, schreibt die Dienstdatei selbst statt die Vorlage unten zu
+> kopieren, trägt `SERIAL_PORT` und `BAUD` aus der Antwortdatei ein und startet
+> den Dienst nur, wenn der Anschluss existiert. Die Vorlagen in diesem
+> Verzeichnis bleiben als Ausgangspunkt bestehen.
 
 ## Ziel
 - Ein lokaler Dienst liefert RFID-UIDs per WebSocket an den Browser.

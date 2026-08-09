@@ -13,10 +13,18 @@ Kopplung im Detail), `docs/rfid_reader_setup.md`,
 
 ## 1. Was ein Terminal ist
 
-Ein separater Linux-PC mit Window-Manager, Browser im **Kioskmodus**,
-Touchscreen, keine normale Tastatur fuer den Anwender. Es hat **einen**
+Ein separater Linux-PC, der von selbst in einen Browser im **Kioskmodus**
+startet: Touchscreen, keine normale Tastatur fuer den Anwender. Es hat **einen**
 Leser/Scanner – entweder einen RFID-Leser (fuer Mitarbeiter-Chips und
 Auftrags-/Maschinenchips) oder einen Barcode-Scanner.
+
+Frueher stand hier „mit Window-Manager". Das trifft es seit dem Kiosk-Skript
+nicht mehr: Auf dem Standardweg (Wayland, `cage`) gibt es keinen
+Fenstermanager im herkoemmlichen Sinn – `cage` **ist** der Compositor und zeigt
+genau ein Fenster. Nur der X11-Rueckfall startet zusaetzlich `openbox`, und
+zwar aus genau diesem Grund: Ohne Fenstermanager bekommt der Browser dort sein
+Vollbild nicht zuverlaessig. Wie das Geraet aufgesetzt wird, steht in
+`docs/spezifikation_terminal_installation.md`, Abschnitt 7.
 
 Das Terminal spricht **primaer** mit der Hauptdatenbank.
 

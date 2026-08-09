@@ -1,5 +1,15 @@
 # RFID-Reader einrichten
 
+> **Auf einem Hallenterminal macht das seit P-2026-08-09-17 ein Skript:**
+> `scripts/terminal/install_peripherie.sh` (Stufe 5). Es setzt `RFID_VARIANTE`
+> aus der Antwortdatei um – `usb`, `bridge` oder `keine` – und schreibt das
+> Ergebnis nach `config/geraet.local.php`. Siehe
+> [Terminal-Installation](spezifikation_terminal_installation.md), Abschnitt 6.
+>
+> Diese Datei beschreibt, **was dabei passiert** und wie man es von Hand macht:
+> für Fehlersuche, für Geräte, die nicht mit dem Skript aufgesetzt wurden, und
+> um zu verstehen, woran es liegt, wenn nichts ankommt.
+
 ## Übersicht: unterstützte Reader-Varianten
 
 1) **Tastatur-Scanner (USB-HID/Keyboard-Wedge)**
@@ -19,16 +29,31 @@
    - Prüfen, dass Scans als Tastatureingabe ankommen (z. B. in einem Textfeld).
 
 2) **RFID-Bridge deaktivieren**
-   - In `config/config.php` bzw. besser in `config/config.local.php`:
-     - `terminal.rfid_ws.enabled = false`
-   - Alternativ per Umgebungsvariable:
-     - `ZEIT_RFID_WS_ENABLED=0`
+   - Auf einem Terminal: `RFID_VARIANTE="usb"` in der Antwortdatei, dann
+     `install_peripherie.sh`. Das Skript trägt `rfid_ws.enabled = false` in
+     `config/geraet.local.php` ein.
+   - **Wichtig:** Beim Koppeln wandert der Wert von dort nach
+     `config/config.local.php`. Bei einem **bereits gekoppelten** Gerät wirkt
+     eine Änderung an `geraet.local.php` deshalb erst nach erneuter Kopplung –
+     oder man gleicht den `rfid_ws`-Block in `config.local.php` von Hand an.
+   - Ohne Skript: `terminal.rfid_ws.enabled = false` in
+     `config/config.local.php`; alternativ `ZEIT_RFID_WS_ENABLED=0` (greift nur,
+     solange es keine `config.local.php` gibt – die hat Vorrang).
 
 3) **Terminal testen**
    - Terminal-Seite öffnen (`terminal.php?aktion=start`).
    - RFID-Scan durchführen und prüfen, dass die UID ins Feld geschrieben wird.
 
-### Variante 2: SPI/RC522 mit WebSocket-Bridge
+### Variante 2: Bridge mit WebSocket (serieller Leser, RC522)
+
+**Zur Bezeichnung:** Das mitgelieferte `docs/terminal/rfid_ws.py` liest einen
+**seriellen Anschluss** (`/dev/ttyUSB0`), nicht direkt den SPI-Bus. Für viele
+RC522-Aufbauten steht ein kleiner Mikrocontroller davor, der die UID seriell
+ausgibt – dafür passt es unverändert. Ein RC522, der **direkt** am SPI des
+Raspberry Pi hängt, braucht ein anderes Leseprogramm; die Bridge, der Dienst
+und die Terminal-Seite bleiben dieselben. `install_peripherie.sh` schaltet SPI
+auf einem Raspberry Pi ein (`dtparam=spi=on`), liefert aber ebenfalls nur das
+serielle Leseprogramm.
 
 1) **Bridge-Dienst installieren**
    - Folge der Anleitung in `docs/terminal/rfid-ws_rollout.md`.
@@ -41,12 +66,12 @@
    - `systemctl status rfid-ws.service --no-pager`
 
 3) **Terminal-Konfiguration setzen**
-   - In `config/config.php` bzw. `config/config.local.php`:
+   - Mit Skript: `RFID_VARIANTE="bridge"`, dazu `RFID_GERAET` und `RFID_BAUD`
+     in der Antwortdatei. Den Rest erledigt `install_peripherie.sh`.
+   - Ohne Skript, in `config/config.local.php`:
      - `terminal.rfid_ws.enabled = true`
      - `terminal.rfid_ws.url = ws://127.0.0.1:8765`
-   - Alternativ per Umgebungsvariablen:
-     - `ZEIT_RFID_WS_ENABLED=1`
-     - `ZEIT_RFID_WS_URL=ws://127.0.0.1:8765`
+   - Zum Vorrang von `config.local.php` siehe den Hinweis bei Variante 1.
 
 4) **Verbindung testen**
    - Port-Check: `ss -lntp | grep 8765`
