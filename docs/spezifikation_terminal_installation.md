@@ -418,7 +418,11 @@ alle vier Familien dieselbe Datei.
 wiederverwendet**, nicht erneuert. Ein bereits gekoppeltes Terminal traegt es in
 seiner `config.local.php`; ein frisches Passwort wuerde ihm stillschweigend die
 Offline-Queue kappen – der Ausfall faellt dann erst beim naechsten Netzausfall
-auf, also genau dann, wenn er am meisten schadet.
+auf, also genau dann, wenn er am meisten schadet. Gesucht wird deshalb **zuerst
+in `config.local.php`**, erst danach in `geraet.local.php`: Die erste ist die
+Datei, aus der ein gekoppeltes Terminal die Queue-Zugangsdaten wirklich liest.
+Die zweite kann fehlen oder – nach einem Lauf mit nicht ansprechbarer Datenbank
+– ein leeres Passwort tragen (P-2026-08-09-05).
 
 **Der Code gehoert root**, der Webserver-Benutzer darf ihn nur lesen.
 Schreibrechte bekommt er ausschliesslich fuer `config/` – dort legt die Kopplung

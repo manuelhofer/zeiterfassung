@@ -446,18 +446,34 @@ schritt "7/10  Lokale Ausweichdatenbank"
 # ---------------------------------------------------------------------------
 DB_CLIENT="$(command -v mariadb || command -v mysql || true)"
 GERAETE_DATEI="$ZIEL_VERZEICHNIS/config/geraet.local.php"
+KONFIG_DATEI="$ZIEL_VERZEICHNIS/config/config.local.php"
 
 if [ -z "$DB_CLIENT" ]; then
     warnung "Kein Datenbank-Client gefunden - Ausweichdatenbank nicht eingerichtet."
     OFFLINE_DB_PASS=""
 else
-    # Ein vorhandenes Passwort wird wiederverwendet, nicht erneuert. Ein
-    # bereits gekoppeltes Terminal traegt die Zugangsdaten in seiner
-    # config.local.php; ein neues Passwort wuerde ihm still die Queue kappen.
+    # Ein vorhandenes Passwort wird wiederverwendet, nicht erneuert - sonst
+    # kappt ein zweiter Lauf einem gekoppelten Terminal still die Queue.
+    #
+    # Die Reihenfolge ist Absicht: config.local.php zuerst. Aus dieser Datei
+    # liest ein gekoppeltes Terminal seine Queue-Zugangsdaten tatsaechlich; die
+    # Kopplung kopiert den offline_db-Block dorthin. geraet.local.php kann zu
+    # diesem Zeitpunkt fehlen (Geraet neu aufgesetzt, Datei verloren) oder ein
+    # leeres Passwort tragen - naemlich nach einem Lauf, bei dem die Datenbank
+    # nicht ansprechbar war. Wer nur dort nachsieht, erzeugt in genau diesen
+    # Faellen ein neues Passwort, setzt es per ALTER USER und laesst das
+    # Terminal mit dem alten zurueck. Auffallen wuerde das erst beim naechsten
+    # Netzausfall - also dann, wenn die Queue gebraucht wird.
     OFFLINE_DB_PASS=""
-    if [ -f "$GERAETE_DATEI" ] && command -v php >/dev/null 2>&1; then
-        OFFLINE_DB_PASS="$(php -r '$d = @include $argv[1]; echo (is_array($d) && isset($d["offline_db"]["pass"])) ? (string)$d["offline_db"]["pass"] : "";' "$GERAETE_DATEI" 2>/dev/null)"
-        [ -n "$OFFLINE_DB_PASS" ] && echo "Vorhandenes Passwort aus geraet.local.php uebernommen."
+    if command -v php >/dev/null 2>&1; then
+        for quelle in "$KONFIG_DATEI" "$GERAETE_DATEI"; do
+            [ -f "$quelle" ] || continue
+            OFFLINE_DB_PASS="$(php -r '$d = @include $argv[1]; echo (is_array($d) && isset($d["offline_db"]["pass"])) ? (string)$d["offline_db"]["pass"] : "";' "$quelle" 2>/dev/null)"
+            if [ -n "$OFFLINE_DB_PASS" ]; then
+                echo "Vorhandenes Passwort aus $(basename "$quelle") uebernommen."
+                break
+            fi
+        done
     fi
     if [ -z "$OFFLINE_DB_PASS" ]; then
         OFFLINE_DB_PASS="$(head -c 48 /dev/urandom | base64 | tr -dc 'A-Za-z0-9' | head -c 32)"
@@ -548,7 +564,7 @@ else
     warnung "geraet.local.php war fehlerhaft und wurde verworfen."
 fi
 
-if [ -f "$ZIEL_VERZEICHNIS/config/config.local.php" ]; then
+if [ -f "$KONFIG_DATEI" ]; then
     echo "HINWEIS: config.local.php ist vorhanden - dieses Terminal ist bereits"
     echo "         gekoppelt und wird nicht angefasst. Zum Neukoppeln die Datei"
     echo "         loeschen; dann erscheint wieder die Einrichtungsseite."

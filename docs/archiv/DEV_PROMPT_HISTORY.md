@@ -159,7 +159,118 @@ Danach Stufe 5 (Peripherie: RFID, Touchscreen), 6 (Selbsttest mit Scan-Proben).
 Weitere offene Punkte stehen oben unter „Offene Tasks (T-IDs)".
 
 ## Letzter Patch (P-ID)
-P-2026-08-09-04 (Commit) – Grundsystem-Skript fuer Terminals
+P-2026-08-09-05 (Commit) – Offline-Passwort wird nicht mehr rotiert
+
+## P-2026-08-09-05 offline-passwort-nicht-rotieren
+
+### EINGELESEN
+- `CHATSTART.md`, `docs/arbeitsregeln.md`, `docs/STATUS_SNAPSHOT.md`,
+  Snapshot-Teil dieser Datei (inkl. „Naechster Schritt“ – der Container-Lauf).
+- `scripts/terminal/install_terminal.sh` (Schritt 7 und 8),
+  `docs/spezifikation_terminal_installation.md` (Abschnitte 5a, 10, 11).
+- `controller/TerminalEinrichtungController.php`, `baueKonfigDatei()` –
+  um zu belegen statt zu vermuten, dass die Kopplung den `offline_db`-Block
+  samt Passwort nach `config.local.php` kopiert (Zeilen 483–493).
+- Duplicate-Check: `git log --oneline -25`, `git log -S"OFFLINE_DB_PASS"` –
+  das Passwort wurde seit P-2026-08-09-04 nicht angefasst.
+
+### DATEIEN
+- `scripts/terminal/install_terminal.sh` (Schritt 7)
+- `docs/spezifikation_terminal_installation.md` (Abschnitt 5a, Absatz zum
+  Passwort)
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Wird `config/geraet.local.php` auf einem gekoppelten Terminal geloescht und das
+Skript erneut ausgefuehrt, behaelt der Datenbankbenutzer der Ausweichdatenbank
+das Passwort aus `config.local.php` – die Offline-Queue verbindet sich danach
+weiterhin.
+
+### DONE
+Schritt 7 sucht ein vorhandenes Passwort jetzt in **zwei** Dateien, in dieser
+Reihenfolge: `config/config.local.php`, danach `config/geraet.local.php`. Die
+erste ist die Datei, aus der ein gekoppeltes Terminal seine Queue-Zugangsdaten
+tatsaechlich liest; die zweite ist nur die Quelle, aus der die Kopplung sie
+einmal uebernommen hat.
+
+Zusaetzlich steht der Pfad zu `config.local.php` jetzt in `KONFIG_DATEI` –
+dieselbe Variable nutzt der Hinweis „Terminal ist bereits gekoppelt“ in
+Schritt 8, wo der Pfad vorher ein zweites Mal ausgeschrieben war.
+
+### TEST
+Erstmals ein **vollstaendiger Lauf**, wie in P-2026-08-09-04 unter NEXT
+gefordert: Debian 12 (Bookworm) im Docker-Container mit systemd als PID 1,
+Code aus einem Bare-Klon, damit der Klon-Pfad des Skripts wirklich durchlaufen
+wird. Bookworm, weil das die PHP-Baseline des Projekts ist (PHP 8.2) und
+Raspberry Pi OS darauf beruht.
+
+**Lauf vor dem Patch** – lief auf Anhieb durch, Exitcode 0, alle sechs Punkte
+der Ergebnisliste OK. Geprueft wurde darueber hinaus:
+
+- `terminal.php` liefert HTTP 200 mit `<h1>Terminal einrichten</h1>`,
+  `config/geraet.local.php` existiert, `config/config.local.php` **nicht** –
+  das Akzeptanzkriterium aus P-2026-08-09-04, jetzt belegt.
+- `apache2/error.log` und `php8.2-fpm.log`: keine Deprecation, keine Warnung.
+- Zweiter Lauf (Idempotenz): keine einzige Warnung, Passwort unveraendert.
+- Die Rechte des Offline-Benutzers gegen die Wirklichkeit geprueft – nicht nur
+  `SHOW GRANTS`, sondern mit den erzeugten Zugangsdaten INSERT, UPDATE, SELECT,
+  DELETE und `CREATE TABLE` auf `db_injektionsqueue` ausgefuehrt: alles moeglich,
+  `DROP` verweigert. Genau der Zuschnitt, den `core/OfflineQueueManager.php`
+  braucht (dort kommt kein `DROP` vor).
+- Die in Abschnitt 5a zugesicherte Eigenschaft „Ein Lauf ohne systemd bricht
+  nicht ab, sondern warnt“ in einem zweiten Container ohne systemd geprueft:
+  sieben Warnungen, drei FEHLT in der Ergebnisliste, Exitcode 0. Haelt.
+
+**Der Fehler, den dieser Lauf zutage gefoerdert hat**, nachgestellt statt
+behauptet: Kopplung simuliert (`config.local.php` mit dem Passwort aus
+`geraet.local.php`), `geraet.local.php` geloescht, Skript erneut gestartet.
+Ergebnis vor dem Patch: neues Passwort erzeugt, per `ALTER USER` gesetzt, und
+der Verbindungsversuch mit den Daten aus `config.local.php` endete mit
+`SQLSTATE[HY000] [1045] Access denied`. Das Skript meldete im selben Lauf
+„HINWEIS: config.local.php ist vorhanden – dieses Terminal ist bereits gekoppelt
+und wird nicht angefasst“, waehrend es ihm gerade die Queue gekappt hatte.
+
+**Nach dem Patch**, gleicher Ablauf: „Vorhandenes Passwort aus config.local.php
+uebernommen“, beide Dateien tragen dasselbe Passwort, Queue-Verbindung OK.
+Dazu die zwei Rueckfaelle: ohne `config.local.php` wird wie bisher
+`geraet.local.php` genommen (Passwort unveraendert), ohne beide Dateien
+entsteht ein neues (32 Zeichen). Zum Schluss ein Erstlauf des gepatchten
+Skripts auf einem frischen Container: Exitcode 0, sechs von sechs OK,
+Queue erreichbar, keine PHP-Meldungen im Log.
+
+`bash -n` ueber das Skript: fehlerfrei. `php -l`: keine PHP-Datei geaendert,
+entfaellt.
+
+### Gefundene Fehler im eigenen Entwurf
+- **Der Vorgaenger-Patch hat die Gefahr erkannt und trotzdem die falsche Datei
+  gelesen.** Im Eintrag zu P-2026-08-09-04 steht unter „Gefundene Fehler“ woertlich,
+  ein zweiter Lauf duerfe einem gekoppelten Terminal nicht still die Queue
+  kappen – und der Kommentar im Code nannte sogar `config.local.php` als die
+  Datei, in der ein gekoppeltes Terminal die Zugangsdaten traegt. Nachgesehen
+  hat der Code dann in `geraet.local.php`. Kommentar und Code auseinander:
+  die teuerste Sorte Fehler, weil beim Lesen alles stimmig wirkt.
+- Ausgeloest wird der Fall nicht nur durch eine geloeschte Datei: Das Skript
+  **schreibt selbst** ein leeres Passwort nach `geraet.local.php`, wenn die
+  Datenbank beim Lauf nicht ansprechbar war (im Container ohne systemd
+  beobachtet). Der naechste Lauf haette danach rotiert.
+
+### Was bewusst nicht erreicht wurde
+- **Benutzername und Datenbankname werden weiterhin nur aus der Antwortdatei
+  genommen.** Wer `OFFLINE_DB_USER` nach der Kopplung aendert, zeigt mit
+  `config.local.php` weiter auf den alten Benutzer. Denkbar, aber kein Fall
+  aus der Praxis – und ein Thema pro Patch.
+- **Der `geraet.local.php`-Schreibvorgang bei nicht ansprechbarer Datenbank
+  wurde nicht geaendert.** Er hinterlaesst weiterhin `enabled => false` und ein
+  leeres Passwort. Schaden richtet das seit diesem Patch nicht mehr an (der
+  naechste erfolgreiche Lauf stellt beides wieder her), aber schoen ist es
+  nicht. Notiert, nicht mitgemacht.
+- **Die Kopplung selbst ist nach wie vor nicht durchgespielt** – dafuer braucht
+  es ein erreichbares Backend. Der Container hat nur belegt, dass die
+  Einrichtungsseite erscheint.
+
+### NEXT
+Zwei kleine Nachzieher aus demselben Lauf (P-2026-08-09-06 und -07), danach
+Stufe 4 (Kiosk).
 
 ## P-2026-08-09-04 terminal-grundsystem-skript
 
