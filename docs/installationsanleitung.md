@@ -126,13 +126,15 @@ Fuer wiederholbare technische und manuelle Pruefungen siehe
 ## 7) Terminal-Installation (optional)
 
 **Ein Hallenterminal wird nicht nach dieser Anleitung aufgesetzt**, sondern mit
-einem eigenen Skript:
+zwei eigenen Skripten:
 
 ```bash
-sudo ./scripts/terminal/install_terminal.sh
+sudo ./scripts/terminal/install_terminal.sh   # Grundsystem
+sudo ./scripts/terminal/install_kiosk.sh      # Vollbildbrowser beim Start
 ```
 
-Es richtet Pakete, Code, Webserver und die lokale Ausweichdatenbank ein und legt
+Das erste richtet Pakete, Code, Webserver und die lokale Ausweichdatenbank ein
+und legt
 `config/config.local.php` bewusst **nicht** an. Das Gerät startet
 unkonfiguriert, zeigt seine Einrichtungsseite und holt sich Server-Adresse,
 Terminal-ID und Zugangsdaten über einen Kopplungscode aus dem Backend – dabei

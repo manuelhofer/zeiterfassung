@@ -95,7 +95,8 @@ Einstiegspunkte: Backend `public/index.php` (`?seite=…`), Terminal
 werden Server-Adresse und ein im Backend erzeugter Kopplungscode eingegeben, und
 das Terminal schreibt seine Konfiguration daraus selbst. Das Grundsystem eines
 Geräts richtet `scripts/terminal/install_terminal.sh` ein – Pakete, Code,
-Webserver und lokale Ausweichdatenbank, aber bewusst **keine** Zugangsdaten.
+Webserver und lokale Ausweichdatenbank, aber bewusst **keine** Zugangsdaten;
+`scripts/terminal/install_kiosk.sh` macht daraus den Vollbild-Kiosk.
 Einzelheiten: [Terminal-Installation](docs/spezifikation_terminal_installation.md).
 
 ## Mitarbeiten

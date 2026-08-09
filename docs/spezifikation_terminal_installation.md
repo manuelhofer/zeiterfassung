@@ -1,11 +1,9 @@
 # Spezifikation: Terminal-Installation per Skript
 
 *Version:* v2 (2026-08-08)
-*Status:* in Umsetzung – **Stufe 1 (Kopplung im Backend)** vollstaendig
-(P-2026-08-08-30, -31, -35, -36), **Stufe 2 (Einrichtungsseite im Terminal)**
-vollstaendig (P-2026-08-09-01), **Stufe 3 (Grundsystem-Skript)** vollstaendig
-im Container geprueft (P-2026-08-09-04 bis -06, auf echter Hardware noch nicht
-gelaufen); als Naechstes Stufe 4, der Kiosk
+*Status:* in Umsetzung – Stand und Einschraenkungen je Stufe stehen im
+**Stufenplan (Abschnitt 11)**; gebaut sind die Stufen 1 bis 4, als Naechstes
+Stufe 5 (Peripherie)
 *Grundlage:* `docs/fachregeln/terminal_und_offline.md`;
 `docs/rfid_reader_setup.md`; `docs/terminal/rfid-ws_rollout.md`
 
@@ -13,12 +11,17 @@ gelaufen); als Naechstes Stufe 4, der Kiosk
 
 ## 1. Zielbild
 
-Ein frisch installiertes Linux-Geraet wird mit **einem Befehl** zum
+Ein frisch installiertes Linux-Geraet wird mit **zwei Befehlen** zum
 einsatzfertigen Hallenterminal:
 
 ```bash
-sudo ./scripts/terminal/install_terminal.sh
+sudo ./scripts/terminal/install_terminal.sh   # Grundsystem (Abschnitt 5a)
+sudo ./scripts/terminal/install_kiosk.sh      # Kiosk        (Abschnitt 7)
 ```
+
+Getrennt, weil ein Grundsystem sich im Container pruefen laesst und ein Kiosk
+einen Bildschirm braucht. Wer nur den Kiosk neu aufsetzt, faehrt nicht die
+ganze Installation noch einmal.
 
 Danach startet das Geraet von selbst in die Terminal-Oberflaeche, der
 RFID-Leser funktioniert, der Barcode-Scanner liefert saubere Codes, und der
@@ -380,10 +383,10 @@ deaktiviert). Phase 3 ist die Kopplung am Geraet und braucht kein Skript.
 
 ### Phase 2 – Peripherie und Kiosk
 7. RFID einrichten (Abschnitt 6).
-8. Touchscreen pruefen und drehen (Abschnitt 7).
-9. Kiosk einrichten (Abschnitt 8) – der Browser landet auf der
+8. Touchscreen pruefen und drehen (Abschnitt 6.4).
+9. Kiosk einrichten (Abschnitt 7) – der Browser landet auf der
    Einrichtungsseite, solange keine Konfiguration vorliegt.
-10. Selbsttest (Abschnitt 9), Ergebnis auf den Bildschirm und ins Log.
+10. Selbsttest (Abschnitt 8), Ergebnis auf den Bildschirm und ins Log.
 
 ### Phase 3 – Kopplung am Geraet (kein Skript)
 11. Am Touchscreen Server-Adresse und Kopplungscode eingeben; das Terminal holt
@@ -442,9 +445,10 @@ von `terminal.php`) sowie alle Warnungen des Laufs gesammelt. Das ist die kleine
 Fassung von Abschnitt 8; der vollstaendige Selbsttest mit Scan-Proben kommt mit
 Stufe 6.
 
-**Bewusst nicht im Skript:** Kiosk (Stufe 4), Peripherie (Stufe 5), Selbsttest
-mit Hardware (Stufe 6). Ein Lauf ohne systemd (Container) bricht nicht ab,
-sondern warnt – sonst waere die Stufe nicht im Container pruefbar.
+**Bewusst nicht in diesem Skript:** Kiosk (Stufe 4, eigenes Skript
+`install_kiosk.sh`, Abschnitt 7), Peripherie (Stufe 5), Selbsttest mit Hardware
+(Stufe 6). Ein Lauf ohne systemd (Container) bricht nicht ab, sondern warnt –
+sonst waere die Stufe nicht im Container pruefbar.
 
 ## 6. Peripherie
 
@@ -476,7 +480,9 @@ Zuordnung zum richtigen Bildschirm sind geraeteabhaengig und werden aus
 `BILDSCHIRM_DREHUNG` gesetzt; automatisch erraten laesst sich das nicht
 zuverlaessig.
 
-## 7. Kiosk
+## 7. Kiosk (umgesetzt, P-2026-08-09-09)
+
+Anforderung:
 
 - Autologin fuer einen eigenen Benutzer `terminal` (nicht root).
 - Browser im Vollbild auf `…/public/terminal.php`, ohne Bedienelemente.
@@ -484,6 +490,65 @@ zuverlaessig.
 - Neustart des Browsers, falls er abstuerzt.
 - Wayland oder X11 je nachdem, was die Distribution mitbringt: bevorzugt ein
   schlanker Wayland-Kiosk (`cage`), sonst X11 mit minimalem Fenstermanager.
+
+Umgesetzt in `scripts/terminal/install_kiosk.sh`, einem **zweiten** Skript:
+
+```bash
+sudo ./scripts/terminal/install_kiosk.sh [antwortdatei]
+```
+
+Es liest dieselbe `terminal.conf` wie Stufe 3 und legt drei Dinge an:
+`/etc/zeiterfassung-kiosk.conf` (Adresse, Browser, Anzeigeweg),
+`/usr/local/bin/zeiterfassung-kiosk` (Startskript) und
+`/etc/systemd/system/zeiterfassung-kiosk.service`.
+
+**Kein Autologin ueber getty, sondern ein Systemdienst.** Der uebliche Weg
+(`agetty --autologin` und ein Aufruf im Anmeldeprofil) haette den geforderten
+Neustart nach einem Absturz in einer Schleife in `~/.bash_profile` nachbauen
+muessen. Der Dienst bekommt ihn mit `Restart=always` geschenkt und laesst sich
+ausserdem gezielt anhalten, wenn jemand am Geraet arbeiten will.
+`PAMName=login` erzeugt dabei eine echte Anmeldesitzung – ohne die gibt es
+keinen Seat, und weder `cage` noch Xorg bekommen Bildschirm und
+Eingabegeraete. `Conflicts=getty@tty1.service` verhindert, dass sich
+Anmeldeaufforderung und Kiosk um dieselbe Konsole streiten.
+
+**Die Meldungen des Browsers stehen nicht unter der Einheit.** Wegen
+`PAMName=login` laufen `cage` und Browser in einer eigenen Sitzung; bei
+`journalctl -u zeiterfassung-kiosk` erscheinen nur Start und Stopp des
+Dienstes. Der Weg zu den Fehlern des Browsers ist
+`journalctl -t zeiterfassung-kiosk`. Das Skript sagt das am Ende ausdruecklich
+– es einmal zu wissen erspart die Suche nach einem Fehler, der scheinbar keine
+Spur hinterlaesst.
+
+**Der Anzeigeweg entscheidet sich am Geraet, nicht in der Tabelle:** Zuerst
+wird `cage` installiert; liegt danach kein `cage` vor (auf aelteren openSUSE
+gibt es das Paket nicht), kommen Xorg, `openbox` und `unclutter` dazu.
+`KIOSK_ANZEIGE` in der Antwortdatei erzwingt einen der beiden Wege. Unter X11
+ruft sich das Startskript ueber `xinit` selbst noch einmal auf – so bleibt
+alles in **einer** Datei, statt eine zweite `.xinitrc` zu pflegen.
+
+**Bildschirmschoner und Mauszeiger:** Unter X11 uebernehmen das `xset` und
+`unclutter`. Unter Wayland gibt es beides nicht – `cage` dunkelt von sich aus
+nicht ab, und einen Mauszeiger zeigt es nur, wenn tatsaechlich eine Maus
+angeschlossen ist. Zusaetzlich wird die Abdunkelung der Textkonsole
+abgeschaltet (`setterm --blank 0`), die sonst unter `cage` durchschlaegt.
+
+**Der Absturzvermerk von Chromium wird vor jedem Start zurueckgesetzt.** Sonst
+erscheint nach einem Absturz eine Leiste „Wiederherstellen“, die auf einem
+Geraet ohne Tastatur niemand wegbekommt. Dazu Schalter gegen Zoom durch zwei
+Finger und gegen „Zurueck“ per Wischgeste – beides loest am Touchscreen sonst
+laufend versehentliche Navigation aus.
+
+**Ein vorhandener Anmeldebildschirm wird abgeschaltet** (`display-manager`
+deaktiviert, Startziel `multi-user.target`), weil er den Kiosk sonst verdeckt.
+Wer das nicht will, setzt `KIOSK_ANMELDESCHIRM="belassen"` – gedacht fuer den
+Fall, dass das Skript versehentlich auf einem Arbeitsplatzrechner laeuft.
+
+**Der Kioskbenutzer kommt nicht an die Zugangsdaten.** `config/` gehoert seit
+Stufe 3 `root` und der Webserver-Gruppe (2770); der Benutzer `terminal` ist
+nicht darin. Die Ergebnisliste prueft das ausdruecklich mit – ein
+Vollbildbrowser mit Netzzugang ist der Teil des Geraets, der am ehesten
+uebernommen wird.
 
 ## 8. Selbsttest zum Abschluss
 
@@ -544,9 +609,18 @@ Was weiterhin gilt:
    zwei Fehler ans Licht, beide behoben (P-2026-08-09-05, -06). **Auf echter
    Hardware und auf den anderen drei Paketfamilien ist es weiterhin nicht
    gelaufen** – der Container deckt nur `apt` ab.
-4. **Kiosk** – Autologin, Browser im Vollbild, Grafikstack. In einer VM testbar.
-   **Als Naechstes.**
+4. **Kiosk** – Autologin, Browser im Vollbild, Grafikstack.
+   **Fertig** (P-2026-08-09-09): `scripts/terminal/install_kiosk.sh`, siehe
+   Abschnitt 7. Am 09.08.2026 im selben Debian-12-Container wie Stufe 3
+   gelaufen, zehn von zehn Punkten OK, Wiederholung ohne Warnung, beide
+   Anzeigewege (`cage` und Xorg) durchgespielt. **Ein Bild hat dabei niemand
+   gesehen** – ein Container hat keinen Bildschirm; `cage` kommt bis zum
+   Zugriff auf das Grafikgeraet und bricht dort ab, Xorg startet und findet
+   keinen Treiber. Beides ist der erwartete Abbruch, aber kein Beleg, dass der
+   Kiosk auf einem Geraet erscheint. Das zeigt erst eine VM mit Grafik oder
+   echte Hardware. Wie bei Stufe 3 gilt: nur `apt` geprueft.
 5. **Peripherie** – RFID, Touchscreen, Tastaturlayout. Braucht echte Hardware.
+   **Als Naechstes.**
 6. **Selbsttest** – rundet ab und macht das Ergebnis pruefbar.
 
 Bemerkenswert: Die ersten beiden Stufen sind der eigentliche Kern und lassen

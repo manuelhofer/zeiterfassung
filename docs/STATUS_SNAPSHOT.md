@@ -26,16 +26,17 @@ Urlaubsverwaltung, Auswertungen sowie Terminal-UI (Kiosk) inkl. Offline-Queue.
   (App unter `http://localhost/zeiterfassung`).
 
 ## Naechster Schritt
-**Stufe 4 der Terminal-Installation: der Kiosk** – Autologin fuer einen eigenen
-Benutzer, Browser im Vollbild auf `terminal.php`, Bildschirmschoner aus,
-Neustart des Browsers nach einem Absturz. Dazu gehoeren die Pakete fuer
-Grafikstack und Browser, die Stufe 3 bewusst ausgelassen hat. Am sinnvollsten
-als zweites Skript – ein Kiosk braucht eine VM, das Grundsystem lief im
-Container.
+**Der Kiosk auf einem echten Bildschirm.** Stufe 4 ist gebaut und lief im
+Container fehlerfrei durch, aber ein Bild hat dabei niemand gesehen – ein
+Container hat keinen Bildschirm. Bevor Stufe 5 (Peripherie) anfaengt, sollte
+`install_kiosk.sh` einmal in einer VM mit Grafik oder auf echter Hardware
+laufen: Kommt der Browser im Vollbild hoch, startet er nach `pkill` neu, bleibt
+der Bildschirm hell? `qemu`/`virsh` sind auf dem Entwicklungsrechner vorhanden.
 
-Grundlage: `docs/spezifikation_terminal_installation.md` (Abschnitte 5a und 7);
-Einzelheiten im „Naechster Schritt"-Block von
-`docs/archiv/DEV_PROMPT_HISTORY.md`.
+Danach **Stufe 5 (Peripherie)**: RFID-Leser (USB und RC522), Touchscreen und
+seine Drehung. Braucht echte Hardware.
+
+Grundlage: `docs/spezifikation_terminal_installation.md` (Abschnitte 6 und 7).
 
 **Welche Stufen fertig sind und wie weit sie geprueft sind, steht im Stufenplan
 der Spezifikation** (Abschnitt 11) – hier bewusst nicht ein zweites Mal.
@@ -62,6 +63,11 @@ der Spezifikation** (Abschnitt 11) – hier bewusst nicht ein zweites Mal.
   Anmeldeformular des Backends – im Container geprueft. Erst klaeren, ob das
   gewollt ist (Fernwartung) oder ob ein Terminal nur `terminal.php` ausliefern
   soll.
+- **T-104 Distributionserkennung steht zweimal.** `install_terminal.sh` und
+  `install_kiosk.sh` bringen denselben Block ueber `/etc/os-release` mit. Wer
+  eine Paketfamilie ergaenzt, muss an zwei Stellen denken. Zusammenlegen erst,
+  wenn eine dritte Stelle dazukommt – dafuer muesste das im Container
+  geprueft Skript der Stufe 3 angefasst und erneut geprueft werden.
 - Praxis-Test: Bugs und Anomalien sammeln, als Micro-Patches beheben.
 - Offen aus P-2026-08-08-02: Strichcode-Erzeugung und Terminal-Buchungsflows
   sind unter PHP 8.5 noch nicht im Browser geprueft (brauchen einen

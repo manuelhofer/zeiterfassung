@@ -103,6 +103,13 @@ Punkte verdeckt.
   nachvollziehbarer Grund, ein Terminal auf `terminal.php` zu beschraenken
   ebenso. Abschnitt 10 der Terminal-Spezifikation behandelt den Punkt bisher
   nicht.
+- **T-104 Distributionserkennung steht zweimal.** `install_terminal.sh` und
+  `install_kiosk.sh` bringen denselben Block ueber `/etc/os-release` samt
+  Familien-`case` mit. Wer eine Paketfamilie ergaenzt, muss an zwei Stellen
+  denken. Bewusst nicht sofort zusammengelegt: Dafuer muesste das bereits im
+  Container gepruefte Skript der Stufe 3 angefasst und erneut geprueft werden –
+  ein Refactor im selben Patch, den die Arbeitsregeln (Abschnitt 3) ausdruecklich
+  ausschliessen. Zusammenlegen, wenn eine dritte Stelle dazukommt (Stufe 5).
 - Praxis-Test: Bugs/Anomalien sammeln und als Micro-Patches beheben.
 - Offen aus P-2026-08-08-02: Strichcode-Erzeugung und die Terminal-Buchungsflows
   sind unter PHP 8.5 noch nicht im Browser geprueft (brauchen einen angemeldeten
@@ -128,40 +135,168 @@ Damit sich niemand ueber Daten wundert, die nicht aus dem Betrieb stammen:
 
 ## Nächster Schritt (konkret)
 
-**Erledigt: Der Container-Lauf hat stattgefunden** (09.08.2026, Debian 12 mit
-systemd als PID 1). Das Skript lief auf Anhieb durch, sechs von sechs Punkten
-OK. Die drei vorher vermuteten Stolpersteine waren allesamt keine: Der
-php-fpm-Socket wurde unter `/run/php/php-fpm.sock` gefunden, `a2dissite
-000-default` griff, und `mariadb -u root` geht im Container per
-`unix_socket`-Authentifizierung ohne Passwort durch. Gefunden wurden dafuer zwei
-andere Fehler, beide behoben (P-2026-08-09-05, -06) – nachzulesen in den
-Eintraegen unten. Offen bleibt: **auf echter Hardware und auf `pacman`, `dnf`
-und `zypper` ist das Skript nicht gelaufen.** Der Container deckt nur `apt` ab,
-und openSUSE bleibt die unsicherste Familie (versionsgebundene Paketnamen,
-php-fpm auf TCP statt Socket).
+**Der Kiosk auf einem echten Bildschirm.** Stufe 4 ist gebaut
+(P-2026-08-09-09) und lief im Container zehn von zehn Punkten durch – aber ein
+Bild hat dabei niemand gesehen. `cage` kommt bis zum Zugriff auf das
+Grafikgeraet und bricht dort ab, Xorg startet und findet keinen Treiber; beides
+ist im Container der erwartete Abbruch und kein Beleg. Zu pruefen ist in einer
+VM mit Grafik (`qemu`/`virsh` sind auf dem Entwicklungsrechner vorhanden) oder
+auf echter Hardware:
 
-**Stufe 4 der Terminal-Installation: der Kiosk.**
-Grundlage: `docs/spezifikation_terminal_installation.md`, Abschnitt 7.
-1. Eigenen Benutzer `terminal` anlegen (nicht root) und Autologin einrichten.
-2. Grafikstack und Browser installieren – die Pakete hat Stufe 3 bewusst
-   ausgelassen, weil sie ohne den Kiosk nur Wartezeit gewesen waeren.
-3. Browser im Vollbild auf `…/public/terminal.php`, ohne Bedienelemente,
-   Bildschirmschoner und Energiesparen aus, Mauszeiger ausblenden.
-4. Neustart des Browsers nach einem Absturz (systemd-Dienst mit `Restart=`).
-5. Wayland (`cage`) bevorzugt, X11 mit minimalem Fenstermanager als Rueckfall –
-   je nachdem, was die Distribution mitbringt.
+1. Kommt der Browser nach dem Einschalten im Vollbild hoch, ohne Adresszeile?
+2. Startet er nach `pkill chromium` von selbst neu (Restart=always)?
+3. Bleibt der Bildschirm nach zehn Minuten hell?
+4. Ist der Mauszeiger weg, wenn eine Maus angeschlossen ist?
+5. Greift der X11-Rueckfall, wenn man `KIOSK_ANZEIGE="x11"` setzt?
 
-Am sinnvollsten als **zweites Skript** oder als klar abgegrenzter Abschnitt,
-der sich einzeln aufrufen laesst: Ein Kiosk ist in einer VM zu pruefen, das
-Grundsystem im Container – zusammen in einem Lauf waere beides schwerer zu
-testen.
+Erst danach **Stufe 5 (Peripherie)**: RFID-Leser (USB-Keyboard-Wedge und RC522
+ueber SPI), Touchscreen und Drehung, Scan-Test. Braucht echte Hardware.
+Danach Stufe 6 (Selbsttest mit Scan-Proben).
 
-Danach Stufe 5 (Peripherie: RFID, Touchscreen), 6 (Selbsttest mit Scan-Proben).
+Weiterhin offen aus Stufe 3 und 4: **auf `pacman`, `dnf` und `zypper` ist
+keines der beiden Skripte gelaufen.** Der Container deckt nur `apt` ab, und
+openSUSE bleibt die unsicherste Familie (versionsgebundene Paketnamen, php-fpm
+auf TCP statt Socket, `cage` je nach Version gar nicht vorhanden).
 
 Weitere offene Punkte stehen oben unter „Offene Tasks (T-IDs)".
 
 ## Letzter Patch (P-ID)
-P-2026-08-09-08 (Commit) – Doku-Durchgang: Terminal-Installation ueberall aktuell
+P-2026-08-09-09 (Commit) – Kiosk-Skript (Stufe 4)
+
+## P-2026-08-09-09 kiosk-skript
+
+### EINGELESEN
+- `CHATSTART.md`, `docs/arbeitsregeln.md`, `docs/STATUS_SNAPSHOT.md`,
+  Snapshot-Teil dieser Datei (inkl. „Naechster Schritt“).
+- `docs/spezifikation_terminal_installation.md` (Abschnitte 3, 5, 5a, 7, 11).
+- `scripts/terminal/install_terminal.sh` vollstaendig – der Kiosk musste sich
+  in dieselbe Bauweise fuegen (Zuordnungstabelle je Familie, `pruefe`-Liste,
+  Warnungen sammeln statt abbrechen).
+- Duplicate-Check: `git log -S"kiosk" -i` und `git log --grep="kiosk" -i` –
+  nur Erwaehnungen in der Doku, keine Umsetzung.
+
+### DATEIEN
+- `scripts/terminal/install_kiosk.sh` (neu)
+- `scripts/terminal/terminal.conf.example` (Kiosk-Block)
+- `docs/spezifikation_terminal_installation.md` (Kopf, 1, 5, 5a, 7, 11)
+- `docs/installationsanleitung.md` (Abschnitt 7 – zwei Skripte statt einem)
+- `README.md` (Absatz Terminals)
+- `docs/STATUS_SNAPSHOT.md` (Naechster Schritt, T-104)
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+`sudo ./scripts/terminal/install_kiosk.sh` richtet auf einem Geraet, auf dem
+Stufe 3 gelaufen ist, einen Dienst ein, der den Browser als Benutzer `terminal`
+im Vollbild auf `terminal.php` startet und ihn nach einem Absturz neu startet.
+
+### DONE
+Ein **zweites** Skript, wie im „Naechster Schritt“-Block vorgesehen. Es liest
+dieselbe `terminal.conf` und legt an: `/etc/zeiterfassung-kiosk.conf`
+(Adresse, Browser, Anzeigeweg), `/usr/local/bin/zeiterfassung-kiosk`
+(Startskript) und `/etc/systemd/system/zeiterfassung-kiosk.service`.
+
+Entscheidungen, die nicht auf der Hand lagen:
+
+- **Systemdienst statt Autologin ueber getty.** Der uebliche Weg
+  (`agetty --autologin` plus Aufruf im Anmeldeprofil) haette den geforderten
+  Neustart nach einem Absturz als Schleife in `~/.bash_profile` nachbauen
+  muessen. `Restart=always` leistet das ohne eigene Logik, und der Kiosk laesst
+  sich fuer Wartung gezielt anhalten. `PAMName=login` liefert die
+  Anmeldesitzung, ohne die weder `cage` noch Xorg an Bildschirm und
+  Eingabegeraete kommen; `Conflicts=getty@tty1.service` verhindert den Streit
+  um die Konsole.
+- **Einstellungen in einer eigenen Datei**, nicht im Startskript: Wer am Geraet
+  die Adresse aendert, soll nicht das Installationsskript erneut laufen lassen
+  muessen.
+- **Der Anzeigeweg entscheidet sich an den vorhandenen Programmen**, nicht an
+  der Rueckmeldung der Paketinstallation. Auf aelteren openSUSE gibt es `cage`
+  nicht, und ein „installiert“ ohne Programm hilft niemandem.
+- **Unter X11 ruft sich das Startskript ueber `xinit` selbst noch einmal auf**
+  (`--x11-sitzung`). So bleibt alles in einer Datei, statt eine zweite
+  `.xinitrc` zu pflegen, die beim naechsten Lauf auseinanderlaeuft.
+- **Chromiums Absturzvermerk wird vor jedem Start zurueckgesetzt.** Sonst steht
+  nach einem Absturz eine Leiste „Wiederherstellen“ im Bild, die auf einem
+  Geraet ohne Tastatur niemand wegbekommt. Dazu Schalter gegen Zoom mit zwei
+  Fingern und gegen „Zurueck“ per Wischgeste.
+- **Ein vorhandener Anmeldebildschirm wird abgeschaltet**, weil er den Kiosk
+  verdeckt – abschaltbar ueber `KIOSK_ANMELDESCHIRM="belassen"`, damit niemand
+  versehentlich seinen Arbeitsplatzrechner verliert.
+- **Die Ergebnisliste prueft mit, dass der Kioskbenutzer `config.local.php`
+  nicht lesen kann.** Der Browser ist der Teil des Geraets, der am ehesten
+  uebernommen wird; dass Stufe 3 die Rechte richtig setzt, ist eine Annahme,
+  die nichts kostet zu belegen.
+
+### TEST
+Debian-12-Container mit systemd als PID 1, Aufbau wie in P-2026-08-09-07
+beschrieben (privilegiert, `--cgroupns=host`, Bare-Klon als Codequelle).
+Zuerst Stufe 3 (sechs von sechs OK), danach der Kiosk:
+
+- **Lauf 1:** zehn von zehn Punkten OK, keine Warnung. Gewaehlt wurden `cage`
+  und `/usr/bin/chromium`.
+- **Dienst gestartet:** Die Anmeldesitzung kommt zustande (`pam_unix …
+  session opened for user terminal(uid=1000)`), `cage` laeuft an und bricht am
+  Grafikgeraet ab – im Container erwartet. `Restart=always` griff, der
+  Neustartzaehler lief hoch (RestartSec=5, keine Startsperre).
+- **Lauf 2 und 3 (Wiederholbarkeit):** wieder zehn von zehn OK, keine Warnung;
+  der vorhandene Benutzer wird erkannt und nicht erneut angelegt.
+- **X11-Rueckfall erzwungen** (`KIOSK_ANZEIGE="x11"`): Alle sechs apt-Pakete
+  (`xserver-xorg`, `xinit`, `x11-xserver-utils`, `openbox`, `unclutter`,
+  `chromium`) liessen sich installieren, `Xwrapper.config` wurde geschrieben,
+  zehn von zehn OK. Der Startaufruf erreicht `xinit`, Xorg startet und findet
+  erwartungsgemaess keinen Treiber.
+- `systemd-analyze verify` ueber die erzeugte Dienstdatei: keine Beanstandung.
+- `bash -n` ueber Installationsskript und ueber das erzeugte Startskript
+  (letzteres per `awk` aus dem Heredoc geloest, nicht nachgebaut).
+- `php -l`: keine PHP-Datei geaendert, entfaellt.
+
+**Nicht geprueft – und das ist die wichtigste Zeile hier:** Ob tatsaechlich ein
+Bild erscheint. Ein Container hat keinen Bildschirm. Vollbild, Bildschirmschoner,
+Mauszeiger und der Neustart nach `pkill` sind Zusicherungen, keine Messwerte.
+
+### Gefundene Fehler im eigenen Entwurf
+- **`Environment=XDG_RUNTIME_DIR=/run/user/%U` war falsch.** `%U` loest in einer
+  Systemeinheit auf die Kennung des Dienstverwalters auf (0), nicht auf die aus
+  `User=` – im Container nachgewiesen: `systemctl show` meldete
+  `/run/user/0` bei `User=terminal` (uid 1000). Schaden angerichtet haette das
+  nur dort, wo es gebraucht wird: Wo logind eine Sitzung anlegt, ueberschreibt
+  `pam_systemd` den Wert ohnehin mit `/run/user/1000` (ebenfalls gemessen); wo
+  logind das nicht schafft, haette der Kiosk auf ein Verzeichnis von root
+  gezeigt und waere schwarz geblieben. Ersetzt durch `RuntimeDirectory=` –
+  systemd legt `/run/zeiterfassung-kiosk` dem Kioskbenutzer gehoerend mit 0700
+  an (geprueft) – plus einer Entscheidung zur Laufzeit im Startskript.
+- **`journalctl -u zeiterfassung-kiosk` zeigt die Fehler des Browsers nicht.**
+  Wegen `PAMName=login` laufen `cage` und Browser in einer eigenen Sitzung;
+  unter der Einheit stehen nur Start und Stopp. Der erste Entwurf nannte am
+  Ende genau diesen untauglichen Befehl – wer damit sucht, findet eine Einheit,
+  die „nur abstuerzt“, ohne Grund. Richtig ist `journalctl -t`; das Skript sagt
+  es jetzt samt Begruendung.
+- `setterm` meldete `$TERM is not defined`, wenn das Startskript von Hand
+  gestartet wurde. Behoben ueber einen Standardwert; die Meldungen von `setterm`
+  gehen jetzt ins Leere, weil ein fehlgeschlagenes Abdunkeln nichts kostet.
+
+### Was bewusst nicht erreicht wurde
+- **Die Distributionserkennung steht jetzt zweimal** (T-104). Sie
+  zusammenzulegen haette das im Container gepruefte Skript der Stufe 3
+  angefasst – ein Refactor im selben Patch, den Abschnitt 3 der Arbeitsregeln
+  ausschliesst.
+- **Nur `apt` geprueft.** Fuer `pacman`, `dnf` und `zypper` sind die Paketnamen
+  aus den Distributionen hergeleitet, aber nicht ausprobiert. `cage` fehlt auf
+  aelteren openSUSE ganz – dafuer gibt es den X11-Rueckfall.
+- **Touchscreen-Drehung (`BILDSCHIRM_DREHUNG`) bleibt unbeachtet.** Sie gehoert
+  zu Stufe 5, weil sie ohne Geraet nicht einzustellen ist.
+- **Kein Selbsttest mit Scan-Proben** – Stufe 6.
+
+### Zwei Querverweise nebenbei richtiggestellt
+Abschnitt 5, Phase 2 verwies auf „Abschnitt 7“ fuer den Touchscreen,
+„Abschnitt 8“ fuer den Kiosk und „Abschnitt 9“ fuer den Selbsttest – alle drei
+um eins verschoben, aus einer aelteren Nummerierung. Richtig sind 6.4, 7 und 8.
+Mitgenommen, weil derselbe Vierzeiler auf den Kiosk zeigt und ein halb
+richtiger Block schlimmer ist als ein ganz falscher: Wer zwei stimmige
+Verweise sieht, prueft den dritten nicht mehr.
+
+### NEXT
+Den Kiosk auf einem echten Bildschirm sehen (VM oder Hardware), danach Stufe 5
+(Peripherie) – Einzelheiten im Block „Naechster Schritt (konkret)“ oben.
 
 ## P-2026-08-09-08 doku-durchgang-terminal
 

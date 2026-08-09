@@ -1,11 +1,15 @@
 # ===========================================================================
-#  Antwortdatei fuer scripts/terminal/install_terminal.sh
+#  Antwortdatei fuer install_terminal.sh (Stufe 3) und install_kiosk.sh
+#  (Stufe 4)
 # ===========================================================================
 #
 #  Nutzung:
 #      cp terminal.conf.example terminal.conf
 #      # anpassen
 #      sudo ./install_terminal.sh
+#      sudo ./install_kiosk.sh
+#
+#  Beide Skripte lesen dieselbe Datei; jedes nimmt sich, was es braucht.
 #
 #  Ohne diese Datei fragt das Skript nach, sofern jemand davorsitzt, und nimmt
 #  sonst die hier gezeigten Standardwerte. Der Sinn der Datei: Wer zwanzig
@@ -44,6 +48,30 @@ ZEITZONE="Europe/Berlin"
 OFFLINE_DB_NAME="zeiterfassung_offline"
 OFFLINE_DB_USER="zeiterfassung_offline"
 
+# --- Kiosk (install_kiosk.sh, Stufe 4) -------------------------------------
+# Eigener Benutzer fuer den Browser, ohne Passwort. Angemeldet wird er
+# ausschliesslich vom Dienst zeiterfassung-kiosk.
+KIOSK_BENUTZER="terminal"
+
+# Startadresse des Browsers. Solange das Geraet nicht gekoppelt ist, zeigt
+# terminal.php dort die Einrichtungsseite.
+KIOSK_URL="http://localhost/terminal.php"
+
+# auto    = Wayland (cage), wenn vorhanden, sonst X11
+# wayland = cage erzwingen
+# x11     = Xorg mit openbox erzwingen
+KIOSK_ANZEIGE="auto"
+
+# Leer = der erste gefundene Browser (Chromium bevorzugt, Firefox als
+# Rueckfall). Sonst der volle Pfad zum Programm.
+KIOSK_BROWSER=""
+
+# abschalten = ein vorhandener Anmeldebildschirm wird deaktiviert; er wuerde
+#              auf einem Hallenterminal nur den Kiosk verdecken.
+# belassen   = nichts anfassen. Richtig, wenn das Skript versehentlich auf
+#              einem Arbeitsplatzrechner laeuft.
+KIOSK_ANMELDESCHIRM="abschalten"
+
 # --- Spaetere Stufen -------------------------------------------------------
 # RFID_VARIANTE (usb | rc522) und BILDSCHIRM_DREHUNG kommen mit Stufe 5
-# (Peripherie) dazu und werden von diesem Skript noch nicht ausgewertet.
+# (Peripherie) dazu und werden noch nicht ausgewertet.
