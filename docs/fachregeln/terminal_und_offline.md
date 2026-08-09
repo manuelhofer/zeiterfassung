@@ -67,7 +67,10 @@ angelegten Datei, sondern ueber eine **Kopplung** am Backend:
 **Jedes Terminal erhaelt einen eigenen Datenbankbenutzer** mit eingeschraenkten
 Rechten: kein `DELETE`, kein `DROP`, kein Zugriff auf Stundenkonto und
 Lohnkorrekturen. Ein verlorenes Geraet wird durch Loeschen dieses einen
-Benutzers unschaedlich gemacht – ohne alle anderen Terminals anzufassen.
+Benutzers unschaedlich gemacht – ohne alle anderen Terminals anzufassen; in der
+Terminalverwaltung ist das der Knopf **Entkoppeln**. Ein Geraet nur stillzulegen
+(`aktiv = 0`) reicht dafuer **nicht**: Das verhindert nur eine neue Kopplung,
+der vorhandene Zugang bleibt gueltig.
 
 Damit kennt das Installationsskript **keine** Zugangsdaten; dasselbe Abbild
 passt auf beliebig viele Geraete.

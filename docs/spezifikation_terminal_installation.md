@@ -654,6 +654,13 @@ Was weiterhin gilt:
    **Als Naechstes.**
 6. **Selbsttest** – rundet ab und macht das Ergebnis pruefbar.
 
+**Wo wir stehen** (Stand 09.08.2026, aus der Liste oben ablesbar, damit die
+Zahl nicht driftet): **vier von sechs Stufen gebaut.** Stufe 1 und 2 sind
+funktional geschlossen und gegen die Datenbank durchgespielt; Stufe 3 und 4
+sind gebaut und im Container geprueft, aber nur auf **einer von vier
+Paketfamilien** (`apt`) und ohne dass je ein Bild zu sehen war. Stufe 5 und 6
+existieren noch nicht.
+
 Bemerkenswert: Die ersten beiden Stufen sind der eigentliche Kern und lassen
 sich **komplett ohne ein einziges Geraet** bauen und pruefen.
 

@@ -273,6 +273,7 @@ Diese Punkte sind **Absicht** und gehoeren so nicht auf einen Produktivserver:
 ## 9. Verwandte Dokumente
 
 - [`docs/installationsanleitung.md`](installationsanleitung.md) – Produktivsetup
-- [`docs/master_prompt_zeiterfassung_v13.md`](archiv/master_prompt_zeiterfassung_v13.md) – Projektregeln
+- [`docs/arbeitsregeln.md`](arbeitsregeln.md) – Projektregeln (der Master-Prompt
+  v13 liegt abgeloest in `docs/archiv/`)
 - [`docs/wartungscheckliste.md`](wartungscheckliste.md) – was vor/nach Aenderungen zu pruefen ist
 - [`docs/rfid_reader_setup.md`](rfid_reader_setup.md) – RFID-Leser am Terminal

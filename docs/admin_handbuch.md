@@ -69,6 +69,20 @@ Status-Snapshot.
 2. Konfiguriere die Bridge-Einstellungen in `config/config.php` bzw. `config/config.local.php`.
 3. Teste den Scan am Terminal und prüfe die Logs bei Problemen.
 
+### 6) Ein Terminal ausmustern (Menü *Verwaltung → Terminals*)
+Jedes gekoppelte Gerät hat einen **eigenen Datenbankbenutzer**. Wird ein
+Terminal ersetzt, verschrottet oder vermisst, in der Spalte *Kopplung* auf
+**Entkoppeln** klicken – das löscht diesen Benutzer.
+
+**Nur „Aktiv“ auf Nein zu stellen genügt nicht.** Das verhindert lediglich eine
+neue Kopplung; die Zugangsdaten auf dem Gerät funktionieren weiter. Zum
+vorübergehenden Stilllegen (Umbau, Störung) ist „Aktiv = Nein“ richtig, zum
+Ausmustern *Entkoppeln*.
+
+Ein entkoppeltes Gerät braucht zum Wiederinbetriebnehmen einen neuen
+Kopplungscode. Einzelheiten:
+[Terminal-Installation](spezifikation_terminal_installation.md), Abschnitt 2a.
+
 ## Auftraege, Arbeitsschritte und Laufkarte
 
 Dieser Ablauf ist optional. Wer Auftraege wie bisher nur am Terminal scannt,

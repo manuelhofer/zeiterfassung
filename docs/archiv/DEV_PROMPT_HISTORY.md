@@ -70,6 +70,75 @@ in den Statusbericht.
   D-002 entfallen; die Regel selbst gilt weiter.)
 
 
+## P-2026-08-09-14 doku-durchgang-entkoppeln
+
+### EINGELESEN
+- `docs/admin_handbuch.md`, `docs/wartungscheckliste.md`,
+  `docs/fachregeln/terminal_und_offline.md`, `docs/installationsanleitung.md`,
+  `README.md`, `docs/README.md` – gegen den neuen Stand gelesen.
+- `views/layout/header.php` (Menueaufbau) – um den Menuepfad im Handbuch nicht
+  zu erfinden: Gruppe *Verwaltung*, Eintrag *Terminals*.
+- Maschinelle Pruefung aller Markdown-Links und aller in Backticks genannten
+  Repo-Pfade.
+
+### DATEIEN
+- `docs/admin_handbuch.md`
+- `docs/wartungscheckliste.md`
+- `docs/fachregeln/terminal_und_offline.md`
+- `docs/lokale_entwicklungsumgebung.md`
+- `docs/spezifikation_terminal_installation.md`
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Wer ein Terminal ausmustert, findet den richtigen Weg in der Doku, ohne die
+Spezifikation zu lesen – und keine Datei behauptet mehr, das gehe nur ueber
+`aktiv = 0`.
+
+### DONE
+- **Admin-Handbuch, neuer Abschnitt 6** „Ein Terminal ausmustern“ mit dem
+  Menuepfad und der Abgrenzung: *Aktiv = Nein* fuer voruebergehend,
+  *Entkoppeln* fuer endgueltig. Das Handbuch ist die Datei, die ein
+  Administrator liest – die Spezifikation liest er nicht.
+- **Fachregeln Terminal:** Der Satz „Ein verlorenes Geraet wird durch Loeschen
+  dieses einen Benutzers unschaedlich gemacht“ stand da seit der Kopplung, ohne
+  zu sagen, wo dieser Knopf ist. Jetzt benannt, mit derselben Abgrenzung – ein
+  Satz, keine zweite Beschreibung; die Einzelheiten bleiben in der
+  Spezifikation.
+- **Wartungscheckliste:** neuer Block „Nach Aenderungen an der
+  Terminalverwaltung“. Bisher deckte die Liste nur das Geraet ab, nicht die
+  Backend-Maske dazu.
+- **Stufenplan (Spezifikation, Abschnitt 11):** ein Absatz „Wo wir stehen“.
+  Bewusst **ohne Prozentzahl**, sondern als Zaehlung aus der Liste direkt
+  darueber (vier von sechs Stufen, eine von vier Paketfamilien) – eine Zahl
+  waere eine zweite, driftende Angabe, genau der Fehler aus P-2026-08-09-10
+  und -12.
+- **Falscher Pfad korrigiert:** `docs/lokale_entwicklungsumgebung.md` fuehrte
+  „Projektregeln“ unter `docs/master_prompt_zeiterfassung_v13.md`, die Datei
+  liegt aber seit dem Archivieren unter `docs/archiv/`. Jetzt zeigt der Eintrag
+  auf `docs/arbeitsregeln.md`, wo die geltenden Regeln stehen.
+
+### TEST
+- Alle Markdown-Links im Repo maschinell aufgeloest: **0 tot.**
+- Alle in Backticks genannten Repo-Pfade ausserhalb `docs/archiv/` geprueft.
+  Uebrig bleiben vier, alle erwartet und an Ort und Stelle erklaert:
+  `config/geraet.local.php` (legt das Skript zur Laufzeit an),
+  `sql/19_…` und `sql/20_…` (erledigte Migrationen im Rechte-Fahrplan, laengst
+  im Schema aufgegangen), `sql/zeiterfassung_aktuell.sql` (Dump, nicht im
+  Repository).
+- Menuepfad im Handbuch gegen `views/layout/header.php` geprueft.
+- Kaltstart-Set unveraendert bei 19,1 KB – der Doku-Zuwachs liegt
+  ausschliesslich in Dateien, die nur bei Bedarf gelesen werden.
+- `php -l`: keine PHP-Datei geaendert, entfaellt.
+
+### Was bewusst nicht erreicht wurde
+- `docs/rechte_prompt.md` nennt in seinem Fahrplan zwei Migrationsdateien, die
+  es nicht mehr gibt. Nicht angefasst: Der Abschnitt ist ein Verlaufsprotokoll
+  seiner Zeit, und daran herumzuschreiben waere ein Refactor in der falschen
+  Datei. Notiert, nicht mitgemacht.
+
+### NEXT
+T-101 (`passwort_hash` vor dem Terminal verbergen).
+
 ## P-2026-08-09-13 terminal-entkoppeln
 
 ### EINGELESEN

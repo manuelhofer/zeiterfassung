@@ -98,6 +98,13 @@ Nach Aenderungen am Terminal:
 - Auto-Logout pruefen
 - Health-Endpunkt `public/terminal.php?aktion=health` pruefen
 
+Nach Aenderungen an der Terminalverwaltung (Backend):
+
+- Terminalliste oeffnen, Spalte *Kopplung* pruefen
+- Kopplungscode erzeugen, am Terminal einloesen
+- Entkoppeln: Datenbankbenutzer muss verschwinden, das Geraet danach nicht mehr
+  buchen koennen
+
 Nach Aenderungen an Offline-Queue oder Datenbankverbindung:
 
 - Queue-Admin oeffnen
