@@ -261,7 +261,7 @@ ab; das war kein Aufweichen, sondern das Ergebnis des Nachsehens.
 | `feiertag` | SELECT, INSERT |
 | `system_log` | SELECT, INSERT |
 | `db_injektionsqueue` | SELECT, INSERT, UPDATE |
-| `mitarbeiter` | SELECT + UPDATE **nur** auf Spalte `rfid_code` |
+| `mitarbeiter` | SELECT **ohne** `passwort_hash` (spaltenweise) + UPDATE **nur** auf `rfid_code` |
 | Rollen/Rechte: `rolle`, `recht`, `rolle_hat_recht`, `mitarbeiter_hat_rolle`, `mitarbeiter_hat_rolle_scope`, `mitarbeiter_hat_recht`, `mitarbeiter_hat_abteilung`, `mitarbeiter_genehmiger` | SELECT |
 | Stammdaten: `maschine`, `terminal`, `config`, `abteilung`, `arbeitsschritt_katalog` | SELECT |
 | Auswertung: `zeit_rundungsregel`, `pausenfenster`, `pausenentscheidung`, `betriebsferien`, `krankzeitraum`, `kurzarbeit_plan`, `urlaub_kontingent_jahr`, `tageswerte_mitarbeiter`, `monatswerte_mitarbeiter`, `stundenkonto_korrektur` | SELECT |
@@ -291,14 +291,40 @@ Kein `DELETE`, kein `DROP`, kein `ALTER`, kein `CREATE` – nirgends.
   greift der `OfflineQueueManager` auf die Hauptdatenbank zurueck. Kein
   `DELETE`: haengengebliebene Eintraege raeumt ein Admin im Backend weg.
 
-**Offen geblieben – `passwort_hash`:** Der Vorschlag sah vor, die Spalte per
-spaltenweisem Recht auszunehmen. Das geht nicht, ohne vorher Code zu aendern:
-Spaltenrechte in MySQL/MariaDB verbieten `SELECT *`, und `MitarbeiterModel`
-arbeitet genau so – ueber den `ReportService` auch im Terminalpfad. Das Terminal
-kann die Hashes also lesen. Wer ein Geraet stiehlt, bekommt damit
-Passwort-Hashes zum Offline-Knacken. Das ist der letzte verbliebene Punkt aus
-Abschnitt 10 und als Aufgabe festgehalten; die Loesung ist entweder eine
-Sicht ohne diese Spalte oder feste Spaltenlisten statt `SELECT *`.
+**`passwort_hash` – geloest (P-2026-08-09-16).** Frueher stand hier, das gehe
+nicht ohne Codeaenderung. Das stimmte zur Haelfte: Spaltenrechte verbieten
+tatsaechlich `SELECT *`, aber im gesamten Terminalpfad gab es dafuer **genau
+zwei** Stellen, beide im `ReportService` und beide nur an einem einzigen Wert
+interessiert (`wochenarbeitszeit`). Sie holen ihn jetzt ueber
+`MitarbeiterModel::holeWochenarbeitszeit()`.
+
+Damit wird das Leserecht auf `mitarbeiter` **spaltenweise** vergeben: alle
+Spalten ausser `passwort_hash`, zur Kopplungszeit aus dem `information_schema`
+aufgeloest. Eine spaeter hinzugekommene Spalte ist damit automatisch dabei,
+sobald ein Geraet neu koppelt – eine von Hand gepflegte Positivliste waere beim
+naechsten Schema-Zuwachs still unvollstaendig.
+
+Zwei Dinge sind bewusst so gebaut:
+
+- **Ist die Spaltenliste nicht bestimmbar, entsteht gar kein Zugang.** Auch
+  dann nicht, wenn `passwort_hash` gar nicht mehr existierte: Waere die Spalte
+  umbenannt worden, sperrte die Liste nichts mehr, und niemand haette es
+  gemerkt. Die Kopplung schlaegt in dem Fall mit Protokolleintrag fehl.
+- **`SELECT *` auf `mitarbeiter` schlaegt am Terminal fehl** – gewollt. Wer den
+  Terminalpfad erweitert, merkt das sofort. `MitarbeiterModel` darf sein
+  `SELECT *` behalten, denn es laeuft nur noch im Backend.
+
+**Bereits gekoppelte Geraete behalten ihr altes, weites Recht**, bis sie neu
+gekoppelt werden – der Zugang wird nur beim Koppeln vergeben. Wer sichergehen
+will: in der Terminalverwaltung *Entkoppeln*, dann neuen Kopplungscode. Ob ein
+Geraet noch das alte Recht hat, zeigt
+
+```sql
+SHOW GRANTS FOR 'term_...'@'%';
+```
+
+Steht dort `GRANT SELECT ... ON \`zeiterfassung\`.\`mitarbeiter\`` **ohne**
+Spaltenliste in Klammern, ist es ein Zugang von vor P-2026-08-09-16.
 
 ### Von welchem Rechner darf sich das Terminal verbinden
 
@@ -616,6 +642,7 @@ Was weiterhin gilt:
 
 - Die Zugangsdaten liegen trotzdem lesbar auf dem Geraet – der Schaden ist
   begrenzt, aber nicht null. Physischer Schutz der Geraete bleibt sinnvoll.
+  Passwort-Hashes gehoeren seit P-2026-08-09-16 **nicht** mehr dazu (siehe 2a).
 - Bei der Kopplung selbst gehen Zugangsdaten ueber das Netz (siehe 2a).
 - Ein ausgemustertes Terminal muss im Backend **entkoppelt** werden (Knopf in
   der Terminalverwaltung, siehe 2a), sonst bleibt sein Datenbankbenutzer

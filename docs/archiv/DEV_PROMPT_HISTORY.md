@@ -70,6 +70,107 @@ in den Statusbericht.
   D-002 entfallen; die Regel selbst gilt weiter.)
 
 
+## P-2026-08-09-16 terminal-ohne-passworthashes
+
+### EINGELESEN
+- `services/TerminalDbBenutzerService.php` (Rechtetabellen, `baueGrantAnweisungen`).
+- Der **gesamte Aufrufgraph des Terminalpfads**: `controller/TerminalController.php`,
+  `public/terminal.php`, `views/terminal/*`, dann die von dort genutzten Dienste
+  (`AuftragszeitService`, `ReportService`, `StundenkontoService`, `UrlaubService`,
+  `ZeitService`, `OfflineQueueService`) und deren Modelle – auf der Suche nach
+  jedem `SELECT *` auf `mitarbeiter`.
+- `docs/spezifikation_terminal_installation.md`, Abschnitt „Rechte des
+  Terminal-Benutzers" und Abschnitt 10.
+
+### DATEIEN
+- `services/TerminalDbBenutzerService.php`
+- `modelle/MitarbeiterModel.php`
+- `services/ReportService.php`
+- `docs/spezifikation_terminal_installation.md`
+- `docs/STATUS_SNAPSHOT.md`
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Der Datenbankbenutzer eines Terminals kann `passwort_hash` nicht mehr lesen,
+und die Monatsuebersicht am Terminal rechnet unveraendert.
+
+### DONE
+`mitarbeiter` war fuer den Terminal-Benutzer als ganze Tabelle lesbar – also
+auch die **Passwort-Hashes**. Auf einem Hallengeraet liegen die Zugangsdaten
+lesbar in `config.local.php`; wer ein Geraet mitnimmt, hatte damit die
+Grundlage, Hashes offline durchzuprobieren.
+
+- **Spaltenweises Leserecht.** Neue Konstante `SPALTEN_GESPERRT` im
+  `TerminalDbBenutzerService`. Fuer die dort genannten Tabellen wird das
+  Leserecht Spalte fuer Spalte vergeben, aufgeloest aus dem
+  `information_schema` **zur Kopplungszeit**. Eine spaeter hinzugekommene
+  Spalte kommt damit automatisch mit; eine von Hand gepflegte Positivliste waere
+  beim naechsten Schema-Zuwachs still unvollstaendig geworden.
+- **Kein Rateschluss.** Laesst sich die Liste nicht bestimmen, wird **gar kein
+  Zugang** angelegt. Dazu gehoert ausdruecklich der Fall, dass `passwort_hash`
+  nicht mehr existiert: Waere die Spalte umbenannt worden, sperrte die Liste
+  nichts mehr – und niemand haette es gemerkt. `baueGrantAnweisungen()` liefert
+  dafuer jetzt `?array` statt `array`.
+- **Zwei Codestellen angepasst.** `ReportService` holte an zwei Stellen den
+  ganzen Mitarbeiterdatensatz (`holeNachId()`, ein `SELECT *`), um genau einen
+  Wert zu lesen. Neue Methode `MitarbeiterModel::holeWochenarbeitszeit()`.
+  Die uebrigen fuenf `SELECT *` im `MitarbeiterModel` bleiben – sie laufen nur
+  im Backend.
+
+### TEST
+**Zwei Testlaeufe, zusammen 40 Punkte, alle bestanden.**
+
+1. *Rechte (29 Punkte)* – Wegwerf-Terminal gekoppelt, dann **mit dessen
+   Zugangsdaten** verbunden:
+   - Verboten und auch verboten geblieben: `SELECT passwort_hash`, `SELECT *`,
+     gemischte Spaltenliste, `passwort_hash` in `WHERE`, in `ORDER BY`, sowie
+     `UPDATE passwort_hash`.
+   - Weiterhin erlaubt: alle acht echten `mitarbeiter`-Abfragen aus dem
+     Terminalcode (namentlich mit Fundstelle geprueft), `COUNT(*)`,
+     `UPDATE rfid_code`, und `SELECT *` auf allen anderen Tabellen.
+   - `SHOW GRANTS`: 15 Spalten, `passwort_hash` in keinem Grant.
+2. *Ende zu Ende (11 Punkte)* – aus der Kopplung eine **echte
+   Terminal-Installation** gebaut (App-Kopie mit `config.local.php`,
+   `installation_typ = terminal`) und dort die Monatsuebersicht rechnen lassen:
+   **Sollstunden 168,00 – identisch zur Rechnung als Backend-Benutzer.**
+   Tageswerte vorhanden, kein Fehler.
+
+Beide Laeufe raeumen hinter sich auf (kein Testterminal, kein `term_zz%`-Benutzer,
+Host-Muster zurueckgestellt). `php -l` auf allen drei geaenderten PHP-Dateien
+fehlerfrei.
+
+### Gefundene Fehler im eigenen Entwurf
+**Der wichtigste Fund dieser Runde, und er widerlegte meine eigene erste
+Analyse.** Ein Durchgang nach direktem SQL ergab: Der Terminalpfad nennt seine
+Spalten ueberall einzeln, ein Codeeingriff sei gar nicht noetig. Das war falsch –
+gesucht war nach `FROM mitarbeiter`, aber der `ReportService` fasst die Tabelle
+nie selbst an, sondern ueber `MitarbeiterModel`. Der Pfad
+`TerminalController:780 → holeMonatsdatenFuerMitarbeiter() → holeNachId()`
+war damit uebersehen.
+
+Haette ich es dabei belassen, waere ein besonders unangenehmer Fehler
+entstanden: Beide Stellen fangen Ausnahmen ab und rechnen mit **0 Stunden**
+weiter. Am Terminal waere also kein Fehler erschienen, sondern eine **falsche
+Monatsuebersicht** – genau das stille Falschrechnen, vor dem die Begruendung
+zum `feiertag`-INSERT in derselben Datei warnt. Aufgefallen ist es nur, weil
+die alte Doku das Gegenteil meiner Analyse behauptete und ich nachgesehen habe,
+wer von beiden recht hat.
+
+Der zweite Testlauf (Ende zu Ende) ist die Konsequenz daraus: Rechte allein auf
+SQL-Ebene zu pruefen haette den Fehler nicht gezeigt.
+
+### Was bewusst nicht erreicht wurde
+- **Bereits gekoppelte Geraete behalten ihr altes, weites Recht.** Rechte
+  werden nur beim Koppeln vergeben. Nachtraeglich alle `term_*`-Benutzer
+  umzuschreiben waere ein Eingriff in laufende Geraete; der vorgesehene Weg ist
+  *Entkoppeln* und neu koppeln. Die Pruefabfrage steht in der Spezifikation.
+- **Nur `passwort_hash`.** Andere Spalten (`email`, `geburtsdatum`) bleiben
+  lesbar. Das Terminal zeigt Namen ohnehin an; eine breitere Sperre waere eine
+  eigene Abwaegung und kein Teil dieser Aufgabe.
+
+### NEXT
+Stufe 5 (Peripherie) und Stufe 6 (Selbsttest) des Installationsskripts.
+
 ## P-2026-08-09-15 kaltstart-als-regel
 
 ### EINGELESEN

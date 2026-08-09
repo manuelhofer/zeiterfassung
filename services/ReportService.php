@@ -1181,9 +1181,12 @@ class ReportService
         $wochenarbeitszeit = 0.0;
 
         try {
-            $m = $this->mitarbeiterModel->holeNachId($mitarbeiterId);
-            if (is_array($m) && isset($m['wochenarbeitszeit'])) {
-                $wochenarbeitszeit = (float)str_replace(',', '.', (string)$m['wochenarbeitszeit']);
+            // Gezielt nur diese Spalte: Diese Methode laeuft auch am Terminal,
+            // und dort ist `SELECT *` auf `mitarbeiter` seit P-2026-08-09-16
+            // nicht mehr erlaubt (Passwort-Hashes).
+            $wert = $this->mitarbeiterModel->holeWochenarbeitszeit($mitarbeiterId);
+            if ($wert !== null) {
+                $wochenarbeitszeit = $wert;
             }
         } catch (\Throwable $e) {
             $wochenarbeitszeit = 0.0;
@@ -2050,9 +2053,11 @@ private function holeBetriebsferienTageFuerMitarbeiterUndMonat(int $mitarbeiterI
         // Wichtig: Das ist reine Anzeige-Logik – es wird nichts in der DB gespeichert.
         $wochenarbeitszeit = 0.0;
         try {
-            $m = $this->mitarbeiterModel->holeNachId($mitarbeiterId);
-            if (is_array($m) && isset($m['wochenarbeitszeit'])) {
-                $wochenarbeitszeit = (float)str_replace(',', '.', (string)$m['wochenarbeitszeit']);
+            // Siehe berechneSollstundenFallback(): nur diese eine Spalte, damit
+            // die Monatsuebersicht auch am Terminal rechnet.
+            $wert = $this->mitarbeiterModel->holeWochenarbeitszeit($mitarbeiterId);
+            if ($wert !== null) {
+                $wochenarbeitszeit = $wert;
             }
         } catch (\Throwable $e) {
             $wochenarbeitszeit = 0.0;

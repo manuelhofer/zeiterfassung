@@ -89,6 +89,41 @@ class MitarbeiterModel
     }
 
     /**
+     * Wochenarbeitszeit eines Mitarbeiters – und sonst nichts.
+     *
+     * Eigene Methode statt `holeNachId()`, weil der `ReportService` an zwei
+     * Stellen nur diesen einen Wert braucht und **auch am Terminal** laeuft
+     * (Monatsstatus). Der Terminal-Datenbankbenutzer darf `passwort_hash` seit
+     * P-2026-08-09-16 nicht mehr lesen, und ein Spaltenrecht laesst `SELECT *`
+     * scheitern. Beide Aufrufstellen fangen Fehler ab und rechnen dann mit
+     * 0 Stunden weiter – der Ausfall waere also **kein Absturz, sondern eine
+     * stille Falschrechnung**. Genau davor schuetzt diese Methode.
+     *
+     * @return float|null null, wenn es den Mitarbeiter nicht gibt oder nichts
+     *         hinterlegt ist – bewusst unterschieden von 0.0.
+     */
+    public function holeWochenarbeitszeit(int $id): ?float
+    {
+        if ($id <= 0) {
+            return null;
+        }
+
+        $daten = $this->db->fetchEine(
+            'SELECT wochenarbeitszeit
+               FROM mitarbeiter
+              WHERE id = :id
+              LIMIT 1',
+            ['id' => $id]
+        );
+
+        if (!is_array($daten) || !isset($daten['wochenarbeitszeit'])) {
+            return null;
+        }
+
+        return (float)str_replace(',', '.', (string)$daten['wochenarbeitszeit']);
+    }
+
+    /**
      * Holt einen aktiven, login-berechtigten Mitarbeiter anhand Benutzername oder E-Mail.
      *
      * @return array<string,mixed>|null

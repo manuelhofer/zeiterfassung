@@ -126,6 +126,33 @@ class TerminalDbBenutzerService
         'mitarbeiter' => ['UPDATE' => ['rfid_code']],
     ];
 
+    /**
+     * Spalten, die der Terminal-Benutzer **nicht** lesen darf (T-101).
+     *
+     * Auf einem Terminal liegen die Zugangsdaten lesbar in `config.local.php`.
+     * Mit `SELECT` auf die ganze Tabelle `mitarbeiter` haette damit jeder, der
+     * an ein Hallengeraet kommt, auch saemtliche **Passwort-Hashes** – und
+     * damit die Grundlage, sie offline durchzuprobieren. Das ist genau der
+     * Schaden, den die Kopplung begrenzen soll.
+     *
+     * Fuer jede hier genannte Tabelle wird das Leserecht deshalb **spaltenweise**
+     * vergeben: alle Spalten ausser den gesperrten, zur Kopplungszeit aus dem
+     * `information_schema` aufgeloest. Dadurch nimmt eine neue Spalte
+     * automatisch am Recht teil, sobald ein Geraet neu gekoppelt wird – eine
+     * von Hand gepflegte Positivliste waere beim naechsten Schema-Zuwachs still
+     * unvollstaendig.
+     *
+     * Der Preis: `SELECT *` auf diese Tabelle schlaegt am Terminal fehl. Das ist
+     * gewollt und heute unkritisch – der gesamte Terminalpfad nennt seine
+     * Spalten einzeln (geprueft in P-2026-08-09-16); `MitarbeiterModel` mit
+     * seinen `SELECT *` laeuft ausschliesslich im Backend.
+     *
+     * @var array<string,array<int,string>>
+     */
+    private const SPALTEN_GESPERRT = [
+        'mitarbeiter' => ['passwort_hash'],
+    ];
+
     private static ?TerminalDbBenutzerService $instanz = null;
 
     private Database $db;
@@ -189,6 +216,19 @@ class TerminalDbBenutzerService
             return null;
         }
 
+        // Vor dem Anlegen: Sind alle Rechte bestimmbar? Sonst gar nicht erst
+        // anfangen - ein Benutzer ohne vollstaendige Rechte waere schlimmer als
+        // keiner, weil das Terminal dann sporadisch scheitert statt sofort.
+        $grantAnweisungen = $this->baueGrantAnweisungen($benutzer, $host, $dbname);
+        if ($grantAnweisungen === null) {
+            $this->protokolliere('error', 'Terminal-Datenbankbenutzer: Rechte nicht bestimmbar, kein Zugang angelegt', [
+                'terminal_id' => $terminalId,
+                'benutzer'    => $benutzer,
+            ]);
+
+            return null;
+        }
+
         try {
             $pdo = $this->db->getVerbindung();
 
@@ -213,7 +253,7 @@ class TerminalDbBenutzerService
                 $this->quoteText($passwort)
             ));
 
-            foreach ($this->baueGrantAnweisungen($benutzer, $host, $dbname) as $anweisung) {
+            foreach ($grantAnweisungen as $anweisung) {
                 $pdo->exec($anweisung);
             }
         } catch (\Throwable $e) {
@@ -347,9 +387,10 @@ class TerminalDbBenutzerService
     /**
      * Baut die GRANT-Anweisungen aus der Rechtetabelle.
      *
-     * @return array<int,string>
+     * @return array<int,string>|null null, wenn ein Recht nicht sicher
+     *         bestimmbar ist - dann wird gar kein Zugang angelegt.
      */
-    private function baueGrantAnweisungen(string $benutzer, string $host, string $dbname): array
+    private function baueGrantAnweisungen(string $benutzer, string $host, string $dbname): ?array
     {
         $ziel        = $this->quoteBenutzer($benutzer, $host);
         $anweisungen = [];
@@ -359,13 +400,56 @@ class TerminalDbBenutzerService
                 continue;
             }
 
-            $anweisungen[] = sprintf(
-                'GRANT %s ON `%s`.`%s` TO %s',
-                $rechte,
-                $dbname,
-                $tabelle,
-                $ziel
-            );
+            $gesperrt = self::SPALTEN_GESPERRT[$tabelle] ?? [];
+
+            if ($gesperrt === []) {
+                $anweisungen[] = sprintf(
+                    'GRANT %s ON `%s`.`%s` TO %s',
+                    $rechte,
+                    $dbname,
+                    $tabelle,
+                    $ziel
+                );
+                continue;
+            }
+
+            // Tabelle mit gesperrten Spalten: Das Recht wird spaltenweise
+            // vergeben, damit die gesperrten aussen vor bleiben.
+            $erlaubteSpalten = $this->holeSpaltenOhne($dbname, $tabelle, $gesperrt);
+
+            if ($erlaubteSpalten === null) {
+                // Kein Rateschluss: Ein Zugang, dessen Spaltenliste nicht
+                // sicher bestimmbar ist, waere entweder unbrauchbar oder
+                // wuerde die gesperrten Spalten doch wieder freigeben.
+                $this->protokolliere('error', 'Terminal-Datenbankbenutzer: Spaltenliste nicht bestimmbar', [
+                    'tabelle'  => $tabelle,
+                    'gesperrt' => implode(', ', $gesperrt),
+                    'hinweis'  => 'Heisst die Spalte noch so? Siehe SPALTEN_GESPERRT in TerminalDbBenutzerService.',
+                ]);
+
+                return null;
+            }
+
+            $spaltenListe = implode(', ', array_map(
+                static fn (string $s): string => '`' . $s . '`',
+                $erlaubteSpalten
+            ));
+
+            foreach (explode(',', $rechte) as $recht) {
+                $recht = trim($recht);
+                if ($recht === '') {
+                    continue;
+                }
+
+                $anweisungen[] = sprintf(
+                    'GRANT %s (%s) ON `%s`.`%s` TO %s',
+                    $recht,
+                    $spaltenListe,
+                    $dbname,
+                    $tabelle,
+                    $ziel
+                );
+            }
         }
 
         foreach (self::SPALTENRECHTE as $tabelle => $rechteJeSpalte) {
@@ -397,6 +481,62 @@ class TerminalDbBenutzerService
         }
 
         return $anweisungen;
+    }
+
+    /**
+     * Spalten einer Tabelle **ohne** die gesperrten, in Schema-Reihenfolge.
+     *
+     * Zur Kopplungszeit aufgeloest, damit eine spaeter hinzugekommene Spalte
+     * automatisch mitkommt. Liefert null, sobald etwas nicht stimmt - der
+     * Aufrufer bricht dann ab, statt ein halbrichtiges Recht zu vergeben.
+     *
+     * @param array<int,string> $gesperrt
+     * @return array<int,string>|null
+     */
+    private function holeSpaltenOhne(string $dbname, string $tabelle, array $gesperrt): ?array
+    {
+        try {
+            $stmt = $this->db->getVerbindung()->prepare(
+                'SELECT COLUMN_NAME
+                   FROM information_schema.COLUMNS
+                  WHERE TABLE_SCHEMA = :db
+                    AND TABLE_NAME = :tabelle
+                  ORDER BY ORDINAL_POSITION'
+            );
+            $stmt->execute(['db' => $dbname, 'tabelle' => $tabelle]);
+            $spalten = $stmt->fetchAll(\PDO::FETCH_COLUMN);
+        } catch (\Throwable $e) {
+            return null;
+        }
+
+        if (!is_array($spalten) || $spalten === []) {
+            return null;
+        }
+
+        $spalten = array_map(static fn ($s): string => (string)$s, $spalten);
+
+        // Gegenprobe zuerst: Jede gesperrte Spalte muss es wirklich geben.
+        // Waere `passwort_hash` umbenannt worden, sperrte die Liste nichts mehr
+        // und niemand haette es gemerkt - der stille Fall ist der gefaehrliche.
+        foreach ($gesperrt as $spalte) {
+            if (!in_array($spalte, $spalten, true)) {
+                return null;
+            }
+        }
+
+        $erlaubt = [];
+        foreach ($spalten as $spalte) {
+            if (!$this->istBezeichnerGueltig($spalte)) {
+                // Unerwarteter Name: nicht in eine GRANT-Anweisung einbauen.
+                return null;
+            }
+            if (in_array($spalte, $gesperrt, true)) {
+                continue;
+            }
+            $erlaubt[] = $spalte;
+        }
+
+        return $erlaubt === [] ? null : $erlaubt;
     }
 
     /**

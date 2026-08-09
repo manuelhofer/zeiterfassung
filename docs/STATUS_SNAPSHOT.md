@@ -62,10 +62,6 @@ der Spezifikation** (Abschnitt 11) – hier bewusst nicht ein zweites Mal.
   nochmals pruefen. Teilfix in P-2026-01-18-07.
 
 ## Offene Tasks
-- **T-101 `passwort_hash` vor dem Terminal verbergen.** Der Terminal-Benutzer
-  darf `mitarbeiter` komplett lesen, also auch die Passwort-Hashes.
-  Spaltenrechte scheitern an `SELECT *` im `MitarbeiterModel`. Loesung: Sicht
-  ohne diese Spalte oder feste Spaltenlisten.
 - **T-102 Buchungen tragen keine `terminal_id`.** Seit P-2026-08-09-01 steht die
   ID in `config.local.php` (`terminal.id`) und liesse sich durchreichen.
 - **T-103 Auf dem Terminal ist die Backend-Anmeldung erreichbar.** Der
