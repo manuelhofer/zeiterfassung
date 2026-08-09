@@ -70,6 +70,88 @@ in den Statusbericht.
   D-002 entfallen; die Regel selbst gilt weiter.)
 
 
+## P-2026-08-09-20 paketfamilie-an-einer-stelle
+
+### EINGELESEN
+- Die drei Erkennungsbloecke in `install_terminal.sh`, `install_kiosk.sh` und
+  `install_peripherie.sh` im direkten Vergleich – sind sie wirklich gleich?
+- Die Paketinstallation je Skript: Stufe 3 installiert einen Stapel, Stufe 4
+  und 5 einzelne Pakete.
+- T-104 im Snapshot, samt der dort genannten Bedingung („erst wenn eine dritte
+  Stelle dazukommt").
+
+### DATEIEN
+- `scripts/terminal/_paketfamilie.sh` (neu)
+- `scripts/terminal/install_terminal.sh`
+- `scripts/terminal/install_kiosk.sh`
+- `scripts/terminal/install_peripherie.sh`
+- `docs/spezifikation_terminal_installation.md`
+- `docs/STATUS_SNAPSHOT.md`
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Wer eine Paketfamilie ergaenzt, aendert genau eine Datei, und alle vier Stufen
+laufen unveraendert durch.
+
+### DONE
+T-104 erledigt. Die Bedingung, die der Task selbst genannt hatte – „erst wenn
+eine dritte Stelle dazukommt" –, war mit P-2026-08-09-17 eingetreten.
+
+`scripts/terminal/_paketfamilie.sh` ist kein eigenstaendiges Skript, sondern
+wird von den drei Installationsskripten eingelesen. Darin:
+
+- `erkenne_paketfamilie` – setzt `FAMILIE` und `BETRIEBSSYSTEM`, Rueckgabewert
+  sagt, ob es geklappt hat. Ob das ein Abbruch ist, entscheidet der Aufrufer.
+- `paketquellen_auffrischen` – einmal je Lauf, vor dem ersten Installieren.
+- `paket_installieren` – variadisch, damit Stufe 3 ihren ganzen Stapel und
+  Stufe 4/5 einzelne Pakete uebergeben koennen.
+
+**Was bewusst NICHT hineinkam:** welche Pakete eine Stufe braucht. Das ist je
+Stufe verschieden und gehoert dorthin, wo es gebraucht wird. Gemeinsam ist nur,
+**wie** man auf dieser Familie installiert – sonst waere aus der gemeinsamen
+Datei eine Sammelstelle fuer alles geworden.
+
+Zwei Aenderungen ueber das reine Verschieben hinaus, beide mit Grund:
+
+- **Auf Arch jetzt `pacman -Syu` statt `-Sy`.** Stufe 4 machte bisher `-Sy` und
+  danach `-S` – der bekannte Weg in eine halb aktualisierte Installation
+  (partial upgrade). Auf einem Geraet, das danach jahrelang in einer Halle
+  steht, ist das keine theoretische Sorge. Stufe 3 machte es mit `-Syu` schon
+  richtig; jetzt tun es alle drei.
+- **`/etc/os-release` wird in einer Subshell gelesen.** Die Datei setzt unter
+  anderem `NAME` und `VERSION` – Namen, die ein aufrufendes Skript ebenfalls
+  benutzen koennte. Vorher wurde sie direkt in den Skript-Namensraum eingelesen;
+  das ging gut, war aber Glueck.
+
+### TEST
+**Voller Durchlauf aller vier Stufen** im Debian-12-Container (frisch
+aufgesetzt, systemd als PID 1):
+
+- Stufe 3: sechs von sechs. Stufe 4: zehn von zehn. Stufe 5 (`bridge`): neun
+  von neun. Stufe 6: fuenf OK, vier FEHLT – alle vier richtig fuer einen
+  Container.
+- **Wiederholung aller drei Installationsskripte: null FEHLT-Punkte** (idempotent).
+- Erkennung gegen alle vier Familien geprueft: `arch → pacman`,
+  `fedora → dnf`, `opensuse-leap → zypper`, `ubuntu → apt`, `raspbian → apt`;
+  im Container selbst `apt (Debian GNU/Linux 12)`.
+- `bash -n` auf allen fuenf Dateien fehlerfrei.
+
+Nebenbefund aus demselben Lauf: Der Selbsttest meldet auf dem **echten,
+frisch aufgesetzten und noch nicht gekoppelten** Geraet „Backend-Oberflaeche
+ist gesperrt (leitet auf terminal.php)". Damit ist die zweite Bedingung aus
+P-2026-08-09-19 auch ausserhalb des synthetischen Testaufbaus belegt.
+
+### Was bewusst nicht erreicht wurde
+- **`schritt`, `warnung` und `pruefe` stehen weiterhin dreimal.** Sie sind
+  zwar ebenfalls gleich, aber kein Grund fuer den Fehler, den T-104 beschreibt:
+  Wer eine Paketfamilie ergaenzt, fasst sie nicht an. Sie mitzunehmen haette
+  den Eingriff in drei gepruefte Skripte vergroessert, ohne etwas zu sichern.
+- **Nach wie vor nur `apt` geprueft.** Die Zusammenlegung macht die anderen
+  drei Familien wartbarer, nicht getestet.
+
+### NEXT
+Der Geraetetest auf einem Bildschirm.
+
 ## P-2026-08-09-19 terminal-ohne-backend
 
 ### EINGELESEN

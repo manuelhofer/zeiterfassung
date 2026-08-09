@@ -45,6 +45,18 @@ fi
 
 SKRIPTDIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
+# Alles, was je Paketmanager anders ist, steht in einer gemeinsamen Datei
+# (T-104). Fehlt sie, ist die Arbeitskopie unvollstaendig - dann lieber sofort
+# abbrechen als spaeter an einer Stelle scheitern, an der niemand den Grund
+# vermutet.
+if [ ! -r "$SKRIPTDIR/_paketfamilie.sh" ]; then
+    echo "FEHLER: $SKRIPTDIR/_paketfamilie.sh fehlt."
+    echo "        Diese Datei gehoert neben das Installationsskript."
+    exit 1
+fi
+# shellcheck source=_paketfamilie.sh
+. "$SKRIPTDIR/_paketfamilie.sh"
+
 LOGDATEI="/var/log/zeiterfassung-terminal-setup.log"
 if ! touch "$LOGDATEI" 2>/dev/null; then
     LOGDATEI="/tmp/zeiterfassung-terminal-setup.log"
@@ -103,22 +115,7 @@ else
     echo "Vorlage: $SKRIPTDIR/terminal.conf.example"
 fi
 
-# Erkennung wie in install_terminal.sh. Bewusst kopiert statt in eine
-# gemeinsame Datei gezogen: Das haette das bereits im Container gepruefte
-# Skript der Stufe 3 angefasst. Als offener Punkt notiert (T-104).
-FAMILIE=""
-BETRIEBSSYSTEM="unbekannt"
-if [ -r /etc/os-release ]; then
-    # shellcheck disable=SC1091
-    . /etc/os-release
-    BETRIEBSSYSTEM="${PRETTY_NAME:-${NAME:-unbekannt}}"
-    case " ${ID:-} ${ID_LIKE:-} " in
-        *debian*|*ubuntu*|*raspbian*|*mint*)         FAMILIE="apt" ;;
-        *arch*|*cachyos*|*manjaro*|*endeavouros*)    FAMILIE="pacman" ;;
-        *fedora*|*rhel*|*centos*|*rocky*|*alma*)     FAMILIE="dnf" ;;
-        *suse*|*sles*)                               FAMILIE="zypper" ;;
-    esac
-fi
+erkenne_paketfamilie
 
 echo "System:  $BETRIEBSSYSTEM"
 if [ -z "$FAMILIE" ]; then
@@ -174,17 +171,6 @@ schritt "2/8  Grafikstack und Browser installieren"
 # Stufe 3 hat diese Pakete bewusst ausgelassen: ohne Kiosk waeren sie nur
 # Wartezeit gewesen und im Container nicht pruefbar.
 
-paket_installieren() {
-    local paket="$1"
-    echo "  installiere: $paket"
-    case "$FAMILIE" in
-        apt)    DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends "$paket" ;;
-        pacman) pacman -S --needed --noconfirm "$paket" ;;
-        dnf)    dnf install -y "$paket" ;;
-        zypper) zypper --non-interactive install "$paket" ;;
-    esac
-}
-
 # Erste Alternative, die sich installieren laesst - welches Programm dabei
 # herauskommt, sucht Schritt 3 ohnehin selbst.
 paket_installieren_alternativ() {
@@ -196,10 +182,7 @@ paket_installieren_alternativ() {
     return 1
 }
 
-case "$FAMILIE" in
-    apt)    DEBIAN_FRONTEND=noninteractive apt-get update || warnung "apt-get update fehlgeschlagen." ;;
-    pacman) pacman -Sy --noconfirm || warnung "pacman -Sy fehlgeschlagen." ;;
-esac
+paketquellen_auffrischen
 
 # Reihenfolge nach Spezifikation Abschnitt 7: Wayland bevorzugt, X11 als
 # Rueckfall. Ein einzelnes fehlendes Paket bricht den Lauf nicht ab - welcher

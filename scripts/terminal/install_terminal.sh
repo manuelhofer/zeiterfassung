@@ -43,6 +43,18 @@ if [ "$(id -u)" -ne 0 ]; then
 fi
 
 SKRIPTDIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# Alles, was je Paketmanager anders ist, steht in einer gemeinsamen Datei
+# (T-104). Fehlt sie, ist die Arbeitskopie unvollstaendig - dann lieber sofort
+# abbrechen als spaeter an einer Stelle scheitern, an der niemand den Grund
+# vermutet.
+if [ ! -r "$SKRIPTDIR/_paketfamilie.sh" ]; then
+    echo "FEHLER: $SKRIPTDIR/_paketfamilie.sh fehlt."
+    echo "        Diese Datei gehoert neben das Installationsskript."
+    exit 1
+fi
+# shellcheck source=_paketfamilie.sh
+. "$SKRIPTDIR/_paketfamilie.sh"
 PROJEKT="$(cd "$SKRIPTDIR/../.." && pwd)"
 
 # Ab hier laeuft alles zusaetzlich ins Protokoll. Wer zwanzig Geraete aufsetzt,
@@ -114,21 +126,7 @@ else
     echo "Vorlage: $SKRIPTDIR/terminal.conf.example"
 fi
 
-# Paketmanager-Familie ueber /etc/os-release. Nur die vier grossen Familien;
-# Exoten muessen von Hand nacharbeiten (Spezifikation Abschnitt 9).
-FAMILIE=""
-BETRIEBSSYSTEM="unbekannt"
-if [ -r /etc/os-release ]; then
-    # shellcheck disable=SC1091
-    . /etc/os-release
-    BETRIEBSSYSTEM="${PRETTY_NAME:-${NAME:-unbekannt}}"
-    case " ${ID:-} ${ID_LIKE:-} " in
-        *debian*|*ubuntu*|*raspbian*|*mint*)         FAMILIE="apt" ;;
-        *arch*|*cachyos*|*manjaro*|*endeavouros*)    FAMILIE="pacman" ;;
-        *fedora*|*rhel*|*centos*|*rocky*|*alma*)     FAMILIE="dnf" ;;
-        *suse*|*sles*)                               FAMILIE="zypper" ;;
-    esac
-fi
+erkenne_paketfamilie
 
 echo "System:  $BETRIEBSSYSTEM"
 if [ -z "$FAMILIE" ]; then
@@ -206,25 +204,9 @@ schritt "2/10  Pakete installieren"
 # ---------------------------------------------------------------------------
 echo "Pakete: $PAKETE"
 paket_fehler=0
-case "$FAMILIE" in
-    apt)
-        DEBIAN_FRONTEND=noninteractive apt-get update || paket_fehler=1
-        # shellcheck disable=SC2086
-        DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends $PAKETE || paket_fehler=1
-        ;;
-    pacman)
-        # shellcheck disable=SC2086
-        pacman -Syu --needed --noconfirm $PAKETE || paket_fehler=1
-        ;;
-    dnf)
-        # shellcheck disable=SC2086
-        dnf install -y $PAKETE || paket_fehler=1
-        ;;
-    zypper)
-        # shellcheck disable=SC2086
-        zypper --non-interactive install $PAKETE || paket_fehler=1
-        ;;
-esac
+paketquellen_auffrischen
+# shellcheck disable=SC2086
+paket_installieren $PAKETE || paket_fehler=1
 
 if [ "$paket_fehler" -ne 0 ]; then
     echo "FEHLER: Paketinstallation fehlgeschlagen. Ohne Pakete geht es nicht weiter."

@@ -387,8 +387,19 @@ bewusste Abwaegung:
 - **Distributionsunabhaengig.** Nicht auf eine Distribution festgelegt, sondern
   eine kleine Erkennungsschicht ueber `/etc/os-release` fuer die vier
   Paketmanager-Familien: `apt` (Debian/Raspberry Pi OS/Ubuntu), `pacman`
-  (Arch/CachyOS), `dnf` (Fedora/RHEL), `zypper` (openSUSE). Paketnamen
-  unterscheiden sich je Familie und werden in einer Zuordnungstabelle gepflegt.
+  (Arch/CachyOS), `dnf` (Fedora/RHEL), `zypper` (openSUSE).
+
+  Sie steht seit P-2026-08-09-20 in **einer** Datei,
+  `scripts/terminal/_paketfamilie.sh`, die alle drei Installationsskripte
+  einlesen: `erkenne_paketfamilie`, `paketquellen_auffrischen`,
+  `paket_installieren`. Wer eine Distribution ergaenzt, fasst genau diese Datei
+  an. Vorher stand die Erkennung in jedem Skript noch einmal – die vierte
+  Kopie haette irgendwann jemand vergessen.
+
+  **Welche Pakete** eine Stufe braucht, steht bewusst weiter im jeweiligen
+  Skript: Das ist je Stufe verschieden (Webserver, Browser, Python) und gehoert
+  dorthin, wo es gebraucht wird. Gemeinsam ist nur, **wie** man auf dieser
+  Familie installiert.
 - **Datenbankzugriff:** Das Terminal verbindet sich **direkt ueber das Netz**
   auf die MariaDB des Hauptsystems (so ist `config.local.php` heute gebaut:
   `db` = Hauptdatenbank, `offline_db` = lokale Ausweichdatenbank).

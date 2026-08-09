@@ -62,12 +62,6 @@ der Spezifikation** (Abschnitt 11) – hier bewusst nicht ein zweites Mal.
 ## Offene Tasks
 - **T-102 Buchungen tragen keine `terminal_id`.** Seit P-2026-08-09-01 steht die
   ID in `config.local.php` (`terminal.id`) und liesse sich durchreichen.
-- **T-104 Distributionserkennung steht dreimal.** `install_terminal.sh`,
-  `install_kiosk.sh` und `install_peripherie.sh` bringen denselben Block ueber
-  `/etc/os-release` mit. Wer eine Paketfamilie ergaenzt, muss an drei Stellen
-  denken. Die dritte Stelle war die Bedingung, die hier fuer ein Zusammenlegen
-  genannt war – jetzt lohnt es sich. Kostet: Die geprueften Skripte der Stufen
-  3 bis 5 werden angefasst und muessen erneut durch den Containerlauf.
 - Praxis-Test: Bugs und Anomalien sammeln, als Micro-Patches beheben.
 - Offen aus P-2026-08-08-02: Strichcode-Erzeugung und Terminal-Buchungsflows
   sind unter PHP 8.5 noch nicht im Browser geprueft (brauchen einen
