@@ -70,6 +70,92 @@ in den Statusbericht.
   D-002 entfallen; die Regel selbst gilt weiter.)
 
 
+## P-2026-08-09-17 terminal-peripherie
+
+### EINGELESEN
+- `docs/spezifikation_terminal_installation.md`, Abschnitt 6 und Abschnitt 9
+  („Was sich bewusst nicht vollautomatisch loesen laesst").
+- `docs/terminal/rfid_ws.py`, `rfid-ws.service`, `rfid-ws_rollout.md` – was es
+  schon gibt und was davon taugt.
+- `scripts/terminal/install_kiosk.sh` (Aufbau des Startskripts) und
+  `install_terminal.sh` (Schritt 8: wie `geraet.local.php` geschrieben wird).
+
+### DATEIEN
+- `scripts/terminal/install_peripherie.sh` (neu)
+- `scripts/terminal/install_kiosk.sh` (eine Zeile: der Einhaengepunkt)
+- `scripts/terminal/terminal.conf.example`
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+Die Doku zu beiden neuen Stufen liegt im Folgecommit P-2026-08-09-18: Sie
+betrifft dieselben Absaetze (Stufenplan, Zielbild, Installationsanleitung) und
+liesse sich nicht sinnvoll in zwei Haelften schneiden.
+
+### AKZEPTANZKRITERIUM
+Ein Lauf richtet die gewaehlte RFID-Betriebsart ein, traegt sie in
+`config/geraet.local.php` ein und bereitet die Drehung von Bild und Beruehrung
+vor – ohne die Zugangsdaten der Ausweichdatenbank zu verlieren.
+
+### DONE
+Sechs Schritte, gesteuert ueber `RFID_VARIANTE` (`usb` | `bridge` | `keine`)
+und `BILDSCHIRM_DREHUNG` (`normal` | `links` | `rechts` | `kopf`).
+
+- **`usb`** – der Normalfall: keine Treiber, kein Dienst, `rfid_ws.enabled`
+  bleibt `false`. Das Skript sagt ausdruecklich, dass es **nicht** feststellen
+  kann, ob ein Leser angeschlossen ist: Ein Keyboard-Wedge meldet sich als
+  Tastatur. Das steht so in Abschnitt 9 der Spezifikation und wird hier nicht
+  weggeschwiegen.
+- **`bridge`** – Python-Umgebung (venv, weil Debian 12 pip auf Systemebene
+  verweigert), `rfid_ws.py` mit Anschluss und Baudrate aus der Antwortdatei,
+  eigener Dienstbenutzer `rfidws` in `dialout`/`uucp`/`spi`, systemd-Einheit.
+  Auf einem Raspberry Pi wird zusaetzlich `dtparam=spi=on` gesetzt.
+  Die Einheit wird **nur aktiviert**, nicht gestartet, wenn der Anschluss
+  fehlt – sonst laeuft sie in eine Neustartschleife und das Journal ist voll
+  mit derselben Zeile.
+- **Drehung.** Unter X11 zur Laufzeit ueber ein eigenes Skript, das der
+  Kioskstart aufruft: `xrandr` fuer das Bild **und** `xinput` fuer die
+  Beruehrung. Nur das Bild zu drehen waere schlimmer als gar nicht – es sieht
+  richtig aus, aber der Finger trifft 90 Grad daneben. Unter `cage` gibt es
+  keinen Schalter zum Drehen; dort gibt das Skript die Kernel-Startzeile aus
+  und **warnt**, statt eine halb gedrehte Anzeige zu hinterlassen.
+- **Ein Einhaengepunkt in Stufe 4.** Das erzeugte Kiosk-Startskript ruft in der
+  X11-Sitzung `/usr/local/bin/zeiterfassung-peripherie-x11` auf, sofern es das
+  gibt. Eine Zeile; die einzige Aenderung an dem bereits geprueften Skript.
+- **Die Dienstdatei wird neu geschrieben, nicht kopiert.** Die Vorlage in
+  `docs/terminal/` nennt feste Pfade und `www-data`. Was hier entsteht, passt
+  zu dem, was dieses Skript tatsaechlich angelegt hat.
+
+### TEST
+Debian-12-Container mit systemd, im Anschluss an die Stufen 3 und 4 desselben
+Laufs:
+
+- **`usb`: fuenf von fuenf.**
+- **`bridge`: neun von neun**, Wiederholung ohne Abweichung (idempotent).
+- **Das Passwort der Ausweichdatenbank ist dasselbe geblieben** – vorher und
+  nachher als Pruefsumme verglichen, und danach eine Verbindung damit
+  aufgebaut. Eigens geprueft, weil genau dieser Fehler in P-2026-08-09-05 schon
+  einmal auftrat.
+- **Das X11-Drehskript** wurde mit vorgetaeuschten `xrandr`/`xinput` gegen alle
+  vier Drehungen geprueft: `normal` ruft nichts auf, `links`/`rechts`/`kopf`
+  erzeugen den richtigen `--rotate`-Aufruf und die richtige Matrix. Der
+  Bildschirmausgang wurde dabei selbst gefunden.
+- Die zwei Warnungen im Containerlauf sind richtig: kein Touchgeraet vorhanden,
+  und unter `cage` wurde nicht gedreht.
+- `bash -n` auf allen vier Skripten fehlerfrei.
+
+### Was bewusst nicht erreicht wurde
+- **Ob ein Leser wirklich liest, zeigt kein Container.** Weder ein
+  angeschlossener USB-Leser noch ein RC522 noch ein Touchscreen war da. Das ist
+  Teil des Geraetetests.
+- **Die Drehung unter `cage` wird nicht gesetzt.** Sie braucht die Startzeile
+  des Kernels und einen Neustart; der Ausgangsname ist geraeteabhaengig. Das
+  Skript sagt, was einzutragen ist.
+- **Die Distributionserkennung steht jetzt dreimal** (T-104). Bewusst wieder
+  kopiert: Sie zusammenzulegen haette die schon geprueften Skripte der Stufen 3
+  und 4 angefasst.
+
+### NEXT
+Stufe 6 (Selbsttest).
+
 ## P-2026-08-09-16 terminal-ohne-passworthashes
 
 ### EINGELESEN

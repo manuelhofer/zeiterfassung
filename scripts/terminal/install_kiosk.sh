@@ -18,9 +18,11 @@
 #      Skript, bricht aber nicht ab: Ein Abbild laesst sich auch in der
 #      umgekehrten Reihenfolge bauen.
 #
-#  Was dieses Skript NICHT macht - spaetere Stufen der Spezifikation:
-#      - Peripherie: RFID-Leser, Touchscreen-Drehung          (Stufe 5)
-#      - Selbsttest mit Scan-Proben                           (Stufe 6)
+#  Was dieses Skript NICHT macht - dafuer gibt es eigene Stufen:
+#      - Peripherie: RFID-Leser, Touchscreen-Drehung          (Stufe 5,
+#        install_peripherie.sh - haengt sich unten in die X11-Sitzung ein)
+#      - Selbsttest mit Scan-Proben                           (Stufe 6,
+#        selbsttest.sh)
 #
 #  Idempotent: Mehrfaches Ausfuehren ist unschaedlich und repariert einen
 #  halbfertigen Stand.
@@ -421,6 +423,10 @@ if [ "${1:-}" = "--x11-sitzung" ]; then
     xset s off        2>/dev/null   # Bildschirmschoner
     xset -dpms        2>/dev/null   # Energiesparen des Bildschirms
     xset s noblank    2>/dev/null
+    # Peripherie (Stufe 5): dreht Bild und Beruehrung gleich herum. Muss
+    # innerhalb der X-Sitzung laufen - ausserhalb fehlt die Anzeige. Fehlt die
+    # Datei, ist an diesem Geraet nichts zu drehen.
+    [ -x /usr/local/bin/zeiterfassung-peripherie-x11 ] && /usr/local/bin/zeiterfassung-peripherie-x11
     # Mauszeiger sofort ausblenden. Am Touchscreen ohne Maus steht er sonst
     # mitten im Bild.
     command -v unclutter >/dev/null 2>&1 && unclutter -idle 0 -root &

@@ -72,6 +72,39 @@ KIOSK_BROWSER=""
 #              einem Arbeitsplatzrechner laeuft.
 KIOSK_ANMELDESCHIRM="abschalten"
 
-# --- Spaetere Stufen -------------------------------------------------------
-# RFID_VARIANTE (usb | rc522) und BILDSCHIRM_DREHUNG kommen mit Stufe 5
-# (Peripherie) dazu und werden noch nicht ausgewertet.
+# --- Peripherie (install_peripherie.sh, Stufe 5) ---------------------------
+# usb    = Keyboard-Wedge. Der Leser tippt die Kennung wie eine Tastatur.
+#          Keine Treiber, kein Dienst - der Normalfall.
+# bridge = serieller Leser oder RC522: ein lokaler Dienst liest ihn aus und
+#          reicht die Kennung per WebSocket an den Browser weiter.
+# keine  = kein RFID; angemeldet wird ueber die Personalnummer.
+RFID_VARIANTE="usb"
+
+# Nur bei RFID_VARIANTE="bridge":
+RFID_GERAET="/dev/ttyUSB0"
+RFID_BAUD="9600"
+RFID_WS_URL="ws://127.0.0.1:8765"
+RFID_WS_VERZEICHNIS="/opt/rfid-ws"
+RFID_WS_BENUTZER="rfidws"
+
+# SPI wird nur auf einem Raspberry Pi und nur fuer den RC522 gebraucht.
+# auto = einschalten, wenn ein Raspberry Pi erkannt wird.
+SPI_AKTIVIEREN="auto"
+
+# Drehung von Bild und Beruehrung: normal | links | rechts | kopf
+# Erraten laesst sich das nicht - ein hochkant montierter Bildschirm sieht fuer
+# das System aus wie jeder andere.
+#
+# Achtung: Unter cage (KIOSK_ANZEIGE="auto"/"wayland") kann das Skript nicht
+# drehen - cage hat keinen Schalter dafuer. Es sagt dann, was in die Startzeile
+# des Kernels gehoert. Unter X11 wird gedreht, sobald der Kiosk startet.
+BILDSCHIRM_DREHUNG="normal"
+
+# Leer = das erste erkannte Touchgeraet bzw. der erste verbundene Bildschirm.
+TOUCH_GERAET=""
+BILDSCHIRM_AUSGANG=""
+
+# --- Selbsttest (selbsttest.sh, Stufe 6) -----------------------------------
+# Er liest alle Werte von oben und braucht keine eigenen. Aufruf am Ende:
+#     sudo ./selbsttest.sh              # mit Scan-Test (fragt nach)
+#     sudo ./selbsttest.sh --ohne-scan  # nur die maschinellen Punkte
