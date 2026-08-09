@@ -93,10 +93,12 @@ Einstiegspunkte: Backend `public/index.php` (`?seite=…`), Terminal
 **Terminals konfigurieren sich selbst.** Fehlt `config/config.local.php`, zeigt
 `public/terminal.php` statt der Bedienoberfläche eine Einrichtungsseite: dort
 werden Server-Adresse und ein im Backend erzeugter Kopplungscode eingegeben, und
-das Terminal schreibt seine Konfiguration daraus selbst. Das Grundsystem eines
-Geräts richtet `scripts/terminal/install_terminal.sh` ein – Pakete, Code,
-Webserver und lokale Ausweichdatenbank, aber bewusst **keine** Zugangsdaten;
-`scripts/terminal/install_kiosk.sh` macht daraus den Vollbild-Kiosk.
+das Terminal schreibt seine Konfiguration daraus selbst. Aufgesetzt wird ein
+Gerät mit vier Skripten in `scripts/terminal/`: `install_terminal.sh` (Pakete,
+Code, Webserver, lokale Ausweichdatenbank – aber bewusst **keine**
+Zugangsdaten), `install_kiosk.sh` (Vollbild-Browser beim Start),
+`install_peripherie.sh` (RFID-Leser, Touchscreen-Drehung) und `selbsttest.sh`,
+der am Ende sagt, ob das Gerät einsatzbereit ist.
 Einzelheiten: [Terminal-Installation](docs/spezifikation_terminal_installation.md).
 
 ## Mitarbeiten

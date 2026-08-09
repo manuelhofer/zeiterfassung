@@ -98,6 +98,14 @@ Nach Aenderungen am Terminal:
 - Auto-Logout pruefen
 - Health-Endpunkt `public/terminal.php?aktion=health` pruefen
 
+Nach Aenderungen an den Installationsskripten (`scripts/terminal/`):
+
+- Debian-12-Container mit systemd starten, die vier Skripte der Reihe nach
+  laufen lassen, jedes ein zweites Mal (Idempotenz)
+- `selbsttest.sh --ohne-scan` – der Rueckgabewert muss zum Ergebnis passen
+- Nach `install_peripherie.sh`: Passwort in `config/geraet.local.php` muss
+  dasselbe geblieben sein, sonst ist die Offline-Queue tot
+
 Nach Aenderungen an der Terminalverwaltung (Backend):
 
 - Terminalliste oeffnen, Spalte *Kopplung* pruefen

@@ -70,6 +70,87 @@ in den Statusbericht.
   D-002 entfallen; die Regel selbst gilt weiter.)
 
 
+## P-2026-08-09-18 terminal-selbsttest
+
+### EINGELESEN
+- `docs/spezifikation_terminal_installation.md`, Abschnitt 8 (die sechs
+  geforderten Punkte) und 6.3 (warum der Scan-Test der wichtigste ist).
+- `public/terminal.php` (`?aktion=health`) – welche Felder die Antwort hat.
+- Die Ergebnisliste von `install_terminal.sh` als Vorbild fuer die Ausgabe.
+
+### DATEIEN
+- `scripts/terminal/selbsttest.sh` (neu)
+- `docs/spezifikation_terminal_installation.md` (Stufe 5 **und** 6)
+- `docs/wartungscheckliste.md`, `docs/installationsanleitung.md`, `README.md`
+- `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Ein Lauf von `selbsttest.sh` sagt vor dem Verlassen des Geraets, ob es
+einsatzbereit ist – als Liste mit OK/FEHLT und mit einem Rueckgabewert, der
+dazu passt.
+
+### DONE
+Die Installationsskripte melden, was **sie** getan haben. Ob das Geraet danach
+bucht, ist etwas anderes – dazwischen liegen Kopplung, Netz, Datenbank und
+Hardware. Diese Luecke schliesst Stufe 6.
+
+Sieben Abschnitte: Webserver, Kopplung und Hauptdatenbank, Ausweichdatenbank,
+Health-Endpunkt, Kiosk, RFID, Scan-Test. `--ohne-scan` laesst den interaktiven
+Teil weg.
+
+- **Drei Zustaende, nicht zwei.** Neben `OK` und `FEHLT` gibt es `--` fuer
+  *nicht geprueft*. Der Unterschied zwischen „der Kiosk laeuft nicht" und „hier
+  laeuft kein systemd, also war nichts zu sehen" ist der ganze Wert des Tests;
+  ein Lauf, der Unwissen als Erfolg meldet, waere schlimmer als keiner.
+- **Die Werte kommen vom Geraet, nicht aus der Antwortdatei.**
+  `/etc/zeiterfassung-peripherie.conf` und `/etc/zeiterfassung-kiosk.conf`
+  ueberschreiben, was in `terminal.conf` steht: Was eingerichtet wurde, wiegt
+  schwerer als das, was jemand einmal aufschreiben wollte.
+- **Gegenprobe zu T-101.** Der Test versucht mit den Zugangsdaten des Geraets,
+  `passwort_hash` zu lesen. Gelingt es, ist es ein Zugang von vor
+  P-2026-08-09-16, und die Meldung sagt, was zu tun ist. Ohne diesen Punkt
+  bliebe ein altes Geraet unbemerkt offen.
+- **Aendert nichts.** Nur Lesen und Fragen; Rueckgabewert 0/1, damit eine
+  Ueberwachung ihn auswerten kann.
+
+### TEST
+**Zwei Staende, zusammen 10 von 10 in der Auswertung.**
+
+1. *Im Debian-12-Container* (ungekoppelt, kein Bildschirm): vier OK, vier
+   FEHLT, ein uebersprungen. Alle vier FEHLT waren **richtig** – nicht
+   gekoppelt, Kiosk laeuft nicht, Bridge laeuft nicht, Port 8765 tot. Genau der
+   Zustand eines Containers. Rueckgabewert 1.
+2. *Gegen eine echte gekoppelte Installation* auf dem Entwicklungsrechner:
+   erkennt die Kopplung, erreicht die Hauptdatenbank, meldet die Hash-Sperre
+   als OK, meldet die abgeschaltete Ausweichdatenbank als FEHLT, prueft den
+   Health-Endpunkt, respektiert `RFID_VARIANTE="keine"`.
+   **Gegenprobe:** Danach dem Terminal-Benutzer von Hand das alte, weite
+   `GRANT SELECT ON mitarbeiter` gegeben – der Test meldet daraufhin „Dieses
+   Geraet kann Passwort-Hashes lesen" samt Handlungsanweisung.
+
+Der Scan-Test wurde ueber ein Pseudoterminal (`script`) in allen drei Wegen
+durchgespielt: sauberer Scan bestaetigt (OK), vertauschte Zeichen verneint
+(FEHLT mit Hinweis auf `localectl status`), beide uebersprungen (`--`).
+
+`bash -n` fehlerfrei.
+
+### Gefundene Fehler im eigenen Entwurf
+- Erster Messversuch las den Rueckgabewert hinter einer Pipe (`... | tail`) und
+  bekam den von `tail`. Ohne Pipe nachgemessen: 1, wie gewollt.
+
+### Was bewusst nicht erreicht wurde
+- **Der Container konnte die Kopplungspunkte nicht pruefen.** Der
+  Entwicklungsrechner blockiert Zugriffe aus dem Docker-Netz auf Apache und
+  MariaDB. Statt die Firewall des fremden Rechners umzustellen, wurden diese
+  Punkte gegen eine echte gekoppelte Installation auf dem Host geprueft – was
+  aussagekraeftiger ist.
+- **Kein Test der Buchung selbst.** Ob eine Kommen-Buchung ankommt, zeigt der
+  Selbsttest nicht; er wuerde dafuer Daten schreiben. Das gehoert in die
+  Wartungscheckliste, nicht in ein Werkzeug, das nichts aendern soll.
+
+### NEXT
+Der Geraetetest auf einem Bildschirm.
+
 ## P-2026-08-09-17 terminal-peripherie
 
 ### EINGELESEN

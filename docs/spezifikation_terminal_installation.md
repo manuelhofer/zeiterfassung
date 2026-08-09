@@ -1,9 +1,9 @@
 # Spezifikation: Terminal-Installation per Skript
 
-*Version:* v2 (2026-08-08)
-*Status:* in Umsetzung – Stand und Einschraenkungen je Stufe stehen im
-**Stufenplan (Abschnitt 11)**; gebaut sind die Stufen 1 bis 4, als Naechstes
-Stufe 5 (Peripherie)
+*Version:* v3 (2026-08-09)
+*Status:* alle sechs Stufen gebaut; offen ist der Test auf einem Geraet mit
+Bildschirm und Peripherie. Stand und Einschraenkungen je Stufe stehen im
+**Stufenplan (Abschnitt 11)**.
 *Grundlage:* `docs/fachregeln/terminal_und_offline.md`;
 `docs/rfid_reader_setup.md`; `docs/terminal/rfid-ws_rollout.md`
 
@@ -11,17 +11,24 @@ Stufe 5 (Peripherie)
 
 ## 1. Zielbild
 
-Ein frisch installiertes Linux-Geraet wird mit **zwei Befehlen** zum
+Ein frisch installiertes Linux-Geraet wird mit **vier Befehlen** zum
 einsatzfertigen Hallenterminal:
 
 ```bash
-sudo ./scripts/terminal/install_terminal.sh   # Grundsystem (Abschnitt 5a)
-sudo ./scripts/terminal/install_kiosk.sh      # Kiosk        (Abschnitt 7)
+sudo ./scripts/terminal/install_terminal.sh    # Grundsystem (Abschnitt 5a)
+sudo ./scripts/terminal/install_kiosk.sh       # Kiosk       (Abschnitt 7)
+sudo ./scripts/terminal/install_peripherie.sh  # Peripherie  (Abschnitt 6)
+sudo ./scripts/terminal/selbsttest.sh          # Selbsttest  (Abschnitt 8)
 ```
 
-Getrennt, weil ein Grundsystem sich im Container pruefen laesst und ein Kiosk
-einen Bildschirm braucht. Wer nur den Kiosk neu aufsetzt, faehrt nicht die
-ganze Installation noch einmal.
+Getrennt statt in einem Skript, weil die vier Teile Unterschiedliches
+voraussetzen: Das Grundsystem laesst sich im Container pruefen, der Kiosk
+braucht einen Bildschirm, die Peripherie braucht angeschlossene Geraete, und
+der Selbsttest will einen Menschen, der einmal scannt. Wer nur den Kiosk neu
+aufsetzt, faehrt nicht die ganze Installation noch einmal.
+
+Alle vier lesen dieselbe Antwortdatei (`terminal.conf`) und sind idempotent:
+Ein zweiter Lauf schadet nicht und repariert einen halbfertigen Stand.
 
 Danach startet das Geraet von selbst in die Terminal-Oberflaeche, der
 RFID-Leser funktioniert, der Barcode-Scanner liefert saubere Codes, und der
@@ -503,7 +510,22 @@ Stufe 6.
 (Stufe 6). Ein Lauf ohne systemd (Container) bricht nicht ab, sondern warnt –
 sonst waere die Stufe nicht im Container pruefbar.
 
-## 6. Peripherie
+## 6. Peripherie (umgesetzt, P-2026-08-09-17)
+
+`scripts/terminal/install_peripherie.sh`, sechs Schritte. Gesteuert wird es
+ueber **`RFID_VARIANTE`** (`usb` | `bridge` | `keine`) und
+**`BILDSCHIRM_DREHUNG`** (`normal` | `links` | `rechts` | `kopf`) aus der
+Antwortdatei.
+
+Am Ende schreibt es den `rfid_ws`-Block in `config/geraet.local.php` fort –
+**nur diesen Block.** Die Zugangsdaten der Ausweichdatenbank werden aus der
+vorhandenen Datei uebernommen und vor dem Umbenennen gegengelesen. Waere das
+Passwort dabei verloren gegangen, liefe das Terminal weiter, aber seine Queue
+waere tot: derselbe Fehler wie in P-2026-08-09-05, deshalb die Gegenprobe.
+
+**Ein bereits gekoppeltes Geraet uebernimmt die Aenderung nicht von selbst.**
+Die Einrichtungsseite liest `geraet.local.php` nur *beim* Koppeln. Das Skript
+sagt das, wenn es eine `config.local.php` vorfindet.
 
 ### 6.1 RFID – USB-Leser (Keyboard-Wedge)
 Braucht keine Treiber; der Leser tippt wie eine Tastatur. Das Skript setzt
@@ -528,10 +550,28 @@ und der Selbsttest fordert ausdruecklich zum Scannen eines bekannten Codes auf
 und vergleicht das Ergebnis.
 
 ### 6.4 Touchscreen
-Vorhandensein ueber `libinput list-devices` erkennen. Drehung und
-Zuordnung zum richtigen Bildschirm sind geraeteabhaengig und werden aus
-`BILDSCHIRM_DREHUNG` gesetzt; automatisch erraten laesst sich das nicht
-zuverlaessig.
+Vorhandensein ueber `libinput list-devices` erkennen: gesucht wird das erste
+Geraet, dessen Faehigkeiten `touch` nennen – ein Touchpad meldet `pointer` und
+faellt damit heraus. Drehung und Zuordnung zum richtigen Bildschirm sind
+geraeteabhaengig und werden aus `BILDSCHIRM_DREHUNG` gesetzt; automatisch
+erraten laesst sich das nicht zuverlaessig.
+
+**Gedreht wird auf zwei ganz verschiedenen Wegen** – das ist der unangenehmste
+Teil dieser Stufe:
+
+- **X11:** zur Laufzeit. Das Skript legt `/usr/local/bin/zeiterfassung-peripherie-x11`
+  an; der Kioskstart ruft es innerhalb der X-Sitzung auf. Dort dreht `xrandr`
+  das Bild und `xinput` die Beruehrung ueber die *Coordinate Transformation
+  Matrix*. **Beides ist noetig:** Wer nur das Bild dreht, bekommt ein Geraet,
+  bei dem der Finger 90 Grad daneben trifft – schlimmer als gar nicht gedreht,
+  weil es zunaechst richtig aussieht.
+- **Wayland (`cage`):** gar nicht. cage hat keinen Schalter zum Drehen. Dort
+  dreht der Kernel den Bildschirm ueber die Startzeile
+  (`video=<Ausgang>:rotate=90`), und die Beruehrung folgt automatisch. Weil das
+  einen Neustart braucht und der Ausgangsname geraeteabhaengig ist, **setzt das
+  Skript es nicht**, sondern gibt die einzutragende Zeile aus und meldet eine
+  Warnung. Eine halb gedrehte Anzeige stillschweigend zu hinterlassen waere
+  schlechter als eine klare Ansage.
 
 ## 7. Kiosk (umgesetzt, P-2026-08-09-09)
 
@@ -603,7 +643,7 @@ nicht darin. Die Ergebnisliste prueft das ausdruecklich mit – ein
 Vollbildbrowser mit Netzzugang ist der Teil des Geraets, der am ehesten
 uebernommen wird.
 
-## 8. Selbsttest zum Abschluss
+## 8. Selbsttest zum Abschluss (umgesetzt, P-2026-08-09-18)
 
 1. Webserver liefert die Terminalseite aus (HTTP 200).
 2. Hauptdatenbank erreichbar, Anmeldung erfolgreich.
@@ -615,6 +655,35 @@ uebernommen wird.
 
 Ergebnis als Liste mit OK/FEHLT, damit man vor dem Verlassen des Geraets weiss,
 ob es einsatzbereit ist.
+
+`scripts/terminal/selbsttest.sh`. **Aendert nichts** – es wird nur gelesen und
+gefragt. Der Rueckgabewert ist 0, wenn nichts fehlt, sonst 1; damit laesst er
+sich auch aus einer Ueberwachung heraus aufrufen.
+
+Drei Zustaende statt zwei: neben `OK` und `FEHLT` gibt es `--` fuer *nicht
+geprueft*. Das ist der Unterschied zwischen „der Kiosk laeuft nicht“ und „hier
+laeuft kein systemd, also war nichts zu sehen“ – ein Test, der Unwissen als
+Erfolg meldet, ist wertlos.
+
+Woher die Werte kommen: aus `/etc/zeiterfassung-peripherie.conf` und
+`/etc/zeiterfassung-kiosk.conf`, **nicht** aus der Antwortdatei. Was auf dem
+Geraet eingerichtet wurde, wiegt schwerer als das, was jemand einmal
+aufschreiben wollte.
+
+Zwei Punkte ueber die Liste oben hinaus:
+
+- **Passwort-Hashes.** Der Test verbindet sich mit den Zugangsdaten des Geraets
+  und versucht, `passwort_hash` zu lesen. Gelingt es, traegt dieses Terminal
+  einen Zugang von vor P-2026-08-09-16 und gehoert neu gekoppelt (siehe 2a).
+- **Fehlerhafte Queue-Eintraege** aus dem Health-Endpunkt. Sie bedeuten, dass
+  schon gebucht wurde und etwas davon nicht angekommen ist.
+
+Der **Scan-Test** ist der einzige Teil, der einen Menschen braucht – und der
+wichtigste. Er zeigt an, was tatsaechlich angekommen ist, und fragt beim
+Barcode ausdruecklich nach, ob es mit dem Etikett uebereinstimmt. Grund steht
+in 6.3: Ein falsches Tastaturlayout faellt sonst **nirgends** auf. Ohne
+Bediener (kein Terminal an der Eingabe) oder mit `--ohne-scan` wird der
+Abschnitt uebersprungen und als solcher gemeldet, nicht als bestanden.
 
 ## 9. Was sich bewusst **nicht** vollautomatisch loesen laesst
 
@@ -677,16 +746,35 @@ Was weiterhin gilt:
    keinen Treiber. Beides ist der erwartete Abbruch, aber kein Beleg, dass der
    Kiosk auf einem Geraet erscheint. Das zeigt erst eine VM mit Grafik oder
    echte Hardware. Wie bei Stufe 3 gilt: nur `apt` geprueft.
-5. **Peripherie** – RFID, Touchscreen, Tastaturlayout. Braucht echte Hardware.
-   **Als Naechstes.**
+5. **Peripherie** – RFID, Touchscreen, Drehung.
+   **Fertig** (P-2026-08-09-17): `scripts/terminal/install_peripherie.sh`, siehe
+   Abschnitt 6. Am 09.08.2026 im selben Debian-12-Container gelaufen, beide
+   RFID-Betriebsarten durchgespielt: `usb` fuenf von fuenf, `bridge` neun von
+   neun, Wiederholung ohne Abweichung. Das Passwort der Ausweichdatenbank
+   ueberlebt die Fortschreibung von `geraet.local.php` – eigens geprueft, weil
+   genau das in P-2026-08-09-05 schon einmal schiefging. Das X11-Drehskript
+   wurde mit vorgetaeuschten `xrandr`/`xinput` gegen alle vier Drehungen
+   geprueft. **Nicht geprueft, weil dafuer Hardware noetig ist:** ob ein
+   angeschlossener Leser tatsaechlich Zeichen liefert und ob ein gedrehter
+   Touchscreen richtig trifft.
 6. **Selbsttest** – rundet ab und macht das Ergebnis pruefbar.
+   **Fertig** (P-2026-08-09-18): `scripts/terminal/selbsttest.sh`, siehe
+   Abschnitt 8. Am 09.08.2026 gegen zwei Staende geprueft: im Container
+   (ungekoppelt) und gegen eine echte gekoppelte Installation auf dem
+   Entwicklungsrechner – zehn von zehn, einschliesslich der Gegenprobe, dass
+   ein Geraet mit altem, weitem Datenbankrecht als Fund gemeldet wird. Die drei
+   Wege des Scan-Tests (sauber, vertauscht, uebersprungen) wurden ueber ein
+   Pseudoterminal durchgespielt.
 
 **Wo wir stehen** (Stand 09.08.2026, aus der Liste oben ablesbar, damit die
-Zahl nicht driftet): **vier von sechs Stufen gebaut.** Stufe 1 und 2 sind
-funktional geschlossen und gegen die Datenbank durchgespielt; Stufe 3 und 4
+Zahl nicht driftet): **alle sechs Stufen gebaut.** Stufe 1 und 2 sind
+funktional geschlossen und gegen die Datenbank durchgespielt; Stufe 3 bis 6
 sind gebaut und im Container geprueft, aber nur auf **einer von vier
-Paketfamilien** (`apt`) und ohne dass je ein Bild zu sehen war. Stufe 5 und 6
-existieren noch nicht.
+Paketfamilien** (`apt`).
+
+Was damit ausdruecklich **noch nicht** belegt ist, weil ein Container es nicht
+zeigen kann: dass ein Bild erscheint, dass ein Leser Zeichen liefert und dass
+ein gedrehter Touchscreen richtig trifft. Das ist der Geraetetest.
 
 Bemerkenswert: Die ersten beiden Stufen sind der eigentliche Kern und lassen
 sich **komplett ohne ein einziges Geraet** bauen und pruefen.

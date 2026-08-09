@@ -129,9 +129,15 @@ Fuer wiederholbare technische und manuelle Pruefungen siehe
 zwei eigenen Skripten:
 
 ```bash
-sudo ./scripts/terminal/install_terminal.sh   # Grundsystem
-sudo ./scripts/terminal/install_kiosk.sh      # Vollbildbrowser beim Start
+sudo ./scripts/terminal/install_terminal.sh    # Grundsystem
+sudo ./scripts/terminal/install_kiosk.sh       # Vollbildbrowser beim Start
+sudo ./scripts/terminal/install_peripherie.sh  # RFID-Leser, Touchscreen
+sudo ./scripts/terminal/selbsttest.sh          # ist das Gerät einsatzbereit?
 ```
+
+Alle vier lesen dieselbe Antwortdatei (`scripts/terminal/terminal.conf`,
+Vorlage daneben) und dürfen mehrfach laufen. Der Selbsttest ändert nichts und
+liefert am Ende eine Liste mit OK/FEHLT – vor dem Verlassen des Geräts.
 
 Das erste richtet Pakete, Code, Webserver und die lokale Ausweichdatenbank ein
 und legt
