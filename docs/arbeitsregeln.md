@@ -175,3 +175,14 @@ Zusaetzlich zu den Migrationsdateien duerfen auf Wunsch **reine SQL-Statements**
 im Chat ausgegeben werden, die sich 1:1 in phpMyAdmin einfuegen lassen (kleine
 Hotfixes, Pruef-Queries). Strukturaenderungen gehoeren trotzdem **immer** nach
 `sql/`.
+
+## 10. Am Ende: Kaltstart klein halten
+
+Jeder neue Chat liest `CLAUDE.md`, `CHATSTART.md`, diese Datei und den
+Snapshot, bevor er etwas tun kann – zusammen unter **20 KB** halten. Neue
+Erklaerungen gehoeren deshalb in die Dateien, die nur bei Bedarf gelesen werden
+(Fachregeln, Spezifikation, Handbuch).
+
+Zum Abschluss einer Sitzung: Erledigtes aus dem Snapshot **entfernen**, keine
+ableitbare Zahl pflegen (Prozente, Patch-Listen, Verlaufsabrisse – sie driften),
+Links gegenpruefen, wenn Dateien verschoben wurden.

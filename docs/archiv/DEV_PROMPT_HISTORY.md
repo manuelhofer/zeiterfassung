@@ -70,6 +70,50 @@ in den Statusbericht.
   D-002 entfallen; die Regel selbst gilt weiter.)
 
 
+## P-2026-08-09-15 kaltstart-als-regel
+
+### EINGELESEN
+- `docs/arbeitsregeln.md` (Abschnitte 6 und 9) – wo die Regel hingehoert und ob
+  sie schon irgendwo steht.
+- `CHATSTART.md`, Abschnitt 5 – dort steht das *Warum* der Aufteilung, aber
+  keine Regel fuers Aufraeumen danach.
+
+### DATEIEN
+- `docs/arbeitsregeln.md`
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Die Regel „Kaltstart-Set klein halten" steht in `docs/arbeitsregeln.md`, sodass
+jedes Werkzeug sie kennt, ohne dass sie in jeder Sitzung erneut angesagt werden
+muss.
+
+### DONE
+Das Entdoppeln der Kaltstartdateien lief bisher dreimal (P-2026-08-09-03, -10,
+-12), jedes Mal als Einzelauftrag. Die Absicht dahinter stand nirgends als
+Regel – nur ihr Ergebnis. Damit war sie an den Auftraggeber gebunden statt an
+das Projekt.
+
+- Neuer **Abschnitt 10**: welche vier Dateien jeder Einstieg liest, Richtwert
+  **unter 20 KB**, und wohin neue Erklaerungen stattdessen gehoeren.
+- Dazu die drei Punkte, die in genau diesen drei Patches noetig waren:
+  Erledigtes aus dem Snapshot entfernen, keine ableitbare Zahl pflegen (der
+  „Grobe Verlauf" aus -12 war so eine), Links nach Verschiebungen gegenpruefen.
+
+### TEST
+- Kaltstart-Set: 19.366 → **19.887 B** (~5.500 Token). Unter dem Richtwert.
+- Gegenprobe zur eigenen Regel: Die Angabe „vier von sechs Stufen" aus
+  P-2026-08-09-14 ist eine Zaehlung aus der Liste direkt darueber, keine
+  gepflegte Zahl – der Widerspruch besteht also nicht.
+- `php -l`: keine PHP-Datei geaendert, entfaellt.
+
+### Gefundene Fehler im eigenen Entwurf
+Der erste Entwurf war 1,1 KB lang – eine Regel ueber Sparsamkeit, die selbst
+5 % des Kaltstart-Sets verbraucht und es auf 10 Byte an den eigenen Richtwert
+schiebt. Auf ein Drittel gekuerzt.
+
+### NEXT
+T-101 (`passwort_hash` vor dem Terminal verbergen).
+
 ## P-2026-08-09-14 doku-durchgang-entkoppeln
 
 ### EINGELESEN
