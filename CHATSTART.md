@@ -52,12 +52,12 @@ bevor du etwas aenderst.
 
 ## 3. Lesekarte – was liest du wann?
 
-**Immer, vor jeder Aenderung:**
+**Immer, vor jeder Aenderung – diese drei Zeilen, mehr nicht:**
 
 | Datei | Wofuer |
 | --- | --- |
 | [docs/arbeitsregeln.md](docs/arbeitsregeln.md) | Wie gearbeitet wird |
-| [docs/STATUS_SNAPSHOT.md](docs/STATUS_SNAPSHOT.md) | Aktueller Stand, offene Bugs, naechster Schritt |
+| [docs/STATUS_SNAPSHOT.md](docs/STATUS_SNAPSHOT.md) | Der ganze Stand: naechster Schritt, offene Bugs, offene Tasks |
 | `git log --oneline -20` | Was zuletzt passiert ist – **statt** einer gepflegten Liste |
 
 **Je nach Thema – nur das Passende:**
@@ -77,9 +77,13 @@ bevor du etwas aenderst.
 | Produktivinstallation | [docs/installationsanleitung.md](docs/installationsanleitung.md) |
 
 **Nur bei Bedarf:** Der volle Projektverlauf steht in
-`docs/archiv/DEV_PROMPT_HISTORY.md` (sehr gross – lies den Snapshot oben und
-die letzten Eintraege, nie die ganze Datei). Der abgeloeste Master-Prompt v13
-liegt in `docs/archiv/` und wird nur noch fuer historische Fragen gebraucht.
+`docs/archiv/DEV_PROMPT_HISTORY.md` – ueber 12.000 Zeilen. Diese Datei wird
+beim Einstieg **nicht** gebraucht: Der Stand steht im Status-Snapshot, welche
+Patches es gab in `git log`. Oeffne sie erst, wenn zu einem bestimmten Patch
+die Begruendung oder der Test gesucht wird, und dann gezielt (`grep -n
+"P-2026-08-09-04"`), nie am Stueck. Der abgeloeste Master-Prompt v13 liegt
+ebenfalls in `docs/archiv/` und wird nur noch fuer historische Fragen
+gebraucht.
 
 ## 4. Was du nicht lesen musst
 

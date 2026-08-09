@@ -220,6 +220,22 @@ RFID-Codes und Passwort-Hashes –, und das Repository ist oeffentlich. Der
 Datenbestand bleibt lokal; im Repo steht ausschliesslich das Schema mit den
 technischen Startwerten (Rollen, Rechte, Pausenfenster).
 
+## 6b. Was in dieser Datenbank kuenstlich ist (Stand 2026-08-08)
+
+Damit sich niemand ueber Daten wundert, die nicht aus dem Betrieb stammen:
+
+- **Zeitbuchungen:** 10.032, davon **360 kuenstlich ergaenzt** (Kommentar
+  `Import Altzeiten 2026 (lokal ergaenzt bis 08.08.2026)`), um den Bestand bis
+  zum 07.08.2026 zu fuellen. Mit einem `DELETE` ueber diesen Kommentar wieder
+  entfernbar.
+- **Auftraege:** 3, davon 2 Testauftraege (`A-2026-0815`, `A-2026-0999`) mit
+  Arbeitsschritten – reine Anschauungsdaten.
+- **Arbeitsschritt-Katalog:** 8 Beispieleintraege (saegen, drehen, fraesen,
+  bohren, schleifen, entgraten, montage, pruefen). Als Startbestand brauchbar.
+- **Terminals:** keine; keine offenen Kopplungen (Testdaten entfernt).
+- Der eigentliche Datenbestand stammt aus dem Serverdump vom 2026-08-08 und
+  enthaelt echte Personendaten – deshalb liegt er **nicht** im Repository.
+
 ## 7. Taeglicher Betrieb
 
 ```bash

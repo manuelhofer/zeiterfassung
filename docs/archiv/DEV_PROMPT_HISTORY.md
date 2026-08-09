@@ -16,50 +16,51 @@ legacy_zip_naming:
   pattern: "P-YYYY-MM-DD-XX_kurzbeschreibung.zip"
 ---
 
-# SNAPSHOT (immer aktuell)
+# Verlauf (LOG/ARCHIV)
 
-## Wie dieses Dokument gelesen wird
-- **Wenn du nur schnell den Projektstand brauchst:** lies nur diesen SNAPSHOT.
-- **Alles darunter** ist **LOG/ARCHIV** mit vollständiger Historie und Details.
+Diese Datei ist der **vollstaendige Projektverlauf**, chronologisch absteigend,
+ein Eintrag je Patch. Sie wird nie geloescht und bei jedem Patch im selben
+Commit ergaenzt (`docs/arbeitsregeln.md`, Abschnitt 6).
 
-## Projektziel
-Webbasierte Zeiterfassung inkl. Mitarbeiter-/Rollen-/Genehmiger-Verwaltung, Urlaubsverwaltung, Auswertungen sowie Terminal-UI (Kiosk) inkl. Offline-Queue.
+**Sie ist keine Startlektuere.** Wer wissen will, wie der Stand ist und was als
+Naechstes ansteht, liest `docs/STATUS_SNAPSHOT.md` – dort und nur dort stehen
+Projektstatus, naechster Schritt, offene Bugs (B-IDs) und offene Tasks (T-IDs).
+Hier nachzuschlagen lohnt genau dann, wenn zu einem bestimmten Patch die
+Begruendung, der Test oder ein gefundener Fehler gesucht wird; `git log
+--oneline` nennt dazu die Patch-ID.
 
-## Projektstatus
-- **FERTIG** – System ist im **Praxis-Test**.
-- Weiterentwicklung nur bei **Bugs** oder **ausdruecklicher Beauftragung**.
+Frueher stand oben ein SNAPSHOT-Block, der Projektziel, Entry Points, Bugs,
+Tasks und den naechsten Schritt ein zweites Mal fuehrte – also genau das, was
+`docs/STATUS_SNAPSHOT.md` schon sagt. Zwei Fassungen derselben Angabe driften
+auseinander, und dann weiss niemand mehr, welche gilt; ausserdem zwang der
+Block jeden neuen Chat, eine Datei mit ueber 12.000 Zeilen zu oeffnen, um drei
+Absaetze zu lesen. Entfernt in P-2026-08-09-10.
 
-## Entry Points
-- Backend: `public/index.php` (Routing über `?seite=...`)
-- Terminal: `public/terminal.php` (Routing über `?aktion=...`)
+## Aufbau eines Eintrags
 
-## Zuletzt erledigt
-
-Steht in `git log --oneline` – genauer und immer aktuell als eine von Hand
-gepflegte Liste. Die Einzelheiten je Patch (Tests, Begruendungen, gefundene
-Fehler) stehen unten im Verlauf.
-
-Die frueher hier gefuehrte Liste war zwischen P-2026-08-08-02 und -36 nicht
-mitgepflegt worden und lag damit 35 Patches hinter dem tatsaechlichen Stand –
-genau der Grund, warum sie entfaellt (P-2026-08-09-03).
-
-## Routing
-
-Die gueltige Routenliste steht in `public/index.php` (Backend) und
-`public/terminal.php` (Terminal). Eine Kopie hier veraltet unbemerkt.
-
-## Datenbank
-- **Source of Truth**: `sql/01_initial_schema.sql` (aktuelle DB-Struktur)
-- Wichtige Tabellen: `mitarbeiter`, `zeitbuchung`, `terminal`, `urlaubsantrag`, `mitarbeiter_genehmiger`, `db_injektionsqueue`, `system_log`
+`## P-JJJJ-MM-TT-XX kurzbeschreibung`, darunter EINGELESEN, DATEIEN,
+AKZEPTANZKRITERIUM, DONE, TEST, „Gefundene Fehler im eigenen Entwurf",
+„Was bewusst nicht erreicht wurde" und NEXT. Eintraege vor dem 2026-08-08
+nennen ZIP-Dateinamen statt Commits – das ist Historie, kein gueltiger
+Arbeitsweg.
 
 ## Entscheidungen (D-IDs)
+
+Grundsatzentscheidungen, auf die spaetere Eintraege sich berufen. Sie stehen
+hier, weil sie Verlauf sind: Warum etwas so gilt, gehoert zur Geschichte, nicht
+in den Statusbericht.
+
 - **D-001:** Das Repo nutzt `sql/01_initial_schema.sql` als Schema-Referenz.
 - **D-002:** ~~Pro Patch-Iteration maximal 3 Dateien, Lieferung als ZIP.~~
   **Ueberholt seit Master-Prompt v13** (Arbeit direkt im Git-Workspace). Das
   Limit war eine reine Zeitbegrenzung des damaligen Chat-Workflows; geblieben
   ist „1 Thema pro Patch".
-- **D-003:** `DEV_PROMPT_HISTORY.md` bleibt vollständig, bekommt aber diesen SNAPSHOT oben zur schnellen Übergabe in neue Chats.
-- **D-004:** Zeitbuchungen (Kommen/Gehen) werden immer als **Rohzeit** gespeichert. Rundung erfolgt ausschließlich bei **Auswertungen/Export/PDF**.
+- **D-003:** ~~Diese Datei bekommt oben einen SNAPSHOT zur schnellen Uebergabe
+  in neue Chats.~~ **Ueberholt seit P-2026-08-09-10:** Der Snapshot fuehrte
+  dieselben Angaben wie `docs/STATUS_SNAPSHOT.md`. Geblieben ist, dass der
+  Verlauf **vollstaendig** bleibt und nie gekuerzt wird.
+- **D-004:** Zeitbuchungen (Kommen/Gehen) werden immer als **Rohzeit**
+  gespeichert. Rundung erfolgt ausschliesslich bei **Auswertungen/Export/PDF**.
 - **D-005:** **Pre-Flight Gate** ist Pflicht: Vor jeder Implementierung werden
   die Inputs gelesen und ein Duplicate-Check gegen History und `git log`
   gemacht. (Der frueher geforderte SHA256-Nachweis entfaellt seit v13 – der
@@ -68,100 +69,98 @@ Die gueltige Routenliste steht in `public/index.php` (Backend) und
   frueher mitgenannte Begruendung „es bleiben nur 2 weitere Dateien" ist mit
   D-002 entfallen; die Regel selbst gilt weiter.)
 
-## Bekannte Probleme / Bugs (B-IDs)
 
-**Offen:**
+## P-2026-08-09-10 kaltstart-entdoppeln
 
-- **B-092:** Die Route `?seite=betriebsferien_admin_toggle` ruft `BetriebsferienAdminController::toggleAktiv()` auf – **diese Methode existiert nicht**. Ein Aufruf endet in einem Fatal. Kein Menuepunkt und kein Formular verlinkt darauf, der Fehler ist also latent. Stammt aus dem Januar-Upload (bd61831), nicht aus der Arbeit vom 2026-08-08. Gefunden bei der Routenpruefung vor der Uebergabe. **OPEN** – bewusst nicht ungefragt geaendert: Entweder die Methode nachruesten (Aktiv-Schalter wie bei anderen Verwaltungslisten) oder die tote Route entfernen. **Vorher klaeren, was gewollt ist.**
-- **B-080:** Urlaubssaldo wirkt teils verwirrend (User-Feedback: "Urlaubsberechnung stimmt nicht") – BF/Feiertage/Arbeitszeit-Abgrenzung nochmals pruefen. **OPEN** (Teilfix: P-2026-01-18-07).
+### EINGELESEN
+- `CHATSTART.md` (Abschnitte 3 und 5), `docs/arbeitsregeln.md` (2 und 6),
+  `docs/STATUS_SNAPSHOT.md`, der SNAPSHOT-Block dieser Datei (Zeilen 19–164).
+- `docs/README.md`, `docs/prompt_uebersicht.md`, `docs/archiv/README.md`,
+  `docs/archiv/ALTE_PROMPTS.md` – wegen der Verweise auf den Block.
+- Duplicate-Check: `git log --grep="snapshot" -i` – P-2026-08-09-03 hat den
+  Block bereits einmal **entschlackt** (die veraltete Patch-Liste entfernt),
+  aber nicht aufgeloest. Kein Duplikat, sondern der naechste Schritt.
 
-**Erledigt:** 48 weitere B-IDs sind behoben; sie stehen unten
-unter „Erledigte Bugs (Archiv)". Sie hier oben zu fuehren hat die zwei offenen
-Punkte verdeckt.
+### DATEIEN
+- `docs/archiv/DEV_PROMPT_HISTORY.md` (Kopf ersetzt)
+- `docs/STATUS_SNAPSHOT.md` („Naechster Schritt (konkret)")
+- `docs/lokale_entwicklungsumgebung.md` (neuer Abschnitt 6b)
+- `docs/arbeitsregeln.md` (Abschnitte 2 und 6)
+- `CHATSTART.md` (Abschnitt 3)
+- `docs/prompt_uebersicht.md`, `docs/archiv/ALTE_PROMPTS.md`
 
-## Offene Tasks (T-IDs, priorisiert)
-- **T-101 `passwort_hash` vor dem Terminal verbergen.** Der Terminal-Benutzer
-  darf `mitarbeiter` komplett lesen, also auch die Passwort-Hashes. Ein
-  spaltenweises Recht scheitert daran, dass `MitarbeiterModel` mit `SELECT *`
-  arbeitet (ueber den `ReportService` auch im Terminalpfad) und Spaltenrechte in
-  MySQL/MariaDB kein `SELECT *` erlauben. Loesung: entweder eine Sicht ohne
-  diese Spalte oder feste Spaltenlisten. Bis dahin bleibt: Wer ein Terminal
-  stiehlt, bekommt Passwort-Hashes zum Offline-Knacken.
-- **T-102 Buchungen tragen keine `terminal_id`.** `zeitbuchung.terminal_id` und
-  `auftragszeit.terminal_id` bleiben leer, weil der `TerminalController` nie
-  eine ID uebergibt – bisher wusste ein Terminal auch nicht, welches es ist.
-  Seit P-2026-08-09-01 steht sie in `config.local.php` (`terminal.id`).
-- **T-103 Auf dem Terminal ist die Backend-Anmeldung erreichbar.** Der
-  Document-Root zeigt auf `public/`, wie in der Serverinstallation. Damit
-  liefert `http://<terminal>/` das Anmeldeformular des Backends samt Feldern
-  `benutzername`/`passwort` – beim Container-Lauf zu P-2026-08-09-05 mit
-  HTTP 200 belegt. Der Kioskbrowser hat zwar keine Adresszeile, aber jeder
-  Rechner im selben Netz erreicht die Seite. Ob eine Anmeldung dort auch
-  gelingt, haengt an den Rechten des Terminal-Datenbankbenutzers und wurde
-  **nicht** geprueft (dafuer braucht es ein erreichbares Backend).
-  **Erst klaeren, was gewollt ist:** Fernwartung am Geraet ist ein
-  nachvollziehbarer Grund, ein Terminal auf `terminal.php` zu beschraenken
-  ebenso. Abschnitt 10 der Terminal-Spezifikation behandelt den Punkt bisher
-  nicht.
-- **T-104 Distributionserkennung steht zweimal.** `install_terminal.sh` und
-  `install_kiosk.sh` bringen denselben Block ueber `/etc/os-release` samt
-  Familien-`case` mit. Wer eine Paketfamilie ergaenzt, muss an zwei Stellen
-  denken. Bewusst nicht sofort zusammengelegt: Dafuer muesste das bereits im
-  Container gepruefte Skript der Stufe 3 angefasst und erneut geprueft werden –
-  ein Refactor im selben Patch, den die Arbeitsregeln (Abschnitt 3) ausdruecklich
-  ausschliessen. Zusammenlegen, wenn eine dritte Stelle dazukommt (Stufe 5).
-- Praxis-Test: Bugs/Anomalien sammeln und als Micro-Patches beheben.
-- Offen aus P-2026-08-08-02: Strichcode-Erzeugung und die Terminal-Buchungsflows
-  sind unter PHP 8.5 noch nicht im Browser geprueft (brauchen einen angemeldeten
-  Durchlauf, den nur der Nutzer machen kann).
-- Auftragsmodul: Scan-Flow/UX nur bei Bedarf weiter verfeinern (Praxis-Feedback).
-- Terminal (Auftrag): Stop-Detailmaske (Fallback) UX vereinfachen (keine Status-Auswahl "Abschliessen/Abbrechen" im Terminal).
+### AKZEPTANZKRITERIUM
+Wer einen neuen Chat beginnt, kennt den vollstaendigen Stand nach
+`CHATSTART.md`, `docs/arbeitsregeln.md`, `docs/STATUS_SNAPSHOT.md` und
+`git log --oneline` – ohne `DEV_PROMPT_HISTORY.md` zu oeffnen.
 
-## Zustand der lokalen Entwicklungsdatenbank (Stand 2026-08-08)
+### DONE
+Der SNAPSHOT-Block am Anfang der History fuehrte Projektziel, Projektstatus,
+Entry Points, Routing, Datenbank, offene Bugs, offene Tasks und „Naechster
+Schritt" – **alles davon steht auch in `docs/STATUS_SNAPSHOT.md`**. Genau die
+Dopplung, die `CHATSTART.md` Abschnitt 5 verbietet („Findest du dieselbe
+Aussage zweimal, ist das ein Fehler – melde ihn").
 
-Damit sich niemand ueber Daten wundert, die nicht aus dem Betrieb stammen:
+Sie war nicht nur unsauber, sondern teuer: Das Pre-Flight-Gate verlangte, den
+„Naechster Schritt"-Block **in der History** zu lesen. Wer dem folgte, musste
+eine Datei mit ueber 12.000 Zeilen oeffnen, um drei Absaetze zu finden – bei
+jedem Neustart erneut.
 
-- **Zeitbuchungen:** 10.032, davon **360 kuenstlich ergaenzt** (Kommentar
-  `Import Altzeiten 2026 (lokal ergaenzt bis 08.08.2026)`), um den Bestand bis
-  zum 07.08.2026 zu fuellen. Mit einem `DELETE` ueber diesen Kommentar wieder
-  entfernbar.
-- **Auftraege:** 3, davon 2 Testauftraege (`A-2026-0815`, `A-2026-0999`) mit
-  Arbeitsschritten – reine Anschauungsdaten.
-- **Arbeitsschritt-Katalog:** 8 Beispieleintraege (saegen, drehen, fraesen,
-  bohren, schleifen, entgraten, montage, pruefen). Als Startbestand brauchbar.
-- **Terminals:** keine; keine offenen Kopplungen (Testdaten entfernt).
-- Der eigentliche Datenbestand stammt aus dem Serverdump vom 2026-08-08 und
-  enthaelt echte Personendaten – deshalb liegt er **nicht** im Repository.
+- **Der Block ist weg.** An seiner Stelle steht ein kurzer Kopf: was die Datei
+  ist, wie ein Eintrag aufgebaut ist, und der Satz, dass der Stand woanders
+  steht.
+- **`docs/STATUS_SNAPSHOT.md` hat den vollstaendigen „Naechster Schritt
+  (konkret)"** uebernommen, samt der fuenf Punkte, die am Geraet zu pruefen
+  sind. Vorher stand dort die Kurzfassung und in der History die lange – die
+  schlechtere der beiden Moeglichkeiten, weil beide gepflegt werden mussten.
+- **Die D-IDs (D-001 bis D-006) bleiben in der History.** Warum etwas so gilt,
+  ist Verlauf und kein Statusbericht. D-003 („diese Datei bekommt einen
+  Snapshot oben") ist jetzt wie D-002 durchgestrichen und begruendet – eine
+  entfallene Entscheidung zu loeschen wuerde die Frage aufwerfen, ob sie je
+  galt.
+- **Der Zustand der lokalen Entwicklungsdatenbank** (welche Buchungen
+  kuenstlich sind) stand ebenfalls in der History und gehoert zu
+  `docs/lokale_entwicklungsumgebung.md` – dort als Abschnitt 6b, direkt hinter
+  dem Einspielen des Server-Dumps.
+- **Abschnitt 6 der Arbeitsregeln heisst jetzt „Zwei Dateien, zwei Aufgaben"**
+  und sagt ausdruecklich, dass **kein** Statusabbild an den Anfang der History
+  gehoert. Ohne diesen Satz baut der Naechste den Block wieder auf.
+- Verweise nachgezogen in `CHATSTART.md`, `docs/prompt_uebersicht.md` und
+  `docs/archiv/ALTE_PROMPTS.md`.
 
-## Nächster Schritt (konkret)
+### TEST
+- `grep -rn "Naechster Schritt"` ueber `docs/` (ohne die Verlaufseintraege),
+  `README.md`, `CHATSTART.md`: Der Block wird nur noch an einer Stelle gefuehrt
+  – in `docs/STATUS_SNAPSHOT.md`.
+- Gegenprobe Kaltstart: `CHATSTART.md` + `docs/arbeitsregeln.md` +
+  `docs/STATUS_SNAPSHOT.md` gelesen und geprueft, ob daraus hervorgeht, was
+  ansteht (Kiosk auf echtem Bildschirm), was offen ist (B-092, B-080,
+  T-101 bis T-104) und wie gearbeitet wird. Ja, ohne die History.
+- Zeilenzahl der History: 12.946 → 12.853 (vor dem Einfuegen dieses Eintrags).
+  Der Verlauf selbst ist **nicht** gekuerzt; entfernt wurden ausschliesslich
+  die 146 Zeilen Statusabbild, ersetzt durch 53 Zeilen Kopf und D-IDs.
+- Kaltstart-Set gemessen: `CHATSTART.md` + `docs/arbeitsregeln.md` +
+  `docs/STATUS_SNAPSHOT.md` + `CLAUDE.md` = knapp 20 KB. Die History wird dabei
+  nicht mehr angefasst.
+- Alle Verweisziele der geaenderten Stellen von Hand geprueft.
+- `php -l`: keine PHP-Datei geaendert, entfaellt.
 
-**Der Kiosk auf einem echten Bildschirm.** Stufe 4 ist gebaut
-(P-2026-08-09-09) und lief im Container zehn von zehn Punkten durch – aber ein
-Bild hat dabei niemand gesehen. `cage` kommt bis zum Zugriff auf das
-Grafikgeraet und bricht dort ab, Xorg startet und findet keinen Treiber; beides
-ist im Container der erwartete Abbruch und kein Beleg. Zu pruefen ist in einer
-VM mit Grafik (`qemu`/`virsh` sind auf dem Entwicklungsrechner vorhanden) oder
-auf echter Hardware:
+### Gefundene Fehler im eigenen Entwurf
+- Der erste Entwurf wollte auch die D-IDs in den Snapshot verschieben. Falsch:
+  Der Snapshot soll klein bleiben, und eine Entscheidung von 2025 ist kein
+  aktueller Stand. Sie sind Verlauf und bleiben in der History.
 
-1. Kommt der Browser nach dem Einschalten im Vollbild hoch, ohne Adresszeile?
-2. Startet er nach `pkill chromium` von selbst neu (Restart=always)?
-3. Bleibt der Bildschirm nach zehn Minuten hell?
-4. Ist der Mauszeiger weg, wenn eine Maus angeschlossen ist?
-5. Greift der X11-Rueckfall, wenn man `KIOSK_ANZEIGE="x11"` setzt?
+### Was bewusst nicht erreicht wurde
+- **`docs/README.md` und `docs/prompt_uebersicht.md` fuehren weiterhin beide
+  ein Verzeichnis derselben Dateien** – dieselbe Art Dopplung, nur ausserhalb
+  des Kaltstartpfads. Getrennter Patch, damit dieser eine ein Thema behaelt.
+- Die Kurzfassung der Regeln in `CHATSTART.md` Abschnitt 2 bleibt neben
+  `docs/arbeitsregeln.md` bestehen. Sie ist gewollt: Werkzeuge, die nur eine
+  Datei lesen, brauchen sie.
 
-Erst danach **Stufe 5 (Peripherie)**: RFID-Leser (USB-Keyboard-Wedge und RC522
-ueber SPI), Touchscreen und Drehung, Scan-Test. Braucht echte Hardware.
-Danach Stufe 6 (Selbsttest mit Scan-Proben).
-
-Weiterhin offen aus Stufe 3 und 4: **auf `pacman`, `dnf` und `zypper` ist
-keines der beiden Skripte gelaufen.** Der Container deckt nur `apt` ab, und
-openSUSE bleibt die unsicherste Familie (versionsgebundene Paketnamen, php-fpm
-auf TCP statt Socket, `cage` je nach Version gar nicht vorhanden).
-
-Weitere offene Punkte stehen oben unter „Offene Tasks (T-IDs)".
-
-## Letzter Patch (P-ID)
-P-2026-08-09-09 (Commit) – Kiosk-Skript (Stufe 4)
+### NEXT
+Unveraendert der Kiosk auf einem echten Bildschirm – siehe
+`docs/STATUS_SNAPSHOT.md`.
 
 ## P-2026-08-09-09 kiosk-skript
 

@@ -32,9 +32,10 @@ Lesekarte, welche Datei zu welcher Aufgabe gehoert.
 - [`docs/archiv/README.md`](archiv/README.md) – wie der Archivordner zu lesen
   ist.
 - [`docs/archiv/DEV_PROMPT_HISTORY.md`](archiv/DEV_PROMPT_HISTORY.md) – voller
-  Projektverlauf mit Snapshot oben. Wird weiterhin **bei jedem Patch**
+  Projektverlauf, ein Eintrag je Patch. Wird weiterhin **bei jedem Patch**
   gepflegt; sie liegt nur deshalb im Archivordner, weil dort der Verlauf
-  gesammelt ist.
+  gesammelt ist. **Keine Startlektuere** – der Stand steht in
+  `STATUS_SNAPSHOT.md` (seit P-2026-08-09-10 nicht mehr in beiden).
   Hinweis: Aeltere Texte nennen haeufig `docs/DEV_PROMPT_HISTORY.md`.
 - [`docs/archiv/master_prompt_zeiterfassung_v13.md`](archiv/master_prompt_zeiterfassung_v13.md)
   – der frueher aktive Master-Prompt. Sein Inhalt steckt jetzt in
@@ -49,8 +50,8 @@ Lesekarte, welche Datei zu welcher Aufgabe gehoert.
 
 Vollstaendig in [`docs/arbeitsregeln.md`](arbeitsregeln.md). In Kurzform:
 
-1. `docs/STATUS_SNAPSHOT.md` lesen, dann den „Naechster Schritt"-Block der
-   History und `git log --oneline`.
+1. `docs/STATUS_SNAPSHOT.md` und `git log --oneline` lesen – zusammen ist das
+   der ganze Stand.
 2. Nur die passende Datei aus `docs/fachregeln/` lesen.
 3. Bei Rechten immer `docs/rechte_prompt.md` pruefen.
 4. Klein bleiben: ein Thema, ein Akzeptanzkriterium. Danach `php -l` und die

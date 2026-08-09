@@ -25,8 +25,8 @@ Akzeptanzkriterien), bevor implementiert wird.
 Ziel: verhindern, dass bereits Erledigtes ein zweites Mal gebaut wird.
 
 1. **Lesen** (siehe `CHATSTART.md` fuer die Lesekarte):
-   - `docs/STATUS_SNAPSHOT.md` – immer,
-   - den „Naechster Schritt"-Block in `docs/archiv/DEV_PROMPT_HISTORY.md`,
+   - `docs/STATUS_SNAPSHOT.md` – immer; dort steht der Stand vollstaendig,
+     inklusive „Naechster Schritt (konkret)",
    - die passende Datei aus `docs/fachregeln/` – nur die zum Thema,
    - `docs/rechte_prompt.md` – immer, wenn Rechte beruehrt werden,
    - `sql/01_initial_schema.sql` – immer, wenn die Datenbank beruehrt wird.
@@ -80,19 +80,21 @@ Ziel: verhindern, dass bereits Erledigtes ein zweites Mal gebaut wird.
   durchlaufen (Idempotenz).
 - Auf **Meldungsfreiheit** pruefen: keine Deprecations, keine Warnungen im Log.
 
-## 6. History pflegen
+## 6. Zwei Dateien, zwei Aufgaben
 
-Datei: `docs/archiv/DEV_PROMPT_HISTORY.md`, Pflicht bei **jedem** Patch, im
-selben Commit.
+Bei **jedem** Patch werden beide gepflegt, im selben Commit:
 
-Aufbau:
+**`docs/STATUS_SNAPSHOT.md` – der Stand.** Die einzige Stelle fuer
+Projektstatus, **„Naechster Schritt (konkret)"**, offene Bugs (B-IDs) und
+offene Tasks (T-IDs). Wer nur wissen will, was ansteht, liest diese Datei und
+sonst nichts. Erledigtes wird hier **entfernt**, nicht abgehakt – die
+Begruendung steht im Verlaufseintrag.
 
-- Oben der **Snapshot**: Source of Truth, Entry Points, offene Bugs, offene
-  Tasks und – am wichtigsten – **„Naechster Schritt (konkret)"**. Dieser Block
-  beschreibt genau, was als Naechstes zu tun ist.
-- Darunter der **volle Verlauf**, chronologisch, absteigend. Er wird **nie**
-  geloescht. Pro Patch ein Eintrag mit Patch-ID, EINGELESEN, DATEIEN,
-  AKZEPTANZKRITERIUM, DONE, TEST und NEXT.
+**`docs/archiv/DEV_PROMPT_HISTORY.md` – der Verlauf.** Chronologisch
+absteigend, ein Eintrag je Patch, **nie** geloescht: Patch-ID, EINGELESEN,
+DATEIEN, AKZEPTANZKRITERIUM, DONE, TEST, NEXT. Sie wird nur gelesen, wenn zu
+einem bestimmten Patch nachzuschlagen ist – deshalb gehoert **kein**
+Statusabbild an ihren Anfang.
 
 Was in den Eintrag gehoert und oft vergessen wird:
 
@@ -100,9 +102,6 @@ Was in den Eintrag gehoert und oft vergessen wird:
   Naechsten dieselbe Falle bauen.
 - **Was bewusst nicht erreicht wurde**, mit Begruendung.
 - **Was tatsaechlich getestet wurde**, nicht was getestet werden koennte.
-
-`docs/STATUS_SNAPSHOT.md` wird parallel kurz gehalten – er ist die
-Schnellorientierung, die History der vollstaendige Verlauf.
 
 **Keine handgepflegten Listen fuer Dinge, die Git schon weiss.** Welche Patches
 es gab, sagt `git log --oneline` – genauer und immer aktuell.

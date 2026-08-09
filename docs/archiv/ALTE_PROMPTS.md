@@ -127,7 +127,9 @@ ist nach Lesehaeufigkeit aufgeteilt in `docs/arbeitsregeln.md` (gilt immer) und
 ## Verlauf
 
 ### `DEV_PROMPT_HISTORY.md`
-- **Was:** Der vollstaendige Projektverlauf mit KI-Snapshot am Anfang.
+- **Was:** Der vollstaendige Projektverlauf, ein Eintrag je Patch. Der frueher
+  vorangestellte KI-Snapshot ist seit P-2026-08-09-10 entfallen – er fuehrte
+  dieselben Angaben wie `docs/STATUS_SNAPSHOT.md`.
 - **Status:** **Aktiv, nicht archiviert im Sinne von „erledigt“.** Die Datei
   liegt nur physisch im Archivordner.
 - **Regel:** Wird bei jedem Patch weiter gepflegt (v13, Abschnitt 20).

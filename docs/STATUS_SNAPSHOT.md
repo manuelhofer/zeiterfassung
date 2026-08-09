@@ -1,7 +1,12 @@
 # Status-Snapshot
 
-Der schnelle Blick auf den Projektstand. Alles, was der Code oder Git schon
-weiss, steht bewusst **nicht** hier.
+**Die einzige Stelle fuer den aktuellen Stand:** Projektstatus, naechster
+Schritt, offene Bugs und Tasks. Wer weiss, was gerade ansteht, hat diese Datei
+gelesen und sonst nichts.
+
+Alles, was der Code oder Git schon weiss, steht bewusst **nicht** hier. Der
+volle Verlauf je Patch liegt in `docs/archiv/DEV_PROMPT_HISTORY.md` – die wird
+nur gelesen, wenn ein bestimmter Patch nachzuschlagen ist.
 
 ## Projektstatus
 - **FERTIG** – System ist im **Praxis-Test**.
@@ -25,16 +30,30 @@ Urlaubsverwaltung, Auswertungen sowie Terminal-UI (Kiosk) inkl. Offline-Queue.
 - Lokale Umgebung zum Testen: `docs/lokale_entwicklungsumgebung.md`
   (App unter `http://localhost/zeiterfassung`).
 
-## Naechster Schritt
-**Der Kiosk auf einem echten Bildschirm.** Stufe 4 ist gebaut und lief im
-Container fehlerfrei durch, aber ein Bild hat dabei niemand gesehen – ein
-Container hat keinen Bildschirm. Bevor Stufe 5 (Peripherie) anfaengt, sollte
-`install_kiosk.sh` einmal in einer VM mit Grafik oder auf echter Hardware
-laufen: Kommt der Browser im Vollbild hoch, startet er nach `pkill` neu, bleibt
-der Bildschirm hell? `qemu`/`virsh` sind auf dem Entwicklungsrechner vorhanden.
+## Naechster Schritt (konkret)
 
-Danach **Stufe 5 (Peripherie)**: RFID-Leser (USB und RC522), Touchscreen und
-seine Drehung. Braucht echte Hardware.
+**Der Kiosk auf einem echten Bildschirm.** Stufe 4 ist gebaut
+(P-2026-08-09-09) und lief im Container zehn von zehn Punkten durch – aber ein
+Bild hat dabei niemand gesehen. `cage` kommt bis zum Zugriff auf das
+Grafikgeraet und bricht dort ab, Xorg startet und findet keinen Treiber; beides
+ist im Container der erwartete Abbruch und kein Beleg. Zu pruefen ist in einer
+VM mit Grafik (`qemu`/`virsh` sind auf dem Entwicklungsrechner vorhanden) oder
+auf echter Hardware:
+
+1. Kommt der Browser nach dem Einschalten im Vollbild hoch, ohne Adresszeile?
+2. Startet er nach `pkill chromium` von selbst neu (`Restart=always`)?
+3. Bleibt der Bildschirm nach zehn Minuten hell?
+4. Ist der Mauszeiger weg, wenn eine Maus angeschlossen ist?
+5. Greift der X11-Rueckfall, wenn man `KIOSK_ANZEIGE="x11"` setzt?
+
+Erst danach **Stufe 5 (Peripherie)**: RFID-Leser (USB-Keyboard-Wedge und RC522
+ueber SPI), Touchscreen und Drehung, Scan-Test. Braucht echte Hardware.
+Danach Stufe 6 (Selbsttest mit Scan-Proben).
+
+Weiterhin offen aus Stufe 3 und 4: **auf `pacman`, `dnf` und `zypper` ist
+keines der beiden Skripte gelaufen.** Der Container deckt nur `apt` ab, und
+openSUSE bleibt die unsicherste Familie (versionsgebundene Paketnamen, php-fpm
+auf TCP statt Socket, `cage` je nach Version gar nicht vorhanden).
 
 Grundlage: `docs/spezifikation_terminal_installation.md` (Abschnitte 6 und 7).
 
