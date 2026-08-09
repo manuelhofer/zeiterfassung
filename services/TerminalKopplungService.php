@@ -231,16 +231,16 @@ class TerminalKopplungService
         }
     }
 
-    // ------------------------------------------------------------------
-    // Interna
-    // ------------------------------------------------------------------
-
     /**
      * Entwertet noch offene Codes eines Terminals, indem ihre Gueltigkeit
      * zurueckgesetzt wird. Geloescht wird nicht - der Verlauf bleibt
      * nachvollziehbar.
+     *
+     * Oeffentlich, weil nicht nur ein neuer Code die alten ersetzt: Auch das
+     * Entkoppeln muss sie entwerten, sonst holt sich ein gerade abgemeldetes
+     * Geraet mit einem noch offenen Code sofort einen neuen Zugang.
      */
-    private function entwerteOffeneCodes(int $terminalId): void
+    public function entwerteOffeneCodes(int $terminalId): void
     {
         // Eine Sekunde in die Vergangenheit, nicht auf NOW(): Die Pruefung beim
         // Einloesen laesst `gueltig_bis >= NOW()` gelten - auf NOW() gesetzt
@@ -254,6 +254,10 @@ class TerminalKopplungService
             ['tid' => $terminalId]
         );
     }
+
+    // ------------------------------------------------------------------
+    // Interna
+    // ------------------------------------------------------------------
 
     private function wuerfleCode(): string
     {

@@ -209,6 +209,33 @@ Festgelegtes Verhalten:
   Einrichtungsseite es anzeigen kann. Die Zugangsdaten waren dann im Netz
   mitlesbar.
 
+### Entkoppeln (umgesetzt, P-2026-08-09-13)
+
+Die Gegenrichtung zur Kopplung: In der Terminalverwaltung zeigt die Spalte
+**Kopplung** je Geraet den Datenbankbenutzer und seit wann er gilt, daneben
+steht **Entkoppeln** (POST, CSRF, Rueckfrage).
+
+Der Knopf loescht den Datenbankbenutzer, leert `db_benutzer`,
+`db_benutzer_host`, `gekoppelt_am` und `gekoppelt_host` am Terminal-Datensatz
+und entwertet offene Kopplungscodes. Danach braucht das Geraet einen neuen
+Code.
+
+Warum es das geben muss: **`aktiv = 0` genuegt nicht.** Das verhindert nur eine
+neue Kopplung – der bestehende Datenbankbenutzer bleibt gueltig. Wer ein
+ausgemustertes Geraet mitnimmt, liest die Zugangsdaten aus `config.local.php`
+und kommt weiter an alles, was dieses Terminal durfte.
+
+Festgelegtes Verhalten:
+
+- **Erst der Datenbankbenutzer, dann der Vermerk.** Scheitert das Loeschen,
+  bleibt der Vermerk stehen, das Geraet gilt weiter als gekoppelt und der
+  Zugang laesst sich erneut entfernen. Andersherum bliebe ein gueltiger
+  Benutzer uebrig, von dem niemand mehr weiss, wozu er gehoert.
+- **Offene Codes werden zuerst entwertet**, auch wenn gar kein Zugang besteht.
+  Ein noch gueltiger Code waere genau der Weg, sich das eben Abgemeldete
+  zurueckzuholen.
+- **Ein zweiter Aufruf ist harmlos** und meldet „war nicht gekoppelt“.
+
 ### Warum ein eigener Benutzer je Terminal
 
 - **Einzeln sperrbar:** Geraet verloren oder ausgetauscht → `DROP USER`, fertig.
@@ -590,14 +617,18 @@ Was weiterhin gilt:
 - Die Zugangsdaten liegen trotzdem lesbar auf dem Geraet – der Schaden ist
   begrenzt, aber nicht null. Physischer Schutz der Geraete bleibt sinnvoll.
 - Bei der Kopplung selbst gehen Zugangsdaten ueber das Netz (siehe 2a).
-- Ein ausgemustertes Terminal muss im Backend abgemeldet werden, sonst bleibt
-  sein Datenbankbenutzer gueltig.
+- Ein ausgemustertes Terminal muss im Backend **entkoppelt** werden (Knopf in
+  der Terminalverwaltung, siehe 2a), sonst bleibt sein Datenbankbenutzer
+  gueltig. Nur stilllegen (`aktiv = 0`) reicht dafuer nicht.
 
 ## 11. Umsetzung in Stufen
 
 1. **Kopplung im Backend** – Maske „Terminal anmelden“, Kopplungscode,
-   Endpunkt, Anlage des Datenbankbenutzers. Ohne Hardware testbar.
-   **Fertig** (P-2026-08-08-30, -31, -35, -36).
+   Endpunkt, Anlage des Datenbankbenutzers, Entkoppeln. Ohne Hardware testbar.
+   **Fertig** (P-2026-08-08-30, -31, -35, -36, P-2026-08-09-13). Am 09.08.2026
+   gegen die lokale Datenbank durchgespielt: koppeln, entkoppeln, GET und
+   falsches CSRF-Token wirkungslos, zweiter Lauf und unbekannte ID sauber –
+   22 von 22 Punkten.
 2. **Einrichtungsseite im Terminal** – erscheint bei fehlender Konfiguration,
    nimmt Adresse und Code entgegen, schreibt `config.local.php`. Ohne Hardware
    testbar. **Fertig** (P-2026-08-09-01).

@@ -70,6 +70,104 @@ in den Statusbericht.
   D-002 entfallen; die Regel selbst gilt weiter.)
 
 
+## P-2026-08-09-13 terminal-entkoppeln
+
+### EINGELESEN
+- `services/TerminalDbBenutzerService.php`, `services/TerminalKopplungService.php`,
+  `controller/TerminalKopplungController.php`, `controller/TerminalAdminController.php`
+  – der Weg der Kopplung von vorn bis hinten, auf der Suche nach der
+  Gegenrichtung.
+- `docs/spezifikation_terminal_installation.md`, Abschnitte 2a und 10.
+- `git log --oneline --all | grep -i entkoppel` und die History – Duplicate-Check.
+
+### DATEIEN
+- `controller/TerminalAdminController.php`
+- `services/TerminalKopplungService.php`
+- `public/index.php`
+- `docs/spezifikation_terminal_installation.md`
+- `docs/STATUS_SNAPSHOT.md`
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Ein gekoppeltes Terminal laesst sich im Backend entkoppeln; danach ist sein
+Datenbankbenutzer geloescht, der Terminal-Datensatz traegt keine
+Kopplungsspuren mehr und offene Kopplungscodes sind entwertet.
+
+### DONE
+Gefunden beim Gegenlesen der Kopplung: `TerminalDbBenutzerService::entferne()`
+existiert seit P-2026-08-08-35, wurde aber **von keiner Stelle im Backend
+aufgerufen** – nur intern beim Ersetzen und beim Aufraeumen nach einem
+Fehlschlag. Es gab also keinen Weg, ein Geraet abzumelden. Genau das verlangt
+Abschnitt 10 der Spezifikation seit P-2026-08-08-33 („Ein ausgemustertes
+Terminal muss im Backend abgemeldet werden") – die Zusicherung stand da, die
+Funktion nicht.
+
+`aktiv = 0` genuegt dafuer nicht und war der stille Irrtum: Das verhindert nur
+eine **neue** Kopplung (geprueft in `TerminalKopplungController`), laesst den
+bestehenden Datenbankbenutzer aber unberuehrt. Wer ein ausgemustertes Geraet
+mitnimmt, liest die Zugangsdaten aus `config.local.php` und kommt weiter an
+alles, was dieses Terminal durfte.
+
+- Neue Route `?seite=terminal_admin_entkoppeln` (POST, CSRF, Rueckfrage) →
+  `TerminalAdminController::entkoppeln()`.
+- Die Liste zeigt eine Spalte **Kopplung**: Datenbankbenutzer und seit wann,
+  sonst „nicht gekoppelt". Ohne sie waere nicht zu sehen, welches Geraet
+  ueberhaupt einen Zugang hat – und der Knopf haette nichts, worauf er sich
+  bezieht.
+- Reihenfolge mit Absicht: **erst der Datenbankbenutzer, dann der Vermerk.**
+  Scheitert das Loeschen, bleibt der Vermerk stehen und der Zugang bleibt
+  zuzuordnen. Andersherum bliebe ein gueltiger Benutzer uebrig, von dem niemand
+  mehr weiss, wozu er gehoert – derselbe Grund, aus dem der Endpunkt bei einem
+  Speicherfehler den frisch angelegten Benutzer wieder entfernt.
+- Offene Kopplungscodes werden **zuerst** entwertet, auch wenn gar kein Zugang
+  besteht: Ein noch gueltiger Code waere sonst der Weg, sich das eben
+  Abgemeldete zurueckzuholen. Dafuer ist
+  `TerminalKopplungService::entwerteOffeneCodes()` von `private` auf `public`
+  gewechselt – dieselbe Entwertung, die schon ein neuer Code ausloest, keine
+  zweite Fassung.
+
+### TEST
+Testlauf gegen die lokale Datenbank (Wegwerf-Terminal, keine Personendaten
+beruehrt): anlegen → ueber den echten Endpunkt koppeln → entkoppeln →
+aufraeumen. **22 von 22 Punkten.**
+
+- Nach dem Koppeln: `db_benutzer` und `gekoppelt_am` gesetzt, Benutzer in
+  `mysql.user` vorhanden, offener Code sichtbar.
+- GET statt POST: keine Wirkung. Falsches CSRF-Token: keine Wirkung.
+- Nach dem Entkoppeln: alle vier Spalten `NULL`, Benutzer aus `mysql.user`
+  verschwunden, kein offener Code mehr – und der vorher erzeugte zweite Code
+  laesst sich nicht mehr einloesen.
+- Zweiter Aufruf meldet „war nicht gekoppelt", unbekannte ID meldet „nicht
+  gefunden" – beides ohne Fatal.
+- Liste gerendert (gekoppeltes und nicht gekoppeltes Geraet nebeneinander):
+  Spaltenkopf, Benutzername, Knopf, Rueckfrage und „nicht gekoppelt" sind da,
+  kein PHP-Hinweis im HTML.
+- `php -l` auf allen drei geaenderten PHP-Dateien: fehlerfrei (PHP 8.5.8).
+- Aufgeraeumt: kein Testterminal und kein `term_zz%`-Benutzer geblieben.
+
+### Gefundene Fehler im eigenen Entwurf
+- Erster Entwurf setzte den Geraetenamen in den `confirm()`-Text. Das ist ein
+  PHP-Wert in einem JavaScript-String in einem HTML-Attribut – drei
+  Maskierungen uebereinander, und `addslashes` ist dafuer die falsche
+  Zusicherung. Verworfen: Der Name steht in derselben Zeile, die Rueckfrage
+  braucht ihn nicht.
+- Erster Entwurf verschob beim Oeffentlich-Machen von `entwerteOffeneCodes()`
+  die Trennlinie „Interna" mit, sodass vier private Methoden darueber gestanden
+  haetten. Zurueckgesetzt.
+
+### Was bewusst nicht erreicht wurde
+- **Kein Zwang beim Stilllegen.** `aktiv = 0` entkoppelt weiterhin **nicht**
+  automatisch. Ein Terminal wird auch voruebergehend stillgelegt (Umbau,
+  Stoerung), und dann waere ein erzwungener Codelauf durch die Halle die
+  falsche Antwort. Der Zusammenhang steht jetzt in der Spezifikation.
+- **Kein Sammel-Entkoppeln** und kein Aufraeumen verwaister
+  `term_*`-Datenbankbenutzer, die aus Zeiten ohne diese Funktion stammen
+  koennten. Beides erst, wenn es einen Fall dafuer gibt.
+
+### NEXT
+T-101 (`passwort_hash` vor dem Terminal verbergen) – der letzte offene Punkt
+mit Sicherheitsbezug an der Kopplung.
+
 ## P-2026-08-09-12 snapshot-nur-noch-stand
 
 ### EINGELESEN

@@ -198,6 +198,7 @@ class TerminalAdminController
                             <th>Offline Aufträge</th>
                             <th>Auto-Logout</th>
                             <th>Aktiv</th>
+                            <th>Kopplung</th>
                             <th>Aktionen</th>
                         </tr>
                     </thead>
@@ -213,6 +214,8 @@ class TerminalAdminController
                                 $oauf = (int)($t['offline_erlaubt_auftraege'] ?? 0) === 1;
                                 $timeout = (int)($t['auto_logout_timeout_sekunden'] ?? 0);
                                 $aktiv = (int)($t['aktiv'] ?? 0) === 1;
+                                $dbBenutzer = trim((string)($t['db_benutzer'] ?? ''));
+                                $gekoppeltAm = trim((string)($t['gekoppelt_am'] ?? ''));
                             ?>
                             <tr>
                                 <td><?php echo $id; ?></td>
@@ -247,6 +250,25 @@ class TerminalAdminController
                                         <input type="hidden" name="feld" value="aktiv">
                                         <button type="submit" style="padding: 0.15rem 0.5rem;">Umschalten</button>
                                     </form>
+                                </td>
+                                <td>
+                                    <?php if ($dbBenutzer !== ''): ?>
+                                        <span title="Datenbankbenutzer dieses Geraets"><?php echo htmlspecialchars($dbBenutzer, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></span>
+                                        <?php if ($gekoppeltAm !== ''): ?>
+                                            <br><small style="color:#666;">seit <?php echo htmlspecialchars($gekoppeltAm, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></small>
+                                        <?php endif; ?>
+                                        <?php /* Rueckfrage bewusst ohne Geraetenamen: Der steht in derselben Zeile,
+                                                 und ein Name im JavaScript-Text waere nur eine weitere Stelle zum
+                                                 Maskieren. */ ?>
+                                        <form method="post" action="?seite=terminal_admin_entkoppeln" style="display:block; margin-top:0.35rem;"
+                                              onsubmit="return confirm('Dieses Terminal entkoppeln?\n\nDer Datenbankbenutzer wird geloescht. Das Geraet kann danach nicht mehr buchen, bis es mit einem neuen Kopplungscode erneut gekoppelt wird.');">
+                                            <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($csrfToken, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>">
+                                            <input type="hidden" name="id" value="<?php echo $id; ?>">
+                                            <button type="submit" style="padding: 0.15rem 0.5rem;">Entkoppeln</button>
+                                        </form>
+                                    <?php else: ?>
+                                        <span style="color:#666;">nicht gekoppelt</span>
+                                    <?php endif; ?>
                                 </td>
                                 <td>
                                     <a href="?seite=terminal_admin_bearbeiten&amp;id=<?php echo $id; ?>">Bearbeiten</a>
@@ -420,6 +442,142 @@ class TerminalAdminController
             $_SESSION[self::FLASH_CODE_KEY] = $code;
             $_SESSION[self::FLASH_CODE_TERMINAL_KEY] = (string)($terminal['name'] ?? ('Terminal ' . $id));
         }
+
+        header('Location: ?seite=terminal_admin');
+    }
+
+    /**
+     * Entkoppelt ein Terminal.
+     * Route: ?seite=terminal_admin_entkoppeln (POST)
+     *
+     * Warum es das geben muss: Ohne diese Aktion bleibt der Datenbankbenutzer
+     * eines ausgemusterten Geraets gueltig - fuer immer. Wer das Geraet aus der
+     * Halle mitnimmt, liest die Zugangsdaten aus `config.local.php` und kommt
+     * weiter an alles, was dieses Terminal durfte. `aktiv = 0` genuegt dafuer
+     * nicht: Das verhindert nur eine **neue** Kopplung, nicht den bestehenden
+     * Zugang.
+     *
+     * Reihenfolge mit Absicht: erst der Datenbankbenutzer, dann der Vermerk am
+     * Terminal. Scheitert das Loeschen, bleibt der Vermerk stehen und der
+     * Zugang laesst sich weiterhin zuordnen und spaeter erneut entfernen.
+     * Andersherum bliebe ein gueltiger Benutzer uebrig, von dem niemand mehr
+     * weiss, zu welchem Geraet er gehoert.
+     */
+    public function entkoppeln(): void
+    {
+        if (!$this->pruefeZugriff()) {
+            return;
+        }
+
+        if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST') {
+            header('Location: ?seite=terminal_admin');
+            return;
+        }
+
+        $csrfToken = $this->holeOderErzeugeCsrfToken();
+        if ($csrfToken === '' || !hash_equals($csrfToken, (string)($_POST['csrf_token'] ?? ''))) {
+            $_SESSION[self::FLASH_ERR_KEY] = 'Die Sitzung ist abgelaufen. Bitte erneut versuchen.';
+            header('Location: ?seite=terminal_admin');
+            return;
+        }
+
+        $id = (int)($_POST['id'] ?? 0);
+
+        $terminal = null;
+        if ($id > 0) {
+            try {
+                $terminal = $this->datenbank->fetchEine(
+                    'SELECT id, name, db_benutzer, db_benutzer_host FROM terminal WHERE id = :id LIMIT 1',
+                    ['id' => $id]
+                );
+            } catch (\Throwable $e) {
+                $terminal = null;
+            }
+        }
+
+        if (!is_array($terminal)) {
+            $_SESSION[self::FLASH_ERR_KEY] = 'Das Terminal wurde nicht gefunden.';
+            header('Location: ?seite=terminal_admin');
+            return;
+        }
+
+        $benutzer = isset($terminal['db_benutzer']) ? (string)$terminal['db_benutzer'] : '';
+        $host     = isset($terminal['db_benutzer_host']) ? (string)$terminal['db_benutzer_host'] : '';
+
+        // Offene Codes zuerst entwerten - unabhaengig davon, ob ueberhaupt ein
+        // Zugang existiert. Ein noch gueltiger Code waere sonst genau der Weg,
+        // sich das eben Abgemeldete zurueckzuholen.
+        if (class_exists('TerminalKopplungService')) {
+            try {
+                TerminalKopplungService::getInstanz()->entwerteOffeneCodes($id);
+            } catch (\Throwable $e) {
+                // Nicht abbrechen: Das Loeschen des Zugangs ist das Wichtigere.
+                if (class_exists('Logger')) {
+                    Logger::warn('Entkoppeln: offene Kopplungscodes konnten nicht entwertet werden', [
+                        'exception' => $e->getMessage(),
+                    ], null, $id, 'terminal_kopplung');
+                }
+            }
+        }
+
+        if ($benutzer === '') {
+            $_SESSION[self::FLASH_OK_KEY] = 'Dieses Terminal war nicht gekoppelt. '
+                . 'Offene Kopplungscodes wurden entwertet.';
+            header('Location: ?seite=terminal_admin');
+            return;
+        }
+
+        if (!class_exists('TerminalDbBenutzerService')) {
+            $_SESSION[self::FLASH_ERR_KEY] = 'Der Datenbankbenutzer konnte nicht entfernt werden.';
+            header('Location: ?seite=terminal_admin');
+            return;
+        }
+
+        $entfernt = TerminalDbBenutzerService::getInstanz()->entferne($benutzer, $host !== '' ? $host : '%');
+
+        if (!$entfernt) {
+            // Vermerk bleibt bewusst stehen, damit der Zugang zuzuordnen bleibt.
+            $_SESSION[self::FLASH_ERR_KEY] = 'Der Datenbankbenutzer "' . $benutzer . '" konnte nicht geloescht werden. '
+                . 'Das Terminal bleibt gekoppelt - bitte das Serverprotokoll pruefen und erneut versuchen.';
+            header('Location: ?seite=terminal_admin');
+            return;
+        }
+
+        try {
+            $this->datenbank->ausfuehren(
+                'UPDATE terminal
+                    SET db_benutzer = NULL,
+                        db_benutzer_host = NULL,
+                        gekoppelt_am = NULL,
+                        gekoppelt_host = NULL
+                  WHERE id = :id',
+                ['id' => $id]
+            );
+        } catch (\Throwable $e) {
+            // Der Zugang ist weg - das Geraet kommt nicht mehr an die Daten.
+            // Nur der Vermerk haengt nach; das ist die harmlose Haelfte.
+            if (class_exists('Logger')) {
+                Logger::error('Entkoppeln: Kopplungsvermerk konnte nicht geleert werden', [
+                    'benutzer'  => $benutzer,
+                    'exception' => $e->getMessage(),
+                ], null, $id, 'terminal_kopplung');
+            }
+
+            $_SESSION[self::FLASH_ERR_KEY] = 'Der Datenbankbenutzer wurde geloescht, der Vermerk am Terminal '
+                . 'aber nicht geleert. Das Geraet kommt nicht mehr an die Daten - bitte das Serverprotokoll pruefen.';
+            header('Location: ?seite=terminal_admin');
+            return;
+        }
+
+        if (class_exists('Logger')) {
+            Logger::info('Terminal entkoppelt', [
+                'terminal_id' => $id,
+                'benutzer'    => $benutzer,
+            ], null, $id, 'terminal_kopplung');
+        }
+
+        $_SESSION[self::FLASH_OK_KEY] = 'Terminal entkoppelt. Der Datenbankbenutzer "' . $benutzer . '" ist geloescht; '
+            . 'das Geraet braucht einen neuen Kopplungscode.';
 
         header('Location: ?seite=terminal_admin');
     }

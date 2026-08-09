@@ -177,6 +177,7 @@ try {
         'kurzarbeit_admin_toggle',
         'terminal_admin_toggle',
         'terminal_admin_kopplung',
+        'terminal_admin_entkoppeln',
     ];
 
     if (in_array($seite, $geschuetzteSeiten, true) && !$auth->istAngemeldet()) {
@@ -549,6 +550,11 @@ try {
         case 'terminal_admin_toggle':
             $controller = new TerminalAdminController();
             $controller->toggleFlag();
+            break;
+
+        case 'terminal_admin_entkoppeln':
+            $controller = new TerminalAdminController();
+            $controller->entkoppeln();
             break;
 
         default:
