@@ -72,6 +72,15 @@ Benutzers unschaedlich gemacht – ohne alle anderen Terminals anzufassen.
 Damit kennt das Installationsskript **keine** Zugangsdaten; dasselbe Abbild
 passt auf beliebig viele Geraete.
 
+Eine Ausnahme gibt es: die **lokale Ausweichdatenbank** (Abschnitt 5). Sie
+gehoert der Maschine und nicht dem Backend, also kann die Kopplung sie nicht
+liefern. `scripts/terminal/install_terminal.sh` legt sie samt eigenem Benutzer
+an und schreibt ihre Zugangsdaten nach `config/geraet.local.php`; beim Koppeln
+werden sie von dort in die `config.local.php` uebernommen. Deshalb tragen beide
+Dateien dasselbe Passwort – und deshalb sucht das Skript ein vorhandenes
+Passwort zuerst in `config.local.php`: Wuerde es stattdessen ein neues erzeugen,
+liefe das Terminal weiter, aber seine Queue waere tot (P-2026-08-09-05).
+
 Recht: `TERMINAL_VERWALTEN` (Erzeugen des Codes). Der Kopplungs-Endpunkt selbst
 ist bewusst **ohne Anmeldung** erreichbar – ein frisches Geraet hat keinen
 Benutzer, der Code **ist** der Nachweis.

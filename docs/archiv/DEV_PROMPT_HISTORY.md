@@ -161,7 +161,81 @@ Danach Stufe 5 (Peripherie: RFID, Touchscreen), 6 (Selbsttest mit Scan-Proben).
 Weitere offene Punkte stehen oben unter „Offene Tasks (T-IDs)".
 
 ## Letzter Patch (P-ID)
-P-2026-08-09-07 (Commit) – Doku auf den Stand nach dem Container-Lauf
+P-2026-08-09-08 (Commit) – Doku-Durchgang: Terminal-Installation ueberall aktuell
+
+## P-2026-08-09-08 doku-durchgang-terminal
+
+### EINGELESEN
+- Alle Dateien unter `docs/` (ohne `archiv/`), `README.md`, `CHATSTART.md` –
+  diesmal der vollstaendige Durchgang, den P-2026-08-09-07 ausdruecklich
+  ausgelassen hatte.
+- `controller/TerminalEinrichtungController.php` (`baueKonfigDatei()`, Zeile
+  456) – um zu belegen, dass die Kopplung `installation_typ` selbst setzt.
+
+### DATEIEN
+- `docs/installationsanleitung.md` (Abschnitt 7)
+- `docs/README.md` (Verzeichnis der Spezifikationen)
+- `docs/fachregeln/terminal_und_offline.md` (Abschnitt 4)
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Keine Datei ausserhalb von `docs/archiv/` beschreibt die Terminal-Installation
+noch als nicht umgesetzt oder verlangt, `config/config.local.php` fuer ein
+Terminal von Hand anzulegen.
+
+### DONE
+Drei ueberholte Stellen, die der Durchgang gefunden hat:
+
+1. **`docs/installationsanleitung.md`, Abschnitt 7** war der ernsteste Fall. Er
+   forderte auf, `installation_typ` von Hand in `config/config.local.php` zu
+   setzen, und erwaehnte das Installationsskript ueberhaupt nicht. Wer dem
+   folgt, legt genau die Datei an, deren **Fehlen** die Einrichtungsseite
+   ausloest: Das Geraet koppelt sich nie, bekommt keinen eigenen
+   Datenbankbenutzer und laesst sich im Verlustfall nicht einzeln sperren.
+   `installation_typ` schreibt die Kopplung seit P-2026-08-09-01 ohnehin selbst.
+   Der Abschnitt verweist jetzt auf das Skript und sagt ausdruecklich, dass die
+   Datei nicht von Hand entsteht.
+2. **`docs/README.md`** fuehrte die Terminal-Spezifikation als „Entwurf …
+   (noch nicht umgesetzt)" – falsch, seit Stufe 1 bis 3 fertig sind. Jetzt
+   dieselbe Formulierung wie in `docs/prompt_uebersicht.md`, mit Verweis auf
+   den Kopf der Spezifikation statt einer eigenen Statusangabe.
+3. **`docs/fachregeln/terminal_und_offline.md`** beschreibt die Queue in einer
+   „lokalen Sekundaerdatenbank", sagte aber nirgends, woher die kommt. Wer nach
+   der Lesekarte nur diese Datei liest, erfuhr nichts von
+   `config/geraet.local.php`. Ergaenzt ist jetzt: Das Skript legt Datenbank und
+   Benutzer an, die Kopplung uebernimmt die Zugangsdaten von dort – und warum
+   das Passwort zuerst in `config.local.php` gesucht wird.
+
+### TEST
+- `grep -rniE "noch nicht umgesetzt|nicht implementiert|in Planung|geplant|Entwurf|wird noch|kuenftig"`
+  ueber `docs/`, `README.md`, `CHATSTART.md` (ohne `archiv/`): Die vier
+  verbliebenen Treffer betreffen andere Themen (Sonderurlaub, Rechte-Merge,
+  Prosa in den Arbeitsregeln) und nicht die Terminal-Installation.
+- `grep -rn "installation_typ"` ueber dieselben Dateien: keine Stelle verlangt
+  mehr, die Datei von Hand anzulegen.
+- Verweisziele der drei geaenderten Stellen von Hand geprueft
+  (`spezifikation_terminal_installation.md` existiert, Abschnittsnummern
+  stimmen).
+- `docs/admin_handbuch.md` und `docs/wartungscheckliste.md` gegengelesen: Beide
+  behandeln den **Betrieb** eines Terminals, nicht das Aufsetzen – von diesem
+  Patch nicht beruehrt.
+- `php -l`: keine PHP-Datei geaendert, entfaellt.
+
+### Gefundene Fehler im eigenen Entwurf
+- **P-2026-08-09-07 hat den Durchgang ausgelassen und das auch so vermerkt** –
+  die Vermerkung macht die Luecke aber nicht kleiner. Ein „Stufe 3 ist fertig"
+  im Kopf der Spezifikation nuetzt wenig, solange die Installationsanleitung
+  daneben eine Anleitung enthaelt, die das Geraet an der Kopplung vorbeifuehrt.
+  Der ehrliche Vermerk war richtig, das Aufschieben nicht.
+
+### Was bewusst nicht erreicht wurde
+- **`docs/rfid_reader_setup.md` und `docs/terminal/rfid-ws_rollout.md` wurden
+  nicht angefasst.** Sie gehoeren zu Stufe 5 (Peripherie), die noch nicht
+  gebaut ist; sie jetzt umzuschreiben hiesse, einen Stand zu beschreiben, den
+  es noch nicht gibt.
+
+### NEXT
+Stufe 4 (Kiosk) – Einzelheiten im Block „Naechster Schritt (konkret)“ oben.
 
 ## P-2026-08-09-07 stufe-3-geprueft
 

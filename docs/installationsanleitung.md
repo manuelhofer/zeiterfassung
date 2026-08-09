@@ -125,13 +125,24 @@ Fuer wiederholbare technische und manuelle Pruefungen siehe
 
 ## 7) Terminal-Installation (optional)
 
-Wenn das System als Terminal läuft, setze in `config/config.local.php`:
+**Ein Hallenterminal wird nicht nach dieser Anleitung aufgesetzt**, sondern mit
+einem eigenen Skript:
 
-```php
-'app' => [
-    'installation_typ' => 'terminal',
-],
+```bash
+sudo ./scripts/terminal/install_terminal.sh
 ```
+
+Es richtet Pakete, Code, Webserver und die lokale Ausweichdatenbank ein und legt
+`config/config.local.php` bewusst **nicht** an. Das Gerät startet
+unkonfiguriert, zeigt seine Einrichtungsseite und holt sich Server-Adresse,
+Terminal-ID und Zugangsdaten über einen Kopplungscode aus dem Backend – dabei
+setzt es `installation_typ` selbst.
+
+Diese Datei also **nicht von Hand anlegen**: Damit verschwindet die
+Einrichtungsseite, das Gerät bekommt keinen eigenen Datenbankbenutzer, und im
+Verlustfall lässt es sich nicht einzeln sperren.
+
+Einzelheiten: [Terminal-Installation](spezifikation_terminal_installation.md).
 
 Für RFID/Offline-Setup siehe zusätzlich:
 
