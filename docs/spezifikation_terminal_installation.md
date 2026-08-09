@@ -1,8 +1,8 @@
 # Spezifikation: Terminal-Installation per Skript
 
 *Version:* v2 (2026-08-08)
-*Status:* in Umsetzung – Stufe 1a und 1b fertig (P-2026-08-08-30, -31),
-Stufe 1c als Naechstes (Endpunkt + Datenbankbenutzer)
+*Status:* in Umsetzung – Stufe 1a, 1b und der Datenbankbenutzer aus 1c fertig
+(P-2026-08-08-30, -31, -35); als Naechstes der Kopplungs-Endpunkt
 *Grundlage:* `docs/master_prompt_zeiterfassung_v13.md`, Abschnitte 2.2 (Terminal),
 6.2 (Terminals), 8 (Terminal-UI); `docs/rfid_reader_setup.md`;
 `docs/terminal/rfid-ws_rollout.md`
@@ -71,25 +71,85 @@ Fehlt die Konfiguration, erscheint statt der Terminal-Oberflaeche eine
 - **Nachvollziehbar:** In den Datenbank-Protokollen ist erkennbar, welches
   Geraet was getan hat.
 
-### Rechte des Terminal-Benutzers (Vorschlag)
+### Rechte des Terminal-Benutzers (umgesetzt und geprueft, P-2026-08-08-35)
+
+Die Liste steht in `services/TerminalDbBenutzerService.php` und ist **aus dem
+Code hergeleitet** – alles, was `public/terminal.php` und die von dort genutzten
+Dienste anfassen. Sie weicht an mehreren Stellen vom urspruenglichen Vorschlag
+ab; das war kein Aufweichen, sondern das Ergebnis des Nachsehens.
 
 | Tabelle | Recht |
 | --- | --- |
-| `mitarbeiter` | SELECT (moeglichst ohne Spalte `passwort_hash` – MariaDB kann Rechte je Spalte) |
 | `zeitbuchung` | SELECT, INSERT |
 | `auftrag`, `auftrag_arbeitsschritt`, `auftragszeit` | SELECT, INSERT, UPDATE |
-| `urlaubsantrag` | SELECT, INSERT |
-| `maschine`, `terminal`, `config`, `pausenfenster`, `zeit_rundungsregel`, `feiertag`, `betriebsferien` | SELECT |
-| `system_log` | INSERT |
-| alles Uebrige, besonders `stundenkonto_*`, `recht`, `rolle` | **kein Zugriff** |
+| `urlaubsantrag` | SELECT, INSERT, UPDATE |
+| `feiertag` | SELECT, INSERT |
+| `system_log` | SELECT, INSERT |
+| `db_injektionsqueue` | SELECT, INSERT, UPDATE |
+| `mitarbeiter` | SELECT + UPDATE **nur** auf Spalte `rfid_code` |
+| Rollen/Rechte: `rolle`, `recht`, `rolle_hat_recht`, `mitarbeiter_hat_rolle`, `mitarbeiter_hat_rolle_scope`, `mitarbeiter_hat_recht`, `mitarbeiter_hat_abteilung`, `mitarbeiter_genehmiger` | SELECT |
+| Stammdaten: `maschine`, `terminal`, `config`, `abteilung`, `arbeitsschritt_katalog` | SELECT |
+| Auswertung: `zeit_rundungsregel`, `pausenfenster`, `pausenentscheidung`, `betriebsferien`, `krankzeitraum`, `kurzarbeit_plan`, `urlaub_kontingent_jahr`, `tageswerte_mitarbeiter`, `monatswerte_mitarbeiter`, `stundenkonto_korrektur` | SELECT |
+| alles Uebrige, insbesondere `terminal_kopplung` und `stundenkonto_batch` | **kein Zugriff** |
 
-Kein `DELETE`, kein `DROP`, kein `ALTER` – nirgends.
+Kein `DELETE`, kein `DROP`, kein `ALTER`, kein `CREATE` – nirgends.
+
+**Warum es vom Vorschlag abweicht:**
+
+- **Rollen und Rechte muessen lesbar sein.** Das Terminal blendet Knoepfe je
+  nach Berechtigung ein (z. B. „Urlaubsantraege“ fuer Genehmiger). Ohne
+  Lesezugriff auf die Rechtetabellen waere jeder Mitarbeiter am Terminal
+  rechtlos.
+- **`stundenkonto_korrektur` muss lesbar sein.** Das Terminal zeigt seit
+  P-2026-01-17-19 Gut- und Minusstunden an. Schreiben darf es dort nichts –
+  Buchungen aufs Stundenkonto bleiben Sache des Backends. `stundenkonto_batch`
+  bleibt ganz gesperrt.
+- **`urlaubsantrag` braucht UPDATE.** Genehmiger koennen laut Master-Prompt
+  (Abschnitt 13) auch am Terminal entscheiden.
+- **`feiertag` braucht INSERT.** Der `UrlaubService` generiert die Feiertage
+  eines Jahres bei Bedarf nach. Ohne dieses Recht rechnet ein Terminal im
+  Januar ohne die Feiertage des neuen Jahres – und das faellt niemandem auf.
+  Dieses stille Falschrechnen waere gefaehrlicher als das Recht selbst.
+- **`db_injektionsqueue` als Rueckfallebene.** Normalerweise liegt die
+  Offline-Queue in der lokalen Ausweichdatenbank des Terminals; fehlt die,
+  greift der `OfflineQueueManager` auf die Hauptdatenbank zurueck. Kein
+  `DELETE`: haengengebliebene Eintraege raeumt ein Admin im Backend weg.
+
+**Offen geblieben – `passwort_hash`:** Der Vorschlag sah vor, die Spalte per
+spaltenweisem Recht auszunehmen. Das geht nicht, ohne vorher Code zu aendern:
+Spaltenrechte in MySQL/MariaDB verbieten `SELECT *`, und `MitarbeiterModel`
+arbeitet genau so – ueber den `ReportService` auch im Terminalpfad. Das Terminal
+kann die Hashes also lesen. Wer ein Geraet stiehlt, bekommt damit
+Passwort-Hashes zum Offline-Knacken. Das ist der letzte verbliebene Punkt aus
+Abschnitt 10 und als Aufgabe festgehalten; die Loesung ist entweder eine
+Sicht ohne diese Spalte oder feste Spaltenlisten statt `SELECT *`.
+
+### Von welchem Rechner darf sich das Terminal verbinden
+
+Der Benutzer wird standardmaessig fuer `%` angelegt (beliebiger Rechner),
+einstellbar ueber den Konfigurationsschluessel `terminal_db_host_muster`
+(z. B. `192.168.10.%`). Grund fuer den weiten Standard: Terminals bekommen ihre
+Adresse per DHCP – eine feste Bindung kappt beim naechsten Neustart still den
+Zugang.
+
+**Stolperstein:** Laeuft ein Terminal ausnahmsweise auf demselben Rechner wie
+die Datenbank, kann ein `%`-Konto von **anonymen Konten** (`''@'localhost'`)
+verdeckt werden – MariaDB waehlt den spezifischeren Host-Eintrag. In diesem Fall
+entweder die anonymen Konten entfernen (`mariadb-secure-installation`) oder
+`terminal_db_host_muster` auf `localhost` setzen.
 
 ### Was dafuer noetig ist, und was das kostet
 
+**Entschieden:** Das Backend legt die Benutzer selbst an (automatisch).
+
 Damit das Backend Benutzer anlegen kann, braucht **sein** Datenbankbenutzer das
-Recht `CREATE USER` sowie `GRANT OPTION` auf das Schema `zeiterfassung`. Das ist
-kein Nebeneffekt, sondern eine bewusste Abwaegung:
+Recht `CREATE USER` sowie `GRANT OPTION` auf das Schema `zeiterfassung`. Die
+dafuer noetigen Anweisungen stehen in
+`sql/06_migration_terminal_db_benutzer.sql` und muessen von einem Administrator
+einmal ausgefuehrt werden – die Anwendung kann sich diese Rechte nicht selbst
+geben. Fehlen sie, laeuft alles Uebrige normal weiter; nur die Kopplung bricht
+mit einer verstaendlichen Meldung ab. Das ist kein Nebeneffekt, sondern eine
+bewusste Abwaegung:
 
 - **Vorteil:** Die Kopplung laeuft ohne Handarbeit, auch fuer zwanzig Geraete.
 - **Nachteil:** Wer die Weboberflaeche uebernimmt, kann Datenbankbenutzer
@@ -100,8 +160,6 @@ kein Nebeneffekt, sondern eine bewusste Abwaegung:
   selbst an, sondern zeigt dem Administrator die fertige SQL-Anweisung zum
   einmaligen Ausfuehren. Gleiche Sicherheit fuer das Terminal, kein erhoehtes
   Recht fuer die Anwendung, dafuer ein manueller Schritt je Geraet.
-
-Diese Entscheidung sollte **vor** der Umsetzung getroffen werden.
 
 ### Sicherheitsanforderungen an die Kopplung
 

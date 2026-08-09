@@ -17,13 +17,16 @@ Webbasierte Zeiterfassung inkl. Mitarbeiter-/Rollen-/Genehmiger-Verwaltung, Urla
 - Lokale Umgebung zum Testen: `docs/lokale_entwicklungsumgebung.md` (App unter `http://localhost/zeiterfassung`).
 
 ## Naechster Schritt
-**Stufe 1c der Terminal-Kopplung:** Kopplungs-Endpunkt fuer das Terminal plus
-automatische Anlage des eingeschraenkten Datenbankbenutzers.
+**Terminal-Kopplung, Stufe 1c (Teil 2): der Kopplungs-Endpunkt.** Er fuehrt
+zusammen, was jetzt vorliegt: Kopplungscode einloesen, Datenbankbenutzer anlegen,
+Zugangsdaten und Einstellungen als JSON antworten.
 Grundlage: `docs/spezifikation_terminal_installation.md` (Abschnitt 2a);
 Einzelheiten im „Naechster Schritt“-Block von `docs/archiv/DEV_PROMPT_HISTORY.md`.
-Fertig: Stufe 1a (Dienst + Tabelle) und 1b (Code erzeugen im Backend).
+Fertig: Stufe 1a (Dienst + Tabelle), 1b (Code erzeugen im Backend) und der
+Datenbankbenutzer je Terminal.
 
 ## Letzte Aenderungen (Auszug)
+- **P-2026-08-08-35 Terminal-Kopplung, Datenbankbenutzer:** Jedes Terminal bekommt einen eigenen Datenbankbenutzer mit eng gefassten Rechten – stempeln und buchen ja, loeschen/Rechte vergeben/Stundenkonto aendern nein. 35 Proben gegen die laufende Datenbank. Dabei zeigte sich, dass die Rechteliste der Spezifikation zu eng war und das Terminal an vier Stellen lahmgelegt haette; sie ist jetzt aus dem Code hergeleitet. Offen als T-101: `passwort_hash` bleibt fuer das Terminal lesbar.
 - **P-2026-08-08-31 Terminal-Kopplung, Stufe 1b:** Knopf „Kopplungscode“ in der Terminalverwaltung; der Code wird genau einmal angezeigt und ist danach nicht mehr abrufbar. Durchgaengig geprueft bis zum Einloesen.
 - **P-2026-08-08-30 Terminal-Kopplung, Stufe 1a:** Tabelle `terminal_kopplung` und `TerminalKopplungService` zum Erzeugen und Einloesen von Kopplungscodes (nur Hash gespeichert, einmalig, zeitlich begrenzt). Oberflaeche und DB-Benutzer-Anlage folgen.
 - **P-2026-08-08-29 Terminal-Spezifikation v2:** Terminal meldet sich per Kopplungscode am Backend an und erhaelt einen eigenen, eingeschraenkten Datenbankbenutzer. Das Installationsskript kennt damit keine Zugangsdaten mehr. Offen: ob das Backend die DB-Benutzer selbst anlegt (braucht `CREATE USER`/`GRANT OPTION`) oder die SQL nur anzeigt.
@@ -64,7 +67,15 @@ Fertig: Stufe 1a (Dienst + Tabelle) und 1b (Code erzeugen im Backend).
 - **P-2026-01-24-07:** Dashboard: Zeitwarnungen waren trotz vorhandener Daten unsichtbar, weil `DashboardController` versehentlich `fetchEinzel(...)` (nicht existent) aufruft und dadurch in den Catch faellt → Fix auf `fetchEine(...)`.
 
 ## Letzter Patch (P-ID)
-- P-2026-08-08-26 (Commit; Personalnummer statt ID, Ampelfarben in der Liste)
+- P-2026-08-08-35 (Commit; eigener Datenbankbenutzer je Terminal)
+- Davor: P-2026-08-08-34 (Uebergabepruefung, B-092 dokumentiert)
+- Davor: P-2026-08-08-33 (Doku-Luecken vor der Uebergabe geschlossen)
+- Davor: P-2026-08-08-32 (naechster Schritt praezisiert)
+- Davor: P-2026-08-08-31 (Kopplungscode im Backend erzeugen)
+- Davor: P-2026-08-08-30 (Kopplungscodes: Tabelle und Dienst)
+- Davor: P-2026-08-08-29 (Terminal-Spezifikation v2: Kopplung)
+- Davor: P-2026-08-08-28 (Spezifikation Terminal-Installation)
+- Davor: P-2026-08-08-26 (Personalnummer statt ID, Ampelfarben in der Liste)
 - Davor: P-2026-08-08-25 (Namen auf Strichcode-Stand, Doku aktualisiert)
 - Davor: P-2026-08-08-24 (Fix Monatsuebersicht im laufenden Monat)
 - Davor: P-2026-08-08-23 (Zeitwarnungen verschwinden nicht mehr)

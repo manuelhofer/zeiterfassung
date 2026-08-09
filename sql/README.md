@@ -20,6 +20,11 @@ gebraucht - Neuinstallationen bekommen alles ueber `01_initial_schema.sql`.
   `auftrag_qr_rel_pfad` in `auftrag_code_rel_pfad` um, nachdem die Codes von QR
   auf Strichcode umgestellt wurden (Patch P-2026-08-08-24). Rein kosmetisch -
   ohne die Migration liest die Anwendung ersatzweise den alten Schluessel.
+- `06_migration_terminal_db_benutzer.sql`: ergaenzt `terminal` um die Spalten zum
+  Datenbankbenutzer der Kopplung (Patch P-2026-08-08-35). **Enthaelt zusaetzlich
+  die GRANT-Anweisungen, die ein Administrator einmal von Hand ausfuehren muss**,
+  damit das Backend Terminal-Benutzer anlegen darf (`CREATE USER`,
+  `GRANT OPTION`) - die Anwendung kann sich diese Rechte nicht selbst geben.
 
 Einspielen:
 

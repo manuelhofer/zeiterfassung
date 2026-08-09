@@ -222,34 +222,91 @@ Damit sich niemand ueber Daten wundert, die nicht aus dem Betrieb stammen:
 
 ## Nächster Schritt (konkret)
 
-**Stufe 1c der Terminal-Kopplung: Kopplungs-Endpunkt + Datenbankbenutzer.**
+**Stufe 1c der Terminal-Kopplung, zweiter Teil: der Kopplungs-Endpunkt.**
 Grundlage: `docs/spezifikation_terminal_installation.md`, Abschnitt 2a.
 Fertig sind Stufe 1a (`services/TerminalKopplungService.php`, Tabelle
-`terminal_kopplung`) und Stufe 1b (Knopf „Kopplungscode“ in der
-Terminalverwaltung).
+`terminal_kopplung`), Stufe 1b (Knopf „Kopplungscode“ in der
+Terminalverwaltung) und der Datenbankbenutzer
+(`services/TerminalDbBenutzerService.php`, P-2026-08-08-35).
 
-Zu bauen:
-1. Endpunkt, den ein Terminal aufruft (Vorschlag `?seite=terminal_kopplung`,
-   POST, ohne Anmeldung – der Kopplungscode **ist** der Nachweis). Nimmt Code
-   und Geraetekennung, antwortet als JSON.
+Zu bauen ist jetzt nur noch das Bindeglied:
+1. Endpunkt, den ein Terminal aufruft (`?seite=terminal_kopplung`, POST, ohne
+   Anmeldung – der Kopplungscode **ist** der Nachweis). Nimmt Code und
+   Geraetekennung (Hostname/MAC), antwortet als JSON.
 2. Code ueber `TerminalKopplungService::loeseCodeEin()` pruefen.
-3. Datenbankbenutzer je Terminal anlegen (`term_<name>`, zufaelliges Passwort)
-   mit den in der Spezifikation aufgelisteten, eingeschraenkten Rechten.
-   **Entscheidung liegt vor:** automatisch anlegen. Dafuer braucht der
-   Datenbankbenutzer des Backends `CREATE USER` und `GRANT OPTION` auf das
-   Schema – als Migration bereitstellen und dokumentieren.
-4. Antwort: Terminal-ID, Zugangsdaten, Einstellungen. Erneute Kopplung ersetzt
-   den vorhandenen Benutzer, statt einen zweiten anzulegen.
-5. Vorgehen wie bisher: kleine Schritte, jeder Schritt fuer sich geprueft.
+3. Bei Erfolg `TerminalDbBenutzerService::legeAnOderErsetze()` aufrufen und den
+   angelegten Benutzer in `terminal.db_benutzer` / `db_benutzer_host` sowie
+   `gekoppelt_am` / `gekoppelt_host` festhalten. Bei erneuter Kopplung wird der
+   alte Benutzer damit gezielt ersetzt (der Dienst kann das bereits).
+4. Antwort: Terminal-ID, Zugangsdaten, Einstellungen (Name, Abteilung,
+   Auto-Logout, Offline-Flags) – alles, was `config.local.php` am Terminal
+   braucht. Fehlschlaege ohne Hinweis darauf, **warum** der Code nicht galt.
+5. Kein halber Zustand: Schlaegt das Speichern fehl, muss der eben angelegte
+   Datenbankbenutzer wieder weg (`entferne()`).
 
 Danach Stufe 2 (Einrichtungsseite im Terminal), dann das Installationsskript.
 
 ### Weitere offene Punkte
+- **T-101 `passwort_hash` vor dem Terminal verbergen.** Der Terminal-Benutzer
+  darf `mitarbeiter` komplett lesen, also auch die Passwort-Hashes. Ein
+  spaltenweises Recht scheitert daran, dass `MitarbeiterModel` mit `SELECT *`
+  arbeitet (ueber den `ReportService` auch im Terminalpfad) und Spaltenrechte in
+  MySQL/MariaDB kein `SELECT *` erlauben. Loesung: entweder eine Sicht ohne
+  diese Spalte oder feste Spaltenlisten. Bis dahin bleibt: Wer ein Terminal
+  stiehlt, bekommt Passwort-Hashes zum Offline-Knacken.
 - Praxis-Test: naechster Bug/Anomalie-Report (Micro-Patch).
 - Offen aus P-2026-08-08-02: Strichcode-Erzeugung und die Terminal-Buchungsflows sind unter PHP 8.5 noch nicht im Browser geprueft (brauchen einen angemeldeten Durchlauf, den nur der Nutzer machen kann).
 
 ## Letzter Patch (P-ID)
-P-2026-08-08-31 (Commit) – Terminal-Kopplung: Code erzeugen im Backend (Stufe 1b)
+P-2026-08-08-35 (Commit) – Terminal-Kopplung: Datenbankbenutzer je Terminal (Stufe 1c, Teil 1)
+
+## P-2026-08-08-35 terminal-kopplung-datenbankbenutzer
+
+### EINGELESEN
+- `docs/spezifikation_terminal_installation.md` (Abschnitt 2a), `services/TerminalKopplungService.php`, `controller/TerminalController.php`, die vom Terminal genutzten Dienste und Modelle, `core/OfflineQueueManager.php`, `sql/01_initial_schema.sql`.
+
+### DATEIEN
+- `services/TerminalDbBenutzerService.php` (neu)
+- `sql/06_migration_terminal_db_benutzer.sql` (neu), `sql/01_initial_schema.sql`, `sql/README.md`
+- `core/DefaultsSeeder.php`, `docs/spezifikation_terminal_installation.md`
+
+### AKZEPTANZKRITERIUM
+Ein fuer ein Terminal angelegter Datenbankbenutzer kann stempeln, Auftragszeiten buchen und den Monatsstatus anzeigen, aber nichts loeschen, keine Rechte vergeben und nichts am Stundenkonto aendern.
+
+### DONE – zweiter Baustein von Stufe 1c
+- **Ein eigener Datenbankbenutzer je Terminal** (`term_<name>_<id>`, 32-stelliges Zufallspasswort) mit eng gefassten Rechten. Bewusst ohne Endpunkt: Dieser Teil ist fuer sich pruefbar, und genau das war noetig – siehe „Befund“.
+- **Die ID haengt hinten an den Namen.** Zwei Terminals duerfen gleich heissen, zwei Datenbankbenutzer nicht.
+- **Erneute Kopplung ersetzt den Benutzer**, statt einen zweiten anzulegen; ein umbenanntes Terminal laesst keinen verwaisten Zugang zurueck.
+- **Kein halber Zustand:** Schlaegt eine der GRANT-Anweisungen fehl, wird der eben angelegte Benutzer wieder entfernt. Ein Zugang mit unvollstaendigen Rechten waere schlimmer als gar keiner, weil das Terminal dann erst spaeter und sporadisch scheitert.
+- **Passwort taucht nirgends auf:** nicht im Protokoll, nicht in der Datenbank des Backends. Es wird einmal geantwortet und ist danach nur noch auf dem Geraet.
+- **Zu den prepared statements:** `CREATE USER` und `GRANT` sind DDL, dort erlaubt MySQL/MariaDB keine Platzhalter. Statt zu escapen wird eingegrenzt – Benutzername, Host und alle Bezeichner werden gegen ein enges Muster geprueft, das Passwort besteht nur aus Buchstaben und Ziffern. Was nicht passt, wird nicht ausgefuehrt.
+- **Host-Muster einstellbar** (`config: terminal_db_host_muster`, Standard `%`). Standard bewusst weit: Terminals bekommen ihre Adresse per DHCP, eine feste Bindung kappt beim naechsten Neustart still den Zugang.
+- Die Rechte des **Backend**-Benutzers (`CREATE USER`, `GRANT OPTION`) kann die Anwendung sich nicht selbst geben – sie stehen als auskommentierte Anweisungen in der Migration und sind dort begruendet.
+
+### BEFUND – die Rechteliste der Spezifikation war zu eng
+Beim Abgleich mit dem Code zeigte sich, dass der Vorschlag aus der Spezifikation
+das Terminal an vier Stellen lahmgelegt haette. Deshalb wurde die Liste aus dem
+Code hergeleitet statt uebernommen, und die Spezifikation nachgezogen:
+- **Rollen und Rechte muessen lesbar sein** – ohne das waere am Terminal jeder Mitarbeiter rechtlos (keine Genehmiger-Knoepfe).
+- **`stundenkonto_korrektur` muss lesbar sein** – das Terminal zeigt seit P-2026-01-17-19 Gut-/Minusstunden. Schreiben darf es dort nichts; `stundenkonto_batch` bleibt ganz gesperrt.
+- **`urlaubsantrag` braucht UPDATE** – Genehmiger entscheiden laut Master-Prompt (13) auch am Terminal.
+- **`feiertag` braucht INSERT** – der `UrlaubService` generiert Feiertage bei Bedarf nach. Ohne das Recht rechnet ein Terminal im Januar still ohne die Feiertage des neuen Jahres; dieses lautlose Falschrechnen ist gefaehrlicher als das Recht.
+
+### NICHT ERREICHT
+- `passwort_hash` laesst sich derzeit **nicht** ausschliessen (Spaltenrechte vertragen kein `SELECT *`, `MitarbeiterModel` arbeitet aber so). Als **T-101** festgehalten, statt es stillschweigend hinzunehmen.
+
+### TEST
+1. 22 Proben „muss gehen“: Stempeln, Auftrag anlegen/starten/stoppen, Urlaubsantrag stellen und entscheiden, RFID zuweisen, Monatsstatus, Gut-/Minusstunden, Feiertage nachtragen, Protokoll, Offline-Queue – alle erlaubt.
+2. 13 Proben „darf nicht gehen“: DELETE, Stundenkonto schreiben, `stundenkonto_batch` lesen, Rechte vergeben, Passwort/Namen aendern, Konfiguration aendern, **Kopplungscodes lesen**, `terminal.db_benutzer` aendern, ALTER, DROP, fremdes Schema – alle verweigert.
+3. Erneute Kopplung: gleicher Name, neues Passwort; das alte Passwort funktioniert danach nicht mehr.
+4. Umbenanntes Terminal: alter Benutzer verschwindet, genau einer bleibt uebrig.
+5. Namensableitung geprueft, auch fuer leere Namen, reine Sonderzeichen und ueberlange Namen (immer <= 32 Zeichen, Muster eingehalten).
+6. Neuinstallation aus dem Initialschema: 35 Tabellen, 30 Rechte, alle vier neuen Spalten; alle fuenf Migrationen zweimal hintereinander durchlaufen.
+7. Keine PHP-Meldungen.
+
+### NEXT (Stufe 1c, Teil 2)
+- Kopplungs-Endpunkt, der Code-Einloesung, Benutzeranlage und Antwort zusammenfuehrt.
+
 
 ## P-2026-08-08-31 terminal-kopplung-backend
 

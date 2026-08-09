@@ -80,6 +80,16 @@ class DefaultsSeeder
                 'beschreibung'  => 'Terminal: Intervall (Sekunden) für wiederkehrende Healthchecks (Hauptdatenbank/Offline-Queue Anzeige). Default 10.',
             ],
             [
+                // Von welchen Rechnern aus sich der Datenbankbenutzer eines
+                // Terminals verbinden darf. Default '%' (beliebig), weil
+                // Terminals ihre Adresse per DHCP bekommen und eine feste
+                // Bindung beim nächsten Neustart still den Zugang kappt.
+                'schluessel'    => 'terminal_db_host_muster',
+                'wert'          => '%',
+                'typ'           => 'string',
+                'beschreibung'  => 'Terminal-Kopplung: Host-Muster für den Datenbankbenutzer eines Terminals (z. B. % oder 192.168.10.%). Default %.',
+            ],
+            [
                 'schluessel'    => 'micro_buchung_max_sekunden',
                 'wert'          => '180',
                 'typ'           => 'int',
