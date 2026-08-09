@@ -110,8 +110,7 @@ Strichcode. Bereits gedruckte Laufkarten und Maschinenkarten werden dadurch
 ungueltig und muessen neu gedruckt werden.
 
 ## Verlinkte Referenzen
-- Projektübersicht und Konfiguration: [`docs/README.md`](README.md)
+- Verzeichnis aller Dokumente: [`docs/README.md`](README.md)
 - Status/Letzte Änderungen: [`docs/STATUS_SNAPSHOT.md`](STATUS_SNAPSHOT.md)
-- Prompt-/Projektorientierung: [`docs/prompt_uebersicht.md`](prompt_uebersicht.md)
 - Wartungs- und Pruefcheckliste: [`docs/wartungscheckliste.md`](wartungscheckliste.md)
 - RFID-Reader-Setup: [`docs/rfid_reader_setup.md`](rfid_reader_setup.md)

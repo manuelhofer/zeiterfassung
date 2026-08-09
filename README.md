@@ -122,8 +122,8 @@ Kurzfassung – vollständig in [`docs/arbeitsregeln.md`](docs/arbeitsregeln.md)
 - [Admin-Handbuch](docs/admin_handbuch.md)
 - [Wartungscheckliste](docs/wartungscheckliste.md)
 - [RFID-Reader-Setup](docs/rfid_reader_setup.md)
-- [Prompt-Übersicht](docs/prompt_uebersicht.md)
 - [Git-Wiki & Repo-Beschreibung](docs/git_wiki_und_beschreibung.md)
+- [Verzeichnis aller Dokumente](docs/README.md)
 
 ## Lizenz
 

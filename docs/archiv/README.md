@@ -18,10 +18,14 @@ ist aber **aktiv** und wird bei jedem Patch weiter gepflegt.
 - `../fachregeln/` – die Fachlogik, nach Thema getrennt
 - `../STATUS_SNAPSHOT.md` – aktueller Stand
 - `../rechte_prompt.md` – Rechte-Codes
-- `../prompt_uebersicht.md` – welche Datei wofuer gilt
+- `../README.md` – Verzeichnis aller Dokumente
 
 ## Hinweise zu alten Verweisen
 
+- **Geloescht wird hier nichts.** Ueberholte Prompts werden in
+  `ALTE_PROMPTS.md` eingeordnet und begruendet, nicht entfernt; der Verlauf in
+  `DEV_PROMPT_HISTORY.md` wird nie gekuerzt. Wer nachlesen will, warum etwas
+  frueher anders galt, soll es finden.
 - Alte Pfade wie `docs/DEV_PROMPT_HISTORY.md` wurden nicht massenhaft
   umgeschrieben. Gemeint ist im aktuellen Projektstand
   `docs/archiv/DEV_PROMPT_HISTORY.md`.

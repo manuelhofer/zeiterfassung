@@ -70,6 +70,71 @@ in den Statusbericht.
   D-002 entfallen; die Regel selbst gilt weiter.)
 
 
+## P-2026-08-09-11 ein-verzeichnis-statt-zwei
+
+### EINGELESEN
+- `docs/README.md` und `docs/prompt_uebersicht.md` vollstaendig – beide fuehrten
+  ein Verzeichnis derselben Dateien.
+- `docs/archiv/ALTE_PROMPTS.md` und `docs/archiv/README.md`, um zu pruefen, was
+  von `prompt_uebersicht.md` schon anderswo steht.
+- Als offener Punkt aus P-2026-08-09-10 vorgemerkt.
+
+### DATEIEN
+- `docs/prompt_uebersicht.md` (geloescht)
+- `docs/README.md` (neu geschrieben)
+- `README.md`, `docs/admin_handbuch.md`, `docs/archiv/README.md` (Verweise)
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Es gibt genau ein Verzeichnis der Dokumentation (`docs/README.md`), und kein
+gueltiges Dokument verweist mehr auf `docs/prompt_uebersicht.md`.
+
+### DONE
+Zwei Dateien fuehrten dieselbe Liste: `docs/README.md` (nach Gruppen) und
+`docs/prompt_uebersicht.md` (als Tabelle). Sie waren bereits auseinander –
+`prompt_uebersicht.md` nannte die Terminal-Spezifikation „Welche Stufe fertig
+ist, steht dort im Kopf", was seit P-2026-08-09-09 nicht mehr stimmt (es steht
+im Stufenplan), `docs/README.md` sagte dasselbe anders. Genau der Fall, den
+`CHATSTART.md` Abschnitt 5 beschreibt.
+
+- **`docs/README.md` bleibt** und ist jetzt das einzige Verzeichnis. Es liegt
+  im Ordner, den man oeffnet, wenn man Dokumentation sucht, und wird auf
+  GitHub von selbst angezeigt.
+- **Gegliedert nach Lesehaeufigkeit** statt nach Herkunft: „Immer" (drei
+  Dateien), „Nach Thema", „Installation und Betrieb", „Verlauf und Archiv".
+  Dieselbe Ordnung wie in `CHATSTART.md` – wer beides liest, sieht kein drittes
+  System.
+- **Der Verweis auf die Auswahl nach Aufgabe steht oben:** Wer arbeitet, will
+  die Lesekarte in `CHATSTART.md`, nicht ein Dateiverzeichnis. Das Verzeichnis
+  ist zum Nachschlagen da, nicht zum Einstieg.
+- **Aus `prompt_uebersicht.md` uebernommen**, was dort einzig war: die
+  Einordnung des Archivs und der Hinweis, dass die History keine Startlektuere
+  ist. Der lange Abschnitt ueber einzelne Archivdateien entfiel – er war eine
+  dritte Fassung dessen, was `archiv/ALTE_PROMPTS.md` pro Datei begruendet.
+- **„Was beim Aufraeumen bewusst nicht getan wurde"** ist als kurzer Absatz in
+  `docs/archiv/README.md` gelandet, wo die Regeln fuer den Archivordner
+  ohnehin stehen: Geloescht wird dort nichts.
+- Verweise nachgezogen in `README.md`, `docs/admin_handbuch.md` und
+  `docs/archiv/README.md`.
+
+### TEST
+- Link-Pruefung ueber **alle** `.md`-Dateien ausserhalb von `archiv/`
+  (Python, relative Ziele gegen das Dateisystem): **0 tote Links.**
+- `grep -rn "prompt_uebersicht"` ueber Repo ohne `archiv/`: kein Treffer mehr.
+  Die verbliebenen Treffer stehen im archivierten Master-Prompt v13 und in
+  aelteren Verlaufseintraegen – Historie, wird nicht umgeschrieben
+  (`docs/archiv/README.md`).
+- `php -l`: keine PHP-Datei geaendert, entfaellt.
+
+### Was bewusst nicht erreicht wurde
+- **`docs/admin_handbuch.md` und `docs/wartungscheckliste.md` wurden nicht
+  gegengelesen.** Sie beschreiben Bedienung und Pruefablaeufe; von diesem
+  Patch ist nur je ein Verweis betroffen.
+
+### NEXT
+Unveraendert der Kiosk auf einem echten Bildschirm – siehe
+`docs/STATUS_SNAPSHOT.md`.
+
 ## P-2026-08-09-10 kaltstart-entdoppeln
 
 ### EINGELESEN
