@@ -51,9 +51,13 @@ Maschinenfeld ist ein Textfeld und die Maschine ist optional.
 ## 4. Tabellen
 
 **`auftrag`** (optional/minimal): `auftragsnummer` (UNIQUE), optional
-`kurzbeschreibung`, `kunde`, `status`, `aktiv`, Timestamps. Diese Felder werden
-**nicht** am Terminal gepflegt (Touch, keine Tastatur), sondern nur im Backend
-oder über Importe.
+`kurzbeschreibung`, `kunde`, `zeichnungsnummer`, `status`, `aktiv`, Timestamps.
+Diese Felder werden **nicht** am Terminal gepflegt (Touch, keine Tastatur),
+sondern nur im Backend oder über Importe.
+
+Die **Zeichnungsnummer** ist wie alles ausser der Auftragsnummer freiwillig. Sie
+steht in der Auftragsliste, wird von der Suche mitgefunden und erscheint auf der
+Laufkarte – leer bleibt sie auch dort unsichtbar.
 
 **`auftragszeit`:** `mitarbeiter_id`, `auftrag_id` bzw. `auftragscode`,
 `arbeitsschritt_code`, `maschine_id`, `terminal_id`, `typ` (`haupt`/`neben`),

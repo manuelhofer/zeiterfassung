@@ -147,6 +147,7 @@ class AuftragController
                     MAX(a.aktiv) AS auftrag_aktiv,
                     MAX(a.kurzbeschreibung) AS kurzbeschreibung,
                     MAX(a.kunde) AS kunde,
+                    MAX(a.zeichnungsnummer) AS zeichnungsnummer,
                     COUNT(az.id) AS buchungen,
                     SUM(CASE WHEN az.status = 'laufend' THEN 1 ELSE 0 END) AS laufend,
                     SUM(CASE WHEN az.status = 'pausiert' THEN 1 ELSE 0 END) AS pausiert,
@@ -246,6 +247,7 @@ class AuftragController
                         <tr>
                             <th>Auftragsnummer</th>
                             <th>Kunde</th>
+                            <th>Zeichnungsnummer</th>
                             <th>Kurzbeschreibung</th>
                             <th>Buchungen</th>
                             <th>Laufend</th>
@@ -273,6 +275,7 @@ class AuftragController
                                 $zuletztBearbeitet = (string)($row['zuletzt_bearbeitet'] ?? '');
 
                                 $kunde = trim((string)($row['kunde'] ?? ''));
+                                $zeichnungsnummer = trim((string)($row['zeichnungsnummer'] ?? ''));
                                 $kurzbeschreibung = trim((string)($row['kurzbeschreibung'] ?? ''));
 
                                 $nrEsc = htmlspecialchars($nr, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
@@ -282,6 +285,7 @@ class AuftragController
                             <tr>
                                 <td><?php echo $nrEsc; ?></td>
                                 <td><?php echo $kunde !== '' ? htmlspecialchars($kunde, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') : '-'; ?></td>
+                                <td><?php echo $zeichnungsnummer !== '' ? htmlspecialchars($zeichnungsnummer, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') : '-'; ?></td>
                                 <td><?php echo $kurzbeschreibung !== '' ? htmlspecialchars($kurzbeschreibung, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') : '-'; ?></td>
                                 <td><?php echo $buchungen; ?></td>
                                 <td><?php echo $laufend; ?></td>
@@ -648,6 +652,7 @@ class AuftragController
                         <table>
                             <tbody>
                                 <tr><th style="text-align:left;">Kunde</th><td><?php echo $escD(($auftragStamm['kunde'] ?? '') !== '' ? $auftragStamm['kunde'] : '-'); ?></td></tr>
+                                <tr><th style="text-align:left;">Zeichnungsnummer</th><td><?php echo $escD(($auftragStamm['zeichnungsnummer'] ?? '') !== '' ? $auftragStamm['zeichnungsnummer'] : '-'); ?></td></tr>
                                 <tr><th style="text-align:left;">Kurzbeschreibung</th><td><?php echo $escD(($auftragStamm['kurzbeschreibung'] ?? '') !== '' ? $auftragStamm['kurzbeschreibung'] : '-'); ?></td></tr>
                                 <tr><th style="text-align:left;">Status</th><td><?php echo $escD(($auftragStamm['status'] ?? '') !== '' ? $auftragStamm['status'] : '-'); ?></td></tr>
                                 <tr><th style="text-align:left;">Aktiv</th><td><?php echo ((int)($auftragStamm['aktiv'] ?? 0) === 1) ? 'Ja' : 'Nein'; ?></td></tr>
@@ -932,6 +937,7 @@ class AuftragController
             'auftragsnummer'   => '',
             'kurzbeschreibung' => '',
             'kunde'            => '',
+            'zeichnungsnummer' => '',
             'status'           => '',
             'aktiv'            => 1,
         ], null);
@@ -1005,6 +1011,7 @@ class AuftragController
         $auftragsnummer   = trim((string)($_POST['auftragsnummer'] ?? ''));
         $kurzbeschreibung = trim((string)($_POST['kurzbeschreibung'] ?? ''));
         $kunde            = trim((string)($_POST['kunde'] ?? ''));
+        $zeichnungsnummer = trim((string)($_POST['zeichnungsnummer'] ?? ''));
         $status           = trim((string)($_POST['status'] ?? ''));
         $aktiv            = isset($_POST['aktiv']) ? 1 : 0;
 
@@ -1013,6 +1020,7 @@ class AuftragController
             'auftragsnummer'   => $auftragsnummer,
             'kurzbeschreibung' => $kurzbeschreibung,
             'kunde'            => $kunde,
+            'zeichnungsnummer' => $zeichnungsnummer,
             'status'           => $status,
             'aktiv'            => $aktiv,
         ];
@@ -1024,6 +1032,11 @@ class AuftragController
 
         if (mb_strlen($auftragsnummer) > 100) {
             $this->renderAuftragFormular($daten, 'Die Auftragsnummer darf hoechstens 100 Zeichen lang sein.');
+            return;
+        }
+
+        if (mb_strlen($zeichnungsnummer) > 100) {
+            $this->renderAuftragFormular($daten, 'Die Zeichnungsnummer darf hoechstens 100 Zeichen lang sein.');
             return;
         }
 
@@ -1073,29 +1086,32 @@ class AuftragController
                         SET auftragsnummer = :nr,
                             kurzbeschreibung = :kurz,
                             kunde = :kunde,
+                            zeichnungsnummer = :zeichnung,
                             status = :status,
                             aktiv = :aktiv
                       WHERE id = :id',
                     [
-                        'nr'     => $auftragsnummer,
-                        'kurz'   => $kurzbeschreibung !== '' ? $kurzbeschreibung : null,
-                        'kunde'  => $kunde !== '' ? $kunde : null,
-                        'status' => $status !== '' ? $status : null,
-                        'aktiv'  => $aktiv,
-                        'id'     => $id,
+                        'nr'        => $auftragsnummer,
+                        'kurz'      => $kurzbeschreibung !== '' ? $kurzbeschreibung : null,
+                        'kunde'     => $kunde !== '' ? $kunde : null,
+                        'zeichnung' => $zeichnungsnummer !== '' ? $zeichnungsnummer : null,
+                        'status'    => $status !== '' ? $status : null,
+                        'aktiv'     => $aktiv,
+                        'id'        => $id,
                     ]
                 );
                 $_SESSION['auftrag_detail_flash_ok'] = 'Der Auftrag wurde gespeichert.';
             } else {
                 $this->db->ausfuehren(
-                    'INSERT INTO auftrag (auftragsnummer, kurzbeschreibung, kunde, status, aktiv)
-                     VALUES (:nr, :kurz, :kunde, :status, :aktiv)',
+                    'INSERT INTO auftrag (auftragsnummer, kurzbeschreibung, kunde, zeichnungsnummer, status, aktiv)
+                     VALUES (:nr, :kurz, :kunde, :zeichnung, :status, :aktiv)',
                     [
-                        'nr'     => $auftragsnummer,
-                        'kurz'   => $kurzbeschreibung !== '' ? $kurzbeschreibung : null,
-                        'kunde'  => $kunde !== '' ? $kunde : null,
-                        'status' => $status !== '' ? $status : null,
-                        'aktiv'  => $aktiv,
+                        'nr'        => $auftragsnummer,
+                        'kurz'      => $kurzbeschreibung !== '' ? $kurzbeschreibung : null,
+                        'kunde'     => $kunde !== '' ? $kunde : null,
+                        'zeichnung' => $zeichnungsnummer !== '' ? $zeichnungsnummer : null,
+                        'status'    => $status !== '' ? $status : null,
+                        'aktiv'     => $aktiv,
                     ]
                 );
                 $_SESSION['auftrag_detail_flash_ok'] = 'Der Auftrag wurde angelegt. Jetzt koennen Arbeitsschritte ergaenzt werden.';
@@ -1123,6 +1139,7 @@ class AuftragController
         $auftragsnummer   = (string)($auftrag['auftragsnummer'] ?? '');
         $kurzbeschreibung = (string)($auftrag['kurzbeschreibung'] ?? '');
         $kunde            = (string)($auftrag['kunde'] ?? '');
+        $zeichnungsnummer = (string)($auftrag['zeichnungsnummer'] ?? '');
         $status           = (string)($auftrag['status'] ?? '');
         $aktiv            = (int)($auftrag['aktiv'] ?? 1) === 1;
         $csrfToken        = Csrf::token(self::CSRF_BEREICH_STAMM);
@@ -1159,6 +1176,13 @@ class AuftragController
                     <label for="kunde"><strong>Kunde</strong></label><br>
                     <input type="text" id="kunde" name="kunde" maxlength="255"
                            value="<?php echo $esc($kunde); ?>" style="width:100%;max-width:420px;">
+                </div>
+
+                <div style="margin-bottom:0.75rem;">
+                    <label for="zeichnungsnummer"><strong>Zeichnungsnummer</strong></label><br>
+                    <input type="text" id="zeichnungsnummer" name="zeichnungsnummer" maxlength="100"
+                           value="<?php echo $esc($zeichnungsnummer); ?>" style="width:100%;max-width:420px;">
+                    <br><small>Freiwillig. Wird von der Suche mitgefunden und steht auf der Laufkarte.</small>
                 </div>
 
                 <div style="margin-bottom:0.75rem;">

@@ -70,6 +70,90 @@ in den Statusbericht.
   D-002 entfallen; die Regel selbst gilt weiter.)
 
 
+## P-2026-08-10-33 auftrag-zeichnungsnummer
+
+### EINGELESEN
+- `controller/AuftragController.php` (Formular, Liste, Detailansicht).
+- `services/PDFService.php`, Kopfbereich der Laufkarte.
+- `sql/01_initial_schema.sql`, Tabelle `auftrag`; `sql/README.md`.
+- `docs/fachregeln/auftraege_und_codes.md`, Abschnitte 1 und 4.
+
+### DATEIEN
+- `sql/08_migration_auftrag_zeichnungsnummer.sql` (neu)
+- `sql/01_initial_schema.sql`
+- `sql/README.md`
+- `controller/AuftragController.php`
+- `services/PDFService.php`
+- `docs/fachregeln/auftraege_und_codes.md`
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Wer beim Auftrag `A-2026-0815` die Zeichnungsnummer `ZN-4711-B` einträgt, findet
+sie danach in der Auftragsliste, in der Detailansicht und auf der Laufkarte
+wieder.
+
+### DONE
+Neue Spalte `auftrag.zeichnungsnummer` (VARCHAR(100), NULL) samt Index. In der
+Fertigung wird ein Auftrag im Gespräch über die Zeichnung gesucht, nicht über
+die Auftragsnummer; bisher landete diese Angabe in der Kurzbeschreibung, wo sie
+niemand zuverlässig wiederfindet.
+
+Wie alle Auftragsfelder ausser der Auftragsnummer ist sie **freiwillig**
+(Fachregel Abschnitt 1) – leer bleibt sie auch auf dem Ausdruck unsichtbar.
+
+Sichtbar an vier Stellen: Formular (anlegen und bearbeiten), Auftragsliste als
+eigene Spalte zwischen Kunde und Kurzbeschreibung, Detailansicht in den
+Stammdaten, Laufkarte im Kopfbereich unter dem Kunden.
+
+Der Index nützt einer Suche mit `%…%` nichts, wohl aber einem Präfix-Treffer
+(`ZN-4711%`) – die Spalte ist genau dafür da, gesucht zu werden.
+
+### TEST
+- Migration 08 zweimal hintereinander eingespielt: beim zweiten Lauf keine
+  Änderung, keine Meldung (Idempotenz).
+- Neuinstallation aus `01_initial_schema.sql` in eine leere Datenbank: 44
+  Statements, `auftrag.zeichnungsnummer` vorhanden; danach laufen alle
+  Migrationen 02–08 auf dieser Neuinstallation durch.
+- Speichern über den Controller (`?seite=auftrag_speichern`, Auftrag 7):
+  `zeichnungsnummer='ZN-4711-B'` steht in der Datenbank.
+- Detailansicht zeigt `Zeichnungsnummer | ZN-4711-B`, die Liste enthält den
+  Wert, der Tabellenkopf hat 13 Spalten.
+- Laufkarte als PDF erzeugt (2,7 KB, `%PDF-1.4`), Seite 1 als Bild geprüft:
+  Zeile „Zeichnungsnummer: ZN-4711-B" steht zwischen Kunde und
+  Kurzbeschreibung.
+- `php -l` auf beiden geänderten PHP-Dateien sauber, keine Meldungen im
+  Seitenaufbau.
+
+### Gefundene Fehler im eigenen Entwurf
+Zwei Stück:
+
+**Semikolon im Spaltenkommentar.** Der `COMMENT`-Text lautete zuerst
+„Freiwillig; Nummer der zugehoerigen Zeichnung". Der `mysql`-Client kommt damit
+klar, jedes Werkzeug, das eine SQL-Datei selbst an Semikolons zerlegt, aber
+nicht – es zerschneidet mitten im Stringliteral. Jetzt steht dort ein
+Gedankenstrich. Dasselbe Semikolon steckt seit P-2026-08-10-28 auch im Kommentar
+von `uebertrag_festgeschrieben_am`; dort belassen, weil ein Ändern nur den
+Kommentar umschreibt und dieser Patch nicht der Ort dafür ist.
+
+**Label stiess an den Wert.** Die Wertespalte im Laufkarten-Kopf stand 85 Punkte
+hinter dem Rand. „Zeichnungsnummer:" ist zwar so lang wie das schon vorhandene
+„Kurzbeschreibung:", trägt aber breitere Zeichen und berührte den Wert fast.
+Auf 95 Punkte gesetzt und im Bild nachgesehen.
+
+### Was bewusst nicht erreicht wurde
+Die Zeichnungsnummer bekommt **keinen eigenen Strichcode**: Gescannt wird die
+Auftragsnummer, und ein zweiter Code am selben Auftrag lädt nur dazu ein, den
+falschen zu scannen.
+
+Am Terminal wird sie nicht angezeigt – dort gibt es keine Tastatur und keinen
+Platz, und die eiserne Regel („eine Buchung darf nie an fehlenden Stammdaten
+scheitern") bleibt davon unberührt.
+
+### NEXT
+Die Suche in der Auftragsliste findet bisher nur die Auftragsnummer; als
+Nächstes soll sie Kunde, Kurzbeschreibung und diese neue Spalte mitdurchsuchen.
+
+
 ## P-2026-08-10-32 kopplung-nachgeprueft
 
 ### EINGELESEN

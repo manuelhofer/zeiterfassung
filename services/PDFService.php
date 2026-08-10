@@ -161,6 +161,7 @@ class PDFService
 
         $auftragsnummer   = trim((string)($auftrag['auftragsnummer'] ?? ''));
         $kunde            = trim((string)($auftrag['kunde'] ?? ''));
+        $zeichnungsnummer = trim((string)($auftrag['zeichnungsnummer'] ?? ''));
         $kurzbeschreibung = trim((string)($auftrag['kurzbeschreibung'] ?? ''));
         $status           = trim((string)($auftrag['status'] ?? ''));
 
@@ -178,7 +179,7 @@ class PDFService
         // Kopfbereich einer Seite zeichnen, liefert die neue y-Position.
         $kopf = function (bool $ersteSeite) use (
             &$content, &$seitenNr, $codeService, $links, $rechts, $breite, $obenStart,
-            $auftragsnummer, $kunde, $kurzbeschreibung, $status
+            $auftragsnummer, $kunde, $zeichnungsnummer, $kurzbeschreibung, $status
         ): float {
             $seitenNr++;
             $content .= "0 0 0 RG\n0 0 0 rg\n0.8 w\n";
@@ -214,6 +215,7 @@ class PDFService
 
                 foreach ([
                     'Kunde'            => $kunde,
+                    'Zeichnungsnummer' => $zeichnungsnummer,
                     'Kurzbeschreibung' => $kurzbeschreibung,
                     'Status'           => $status,
                 ] as $label => $wert) {
@@ -221,7 +223,9 @@ class PDFService
                         continue;
                     }
                     $content .= $this->pdfTextCmd('/F1', 9, $links, $y, $label . ':');
-                    $content .= $this->pdfTextCmd('/F2', 10, $links + 85, $y, $this->trimMaxChars($wert, max(20, $textBreite)));
+                    // 95 statt der frueheren 85 Punkte: "Zeichnungsnummer:" ist
+                    // das breiteste Label und stiess sonst an den Wert.
+                    $content .= $this->pdfTextCmd('/F2', 10, $links + 95, $y, $this->trimMaxChars($wert, max(20, $textBreite)));
                     $y -= 14;
                 }
 

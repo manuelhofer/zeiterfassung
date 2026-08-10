@@ -24,6 +24,8 @@ gebraucht - Neuinstallationen bekommen alles über `01_initial_schema.sql`.
   `urlaub_kontingent_jahr` um `uebertrag_festgeschrieben_am` und markiert
   vorhandene, von Hand gepflegte Überträge als festgeschrieben (B-080,
   Patch P-2026-08-10-27).
+- `08_migration_auftrag_zeichnungsnummer.sql`: ergänzt `auftrag` um die Spalte
+  `zeichnungsnummer` samt Index (Patch P-2026-08-10-33).
 - `06_migration_terminal_db_benutzer.sql`: ergänzt `terminal` um die Spalten zum
   Datenbankbenutzer der Kopplung (Patch P-2026-08-08-35). **Enthält zusätzlich
   die GRANT-Anweisungen, die ein Administrator einmal von Hand ausführen muss**,

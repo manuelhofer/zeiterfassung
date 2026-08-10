@@ -41,13 +41,15 @@ CREATE TABLE `auftrag` (
   `auftragsnummer` varchar(100) NOT NULL,
   `kurzbeschreibung` varchar(255) DEFAULT NULL,
   `kunde` varchar(255) DEFAULT NULL,
+  `zeichnungsnummer` varchar(100) DEFAULT NULL COMMENT 'Freiwillig - Nummer der zugehoerigen Zeichnung',
   `status` varchar(50) DEFAULT NULL,
   `aktiv` tinyint(1) NOT NULL DEFAULT 1,
   `erstellt_am` datetime NOT NULL DEFAULT current_timestamp(),
   `geaendert_am` datetime NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
   PRIMARY KEY (`id`),
   UNIQUE KEY `uniq_auftrag_auftragsnummer` (`auftragsnummer`),
-  KEY `idx_auftrag_status` (`status`)
+  KEY `idx_auftrag_status` (`status`),
+  KEY `idx_auftrag_zeichnungsnummer` (`zeichnungsnummer`)
 ) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
