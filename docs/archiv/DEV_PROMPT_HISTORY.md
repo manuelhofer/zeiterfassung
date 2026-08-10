@@ -70,6 +70,91 @@ in den Statusbericht.
   D-002 entfallen; die Regel selbst gilt weiter.)
 
 
+## P-2026-08-10-21 aufraeum-durchgang-abgeschlossen
+
+### EINGELESEN
+- `docs/wartungscheckliste.md`, beide Ablauflisten.
+- Der eigene Arbeitsplan (`AUFRAEUMPLAN.md`, untracked) zur Endkontrolle.
+
+### DATEIEN
+- `docs/STATUS_SNAPSHOT.md`
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+- `AUFRAEUMPLAN.md` (geloescht, war nie eingecheckt)
+
+### AKZEPTANZKRITERIUM
+Alle Kernablaeufe der Wartungscheckliste laufen fehlerfrei, und der Snapshot
+beschreibt den Stand nach dem Durchgang.
+
+### DONE
+Abschluss des Aufraeum-Durchgangs vom 10.08.2026, 21 Patches
+(P-2026-08-10-01 bis -21). Bilanz gegen den Ausgangspunkt `de51a03`:
+
+| | |
+| --- | --- |
+| Kaltstart-Set | 18.818 → 15.181 Byte (−20 %) |
+| Toter Code entfernt | rund 1.100 Zeilen in 20 Dateien |
+| QR-Bibliothek entfernt | 3.562 Zeilen |
+| `class_exists`-Huellen | 366 → 17 |
+| CSRF-Kopien | 15 → 1 (`core/Csrf.php`) |
+| Konfigurationsdienste | 2 → 1 |
+| `method_exists` auf eigene Methoden | 64 → 0 |
+| Behobene Fehler | 4 (davon 2 vorher unbekannt) |
+| Neue B-/T-IDs | B-093, T-104 bis T-108 |
+
+Vier echte Fehler, die vorher niemand kannte:
+
+1. **SQL-Maskierung ohne Backslash** in der Offline-Queue – Terminal-Eingaben
+   konnten aus dem Stringliteral ausbrechen, und der Befehl laeuft spaeter
+   gegen die Hauptdatenbank (P-01).
+2. **`class_exists('LoggerService')`** auf eine Klasse, die es nie gab: Ein
+   Fehlerpfad im Urlaubssaldo rechnete stillschweigend mit 0 Tagen weiter
+   (P-02).
+3. **B-092** – die Route `betriebsferien_admin_toggle` rief eine Methode auf,
+   die es nicht gab; `betriebsferien.aktiv` liess sich nie umschalten (P-04).
+4. **QR-Rueckfall bei Maschinen-Codes** – erzeugte im Fehlerfall ein Etikett,
+   das die 1D-Scanner der Halle gar nicht lesen koennen (P-05).
+
+Dazu **B-093**, gefunden beim Abgleich von Doku und Code: Abteilungsbezogene
+Rollenzuweisungen gewaehren gar nichts, weil `AuthService` nur
+`scope_typ = 'global'` auswertet. Nicht behoben – braucht eine Entscheidung.
+
+### TEST
+Kernablaeufe aus `docs/wartungscheckliste.md`, Backend-Liste vollstaendig:
+Dashboard, Mitarbeiterliste, Rollen/Rechte, Monatsreport HTML, Urlaub-Liste,
+Genehmigungsliste, Queue-Admin, Audit-Log, Selbsttest – **neun von neun ohne
+Ausnahme**. Monats-PDF: 11.758 Byte mit gueltiger `%PDF`-Signatur.
+
+Der PDF-Check des Selbsttests zusaetzlich ueber den **echten POST-Weg** mit
+CSRF-Token: „OK: PDF-Check", Header und Footer gefunden, Seitenzahl konsistent.
+Das prueft die CSRF-Umstellung von der anderen Seite mit.
+
+Maschinell: `php -l` ueber alle Dateien sauber, keine toten Markdown-Links,
+alle in der Doku genannten Repo-Pfade vorhanden (zwei erwartete Ausnahmen:
+`config/geraet.local.php` und `scripts/terminal/terminal.conf` entstehen zur
+Laufzeit; drei Verweise in `rechte_prompt.md` sind seit P-08 ausdruecklich als
+„gibt es nicht mehr" gekennzeichnet).
+
+Vor dem Push geprueft: `config.local.php` ist gitignored und in keinem Commit,
+keine Zugangsdaten, keine Personendaten, keine echten Mailadressen in den neuen
+Zeilen. Keine Testreste in der Datenbank, keine Probe-Bilder.
+
+### Was bewusst nicht erreicht wurde
+- **Der Offline-Pfad ist nicht durchgespielt.** Haupt-DB aus, Queue fuellen,
+  Haupt-DB an, Queue leerlaufen lassen – das braucht eine kontrolliert
+  abgeschaltete Datenbank und gehoert in den Geraetetest.
+- **Terminal-Buchungsflows im Browser** (Kommen/Gehen, Auftrag starten/stoppen
+  mit angemeldetem Mitarbeiter) sind weiterhin ungeprueft; sie brauchen einen
+  RFID-Chip oder echte Personaldaten. Stand schon vorher als offener Punkt im
+  Snapshot und steht dort weiter.
+- **B-093 und B-080** sind nicht behoben, nur beobachtbar bzw. beschrieben.
+- Die neun Controller mit Inline-HTML (T-104) und `SmokeTestController::index()`
+  mit 3.700 Zeilen (T-105) bleiben, wie sie sind.
+
+### NEXT
+Geraetetest – siehe Snapshot und `docs/spezifikation_terminal_installation.md`,
+Abschnitt 12.
+
+
 ## P-2026-08-10-20 kaltstart-nachgezogen
 
 ### EINGELESEN
