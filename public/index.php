@@ -161,78 +161,26 @@ try {
     /** @var AuthService $auth */
     $auth = AuthService::getInstanz();
 
-    // Geschützte Seiten: nur mit Login zugänglich
-    $geschuetzteSeiten = [
-        'dashboard',
-        'smoke_test',
-        'zeit_heute',
-        'urlaub_meine',
-        'urlaub_genehmigung',
-        'urlaub_verwaltung',
-        'urlaub_jahresuebersicht',
-        'urlaubsplanung',
-        'report_monat',
-        'report_monat_pdf',
-        'report_monat_export_all',
-        'auftrag',
-        'auftrag_detail',
-        'auftrag_neu',
-        'auftrag_bearbeiten',
-        'auftrag_speichern',
-        'auftrag_laufkarte',
-        'arbeitsschritt_katalog',
-        'arbeitsschritt_katalog_neu',
-        'arbeitsschritt_katalog_bearbeiten',
-        'arbeitsschritt_katalog_speichern',
-        'arbeitsschritt_katalog_blatt',
-        'auftrag_schritt_bearbeiten',
-        'auftrag_schritt_speichern',
-        'auftrag_schritte_aus_katalog',
-        'auftragszeit_bearbeiten',
-        'mitarbeiter_admin',
-        'mitarbeiter_admin_bearbeiten',
-        'mitarbeiter_admin_speichern',
-        'mitarbeiter_stundenkonto',
-        'mitarbeiter_rechte',
-        'maschine_admin',
-        'maschine_admin_bearbeiten',
-        'maschine_admin_speichern',
-        'maschine_admin_barcode_neu',
-        'abteilung_admin',
-        'abteilung_admin_bearbeiten',
-        'abteilung_admin_speichern',
-        'rollen_admin',
-        'rollen_admin_bearbeiten',
-        'rollen_admin_speichern',
-        'feiertag_admin',
-        'feiertag_admin_bearbeiten',
-        'feiertag_admin_speichern',
-        'betriebsferien_admin',
-        'betriebsferien_admin_bearbeiten',
-        'betriebsferien_admin_speichern',
-        'betriebsferien_admin_toggle',
-        'queue_admin',
-        'audit_logs',
-        'zeit_rundungsregel_admin',
-        'zeit_rundungsregel_admin_bearbeiten',
-        'konfiguration_admin',
-        'konfiguration_admin_bearbeiten',
-        'urlaub_kontingent_admin',
-        'urlaub_kontingent_admin_bearbeiten',
-        'urlaub_kontingent_admin_speichern',
-        'terminal_admin',
-        'terminal_admin_bearbeiten',
-        'terminal_admin_speichern',
-        'kurzarbeit_admin',
-        'kurzarbeit_admin_bearbeiten',
-        'kurzarbeit_admin_speichern',
-        'kurzarbeit_admin_toggle',
-        'terminal_admin_toggle',
-        'terminal_admin_kopplung',
-        'terminal_admin_entkoppeln',
+    // Zugang: **alles ist geschützt**, ausser den wenigen ausdrücklich offenen
+    // Routen. Vorher stand hier eine Liste aller geschützten Seiten – also eine
+    // zweite Fassung des `switch` weiter unten, von Hand gepflegt. Beide waren
+    // zuletzt deckungsgleich, aber die nächste neue Route wäre in einer der
+    // beiden vergessen worden. Und der Fehler geht in die gefährliche Richtung:
+    // Eine vergessene Zeile in der Liste macht die Seite **offen**.
+    //
+    // Umgekehrt kann nichts passieren: Wer eine Route ergänzt, bekommt sie
+    // geschützt, ohne daran zu denken. Nur wer sie ausdrücklich öffnen will,
+    // muss hier eine Zeile schreiben – und dann denkt er auch darüber nach.
+    $offeneSeiten = [
+        'login',
+        'logout',
+        // Kopplungs-Endpunkt für Terminals: Ein frisch installiertes Gerät hat
+        // noch keinen Benutzer – der Kopplungscode ist der Nachweis
+        // (siehe TerminalKopplungController).
+        'terminal_kopplung',
     ];
 
-    if (in_array($seite, $geschuetzteSeiten, true) && !$auth->istAngemeldet()) {
+    if (!in_array($seite, $offeneSeiten, true) && !$auth->istAngemeldet()) {
         header('Location: ?seite=login');
         exit;
     }

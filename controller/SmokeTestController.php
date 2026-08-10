@@ -164,6 +164,13 @@ class SmokeTestController
         // T-069 (Fortsetzung): Terminal-Online/Offline-Flow (statische Code-Checks)
         // Ziel: Sicherstellen, dass Kommen/Gehen bei offline Haupt-DB in die Offline-Queue gehen
         // und das Terminal den "Pseudo-Erfolg" (ID=0) sinnvoll behandelt.
+        //
+        // Warum statisch und nicht durch Ausfuehren: Der Zweig laeuft nur, wenn
+        // die Hauptdatenbank **nicht** erreichbar ist - das laesst sich im
+        // laufenden Backend nicht herstellen, ohne es selbst abzuschalten. Der
+        // Ablauf wurde stattdessen in P-2026-08-10-22 gegen eine Projektkopie
+        // durchgespielt; diese Pruefung haelt nur fest, dass der Zweig noch da
+        // ist.
         $zeitServicePfad = $root . '/services/ZeitService.php';
         if (is_file($zeitServicePfad) && is_readable($zeitServicePfad)) {
             $inhalt = @file_get_contents($zeitServicePfad);
@@ -199,6 +206,12 @@ class SmokeTestController
         if (is_file($zeitCtrlPfad) && is_readable($zeitCtrlPfad)) {
             $inhalt = @file_get_contents($zeitCtrlPfad);
             if (is_string($inhalt) && $inhalt !== '') {
+                // Bewusst Textsuche: Geprueft wird nicht, ob es eine Methode gibt,
+                // sondern **welche aufgerufen wird** - und dass die alte
+                // Massenupdate-Variante nicht zurueckkehrt. Beides sieht man nur
+                // im Quelltext. Wer eine der beiden Methoden umbenennt, muss
+                // diese Zeilen mitziehen; das ist der Preis dafuer, eine
+                // Regression festzuhalten, die zweimal aufgetreten ist.
                 $nutztGezielteMethode = (strpos($inhalt, 'beendeLetztePassendeLaufendeAuftragszeitFuerMitarbeiterBisZeitpunkt') !== false);
                 $nutztMassenupdateNicht = (strpos($inhalt, 'stoppeAlleLaufendenAuftraegeFuerMitarbeiterBisZeitpunkt') === false);
                 $hatAuftragszeitIdLog = (strpos($inhalt, "'auftragszeit_id'") !== false);
@@ -228,7 +241,17 @@ class SmokeTestController
         if (is_file($auftragszeitServicePfad) && is_readable($auftragszeitServicePfad)) {
             $inhalt = @file_get_contents($auftragszeitServicePfad);
             if (is_string($inhalt) && $inhalt !== '') {
-                $hatGezielteMethode = (strpos($inhalt, 'function beendeLetztePassendeLaufendeAuftragszeitFuerMitarbeiterBisZeitpunkt') !== false);
+                // Existiert die Methode? Das beantwortet die Sprache selbst.
+                // Eine Textsuche nach 'function <name>' haette schon ein
+                // Zeilenumbruch nach `function` zu Fall gebracht - und dann
+                // meldet der Selbsttest einen Fehler, obwohl alles laeuft.
+                $hatGezielteMethode = method_exists(
+                    'AuftragszeitService',
+                    'beendeLetztePassendeLaufendeAuftragszeitFuerMitarbeiterBisZeitpunkt'
+                );
+
+                // Der Guard steckt in einem SQL-String, nicht in der Signatur -
+                // dafuer gibt es keine Reflexion, hier bleibt die Textsuche.
                 $hatGuardStartEnde = (strpos($inhalt, 'startzeit <= :endzeit') !== false);
 
                 $ok = ($hatGezielteMethode && $hatGuardStartEnde);

@@ -70,6 +70,75 @@ in den Statusbericht.
   D-002 entfallen; die Regel selbst gilt weiter.)
 
 
+## P-2026-08-10-23 zugang-fail-safe-und-selbsttest-robuster
+
+### EINGELESEN
+- `public/index.php`, Liste `$geschuetzteSeiten` gegen alle `case`-Zweige.
+- `controller/SmokeTestController.php`, die drei Regression-Prüfungen über
+  Quelltext-Suche.
+- `docs/STATUS_SNAPSHOT.md`, T-106 und T-107.
+
+### DATEIEN
+- `public/index.php`
+- `controller/SmokeTestController.php`
+- `docs/STATUS_SNAPSHOT.md`
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Dieselben 67 Routen sind geschützt wie vorher, `login`, `logout` und
+`terminal_kopplung` bleiben offen – aber ohne zweite, von Hand gepflegte Liste.
+
+### DONE
+**T-107: Die Zugangsprüfung ist umgedreht.** Vorher listete
+`$geschuetzteSeiten` alle 67 geschützten Routen auf – eine zweite Fassung des
+`switch` darunter, von Hand gepflegt. Beide waren deckungsgleich (geprüft),
+aber die nächste neue Route wäre in einer von beiden vergessen worden.
+
+Entscheidend ist die **Richtung** des Fehlers: Eine vergessene Zeile in der
+Liste macht die Seite **offen**, nicht unzugänglich. Der Fehler wäre also der
+gefährliche gewesen und wäre niemandem aufgefallen.
+
+Jetzt ist alles geschützt ausser drei ausdrücklich offenen Routen. Wer eine
+Route ergänzt, bekommt sie geschützt, ohne daran zu denken; wer sie öffnen
+will, muss eine Zeile schreiben – und denkt dann darüber nach. `index.php`
+wird dabei 52 Zeilen kürzer.
+
+**T-106: Der Selbsttest sucht nicht mehr nach `function <name>` im Quelltext.**
+Die Prüfung „gibt es `beendeLetztePassendeLaufendeAuftragszeitFuerMitarbeiterBisZeitpunkt`"
+läuft jetzt über `method_exists()`. Die Textsuche wäre schon an einem
+Zeilenumbruch nach `function` gescheitert – und hätte dann einen Fehler
+gemeldet, obwohl alles funktioniert.
+
+Zwei der drei Prüfungen **bleiben** Textsuchen, jetzt mit Begründung im Code:
+Sie prüfen nicht, ob es eine Methode gibt, sondern **welche aufgerufen wird**
+und dass die alte Massenupdate-Variante nicht zurückkehrt. Das sieht man nur im
+Quelltext; Reflexion hilft dort nicht. Wer umbenennt, muss die Zeilen mitziehen
+– das ist der Preis dafür, eine Regression festzuhalten, die zweimal auftrat.
+
+Der dritte Kommentar hält jetzt fest, warum der Offline-Zweig statisch geprüft
+wird: Er läuft nur bei nicht erreichbarer Hauptdatenbank, was sich im laufenden
+Backend nicht herstellen lässt. Durchgespielt wurde er in P-2026-08-10-22.
+
+### TEST
+- Menge der geschützten Routen vorher/nachher verglichen: **67 zu 67, `diff`
+  leer.**
+- Über den Webserver, nicht angemeldet: `login` → 200, `logout` → 302 auf
+  Login, `terminal_kopplung` → 405 (offen, verlangt aber POST), `dashboard`
+  und `mitarbeiter_admin` → 302 auf Login, unbekannte und leere Route → 302 auf
+  Login. Alles wie vorher.
+- `method_exists('AuftragszeitService', '…BisZeitpunkt')` → `true`.
+- `php -l` sauber, 18 Masken unverändert, 16 POST-Formulare mit Token.
+
+### Was bewusst nicht erreicht wurde
+Der `switch` in `index.php` bleibt ein `switch` – eine Routentabelle als
+Datenstruktur (Route → Controller, Methode, Zugang) wäre die nächste Stufe,
+ändert aber die Struktur des Front-Controllers und gehört in einen eigenen
+Patch mit eigenem Test.
+
+### NEXT
+B-080 mit den neuen Log-Einträgen untersuchen.
+
+
 ## P-2026-08-10-22 offline-pfad-durchgespielt
 
 ### EINGELESEN

@@ -44,10 +44,6 @@ den Stufenplan (Abschnitt 11).
   `KonfigurationController` (201), `AuftragController` (137).
 - **T-105** `SmokeTestController::index()` ist eine Methode mit ~3.700 Zeilen.
   Diagnosewerkzeug, keine Fachlogik – aber praktisch nicht mehr änderbar.
-- **T-106** Ein Prüfschritt des Selbsttests sucht im Quelltext nach einem
-  Methodennamen; ein Umbenennen lässt ihn fehlschlagen, obwohl alles läuft.
-- **T-107** `$geschuetzteSeiten` in `public/index.php` wiederholt jeden
-  `case`-Zweig des Routers von Hand. Heute stimmen beide überein.
 - **T-108** Drei Zugriffswege auf `db_injektionsqueue`: `OfflineQueueManager`,
   `QueueService`, `DbInjektionsqueueModel`. Zusammenführen – berührt den
   Offline-Pfad, deshalb nur mit Offline-Test.
