@@ -66,17 +66,15 @@ class KonfigurationController
             return false;
         }
 
-        if (method_exists($this->authService, 'hatRecht')) {
-            try {
-                if (
-                    $this->authService->hatRecht('KRANKZEITRAUM_VERWALTEN')
-                    || $this->authService->hatRecht('KONFIGURATION_VERWALTEN')
-                ) {
-                    return true;
-                }
-            } catch (Throwable) {
-                // Fallback unten
+        try {
+            if (
+                $this->authService->hatRecht('KRANKZEITRAUM_VERWALTEN')
+                || $this->authService->hatRecht('KONFIGURATION_VERWALTEN')
+            ) {
+                return true;
             }
+        } catch (Throwable) {
+            // Fallback unten
         }
 
         if (
@@ -105,17 +103,15 @@ class KonfigurationController
             return false;
         }
 
-        if (method_exists($this->authService, 'hatRecht')) {
-            try {
-                if (
-                    $this->authService->hatRecht('PAUSENREGELN_VERWALTEN')
-                    || $this->authService->hatRecht('KONFIGURATION_VERWALTEN')
-                ) {
-                    return true;
-                }
-            } catch (Throwable) {
-                // Fallback unten
+        try {
+            if (
+                $this->authService->hatRecht('PAUSENREGELN_VERWALTEN')
+                || $this->authService->hatRecht('KONFIGURATION_VERWALTEN')
+            ) {
+                return true;
             }
+        } catch (Throwable) {
+            // Fallback unten
         }
 
         if (

@@ -694,7 +694,7 @@ class DashboardController
                     } catch (Throwable $e) {
                         // Fallback: direkte SHOW TABLES Query (ohne prepare)
                         try {
-                            $pdo = $db->getPdo();
+                            $pdo = $db->getVerbindung();
                             $stmt = $pdo->query('SHOW TABLES');
                             if ($stmt !== false) {
                                 while (($row = $stmt->fetch(\PDO::FETCH_NUM)) !== false) {
@@ -912,7 +912,7 @@ class DashboardController
                     if (!($queuePdo instanceof \PDO)) {
                         $queueQuelle = 'haupt';
                         if ($hauptDbOk) {
-                            $queuePdo = $db->getPdo();
+                            $queuePdo = $db->getVerbindung();
                         } else {
                             $queuePdo = null;
                             if ($queueDetails === '') {
@@ -1000,7 +1000,7 @@ class DashboardController
                     } else {
                         $pdo = null;
                         try {
-                            $pdo = $db->getPdo();
+                            $pdo = $db->getVerbindung();
                         } catch (Throwable $e) {
                             $pdo = null;
                         }

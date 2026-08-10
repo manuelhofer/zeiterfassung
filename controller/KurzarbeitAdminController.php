@@ -39,17 +39,15 @@ class KurzarbeitAdminController
             return false;
         }
 
-        if (method_exists($this->authService, 'hatRecht')) {
-            try {
-                if (
-                    $this->authService->hatRecht('KURZARBEIT_VERWALTEN')
-                    || $this->authService->hatRecht('KONFIGURATION_VERWALTEN')
-                ) {
-                    return true;
-                }
-            } catch (Throwable) {
-                // Fallback unten
+        try {
+            if (
+                $this->authService->hatRecht('KURZARBEIT_VERWALTEN')
+                || $this->authService->hatRecht('KONFIGURATION_VERWALTEN')
+            ) {
+                return true;
             }
+        } catch (Throwable) {
+            // Fallback unten
         }
 
         if (

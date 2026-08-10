@@ -99,24 +99,15 @@ try {
         $dbTmp = Database::getInstanz();
 
         $hauptdbOk = null;
-        if (method_exists($dbTmp, 'istHauptdatenbankVerfuegbar')) {
-            try {
-                $hauptdbOk = $dbTmp->istHauptdatenbankVerfuegbar();
-            } catch (Throwable $e) {
-                $hauptdbOk = null;
-            }
+        try {
+            $hauptdbOk = $dbTmp->istHauptdatenbankVerfuegbar();
+        } catch (Throwable $e) {
+            $hauptdbOk = null;
         }
 
-        if ($hauptdbOk === true && class_exists('ConfigService')) {
-            /** @var ConfigService $cfg */
-            $cfg = ConfigService::getInstanz();
-            $val = $cfg->get('terminal_healthcheck_interval', $healthIntervalSekunden);
-
-            if (is_int($val)) {
-                $healthIntervalSekunden = $val;
-            } elseif (is_string($val) && ctype_digit(trim($val))) {
-                $healthIntervalSekunden = (int)trim($val);
-            }
+        if ($hauptdbOk === true) {
+            $healthIntervalSekunden = KonfigurationService::getInstanz()
+                ->getInt('terminal_healthcheck_interval', $healthIntervalSekunden);
 
             // Für Offline-Phasen merken.
             $_SESSION['terminal_healthcheck_interval'] = $healthIntervalSekunden;

@@ -45,9 +45,7 @@ if (class_exists('AuthService')) {
 
         // Rollen-Text für die Anzeige im Header vorbereiten
         $rollenNamen = [];
-        if (method_exists($auth, 'holeAngemeldeteRollenNamen')) {
-            $rollenNamen = $auth->holeAngemeldeteRollenNamen();
-        }
+        $rollenNamen = $auth->holeAngemeldeteRollenNamen();
 
         if (is_array($rollenNamen) && count($rollenNamen) > 0) {
             $aktuellerBenutzerRollenText = ' (Rollen: ' . implode(', ', $rollenNamen) . ')';
@@ -55,96 +53,55 @@ if (class_exists('AuthService')) {
 
         // Admin-Rechte für Menüpunkte bestimmen (Rechte-basiert, mit Legacy-Fallback auf Rollen)
         $hatLegacyAdminRolle = false;
-        if (method_exists($auth, 'hatRolle')) {
-            $hatLegacyAdminRolle = (
-                $auth->hatRolle('Chef')
-                || $auth->hatRolle('Personalbüro')
-                || $auth->hatRolle('Personalbuero')
-            );
-        }
+        $hatLegacyAdminRolle = (
+            $auth->hatRolle('Chef')
+            || $auth->hatRolle('Personalbüro')
+            || $auth->hatRolle('Personalbuero')
+        );
 
-        if (method_exists($auth, 'hatRecht')) {
-            $hatMitarbeiterAdminRecht      = $auth->hatRecht('MITARBEITER_VERWALTEN') || $hatLegacyAdminRolle;
-            $hatAbteilungsAdminRecht       = $auth->hatRecht('ABTEILUNG_VERWALTEN') || $hatLegacyAdminRolle;
-            $hatMaschineAdminRecht         = $auth->hatRecht('MASCHINEN_VERWALTEN') || $hatLegacyAdminRolle;
-            $hatAuftragAdminRecht          = $auth->hatRecht('AUFTRAEGE_VERWALTEN') || $hatLegacyAdminRolle;
-            $hatRollenAdminRecht           = $auth->hatRecht('ROLLEN_RECHTE_VERWALTEN') || $hatLegacyAdminRolle;
-            $hatFeiertagAdminRecht         = $auth->hatRecht('FEIERTAGE_VERWALTEN') || $hatLegacyAdminRolle;
-            $hatBetriebsferienAdminRecht   = $auth->hatRecht('BETRIEBSFERIEN_VERWALTEN') || $hatLegacyAdminRolle;
-            $hatQueueAdminRecht            = $auth->hatRecht('QUEUE_VERWALTEN') || $hatLegacyAdminRolle;
-            $hatTerminalAdminRecht         = $auth->hatRecht('TERMINAL_VERWALTEN') || $hatLegacyAdminRolle;
-            $hatAuditLogAdminRecht         = $auth->hatRecht('KONFIGURATION_VERWALTEN') || $auth->hatRecht('ROLLEN_RECHTE_VERWALTEN') || $hatLegacyAdminRolle;
+        $hatMitarbeiterAdminRecht      = $auth->hatRecht('MITARBEITER_VERWALTEN') || $hatLegacyAdminRolle;
+        $hatAbteilungsAdminRecht       = $auth->hatRecht('ABTEILUNG_VERWALTEN') || $hatLegacyAdminRolle;
+        $hatMaschineAdminRecht         = $auth->hatRecht('MASCHINEN_VERWALTEN') || $hatLegacyAdminRolle;
+        $hatAuftragAdminRecht          = $auth->hatRecht('AUFTRAEGE_VERWALTEN') || $hatLegacyAdminRolle;
+        $hatRollenAdminRecht           = $auth->hatRecht('ROLLEN_RECHTE_VERWALTEN') || $hatLegacyAdminRolle;
+        $hatFeiertagAdminRecht         = $auth->hatRecht('FEIERTAGE_VERWALTEN') || $hatLegacyAdminRolle;
+        $hatBetriebsferienAdminRecht   = $auth->hatRecht('BETRIEBSFERIEN_VERWALTEN') || $hatLegacyAdminRolle;
+        $hatQueueAdminRecht            = $auth->hatRecht('QUEUE_VERWALTEN') || $hatLegacyAdminRolle;
+        $hatTerminalAdminRecht         = $auth->hatRecht('TERMINAL_VERWALTEN') || $hatLegacyAdminRolle;
+        $hatAuditLogAdminRecht         = $auth->hatRecht('KONFIGURATION_VERWALTEN') || $auth->hatRecht('ROLLEN_RECHTE_VERWALTEN') || $hatLegacyAdminRolle;
 
-            // Diese Rechte-Codes sind (noch) nicht überall geseedet – Legacy-Fallback bleibt aktiv.
-            $hatRundungsregelAdminRecht    = $auth->hatRecht('ZEIT_RUNDUNGSREGELN_VERWALTEN') || $hatLegacyAdminRolle;
-            $hatKonfigurationAdminRecht    = $auth->hatRecht('KONFIGURATION_VERWALTEN') || $hatLegacyAdminRolle;
-            $hatUrlaubKontingentAdminRecht = $auth->hatRecht('URLAUB_KONTINGENT_VERWALTEN') || $hatLegacyAdminRolle;
-            $hatKrankzeitraumAdminRecht   = $auth->hatRecht('KRANKZEITRAUM_VERWALTEN') || $hatKonfigurationAdminRecht || $hatLegacyAdminRolle;
-        } else {
-            // Legacy: Rollen-Mapping (vor Rechteverwaltung)
-            $hatMitarbeiterAdminRecht      = $hatLegacyAdminRolle;
-            $hatAbteilungsAdminRecht       = $hatLegacyAdminRolle;
-            $hatMaschineAdminRecht         = $hatLegacyAdminRolle;
-            $hatAuftragAdminRecht          = $hatLegacyAdminRolle;
-            $hatRollenAdminRecht           = $hatLegacyAdminRolle;
-            $hatFeiertagAdminRecht         = $hatLegacyAdminRolle;
-            $hatRundungsregelAdminRecht    = $hatLegacyAdminRolle;
-            $hatBetriebsferienAdminRecht   = $hatLegacyAdminRolle;
-            $hatQueueAdminRecht            = $hatLegacyAdminRolle;
-            $hatTerminalAdminRecht         = $hatLegacyAdminRolle;
-            $hatAuditLogAdminRecht         = $hatLegacyAdminRolle;
-            $hatKonfigurationAdminRecht    = $hatLegacyAdminRolle;
-            $hatUrlaubKontingentAdminRecht = $hatLegacyAdminRolle;
-            $hatKrankzeitraumAdminRecht   = $hatKonfigurationAdminRecht;
-        }
+        // Diese Rechte-Codes sind (noch) nicht überall geseedet – Legacy-Fallback bleibt aktiv.
+        $hatRundungsregelAdminRecht    = $auth->hatRecht('ZEIT_RUNDUNGSREGELN_VERWALTEN') || $hatLegacyAdminRolle;
+        $hatKonfigurationAdminRecht    = $auth->hatRecht('KONFIGURATION_VERWALTEN') || $hatLegacyAdminRolle;
+        $hatUrlaubKontingentAdminRecht = $auth->hatRecht('URLAUB_KONTINGENT_VERWALTEN') || $hatLegacyAdminRolle;
+        $hatKrankzeitraumAdminRecht   = $auth->hatRecht('KRANKZEITRAUM_VERWALTEN') || $hatKonfigurationAdminRecht || $hatLegacyAdminRolle;
     }
 
 	    // Recht: Urlaub genehmigen (Rechte-basiert; Bereich optional via mitarbeiter_genehmiger)
-	    if (method_exists($auth, 'hatRecht')) {
-	        $hatUrlaubGenehmigungRecht = (
-	            $auth->hatRecht('URLAUB_GENEHMIGEN_ALLE')
-	            || $auth->hatRecht('URLAUB_GENEHMIGEN_SELF')
-	        );
+     $hatUrlaubGenehmigungRecht = (
+         $auth->hatRecht('URLAUB_GENEHMIGEN_ALLE')
+         || $auth->hatRecht('URLAUB_GENEHMIGEN_SELF')
+     );
 
-	        if (
-	            !$hatUrlaubGenehmigungRecht
-	            && $auth->hatRecht('URLAUB_GENEHMIGEN')
-	            && class_exists('Database')
-	            && $angemeldeterMitarbeiterId > 0
-	        ) {
-	            try {
-	                $db = Database::getInstanz();
-	                $row = $db->fetchEine(
-	                    'SELECT 1 FROM mitarbeiter_genehmiger WHERE genehmiger_mitarbeiter_id = :gid LIMIT 1',
-	                    ['gid' => $angemeldeterMitarbeiterId]
-	                );
-	                if ($row !== null) {
-	                    $hatUrlaubGenehmigungRecht = true;
-	                }
-	            } catch (\Throwable $e) {
-	                // Ignorieren
-	            }
-	        }
-	    } else {
-	        // Fallback (Legacy): Chef/Personalbüro oder als Genehmiger eingetragen
-	        if (method_exists($auth, 'hatRolle')) {
-	            $hatUrlaubGenehmigungRecht = $auth->hatRolle('Chef') || $auth->hatRolle('Personalbüro') || $auth->hatRolle('Personalbuero');
-	        }
-	        if (!$hatUrlaubGenehmigungRecht && class_exists('Database') && $angemeldeterMitarbeiterId > 0) {
-	            try {
-	                $db = Database::getInstanz();
-	                $row = $db->fetchEine(
-	                    'SELECT 1 FROM mitarbeiter_genehmiger WHERE genehmiger_mitarbeiter_id = :gid LIMIT 1',
-	                    ['gid' => $angemeldeterMitarbeiterId]
-	                );
-	                if ($row !== null) {
-	                    $hatUrlaubGenehmigungRecht = true;
-	                }
-	            } catch (\Throwable $e) {
-	                // Ignorieren
-	            }
-	        }
-	    }
+     if (
+         !$hatUrlaubGenehmigungRecht
+         && $auth->hatRecht('URLAUB_GENEHMIGEN')
+         && class_exists('Database')
+         && $angemeldeterMitarbeiterId > 0
+     ) {
+         try {
+             $db = Database::getInstanz();
+             $row = $db->fetchEine(
+                 'SELECT 1 FROM mitarbeiter_genehmiger WHERE genehmiger_mitarbeiter_id = :gid LIMIT 1',
+                 ['gid' => $angemeldeterMitarbeiterId]
+             );
+             if ($row !== null) {
+                 $hatUrlaubGenehmigungRecht = true;
+             }
+         } catch (\Throwable $e) {
+             // Ignorieren
+         }
+     }
 }
 
 $seite = isset($_GET['seite']) ? (string)$_GET['seite'] : 'start';

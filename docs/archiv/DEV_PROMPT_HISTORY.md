@@ -70,6 +70,99 @@ in den Statusbericht.
   D-002 entfallen; die Regel selbst gilt weiter.)
 
 
+## P-2026-08-10-15 datenbankschnittstelle-und-konfiguration-vereinheitlicht
+
+### EINGELESEN
+- `core/Database.php` (vollstaendige oeffentliche Schnittstelle),
+  `services/ConfigService.php`, `services/KonfigurationService.php`.
+- Alle 4 Aufrufstellen von `ConfigService`, alle 26 von `getPdo()`, alle 64
+  `method_exists`-Pruefungen.
+- `sql/01_initial_schema.sql`, Tabelle `config`.
+
+### DATEIEN
+24 Dateien; geloescht: `services/ConfigService.php`. Dazu `core/Database.php`,
+zehn Controller, drei Services, zwei Views, `public/terminal.php`.
+
+### AKZEPTANZKRITERIUM
+Die vier bisher ueber `ConfigService` gelesenen Schluessel liefern dieselben
+Werte wie zuvor, und `getPdo()` sowie `method_exists()` auf Projektmethoden
+kommen im Code nicht mehr vor.
+
+### DONE
+Drei zusammenhaengende Punkte an derselben Schnittstelle – 332 Zeilen entfernt,
+185 hinzugefuegt.
+
+**1. Zwei Konfigurationsdienste auf derselben Tabelle.** `ConfigService` (130
+Zeilen) und `KonfigurationService` (195) lasen beide `config`, beide mit einer
+Methode `get()` – aber mit **unterschiedlicher Rueckgabesemantik**:
+`ConfigService::get()` wandelte anhand der Spalte `typ` nach `int`/`bool`/
+`array` um, `KonfigurationService::get()` liefert immer `?string`. Wer den
+falschen erwischte, bekam schweigend einen anderen Typ.
+
+`KonfigurationService` gewinnt: mehr Aufrufer (26 gegen 9), deutscher Name,
+kann auch schreiben. Die vier Aufrufstellen sind umgestellt, zwei davon auf
+`getInt()` – das ersetzt jeweils fuenf Zeilen `is_int`/`ctype_digit`-Pruefung
+durch eine.
+
+**2. `getPdo()` war ein zweiter Name fuer `getVerbindung()`** – die Methode gab
+nur `$this->getVerbindung()` zurueck. Beide waren etwa gleich haeufig im Umlauf
+(26 zu 33), es gab also weder einen „eigentlichen" noch einen „alten". Auf
+`getVerbindung()` vereinheitlicht (deutscher Name, passt zur uebrigen Klasse),
+`getPdo()` entfernt.
+
+**3. 64 `method_exists()`-Pruefungen auf Methoden, die es alle gibt.** Muster:
+
+```php
+if (method_exists($db, 'getVerbindung')) {
+    $queuePdo = $db->getVerbindung();
+} elseif (method_exists($db, 'getPdo')) {
+    $queuePdo = $db->getPdo();
+}
+```
+
+Der zweite Zweig war doppelt tot: erreichbar nur, wenn `getVerbindung` fehlte –
+und fuehrte dann zur selben Methode. Sechs solcher Ketten aufgeloest, dazu 24
+`if`-Huellen.
+
+Zwei davon hatten einen **`else`-Zweig mit echtem Code**, der nie lief:
+`views/layout/header.php` fuehrte unter „Legacy: Rollen-Mapping (vor
+Rechteverwaltung)" 14 Zuweisungen und einen kompletten zweiten
+Genehmiger-Pfad – zusammen 33 Zeilen, die seit Einfuehrung von `hatRecht()`
+unerreichbar waren. Ebenso zwei Fruehausstiege in `ReportController`, die
+`false` zurueckgaben, wenn `hatRecht` fehlt.
+
+**Fuenf `method_exists` bleiben bewusst stehen:** in `SmokeTestController` und
+im Selbsttest des `DashboardController`. Dort ist die Pruefung der Zweck – sie
+melden, ob eine Methode vorhanden ist.
+
+### TEST
+- Die vier Konfigurationswerte vor und nach der Umstellung verglichen:
+  `terminal_session_idle_timeout` 300, `terminal_healthcheck_interval` 10,
+  `terminal_db_host_muster` `'%'`, `terminal_db_host_extern` `''` – identisch,
+  gegengeprueft an den Rohwerten der Tabelle `config`.
+- 18 Backend-Masken gerendert: 16 POST-Formulare, keines ohne gueltiges Token,
+  0 Ausnahmen.
+- `index.php`, `terminal.php`, Health: dreimal HTTP 200; Health-Antwort
+  inhaltlich unveraendert (`queue_speicherort: "offline"`).
+- `php -l` ueber **alle** PHP-Dateien: sauber.
+- `grep`: kein `getPdo` mehr, kein `ConfigService` mehr, `method_exists` nur
+  noch an den fuenf Selbsttest-Stellen.
+
+### Gefundene Fehler im eigenen Entwurf
+Das Skript zum Aufloesen der `if`-Huellen dedentiert um vier Leerzeichen.
+`views/layout/header.php` ist an dieser Stelle mit **Tabs** eingerueckt, also
+lief die Ersetzung dort ins Leere und der Block blieb stehen – aufgefallen nur,
+weil ich nach dem Durchlauf noch einmal `grep`t habe. Diese eine Stelle ist von
+Hand aufgeloest. Der Rest der Tab-Einrueckungen kommt in F-2.
+
+### Was bewusst nicht erreicht wurde
+`class_exists('Logger')` und Verwandte (rund 380 Stellen) sind noch da – das
+ist der naechste Patch und wuerde diesen unlesbar machen.
+
+### NEXT
+P-2026-08-10-16: `class_exists`-Ballast entfernen.
+
+
 ## P-2026-08-10-14 csrf-umstellung-abgeschlossen
 
 ### EINGELESEN

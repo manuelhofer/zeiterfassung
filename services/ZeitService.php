@@ -199,7 +199,7 @@ class ZeitService
         }
 
         $hauptDbOk = null;
-        if ($db !== null && method_exists($db, 'istHauptdatenbankVerfuegbar')) {
+        if ($db !== null) {
             try {
                 $hauptDbOk = (bool)$db->istHauptdatenbankVerfuegbar();
             } catch (\Throwable $e) {

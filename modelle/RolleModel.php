@@ -158,7 +158,7 @@ class RolleModel
     public function holeAlleRechte(bool $nurAktive = false): array
     {
         try {
-            $pdo = $this->db->getPdo();
+            $pdo = $this->db->getVerbindung();
             if (!$this->sindRechteTabellenVerfuegbar($pdo)) {
                 return [];
             }
@@ -191,7 +191,7 @@ class RolleModel
         }
 
         try {
-            $pdo = $this->db->getPdo();
+            $pdo = $this->db->getVerbindung();
             if (!$this->sindRechteTabellenVerfuegbar($pdo)) {
                 return [];
             }
@@ -252,7 +252,7 @@ class RolleModel
         }
         $rechtIds = array_keys($tmp);
 
-        $pdo = $this->db->getPdo();
+        $pdo = $this->db->getVerbindung();
 
         try {
             $pdo->beginTransaction();

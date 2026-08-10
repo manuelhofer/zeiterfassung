@@ -42,14 +42,12 @@ class TerminalAdminController
         }
 
         // Primär: Recht (neues System)
-        if (method_exists($this->authService, 'hatRecht')) {
-            try {
-                if ($this->authService->hatRecht('TERMINAL_VERWALTEN')) {
-                    return true;
-                }
-            } catch (\Throwable) {
-                // Fallback unten
+        try {
+            if ($this->authService->hatRecht('TERMINAL_VERWALTEN')) {
+                return true;
             }
+        } catch (\Throwable) {
+            // Fallback unten
         }
 
         // Legacy-Fallback: Chef/Personalbüro
@@ -408,9 +406,7 @@ class TerminalAdminController
         }
 
         $mitarbeiterId = null;
-        if (method_exists($this->authService, 'holeAngemeldeteMitarbeiterId')) {
-            $mitarbeiterId = $this->authService->holeAngemeldeteMitarbeiterId();
-        }
+        $mitarbeiterId = $this->authService->holeAngemeldeteMitarbeiterId();
 
         $code = TerminalKopplungService::getInstanz()->erzeugeCode($id, $mitarbeiterId);
 

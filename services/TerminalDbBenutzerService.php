@@ -572,13 +572,11 @@ class TerminalDbBenutzerService
     private function holeHostMuster(): string
     {
         try {
-            if (class_exists('ConfigService')) {
-                $wert = ConfigService::getInstanz()->get('terminal_db_host_muster', self::STANDARD_HOST);
-                if (is_string($wert) && trim($wert) !== '') {
-                    $wert = trim($wert);
-                    if ($this->istHostGueltig($wert)) {
-                        return $wert;
-                    }
+            $wert = KonfigurationService::getInstanz()->get('terminal_db_host_muster', self::STANDARD_HOST);
+            if (is_string($wert) && trim($wert) !== '') {
+                $wert = trim($wert);
+                if ($this->istHostGueltig($wert)) {
+                    return $wert;
                 }
             }
         } catch (\Throwable $e) {

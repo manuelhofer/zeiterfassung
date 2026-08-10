@@ -91,7 +91,7 @@ if ($aktion === 'health') {
     }
 
     // Haupt-DB Status
-    if ($db !== null && method_exists($db, 'istHauptdatenbankVerfuegbar')) {
+    if ($db !== null) {
         try {
             $health['hauptdb_verfuegbar'] = $db->istHauptdatenbankVerfuegbar();
         } catch (Throwable $e) {
@@ -101,7 +101,7 @@ if ($aktion === 'health') {
 
     // Queue-Verfügbarkeit bestimmen
     $queueOfflinePdo = null;
-    if ($db !== null && method_exists($db, 'getOfflineVerbindung')) {
+    if ($db !== null) {
         try {
             $queueOfflinePdo = $db->getOfflineVerbindung();
         } catch (Throwable $e) {
@@ -131,11 +131,7 @@ if ($aktion === 'health') {
         $queuePdo = $queueOfflinePdo;
     } elseif ($db !== null) {
         try {
-            if (method_exists($db, 'getVerbindung')) {
                 $queuePdo = $db->getVerbindung();
-            } elseif (method_exists($db, 'getPdo')) {
-                $queuePdo = $db->getPdo();
-            }
         } catch (Throwable $e) {
             $queuePdo = null;
         }
@@ -203,24 +199,15 @@ try {
         $dbTmp = Database::getInstanz();
 
         $hauptdbOk = null;
-        if (method_exists($dbTmp, 'istHauptdatenbankVerfuegbar')) {
-            try {
-                $hauptdbOk = $dbTmp->istHauptdatenbankVerfuegbar();
-            } catch (Throwable $e) {
-                $hauptdbOk = null;
-            }
+        try {
+            $hauptdbOk = $dbTmp->istHauptdatenbankVerfuegbar();
+        } catch (Throwable $e) {
+            $hauptdbOk = null;
         }
 
-        if ($hauptdbOk === true && class_exists('ConfigService')) {
-            /** @var ConfigService $cfg */
-            $cfg = ConfigService::getInstanz();
-            $val = $cfg->get('terminal_session_idle_timeout', $terminalIdleTimeoutSekunden);
-
-            if (is_int($val)) {
-                $terminalIdleTimeoutSekunden = $val;
-            } elseif (is_string($val) && ctype_digit(trim($val))) {
-                $terminalIdleTimeoutSekunden = (int)trim($val);
-            }
+        if ($hauptdbOk === true) {
+            $terminalIdleTimeoutSekunden = KonfigurationService::getInstanz()
+                ->getInt('terminal_session_idle_timeout', $terminalIdleTimeoutSekunden);
         }
     }
 } catch (Throwable $e) {
@@ -301,18 +288,16 @@ try {
         $db = Database::getInstanz();
 
         // Haupt-DB Healthcheck (falls verfügbar)
-        if (method_exists($db, 'istHauptdatenbankVerfuegbar')) {
-            try {
-                $queueStatus['hauptdb_verfuegbar'] = $db->istHauptdatenbankVerfuegbar();
-            } catch (Throwable $e) {
-                $queueStatus['hauptdb_verfuegbar'] = null;
-            }
+        try {
+            $queueStatus['hauptdb_verfuegbar'] = $db->istHauptdatenbankVerfuegbar();
+        } catch (Throwable $e) {
+            $queueStatus['hauptdb_verfuegbar'] = null;
         }
     }
 
     // Queue-Verfuegbarkeit bestimmen (wichtig, wenn die Haupt-DB offline ist)
     $queueOfflinePdo = null;
-    if ($db !== null && method_exists($db, 'getOfflineVerbindung')) {
+    if ($db !== null) {
         try {
             $queueOfflinePdo = $db->getOfflineVerbindung();
         } catch (Throwable $e) {
@@ -368,20 +353,14 @@ try {
     $queuePdo = null;
     if ($db !== null) {
         try {
-            if (method_exists($db, 'getOfflineVerbindung')) {
-                $queuePdo = $db->getOfflineVerbindung();
-            }
+            $queuePdo = $db->getOfflineVerbindung();
         } catch (Throwable $e) {
             $queuePdo = null;
         }
 
         if (!($queuePdo instanceof PDO)) {
             try {
-                if (method_exists($db, 'getVerbindung')) {
                     $queuePdo = $db->getVerbindung();
-                } elseif (method_exists($db, 'getPdo')) {
-                    $queuePdo = $db->getPdo();
-                }
             } catch (Throwable $e) {
                 $queuePdo = null;
             }

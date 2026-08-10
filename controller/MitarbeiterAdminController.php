@@ -35,14 +35,12 @@ class MitarbeiterAdminController
         }
 
         // Primär: Recht (neues System)
-        if (method_exists($this->authService, 'hatRecht')) {
-            try {
-                if ($this->authService->hatRecht('MITARBEITER_VERWALTEN')) {
-                    return true;
-                }
-            } catch (\Throwable) {
-                // Fallback unten
+        try {
+            if ($this->authService->hatRecht('MITARBEITER_VERWALTEN')) {
+                return true;
             }
+        } catch (\Throwable) {
+            // Fallback unten
         }
 
         $erlaubteRollen = ['Chef', 'Personalbüro', 'Personalbuero'];
@@ -195,7 +193,7 @@ class MitarbeiterAdminController
         $rollenScopesAbteilung = [];
         if ($id > 0 && $mitarbeiter !== null) {
             try {
-                $pdo = Database::getInstanz()->getPdo();
+                $pdo = Database::getInstanz()->getVerbindung();
                 $pdo->query('SELECT 1 FROM mitarbeiter_hat_rolle_scope LIMIT 1');
 
                 $stmt = $pdo->prepare(
@@ -609,7 +607,7 @@ class MitarbeiterAdminController
             // Primär: scoped Rollen (global) aus `mitarbeiter_hat_rolle_scope` lesen.
             // Fail-safe: wenn Tabelle noch nicht existiert, wird unten auf Legacy zurückgefallen.
             try {
-                $pdo = Database::getInstanz()->getPdo();
+                $pdo = Database::getInstanz()->getVerbindung();
                 $pdo->query('SELECT 1 FROM mitarbeiter_hat_rolle_scope LIMIT 1');
 
                 $stmt = $pdo->prepare(
@@ -795,7 +793,7 @@ class MitarbeiterAdminController
         $rollenScopesAbteilung = [];
         if ($id > 0 && $mitarbeiter !== null) {
             try {
-                $pdo = Database::getInstanz()->getPdo();
+                $pdo = Database::getInstanz()->getVerbindung();
                 $pdo->query('SELECT 1 FROM mitarbeiter_hat_rolle_scope LIMIT 1');
 
                 $stmt = $pdo->prepare(
@@ -955,7 +953,7 @@ class MitarbeiterAdminController
         $vererbt = [];
         if (count($rollenIds) > 0) {
             try {
-                $pdo = Database::getInstanz()->getPdo();
+                $pdo = Database::getInstanz()->getVerbindung();
 
                 // Fail-safe: wenn Tabellen nicht existieren (Setup), nicht fatal sein.
                 $pdo->query('SELECT 1 FROM rolle_hat_recht LIMIT 1');
@@ -1491,7 +1489,7 @@ class MitarbeiterAdminController
 
             // Abteilungen speichern (Mitgliedschaften + optionale Stammabteilung)
             try {
-                $pdo = Database::getInstanz()->getPdo();
+                $pdo = Database::getInstanz()->getVerbindung();
                 $pdo->query('SELECT 1 FROM mitarbeiter_hat_abteilung LIMIT 1');
 
                 $pdo->beginTransaction();
@@ -1582,7 +1580,7 @@ class MitarbeiterAdminController
             // Scoped Rollen (global) spiegeln (neues Modell, Migration 17).
             // Fail-safe: wenn Tabelle nicht existiert, bleibt Legacy bestehen.
             try {
-                $pdo = Database::getInstanz()->getPdo();
+                $pdo = Database::getInstanz()->getVerbindung();
                 $pdo->query('SELECT 1 FROM mitarbeiter_hat_rolle_scope LIMIT 1');
 
                 $pdo->beginTransaction();
@@ -1621,7 +1619,7 @@ class MitarbeiterAdminController
             } catch (\Throwable $e) {
                 // Transaktion sauber beenden (falls gestartet)
                 try {
-                    $pdo = Database::getInstanz()->getPdo();
+                    $pdo = Database::getInstanz()->getVerbindung();
                     if ($pdo->inTransaction()) {
                         $pdo->rollBack();
                     }
@@ -1643,7 +1641,7 @@ class MitarbeiterAdminController
             if (count($scopeAbtRowIds) > 0 || count($scopeAbtDelIds) > 0 || ($scopeAbtAddRolleId > 0 && $scopeAbtAddAbteilungId > 0)) {
                 $pdoScope = null;
                 try {
-                    $pdoScope = Database::getInstanz()->getPdo();
+                    $pdoScope = Database::getInstanz()->getVerbindung();
                     $pdoScope->query('SELECT 1 FROM mitarbeiter_hat_rolle_scope LIMIT 1');
 
                     $pdoScope->beginTransaction();
@@ -1815,7 +1813,7 @@ class MitarbeiterAdminController
 
             // Rechte-Overrides speichern (Allow/Deny)
             try {
-                $pdo = Database::getInstanz()->getPdo();
+                $pdo = Database::getInstanz()->getVerbindung();
 
                 // Fail-safe: wenn Tabelle nicht existiert (Setup), nichts kaputt machen.
                 $pdo->query('SELECT 1 FROM mitarbeiter_hat_recht LIMIT 1');
@@ -1858,7 +1856,7 @@ class MitarbeiterAdminController
             } catch (\Throwable $e) {
                 // Transaktion sauber beenden
                 try {
-                    $pdo = Database::getInstanz()->getPdo();
+                    $pdo = Database::getInstanz()->getVerbindung();
                     if ($pdo->inTransaction()) {
                         $pdo->rollBack();
                     }
@@ -2185,7 +2183,7 @@ class MitarbeiterAdminController
         // Persistieren (Batch + auto-Korrekturen)
         try {
             $db = Database::getInstanz();
-            $pdo = $db->getPdo();
+            $pdo = $db->getVerbindung();
             $pdo->beginTransaction();
 
             $db->ausfuehren(
@@ -2257,7 +2255,7 @@ class MitarbeiterAdminController
         } catch (\Throwable $e) {
             try {
                 $db = Database::getInstanz();
-                $pdo = $db->getPdo();
+                $pdo = $db->getVerbindung();
                 if ($pdo->inTransaction()) {
                     $pdo->rollBack();
                 }
@@ -2483,7 +2481,7 @@ class MitarbeiterAdminController
 
         try {
             $db = Database::getInstanz();
-            $pdo = $db->getPdo();
+            $pdo = $db->getVerbindung();
             $pdo->beginTransaction();
 
             $db->ausfuehren(
@@ -2558,7 +2556,7 @@ class MitarbeiterAdminController
         } catch (\Throwable $e) {
             try {
                 $db = Database::getInstanz();
-                $pdo = $db->getPdo();
+                $pdo = $db->getVerbindung();
                 if ($pdo->inTransaction()) {
                     $pdo->rollBack();
                 }

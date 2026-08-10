@@ -80,11 +80,9 @@ class UrlaubJahresuebersichtController
     private function ermittleRechte(int $angemeldeterId): array
     {
         $legacyAdmin = false;
-        if (method_exists($this->authService, 'hatRolle')) {
-            $legacyAdmin = $this->authService->hatRolle('Chef')
-                || $this->authService->hatRolle('Personalbuero')
-                || $this->authService->hatRolle('Personalbüro');
-        }
+        $legacyAdmin = $this->authService->hatRolle('Chef')
+            || $this->authService->hatRolle('Personalbuero')
+            || $this->authService->hatRolle('Personalbüro');
 
         return [
             'darf_alle' => $legacyAdmin || $this->authService->hatRecht('URLAUB_GENEHMIGEN_ALLE'),

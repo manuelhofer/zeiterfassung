@@ -1581,12 +1581,10 @@ class SmokeTestController
 
                         $kannViewAll = false;
                         try {
-                            if (method_exists($this->auth, 'hatRecht')) {
-                                $kannViewAll = (
-                                    $this->auth->hatRecht('REPORT_MONAT_VIEW_ALL')
-                                    || $this->auth->hatRecht('REPORTS_ANSEHEN_ALLE')
-                                );
-                            }
+                            $kannViewAll = (
+                                $this->auth->hatRecht('REPORT_MONAT_VIEW_ALL')
+                                || $this->auth->hatRecht('REPORTS_ANSEHEN_ALLE')
+                            );
                         } catch (Throwable $e) {
                             $kannViewAll = false;
                         }

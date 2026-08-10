@@ -73,14 +73,6 @@ class Database
     }
 
     /**
-     * Gibt das interne PDO-Objekt zurück (falls direkt benötigt).
-     */
-    public function getPdo(): \PDO
-    {
-        return $this->getVerbindung();
-    }
-
-    /**
      * Liefert die PDO-Verbindung zur Hauptdatenbank.
      *
      * Hinweis: Kann eine Exception werfen, falls die Hauptdatenbank nicht erreichbar ist.

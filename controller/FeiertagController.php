@@ -37,14 +37,12 @@ class FeiertagController
         }
 
         // Primär: Recht (neues System)
-        if (method_exists($this->authService, 'hatRecht')) {
-            try {
-                if ($this->authService->hatRecht('FEIERTAGE_VERWALTEN')) {
-                    return true;
-                }
-            } catch (\Throwable) {
-                // Fallback unten
+        try {
+            if ($this->authService->hatRecht('FEIERTAGE_VERWALTEN')) {
+                return true;
             }
+        } catch (\Throwable) {
+            // Fallback unten
         }
 
         $erlaubteRollen = ['Chef', 'Personalbüro', 'Personalbuero'];

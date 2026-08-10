@@ -280,7 +280,7 @@ class AuthService
 
         $ist = false;
         try {
-            $pdo = Database::getInstanz()->getPdo();
+            $pdo = Database::getInstanz()->getVerbindung();
 
             $hatScope = $this->mitarbeiterHatRolleScopeTabelleVerfuegbar();
 
@@ -336,7 +336,7 @@ class AuthService
         }
 
         try {
-            $pdo = Database::getInstanz()->getPdo();
+            $pdo = Database::getInstanz()->getVerbindung();
             // löst Fehler aus, falls Spalte fehlt
             $pdo->query('SELECT ist_superuser FROM rolle LIMIT 1');
             $cache = true;
@@ -518,7 +518,7 @@ class AuthService
         }
 
         try {
-            $pdo = Database::getInstanz()->getPdo();
+            $pdo = Database::getInstanz()->getVerbindung();
 
             $hatScope = $this->mitarbeiterHatRolleScopeTabelleVerfuegbar();
 
@@ -626,7 +626,7 @@ class AuthService
         }
 
         try {
-            $pdo = Database::getInstanz()->getPdo();
+            $pdo = Database::getInstanz()->getVerbindung();
             // Minimaler Existenzcheck
             $pdo->query('SELECT 1 FROM recht LIMIT 1');
             $pdo->query('SELECT 1 FROM rolle_hat_recht LIMIT 1');
@@ -646,7 +646,7 @@ class AuthService
         }
 
         try {
-            $pdo = Database::getInstanz()->getPdo();
+            $pdo = Database::getInstanz()->getVerbindung();
             $pdo->query('SELECT 1 FROM mitarbeiter_hat_recht LIMIT 1');
             $cache = true;
             return true;
@@ -665,7 +665,7 @@ class AuthService
         }
 
         try {
-            $pdo = Database::getInstanz()->getPdo();
+            $pdo = Database::getInstanz()->getVerbindung();
             $pdo->query('SELECT 1 FROM mitarbeiter_hat_rolle_scope LIMIT 1');
             $cache = true;
             return true;

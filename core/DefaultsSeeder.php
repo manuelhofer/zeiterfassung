@@ -26,7 +26,7 @@ class DefaultsSeeder
 
         // Wenn die Haupt-DB nicht verfügbar ist, keine Seeds versuchen.
         try {
-            if (method_exists($db, 'istHauptdatenbankVerfuegbar') && $db->istHauptdatenbankVerfuegbar() !== true) {
+            if ($db->istHauptdatenbankVerfuegbar() !== true) {
                 return;
             }
         } catch (Throwable $e) {

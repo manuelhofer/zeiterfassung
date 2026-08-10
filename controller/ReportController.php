@@ -31,10 +31,6 @@ class ReportController
      */
     private function hatReportMonatViewAllRecht(): bool
     {
-        if (!method_exists($this->authService, 'hatRecht')) {
-            return false;
-        }
-
         try {
             if ($this->authService->hatRecht('REPORT_MONAT_VIEW_ALL')) {
                 return true;
@@ -58,10 +54,6 @@ class ReportController
      */
     private function hatReportMonatExportAllRecht(): bool
     {
-        if (!method_exists($this->authService, 'hatRecht')) {
-            return false;
-        }
-
         try {
             if ($this->authService->hatRecht('REPORT_MONAT_EXPORT_ALL')) {
                 return true;
@@ -89,12 +81,10 @@ class ReportController
             || $this->authService->hatRolle('Personalbuero')
         );
 
-        if (method_exists($this->authService, 'hatRecht')) {
-            try {
-                return $this->authService->hatRecht('STUNDENKONTO_VERWALTEN') || $legacyAdmin;
-            } catch (\Throwable $e) {
-                return $legacyAdmin;
-            }
+        try {
+            return $this->authService->hatRecht('STUNDENKONTO_VERWALTEN') || $legacyAdmin;
+        } catch (\Throwable $e) {
+            return $legacyAdmin;
         }
 
         return $legacyAdmin;
@@ -504,8 +494,8 @@ class ReportController
             || $this->authService->hatRolle('Personalbuero')
         );
 
-        $kannEditAll  = (method_exists($this->authService, 'hatRecht') && $this->authService->hatRecht('ZEITBUCHUNG_EDIT_ALL')) || $legacyAdmin;
-        $kannEditSelf = (method_exists($this->authService, 'hatRecht') && $this->authService->hatRecht('ZEITBUCHUNG_EDIT_SELF')) || $legacyAdmin;
+        $kannEditAll  = ($this->authService->hatRecht('ZEITBUCHUNG_EDIT_ALL')) || $legacyAdmin;
+        $kannEditSelf = ($this->authService->hatRecht('ZEITBUCHUNG_EDIT_SELF')) || $legacyAdmin;
 
         $darfZeitBearbeiten = ($kannEditAll || ($kannEditSelf && $angemeldeteId > 0 && $mitarbeiterId === $angemeldeteId));
 

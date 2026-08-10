@@ -410,9 +410,7 @@ class TerminalController
 
         // Fallback: direkt prüfen (falls Status unbekannt ist)
         try {
-            if (method_exists($this->datenbank, 'istHauptdatenbankVerfuegbar')) {
-                return (bool)$this->datenbank->istHauptdatenbankVerfuegbar();
-            }
+            return (bool)$this->datenbank->istHauptdatenbankVerfuegbar();
         } catch (Throwable $e) {
             return false;
         }
@@ -1189,9 +1187,7 @@ class TerminalController
 
         $pdo = null;
         try {
-            if (method_exists($this->datenbank, 'getOfflineVerbindung')) {
-                $pdo = $this->datenbank->getOfflineVerbindung();
-            }
+            $pdo = $this->datenbank->getOfflineVerbindung();
         } catch (Throwable $e) {
             $pdo = null;
         }
@@ -1608,9 +1604,7 @@ class TerminalController
             try {
                 $db = Database::getInstanz();
                 $hauptOk = false;
-                if (method_exists($db, 'istHauptdatenbankVerfuegbar')) {
-                    $hauptOk = (bool)$db->istHauptdatenbankVerfuegbar();
-                }
+                $hauptOk = (bool)$db->istHauptdatenbankVerfuegbar();
 
                 if ($hauptOk) {
                     $now = time();
@@ -1638,20 +1632,14 @@ class TerminalController
                 $pdo = null;
 
                 try {
-                    if (method_exists($db, 'getOfflineVerbindung')) {
-                        $pdo = $db->getOfflineVerbindung();
-                    }
+                    $pdo = $db->getOfflineVerbindung();
                 } catch (Throwable $e) {
                     $pdo = null;
                 }
 
                 if (!($pdo instanceof PDO)) {
                     try {
-                        if (method_exists($db, 'getVerbindung')) {
                             $pdo = $db->getVerbindung();
-                        } elseif (method_exists($db, 'getPdo')) {
-                            $pdo = $db->getPdo();
-                        }
                     } catch (Throwable $e) {
                         $pdo = null;
                     }
@@ -1690,20 +1678,14 @@ class TerminalController
                 $pdo = null;
 
                 try {
-                    if (method_exists($db, 'getOfflineVerbindung')) {
-                        $pdo = $db->getOfflineVerbindung();
-                    }
+                    $pdo = $db->getOfflineVerbindung();
                 } catch (Throwable $e) {
                     $pdo = null;
                 }
 
                 if (!($pdo instanceof PDO)) {
                     try {
-                        if (method_exists($db, 'getVerbindung')) {
                             $pdo = $db->getVerbindung();
-                        } elseif (method_exists($db, 'getPdo')) {
-                            $pdo = $db->getPdo();
-                        }
                     } catch (Throwable $e) {
                         $pdo = null;
                     }
@@ -1750,20 +1732,14 @@ class TerminalController
                 $pdo = null;
 
                 try {
-                    if (method_exists($db, 'getOfflineVerbindung')) {
-                        $pdo = $db->getOfflineVerbindung();
-                    }
+                    $pdo = $db->getOfflineVerbindung();
                 } catch (Throwable $e) {
                     $pdo = null;
                 }
 
                 if (!($pdo instanceof PDO)) {
                     try {
-                        if (method_exists($db, 'getVerbindung')) {
                             $pdo = $db->getVerbindung();
-                        } elseif (method_exists($db, 'getPdo')) {
-                            $pdo = $db->getPdo();
-                        }
                     } catch (Throwable $e) {
                         $pdo = null;
                     }
@@ -1868,20 +1844,14 @@ class TerminalController
                             $db = Database::getInstanz();
 
                             try {
-                                if (method_exists($db, 'getOfflineVerbindung')) {
-                                    $pdo = $db->getOfflineVerbindung();
-                                }
+                                $pdo = $db->getOfflineVerbindung();
                             } catch (Throwable $e) {
                                 $pdo = null;
                             }
 
                             if (!($pdo instanceof PDO)) {
                                 try {
-                                    if (method_exists($db, 'getVerbindung')) {
                                         $pdo = $db->getVerbindung();
-                                    } elseif (method_exists($db, 'getPdo')) {
-                                        $pdo = $db->getPdo();
-                                    }
                                 } catch (Throwable $e) {
                                     $pdo = null;
                                 }

@@ -232,7 +232,7 @@ class TerminalKopplungController
         }
 
         try {
-            $override = ConfigService::getInstanz()->get('terminal_db_host_extern', '');
+            $override = (string)KonfigurationService::getInstanz()->get('terminal_db_host_extern', '');
             if (is_string($override) && trim($override) !== '') {
                 return trim($override);
             }
