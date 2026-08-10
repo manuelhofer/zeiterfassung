@@ -61,11 +61,14 @@ Bereichen.
 mit `parent_id` als Hierarchie. Mitarbeiter sind ueber
 `mitarbeiter_hat_abteilung` M:N zugeordnet (inkl. `ist_stammabteilung`).
 
-Scope-Pruefung:
+Scope-Pruefung – **so ist es gedacht, so ist es noch nicht gebaut**
+(siehe Abschnitt 4 und B-093):
 
-- `scope = global` passt immer.
+- `scope = global` passt immer. *(umgesetzt)*
 - `scope = abteilung` passt, wenn die Ziel-Abteilung **gleich** ist.
+  *(nicht umgesetzt)*
 - Mit `gilt_unterbereiche = 1` passt auch alles im Unterbaum.
+  *(nicht umgesetzt – die Spalte wird gespeichert, aber nie gelesen)*
 
 Fuer sehr grosse Baeume koennte spaeter eine Materialized-Path-Spalte oder eine
 Closure-Tabelle ergaenzt werden; fuer den aktuellen Umfang reicht rekursives
@@ -78,32 +81,37 @@ Stelle, den `AuthService`:
 
 ```php
 istSuperuser(): bool
-hatRecht(string $code, ?int $zielMitarbeiterId = null, ?int $zielAbteilungId = null): bool
+hatRecht(string $rechtCode): bool
 ```
+
+**Das ist der Ist-Zustand, und er ist bewusst kleiner als das Bereichsmodell
+aus Abschnitt 3.** Bis P-2026-08-10-09 stand hier eine Signatur mit
+`$zielMitarbeiterId`/`$zielAbteilungId` und eine Scope-Aufloesung, die es im
+Code nie gab – wer sich darauf verliess, uebergab Argumente, die stillschweigend
+ignoriert wurden. Was der Code wirklich tut:
 
 Ablauf von `hatRecht()`:
 
-1. Wenn `istSuperuser()` → **true**.
-2. Ziel-Scope bestimmen:
-   - `zielAbteilungId` gesetzt → diese verwenden,
-   - sonst `zielMitarbeiterId` gesetzt → Stammabteilung des Ziel-Mitarbeiters
-     (Rueckfall: erste aktive Abteilung),
-   - sonst → `global`.
-3. Grants sammeln: Rollen des Benutzers (Legacy + Scope-Tabelle) inklusive
-   Scope, Rechte je Rolle aus `rolle_hat_recht`, optional Overrides.
-4. Matching:
-   - `global` passt immer,
-   - `abteilung` passt bei Gleichheit oder (mit `gilt_unterbereiche = 1`) im
-     Unterbaum,
-   - **`deny` gewinnt** gegen `allow`,
-   - bei mehreren Treffern gewinnt der **spezifischste** (naechste Scope); bei
-     Gleichstand gewinnt `deny`.
-5. Caching: effektive Grants pro Session cachen; Cache invalidieren, wenn
-   Rollen, Rechte oder Scopes administrativ geaendert werden.
+1. Nicht angemeldet oder leerer Code → **false**.
+2. Wenn `istSuperuser()` → **true**.
+3. Sonst: die effektiven Rechte-Codes des Benutzers holen und
+   case-insensitiv vergleichen.
 
-**Overrides:** `mitarbeiter_hat_recht_scope` mit `effect` ENUM('allow','deny')
-und `begruendung`. Priorisierung: `deny` sticht `allow`, Overrides stechen
-Rollen.
+Die effektiven Codes (`ladeRechteCodesAusDb()`) entstehen so:
+
+1. Rollen aus `mitarbeiter_hat_rolle` **und** aus `mitarbeiter_hat_rolle_scope`
+   – dort aber **nur Zeilen mit `scope_typ = 'global'`**.
+2. Rechte je Rolle aus `rolle_hat_recht`, nur `recht.aktiv = 1`.
+3. Overrides aus `mitarbeiter_hat_recht`: `erlaubt = 1` gewaehrt zusaetzlich
+   (auch ohne Rollenrecht), `erlaubt = 0` entzieht. **Entzug gewinnt**, und
+   Overrides stechen Rollen.
+4. Caching pro Session; der Cache wird verworfen, wenn sich die Mitarbeiter-ID
+   aendert.
+
+**Was daraus folgt und leicht uebersehen wird:** Eine Rollenzuweisung mit
+`scope_typ = 'abteilung'` gewaehrt derzeit **gar nichts**. Sie laesst sich in
+der Mitarbeiterverwaltung anlegen, `gilt_unterbereiche` wird gespeichert – aber
+`hatRecht()` sieht sie nie an. Siehe B-093 im Status-Snapshot.
 
 ## 5. Genehmiger sind personenzentriert, nicht abteilungsgebunden
 

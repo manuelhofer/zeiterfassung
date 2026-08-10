@@ -20,6 +20,15 @@ Abschnitt 12 – dort und bewusst nicht hier ein zweites Mal. Dasselbe gilt für
 den Stufenplan (Abschnitt 11).
 
 ## Offene Bugs
+- **B-093: Abteilungsbezogene Rollenzuweisungen wirken nicht.** Die
+  Mitarbeiterverwaltung kann eine Rolle mit `scope_typ = 'abteilung'` und
+  `gilt_unterbereiche` speichern, aber `AuthService::ladeRechteCodesAusDb()`
+  liest aus `mitarbeiter_hat_rolle_scope` **nur** Zeilen mit
+  `scope_typ = 'global'`. Eine abteilungsbezogene Zuweisung gewährt damit gar
+  nichts – ohne Fehlermeldung, die Maske sieht aus, als hätte sie gewirkt.
+  Gefunden bei der Doku-Prüfung in P-2026-08-10-09. Vorher klären, was gewollt
+  ist: Scope-Auswertung nachbauen (dann Abschnitt 3+4 der Fachregel als
+  Zielbild nehmen) oder die Scope-Auswahl aus der Oberfläche nehmen.
 - **B-080:** Urlaubssaldo wirkt teils verwirrend (Nutzerrückmeldung
   „Urlaubsberechnung stimmt nicht") – BF/Feiertage/Arbeitszeit-Abgrenzung
   nochmals prüfen. Teilfix in P-2026-01-18-07. Seit P-2026-08-10-02 meldet sich

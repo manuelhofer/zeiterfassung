@@ -70,6 +70,93 @@ in den Statusbericht.
   D-002 entfallen; die Regel selbst gilt weiter.)
 
 
+## P-2026-08-10-09 rechtepruefung-doku-gegen-code
+
+### EINGELESEN
+- `docs/fachregeln/rollen_rechte_genehmiger.md`, Abschnitte 3 und 4.
+- `services/AuthService.php`: `hatRecht()`, `holeAngemeldeteRechteCodes()`,
+  `ladeRechteCodesAusDb()` – Zeile fuer Zeile gegen die Doku gelesen.
+- `sql/01_initial_schema.sql`: `mitarbeiter_hat_rolle_scope`,
+  `mitarbeiter_hat_recht`.
+- `controller/MitarbeiterAdminController.php` – wer `gilt_unterbereiche`
+  schreibt.
+
+### DATEIEN
+- `docs/fachregeln/rollen_rechte_genehmiger.md`
+- `docs/STATUS_SNAPSHOT.md`
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Abschnitt 4 der Fachregel beschreibt die Signatur und den Ablauf, die
+`AuthService` tatsaechlich hat, und jede dort genannte Tabelle existiert.
+
+### DONE
+Der Vorpatch hatte den falschen Tabellennamen an drei Stellen korrigiert. Die
+Gegenprobe fand eine vierte – und die fuehrte auf etwas Groesseres: **Abschnitt
+4 beschrieb ein Zielbild, kein Verhalten.**
+
+Dokumentiert war:
+
+```php
+hatRecht(string $code, ?int $zielMitarbeiterId = null, ?int $zielAbteilungId = null): bool
+```
+
+dazu eine Scope-Aufloesung ueber die Ziel-Abteilung, Matching im Unterbaum und
+„der spezifischste Scope gewinnt". Tatsaechlich lautet die Signatur
+`hatRecht(string $rechtCode): bool` – **ohne** Scope-Parameter. Wer der Doku
+folgte, uebergab Argumente, die stillschweigend verschwinden, und hielt eine
+Rechtepruefung fuer abteilungsgenau, die global ist. In der Datei, die laut
+Lesekarte **immer** zu lesen ist, wenn Rechte beruehrt werden.
+
+Ebenfalls falsch: die Overrides stuenden in `mitarbeiter_hat_recht_scope` mit
+einer Spalte `effect` ENUM('allow','deny'). Beides existiert nicht. Richtig ist
+`mitarbeiter_hat_recht` mit `erlaubt` – die *Aussage* dazu („deny sticht allow,
+Overrides stechen Rollen") stimmt allerdings und ist in
+`ladeRechteCodesAusDb()` sauber umgesetzt.
+
+Abschnitt 4 beschreibt jetzt den Ist-Zustand mit allen vier Schritten der
+Code-Ermittlung. Abschnitt 3 behaelt das Bereichsmodell als Zielbild, markiert
+aber je Zeile, was davon gebaut ist.
+
+### Neuer Bug: B-093
+Aus dem Abgleich faellt ein echter Fehler heraus:
+`ladeRechteCodesAusDb()` liest aus `mitarbeiter_hat_rolle_scope` **nur** Zeilen
+mit `scope_typ = 'global'` – der Code sagt das selbst in einem Kommentar
+(„vorerst nur scope_typ='global' wird ausgewertet"). Die Mitarbeiterverwaltung
+kann aber sehr wohl `scope_typ = 'abteilung'` samt `gilt_unterbereiche`
+speichern. Eine abteilungsbezogene Rollenzuweisung gewaehrt damit **gar
+nichts**, ohne jede Rueckmeldung: Die Maske sieht aus, als haette sie gewirkt.
+
+Nicht in diesem Patch behoben – das ist Fachlogik und braucht eine
+Entscheidung (Scope-Auswertung nachbauen oder die Auswahl aus der Oberflaeche
+nehmen). Als B-093 im Snapshot notiert.
+
+### TEST
+- Signatur und Ablauf Zeile fuer Zeile gegen `services/AuthService.php`
+  gegengelesen (Zeilen 360–392 und 513–615).
+- `grep` auf `effect` in Schema und Code: kein Treffer.
+- `grep` auf `mitarbeiter_hat_recht_scope`: ausserhalb von `docs/archiv/` kein
+  Treffer mehr.
+- `gilt_unterbereiche`: fuenf Fundstellen, alle in
+  `MitarbeiterAdminController` (schreibend/anzeigend), keine in `AuthService`.
+
+### Gefundene Fehler im eigenen Entwurf
+Der Vorpatch P-2026-08-10-08 hat sein eigenes Akzeptanzkriterium **nicht**
+erfuellt: Ich hatte drei Fundstellen korrigiert und die Gegenprobe erst nach
+dem Commit laufen lassen – sie zeigte sofort eine vierte. Richtig waere
+gewesen, `grep` vor dem `git commit` auszufuehren, nicht danach. Der
+Aufraeumplan hatte den Befehl sogar als Akzeptanzkriterium vorgesehen.
+
+Dass daraus B-093 wurde, ist Glueck, kein Verdienst.
+
+### Was bewusst nicht erreicht wurde
+B-093 selbst. Und Abschnitt 3 bleibt ein Zielbild – jetzt aber als solches
+gekennzeichnet, statt als Beschreibung.
+
+### NEXT
+P-2026-08-10-10: toter Code – Stub-Dateien.
+
+
 ## P-2026-08-10-08 doku-nennt-was-es-nicht-gibt
 
 ### EINGELESEN
