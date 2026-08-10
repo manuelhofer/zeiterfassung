@@ -31,7 +31,7 @@ class UrlaubService
      *
      * In der Praxis gelten in vielen Betrieben Heiligabend (24.12) und Silvester (31.12)
      * als "halbe Urlaubstage". Damit Anzeige (z. B. Betriebsferienliste) und Saldo-Berechnung
-     * konsistent bleiben, werden diese Tage (falls sie als Urlaub/Betriebsferien zaehlen)
+     * konsistent bleiben, werden diese Tage (falls sie als Urlaub/Betriebsferien zählen)
      * mit 0.50 statt 1.00 gewichtet.
      */
     private function urlaubTagesGewicht(string $ymd): float
@@ -48,11 +48,11 @@ class UrlaubService
     }
 
     /**
-     * Zaehlt die Anzahl der Betriebsferien-Tage im Zeitraum, die als **Arbeitstage** gelten.
+     * Zählt die Anzahl der Betriebsferien-Tage im Zeitraum, die als **Arbeitstage** gelten.
      *
      * Zweck:
      * - Anzeige "Urlaubstage (abzgl. geplante Betriebsferien)" im Monatsreport (PDF/HTML).
-     * - Wochenenden und betriebsfreie Feiertage zaehlen nicht als Urlaubstage.
+     * - Wochenenden und betriebsfreie Feiertage zählen nicht als Urlaubstage.
      * - Betriebsferien werden global + abteilungsbezogen beruecksichtigt.
      */
     public function zaehleBetriebsferienArbeitstageFuerMitarbeiter(int $mitarbeiterId, string $vonDatum, string $bisDatum): float
@@ -90,7 +90,7 @@ class UrlaubService
         $skipBetriebsferienTage = [];
 
         // WICHTIG (B-080):
-        // - Wenn an einem Betriebsferien-Tag gearbeitet wurde, darf der Tag NICHT als Zwangsurlaub zaehlen.
+        // - Wenn an einem Betriebsferien-Tag gearbeitet wurde, darf der Tag NICHT als Zwangsurlaub zählen.
         // - Gleiches gilt, wenn an diesem Tag bereits andere Kennzeichen (z. B. Urlaub/Krank/Arzt/Kurzarbeit/Sonstiges) gesetzt sind.
         // - Krankzeiten werden teils nur als Zeitraum gepflegt (ohne Tages-Override) -> auch dann blockieren.
         try {
@@ -143,7 +143,7 @@ class UrlaubService
                     }
                 }
 
-                // Wenn andere Kennzeichen gesetzt sind (z. B. Urlaub/Krank), soll BF nicht zusätzlich zaehlen.
+                // Wenn andere Kennzeichen gesetzt sind (z. B. Urlaub/Krank), soll BF nicht zusätzlich zählen.
                 $hatAndereKennzeichen = (
                     ((int)($tw['kennzeichen_feiertag'] ?? 0) === 1)
                     || ((int)($tw['kennzeichen_urlaub'] ?? 0) === 1)
@@ -168,7 +168,7 @@ class UrlaubService
         }
 
         // Krankzeitraum (LFZ/KK) soll BF-Zwangsurlaub NICHT abziehen.
-        // Wenn ein aktiver Krankzeitraum einen BF-Tag schneidet, wird dieser Tag aus der BF-Zaehllogik herausgenommen.
+        // Wenn ein aktiver Krankzeitraum einen BF-Tag schneidet, wird dieser Tag aus der BF-Zähllogik herausgenommen.
         try {
             $db = Database::getInstanz();
             $krankRows = $db->fetchAlle(
@@ -496,7 +496,7 @@ class UrlaubService
         $skipBetriebsferienTage = [];
 
         // WICHTIG (B-080):
-        // - Wenn an einem Betriebsferien-Tag gearbeitet wurde, darf der Tag NICHT als Zwangsurlaub zaehlen.
+        // - Wenn an einem Betriebsferien-Tag gearbeitet wurde, darf der Tag NICHT als Zwangsurlaub zählen.
         // - Gleiches gilt, wenn an diesem Tag bereits andere Kennzeichen (z. B. Urlaub/Krank/Arzt/Kurzarbeit/Sonstiges) gesetzt sind.
         // - Krankzeiten werden teils nur als Zeitraum gepflegt (ohne Tages-Override) -> auch dann blockieren.
         try {
@@ -549,7 +549,7 @@ class UrlaubService
                     }
                 }
 
-                // Wenn andere Kennzeichen gesetzt sind (z. B. Urlaub/Krank), soll BF nicht zusätzlich zaehlen.
+                // Wenn andere Kennzeichen gesetzt sind (z. B. Urlaub/Krank), soll BF nicht zusätzlich zählen.
                 $hatAndereKennzeichen = (
                     ((int)($tw['kennzeichen_feiertag'] ?? 0) === 1)
                     || ((int)($tw['kennzeichen_urlaub'] ?? 0) === 1)
@@ -574,7 +574,7 @@ class UrlaubService
         }
 
         // Krankzeitraum (LFZ/KK) soll BF-Zwangsurlaub NICHT abziehen.
-        // Wenn ein aktiver Krankzeitraum einen BF-Tag schneidet, wird dieser Tag aus der BF-Zaehllogik herausgenommen.
+        // Wenn ein aktiver Krankzeitraum einen BF-Tag schneidet, wird dieser Tag aus der BF-Zähllogik herausgenommen.
         try {
             $db = Database::getInstanz();
             $krankRows = $db->fetchAlle(
@@ -1075,7 +1075,7 @@ class UrlaubService
         }
 
         // Betriebsferien zählen als Urlaub (Zwangsurlaub): nur Arbeitstage, keine Feiertage/Wochenenden.
-        // Urlaubsanträge werden bereits ohne Betriebsferien-Tage gezählt (siehe zaehleArbeitstageZwischenMitSets),
+        // Urlaubsanträge werden bereits ohne Betriebsferien-Tage gezählt (siehe zähleArbeitstageZwischenMitSets),
         // damit es zu keiner doppelten Zählung bei überlappenden Zeiträumen kommt.
         // WICHTIG:
         // - Wenn an einem Betriebsferien-Tag gearbeitet wurde, darf der Tag NICHT zusätzlich als Urlaub zählen.
@@ -1235,7 +1235,7 @@ class UrlaubService
         }
 
         // Wichtig: Saldo-Berechnung muss exakt den gleichen Weg nutzen wie die Anzeige pro Betriebsferien-Block,
-        // sonst entstehen Abweichungen (z. B. 9.50 vs 10.00). Daher: zentrale Zaehlung über die gleiche Funktion.
+        // sonst entstehen Abweichungen (z. B. 9.50 vs 10.00). Daher: zentrale Zählung über die gleiche Funktion.
         $betriebsferienUrlaubTage = 0.0;
         try {
             $betriebsferienUrlaubTage = (float)$this->zaehleBetriebsferienArbeitstageFuerMitarbeiter(

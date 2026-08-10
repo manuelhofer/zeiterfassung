@@ -238,7 +238,7 @@ class QueueService
      * zweimal fast gleich ermittelt – einmal für den Health-Endpunkt, einmal
      * für den Bildschirm. Zwei Fassungen derselben Wahrheit driften
      * auseinander, und dann meldet die Überwachung etwas anderes als das
-     * Geraet in der Halle anzeigt.
+     * Gerät in der Halle anzeigt.
      *
      * `null` bedeutet durchweg **unbekannt**, nicht `false`: Wenn sich die
      * Datenbank gar nicht ansprechen lässt, ist „nicht verfügbar" eine
@@ -298,7 +298,7 @@ class QueueService
                 $zustand['offen']  = (int)$pdo->query("SELECT COUNT(*) FROM db_injektionsqueue WHERE status = 'offen'")->fetchColumn();
                 $zustand['fehler'] = (int)$pdo->query("SELECT COUNT(*) FROM db_injektionsqueue WHERE status = 'fehler'")->fetchColumn();
             } catch (\Throwable $e) {
-                // Zaehler sind für die Anzeige, nicht für den Betrieb.
+                // Zähler sind für die Anzeige, nicht für den Betrieb.
             }
         }
 

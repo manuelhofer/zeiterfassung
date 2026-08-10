@@ -8,9 +8,9 @@ declare(strict_types=1);
  * Terminal-Installation (siehe `docs/spezifikation_terminal_installation.md`,
  * Abschnitte 2 und 11).
  *
- * Ausgangslage: Das Installationsskript bringt ein Geraet bis zur laufenden
+ * Ausgangslage: Das Installationsskript bringt ein Gerät bis zur laufenden
  * Weboberflaeche, kennt aber bewusst **keine** Zugangsdaten - dasselbe Abbild
- * passt so auf beliebig viele Geraete. Fehlt deshalb `config/config.local.php`,
+ * passt so auf beliebig viele Geräte. Fehlt deshalb `config/config.local.php`,
  * zeigt `public/terminal.php` nicht die Bedienoberflaeche, sondern diese Seite.
  * Das ist dieselbe Mechanik wie die Erstinstallation im Backend
  * (`views/login/initial_admin.php`), nur für den Touchscreen gebaut.
@@ -31,7 +31,7 @@ class TerminalEinrichtungController
     private const VERBINDUNG_TIMEOUT = 8;
 
     /**
-     * Optionale Datei mit den **geraetelokalen** Einstellungen, die das
+     * Optionale Datei mit den **gerätelokalen** Einstellungen, die das
      * Installationsskript (Stufe 3) hinterlässt: Zugangsdaten der lokalen
      * Ausweichdatenbank und die RFID-Bridge.
      *
@@ -39,7 +39,7 @@ class TerminalEinrichtungController
      * sie stehen beim Koppeln also nicht in der Antwort. Fehlt die Datei
      * (z. B. weil Stufe 3 noch nicht gelaufen ist), koppelt das Terminal
      * trotzdem; es hat dann nur keine Offline-Ausweichdatenbank, und die Seite
-     * sagt das ausdruecklich.
+     * sagt das ausdrücklich.
      */
     private const GERAETE_DATEI = 'geraet.local.php';
 
@@ -52,11 +52,11 @@ class TerminalEinrichtungController
     }
 
     /**
-     * Ist dieses Geraet bereits konfiguriert?
+     * Ist dieses Gerät bereits konfiguriert?
      *
      * Bewusst **nur** die Existenz der Datei - nicht "ist die Datenbank
      * erreichbar". Ein Terminal ohne Netz ist kein unkonfiguriertes Terminal:
-     * Der Offline-Betrieb mit Queue ist eine gewollte Betriebsart. Wuerde ein
+     * Der Offline-Betrieb mit Queue ist eine gewollte Betriebsart. Würde ein
      * Netzausfall die Einrichtungsseite hervorholen, stuende ein Monteur bei
      * jeder Störung vor einer Maske, die nach einem Kopplungscode fragt - und
      * die Buchungen der Halle wären weg.
@@ -265,7 +265,7 @@ class TerminalEinrichtungController
                 $fehlertext = curl_error($ch);
 
                 // Kein `curl_close()`: seit PHP 8.0 wirkungslos und seit 8.5
-                // ausdruecklich veraltet. Die Verbindung raeumt der
+                // ausdrücklich veraltet. Die Verbindung raeumt der
                 // Speicherverwalter auf, sobald `$ch` aus dem Gültigkeits-
                 // bereich fällt.
                 unset($ch);
@@ -380,7 +380,7 @@ class TerminalEinrichtungController
     }
 
     /**
-     * Kennung dieses Geraets - reine Nachvollziehbarkeit im Backend.
+     * Kennung dieses Geräts - reine Nachvollziehbarkeit im Backend.
      */
     private function geraeteKennung(): string
     {
@@ -406,8 +406,8 @@ class TerminalEinrichtungController
     /**
      * Erzeugt den Inhalt von `config/config.local.php`.
      *
-     * Vorlage ist `config/config.php.example`; ausgefuellt wird alles, was die
-     * Kopplung geliefert hat, plus die geraetelokalen Werte aus
+     * Vorlage ist `config/config.php.example`; ausgefüllt wird alles, was die
+     * Kopplung geliefert hat, plus die gerätelokalen Werte aus
      * `config/geraet.local.php` (falls vorhanden).
      *
      * @param array<string,mixed> $terminal
@@ -520,7 +520,7 @@ class TerminalEinrichtungController
     }
 
     /**
-     * Liest die geraetelokalen Einstellungen, die das Installationsskript
+     * Liest die gerätelokalen Einstellungen, die das Installationsskript
      * hinterlassen hat.
      *
      * Bewusst mit fester Auswahl: Aus dieser Datei werden **nur**
@@ -594,7 +594,7 @@ class TerminalEinrichtungController
      * Schreibt die Konfiguration - erst vollständig daneben, dann umbenennen.
      *
      * Grund für den Umweg: Eine halb geschriebene `config.local.php` wäre
-     * schlimmer als gar keine. Sie wuerde von `config/config.php` eingelesen
+     * schlimmer als gar keine. Sie würde von `config/config.php` eingelesen
      * und könnte das Terminal mit einem Syntaxfehler lahmlegen - und zwar
      * dauerhaft, weil die Einrichtungsseite dann auch nicht mehr erscheint.
      */

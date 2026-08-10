@@ -232,7 +232,7 @@ class TerminalAdminController
                                         <?php if ($gekoppeltAm !== ''): ?>
                                             <br><small style="color:#666;">seit <?php echo htmlspecialchars($gekoppeltAm, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></small>
                                         <?php endif; ?>
-                                        <?php /* Rueckfrage bewusst ohne Geraetenamen: Der steht in derselben Zeile,
+                                        <?php /* Rückfrage bewusst ohne Gerätenamen: Der steht in derselben Zeile,
                                                  und ein Name im JavaScript-Text wäre nur eine weitere Stelle zum
                                                  Maskieren. */ ?>
                                         <form method="post" action="?seite=terminal_admin_entkoppeln" style="display:block; margin-top:0.35rem;"
@@ -275,7 +275,7 @@ class TerminalAdminController
      * Quick-Toggle aus der Listenansicht.
      *
      * POST + CSRF: toggelt genau ein erlaubtes Flag.
-     * Erlaubte Felder: aktiv, offline_erlaubt_kommen_gehen, offline_erlaubt_auftraege
+     * Erlaubte Felder: aktiv, offline_erlaubt_kommen_gehen, offline_erlaubt_aufträge
      */
     public function toggleFlag(): void
     {
@@ -421,7 +421,7 @@ class TerminalAdminController
      * Route: ?seite=terminal_admin_entkoppeln (POST)
      *
      * Warum es das geben muss: Ohne diese Aktion bleibt der Datenbankbenutzer
-     * eines ausgemusterten Geraets gültig - für immer. Wer das Geraet aus der
+     * eines ausgemusterten Geräts gültig - für immer. Wer das Gerät aus der
      * Halle mitnimmt, liest die Zugangsdaten aus `config.local.php` und kommt
      * weiter an alles, was dieses Terminal durfte. `aktiv = 0` genuegt dafür
      * nicht: Das verhindert nur eine **neue** Kopplung, nicht den bestehenden
@@ -431,7 +431,7 @@ class TerminalAdminController
      * Terminal. Scheitert das Löschen, bleibt der Vermerk stehen und der
      * Zugang lässt sich weiterhin zuordnen und später erneut entfernen.
      * Andersherum bliebe ein gültiger Benutzer übrig, von dem niemand mehr
-     * weiß, zu welchem Geraet er gehört.
+     * weiß, zu welchem Gerät er gehört.
      */
     public function entkoppeln(): void
     {
@@ -514,7 +514,7 @@ class TerminalAdminController
                 ['id' => $id]
             );
         } catch (\Throwable $e) {
-            // Der Zugang ist weg - das Geraet kommt nicht mehr an die Daten.
+            // Der Zugang ist weg - das Gerät kommt nicht mehr an die Daten.
             // Nur der Vermerk hängt nach; das ist die harmlose Haelfte.
             Logger::error('Entkoppeln: Kopplungsvermerk konnte nicht geleert werden', [
                 'benutzer'  => $benutzer,

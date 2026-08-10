@@ -7,7 +7,7 @@ declare(strict_types=1);
  * Backend-Auswertung für Auftragszeiten.
  *
  * Scope (Micro-Patch):
- * - Listet Auftraege anhand von `auftragszeit` (auftragscode/auftrag_id).
+ * - Listet Aufträge anhand von `auftragszeit` (auftragscode/auftrag_id).
  * - Detailansicht zeigt alle Buchungen (Mitarbeiter, Maschine, Zeiten, Dauer).
  *
  * Nicht in diesem Patch (kommt getrennt):
@@ -56,7 +56,7 @@ class AuftragController
         }
 
         // Aktuell: jeder eingeloggte Benutzer darf Auswertungen sehen.
-        // (Rechte/Scopes können später ergaenzt werden, ohne bestehende Funktionen zu entfernen.)
+        // (Rechte/Scopes können später ergänzt werden, ohne bestehende Funktionen zu entfernen.)
         return true;
     }
 
@@ -134,7 +134,7 @@ class AuftragController
             // Grundmenge sind alle bekannten Auftragsnummern - aus den Stammdaten
             // (`auftrag`) UND aus den Buchungen (`auftragszeit`).
             //
-            // Wichtig: Frueher startete diese Abfrage bei `auftragszeit`. Ein im
+            // Wichtig: Früher startete diese Abfrage bei `auftragszeit`. Ein im
             // Backend angelegter Auftrag ohne Buchung war damit unsichtbar. Über
             // die UNION-Grundmenge erscheint er sofort - mit 0 Buchungen und dem
             // Status "angelegt".
@@ -1048,7 +1048,7 @@ class AuftragController
         }
 
         // Doppelte Nummern abfangen, bevor die Datenbank einen Fehler wirft -
-        // die Meldung soll verstaendlich sein, nicht technisch.
+        // die Meldung soll verständlich sein, nicht technisch.
         try {
             $vorhanden = $this->db->fetchEine(
                 'SELECT id FROM auftrag WHERE auftragsnummer = :nr AND id <> :id LIMIT 1',
@@ -1651,7 +1651,7 @@ class AuftragController
     }
 
     /**
-     * Ergaenzt fehlende Bezeichnungen aus dem Arbeitsschritt-Katalog.
+     * Ergänzt fehlende Bezeichnungen aus dem Arbeitsschritt-Katalog.
      *
      * Legt das Terminal beim Scannen einen Arbeitsschritt automatisch an, hat
      * dieser nur den Code und keine Bezeichnung. Statt in den Buchungspfad
@@ -1660,7 +1660,7 @@ class AuftragController
      * - Eine Buchung kann dadurch niemals scheitern – das ist die oberste
      *   Regel in der Halle.
      * - Es wirkt auch für Buchungen, die über die Offline-Queue nachlaufen.
-     * - Eine am Auftrag gepflegte Bezeichnung bleibt unberuehrt; sie ist die
+     * - Eine am Auftrag gepflegte Bezeichnung bleibt unberührt; sie ist die
      *   speziellere und gewinnt.
      *
      * Faellt der Katalog aus (z. B. Tabelle fehlt, weil die Migration noch
@@ -1763,7 +1763,7 @@ class AuftragController
     /**
      * Darf der angemeldete Benutzer Auftragsstammdaten pflegen?
      *
-     * Bewusst nur für Anlegen/Bearbeiten. Ansehen der Auftraege und das
+     * Bewusst nur für Anlegen/Bearbeiten. Ansehen der Aufträge und das
      * Laufkarten-PDF bleiben ohne dieses Recht erreichbar - wer in der Werkstatt
      * eine Laufkarte nachdruckt, soll dafür kein Verwaltungsrecht brauchen.
      *

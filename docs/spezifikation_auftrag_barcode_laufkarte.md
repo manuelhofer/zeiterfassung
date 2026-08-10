@@ -1,4 +1,4 @@
-# Spezifikation: Auftraege mit Strichcodes, Laufkarte und Arbeitsschritt-Katalog
+# Spezifikation: Aufträge mit Strichcodes, Laufkarte und Arbeitsschritt-Katalog
 
 *Version:* v2 (2026-08-08)
 *Status:* umgesetzt (P-2026-08-08-06 bis -16, -24)
@@ -11,14 +11,14 @@ Betrieb 1D-Handscanner im Einsatz sind. Der Dateiname hiess bis P-2026-08-08-24
 
 ## 1. Zielbild
 
-Heute entstehen Auftraege und Arbeitsschritte **nur nebenbei**: Das Terminal
-nimmt beim Scannen jeden beliebigen Text an und legt fehlende Datensaetze
+Heute entstehen Aufträge und Arbeitsschritte **nur nebenbei**: Das Terminal
+nimmt beim Scannen jeden beliebigen Text an und legt fehlende Datensätze
 automatisch an (`INSERT ... ON DUPLICATE KEY UPDATE` in
 `AuftragszeitService::starteAuftrag`). Das ist bewusst so und bleibt auch so –
 es darf nie passieren, dass in der Halle eine Buchung scheitert, weil ein
 Stammdatensatz fehlt.
 
-Zusätzlich soll es möglich sein, Auftraege **vorher im Backend anzulegen**:
+Zusätzlich soll es möglich sein, Aufträge **vorher im Backend anzulegen**:
 
 1. Einen Auftrag anlegen (Nummer, Kurzbeschreibung, Kunde, Status).
 2. Zu diesem Auftrag Arbeitsschritte pflegen – z. B. `drehen`, `fraesen`,
@@ -36,13 +36,13 @@ Im Betrieb sind **1D-Handscanner** im Einsatz, und die Maschinen-Codes des
 Projekts sind bereits Code 128. Ein einziger Codetyp bedeutet: ein Scannertyp,
 keine Sonderfaelle, keine Schulung. Code 128 kann Buchstaben, Ziffern und
 Sonderzeichen – deshalb steht im Strichcode weiterhin **der Code selbst**
-(z. B. `fraesen`); eine kuenstliche Nummer wäre unnoetig und wuerde die
+(z. B. `fraesen`); eine künstliche Nummer wäre unnötig und würde die
 Auswertungen unleserlich machen.
 
 (Die erste Fassung dieser Spezifikation sah QR-Codes vor. Umgestellt am
 2026-08-08 auf Wunsch aus der Praxis – siehe P-2026-08-08-15.)
 
-### Was der Code enthaelt
+### Was der Code enthält
 
 **Nur den nackten Code – kein Praefix, keine URL, kein JSON.**
 
@@ -51,7 +51,7 @@ Auswertungen unleserlich machen.
 | Auftrag | Wert aus `auftrag.auftragsnummer` | `123123123123` |
 | Arbeitsschritt | Wert aus `auftrag_arbeitsschritt.arbeitsschritt_code` | `drehen` |
 
-Begruendung: Das Terminal liest die Felder `auftragscode` und
+Begründung: Das Terminal liest die Felder `auftragscode` und
 `arbeitsschritt_code` als reinen Text (`TerminalController`, Zeilen 2613/2614)
 und reicht sie unverändert an `AuftragszeitService::starteAuftrag()` weiter.
 Ein Scanner im Keyboard-Wedge-Modus tippt den QR-Inhalt also direkt in das
@@ -66,7 +66,7 @@ Auftrag gehört.
 ## 3. Datenbank
 
 Die vorhandenen Tabellen reichen aus, es sind **keine Strukturaenderungen**
-noetig:
+nötig:
 
 - `auftrag` – `auftragsnummer` (unique), `kurzbeschreibung`, `kunde`, `status`,
   `aktiv`
@@ -85,7 +85,7 @@ Pfad-Feld wäre nur eine weitere Stelle, die aus dem Tritt geraten kann.
 - Neuer Button **„Auftrag hinzufuegen“**.
 - **Wichtig:** Die Liste baut heute ausschließlich auf `auftragszeit` auf. Ein
   frisch angelegter Auftrag ohne Buchung wäre unsichtbar. Die Abfrage muss
-  daher auch Auftraege aus der Tabelle `auftrag` beruecksichtigen, die noch
+  daher auch Aufträge aus der Tabelle `auftrag` beruecksichtigen, die noch
   keine Buchung haben (Buchungen = 0, Status „angelegt“).
 
 ### 4.2 Auftrag anlegen / bearbeiten (`?seite=auftrag_neu`, `?seite=auftrag_bearbeiten`)
@@ -96,14 +96,14 @@ Pfad-Feld wäre nur eine weitere Stelle, die aus dem Tritt geraten kann.
   Zeiterfassungssystem, keine Warenwirtschaft: Wer Kunde oder Beschreibung
   pflegen will, kann es; wer nicht, dem fehlt nichts. Leere Felder erscheinen
   auch nicht auf der Laufkarte.
-- Doppelte Auftragsnummern werden mit einer verstaendlichen Meldung abgelehnt,
+- Doppelte Auftragsnummern werden mit einer verständlichen Meldung abgelehnt,
   nicht mit einem SQL-Fehler.
 - Speichern per POST mit CSRF-Token, danach Weiterleitung auf die
   Detailansicht.
 
 ### 4.3 Auftragsdetail (`?seite=auftrag_detail&code=…`)
 
-Bestehende Bloecke (Buchungen, Summen) bleiben unverändert. Neu darunter:
+Bestehende Blöcke (Buchungen, Summen) bleiben unverändert. Neu darunter:
 
 - **Auftrags-Strichcode** mit Downloadlink.
 - **Arbeitsschritte (Stammdaten)** als Tabelle: Code, Bezeichnung, QR-Code,
@@ -126,7 +126,7 @@ PDF im Format A4 hoch:
 
 **Technischer Hinweis:** `PDFService` ist ein handgeschriebener PDF-Writer ohne
 Bildunterstuetzung. Die Strichcodes werden deshalb **als Vektor gezeichnet**: Die
-Bibliothek liefert die Balkenfolge, jeder Balken wird ein gefuelltes Rechteck
+Bibliothek liefert die Balkenfolge, jeder Balken wird ein gefülltes Rechteck
 (`pdfRectFill`). Das ist beim Drucken schaerfer als ein
 eingebettetes Pixelbild, erzeugt kleinere Dateien und erspart eine
 XObject-Implementierung im PDF-Writer.
@@ -137,7 +137,7 @@ XObject-Implementierung im PDF-Writer.
 
 Arbeitsschritte je Auftrag zu pflegen ist richtig, wenn der Schritt zum
 Werkstück gehört („Aussendurchmesser auf 40 mm drehen“). Für die
-**wiederkehrenden Taetigkeiten** ist es aber unnoetige Arbeit: `fraesen` ist
+**wiederkehrenden Tätigkeiten** ist es aber unnötige Arbeit: `fraesen` ist
 bei jedem Auftrag dasselbe `fraesen`. Es wäre absurd, das für jeden neuen
 Auftrag erneut anzulegen.
 
@@ -147,11 +147,11 @@ Die Arbeitsvorbereitung pflegt einmal einen **Katalog** von Standardschritten:
 `saegen`, `drehen`, `fraesen`, `entgraten`, `pruefen`, …
 
 Der Strichcode eines Katalogschritts hängt **an der Maschine**, nicht auf dem
-Papier. Wer 20 Fraesmaschinen hat, druckt den Code `fraesen` 20-mal aus und
+Papier. Wer 20 Fräsmaschinen hat, druckt den Code `fraesen` 20-mal aus und
 hängt ihn an jede Maschine. Der Mitarbeiter scannt am Terminal:
 
 1. den Auftrags-Strichcode von der Laufkarte (welches Werkstück),
-2. den Arbeitsschritt-Strichcode von der Maschine (welche Taetigkeit).
+2. den Arbeitsschritt-Strichcode von der Maschine (welche Tätigkeit).
 
 Damit passt derselbe gedruckte Code zu **jedem** Auftrag.
 
@@ -161,7 +161,7 @@ Damit passt derselbe gedruckte Code zu **jedem** Auftrag.
 Auftrag automatisch an (`INSERT … ON DUPLICATE KEY UPDATE`). Wird `fraesen`
 für Auftrag `A-2026-0999` gescannt, entsteht dort genau ein Eintrag
 `auftrag_arbeitsschritt(auftrag_id=…, arbeitsschritt_code='fraesen')`. Der
-Katalog ist also eine **Vorlage**, keine zweite Buchungsquelle – gezaehlt wird
+Katalog ist also eine **Vorlage**, keine zweite Buchungsquelle – gezählt wird
 weiterhin über `auftragszeit`.
 
 ### Datenbank
@@ -176,7 +176,7 @@ Code muss betriebsweit dasselbe bedeuten.
 ### Funktionen
 
 - **Katalogverwaltung** unter `?seite=arbeitsschritt_katalog` (Menue
-  „Auftraege“): Liste mit Strichcode-Vorschau, Anlegen, Bearbeiten, Deaktivieren.
+  „Aufträge“): Liste mit Strichcode-Vorschau, Anlegen, Bearbeiten, Deaktivieren.
 - **Druckblatt** `?seite=arbeitsschritt_katalog_blatt`:
   - ohne Parameter: alle aktiven Katalogschritte als Übersicht (eine Karte je
     Schritt),
@@ -197,15 +197,15 @@ Code muss betriebsweit dasselbe bedeuten.
 ### Abgrenzung
 
 - Der Katalog **erzwingt nichts**. Ein am Terminal gescannter Code, der nicht
-  im Katalog steht, wird weiterhin angenommen und gezaehlt – wie bisher.
+  im Katalog steht, wird weiterhin angenommen und gezählt – wie bisher.
 - Keine Reihenfolge, keine Pflichtschritte, keine Vorgabezeiten.
 
 ## 5. Rechte
 
-- Neues Recht **`AUFTRAEGE_VERWALTEN`**: Auftraege, deren Arbeitsschritte und
+- Neues Recht **`AUFTRAEGE_VERWALTEN`**: Aufträge, deren Arbeitsschritte und
   den Arbeitsschritt-Katalog anlegen, bearbeiten, deaktivieren.
   Für den Katalog wird bewusst **kein eigenes Recht** eingeführt: Wer
-  Auftraege pflegen darf, pflegt auch die Vorlagen dafür. Ein weiteres Recht
+  Aufträge pflegen darf, pflegt auch die Vorlagen dafür. Ein weiteres Recht
   wäre zusätzliche Verwaltung ohne erkennbaren Nutzen.
 - **Unverändert:** Auftragsliste, Detailansicht und Laufkarte bleiben für alle
   angemeldeten Benutzer sichtbar. Wer in der Werkstatt eine Laufkarte
@@ -216,18 +216,18 @@ Code muss betriebsweit dasselbe bedeuten.
 ## 6. Akzeptanzkriterien
 
 1. Ein im Backend angelegter Auftrag ohne jede Buchung erscheint in der
-   Auftragsliste und lässt sich oeffnen.
+   Auftragsliste und lässt sich öffnen.
 2. Zu einem Auftrag lassen sich Arbeitsschritte `drehen`, `fraesen`, `saegen`
    anlegen; jeder erscheint in der Stammdaten-Tabelle mit eigenem QR-Code.
-3. Die Laufkarte enthaelt den Auftrags-Strichcode und je einen Strichcode pro aktivem
-   Arbeitsschritt und lässt sich als PDF oeffnen und drucken.
+3. Die Laufkarte enthält den Auftrags-Strichcode und je einen Strichcode pro aktivem
+   Arbeitsschritt und lässt sich als PDF öffnen und drucken.
 4. Ein aus der Laufkarte gescannter Arbeitsschritt-Strichcode liefert im
    Terminal-Formularfeld exakt den `arbeitsschritt_code` – die Buchung läuft
    ohne Terminal-Änderung durch.
 5. Ohne das Recht `AUFTRAEGE_VERWALTEN` sind Anlege- und Bearbeitungsfunktionen
    nicht erreichbar, Ansicht und Laufkarte dagegen schon.
 6. Ein Katalogschritt `fraesen` lässt sich einmal anlegen, 20-mal auf ein
-   Druckblatt bringen und in beliebige Auftraege übernehmen.
+   Druckblatt bringen und in beliebige Aufträge übernehmen.
 7. Wird ein Katalog-Code am Terminal für einen Auftrag gescannt, bei dem er
    noch nicht hinterlegt ist, entsteht der Arbeitsschritt automatisch – mit der
    Bezeichnung aus dem Katalog.
@@ -237,5 +237,5 @@ Code muss betriebsweit dasselbe bedeuten.
 - Das automatische Anlegen beim Scannen bleibt bestehen (siehe Abschnitt 1).
 - Keine Mengen-/Stückzahlverwaltung, keine Terminplanung, keine
   Reihenfolge-Erzwingung der Arbeitsschritte.
-- Kein Löschen von Auftraegen; Deaktivieren reicht.
+- Kein Löschen von Aufträgen; Deaktivieren reicht.
 - Keine Änderung am Terminal.

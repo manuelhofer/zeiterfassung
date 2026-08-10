@@ -28,7 +28,7 @@ $monatsabschlussStatusMap = isset($monatsabschlussStatusMap) && is_array($monats
 /**
  * Anzeigenummer eines Mitarbeiters.
  *
- * Fachlich zaehlt die Personalnummer, nicht die Datenbank-ID - die ist eine
+ * Fachlich zählt die Personalnummer, nicht die Datenbank-ID - die ist eine
  * rein technische Größe und sagt niemandem in der Verwaltung etwas. Ist keine
  * Personalnummer gepflegt, wird ersatzweise die ID gezeigt, damit die Zeile
  * eindeutig zuordenbar bleibt.
@@ -310,8 +310,8 @@ if (!function_exists('report_is_micro_block')) {
         $kK   = isset($block['kommen_korr']) ? trim((string)$block['kommen_korr']) : '';
         $gK   = isset($block['gehen_korr']) ? trim((string)$block['gehen_korr']) : '';
 
-        // Sonderfall: Rundungsregeln können kurze Bloecke „umdrehen“ (z. B. 11:01–11:05 -> 11:15–11:00).
-        // Diese Bloecke ergeben effektiv 0 Arbeitszeit und sollen standardmäßig nicht angezeigt werden.
+        // Sonderfall: Rundungsregeln können kurze Blöcke „umdrehen“ (z. B. 11:01–11:05 -> 11:15–11:00).
+        // Diese Blöcke ergeben effektiv 0 Arbeitszeit und sollen standardmäßig nicht angezeigt werden.
         if ($kK !== '' && $gK !== '' && substr($kK, 0, 10) !== '0000-00-00' && substr($gK, 0, 10) !== '0000-00-00') {
             $kDt = report_parse_dt_berlin($kK);
             $gDt = report_parse_dt_berlin($gK);
@@ -513,10 +513,10 @@ if (!function_exists('report_calc_block_seconds')) {
 
 if (!function_exists('report_collapse_blocks')) {
     /**
-     * Kollabiert mehrere Arbeitsbloecke zu einem Tagesblock (erster Start + letzter Endzeit).
+     * Kollabiert mehrere Arbeitsblöcke zu einem Tagesblock (erster Start + letzter Endzeit).
      * Start/Ende werden anhand der Main-Zeiten bestimmt (korr bevorzugt, sonst roh).
      *
-     * Rückgabe ist ein einzelner Block im gleichen Format wie 'arbeitsbloecke'.
+     * Rückgabe ist ein einzelner Block im gleichen Format wie 'arbeitsblöcke'.
      */
     function report_collapse_blocks(array $bloecke): array
     {
@@ -583,7 +583,7 @@ if (isset($microBuchungMaxSeconds)) {
         $reportMicroMaxSeconds = $v;
     }
 }
-// Nacht-Schicht-Heuristik: Wenn am Folgetag ein fruehes "Gehen" vor dem ersten "Kommen"
+// Nacht-Schicht-Heuristik: Wenn am Folgetag ein frühes "Gehen" vor dem ersten "Kommen"
 // existiert, behandeln wir dieses Gehen als Schichtende des Vortags.
 // Dadurch wird der Vortag (innerhalb eines Zeitfensters) nicht als FEHLT markiert.
 $reportOvernightMaxSeconds = 12 * 3600; // 12h Fenster (später ggf. DB-config)
@@ -600,7 +600,7 @@ if (is_array($tageswerte) && $tageswerte !== []) {
             continue;
         }
 
-        // Bloecke analog zur Anzeige normalisieren.
+        // Blöcke analog zur Anzeige normalisieren.
         $blocksTmp = [];
         if (isset($twIdx['arbeitsbloecke']) && is_array($twIdx['arbeitsbloecke']) && $twIdx['arbeitsbloecke'] !== []) {
             foreach ($twIdx['arbeitsbloecke'] as $bTmp) {
@@ -1043,7 +1043,7 @@ if (is_array($tageswerte) && $tageswerte !== []) {
 
 
     <?php
-        // Vorab-Scan: Monat enthaelt Tage mit unvollständigen Kommen/Gehen-Stempeln?
+        // Vorab-Scan: Monat enthält Tage mit unvollständigen Kommen/Gehen-Stempeln?
         $monatHatZeitUnstimmigkeit = false;
         $zeitUnstimmigeTage = [];
 
@@ -1182,7 +1182,7 @@ if (is_array($tageswerte) && $tageswerte !== []) {
                     $bloecke = [];
 
                     // Wichtig: defensive Normalisierung – einzelne Elemente können (durch fehlerhafte Daten)
-                    // keine Arrays sein. Das wuerde später in der View zu TypeErrors führen.
+                    // keine Arrays sein. Das würde später in der View zu TypeErrors führen.
                     if (isset($t['arbeitsbloecke']) && is_array($t['arbeitsbloecke']) && $t['arbeitsbloecke'] !== []) {
                         $tmp = [];
                         foreach ($t['arbeitsbloecke'] as $bTmp) {
@@ -1206,8 +1206,8 @@ if (is_array($tageswerte) && $tageswerte !== []) {
                     }
 
                     // Mikro-Buchungen (pro Block) optional ausblenden.
-                    // Wichtig: Ein Tag kann normale + Mikro-Bloecke enthalten;
-                    // ohne show_micro wollen wir Mikro-Bloecke komplett ausblenden.
+                    // Wichtig: Ein Tag kann normale + Mikro-Blöcke enthalten;
+                    // ohne show_micro wollen wir Mikro-Blöcke komplett ausblenden.
                     if (!$showMicro && $bloecke !== []) {
                         $tmpBlocks = [];
                         foreach ($bloecke as $bTmp2) {
@@ -1277,9 +1277,9 @@ if (is_array($tageswerte) && $tageswerte !== []) {
                         $hatStempel = ($kR !== '' || $gR !== '' || $kK !== '' || $gK !== '');
                         if ($tagIstVergangen && $hatStempel && ($kMain === '' || $gMain === '')) {
                             // Ausnahme: Nachtschicht über Mitternacht.
-                            // - Vortag: Kommen vorhanden, Gehen fehlt, aber am Folgetag existiert ein fruehes Gehen (vor dem ersten Kommen)
+                            // - Vortag: Kommen vorhanden, Gehen fehlt, aber am Folgetag existiert ein frühes Gehen (vor dem ersten Kommen)
                             //   innerhalb $reportOvernightMaxSeconds.
-                            // - Folgetag: Dieses fruehe Gehen ohne Kommen gilt als Abschluss des Vortags (nicht als FEHLT).
+                            // - Folgetag: Dieses frühe Gehen ohne Kommen gilt als Abschluss des Vortags (nicht als FEHLT).
                             $istUebernachtOk = false;
 
                             if ($kMain !== '' && $gMain === '' && ($overnightNextGo instanceof \DateTimeImmutable)) {
@@ -1311,8 +1311,8 @@ if (is_array($tageswerte) && $tageswerte !== []) {
                     }
 
                     $istMicroIgnoriert = ((int)($t['micro_arbeitszeit_ignoriert'] ?? 0) === 1);
-                    // Standard: ohne show_micro zeigen wir alle NICHT-Mikro-Arbeitsbloecke.
-                    // (Mehrfach-Kommen/Gehen bleibt sichtbar; Mikro-Bloecke wurden oben bereits gefiltert.)
+                    // Standard: ohne show_micro zeigen wir alle NICHT-Mikro-Arbeitsblöcke.
+                    // (Mehrfach-Kommen/Gehen bleibt sichtbar; Mikro-Blöcke wurden oben bereits gefiltert.)
 
                 ?>
 

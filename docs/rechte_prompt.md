@@ -203,10 +203,10 @@ Quelle: `sql/01_initial_schema.sql` (INSERT INTO `recht`). Ältere Verlaufs-/Pat
 ### `TERMINAL_VERWALTEN`
 - Name (DB): Terminals verwalten
 - Zweck: Darf Terminals anlegen/bearbeiten sowie **Kopplungscodes erzeugen**,
-  mit denen ein Geraet sich am Backend anmeldet (ab P-2026-08-08-31,
+  mit denen ein Gerät sich am Backend anmeldet (ab P-2026-08-08-31,
   `TerminalAdminController::kopplung()`).
 - **Bewusst ohne Recht:** Der Kopplungs-Endpunkt, den das Terminal selbst
-  aufruft, ist ohne Anmeldung erreichbar – ein frisch installiertes Geraet hat
+  aufruft, ist ohne Anmeldung erreichbar – ein frisch installiertes Gerät hat
   noch keinen Benutzer. Der Kopplungscode ist dort der Nachweis.
   Umgesetzt in `?seite=terminal_kopplung` (`TerminalKopplungController`, nur
   POST, ab P-2026-08-08-36). Abgesichert ist er dadurch, dass der Code einmalig
@@ -270,7 +270,7 @@ Quelle: `sql/01_initial_schema.sql` (INSERT INTO `recht`). Ältere Verlaufs-/Pat
 
 ### `STUNDENKONTO_VERWALTEN`
 - Name (DB): Stundenkonto verwalten
-- Zweck: Erlaubt Stundenkonto-Korrekturen, Verteilbuchungen und Monatsabschluss-Buchungen im Backend (Audit: Begruendung Pflicht).
+- Zweck: Erlaubt Stundenkonto-Korrekturen, Verteilbuchungen und Monatsabschluss-Buchungen im Backend (Audit: Begründung Pflicht).
 - Prüfpunkte im Code:
   - `controller/MitarbeiterAdminController.php:608` (Stundenkonto-Block anzeigen/ausblenden)
   - `controller/MitarbeiterAdminController.php:1551` (Korrektur speichern: Zugriffsschutz)

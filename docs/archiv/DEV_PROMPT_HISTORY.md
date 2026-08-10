@@ -70,6 +70,79 @@ in den Statusbericht.
   D-002 entfallen; die Regel selbst gilt weiter.)
 
 
+## P-2026-08-10-26 umlaute-nachgezogen
+
+### EINGELESEN
+- Restbestand der Ersatzschreibung nach P-2026-08-10-19, per `grep` über alle
+  Wortformen mit `aeh/aen/aer/oen/uen/…` erhoben.
+- Jede Fundstelle daraufhin angesehen, ob sie Sprache oder Daten ist.
+
+### DATEIEN
+Rund 60 PHP-Dateien (nur Kommentare) und 15 Markdown-Dateien.
+
+### AKZEPTANZKRITERIUM
+Keine deutsche Ersatzschreibung mehr in Kommentaren und Dokumentation, und
+kein Bezeichner, Dateiname, Linkziel oder Datenwert verändert.
+
+### DONE
+Die Wortliste aus P-2026-08-10-19 war unvollständig – sie kannte `fuer` und
+`ueber`, aber nicht `Geraet`, `Begruendung`, `ausdruecklich`, `ergaenzt`,
+`zaehlen`, `Hoehe`, `wuerde`, `frueher`, `Beruehrung`, `zuverlaessig`,
+`kuenstlich`, `Taetigkeit` und rund 90 weitere. Von 172 Kommentarabschnitten
+und 15 Dokumenten nachgezogen; die Liste umfasst jetzt 291 Einträge.
+
+**Ausdrücklich nicht angefasst**, weil es Daten sind und keine Sprache:
+
+- `fraesen`, `saegen`, `drehen` – Arbeitsschritt-Codes; sie stehen in der Doku
+  in Backticks, die das Skript überspringt. `Fraesmaschinen` als Fließtext
+  dagegen schon.
+- `Personalbuero` – ein Rollenname in der Datenbank (26 Stellen im Code).
+- `value="loeschen"` – ein Formularwert, gegen den der Controller vergleicht.
+- `$schluessel` – Variablenname im Konfigurationsdienst.
+
+### Gefundene Fehler im eigenen Entwurf
+**Zweimal derselbe Fehler wie beim ersten Anlauf, nur an neuen Stellen** – und
+beide Male nicht durch `php -l` erkennbar:
+
+1. **In Docblocks stehen Variablennamen, keine Wörter.** `@var array $antraege`
+   wurde zu `$anträge`, ebenso `$bloecke`, `$laufendeAuftraege`,
+   `$rollenIdsAusgewaehlt`, `$stoerungEintrag` – 26 Stellen. Der Code heißt
+   weiter `$antraege`; der Docblock zeigte also auf eine Variable, die es nicht
+   gibt. Ein Kommentar in `TerminalController` nannte sogar die **Datei**
+   `views/terminal/störung.php`, die es nicht gibt.
+
+   Behoben mit einem zweiten Tokenizer-Lauf, der in Kommentaren gezielt
+   `$bezeichner`, Dateinamen in Backticks und `methode()`-Angaben wieder auf
+   ASCII zurückdreht. Prosa bleibt.
+
+2. **Markdown-Linkziele.** `](auftraege_und_codes.md)` wurde zu
+   `](aufträge_und_codes.md)` – **drei tote Links** in `CHATSTART.md`,
+   `fachregeln/README.md` und `stammdaten_und_datenbank.md`. Das Skript sparte
+   Inline-Code und Codeblöcke aus, aber nicht Linkziele. Zurückgedreht und das
+   Skript entsprechend gehärtet.
+
+Beides fiel nur auf, weil ich nach dem Lauf gezielt nach Umlauten in
+Bezeichnern und danach den Linkcheck laufen liess. Die Lehre aus
+P-2026-08-10-19 – „nach jedem mechanischen Lauf gegenprüfen" – hat sich zum
+zweiten Mal ausgezahlt.
+
+### TEST
+- `grep` nach Bezeichnern mit Umlaut: **null Treffer**.
+- Linkcheck über alle Markdown-Dateien: **keine toten Links**.
+- Datenwerte gegengeprüft: `Personalbuero` 26×, `value="loeschen"` 1×,
+  `` `fraesen` `` 27× in der Doku, `$schluessel` 20× – alle unverändert.
+- `php -l` sauber, 18 Masken unverändert, 16 POST-Formulare mit Token,
+  Monats-PDF 11.758 B mit gültiger Signatur, Webserver dreimal HTTP 200.
+
+### Was bewusst nicht erreicht wurde
+Vollständigkeit der Wortliste lässt sich nicht beweisen – sie ist eine Liste,
+kein Regelwerk. Wer eine übrig gebliebene Form findet, korrigiert sie im
+Vorbeigehen.
+
+### NEXT
+B-080: Übertrag festschreiben.
+
+
 ## P-2026-08-10-25 abteilungsrollen-gesperrt
 
 ### EINGELESEN

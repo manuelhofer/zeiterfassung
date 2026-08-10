@@ -51,7 +51,7 @@ Verstoß nicht mehr zu reparieren ist:
 | Urlaub, Betriebsferien, Feiertage | [docs/fachregeln/urlaub_abwesenheit_feiertage.md](docs/fachregeln/urlaub_abwesenheit_feiertage.md) |
 | Rollen, Rechte, Bereiche, Genehmiger | [docs/fachregeln/rollen_rechte_genehmiger.md](docs/fachregeln/rollen_rechte_genehmiger.md) + [docs/rechte_prompt.md](docs/rechte_prompt.md) |
 | Terminal, Kiosk-UI, Offline-Queue, Kopplung | [docs/fachregeln/terminal_und_offline.md](docs/fachregeln/terminal_und_offline.md) |
-| Aufträge, Arbeitsschritte, Barcodes, Laufkarte | [docs/fachregeln/auftraege_und_codes.md](docs/fachregeln/auftraege_und_codes.md) |
+| Aufträge, Arbeitsschritte, Barcodes, Laufkarte | [docs/fachregeln/aufträge_und_codes.md](docs/fachregeln/auftraege_und_codes.md) |
 | Monatsübersicht, Reports, PDF, Stundenkonto | [docs/fachregeln/auswertung_und_pdf.md](docs/fachregeln/auswertung_und_pdf.md) |
 | Mitarbeiter, Abteilungen, Maschinen, Schema | [docs/fachregeln/stammdaten_und_datenbank.md](docs/fachregeln/stammdaten_und_datenbank.md) |
 | Datenbankstruktur (Spalten, Indizes) | `sql/01_initial_schema.sql` – **Source of Truth** |

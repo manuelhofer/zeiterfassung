@@ -22,30 +22,30 @@ Feiertagsstunden, Urlaubsstunden, Kurzarbeitsstunden, sonstige Stunden,
 Über-/Minusstunden. Dazu das **Stundenkonto** (Stand bis Vormonat) und der
 Urlaubsblock („Urlaubtage (abzgl. BF)", „BF (Rest Jahr)").
 
-### Mehrere Arbeitsbloecke an einem Tag
+### Mehrere Arbeitsblöcke an einem Tag
 
-Hat ein Tag mehrere Bloecke, wird der Tag **mehrfach** ausgegeben – je Block
+Hat ein Tag mehrere Blöcke, wird der Tag **mehrfach** ausgegeben – je Block
 eine Zeile. Dabei gilt:
 
 - Abwesenheitsfelder (Urlaub, Krank, Kurzarbeit, Sonstiges) werden **nur in der
-  ersten Zeile des Tages** gefuellt, die weiteren bleiben leer – keine optische
-  Doppelzaehlung.
+  ersten Zeile des Tages** gefüllt, die weiteren bleiben leer – keine optische
+  Doppelzählung.
 - **IST wird je Block** angezeigt, auch in den Folgezeilen.
 - Pause und Meta-Angaben stehen an der **Primaerzeile** (Block ≥ 60 min), nicht
   automatisch in der ersten Zeile.
 - Summen bleiben tages- und monatsweise korrekt.
 
-Das Feld `kommentar` ist die Kürzel-/Begruendungsspalte (z. B. `BF`, `SoU`,
+Das Feld `kommentar` ist die Kürzel-/Begründungsspalte (z. B. `BF`, `SoU`,
 `SoU: …`).
 
 ### Mikro-Buchungen
 
 Standard ist **aggregiert pro Tag**. Detail- bzw. Mikro-Buchungen erscheinen nur
 mit `?show_micro=1` (B-078). Erkannt werden sie am **Rohstempel**, damit die
-Rundung sie nicht kuenstlich aufblaeht; Schwelle über
+Rundung sie nicht künstlich aufblaeht; Schwelle über
 `config:micro_buchung_max_sekunden`.
 
-Bloecke, die durch die Rundung auf 0 zusammenfallen (`gehen_korr <=
+Blöcke, die durch die Rundung auf 0 zusammenfallen (`gehen_korr <=
 kommen_korr`), werden wie Mikro-Buchungen behandelt: ausgeblendet, Block-IST
 0,00.
 
@@ -70,7 +70,7 @@ der Sammel-Export `REPORT_MONAT_EXPORT_ALL`.
 Im PDF muss sichtbar sein, wo von Hand eingegriffen wurde:
 
 - **Rot markiert werden nur manuell geänderte Kommen/Gehen-Zeiten.**
-  Tageskennzeichen wie Kurzarbeit werden **nicht** rot – das war frueher anders
+  Tageskennzeichen wie Kurzarbeit werden **nicht** rot – das war früher anders
   und hat verwirrt (B-029).
 - Grundlage sind `zeitbuchung.manuell_geaendert` bzw.
   `tageswerte_mitarbeiter.rohdaten_manuell_geaendert`.
@@ -79,10 +79,10 @@ Im PDF muss sichtbar sein, wo von Hand eingegriffen wurde:
 
 ## 4. Abgrenzungen, die immer wieder falsch laufen
 
-- **Kurzarbeit zaehlt nicht als IST.** Sie reduziert das Soll (B-038).
+- **Kurzarbeit zählt nicht als IST.** Sie reduziert das Soll (B-038).
 - **Kurzarbeit-Volltag wirkt wie Betriebsferien** (i. d. R. Tages-Soll bzw.
   8 h), aber **nicht zusätzlich**, wenn am selben Tag gearbeitet wurde (B-030).
-- **Betriebsferien nicht zusätzlich zur Arbeitszeit zaehlen**, wenn an einem
+- **Betriebsferien nicht zusätzlich zur Arbeitszeit zählen**, wenn an einem
   BF-Tag tatsaechlich gearbeitet wurde (B-024).
 - **Krank hat Vorrang vor Betriebsferien** (B-077).
 - **Urlaubsblock nicht doppelt abziehen:** Der Block nutzt den
@@ -98,7 +98,7 @@ Monatsübersicht und PDF.
 Tabellen: `stundenkonto_batch` (Verteilbuchungen) und `stundenkonto_korrektur`
 (manuelle Korrekturen).
 
-Funktionen im Backend, alle mit Recht `STUNDENKONTO_VERWALTEN` und **Begruendung
+Funktionen im Backend, alle mit Recht `STUNDENKONTO_VERWALTEN` und **Begründung
 als Pflichtfeld**, protokolliert in `system_log`:
 
 - Saldo anzeigen und manuelle Korrektur buchen,

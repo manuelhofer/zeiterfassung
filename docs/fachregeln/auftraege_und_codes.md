@@ -1,4 +1,4 @@
-# Fachregeln: Auftraege, Auftragszeiten, Strichcodes, Laufkarte
+# Fachregeln: Aufträge, Auftragszeiten, Strichcodes, Laufkarte
 
 *Gilt für:* `services/AuftragszeitService.php`, `services/BarcodeService.php`,
 `controller/AuftragController.php`,
@@ -8,14 +8,14 @@
 
 ---
 
-## 1. Woher Auftraege kommen
+## 1. Woher Aufträge kommen
 
-Auftraege werden **nicht** in diesem System geführt, sondern zu 100 % in einem
+Aufträge werden **nicht** in diesem System geführt, sondern zu 100 % in einem
 externen CMS/ERP. In der Zeiterfassung wird nur die **Auftragsnummer**
 verwendet.
 
-Seit 2026-08-08 können Auftraege **zusätzlich** im Backend angelegt werden
-(`?seite=auftrag_neu`) – als Ergaenzung, nicht als Ersatz. Wer seine Auftraege
+Seit 2026-08-08 können Aufträge **zusätzlich** im Backend angelegt werden
+(`?seite=auftrag_neu`) – als Ergänzung, nicht als Ersatz. Wer seine Aufträge
 weiterhin nur scannt, merkt davon nichts.
 
 Ausser der Auftragsnummer ist **alles freiwillig**. Dies ist ein
@@ -60,22 +60,22 @@ oder über Importe.
 `startzeit`, `endzeit`, `status`, `kommentar`, Timestamps.
 
 **`arbeitsschritt_katalog`:** betriebsweite Standardschritte (z. B. `fraesen`)
-für wiederkehrende Taetigkeiten – einmal pflegen, Codes beliebig oft
+für wiederkehrende Tätigkeiten – einmal pflegen, Codes beliebig oft
 ausdrucken.
 
-## 5. Haupt- und Nebenauftraege
+## 5. Haupt- und Nebenaufträge
 
 Ein Mitarbeiter kann **einen** Hauptauftrag laufen haben und zusätzlich
-**mehrere** Nebenauftraege gleichzeitig.
+**mehrere** Nebenaufträge gleichzeitig.
 
 - **Hauptauftrag starten:** Auftragscode scannen, Maschine wählen/scannen; ein
   vorhandener Hauptauftrag wird automatisch geschlossen.
 - **Nebenauftrag starten:** wie Hauptauftrag, aber `typ = 'neben'`. Serverseitig
   **geblockt, wenn kein Hauptauftrag läuft** (online wie offline).
 - **Auftrag stoppen:** Standard ist der gescannte Auftragscode; Rückfall ist
-  die Liste der laufenden Auftraege des Mitarbeiters.
+  die Liste der laufenden Aufträge des Mitarbeiters.
 
-**Start und Stopp eines Hauptauftrags beenden Nebenauftraege *nicht*
+**Start und Stopp eines Hauptauftrags beenden Nebenaufträge *nicht*
 automatisch** (online wie offline). Das war zwischenzeitlich anders und hat sich
 im Praxis-Test als unerwünscht erwiesen (P-2026-01-18-35 → -36).
 
@@ -92,7 +92,7 @@ Für Auftrag und Arbeitsschritte werden **Strichcodes (Code 128)** erzeugt –
 derselbe Codetyp wie bei den Maschinen, passend zu den 1D-Handscannern im
 Betrieb.
 
-**Der Code enthaelt nur den nackten Wert**, damit das Terminal ihn unverändert
+**Der Code enthält nur den nackten Wert**, damit das Terminal ihn unverändert
 übernimmt.
 
 Ausdrucke:
@@ -101,7 +101,7 @@ Ausdrucke:
   Code, je Arbeitsschritt ein Block mit Code und Feldern zum Eintragen,
   mehrseitig.
 - **Kartenblatt** je Katalogschritt (`?seite=arbeitsschritt_katalog_blatt`) mit
-  Stückzahl – z. B. 20 Karten `fraesen` für 20 Fraesmaschinen. Sechs Karten je
+  Stückzahl – z. B. 20 Karten `fraesen` für 20 Fräsmaschinen. Sechs Karten je
   A4-Seite mit Schnittmarkierung.
 
 **Maschinen-Barcode-URL:** Die Anzeige-URL wird aus der Web-Basis der

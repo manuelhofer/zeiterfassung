@@ -143,7 +143,7 @@ class ZeitbuchungModel
      * @param string             $quelle        'terminal', 'web' oder 'import'
      * @param int|null           $terminalId    optional verknüpftes Terminal
      * @param string|null        $kommentar     optionaler Kommentar
-     * @param bool               $manuellGeändert true, wenn die Buchung manuell angelegt wurde
+     * @param bool               $manuellGeaendert true, wenn die Buchung manuell angelegt wurde
      *
      * @return int|null ID der neuen Zeitbuchung oder null bei Fehler
      */

@@ -43,13 +43,13 @@ resultierenden `ist_stunden`.
 ## 3. Mehrfach Kommen/Gehen an einem Tag
 
 Ein Mitarbeiter darf an einem Tag mehrfach kommen und gehen (z. B. 05:00–08:00
-und 09:00–16:00). Aus den Rohdaten werden **Arbeitsbloecke** gebildet: je ein
+und 09:00–16:00). Aus den Rohdaten werden **Arbeitsblöcke** gebildet: je ein
 `kommen` mit dem nächsten `gehen`.
 
 Paarungslogik (robust, ohne Absturz):
 
 - Buchungen des Tages nach `zeitstempel` aufsteigend sortieren,
-- beim ersten `kommen` einen Block oeffnen,
+- beim ersten `kommen` einen Block öffnen,
 - beim nächsten `gehen` den Block schließen,
 - ein `gehen` ohne offenes `kommen` gilt als **verwaist**: im Backend als
   Fehler anzeigen, **nicht** ins IST einrechnen,
@@ -58,7 +58,7 @@ Paarungslogik (robust, ohne Absturz):
 
 In Auswertung und PDF wird **jeder Block als eigene Zeile** ausgegeben, auch
 bei gleichem Datum. Tages- und Monatssummen sind die Summe aller gültigen
-Bloecke nach Rundung und Pausenabzug.
+Blöcke nach Rundung und Pausenabzug.
 
 Beispiel:
 
@@ -70,7 +70,7 @@ Beispiel:
 Zwei Arten, beide **konfigurierbar**:
 
 1. **Zwangspausen** (betrieblich, Uhrzeitfenster): feste Fenster wie 09:00–09:15
-   und 12:30–13:00. Diese Zeit zaehlt nicht als Arbeitszeit, **wenn** ein
+   und 12:30–13:00. Diese Zeit zählt nicht als Arbeitszeit, **wenn** ein
    Arbeitsblock sie überlappt.
 2. **Gesetzliche Mindestpause** (pauschal, schwellenbasiert), Standard nach
    § 4 ArbZG:
@@ -104,7 +104,7 @@ und die gesetzlichen Schwellen (Default 6 h/30 min, 9 h/45 min).
 ## 5. Tageswerte und Korrekturfelder
 
 Für jede Kombination Mitarbeiter + Datum gibt es eine Zeile in
-`tageswerte_mitarbeiter`. Ablauf je Tag: Bloecke bilden → Rundung je Block →
+`tageswerte_mitarbeiter`. Ablauf je Tag: Blöcke bilden → Rundung je Block →
 Pausenregeln je Block → IST je Block berechnen und aufsummieren.
 
 Aggregierte Rohzeiten (nur für die schnelle Übersicht, **nicht** Grundlage
@@ -113,14 +113,14 @@ der IST-Berechnung): `kommen_roh` = erstes Kommen, `gehen_roh` = letztes Gehen.
 Korrektur- und Auswertungsfelder:
 
 - `kommen_korr` / `gehen_korr` (aggregiert, aus erstem/letztem Block)
-- `pause_korr_minuten` (Summe über alle Bloecke, manuell überschreibbar)
-- `ist_stunden` (Summe IST aller Bloecke nach Rundung und Pausenabzug)
+- `pause_korr_minuten` (Summe über alle Blöcke, manuell überschreibbar)
+- `ist_stunden` (Summe IST aller Blöcke nach Rundung und Pausenabzug)
 - bezahlte Abwesenheiten je Tag:
   - `arzt_stunden`
   - `krank_lfz_stunden` + `kennzeichen_krank_lfz`
   - `krank_kk_stunden` + `kennzeichen_krank_kk`
   - `feiertag_stunden` + `kennzeichen_feiertag`
-  - `urlaub_stunden` + `kennzeichen_urlaub` (Betriebsferien zaehlen als Urlaub,
+  - `urlaub_stunden` + `kennzeichen_urlaub` (Betriebsferien zählen als Urlaub,
     i. d. R. 8,00 h/Tag)
   - `kurzarbeit_stunden` + `kennzeichen_kurzarbeit`
   - `sonstige_stunden` + `kennzeichen_sonstiges` (reine Stundenzahl; Kürzel
@@ -147,7 +147,7 @@ Korrektur- und Auswertungsfelder:
 - Pflegbar als Zeitraum-Plan (firmenweit oder mitarbeiterbezogen; einzelne Tage,
   Woche, ganzer Monat) und als Tages-Override in der Korrekturmaske.
 - **Kurzarbeit reduziert das Tages-Soll** (keine Minusstunden durch Kurzarbeit);
-  die Stunden zaehlen **nicht** als IST.
+  die Stunden zählen **nicht** als IST.
 
 **Sonderurlaub (SoU)**
 
@@ -155,7 +155,7 @@ Korrektur- und Auswertungsfelder:
   `kennzeichen_sonstiges = 1`.
 - Kürzel/Grund im Feld `kommentar` (`SoU` bzw. `SoU: <Begruendung>`).
 - In der Tagesmaske gibt es einen Schnell-Haken (setzt Default-Stunden auf 8,00
-  bzw. Tages-Soll; Begruendung optional oder Pflicht je Konfiguration).
+  bzw. Tages-Soll; Begründung optional oder Pflicht je Konfiguration).
 
 ### Flags „manuell geändert" (für die PDF-Markierung)
 
@@ -171,8 +171,8 @@ Berechtigte (z. B. `Chef`, `Personalbuero`, Rollen mit Edit-Recht) können je
 Mitarbeiter und Datum:
 
 1. die aggregierten Rohzeiten einsehen,
-2. die zugrunde liegenden `zeitbuchung`-Eintraege sehen,
-3. Eintraege hinzufuegen, ändern, löschen.
+2. die zugrunde liegenden `zeitbuchung`-Einträge sehen,
+3. Einträge hinzufuegen, ändern, löschen.
 
 Zusätzlich gibt es **Tages-Checkboxen mit Stundenfeldern**:
 
@@ -180,7 +180,7 @@ Zusätzlich gibt es **Tages-Checkboxen mit Stundenfeldern**:
 - `Kurzarbeit` (Default aus dem Kurzarbeit-Plan, falls vorhanden)
 - `Krank LFZ` / `Krank KK` – **gegenseitig ausschließend**, Umschaltung manuell
 - `Sonstiges` (Stundenfeld) + Auswahl Grund (konfigurierbar, z. B. `SoU`) +
-  Begruendung → `sonstige_stunden` + `kennzeichen_sonstiges = 1`, Kürzel in
+  Begründung → `sonstige_stunden` + `kennzeichen_sonstiges = 1`, Kürzel in
   `kommentar`
 - optional Arzt / Feiertag, je nach Berechtigung
 
@@ -191,7 +191,7 @@ Admin-Ausnahme).
 
 Änderungen an Rohbuchungen setzen `zeitbuchung.manuell_geaendert = 1` (im PDF
 rot markiert). Änderungen an Tagesfeldern setzen
-`felder_manuell_geaendert = 1` (ebenfalls rot) und **müssen mit Begruendung
+`felder_manuell_geaendert = 1` (ebenfalls rot) und **müssen mit Begründung
 geloggt werden**.
 
 ### Zeitraum-Assistenten (Routineformulare)
@@ -199,13 +199,13 @@ geloggt werden**.
 **Kurzarbeit-Plan** (firmenweit oder mitarbeiterbezogen): Zeitraum
 `von_datum`–`bis_datum` (optional Wochentage), Modus `stunden` oder `prozent`,
 Wert (z. B. 4,00 h oder 50 %), Kommentar. Der Recalc-Service wendet den Plan auf
-Tage **ohne** Tages-Override an und befuellt `kurzarbeit_stunden` /
+Tage **ohne** Tages-Override an und befüllt `kurzarbeit_stunden` /
 `kennzeichen_kurzarbeit`.
 
 **Krankheits-Zeitraeume (LFZ/KK) pro Mitarbeiter:** Zeitraum, Phase `LFZ` oder
 `KK` (bei Wechsel zwei Zeitraeume), Stunden pro Tag (Default 8,00 bzw.
 Tages-Soll), optionaler Vorschlag „Wechsel nach 6 Wochen" (endgültig manuell).
-Der Recalc-Service befuellt je Tag entweder `krank_lfz_*` oder `krank_kk_*`.
+Der Recalc-Service befüllt je Tag entweder `krank_lfz_*` oder `krank_kk_*`.
 
 **Sonstiges-Zeitraeume** (z. B. Sonderurlaub): Zeitraum + Grund-Code aus der
 Konfiguration + Default-Stunden → schreibt `sonstige_stunden`,
@@ -217,7 +217,7 @@ Damit später weitere Fälle ohne Codeaenderung dazukommen, gibt es eine
 konfigurierbare Liste (Tabelle z. B. `sonstiges_grund`): `code` (kurz, z. B.
 `SoU`), `titel`, `default_stunden`, `requires_begruendung` (0/1), `aktiv` (0/1),
 Sortierung. Sie steuert die Schnell-Haken und Dropdowns in der Tagesmaske und
-die Default-Befuellung von `sonstige_stunden` + `kommentar`.
+die Default-Befüllung von `sonstige_stunden` + `kommentar`.
 
 ## 7. Audit-Trail bei manuellen Korrekturen (Pflicht)
 
@@ -227,7 +227,7 @@ Rohdaten bleiben grundsätzlich erhalten. Jede manuelle Korrektur muss
 - wer geändert hat (Mitarbeiter-ID),
 - wann,
 - welche Felder (alt → neu),
-- **Begruendung als Pflichtfeld**.
+- **Begründung als Pflichtfeld**.
 
 UI und PDF müssen Korrekturen markieren (z. B. Sternchen oder Label
 „korrigiert") und die Änderungsinfo abrufbar machen.

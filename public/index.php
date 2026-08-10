@@ -11,19 +11,19 @@ $konfig = Start::los();
 // Auf einem Terminal gibt es hier nichts zu holen (T-103)
 // ---------------------------------------------------------------------------
 // Der Webserver eines Terminals zeigt auf `public/` - damit liegt neben
-// `terminal.php` auch dieser Front-Controller im Zugriff, und ein Hallengeraet
+// `terminal.php` auch dieser Front-Controller im Zugriff, und ein Hallengerät
 // lieferte bis P-2026-08-09-19 die Anmeldemaske des Backends aus.
 //
-// Was das schuetzt, und was ausdruecklich nicht: Der Datenbankbenutzer des
-// Geraets darf Mitarbeiterstammdaten, Zeitbuchungen und Stundenkonten **lesen**
+// Was das schuetzt, und was ausdrücklich nicht: Der Datenbankbenutzer des
+// Geräts darf Mitarbeiterstammdaten, Zeitbuchungen und Stundenkonten **lesen**
 // (siehe Rechteliste in docs/spezifikation_terminal_installation.md). Wer das
-// Geraet aufschraubt, liest die Zugangsdaten aus `config.local.php` und kommt
+// Gerät aufschraubt, liest die Zugangsdaten aus `config.local.php` und kommt
 // an diese Daten - daran ändert diese Sperre nichts. Sie nimmt lediglich die
-// Backend-Oberflaeche aus dem Weg, die auf einem Hallengeraet nichts zu suchen
+// Backend-Oberflaeche aus dem Weg, die auf einem Hallengerät nichts zu suchen
 // hat. Der Schutz der Daten liegt bei der Rechteliste, nicht hier.
 //
 // Bewusst **ohne Ausnahme für den Kopplungs-Endpunkt**: Der läuft auf dem
-// Backend. Ein Terminal, das ihn selbst anboete, wuerde Datenbankbenutzer
+// Backend. Ein Terminal, das ihn selbst anboete, würde Datenbankbenutzer
 // verteilen - genau das, was die Kopplung verhindern soll.
 //
 // Rückweg für die Wartung: `installation_typ` in `config/config.local.php`
@@ -33,12 +33,12 @@ $istTerminal = ($konfig['app']['installation_typ'] ?? 'backend') === 'terminal';
 
 // Zweiter Fall, sonst bliebe eine Luecke von Tagen: Zwischen dem Aufsetzen und
 // dem Koppeln gibt es noch keine `config.local.php`, also gilt der Standard
-// 'backend' - und ein Geraet, das schon in der Halle hängt, zeigte bis dahin
-// die Anmeldemaske. Woran ein solches Geraet zu erkennen ist:
+// 'backend' - und ein Gerät, das schon in der Halle hängt, zeigte bis dahin
+// die Anmeldemaske. Woran ein solches Gerät zu erkennen ist:
 // `config/geraet.local.php` legt ausschließlich install_terminal.sh an.
 //
 // Nur wenn `config.local.php` fehlt. Ist sie da und nennt 'backend', ist das
-// eine ausdrueckliche Entscheidung und gewinnt.
+// eine ausdrückliche Entscheidung und gewinnt.
 if (!$istTerminal
     && !is_file(__DIR__ . '/../config/config.local.php')
     && is_file(__DIR__ . '/../config/geraet.local.php')
@@ -48,7 +48,7 @@ if (!$istTerminal
 
 if ($istTerminal) {
     // Weiterleiten statt 404: Auf einem Kiosk ist die Terminal-Oberflaeche das,
-    // was der Aufrufer gemeint hat - bei einem noch nicht gekoppelten Geraet
+    // was der Aufrufer gemeint hat - bei einem noch nicht gekoppelten Gerät
     // ist das die Einrichtungsseite. Ein Fehlerbild wäre hier nur im Weg.
     header('Location: terminal.php', true, 302);
     header('Cache-Control: no-store');
@@ -197,7 +197,7 @@ try {
             break;
 
         // Kopplungs-Endpunkt für Terminals. Bewusst **ohne** Anmeldung: Ein
-        // frisch installiertes Geraet hat noch keinen Benutzer - der
+        // frisch installiertes Gerät hat noch keinen Benutzer - der
         // Kopplungscode ist der Nachweis (siehe TerminalKopplungController).
         case 'terminal_kopplung':
             $controller = new TerminalKopplungController();

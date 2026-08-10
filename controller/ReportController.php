@@ -457,8 +457,8 @@ class ReportController
         }
 
         // Mikro-Buchungs-Grenze (Sekunden) aus Konfiguration (Default 180).
-        // Wichtig: Im Monatsreport kann ein Tag normale + Mikro-Bloecke enthalten.
-        // Ohne show_micro wollen wir diese Mikro-Bloecke komplett ausblenden.
+        // Wichtig: Im Monatsreport kann ein Tag normale + Mikro-Blöcke enthalten.
+        // Ohne show_micro wollen wir diese Mikro-Blöcke komplett ausblenden.
         $microBuchungMaxSeconds = 180;
         try {
             $cfg = KonfigurationService::getInstanz();

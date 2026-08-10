@@ -9,11 +9,11 @@ declare(strict_types=1);
  *
  * Gedanke dahinter: `fraesen` ist bei jedem Auftrag dasselbe `fraesen`. Die
  * Arbeitsvorbereitung pflegt den Schritt einmal, druckt seinen Strichcode so oft
- * aus wie noetig und hängt ihn an die Maschinen. Gescannt wird dann
+ * aus wie nötig und hängt ihn an die Maschinen. Gescannt wird dann
  * Auftrag (von der Laufkarte) + Arbeitsschritt (von der Maschine).
  *
  * Der Katalog ist eine **Vorlage**, keine Buchungsquelle: Beim Scannen entsteht
- * wie bisher ein Eintrag in `auftrag_arbeitsschritt`; gezaehlt wird über
+ * wie bisher ein Eintrag in `auftrag_arbeitsschritt`; gezählt wird über
  * `auftragszeit`. Ein nicht katalogisierter Code wird weiterhin angenommen.
  */
 class ArbeitsschrittKatalogController
@@ -31,7 +31,7 @@ class ArbeitsschrittKatalogController
     }
 
     /**
-     * Liste aller Katalogeintraege.
+     * Liste aller Katalogeinträge.
      * Route: ?seite=arbeitsschritt_katalog
      */
     public function index(): void
@@ -341,7 +341,7 @@ class ArbeitsschrittKatalogController
      *
      * Ohne Parameter: alle aktiven Katalogschritte, eine Karte je Schritt.
      * Mit `id` und `anzahl`: derselbe Schritt mehrfach – der Fall
-     * „20-mal fraesen für 20 Fraesmaschinen“.
+     * „20-mal fraesen für 20 Fräsmaschinen“.
      *
      * Bewusst ohne Verwaltungsrecht: Einen Code nachdrucken, weil die Karte an
      * der Maschine unleserlich geworden ist, muss ohne Änderungsrecht gehen.
@@ -517,7 +517,7 @@ class ArbeitsschrittKatalogController
     }
 
     /**
-     * Gleiche Prüfung wie im `AuftragController`: Wer Auftraege pflegen darf,
+     * Gleiche Prüfung wie im `AuftragController`: Wer Aufträge pflegen darf,
      * pflegt auch die Vorlagen dafür. Ein eigenes Recht für den Katalog wäre
      * zusätzliche Verwaltung ohne erkennbaren Nutzen.
      *

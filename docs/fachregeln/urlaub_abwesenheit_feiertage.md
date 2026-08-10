@@ -9,7 +9,7 @@ Urlaubsmasken in Backend und Terminal.
 ## 1. Urlaub beantragen (Terminal)
 
 Der Knopf „Urlaub beantragen" zeigt die verfügbaren Urlaubstage, berechnet aus
-Jahresanspruch, bereits genehmigten Antraegen, Betriebsferien und Feiertagen –
+Jahresanspruch, bereits genehmigten Anträgen, Betriebsferien und Feiertagen –
 inklusive **Übertrag aus dem Vorjahr** und Verbrauchsreihenfolge (siehe 3).
 
 Touch-Maske: Von- und Bis-Datum über Pfeiltasten für Tag/Monat/Jahr.
@@ -20,14 +20,14 @@ Folgejahr. Gespeichert wird ein Datensatz in `urlaubsantrag` mit Status
 
 Ein Antrag, der **0,00 verrechenbare Urlaubstage** ergibt (z. B. komplett
 Wochenende, Feiertag oder Betriebsferien), wird abgelehnt – sonst entstehen
-verwirrende Eintraege in „Meine Urlaubsantraege" (B-075).
+verwirrende Einträge in „Meine Urlaubsanträge" (B-075).
 
 ## 2. Übersicht für Mitarbeiter
 
 Der Knopf „Übersicht" zeigt:
 
 - verbleibende Urlaubstage,
-- alle Urlaubsantraege (offen / genehmigt / abgelehnt),
+- alle Urlaubsanträge (offen / genehmigt / abgelehnt),
 - Betriebsferien,
 - aktuellen Stand Über-/Minusstunden,
 - Rest-Sollstunden des Monats.
@@ -66,13 +66,13 @@ ein Standardanspruch (`config:urlaub_standard_monatsanspruch`, sonst
 plus Hinweistext. Ohne diesen Rückfall werden die Werte durch den
 Betriebsferien-Abzug unplausibel negativ.
 
-**Halbe Tage:** Heiligabend (24.12.) und Silvester (31.12.) zaehlen als
-**0,5 Urlaubstage** – sowohl bei Betriebsferien als auch bei Urlaubsantraegen.
+**Halbe Tage:** Heiligabend (24.12.) und Silvester (31.12.) zählen als
+**0,5 Urlaubstage** – sowohl bei Betriebsferien als auch bei Urlaubsanträgen.
 
 ## 4. Genehmigung
 
-Der Knopf „Urlaubsantraege" (Terminal und/oder Backend, nur mit passendem
-Recht sichtbar) zeigt alle Antraege, die dieser Benutzer genehmigen darf:
+Der Knopf „Urlaubsanträge" (Terminal und/oder Backend, nur mit passendem
+Recht sichtbar) zeigt alle Anträge, die dieser Benutzer genehmigen darf:
 
 - laut `mitarbeiter_genehmiger`,
 - plus **alle**, wenn der Benutzer die Rolle `Chef` hat (globale Sicht).
@@ -87,13 +87,13 @@ Aktionen:
 - **Ablehnen** → Status `abgelehnt`, Kommentar optional, dieselben
   Entscheidungsfelder setzen.
 
-**Eigene Antraege:** Standardmäßig darf niemand seine eigenen Antraege
+**Eigene Anträge:** Standardmäßig darf niemand seine eigenen Anträge
 genehmigen. Ausnahme: Benutzer mit `URLAUB_GENEHMIGEN_SELF` (typisch `Chef`,
-`Personalbuero`). Dann dürfen Genehmigungslisten auch eigene offene Antraege
+`Personalbuero`). Dann dürfen Genehmigungslisten auch eigene offene Anträge
 enthalten.
 
-**Sichtbarer Hinweis:** Gibt es offene Antraege, wird der Knopf
-„Urlaubsantraege" deutlich hervorgehoben (z. B. rot, blinkend).
+**Sichtbarer Hinweis:** Gibt es offene Anträge, wird der Knopf
+„Urlaubsanträge" deutlich hervorgehoben (z. B. rot, blinkend).
 
 ## 5. Betriebsferien
 
@@ -108,20 +108,20 @@ Urlaubsansicht und Monatswerten.
 - Pro **Arbeitstag** werden **8,00 Stunden Urlaub** ausgewiesen (Spalte
   „Urlaub" in Arbeitszeitliste und PDF).
 - Feiertage und Wochenenden innerhalb eines Betriebsferien-Zeitraums bleiben
-  Feiertag bzw. Wochenende und zaehlen **nicht** als Urlaub.
+  Feiertag bzw. Wochenende und zählen **nicht** als Urlaub.
 - Betriebsferien reduzieren das **Soll nicht** (wie ein normaler Arbeitstag);
   die Stunden laufen über „Urlaub".
 - Im Urlaubssaldo werden sie als **genommener Urlaub** beruecksichtigt (nur
-  Arbeitstage). Urlaubsantraege zaehlen diese Tage **nicht doppelt**.
+  Arbeitstage). Urlaubsanträge zählen diese Tage **nicht doppelt**.
 
-**Abgrenzung – wann Betriebsferien *nicht* als Urlaub zaehlen:**
+**Abgrenzung – wann Betriebsferien *nicht* als Urlaub zählen:**
 
 - Wenn an dem Tag tatsaechlich gearbeitet wurde (B-024, B-025),
 - wenn bereits ein anderes Kennzeichen gesetzt ist (z. B. krank),
 - wenn ein aktiver Krankzeitraum (LFZ/KK) den Tag umfasst – **Krank hat Vorrang
   vor Betriebsferien** (B-076, B-077): kein BF-Kürzel, Urlaub 0, Krank 8,00.
 
-Der Abzug im Saldo nutzt dieselbe zentrale BF-Zaehllogik wie die Anzeige, sonst
+Der Abzug im Saldo nutzt dieselbe zentrale BF-Zähllogik wie die Anzeige, sonst
 driften beide auseinander (B-080, P-2026-01-23-02).
 
 ## 6. Feiertage
@@ -130,15 +130,15 @@ Tabelle `feiertag`: `datum`, `name`, optional `bundesland`, `ist_gesetzlich`,
 `ist_betriebsfrei`, Timestamps.
 
 Ein Service generiert die gesetzlichen deutschen Feiertage jaehrlich. Das
-Backend erlaubt manuelle Korrektur, Ergaenzung und Anpassung des
+Backend erlaubt manuelle Korrektur, Ergänzung und Anpassung des
 Betriebsfrei-Flags.
 
 **Idempotentes Nachseeden:** Ein Jahr gilt **nicht** schon dann als fertig, wenn
 irgendein Feiertag dafür existiert. Fehlende bundeseinheitliche Feiertage
-werden nachtraeglich ergaenzt – sonst fehlt z. B. der 01.01. unbemerkt (B-071).
+werden nachtraeglich ergänzt – sonst fehlt z. B. der 01.01. unbemerkt (B-071).
 
 **Im Monatsreport:** Kalender-Feiertage werden in der Tagesliste als Feiertag
-geführt und bei **keiner** Arbeitszeit mit Tagesstunden befuellt (Fallback
+geführt und bei **keiner** Arbeitszeit mit Tagesstunden befüllt (Fallback
 8,00 bzw. Tages-Soll) – abgegrenzt gegen Urlaub und Betriebsferien (B-070).
 
 > Warum das Terminal Feiertage schreiben darf: Der `UrlaubService` generiert die

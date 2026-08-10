@@ -159,10 +159,10 @@ class Helper
      *
      * Warum der Backslash zuerst kommt: MySQL und MariaDB behandeln `\` in der
      * Standardeinstellung als Fluchtzeichen (`NO_BACKSLASH_ESCAPES` ist aus).
-     * Ein Wert, der auf `\` endet, wuerde sonst das schließende
+     * Ein Wert, der auf `\` endet, würde sonst das schließende
      * Anführungszeichen maskieren, das Literal offen lassen und alles
      * Nachfolgende zu SQL machen. Die Reihenfolge ist wesentlich: erst
-     * Backslashes verdoppeln, dann Anführungszeichen – umgekehrt wuerden die
+     * Backslashes verdoppeln, dann Anführungszeichen – umgekehrt würden die
      * frisch erzeugten Backslashes gleich wieder verdoppelt.
      */
     public static function sqlEscape(string $wert): string
@@ -172,7 +172,7 @@ class Helper
 
     /**
      * Liefert einen Wert als vollständiges SQL-Stringliteral, inklusive
-     * Anführungszeichen. Siehe `sqlEscape()` für die Begruendung.
+     * Anführungszeichen. Siehe `sqlEscape()` für die Begründung.
      */
     public static function sqlLiteral(string $wert): string
     {

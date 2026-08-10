@@ -8,16 +8,16 @@ declare(strict_types=1);
  * eingeschraenkten Rechten an (siehe
  * `docs/spezifikation_terminal_installation.md`, Abschnitt 2a).
  *
- * Warum überhaupt ein eigener Benutzer je Geraet:
+ * Warum überhaupt ein eigener Benutzer je Gerät:
  *
- * - **Einzeln sperrbar:** Ein Hallenterminal steht frei zugaenglich herum. Wer
+ * - **Einzeln sperrbar:** Ein Hallenterminal steht frei zugänglich herum. Wer
  *   es mitnimmt, hat die Zugangsdaten. Mit einem eigenen Benutzer genuegt ein
- *   `DROP USER` für genau dieses Geraet - alle anderen laufen weiter.
+ *   `DROP USER` für genau dieses Gerät - alle anderen laufen weiter.
  * - **Eingeschraenkt:** Das Terminal stempelt, bucht Auftragszeiten und nimmt
- *   Urlaubsantraege entgegen. Es braucht dafür nirgends `DELETE`, `DROP` oder
+ *   Urlaubsanträge entgegen. Es braucht dafür nirgends `DELETE`, `DROP` oder
  *   `ALTER` und keinen Schreibzugriff auf Rechte, Rollen oder Stundenkonto.
  * - **Nachvollziehbar:** In den Datenbankprotokollen ist erkennbar, welches
- *   Geraet was getan hat.
+ *   Gerät was getan hat.
  *
  * ---
  *
@@ -110,7 +110,7 @@ class TerminalDbBenutzerService
         // Rückfallebene: Normalerweise liegt die Offline-Queue in der lokalen
         // Ausweichdatenbank des Terminals. Fehlt die, greift der
         // OfflineQueueManager auf die Hauptdatenbank zurück. Kein DELETE -
-        // hängengebliebene Eintraege raeumt ein Admin im Backend weg.
+        // hängengebliebene Einträge raeumt ein Admin im Backend weg.
         'db_injektionsqueue'          => 'SELECT, INSERT, UPDATE',
     ];
 
@@ -131,14 +131,14 @@ class TerminalDbBenutzerService
      *
      * Auf einem Terminal liegen die Zugangsdaten lesbar in `config.local.php`.
      * Mit `SELECT` auf die ganze Tabelle `mitarbeiter` hätte damit jeder, der
-     * an ein Hallengeraet kommt, auch sämtliche **Passwort-Hashes** – und
+     * an ein Hallengerät kommt, auch sämtliche **Passwort-Hashes** – und
      * damit die Grundlage, sie offline durchzuprobieren. Das ist genau der
      * Schaden, den die Kopplung begrenzen soll.
      *
      * Für jede hier genannte Tabelle wird das Leserecht deshalb **spaltenweise**
      * vergeben: alle Spalten ausser den gesperrten, zur Kopplungszeit aus dem
      * `information_schema` aufgelöst. Dadurch nimmt eine neue Spalte
-     * automatisch am Recht teil, sobald ein Geraet neu gekoppelt wird – eine
+     * automatisch am Recht teil, sobald ein Gerät neu gekoppelt wird – eine
      * von Hand gepflegte Positivliste wäre beim nächsten Schema-Zuwachs still
      * unvollständig.
      *
@@ -175,7 +175,7 @@ class TerminalDbBenutzerService
      * Legt den Datenbankbenutzer für ein Terminal an.
      *
      * Ein vorhandener Benutzer desselben Terminals wird dabei **entfernt**, statt
-     * einen zweiten anzulegen: Wird ein Geraet neu gekoppelt (Austausch,
+     * einen zweiten anzulegen: Wird ein Gerät neu gekoppelt (Austausch,
      * Neuinstallation), soll danach genau ein gültiger Zugang existieren.
      *
      * @param string|null $alterBenutzer Benutzer aus der vorherigen Kopplung, falls vorhanden
@@ -243,7 +243,7 @@ class TerminalDbBenutzerService
             }
 
             // Bereits vorhandenen gleichnamigen Benutzer verwerfen: Nur so
-            // bekommt das Geraet garantiert das Passwort, das ihm gerade
+            // bekommt das Gerät garantiert das Passwort, das ihm gerade
             // geantwortet wird.
             $pdo->exec(sprintf('DROP USER IF EXISTS %s', $this->quoteBenutzer($benutzer, $host)));
 
@@ -291,7 +291,7 @@ class TerminalDbBenutzerService
     }
 
     /**
-     * Entfernt einen Terminal-Datenbankbenutzer (z. B. wenn ein Geraet
+     * Entfernt einen Terminal-Datenbankbenutzer (z. B. wenn ein Gerät
      * ausgemustert wird oder eine Kopplung fehlschlaegt).
      */
     public function entferne(string $benutzer, string $host): bool
@@ -325,7 +325,7 @@ class TerminalDbBenutzerService
      * Prüft vorab, ob der Datenbankbenutzer des Backends überhaupt Benutzer
      * anlegen darf.
      *
-     * Das ist bewusst nur eine Vorprüfung für eine verstaendliche Meldung -
+     * Das ist bewusst nur eine Vorprüfung für eine verständliche Meldung -
      * maßgeblich ist, was die Datenbank beim Ausführen sagt.
      */
     public function istVerfuegbar(): bool
@@ -420,7 +420,7 @@ class TerminalDbBenutzerService
             if ($erlaubteSpalten === null) {
                 // Kein Rateschluss: Ein Zugang, dessen Spaltenliste nicht
                 // sicher bestimmbar ist, wäre entweder unbrauchbar oder
-                // wuerde die gesperrten Spalten doch wieder freigeben.
+                // würde die gesperrten Spalten doch wieder freigeben.
                 $this->protokolliere('error', 'Terminal-Datenbankbenutzer: Spaltenliste nicht bestimmbar', [
                     'tabelle'  => $tabelle,
                     'gesperrt' => implode(', ', $gesperrt),
@@ -565,7 +565,7 @@ class TerminalDbBenutzerService
      * Von welchen Rechnern aus der Terminal-Benutzer sich verbinden darf.
      *
      * Standard ist `%` (beliebiger Rechner). Das ist eine bewusste Abwaegung:
-     * Terminals bekommen ihre Adresse per DHCP, eine feste Bindung wuerde beim
+     * Terminals bekommen ihre Adresse per DHCP, eine feste Bindung würde beim
      * nächsten Neustart stillschweigend den Zugang kappen. Wer sein Netz kennt,
      * traegt in der `config` ein engeres Muster ein (z. B. `192.168.10.%`).
      */
@@ -651,7 +651,7 @@ class TerminalDbBenutzerService
     }
 
     /**
-     * Textliteral für das Passwort. Das Alphabet enthaelt ausschließlich
+     * Textliteral für das Passwort. Das Alphabet enthält ausschließlich
      * Buchstaben und Ziffern; trotzdem wird hier geprüft statt vertraut.
      */
     private function quoteText(string $text): string

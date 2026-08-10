@@ -66,7 +66,7 @@ $codeService->gebeBarcodePngAus($barcodeDaten);
 $ausgabe = ob_get_clean();
 
 if ($ausgabe === '' || $ausgabe === false) {
-    // Frueher wurde hier ersatzweise ein QR-Code ausgegeben. Das war schlechter
+    // Früher wurde hier ersatzweise ein QR-Code ausgegeben. Das war schlechter
     // als eine Fehlermeldung: In der Halle sind 1D-Handscanner im Einsatz, für
     // die ein QR-Code kein schlechterer Code ist, sondern gar keiner (siehe
     // Kopf von services/BarcodeService.php). Das Etikett sah brauchbar aus und

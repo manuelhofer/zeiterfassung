@@ -150,7 +150,7 @@ class DashboardController
                 if ($db->istHauptdatenbankVerfuegbar()) {
                     // Wichtig: "Heute" muss in der PHP-Zeitzone (Europe/Berlin) definiert werden.
                     // CURDATE() kann je nach DB-Server/Session-Zeitzone (z. B. UTC) noch "gestern" liefern
-                    // und wuerde dann den Vortag faelschlich als "heute" behandeln.
+                    // und würde dann den Vortag faelschlich als "heute" behandeln.
                     $tz = new DateTimeZone('Europe/Berlin');
                     $now = new DateTimeImmutable('now', $tz);
                     $todayIso = (new DateTimeImmutable('today', $tz))->format('Y-m-d');
@@ -180,7 +180,7 @@ class DashboardController
 
                     $zeitUnstimmigkeiten = [];
 
-                    // Nachtschicht-Grenzfall: Kommen am Abend + Gehen am Folgetag frueh
+                    // Nachtschicht-Grenzfall: Kommen am Abend + Gehen am Folgetag früh
                     // soll nicht als Unstimmigkeit gelten (paarweise über Mitternacht).
                     // Robust: funktioniert auch dann, wenn am Folgetag weitere Stempel existieren.
                     $istNachtschichtGrenzfall = function (int $mid, string $datum, array $r) use ($db): bool {

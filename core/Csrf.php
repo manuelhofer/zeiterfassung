@@ -8,13 +8,13 @@ declare(strict_types=1);
  * CSRF-Schutz im Projekt definiert ist.
  *
  * **Warum je Bereich und nicht ein Token für alles:** Die Masken des Backends
- * sind unabhängig voneinander. Ein gemeinsames Token wuerde bedeuten, dass ein
+ * sind unabhängig voneinander. Ein gemeinsames Token würde bedeuten, dass ein
  * Neuladen der Rollenmaske das Token der Terminalverwaltung mit erneuert – ein
  * offenes Formular in einem zweiten Tab liesse sich dann nicht mehr
- * abschicken. Der Bereichsname entspricht dem, was frueher als
+ * abschicken. Der Bereichsname entspricht dem, was früher als
  * `CSRF_KEY`-Konstante in jedem Controller stand.
  *
- * **Warum kein Rückfall auf ein schwaches Token:** Die frueheren Kopien
+ * **Warum kein Rückfall auf ein schwaches Token:** Die früheren Kopien
  * fingen ein misslungenes `random_bytes()` ab und setzten ersatzweise
  * `bin2hex((string)mt_rand())` – acht Hexzeichen, vorhersagbar, und damit
  * schlechter als gar kein Schutz, weil er einen vortaeuscht. Wenn das System

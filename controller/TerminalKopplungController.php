@@ -7,13 +7,13 @@ declare(strict_types=1);
  * Der Endpunkt, an dem sich ein frisch installiertes Terminal anmeldet
  * (`?seite=terminal_kopplung`, nur POST, Antwort als JSON).
  *
- * Ablauf am Geraet: Auf dem Touchscreen werden Server-Adresse und der im
+ * Ablauf am Gerät: Auf dem Touchscreen werden Server-Adresse und der im
  * Backend erzeugte Kopplungscode eingegeben. Das Terminal ruft damit diesen
  * Endpunkt auf und bekommt alles zurück, was es braucht - Terminal-ID,
  * eigene Zugangsdaten zur Datenbank und seine Einstellungen. Aus der Antwort
  * schreibt es seine `config.local.php`.
  *
- * **Warum ohne Anmeldung:** Ein frisches Geraet hat keinen Benutzer, mit dem es
+ * **Warum ohne Anmeldung:** Ein frisches Gerät hat keinen Benutzer, mit dem es
  * sich anmelden könnte - das ist ja gerade der Zweck der Kopplung. Der
  * Kopplungscode **ist** der Nachweis: einmalig, 30 Minuten gültig, nur als
  * Hash gespeichert (siehe `TerminalKopplungService`).
@@ -25,7 +25,7 @@ class TerminalKopplungController
     /** Ab so vielen Fehlversuchen je Absender wird abgewiesen. */
     private const MAX_FEHLVERSUCHE = 10;
 
-    /** Zeitfenster der Fehlversuchszaehlung in Minuten. */
+    /** Zeitfenster der Fehlversuchszählung in Minuten. */
     private const FEHLVERSUCH_FENSTER_MINUTEN = 10;
 
     private Database $datenbank;
@@ -101,7 +101,7 @@ class TerminalKopplungController
 
         $terminalId = (int)($terminal['id'] ?? 0);
 
-        // Ein stillgelegtes Geraet darf sich nicht zurückholen.
+        // Ein stillgelegtes Gerät darf sich nicht zurückholen.
         if ((int)($terminal['aktiv'] ?? 0) !== 1) {
             Logger::warn('Kopplung abgelehnt: Terminal ist nicht aktiv', [
                 'terminal_id' => $terminalId,
@@ -130,9 +130,9 @@ class TerminalKopplungController
             return;
         }
 
-        // Merken, welcher Benutzer zu diesem Geraet gehört - sonst lässt sich
+        // Merken, welcher Benutzer zu diesem Gerät gehört - sonst lässt sich
         // eine spätere Kopplung nicht sauber ersetzen und ein ausgemustertes
-        // Geraet nicht gezielt sperren.
+        // Gerät nicht gezielt sperren.
         try {
             $this->datenbank->ausfuehren(
                 'UPDATE terminal
@@ -212,7 +212,7 @@ class TerminalKopplungController
      * Adresse, unter der das Terminal die Datenbank erreicht.
      *
      * Der Haken: In der Konfiguration des Backends steht meist `localhost` -
-     * für ein Terminal im Hallennetz ist das wertlos, es wuerde sich selbst
+     * für ein Terminal im Hallennetz ist das wertlos, es würde sich selbst
      * ansprechen. Deshalb:
      *
      * 1. `config: terminal_db_host_extern`, falls gepflegt (letztes Wort),
@@ -278,7 +278,7 @@ class TerminalKopplungController
     }
 
     /**
-     * Zaehlt die Fehlversuche desselben Absenders im aktuellen Zeitfenster.
+     * Zählt die Fehlversuche desselben Absenders im aktuellen Zeitfenster.
      *
      * Der Code selbst ist mit 8 Zeichen aus 31 nicht zu erraten; die Bremse
      * sorgt vor allem dafür, dass ein Dauerbeschuss auffällt und den Server

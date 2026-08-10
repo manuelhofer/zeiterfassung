@@ -10,7 +10,7 @@ declare(strict_types=1);
  *
  * Grundgedanke: Das Installationsskript eines Terminals kennt **keine**
  * Zugangsdaten. Stattdessen erzeugt die Verwaltung im Backend einen kurzen
- * Code, der am Geraet eingetippt wird; damit holt sich das Terminal alles
+ * Code, der am Gerät eingetippt wird; damit holt sich das Terminal alles
  * Weitere selbst.
  *
  * Sicherheitsentscheidungen und ihr Warum:
@@ -24,7 +24,7 @@ declare(strict_types=1);
  *   Terminal wird damit von selbst wertlos.
  * - **Alphabet ohne Verwechslungen:** kein O/0, kein I/1/l. Der Code wird an
  *   einem Touchscreen in der Halle abgetippt, oft von einem Zettel.
- * - **Laenge 8 aus 32 Zeichen** ergibt rund 10^12 Möglichkeiten. Ein
+ * - **Länge 8 aus 32 Zeichen** ergibt rund 10^12 Möglichkeiten. Ein
  *   Durchprobieren über das Netz ist damit aussichtslos; zusätzlich wird
  *   jeder Fehlversuch protokolliert, damit ein Versuch überhaupt auffällt.
  */
@@ -58,8 +58,8 @@ class TerminalKopplungService
      * Erzeugt einen Kopplungscode für ein Terminal.
      *
      * Vorhandene, noch offene Codes desselben Terminals werden dabei entwertet:
-     * Es soll immer nur ein gültiger Code je Geraet unterwegs sein, sonst
-     * weiß niemand mehr, welcher Zettel noch zaehlt.
+     * Es soll immer nur ein gültiger Code je Gerät unterwegs sein, sonst
+     * weiß niemand mehr, welcher Zettel noch zählt.
      *
      * @return string|null Der Code im Klartext - **einmalig**, danach nur noch
      *                     als Hash vorhanden. Null bei Fehler.
@@ -124,7 +124,7 @@ class TerminalKopplungService
      * bei zwei gleichzeitigen Anfragen nur einmal gewinnen.
      *
      * @param string      $code Klartext-Code, wie am Terminal eingetippt
-     * @param string|null $host Kennung des Geraets (Hostname/MAC), nur zur Nachvollziehbarkeit
+     * @param string|null $host Kennung des Geräts (Hostname/MAC), nur zur Nachvollziehbarkeit
      *
      * @return array<string,mixed>|null Terminal-Datensatz, oder null wenn der Code nicht gilt
      */
@@ -238,7 +238,7 @@ class TerminalKopplungService
      *
      * Oeffentlich, weil nicht nur ein neuer Code die alten ersetzt: Auch das
      * Entkoppeln muss sie entwerten, sonst holt sich ein gerade abgemeldetes
-     * Geraet mit einem noch offenen Code sofort einen neuen Zugang.
+     * Gerät mit einem noch offenen Code sofort einen neuen Zugang.
      */
     public function entwerteOffeneCodes(int $terminalId): void
     {

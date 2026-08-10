@@ -83,23 +83,23 @@ Ein entkoppeltes Gerät braucht zum Wiederinbetriebnehmen einen neuen
 Kopplungscode. Einzelheiten:
 [Terminal-Installation](spezifikation_terminal_installation.md), Abschnitt 2a.
 
-## Auftraege, Arbeitsschritte und Laufkarte
+## Aufträge, Arbeitsschritte und Laufkarte
 
-Dieser Ablauf ist optional. Wer Auftraege wie bisher nur am Terminal scannt,
-muss hier nichts tun – das Terminal legt fehlende Datensaetze weiterhin selbst
+Dieser Ablauf ist optional. Wer Aufträge wie bisher nur am Terminal scannt,
+muss hier nichts tun – das Terminal legt fehlende Datensätze weiterhin selbst
 an.
 
-**1. Arbeitsschritt-Katalog einmalig anlegen** (Menue *Auftraege →
+**1. Arbeitsschritt-Katalog einmalig anlegen** (Menue *Aufträge →
 Arbeitsschritt-Katalog*)
 
-Hier stehen die wiederkehrenden Taetigkeiten: `saegen`, `drehen`, `fraesen`,
+Hier stehen die wiederkehrenden Tätigkeiten: `saegen`, `drehen`, `fraesen`,
 `entgraten` … Einmal gepflegt, für jeden Auftrag nutzbar.
 
 Über *x drucken* lässt sich ein Schritt in beliebiger Stückzahl als
-Kartenblatt ausgeben. Bei mehreren Fraesmaschinen also z. B. 20 Karten
+Kartenblatt ausgeben. Bei mehreren Fräsmaschinen also z. B. 20 Karten
 `fraesen` – ausschneiden und an jede Maschine hängen.
 
-**2. Auftrag anlegen** (Menue *Auftraege → Auftrag anlegen*)
+**2. Auftrag anlegen** (Menue *Aufträge → Auftrag anlegen*)
 
 Pflicht ist nur die Auftragsnummer. Kunde, Kurzbeschreibung und Status sind
 freiwillig; was leer bleibt, erscheint auch nicht auf dem Ausdruck.
@@ -111,7 +111,7 @@ Entweder frei eintippen (für werkstückspezifische Schritte wie
 
 **4. Laufkarte drucken** (Detailansicht, *Laufkarte als PDF drucken*)
 
-Enthaelt den Auftrags-Strichcode und je Arbeitsschritt einen Strichcode plus
+Enthält den Auftrags-Strichcode und je Arbeitsschritt einen Strichcode plus
 Felder für Datum, Name, Menge und i. O. Die Karte begleitet das Werkstück.
 
 **5. Am Terminal**

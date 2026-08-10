@@ -14,7 +14,7 @@ $konfig = Start::los();
 $aktion = isset($_GET['aktion']) ? (string)$_GET['aktion'] : 'start';
 
 // ------------------------------------------------------------
-// Stufe 2 der Terminal-Installation: Einrichtung am Geraet
+// Stufe 2 der Terminal-Installation: Einrichtung am Gerät
 // ------------------------------------------------------------
 // Das Installationsskript bringt ein Terminal bis hierher, kennt aber bewusst
 // keine Zugangsdaten. Fehlt deshalb `config/config.local.php`, gibt es nichts
@@ -24,7 +24,7 @@ $aktion = isset($_GET['aktion']) ? (string)$_GET['aktion'] : 'start';
 //
 // Bewusst **vor** allem Datenbank-Kram: Ohne Konfiguration gibt es keine
 // sinnvolle Verbindung, und der Healthcheck bleibt trotzdem erreichbar, damit
-// eine Überwachung auch ein frisches Geraet abfragen kann.
+// eine Überwachung auch ein frisches Gerät abfragen kann.
 if ($aktion !== 'health' && !TerminalEinrichtungController::istEingerichtet()) {
     (new TerminalEinrichtungController())->bearbeiten();
     exit;
@@ -188,8 +188,8 @@ try {
     // Offline-Queue: pro Request versuchen, offene Einträge zu injizieren
     // ------------------------------------------------------------
 
-    // Offene Eintraege zuerst abarbeiten, dann den Zustand ermitteln – sonst
-    // zeigt der Bildschirm Zaehler von vor der Verarbeitung.
+    // Offene Einträge zuerst abarbeiten, dann den Zustand ermitteln – sonst
+    // zeigt der Bildschirm Zähler von vor der Verarbeitung.
     try {
         OfflineQueueManager::getInstanz()->verarbeiteOffeneEintraege();
     } catch (Throwable $e) {

@@ -36,7 +36,7 @@ vor, und es entspricht dem Zielsystem (Debian-Server, Raspberry Pi).
   Debian 13 / Raspberry Pi OS mitbringen
 - **phpMyAdmin** – komfortabler DB-Zugriff (Dump ziehen, SQL testen)
 
-Benoetigte PHP-Erweiterungen: `pdo_mysql` (App), `mysqli` (phpMyAdmin),
+Benötigte PHP-Erweiterungen: `pdo_mysql` (App), `mysqli` (phpMyAdmin),
 `mbstring`, `gd` (QR-Codes und Barcodes), `iconv`.
 
 ## 3. Schnellstart auf Arch Linux / CachyOS
@@ -131,7 +131,7 @@ file_put_contents(.../maschine_5_barcode.png): Failed to open stream: Permission
 ```
 
 Die erzeugten Dateien selbst gehören nicht ins Repository – sie entstehen im
-Betrieb. `.gitignore` schließt den Inhalt von `public/uploads/` aus und behaelt
+Betrieb. `.gitignore` schließt den Inhalt von `public/uploads/` aus und behält
 nur die `.gitkeep`-Dateien, damit die Verzeichnisse erhalten bleiben.
 
 ## 5. Stolpersteine (real aufgetreten)
@@ -220,21 +220,21 @@ RFID-Codes und Passwort-Hashes –, und das Repository ist oeffentlich. Der
 Datenbestand bleibt lokal; im Repo steht ausschließlich das Schema mit den
 technischen Startwerten (Rollen, Rechte, Pausenfenster).
 
-## 6b. Was in dieser Datenbank kuenstlich ist (Stand 2026-08-08)
+## 6b. Was in dieser Datenbank künstlich ist (Stand 2026-08-08)
 
 Damit sich niemand über Daten wundert, die nicht aus dem Betrieb stammen:
 
-- **Zeitbuchungen:** 10.032, davon **360 kuenstlich ergaenzt** (Kommentar
+- **Zeitbuchungen:** 10.032, davon **360 künstlich ergänzt** (Kommentar
   `Import Altzeiten 2026 (lokal ergaenzt bis 08.08.2026)`), um den Bestand bis
-  zum 07.08.2026 zu fuellen. Mit einem `DELETE` über diesen Kommentar wieder
+  zum 07.08.2026 zu füllen. Mit einem `DELETE` über diesen Kommentar wieder
   entfernbar.
-- **Auftraege:** 3, davon 2 Testauftraege (`A-2026-0815`, `A-2026-0999`) mit
+- **Aufträge:** 3, davon 2 Testaufträge (`A-2026-0815`, `A-2026-0999`) mit
   Arbeitsschritten – reine Anschauungsdaten.
-- **Arbeitsschritt-Katalog:** 8 Beispieleintraege (saegen, drehen, fraesen,
+- **Arbeitsschritt-Katalog:** 8 Beispieleinträge (saegen, drehen, fraesen,
   bohren, schleifen, entgraten, montage, prüfen). Als Startbestand brauchbar.
 - **Terminals:** keine; keine offenen Kopplungen (Testdaten entfernt).
 - Der eigentliche Datenbestand stammt aus dem Serverdump vom 2026-08-08 und
-  enthaelt echte Personendaten – deshalb liegt er **nicht** im Repository.
+  enthält echte Personendaten – deshalb liegt er **nicht** im Repository.
 
 ## 7. Taeglicher Betrieb
 

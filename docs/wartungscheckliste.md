@@ -48,17 +48,17 @@ sudo tail -50 /var/log/httpd/error_log
 Nach Änderungen an Backend, Auth, Session, Rechten oder Layout:
 
 - Login als Admin
-- Dashboard oeffnen
-- Mitarbeiterliste oeffnen
-- Rollen/Rechte oeffnen
-- Monatsreport HTML oeffnen
+- Dashboard öffnen
+- Mitarbeiterliste öffnen
+- Rollen/Rechte öffnen
+- Monatsreport HTML öffnen
 - Monatsreport PDF erzeugen
-- Urlaub beantragen und Liste oeffnen
-- Urlaub-Genehmigungsliste oeffnen, sofern Berechtigung vorhanden
+- Urlaub beantragen und Liste öffnen
+- Urlaub-Genehmigungsliste öffnen, sofern Berechtigung vorhanden
 
 Nach Änderungen am Terminal:
 
-- Terminal-Startseite oeffnen
+- Terminal-Startseite öffnen
 - RFID/Login testen
 - Kommen buchen
 - Gehen buchen
@@ -77,14 +77,14 @@ Nach Änderungen an den Installationsskripten (`scripts/terminal/`):
 
 Nach Änderungen an der Terminalverwaltung (Backend):
 
-- Terminalliste oeffnen, Spalte *Kopplung* prüfen
+- Terminalliste öffnen, Spalte *Kopplung* prüfen
 - Kopplungscode erzeugen, am Terminal einlösen
-- Entkoppeln: Datenbankbenutzer muss verschwinden, das Geraet danach nicht mehr
+- Entkoppeln: Datenbankbenutzer muss verschwinden, das Gerät danach nicht mehr
   buchen können
 
 Nach Änderungen an Offline-Queue oder Datenbankverbindung:
 
-- Queue-Admin oeffnen
+- Queue-Admin öffnen
 - Status `offen`, `fehler`, `verarbeitet` ansehen
 - Terminal bei erreichbarer Hauptdatenbank testen
 - Terminal mit nicht erreichbarer Hauptdatenbank nur kontrolliert testen

@@ -2,12 +2,12 @@
 declare(strict_types=1);
 
 /**
- * Terminal – Einrichtungsseite (Kopplung am Geraet).
+ * Terminal – Einrichtungsseite (Kopplung am Gerät).
  *
- * Wird von `TerminalEinrichtungController` gerendert, solange auf diesem Geraet
+ * Wird von `TerminalEinrichtungController` gerendert, solange auf diesem Gerät
  * keine `config/config.local.php` existiert. Entspricht der Erstinstallation im
  * Backend (`views/login/initial_admin.php`), ist aber für den Touchscreen
- * gebaut: grosse Felder, Bildschirmtastatur, keine Systemtastatur noetig.
+ * gebaut: grosse Felder, Bildschirmtastatur, keine Systemtastatur nötig.
  *
  * Erwartete Variablen:
  * - $csrfToken (string)
@@ -23,7 +23,7 @@ declare(strict_types=1);
  * Diese Seite bindet bewusst **nicht** `_layout_top.php` ein: Dort hängen
  * Statusanzeige (ONLINE/OFFLINE), Uhr und Auto-Logout an einer Datenbank, die
  * es hier noch gar nicht gibt. Ein Auto-Logout wäre hier ausserdem schaedlich –
- * er wuerde die Seite während des Tippens neu laden.
+ * er würde die Seite während des Tippens neu laden.
  */
 
 $csrfToken     = isset($csrfToken) && is_string($csrfToken) ? $csrfToken : '';

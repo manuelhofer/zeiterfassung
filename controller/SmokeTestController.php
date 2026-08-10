@@ -165,11 +165,11 @@ class SmokeTestController
         // Ziel: Sicherstellen, dass Kommen/Gehen bei offline Haupt-DB in die Offline-Queue gehen
         // und das Terminal den "Pseudo-Erfolg" (ID=0) sinnvoll behandelt.
         //
-        // Warum statisch und nicht durch Ausfuehren: Der Zweig laeuft nur, wenn
-        // die Hauptdatenbank **nicht** erreichbar ist - das laesst sich im
+        // Warum statisch und nicht durch Ausführen: Der Zweig läuft nur, wenn
+        // die Hauptdatenbank **nicht** erreichbar ist - das lässt sich im
         // laufenden Backend nicht herstellen, ohne es selbst abzuschalten. Der
         // Ablauf wurde stattdessen in P-2026-08-10-22 gegen eine Projektkopie
-        // durchgespielt; diese Pruefung haelt nur fest, dass der Zweig noch da
+        // durchgespielt; diese Prüfung hält nur fest, dass der Zweig noch da
         // ist.
         $zeitServicePfad = $root . '/services/ZeitService.php';
         if (is_file($zeitServicePfad) && is_readable($zeitServicePfad)) {
@@ -206,11 +206,11 @@ class SmokeTestController
         if (is_file($zeitCtrlPfad) && is_readable($zeitCtrlPfad)) {
             $inhalt = @file_get_contents($zeitCtrlPfad);
             if (is_string($inhalt) && $inhalt !== '') {
-                // Bewusst Textsuche: Geprueft wird nicht, ob es eine Methode gibt,
+                // Bewusst Textsuche: Geprüft wird nicht, ob es eine Methode gibt,
                 // sondern **welche aufgerufen wird** - und dass die alte
-                // Massenupdate-Variante nicht zurueckkehrt. Beides sieht man nur
+                // Massenupdate-Variante nicht zurückkehrt. Beides sieht man nur
                 // im Quelltext. Wer eine der beiden Methoden umbenennt, muss
-                // diese Zeilen mitziehen; das ist der Preis dafuer, eine
+                // diese Zeilen mitziehen; das ist der Preis dafür, eine
                 // Regression festzuhalten, die zweimal aufgetreten ist.
                 $nutztGezielteMethode = (strpos($inhalt, 'beendeLetztePassendeLaufendeAuftragszeitFuerMitarbeiterBisZeitpunkt') !== false);
                 $nutztMassenupdateNicht = (strpos($inhalt, 'stoppeAlleLaufendenAuftraegeFuerMitarbeiterBisZeitpunkt') === false);
@@ -242,16 +242,16 @@ class SmokeTestController
             $inhalt = @file_get_contents($auftragszeitServicePfad);
             if (is_string($inhalt) && $inhalt !== '') {
                 // Existiert die Methode? Das beantwortet die Sprache selbst.
-                // Eine Textsuche nach 'function <name>' haette schon ein
+                // Eine Textsuche nach 'function <name>' hätte schon ein
                 // Zeilenumbruch nach `function` zu Fall gebracht - und dann
-                // meldet der Selbsttest einen Fehler, obwohl alles laeuft.
+                // meldet der Selbsttest einen Fehler, obwohl alles läuft.
                 $hatGezielteMethode = method_exists(
                     'AuftragszeitService',
                     'beendeLetztePassendeLaufendeAuftragszeitFuerMitarbeiterBisZeitpunkt'
                 );
 
                 // Der Guard steckt in einem SQL-String, nicht in der Signatur -
-                // dafuer gibt es keine Reflexion, hier bleibt die Textsuche.
+                // dafür gibt es keine Reflexion, hier bleibt die Textsuche.
                 $hatGuardStartEnde = (strpos($inhalt, 'startzeit <= :endzeit') !== false);
 
                 $ok = ($hatGezielteMethode && $hatGuardStartEnde);
@@ -1182,7 +1182,7 @@ class SmokeTestController
         $feiertagSeedHinweis = null;
 
         // T-069 (Teil): Monatsreport-Raster-Check
-        // - Prüft, ob `ReportService::holeMonatsdatenFürMitarbeiter()` wirklich ein vollständiges Monatsraster liefert.
+        // - Prüft, ob `ReportService::holeMonatsdatenFuerMitarbeiter()` wirklich ein vollständiges Monatsraster liefert.
         // - Erwartung: Anzahl Tageswerte = Anzahl Kalendertage im Monat UND alle Datumswerte (YYYY-MM-DD) sind vorhanden.
         $monatsrasterTestJahr = (int)date('Y');
         $monatsrasterTestMonat = (int)date('n');
@@ -1192,7 +1192,7 @@ class SmokeTestController
 
         // T-069 (Fortsetzung): Monatsreport-Fallback-Check (lueckenhafte Tageswerte)
         // - Prüft, ob es Tage mit Zeitbuchungen gibt, die noch keinen Datensatz in `tageswerte_mitarbeiter` haben,
-        //   und ob der Monatsreport diese Tage trotzdem sinnvoll fuellt (Fallback aus Zeitbuchungen).
+        //   und ob der Monatsreport diese Tage trotzdem sinnvoll füllt (Fallback aus Zeitbuchungen).
         $monatsfallbackTestJahr = (int)date('Y');
         $monatsfallbackTestMonat = (int)date('n');
         $monatsfallbackTestMitarbeiterId = $pdfTestMitarbeiterId;

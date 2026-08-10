@@ -166,7 +166,7 @@ class ReportService
      * - `felder_manuell_geändert` wird auch von anderen Tagesfeldern gesetzt und kann daher
      *   nicht als alleiniger Indikator für Pause-Override dienen.
      *
-     * Wir lesen pro Monat die Logeintraege:
+     * Wir lesen pro Monat die Logeinträge:
      * - "Tageswerte gesetzt: Pause-Override"
      * - "Tageswerte entfernt: Pause-Override"
      * und bilden daraus den letzten Status je Datum.
@@ -564,7 +564,7 @@ class ReportService
             if ($blockStart !== null) {
                 $overnightClosed = false;
                 // Nachtschicht-Logik auch ohne explizites Flag nutzen:
-                // Wenn am Folgetag ein fruehes "Gehen" vor dem ersten "Kommen" steht,
+                // Wenn am Folgetag ein frühes "Gehen" vor dem ersten "Kommen" steht,
                 // behandeln wir es als Schichtende des Vortags.
                 if ($nextYmd !== '' && isset($proTag[$nextYmd])) {
                     $nextDayBookings = $proTag[$nextYmd];
@@ -832,7 +832,7 @@ class ReportService
             // Arbeitszeit / Kernwerte
             'arbeitszeit_stunden' => sprintf('%.2f', 0.0),
             'pausen_stunden'      => sprintf('%.2f', 0.0),
-            // Pausen-Grenzfaelle (T-081): Entscheidung noetig? (Default ohne Entscheidung: keine Pause)
+            // Pausen-Grenzfaelle (T-081): Entscheidung nötig? (Default ohne Entscheidung: keine Pause)
             'pause_entscheidung_noetig' => 0,
             'pause_entscheidung_auto_minuten' => 0,
             'saldo_stunden'       => '',
@@ -1908,9 +1908,9 @@ class ReportService
         // Auch wenn `tageswerte_mitarbeiter` nur einzelne Tage enthält.
         $tageswerte = $this->komplettiereMonatsraster($tageswerte, $start, $betriebsferienTage);
 
-        // Arbeitsbloecke (Rohbuchungen) je Tag: Basis für Mehrfach-Kommen/Gehen und echte Stunden-Summe.
-        // Wichtig: Wir berechnen hier **Summe der Bloecke** (nicht Min/Max über den ganzen Tag),
-        // damit Pausen/Unterbrechungen nicht als Arbeitszeit zaehlen.
+        // Arbeitsblöcke (Rohbuchungen) je Tag: Basis für Mehrfach-Kommen/Gehen und echte Stunden-Summe.
+        // Wichtig: Wir berechnen hier **Summe der Blöcke** (nicht Min/Max über den ganzen Tag),
+        // damit Pausen/Unterbrechungen nicht als Arbeitszeit zählen.
         $arbeitsBloeckeProTag = $this->holeArbeitsbloeckeProTagFuerMonat(
             $mitarbeiterId,
             $start,
@@ -1929,7 +1929,7 @@ class ReportService
                 continue;
             }
 
-            // IST-Stunden aus Arbeitsbloecken summieren (Mikro-Bloecke werden nicht als Arbeit gewertet).
+            // IST-Stunden aus Arbeitsblöcken summieren (Mikro-Blöcke werden nicht als Arbeit gewertet).
             $sumSek = 0;
             foreach ($bloecke as $b) {
                 $kStr = (string)($b['kommen_korr'] ?? $b['kommen_roh'] ?? '');
@@ -2108,7 +2108,7 @@ class ReportService
                     $row['feiertag_stunden'] = sprintf('%.2f', $feiertagStdDefault);
                 }
             } else {
-                // Bei Arbeitszeit am Feiertag sollen keine zusätzlichen Feiertagsstunden gezaehlt werden.
+                // Bei Arbeitszeit am Feiertag sollen keine zusätzlichen Feiertagsstunden gezählt werden.
                 $row['feiertag_stunden'] = sprintf('%.2f', 0.0);
             }
 
@@ -2139,9 +2139,9 @@ class ReportService
         $tageswerte = $this->wendeKurzarbeitVolltagWieBetriebsferienAn($tageswerte, $volltagKurzarbeitStd);
 
         // Monatswerte für Anzeige verlässlich aus Tageswerten ableiten:
-        // - IST: Blockweise Summe der IST-Spalte (arbeitsbloecke[].ist_stunden)
+        // - IST: Blockweise Summe der IST-Spalte (arbeitsblöcke[].ist_stunden)
         // - Abwesenheiten werden für Summen separat erfasst.
-        // - Kurzarbeit reduziert das Soll, zaehlt aber **nicht** als IST (MasterPrompt).
+        // - Kurzarbeit reduziert das Soll, zählt aber **nicht** als IST (MasterPrompt).
         $parseStundenZuMinuten = function ($wert): int {
             $s = trim((string)$wert);
             if ($s === '') {

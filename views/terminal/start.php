@@ -201,7 +201,7 @@ if (!empty($mitarbeiter) && isset($mitarbeiter['id'])) {
     }
 }
 
-// Laufende Auftraege (nur für Button-Logik am Startscreen):
+// Laufende Aufträge (nur für Button-Logik am Startscreen):
 // - Online: aus DB via $laufendeAuftraege
 // - Offline: Hauptauftrag-Fallback via Session-Merker (terminal_letzter_auftrag)
 $hatLaufenderHauptauftrag = false;
@@ -227,7 +227,7 @@ if ($hauptdbOk === true && is_array($laufendeAuftraege) && count($laufendeAuftra
     }
 }
 
-// Offline-Fallback für Nebenauftraege: Terminal merkt lokal, ob mindestens ein Nebenauftrag gestartet wurde.
+// Offline-Fallback für Nebenaufträge: Terminal merkt lokal, ob mindestens ein Nebenauftrag gestartet wurde.
 if ($hauptdbOk !== true) {
     $cnt = $_SESSION['terminal_nebenauftrag_laufend_count'] ?? 0;
     if (is_numeric($cnt) && (int)$cnt > 0) {
@@ -235,7 +235,7 @@ if ($hauptdbOk !== true) {
     }
 }
 
-    // Layout-Variante: Beim Login soll der Anmelde-Button den restlichen Platz nach unten fuellen.
+    // Layout-Variante: Beim Login soll der Anmelde-Button den restlichen Platz nach unten füllen.
     $bodyKlasse = 'terminal-wide';
     if (empty($mitarbeiter)) {
         $bodyKlasse .= ' terminal-login';

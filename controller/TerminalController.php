@@ -1154,7 +1154,7 @@ class TerminalController
      * und liefert einen Vorschlag, welcher Button wahrscheinlich korrekt ist.
      *
      * Hinweis:
-     * - Wir werten nur Eintraege aus, die dieses Terminal erzeugt (meta_aktion zeit_*_rfid).
+     * - Wir werten nur Einträge aus, die dieses Terminal erzeugt (meta_aktion zeit_*_rfid).
      * - Der RFID-Code steckt nur im SQL-Text; daher suchen wir per LIKE nach "rfid_code = '...'."
      *
      * @return array{letzte_typ:string, letzte_zeit:string, vorschlag_typ:string, rfid_code:string}|null
@@ -1287,7 +1287,7 @@ class TerminalController
             }
         }
 
-        // View-Kompatibilität: `views/terminal/störung.php` erwartet `$störungEintrag`.
+        // View-Kompatibilität: `views/terminal/stoerung.php` erwartet `$stoerungEintrag`.
         $stoerungEintrag = is_array($letzterFehler) ? $letzterFehler : null;
 
         // Wenn keine Queue-Fehler (mehr) vorhanden sind, ist der Störungsmodus beendet.
@@ -1513,7 +1513,7 @@ class TerminalController
         $nachLogoutWeiterleitungSekunden = 0;
 
         // Offline-Queue Hinweis (End-to-End Feldtest):
-        // Wir zeigen bei offenen/fehlerhaften Queue-Eintraegen eine kleine Statusbox.
+        // Wir zeigen bei offenen/fehlerhaften Queue-Einträgen eine kleine Statusbox.
         // Ziel: Im Feld ist sofort sichtbar, ob lokale Buchungen noch "warten" oder ob die Queue in Störung ist.
         $queueStatus = [
             'offen' => 0,
@@ -1575,7 +1575,7 @@ class TerminalController
 
         // Offline-Queue Replay-Trigger (End-to-End Feldtest):
         // Sobald die Hauptdatenbank wieder verfügbar ist, versuchen wir bei jedem
-        // Aufruf der Startseite die offenen Queue-Eintraege abzuarbeiten.
+        // Aufruf der Startseite die offenen Queue-Einträge abzuarbeiten.
         // Rate-Limit über Session, damit wir bei schnellen Reloads nicht spammen.
         try {
             $db = Database::getInstanz();
@@ -2162,7 +2162,7 @@ class TerminalController
 
                 $tmp = [];
 
-                // Nachtschicht-Grenzfall: Kommen (nachtshift=1) am Abend + Gehen am Folgetag frueh
+                // Nachtschicht-Grenzfall: Kommen (nachtshift=1) am Abend + Gehen am Folgetag früh
                 // soll nicht als Warnung erscheinen (paarweise über Mitternacht).
                 $mid = (int)$mitarbeiter['id'];
                 $db = $this->datenbank;
@@ -2541,7 +2541,7 @@ class TerminalController
                     'zeit'            => (new \DateTimeImmutable('now'))->format('Y-m-d H:i:s'),
                 ];
 
-                // Wenn ein neuer Hauptauftrag startet, werden laufende Nebenauftraege automatisch abgeschlossen.
+                // Wenn ein neuer Hauptauftrag startet, werden laufende Nebenaufträge automatisch abgeschlossen.
                 // Daher local/state ebenfalls zurücksetzen.
                 $_SESSION['terminal_nebenauftrag_laufend_count'] = 0;
                 $ln = $_SESSION['terminal_letzter_nebenauftrag'] ?? null;
@@ -3159,7 +3159,7 @@ class TerminalController
         // Wir erfassen nur "gestoppt" (Endzeit) und speichern intern als "abgeschlossen".
         $status = 'abgeschlossen';
 
-        // Wenn ein Auftragscode gescannt wurde, hat dieser Vorrang (z.B. bei mehreren Nebenauftraegen).
+        // Wenn ein Auftragscode gescannt wurde, hat dieser Vorrang (z.B. bei mehreren Nebenaufträgen).
         // In dem Fall ignorieren wir eine ggf. vorausgewählte Auftragszeit-ID aus dem Dropdown.
         if ($auftragscode !== '') {
             $auftragszeitId = null;

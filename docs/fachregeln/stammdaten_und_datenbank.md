@@ -57,8 +57,8 @@ Tabelle `maschine`: `name`, optional `abteilung_id`, optional `beschreibung`,
 `aktiv`, Timestamps. Später denkbar: Stundensatz, Maschinentyp, Seriennummer,
 Standort.
 
-Je Maschine wird ein Barcode erzeugt (Code 128, wie bei Auftraegen – siehe
-[auftraege_und_codes.md](auftraege_und_codes.md)).
+Je Maschine wird ein Barcode erzeugt (Code 128, wie bei Aufträgen – siehe
+[aufträge_und_codes.md](auftraege_und_codes.md)).
 
 ## 4. Konfiguration
 
@@ -76,7 +76,7 @@ Werte in `config/config.local.php`) mit:
 **Alles Anwendungsbezogene** gehört in die Tabelle `config` (Key/Value):
 Standard-Wochenstunden, Anzeigeoptionen, Rundungs- und Korrekturregeln,
 Verhalten bei Feiertagen und Betriebsferien, Timeouts. Der `DefaultsSeeder`
-legt fehlende Schluessel idempotent an – er überschreibt nie vorhandene Werte.
+legt fehlende Schlüssel idempotent an – er überschreibt nie vorhandene Werte.
 
 ## 5. Allgemeine Datenbank-Regeln
 
@@ -103,11 +103,11 @@ Nur zur Orientierung; die tatsaechlichen Routen stehen in `public/index.php`.
    Genehmiger, Konfiguration und Rundungsregeln.
 3. **Urlaubsverwaltung:** Antragslisten, Detailansicht, Genehmigung, Filter,
    Jahresübersicht (`?seite=urlaub_jahresuebersicht`) mit U/O/BF/FT-Zellen.
-4. **Zeit und Auftraege:** Tages- und Monatsdaten, Korrekturmasken,
+4. **Zeit und Aufträge:** Tages- und Monatsdaten, Korrekturmasken,
    Auswertungen nach Abteilung, Auftrag und Maschine.
 5. **PDF und Exporte:** Einzel-PDF, Sammel-Export als ZIP, CSV/Excel.
-6. **Offline-Queue-Verwaltung:** Liste aller Injektionseintraege, fehlerhafte
-   Eintraege inklusive SQL-Befehl einsehen, „Ignorieren/Löschen", optional
+6. **Offline-Queue-Verwaltung:** Liste aller Injektionseinträge, fehlerhafte
+   Einträge inklusive SQL-Befehl einsehen, „Ignorieren/Löschen", optional
    „Erneut versuchen", Logging von Störungen.
 
 Die Top-Navigation ist in Aufklappgruppen geordnet: `Urlaub`, `Uebersichten`,
@@ -115,7 +115,7 @@ Die Top-Navigation ist in Aufklappgruppen geordnet: `Urlaub`, `Uebersichten`,
 
 ## 7. Erweiterbarkeit
 
-Das System soll so gebaut sein, dass neue Terminals einfach ergaenzt werden
+Das System soll so gebaut sein, dass neue Terminals einfach ergänzt werden
 können, zusätzliche Rollen und Rechte möglich sind, kuenftige
-ERP-Schnittstellen für Auftraege einfach anzubinden sind und neue Auswertungen
+ERP-Schnittstellen für Aufträge einfach anzubinden sind und neue Auswertungen
 ohne grosse Umbauten entstehen.

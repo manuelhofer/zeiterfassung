@@ -18,12 +18,12 @@ startet: Touchscreen, keine normale Tastatur für den Anwender. Es hat **einen**
 Leser/Scanner – entweder einen RFID-Leser (für Mitarbeiter-Chips und
 Auftrags-/Maschinenchips) oder einen Barcode-Scanner.
 
-Frueher stand hier „mit Window-Manager". Das trifft es seit dem Kiosk-Skript
+Früher stand hier „mit Window-Manager". Das trifft es seit dem Kiosk-Skript
 nicht mehr: Auf dem Standardweg (Wayland, `cage`) gibt es keinen
 Fenstermanager im herkoemmlichen Sinn – `cage` **ist** der Compositor und zeigt
 genau ein Fenster. Nur der X11-Rückfall startet zusätzlich `openbox`, und
 zwar aus genau diesem Grund: Ohne Fenstermanager bekommt der Browser dort sein
-Vollbild nicht zuverlaessig. Wie das Geraet aufgesetzt wird, steht in
+Vollbild nicht zuverlässig. Wie das Gerät aufgesetzt wird, steht in
 `docs/spezifikation_terminal_installation.md`, Abschnitt 7.
 
 Das Terminal spricht **primaer** mit der Hauptdatenbank.
@@ -36,7 +36,7 @@ Das Terminal spricht **primaer** mit der Hauptdatenbank.
 
 ## 2. Leser-Anbindung
 
-**Standard (empfohlen):** Der Leser verhaelt sich wie eine **USB-Tastatur**
+**Standard (empfohlen):** Der Leser verhält sich wie eine **USB-Tastatur**
 („Keyboard-Wedge"). Er schreibt den Code in ein fokussiertes Eingabefeld und
 sendet am Ende typischerweise ENTER. Die Web-App verarbeitet nur den
 empfangenen String.
@@ -65,23 +65,23 @@ welcher Timeout für den Auto-Logout gilt.
 Ein neues Terminal bekommt seine Konfiguration **nicht** aus einer von Hand
 angelegten Datei, sondern über eine **Kopplung** am Backend:
 
-1. In der Terminalverwaltung wird zum Geraet ein **Kopplungscode** erzeugt –
+1. In der Terminalverwaltung wird zum Gerät ein **Kopplungscode** erzeugt –
    einmalig gültig, 30 Minuten, nur als Hash gespeichert.
 2. Am Terminal werden Server-Adresse und Code eingegeben (Einrichtungsseite,
    erscheint automatisch bei fehlender `config/config.local.php`).
 3. Das Terminal holt sich Terminal-ID, Zugangsdaten und Einstellungen selbst und
    schreibt seine `config.local.php`.
 
-**Jedes Terminal erhaelt einen eigenen Datenbankbenutzer** mit eingeschraenkten
+**Jedes Terminal erhält einen eigenen Datenbankbenutzer** mit eingeschraenkten
 Rechten: kein `DELETE`, kein `DROP`, kein Zugriff auf Stundenkonto und
-Lohnkorrekturen. Ein verlorenes Geraet wird durch Löschen dieses einen
+Lohnkorrekturen. Ein verlorenes Gerät wird durch Löschen dieses einen
 Benutzers unschaedlich gemacht – ohne alle anderen Terminals anzufassen; in der
-Terminalverwaltung ist das der Knopf **Entkoppeln**. Ein Geraet nur stillzulegen
+Terminalverwaltung ist das der Knopf **Entkoppeln**. Ein Gerät nur stillzulegen
 (`aktiv = 0`) reicht dafür **nicht**: Das verhindert nur eine neue Kopplung,
 der vorhandene Zugang bleibt gültig.
 
 Damit kennt das Installationsskript **keine** Zugangsdaten; dasselbe Abbild
-passt auf beliebig viele Geraete.
+passt auf beliebig viele Geräte.
 
 Eine Ausnahme gibt es: die **lokale Ausweichdatenbank** (Abschnitt 5). Sie
 gehört der Maschine und nicht dem Backend, also kann die Kopplung sie nicht
@@ -89,11 +89,11 @@ liefern. `scripts/terminal/install_terminal.sh` legt sie samt eigenem Benutzer
 an und schreibt ihre Zugangsdaten nach `config/geraet.local.php`; beim Koppeln
 werden sie von dort in die `config.local.php` übernommen. Deshalb tragen beide
 Dateien dasselbe Passwort – und deshalb sucht das Skript ein vorhandenes
-Passwort zuerst in `config.local.php`: Wuerde es stattdessen ein neues erzeugen,
+Passwort zuerst in `config.local.php`: Würde es stattdessen ein neues erzeugen,
 liefe das Terminal weiter, aber seine Queue wäre tot (P-2026-08-09-05).
 
 Recht: `TERMINAL_VERWALTEN` (Erzeugen des Codes). Der Kopplungs-Endpunkt selbst
-ist bewusst **ohne Anmeldung** erreichbar – ein frisches Geraet hat keinen
+ist bewusst **ohne Anmeldung** erreichbar – ein frisches Gerät hat keinen
 Benutzer, der Code **ist** der Nachweis.
 
 Einzelheiten inklusive Rechteliste des Terminal-Benutzers:
@@ -104,9 +104,9 @@ Einzelheiten inklusive Rechteliste des Terminal-Benutzers:
 Vor jeder Schreiboperation in die Hauptdatenbank wird die Verbindung geprüft.
 Ist sie nicht erreichbar:
 
-**Erlaubt bleibt**, was den Betrieb am Laufen haelt: Kommen/Gehen, Auftraege
+**Erlaubt bleibt**, was den Betrieb am Laufen hält: Kommen/Gehen, Aufträge
 starten/stoppen.
-**Nicht erlaubt** sind komplexe Übersichten, Urlaubsantraege stellen oder
+**Nicht erlaubt** sind komplexe Übersichten, Urlaubsanträge stellen oder
 verwalten, umfangreiche Auswertungen.
 
 ### Offline-Stempeln ohne Mitarbeiter-Identifikation (RFID-only)
@@ -163,7 +163,7 @@ Bei einem Fehler:
 ## 6. Terminal-UI: Layout, Uhr, Texte
 
 - **Bildschirmausnutzung:** ca. **97 %** der verfügbaren Flaeche (Breite und
-  Hoehe), minimale Aussenraender, responsiv über den Viewport.
+  Höhe), minimale Aussenraender, responsiv über den Viewport.
 - **Laufende Uhr** im Header, synchron zur Systemzeit: Start-Sync beim Laden,
   dann sekuendlich; optional periodische Resyncs.
 - **Datum/Zeitformat überall in der UI:** `HH:MM:SS DD-MM-YYYY`
@@ -172,45 +172,45 @@ Bei einem Fehler:
   Zeitangaben in Statusboxen (insbesondere im Format `YYYY-MM-DD HH:MM:SS`)
   werden entfernt.
 - **Keine doppelte „Angemeldet als …"-Zeile:** pro Screen nur einmal.
-- **Login-Texte:** Das Eingabefeld heißt **„RFID"**, der Erklaertext erwaehnt
+- **Login-Texte:** Das Eingabefeld heißt **„RFID"**, der Erklärtext erwähnt
   nur RFID – keine Personalnummer, keine Mitarbeiter-ID. Die alternative
   Login-Möglichkeit darf intern weiter existieren, wird aber nicht beworben.
 
 ## 7. Startbildschirm und Hauptmenue
 
-**Startbildschirm:** grosse Aufforderung „Bitte RFID-Chip an das Lesegeraet
+**Startbildschirm:** grosse Aufforderung „Bitte RFID-Chip an das Lesegerät
 halten", Eingabezeile, in die der Leser die Nummer schreibt (kurz sichtbar).
 Nach ca. 50–100 ms wird automatisch ENTER ausgelöst. Keine Bearbeitung des
-Codes noetig; optional ein „Abbrechen"-Knopf.
+Codes nötig; optional ein „Abbrechen"-Knopf.
 
 **Nach dem Scan** je nach Rolle:
 
 - für alle: „Kommen", „Gehen", „Hauptauftrag starten", „Nebenauftrag starten",
   „Auftrag stoppen", „Urlaub beantragen", „Übersicht"
 - zusätzlich mit passenden Rechten: „RFID-Chip zu Mitarbeiter zuweisen",
-  „Urlaubsantraege", weitere Adminfunktionen
+  „Urlaubsanträge", weitere Adminfunktionen
 
 ### Button-Logik nach Anwesenheitsstatus
 
 **Heute noch nicht anwesend** (kein „Kommen" gebucht):
 
-- sichtbar: **nur** der grosse Knopf **„Kommen"** (doppelte Hoehe), optional
+- sichtbar: **nur** der grosse Knopf **„Kommen"** (doppelte Höhe), optional
   darunter „Urlaub beantragen"
 - **nicht** sichtbar: Gehen, Auftrag starten/stoppen, Nebenauftrag, Übersicht
 - auch **keine** Status-/Urlaubssaldo-Box
 
 **Anwesend** (mindestens ein „Kommen" ohne abschließendes „Gehen"):
 
-- erste Zeile: grosser Knopf **„Gehen"** (doppelte Hoehe)
+- erste Zeile: grosser Knopf **„Gehen"** (doppelte Höhe)
 - „Kommen" ist nicht sichtbar oder klar deaktiviert, um Fehlbuchungen zu
   verhindern
 - danach die restlichen Aktionen, rollenbasiert
 
 „Kommen" und „Gehen" sind die meistgenutzten Aktionen und stehen **immer** als
-erste Zeile im Aktionsbereich, mit mindestens doppelter Hoehe.
+erste Zeile im Aktionsbereich, mit mindestens doppelter Höhe.
 
 Die Guards dafür gelten **serverseitig**, nicht nur in der UI – Stop-Aktionen
-waren frueher per Direkt-URL auch ohne Anwesenheit erreichbar (B-033).
+waren früher per Direkt-URL auch ohne Anwesenheit erreichbar (B-033).
 
 ### Info-Box nach dem Login
 
@@ -237,7 +237,7 @@ oder „Urlaub beantragen" sind linear und möglichst kurz.
 die Terminal-Session beendet und das Terminal kehrt zur Startseite zurück.
 
 - Normalfaelle (Kommen/Gehen, Auftrag, Übersicht): 30–60 Sekunden
-- „Urlaub beantragen": deutlich laenger (2–3 Minuten), weil die Datumsauswahl
+- „Urlaub beantragen": deutlich länger (2–3 Minuten), weil die Datumsauswahl
   Zeit braucht
 
 Die Dauer ist über die `config`-Tabelle einstellbar. Zusätzlich gibt es einen

@@ -1,7 +1,7 @@
 # Spezifikation: Terminal-Installation per Skript
 
 *Version:* v3 (2026-08-09)
-*Status:* alle sechs Stufen gebaut; offen ist der Test auf einem Geraet mit
+*Status:* alle sechs Stufen gebaut; offen ist der Test auf einem Gerät mit
 Bildschirm und Peripherie. Stand und Einschraenkungen je Stufe stehen im
 **Stufenplan (Abschnitt 11)**.
 *Grundlage:* `docs/fachregeln/terminal_und_offline.md`;
@@ -11,7 +11,7 @@ Bildschirm und Peripherie. Stand und Einschraenkungen je Stufe stehen im
 
 ## 1. Zielbild
 
-Ein frisch installiertes Linux-Geraet wird mit **vier Befehlen** zum
+Ein frisch installiertes Linux-Gerät wird mit **vier Befehlen** zum
 einsatzfertigen Hallenterminal:
 
 ```bash
@@ -23,34 +23,34 @@ sudo ./scripts/terminal/selbsttest.sh          # Selbsttest  (Abschnitt 8)
 
 Getrennt statt in einem Skript, weil die vier Teile Unterschiedliches
 voraussetzen: Das Grundsystem lässt sich im Container prüfen, der Kiosk
-braucht einen Bildschirm, die Peripherie braucht angeschlossene Geraete, und
+braucht einen Bildschirm, die Peripherie braucht angeschlossene Geräte, und
 der Selbsttest will einen Menschen, der einmal scannt. Wer nur den Kiosk neu
 aufsetzt, faehrt nicht die ganze Installation noch einmal.
 
 Alle vier lesen dieselbe Antwortdatei (`terminal.conf`) und sind idempotent:
 Ein zweiter Lauf schadet nicht und repariert einen halbfertigen Stand.
 
-Danach startet das Geraet von selbst in die Terminal-Oberflaeche, der
+Danach startet das Gerät von selbst in die Terminal-Oberflaeche, der
 RFID-Leser funktioniert, der Barcode-Scanner liefert saubere Codes, und der
 Touchscreen ist bedienbar. Kein manuelles Nacharbeiten.
 
 ## 2. Aufteilung: Skript und Kopplung
 
-Ein frisch aufgesetztes Geraet hat weder Webserver noch PHP – die
+Ein frisch aufgesetztes Gerät hat weder Webserver noch PHP – die
 Grundinstallation kann deshalb nur ein Skript erledigen. Sobald die Anwendung
 aber läuft, kann sie ihre Konfiguration **selbst** holen. Genau dort wird
 geteilt:
 
 | Wer | Wofür |
 | --- | --- |
-| **Skript** (einmal je Geraet) | Betriebssystem, Pakete, Code, Webserver, Kiosk, RFID, Touchscreen, Tastaturlayout |
+| **Skript** (einmal je Gerät) | Betriebssystem, Pakete, Code, Webserver, Kiosk, RFID, Touchscreen, Tastaturlayout |
 | **Kopplung im Browser** | Server-Adresse, Anmeldung am Backend, Zugangsdaten, `config.local.php` schreiben |
 
 Der entscheidende Gewinn: **Das Skript kennt keine Zugangsdaten.** Es fragt
-nichts Fachliches ab, und dasselbe Abbild lässt sich auf zwanzig Geraete
+nichts Fachliches ab, und dasselbe Abbild lässt sich auf zwanzig Geräte
 spielen.
 
-Das Terminal verhaelt sich dabei genauso wie das Backend beim ersten Start:
+Das Terminal verhält sich dabei genauso wie das Backend beim ersten Start:
 Fehlt die Konfiguration, erscheint statt der Terminal-Oberflaeche eine
 **Einrichtungsseite** – dieselbe Mechanik wie die vorhandene Maske
 „Erstinstallation“ (`views/login/initial_admin.php`).
@@ -61,25 +61,25 @@ Fehlt die Konfiguration, erscheint statt der Terminal-Oberflaeche eine
 existiert. Fehlt sie, übernimmt `TerminalEinrichtungController` und zeigt
 `views/terminal/einrichtung.php` – unabhängig davon, welche `?aktion=…`
 aufgerufen wurde. Einzige Ausnahme ist `?aktion=health`: Eine Überwachung soll
-auch ein frisches Geraet abfragen können.
+auch ein frisches Gerät abfragen können.
 
-**Woran „nicht eingerichtet“ erkannt wird – und woran ausdruecklich nicht:**
+**Woran „nicht eingerichtet“ erkannt wird – und woran ausdrücklich nicht:**
 Nur an der **fehlenden Datei**, nicht an einer fehlgeschlagenen
 Datenbankverbindung. Ein Terminal ohne Netz ist kein unkonfiguriertes Terminal:
 Der Offline-Betrieb mit Queue ist eine gewollte Betriebsart
 (`docs/fachregeln/terminal_und_offline.md`, Abschnitt 5).
-Wuerde ein Netzausfall die Einrichtungsseite hervorholen, stuende die Halle bei
+Würde ein Netzausfall die Einrichtungsseite hervorholen, stuende die Halle bei
 jeder Störung vor einer Maske, die nach einem Kopplungscode fragt – und die
 Buchungen wären weg.
 
 **Bedienung:** Zwei Felder (Server-Adresse, Kopplungscode) mit eigener
-Bildschirmtastatur, weil ein Kiosk keine Tastatur hat. Für den Code enthaelt
+Bildschirmtastatur, weil ein Kiosk keine Tastatur hat. Für den Code enthält
 die Tastatur **nur** die Zeichen, die im Code vorkommen können (kein O/0, kein
 I/1/L); Kleinschreibung und Bindestriche sind erlaubt und werden serverseitig
 normalisiert.
 
 **Adresse:** Es genuegt der Rechnername (`192.168.10.5`,
-`server/zeiterfassung`). Fehlt das Schema, wird `http://` ergaenzt; probiert
+`server/zeiterfassung`). Fehlt das Schema, wird `http://` ergänzt; probiert
 werden `…/index.php` und `…/public/index.php`, weil der Webserver je nach
 Installation auf `public/` oder auf das Projektverzeichnis zeigt. Ein
 Fehlversuch auf dem falschen Pfad verbraucht den Kopplungscode nicht – der
@@ -91,18 +91,18 @@ dorthin gehen Zugangsdaten.
 'terminal'`, den Zugangsdaten aus der Antwort und den Terminal-Einstellungen.
 Erst vollständig daneben schreiben, gegenlesen, dann umbenennen: Eine halb
 geschriebene Konfiguration wäre schlimmer als gar keine – sie könnte das
-Geraet dauerhaft lahmlegen, weil dann auch die Einrichtungsseite nicht mehr
+Gerät dauerhaft lahmlegen, weil dann auch die Einrichtungsseite nicht mehr
 erscheint.
 
 **Wenn das Schreiben scheitert** (Verzeichnis nicht beschreibbar), zeigt die
 Seite den vollständigen Dateiinhalt zum Übernehmen an. Grund: Der
-Kopplungscode ist zu diesem Zeitpunkt verbraucht; ein blosses „Fehler“ wuerde
+Kopplungscode ist zu diesem Zeitpunkt verbraucht; ein blosses „Fehler“ würde
 den Monteur zwingen, im Backend einen neuen Code zu holen. Fehlende
 Schreibrechte werden ausserdem schon **vor** dem Koppeln als Hinweis angezeigt.
 
 **Eine vorhandene Konfiguration wird nie überschrieben.** Sonst liesse sich ein
 laufendes Terminal über diese Seite auf einen fremden Server umbiegen. Ein
-Geraet neu koppeln heißt deshalb: `config.local.php` löschen.
+Gerät neu koppeln heißt deshalb: `config.local.php` löschen.
 
 **Die Warnung aus der Antwort** (Kopplung lief über HTTP) wird nach dem
 Speichern gross angezeigt. Sonst merkt niemand, dass die Zugangsdaten im Netz
@@ -133,12 +133,12 @@ return [
 ];
 ```
 
-Übernommen werden **nur** diese beiden Bloecke. Die Zugangsdaten zur
+Übernommen werden **nur** diese beiden Blöcke. Die Zugangsdaten zur
 Hauptdatenbank kommen ausschließlich aus der Kopplung – sonst wäre die
 Trennung zwischen Skript und Kopplung wieder aufgeweicht.
 
 Fehlt die Datei, koppelt das Terminal trotzdem; `offline_db.enabled` steht dann
-auf `false` und die Seite sagt ausdruecklich, dass dieses Geraet bei einem
+auf `false` und die Seite sagt ausdrücklich, dass dieses Gerät bei einem
 Netzausfall **nichts zwischenspeichern** kann. Das ist die ehrlichere Variante,
 als eine Ausweichdatenbank zu behaupten, die es nicht gibt.
 
@@ -168,7 +168,7 @@ Anmeldung erreichbar.
 | Feld | Pflicht | Inhalt |
 | --- | --- | --- |
 | `code` | ja | Kopplungscode aus dem Backend (Bindestriche und Kleinschreibung sind egal) |
-| `host` | nein | Kennung des Geraets, z. B. Hostname und MAC-Adresse – nur zur Nachvollziehbarkeit |
+| `host` | nein | Kennung des Geräts, z. B. Hostname und MAC-Adresse – nur zur Nachvollziehbarkeit |
 
 Antwort bei Erfolg:
 
@@ -212,30 +212,30 @@ Festgelegtes Verhalten:
   und wenn der lokal ist, die Adresse, unter der das Terminal das Backend
   erreicht hat. Sonst bekaeme das Terminal `localhost` und spraeche sich selbst
   an.
-- **Ohne HTTPS** enthaelt die Antwort ein Feld `warnung`, damit die
+- **Ohne HTTPS** enthält die Antwort ein Feld `warnung`, damit die
   Einrichtungsseite es anzeigen kann. Die Zugangsdaten waren dann im Netz
   mitlesbar.
 
 ### Entkoppeln (umgesetzt, P-2026-08-09-13)
 
 Die Gegenrichtung zur Kopplung: In der Terminalverwaltung zeigt die Spalte
-**Kopplung** je Geraet den Datenbankbenutzer und seit wann er gilt, daneben
-steht **Entkoppeln** (POST, CSRF, Rueckfrage).
+**Kopplung** je Gerät den Datenbankbenutzer und seit wann er gilt, daneben
+steht **Entkoppeln** (POST, CSRF, Rückfrage).
 
 Der Knopf löscht den Datenbankbenutzer, leert `db_benutzer`,
 `db_benutzer_host`, `gekoppelt_am` und `gekoppelt_host` am Terminal-Datensatz
-und entwertet offene Kopplungscodes. Danach braucht das Geraet einen neuen
+und entwertet offene Kopplungscodes. Danach braucht das Gerät einen neuen
 Code.
 
 Warum es das geben muss: **`aktiv = 0` genuegt nicht.** Das verhindert nur eine
 neue Kopplung – der bestehende Datenbankbenutzer bleibt gültig. Wer ein
-ausgemustertes Geraet mitnimmt, liest die Zugangsdaten aus `config.local.php`
+ausgemustertes Gerät mitnimmt, liest die Zugangsdaten aus `config.local.php`
 und kommt weiter an alles, was dieses Terminal durfte.
 
 Festgelegtes Verhalten:
 
 - **Erst der Datenbankbenutzer, dann der Vermerk.** Scheitert das Löschen,
-  bleibt der Vermerk stehen, das Geraet gilt weiter als gekoppelt und der
+  bleibt der Vermerk stehen, das Gerät gilt weiter als gekoppelt und der
   Zugang lässt sich erneut entfernen. Andersherum bliebe ein gültiger
   Benutzer übrig, von dem niemand mehr weiß, wozu er gehört.
 - **Offene Codes werden zuerst entwertet**, auch wenn gar kein Zugang besteht.
@@ -245,13 +245,13 @@ Festgelegtes Verhalten:
 
 ### Warum ein eigener Benutzer je Terminal
 
-- **Einzeln sperrbar:** Geraet verloren oder ausgetauscht → `DROP USER`, fertig.
+- **Einzeln sperrbar:** Gerät verloren oder ausgetauscht → `DROP USER`, fertig.
   Kein Passwortwechsel auf allen anderen Terminals.
 - **Eingeschraenkte Rechte:** Ein Terminal braucht nur Stempeln, Auftragszeiten
-  und Urlaubsantraege. Es braucht **kein** `DELETE`, kein `DROP`, keinen Zugriff
+  und Urlaubsanträge. Es braucht **kein** `DELETE`, kein `DROP`, keinen Zugriff
   auf Stundenkonto und Lohnkorrekturen.
 - **Nachvollziehbar:** In den Datenbank-Protokollen ist erkennbar, welches
-  Geraet was getan hat.
+  Gerät was getan hat.
 
 ### Rechte des Terminal-Benutzers (umgesetzt und geprüft, P-2026-08-08-35)
 
@@ -279,7 +279,7 @@ Kein `DELETE`, kein `DROP`, kein `ALTER`, kein `CREATE` – nirgends.
 **Warum es vom Vorschlag abweicht:**
 
 - **Rollen und Rechte müssen lesbar sein.** Das Terminal blendet Knoepfe je
-  nach Berechtigung ein (z. B. „Urlaubsantraege“ für Genehmiger). Ohne
+  nach Berechtigung ein (z. B. „Urlaubsanträge“ für Genehmiger). Ohne
   Lesezugriff auf die Rechtetabellen wäre jeder Mitarbeiter am Terminal
   rechtlos.
 - **`stundenkonto_korrektur` muss lesbar sein.** Das Terminal zeigt seit
@@ -296,9 +296,9 @@ Kein `DELETE`, kein `DROP`, kein `ALTER`, kein `CREATE` – nirgends.
 - **`db_injektionsqueue` als Rückfallebene.** Normalerweise liegt die
   Offline-Queue in der lokalen Ausweichdatenbank des Terminals; fehlt die,
   greift der `OfflineQueueManager` auf die Hauptdatenbank zurück. Kein
-  `DELETE`: hängengebliebene Eintraege raeumt ein Admin im Backend weg.
+  `DELETE`: hängengebliebene Einträge raeumt ein Admin im Backend weg.
 
-**`passwort_hash` – gelöst (P-2026-08-09-16).** Frueher stand hier, das gehe
+**`passwort_hash` – gelöst (P-2026-08-09-16).** Früher stand hier, das gehe
 nicht ohne Codeaenderung. Das stimmte zur Haelfte: Spaltenrechte verbieten
 tatsaechlich `SELECT *`, aber im gesamten Terminalpfad gab es dafür **genau
 zwei** Stellen, beide im `ReportService` und beide nur an einem einzigen Wert
@@ -308,7 +308,7 @@ interessiert (`wochenarbeitszeit`). Sie holen ihn jetzt über
 Damit wird das Leserecht auf `mitarbeiter` **spaltenweise** vergeben: alle
 Spalten ausser `passwort_hash`, zur Kopplungszeit aus dem `information_schema`
 aufgelöst. Eine später hinzugekommene Spalte ist damit automatisch dabei,
-sobald ein Geraet neu koppelt – eine von Hand gepflegte Positivliste wäre beim
+sobald ein Gerät neu koppelt – eine von Hand gepflegte Positivliste wäre beim
 nächsten Schema-Zuwachs still unvollständig.
 
 Zwei Dinge sind bewusst so gebaut:
@@ -321,10 +321,10 @@ Zwei Dinge sind bewusst so gebaut:
   Terminalpfad erweitert, merkt das sofort. `MitarbeiterModel` darf sein
   `SELECT *` behalten, denn es läuft nur noch im Backend.
 
-**Bereits gekoppelte Geraete behalten ihr altes, weites Recht**, bis sie neu
+**Bereits gekoppelte Geräte behalten ihr altes, weites Recht**, bis sie neu
 gekoppelt werden – der Zugang wird nur beim Koppeln vergeben. Wer sichergehen
 will: in der Terminalverwaltung *Entkoppeln*, dann neuen Kopplungscode. Ob ein
-Geraet noch das alte Recht hat, zeigt
+Gerät noch das alte Recht hat, zeigt
 
 ```sql
 SHOW GRANTS FOR 'term_...'@'%';
@@ -347,20 +347,20 @@ verdeckt werden – MariaDB wählt den spezifischeren Host-Eintrag. In diesem Fa
 entweder die anonymen Konten entfernen (`mariadb-secure-installation`) oder
 `terminal_db_host_muster` auf `localhost` setzen.
 
-### Was dafür noetig ist, und was das kostet
+### Was dafür nötig ist, und was das kostet
 
 **Entschieden:** Das Backend legt die Benutzer selbst an (automatisch).
 
 Damit das Backend Benutzer anlegen kann, braucht **sein** Datenbankbenutzer das
 Recht `CREATE USER` sowie `GRANT OPTION` auf das Schema `zeiterfassung`. Die
-dafür noetigen Anweisungen stehen in
+dafür nötigen Anweisungen stehen in
 `sql/06_migration_terminal_db_benutzer.sql` und müssen von einem Administrator
 einmal ausgeführt werden – die Anwendung kann sich diese Rechte nicht selbst
 geben. Fehlen sie, läuft alles Übrige normal weiter; nur die Kopplung bricht
-mit einer verstaendlichen Meldung ab. Das ist kein Nebeneffekt, sondern eine
+mit einer verständlichen Meldung ab. Das ist kein Nebeneffekt, sondern eine
 bewusste Abwaegung:
 
-- **Vorteil:** Die Kopplung läuft ohne Handarbeit, auch für zwanzig Geraete.
+- **Vorteil:** Die Kopplung läuft ohne Handarbeit, auch für zwanzig Geräte.
 - **Nachteil:** Wer die Weboberflaeche übernimmt, kann Datenbankbenutzer
   anlegen. Begrenzt wird das dadurch, dass `GRANT OPTION` nie mehr vergeben
   kann, als der Vergebende selbst hat – die Rechte des Backends sind also die
@@ -368,7 +368,7 @@ bewusste Abwaegung:
 - **Ausweichweg, falls das zu weit geht:** Das Backend legt den Benutzer nicht
   selbst an, sondern zeigt dem Administrator die fertige SQL-Anweisung zum
   einmaligen Ausführen. Gleiche Sicherheit für das Terminal, kein erhöhtes
-  Recht für die Anwendung, dafür ein manueller Schritt je Geraet.
+  Recht für die Anwendung, dafür ein manueller Schritt je Gerät.
 
 ### Sicherheitsanforderungen an die Kopplung
 
@@ -378,7 +378,7 @@ bewusste Abwaegung:
   Zugangsdaten über das Netz. Ohne HTTPS liest sie jeder mit, der im
   Hallennetz mithoert. Ist HTTPS nicht möglich, sollte die Kopplung wenigstens
   nur in einem abgesicherten Netzsegment erfolgen.
-- Kopplung protokollieren (`system_log`): wer, wann, welches Geraet.
+- Kopplung protokollieren (`system_log`): wer, wann, welches Gerät.
 - Erneute Kopplung eines vorhandenen Terminals ersetzt den alten
   Datenbankbenutzer, statt einen zweiten anzulegen.
 
@@ -392,7 +392,7 @@ bewusste Abwaegung:
   Sie steht seit P-2026-08-09-20 in **einer** Datei,
   `scripts/terminal/_paketfamilie.sh`, die alle drei Installationsskripte
   einlesen: `erkenne_paketfamilie`, `paketquellen_auffrischen`,
-  `paket_installieren`. Wer eine Distribution ergaenzt, fasst genau diese Datei
+  `paket_installieren`. Wer eine Distribution ergänzt, fasst genau diese Datei
   an. Vorher stand die Erkennung in jedem Skript noch einmal – die vierte
   Kopie hätte irgendwann jemand vergessen.
 
@@ -425,7 +425,7 @@ Es bleibt nur, was die Maschine betrifft:
 | `GIT_REPO` / `GIT_BRANCH` | `https://github.com/…` / `main` | Codequelle |
 
 Alles per `terminal.conf` neben dem Skript vorgebbar, sonst interaktive
-Abfrage. Damit ist dasselbe Abbild auf allen Geraeten verwendbar; unterscheiden
+Abfrage. Damit ist dasselbe Abbild auf allen Geräten verwendbar; unterscheiden
 tun sie sich erst durch die Kopplung.
 
 ## 5. Ablauf in Phasen
@@ -433,7 +433,7 @@ tun sie sich erst durch die Kopplung.
 Drei Phasen. Die ersten beiden erledigt das Skript; sie sind getrennt, weil das
 Aktivieren von SPI einen **Neustart** erfordert – Phase 2 läuft danach
 automatisch weiter (systemd-Einmaldienst, der sich anschließend selbst
-deaktiviert). Phase 3 ist die Kopplung am Geraet und braucht kein Skript.
+deaktiviert). Phase 3 ist die Kopplung am Gerät und braucht kein Skript.
 
 ### Phase 1 – Grundsystem
 1. Distribution und Paketmanager erkennen, Vorbedingungen prüfen (root,
@@ -459,7 +459,7 @@ deaktiviert). Phase 3 ist die Kopplung am Geraet und braucht kein Skript.
    Einrichtungsseite, solange keine Konfiguration vorliegt.
 10. Selbsttest (Abschnitt 8), Ergebnis auf den Bildschirm und ins Log.
 
-### Phase 3 – Kopplung am Geraet (kein Skript)
+### Phase 3 – Kopplung am Gerät (kein Skript)
 11. Am Touchscreen Server-Adresse und Kopplungscode eingeben; das Terminal holt
     sich alles Weitere selbst (Abschnitt 2a).
 
@@ -479,7 +479,7 @@ einer Eingabeaufforderung hängenbleiben.
 **Alles Distributionsabhängige steht in einer einzigen Tabelle** im Skript:
 Paketliste, Dienstname, Webserver-Benutzer und Ablageort der
 Webserver-Konfiguration je Familie (`apt`, `pacman`, `dnf`, `zypper`). Verstreute
-Sonderfaelle waren der uebliche Grund, warum solche Skripte nach der zweiten
+Sonderfaelle waren der übliche Grund, warum solche Skripte nach der zweiten
 Distribution unwartbar werden.
 
 **PHP hängt überall gleich am Webserver:** `php-fpm` plus `mod_proxy_fcgi`,
@@ -490,7 +490,7 @@ alle vier Familien dieselbe Datei.
 
 **Das Passwort der Ausweichdatenbank wird bei einem zweiten Lauf
 wiederverwendet**, nicht erneuert. Ein bereits gekoppeltes Terminal traegt es in
-seiner `config.local.php`; ein frisches Passwort wuerde ihm stillschweigend die
+seiner `config.local.php`; ein frisches Passwort würde ihm stillschweigend die
 Offline-Queue kappen – der Ausfall fällt dann erst beim nächsten Netzausfall
 auf, also genau dann, wenn er am meisten schadet. Gesucht wird deshalb **zuerst
 in `config.local.php`**, erst danach in `geraet.local.php`: Die erste ist die
@@ -508,7 +508,7 @@ Hauptdatenbank des Backends nicht, und zwar ohne erkennbare Ursache.
 **Das Tastaturlayout wird an drei Stellen gesetzt** (X11, Konsole, bei Debian
 zusätzlich `/etc/default/keyboard`), weil je nach Distribution eine andere
 davon greift. Dazu die Zeitzone: Die Uhr im Terminal-Header läuft nach der
-Systemzeit, ein Geraet in UTC zeigt der Halle stundenversetzte Buchungszeiten.
+Systemzeit, ein Gerät in UTC zeigt der Halle stundenversetzte Buchungszeiten.
 
 **Am Ende steht eine Liste mit OK/FEHLT** (Webserver, `pdo_mysql`,
 Ausweichdatenbank, `geraet.local.php`, Schreibrecht auf `config/`, HTTP-Antwort
@@ -534,7 +534,7 @@ vorhandenen Datei übernommen und vor dem Umbenennen gegengelesen. Wäre das
 Passwort dabei verloren gegangen, liefe das Terminal weiter, aber seine Queue
 wäre tot: derselbe Fehler wie in P-2026-08-09-05, deshalb die Gegenprobe.
 
-**Ein bereits gekoppeltes Geraet übernimmt die Änderung nicht von selbst.**
+**Ein bereits gekoppeltes Gerät übernimmt die Änderung nicht von selbst.**
 Die Einrichtungsseite liest `geraet.local.php` nur *beim* Koppeln. Das Skript
 sagt das, wenn es eine `config.local.php` vorfindet.
 
@@ -552,34 +552,34 @@ Schritte.
 
 ### 6.3 Barcode-Scanner – der unterschaetzte Teil
 Der Scanner braucht **keine Treiber**, er tippt wie eine Tastatur. Genau darin
-liegt die Falle: Steht das System auf US-Layout und der Code enthaelt
+liegt die Falle: Steht das System auf US-Layout und der Code enthält
 Sonderzeichen oder `y`/`z`, kommt im Eingabefeld etwas anderes an, als auf dem
 Etikett steht. Das Terminal bucht dann klaglos einen falschen Code.
 
 Deshalb ist das Setzen des Tastaturlayouts **Pflichtschritt**, nicht Kosmetik –
-und der Selbsttest fordert ausdruecklich zum Scannen eines bekannten Codes auf
+und der Selbsttest fordert ausdrücklich zum Scannen eines bekannten Codes auf
 und vergleicht das Ergebnis.
 
 ### 6.4 Touchscreen
 Vorhandensein über `libinput list-devices` erkennen: gesucht wird das erste
-Geraet, dessen Faehigkeiten `touch` nennen – ein Touchpad meldet `pointer` und
+Gerät, dessen Faehigkeiten `touch` nennen – ein Touchpad meldet `pointer` und
 fällt damit heraus. Drehung und Zuordnung zum richtigen Bildschirm sind
-geraeteabhängig und werden aus `BILDSCHIRM_DREHUNG` gesetzt; automatisch
-erraten lässt sich das nicht zuverlaessig.
+geräteabhängig und werden aus `BILDSCHIRM_DREHUNG` gesetzt; automatisch
+erraten lässt sich das nicht zuverlässig.
 
 **Gedreht wird auf zwei ganz verschiedenen Wegen** – das ist der unangenehmste
 Teil dieser Stufe:
 
 - **X11:** zur Laufzeit. Das Skript legt `/usr/local/bin/zeiterfassung-peripherie-x11`
   an; der Kioskstart ruft es innerhalb der X-Sitzung auf. Dort dreht `xrandr`
-  das Bild und `xinput` die Beruehrung über die *Coordinate Transformation
-  Matrix*. **Beides ist noetig:** Wer nur das Bild dreht, bekommt ein Geraet,
+  das Bild und `xinput` die Berührung über die *Coordinate Transformation
+  Matrix*. **Beides ist nötig:** Wer nur das Bild dreht, bekommt ein Gerät,
   bei dem der Finger 90 Grad daneben trifft – schlimmer als gar nicht gedreht,
   weil es zunächst richtig aussieht.
 - **Wayland (`cage`):** gar nicht. cage hat keinen Schalter zum Drehen. Dort
   dreht der Kernel den Bildschirm über die Startzeile
-  (`video=<Ausgang>:rotate=90`), und die Beruehrung folgt automatisch. Weil das
-  einen Neustart braucht und der Ausgangsname geraeteabhängig ist, **setzt das
+  (`video=<Ausgang>:rotate=90`), und die Berührung folgt automatisch. Weil das
+  einen Neustart braucht und der Ausgangsname geräteabhängig ist, **setzt das
   Skript es nicht**, sondern gibt die einzutragende Zeile aus und meldet eine
   Warnung. Eine halb gedrehte Anzeige stillschweigend zu hinterlassen wäre
   schlechter als eine klare Ansage.
@@ -606,25 +606,25 @@ Es liest dieselbe `terminal.conf` wie Stufe 3 und legt drei Dinge an:
 `/usr/local/bin/zeiterfassung-kiosk` (Startskript) und
 `/etc/systemd/system/zeiterfassung-kiosk.service`.
 
-**Kein Autologin über getty, sondern ein Systemdienst.** Der uebliche Weg
+**Kein Autologin über getty, sondern ein Systemdienst.** Der übliche Weg
 (`agetty --autologin` und ein Aufruf im Anmeldeprofil) hätte den geforderten
 Neustart nach einem Absturz in einer Schleife in `~/.bash_profile` nachbauen
 müssen. Der Dienst bekommt ihn mit `Restart=always` geschenkt und lässt sich
-ausserdem gezielt anhalten, wenn jemand am Geraet arbeiten will.
+ausserdem gezielt anhalten, wenn jemand am Gerät arbeiten will.
 `PAMName=login` erzeugt dabei eine echte Anmeldesitzung – ohne die gibt es
 keinen Seat, und weder `cage` noch Xorg bekommen Bildschirm und
-Eingabegeraete. `Conflicts=getty@tty1.service` verhindert, dass sich
+Eingabegeräte. `Conflicts=getty@tty1.service` verhindert, dass sich
 Anmeldeaufforderung und Kiosk um dieselbe Konsole streiten.
 
 **Die Meldungen des Browsers stehen nicht unter der Einheit.** Wegen
 `PAMName=login` laufen `cage` und Browser in einer eigenen Sitzung; bei
 `journalctl -u zeiterfassung-kiosk` erscheinen nur Start und Stopp des
 Dienstes. Der Weg zu den Fehlern des Browsers ist
-`journalctl -t zeiterfassung-kiosk`. Das Skript sagt das am Ende ausdruecklich
+`journalctl -t zeiterfassung-kiosk`. Das Skript sagt das am Ende ausdrücklich
 – es einmal zu wissen erspart die Suche nach einem Fehler, der scheinbar keine
 Spur hinterlässt.
 
-**Der Anzeigeweg entscheidet sich am Geraet, nicht in der Tabelle:** Zuerst
+**Der Anzeigeweg entscheidet sich am Gerät, nicht in der Tabelle:** Zuerst
 wird `cage` installiert; liegt danach kein `cage` vor (auf aelteren openSUSE
 gibt es das Paket nicht), kommen Xorg, `openbox` und `unclutter` dazu.
 `KIOSK_ANZEIGE` in der Antwortdatei erzwingt einen der beiden Wege. Unter X11
@@ -639,7 +639,7 @@ abgeschaltet (`setterm --blank 0`), die sonst unter `cage` durchschlaegt.
 
 **Der Absturzvermerk von Chromium wird vor jedem Start zurückgesetzt.** Sonst
 erscheint nach einem Absturz eine Leiste „Wiederherstellen“, die auf einem
-Geraet ohne Tastatur niemand wegbekommt. Dazu Schalter gegen Zoom durch zwei
+Gerät ohne Tastatur niemand wegbekommt. Dazu Schalter gegen Zoom durch zwei
 Finger und gegen „Zurück“ per Wischgeste – beides loest am Touchscreen sonst
 laufend versehentliche Navigation aus.
 
@@ -650,8 +650,8 @@ Fall, dass das Skript versehentlich auf einem Arbeitsplatzrechner läuft.
 
 **Der Kioskbenutzer kommt nicht an die Zugangsdaten.** `config/` gehört seit
 Stufe 3 `root` und der Webserver-Gruppe (2770); der Benutzer `terminal` ist
-nicht darin. Die Ergebnisliste prüft das ausdruecklich mit – ein
-Vollbildbrowser mit Netzzugang ist der Teil des Geraets, der am ehesten
+nicht darin. Die Ergebnisliste prüft das ausdrücklich mit – ein
+Vollbildbrowser mit Netzzugang ist der Teil des Geräts, der am ehesten
 übernommen wird.
 
 ## 8. Selbsttest zum Abschluss (umgesetzt, P-2026-08-09-18)
@@ -664,7 +664,7 @@ Vollbildbrowser mit Netzzugang ist der Teil des Geraets, der am ehesten
 6. Interaktiv: einmal RFID-Chip scannen, einmal Barcode scannen – das Skript
    zeigt an, was tatsaechlich angekommen ist.
 
-Ergebnis als Liste mit OK/FEHLT, damit man vor dem Verlassen des Geraets weiß,
+Ergebnis als Liste mit OK/FEHLT, damit man vor dem Verlassen des Geräts weiß,
 ob es einsatzbereit ist.
 
 `scripts/terminal/selbsttest.sh`. **Aendert nichts** – es wird nur gelesen und
@@ -678,20 +678,20 @@ Erfolg meldet, ist wertlos.
 
 Woher die Werte kommen: aus `/etc/zeiterfassung-peripherie.conf` und
 `/etc/zeiterfassung-kiosk.conf`, **nicht** aus der Antwortdatei. Was auf dem
-Geraet eingerichtet wurde, wiegt schwerer als das, was jemand einmal
+Gerät eingerichtet wurde, wiegt schwerer als das, was jemand einmal
 aufschreiben wollte.
 
 Zwei Punkte über die Liste oben hinaus:
 
-- **Passwort-Hashes.** Der Test verbindet sich mit den Zugangsdaten des Geraets
+- **Passwort-Hashes.** Der Test verbindet sich mit den Zugangsdaten des Geräts
   und versucht, `passwort_hash` zu lesen. Gelingt es, traegt dieses Terminal
   einen Zugang von vor P-2026-08-09-16 und gehört neu gekoppelt (siehe 2a).
-- **Fehlerhafte Queue-Eintraege** aus dem Health-Endpunkt. Sie bedeuten, dass
+- **Fehlerhafte Queue-Einträge** aus dem Health-Endpunkt. Sie bedeuten, dass
   schon gebucht wurde und etwas davon nicht angekommen ist.
 
 Der **Scan-Test** ist der einzige Teil, der einen Menschen braucht – und der
 wichtigste. Er zeigt an, was tatsaechlich angekommen ist, und fragt beim
-Barcode ausdruecklich nach, ob es mit dem Etikett übereinstimmt. Grund steht
+Barcode ausdrücklich nach, ob es mit dem Etikett übereinstimmt. Grund steht
 in 6.3: Ein falsches Tastaturlayout fällt sonst **nirgends** auf. Ohne
 Bediener (kein Terminal an der Eingabe) oder mit `--ohne-scan` wird der
 Abschnitt übersprungen und als solcher gemeldet, nicht als bestanden.
@@ -702,7 +702,7 @@ Ehrlich vorab, damit niemand es später als Fehler meldet:
 
 - **USB-RFID-Leser sind von einer Tastatur nicht unterscheidbar.** Ob ein Leser
   angeschlossen ist, kann das Skript nicht wissen – nur der Scan-Test zeigt es.
-- **Touchscreen-Drehung** ist geraeteabhängig und wird abgefragt.
+- **Touchscreen-Drehung** ist geräteabhängig und wird abgefragt.
 - **SPI braucht einen Neustart.** Daher die zwei Phasen.
 - **Paketnamen** unterscheiden sich je Distribution; die Zuordnungstabelle deckt
   die vier grossen Familien ab. Exoten müssen von Hand nacharbeiten.
@@ -710,27 +710,27 @@ Ehrlich vorab, damit niemand es später als Fehler meldet:
 ## 10. Sicherheit – gelöst durch die Kopplung
 
 In der ersten Fassung dieser Spezifikation trug das Terminal die Zugangsdaten
-zur Hauptdatenbank auf dem Geraet, und zwar dieselben wie alle anderen. Wer
+zur Hauptdatenbank auf dem Gerät, und zwar dieselben wie alle anderen. Wer
 physisch an ein Hallenterminal kam, kam an die gesamte Datenbank samt aller
 Personendaten.
 
 Die Kopplung loest das: Jedes Terminal bekommt **einen eigenen Benutzer mit
-eingeschraenkten Rechten**, einzeln sperrbar. Auf dem Geraet liegt damit nur
+eingeschraenkten Rechten**, einzeln sperrbar. Auf dem Gerät liegt damit nur
 noch, was dieses eine Terminal ohnehin darf.
 
 ### Das Backend läuft auf einem Terminal nicht mit (P-2026-08-09-19)
 
 Der Webserver eines Terminals zeigt auf `public/` – damit lag neben
-`terminal.php` auch `index.php` im Zugriff, und ein Hallengeraet lieferte die
+`terminal.php` auch `index.php` im Zugriff, und ein Hallengerät lieferte die
 **Anmeldemaske des Backends** aus. `public/index.php` bricht deshalb sofort ab
 und leitet auf `terminal.php` um, wenn eines von beiden zutrifft:
 
 - `installation_typ` steht auf `terminal`, **oder**
 - es gibt eine `config/geraet.local.php`, aber noch keine
-  `config.local.php`. Das ist ein aufgesetztes, noch nicht gekoppeltes Geraet –
+  `config.local.php`. Das ist ein aufgesetztes, noch nicht gekoppeltes Gerät –
   sonst bliebe zwischen Aufstellen und Koppeln ein Fenster von Tagen offen, in
   dem in der Halle die Anmeldemaske hängt. Steht in einer vorhandenen
-  `config.local.php` ausdruecklich `backend`, gewinnt diese Entscheidung.
+  `config.local.php` ausdrücklich `backend`, gewinnt diese Entscheidung.
 
 **Ohne Ausnahme für den Kopplungs-Endpunkt.** Der läuft auf dem Backend; ein
 Terminal, das ihn selbst anboete, verteilte Datenbankbenutzer – genau das, was
@@ -739,15 +739,15 @@ die Kopplung verhindern soll.
 **Was das nicht ist: ein Datenschutz.** Es ist **dieselbe Datenbank** wie die
 des Backends – das Terminal bekommt bei der Kopplung nur einen eigenen Benutzer
 auf demselben Schema. Was es unterscheidet, sind die **Rechte**, nicht die
-Daten. An einem gekoppelten Testgeraet nachgemessen:
+Daten. An einem gekoppelten Testgerät nachgemessen:
 
 | Für das Terminal lesbar | Gesperrt |
 | --- | --- |
 | Namen, Personalnummern, E-Mail, Geburtsdatum | Passwort-Hashes |
 | Zeitbuchungen **aller** Mitarbeiter | Kopplungscodes anderer Terminals |
-| Urlaubsantraege, Stundenkonto-Korrekturen, Rollen und Rechte | |
+| Urlaubsanträge, Stundenkonto-Korrekturen, Rollen und Rechte | |
 
-Wer das Geraet aufschraubt, liest die Zugangsdaten aus `config.local.php` und
+Wer das Gerät aufschraubt, liest die Zugangsdaten aus `config.local.php` und
 kommt an die linke Spalte – mit oder ohne Backend-Oberflaeche. Diese Sperre
 verkleinert die Angriffsflaeche; der Schutz der Daten liegt bei der Rechteliste
 weiter oben. Der Selbsttest (Abschnitt 8) prüft die Sperre mit.
@@ -757,8 +757,8 @@ Rückweg für die Fernwartung: `installation_typ` in `config.local.php` auf
 
 ### Was weiterhin gilt
 
-- Die Zugangsdaten liegen trotzdem lesbar auf dem Geraet – der Schaden ist
-  begrenzt, aber nicht null. Physischer Schutz der Geraete bleibt sinnvoll.
+- Die Zugangsdaten liegen trotzdem lesbar auf dem Gerät – der Schaden ist
+  begrenzt, aber nicht null. Physischer Schutz der Geräte bleibt sinnvoll.
   Passwort-Hashes gehören seit P-2026-08-09-16 **nicht** mehr dazu (siehe 2a).
 - Bei der Kopplung selbst gehen Zugangsdaten über das Netz (siehe 2a).
 - Ein ausgemustertes Terminal muss im Backend **entkoppelt** werden (Knopf in
@@ -791,9 +791,9 @@ Rückweg für die Fernwartung: `installation_typ` in `config.local.php` auf
    gelaufen, zehn von zehn Punkten OK, Wiederholung ohne Warnung, beide
    Anzeigewege (`cage` und Xorg) durchgespielt. **Ein Bild hat dabei niemand
    gesehen** – ein Container hat keinen Bildschirm; `cage` kommt bis zum
-   Zugriff auf das Grafikgeraet und bricht dort ab, Xorg startet und findet
+   Zugriff auf das Grafikgerät und bricht dort ab, Xorg startet und findet
    keinen Treiber. Beides ist der erwartete Abbruch, aber kein Beleg, dass der
-   Kiosk auf einem Geraet erscheint. Das zeigt erst eine VM mit Grafik oder
+   Kiosk auf einem Gerät erscheint. Das zeigt erst eine VM mit Grafik oder
    echte Hardware. Wie bei Stufe 3 gilt: nur `apt` geprüft.
 5. **Peripherie** – RFID, Touchscreen, Drehung.
    **Fertig** (P-2026-08-09-17): `scripts/terminal/install_peripherie.sh`, siehe
@@ -803,7 +803,7 @@ Rückweg für die Fernwartung: `installation_typ` in `config.local.php` auf
    überlebt die Fortschreibung von `geraet.local.php` – eigens geprüft, weil
    genau das in P-2026-08-09-05 schon einmal schiefging. Das X11-Drehskript
    wurde mit vorgetaeuschten `xrandr`/`xinput` gegen alle vier Drehungen
-   geprüft. **Nicht geprüft, weil dafür Hardware noetig ist:** ob ein
+   geprüft. **Nicht geprüft, weil dafür Hardware nötig ist:** ob ein
    angeschlossener Leser tatsaechlich Zeichen liefert und ob ein gedrehter
    Touchscreen richtig trifft.
 6. **Selbsttest** – rundet ab und macht das Ergebnis prüfbar.
@@ -811,7 +811,7 @@ Rückweg für die Fernwartung: `installation_typ` in `config.local.php` auf
    Abschnitt 8. Am 09.08.2026 gegen zwei Staende geprüft: im Container
    (ungekoppelt) und gegen eine echte gekoppelte Installation auf dem
    Entwicklungsrechner – zehn von zehn, einschließlich der Gegenprobe, dass
-   ein Geraet mit altem, weitem Datenbankrecht als Fund gemeldet wird. Die drei
+   ein Gerät mit altem, weitem Datenbankrecht als Fund gemeldet wird. Die drei
    Wege des Scan-Tests (sauber, vertauscht, übersprungen) wurden über ein
    Pseudoterminal durchgespielt.
 
@@ -825,17 +825,17 @@ Nach dem Zusammenlegen der Paketfamilien-Erkennung (P-2026-08-09-20) wurden
 alle vier Skripte **gemeinsam in einem frischen Container** durchgespielt und
 anschließend wiederholt: kein einziger fehlender Punkt im zweiten Lauf.
 
-Was damit ausdruecklich **noch nicht** belegt ist, weil ein Container es nicht
+Was damit ausdrücklich **noch nicht** belegt ist, weil ein Container es nicht
 zeigen kann: dass ein Bild erscheint, dass ein Leser Zeichen liefert und dass
-ein gedrehter Touchscreen richtig trifft. Das ist der Geraetetest.
+ein gedrehter Touchscreen richtig trifft. Das ist der Gerätetest.
 
 Bemerkenswert: Die ersten beiden Stufen sind der eigentliche Kern und lassen
-sich **komplett ohne ein einziges Geraet** bauen und prüfen.
+sich **komplett ohne ein einziges Gerät** bauen und prüfen.
 
-Stufe 1 und 2 lassen sich also absichern, bevor ein echtes Geraet angefasst
+Stufe 1 und 2 lassen sich also absichern, bevor ein echtes Gerät angefasst
 wird.
 
-## 12. Der Geraetetest – Prüfprotokoll
+## 12. Der Gerätetest – Prüfprotokoll
 
 Was ein Container prinzipiell nicht zeigen kann, braucht einen Bildschirm.
 Ablauf: Debian in einer VM mit Grafik (`qemu`/`virsh` sind auf dem
@@ -848,7 +848,7 @@ Reihe nach, danach diese Punkte:
 4. Ist der Mauszeiger weg, wenn eine Maus angeschlossen ist?
 5. Greift der X11-Rückfall, wenn man `KIOSK_ANZEIGE="x11"` setzt?
 6. Dreht sich mit `BILDSCHIRM_DREHUNG="rechts"` unter X11 **beides** – Bild und
-   Beruehrung? (Nur Bild gedreht ist schlimmer als gar nicht: Es sieht richtig
+   Berührung? (Nur Bild gedreht ist schlimmer als gar nicht: Es sieht richtig
    aus, aber der Finger trifft daneben.)
 7. Liefert ein angeschlossener RFID-Leser Zeichen, und stimmt ein gescannter
    Barcode mit dem Etikett überein? Beides fragt `selbsttest.sh` ab.

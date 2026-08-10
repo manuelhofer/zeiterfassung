@@ -6,9 +6,9 @@ declare(strict_types=1);
  *
  * Erzeugt Strichcodes (Code 128) für Maschinen und kann sie direkt ausgeben.
  *
- * **Der Name ist Historie.** Frueher waren die Maschinen-Codes QR-Codes; seit
+ * **Der Name ist Historie.** Früher waren die Maschinen-Codes QR-Codes; seit
  * der Umstellung auf Code 128 (P-2026-08-08-24) ist alles im Projekt derselbe
- * Codetyp, weil in der Halle 1D-Handscanner im Einsatz sind – Begruendung im
+ * Codetyp, weil in der Halle 1D-Handscanner im Einsatz sind – Begründung im
  * Kopf von `services/BarcodeService.php`. Der QR-Zweig wurde in
  * P-2026-08-10-05 entfernt: Er lief nur noch als Rückfall und lieferte dann
  * ein Bild, das an diesen Scannern gar kein Code ist.
@@ -152,7 +152,7 @@ class MaschineQrCodeService
             return $this->ermittleWebBasis();
         }
 
-        // Ausdruecklich '/' -> Domain-Root, also bewusst keine Automatik.
+        // Ausdrücklich '/' -> Domain-Root, also bewusst keine Automatik.
         if ($maschinenQrUrl === '/') {
             return '';
         }
@@ -173,7 +173,7 @@ class MaschineQrCodeService
      * niemand denselben Pfad ein zweites Mal von Hand pflegen muss.
      *
      * Die eigentliche Ableitung steht in `Helper::ermittleWebBasis()`, weil sie
-     * auch vom `QrCodeService` (Auftraege/Arbeitsschritte) gebraucht wird – zwei
+     * auch vom `QrCodeService` (Aufträge/Arbeitsschritte) gebraucht wird – zwei
      * Kopien derselben Logik waren schon einmal die Ursache eines Fehlers
      * (siehe B-089).
      */
@@ -233,7 +233,7 @@ class MaschineQrCodeService
      *
      * Der gespeicherte Pfad ist relativ zu `public/` (z. B.
      * `uploads/maschinen_codes/maschine_5_barcode.png`). Davor kommt die Basis
-     * aus `ermittleMaschinenQrUrl()` - entweder ausdruecklich konfiguriert oder
+     * aus `ermittleMaschinenQrUrl()` - entweder ausdrücklich konfiguriert oder
      * automatisch aus der Installation abgeleitet.
      *
      * Rückgabe: leerer String, wenn kein Bild hinterlegt ist.

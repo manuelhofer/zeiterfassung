@@ -122,11 +122,11 @@ class AuftragszeitService
     }
 
     /**
-     * OPTIONAL (aktuell nicht genutzt): Nebenauftraege eines Mitarbeiters per Update beenden.
+     * OPTIONAL (aktuell nicht genutzt): Nebenaufträge eines Mitarbeiters per Update beenden.
      *
      * Hinweis Praxis-Test:
-     * - Nebenauftraege werden **nicht automatisch** gestoppt, wenn ein Hauptauftrag gestartet/gestoppt wird.
-     * - Mitarbeiter stoppen Nebenauftraege bewusst manuell.
+     * - Nebenaufträge werden **nicht automatisch** gestoppt, wenn ein Hauptauftrag gestartet/gestoppt wird.
+     * - Mitarbeiter stoppen Nebenaufträge bewusst manuell.
      *
      * Soft-fail: darf keinen Ablauf blockieren.
      */

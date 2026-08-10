@@ -1030,7 +1030,7 @@ class KonfigurationController
                             $v6wBis = $dt->modify('+41 days')->format('Y-m-d');
                             $v6wKkVon = $dt->modify('+42 days')->format('Y-m-d');
                         } catch (Throwable) {
-                            // defensiv: keine Vorschlaege anzeigen
+                            // defensiv: keine Vorschläge anzeigen
                         }
                     }
                     $v6wVonAnzeige = $formatKrankDatumAnzeige($v6wVon);

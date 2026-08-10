@@ -11,7 +11,7 @@ v7 komplett.
 
 ## 1. Grundmodell
 
-- **Rolle:** Buendel von Rechten (z. B. `Schichtleiter`, `Personalbuero`).
+- **Rolle:** Bündel von Rechten (z. B. `Schichtleiter`, `Personalbuero`).
 - **Recht:** konkrete Faehigkeit (z. B. „Urlaub genehmigen").
 - **Scope/Bereich:** *wofür* ein Recht gilt (global oder Abteilung, optional
   inklusive Unterabteilungen).
@@ -26,7 +26,7 @@ Tabellen:
   behandelt.
 - `mitarbeiter_hat_rolle_scope` – scoped Rollenzuweisung (siehe 3).
 - `mitarbeiter_hat_recht` – gezielte Ausnahmen je Mitarbeiter. Die Spalte
-  `erlaubt` entscheidet: `1` gewaehrt zusätzlich, `0` entzieht trotz Rolle.
+  `erlaubt` entscheidet: `1` gewährt zusätzlich, `0` entzieht trotz Rolle.
 - `mitarbeiter_genehmiger` – siehe 5.
 
 ## 2. Chef darf immer alles (Superuser-Pflicht)
@@ -71,7 +71,7 @@ Scope-Prüfung – **so ist es gedacht, so ist es noch nicht gebaut**
   *(nicht umgesetzt – die Spalte wird gespeichert, aber nie gelesen)*
 
 Für sehr grosse Baeume könnte später eine Materialized-Path-Spalte oder eine
-Closure-Tabelle ergaenzt werden; für den aktuellen Umfang reicht rekursives
+Closure-Tabelle ergänzt werden; für den aktuellen Umfang reicht rekursives
 Traversieren.
 
 ## 4. Zentrale Rechteprüfung (Pflicht)
@@ -102,16 +102,18 @@ Die effektiven Codes (`ladeRechteCodesAusDb()`) entstehen so:
 1. Rollen aus `mitarbeiter_hat_rolle` **und** aus `mitarbeiter_hat_rolle_scope`
    – dort aber **nur Zeilen mit `scope_typ = 'global'`**.
 2. Rechte je Rolle aus `rolle_hat_recht`, nur `recht.aktiv = 1`.
-3. Overrides aus `mitarbeiter_hat_recht`: `erlaubt = 1` gewaehrt zusätzlich
+3. Overrides aus `mitarbeiter_hat_recht`: `erlaubt = 1` gewährt zusätzlich
    (auch ohne Rollenrecht), `erlaubt = 0` entzieht. **Entzug gewinnt**, und
    Overrides stechen Rollen.
 4. Caching pro Session; der Cache wird verworfen, wenn sich die Mitarbeiter-ID
    ändert.
 
-**Was daraus folgt und leicht übersehen wird:** Eine Rollenzuweisung mit
-`scope_typ = 'abteilung'` gewaehrt derzeit **gar nichts**. Sie lässt sich in
-der Mitarbeiterverwaltung anlegen, `gilt_unterbereiche` wird gespeichert – aber
-`hatRecht()` sieht sie nie an. Siehe B-093 im Status-Snapshot.
+**Was daraus folgt:** Eine Rollenzuweisung mit `scope_typ = 'abteilung'`
+gewährt derzeit **gar nichts** – `hatRecht()` sieht sie nie an. Seit
+P-2026-08-10-25 ist die Auswahl in der Mitarbeiterverwaltung deshalb gesperrt
+(`MitarbeiterAdminController::SCOPE_ABTEILUNG_AKTIV`), damit niemand Rechte
+vergibt, die nicht greifen. Bestehende Zeilen bleiben lesbar und löschbar.
+Siehe B-093 im Status-Snapshot.
 
 ## 5. Genehmiger sind personenzentriert, nicht abteilungsgebunden
 
@@ -121,7 +123,7 @@ Tabelle `mitarbeiter_genehmiger`:
 - `genehmiger_mitarbeiter_id` – wer genehmigen darf
 - `prioritaet` – 1 = Hauptgenehmiger, 2 = Stellvertretung, …
 
-Urlaubsantraege dürfen genehmigt/abgelehnt werden von den eingetragenen
+Urlaubsanträge dürfen genehmigt/abgelehnt werden von den eingetragenen
 Genehmigern **oder** von Mitarbeitern mit der Rolle `Chef` (globale
 Genehmigungsrolle). Das Modell ist unabhängig von Abteilungsgrenzen und bildet
 reale Vorgesetztenstrukturen ab.
@@ -138,7 +140,7 @@ reale Vorgesetztenstrukturen ab.
 
 - Scoped Rollen zuweisen: Rolle + Bereich (global/Abteilung) +
   „Unterabteilungen einschließen".
-- Optional Overrides (allow/deny) mit Begruendung.
+- Optional Overrides (allow/deny) mit Begründung.
 
 **Pflichtseite „Effektive Rechte"**
 
@@ -147,7 +149,7 @@ reale Vorgesetztenstrukturen ab.
 
 **Genehmiger**
 
-- Liste aller Mitarbeiter, Klick auf einen zeigt seine Genehmiger-Eintraege
+- Liste aller Mitarbeiter, Klick auf einen zeigt seine Genehmiger-Einträge
   (Name, Prioritaet, ggf. Kommentar), mit „Genehmiger hinzufuegen" und
   „Entfernen".
 - Optional die umgekehrte Ansicht „Wen darf dieser Mitarbeiter genehmigen?".

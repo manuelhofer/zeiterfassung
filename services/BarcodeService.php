@@ -5,14 +5,14 @@ declare(strict_types=1);
  * BarcodeService
  *
  * Erzeugt Strichcodes (Code 128) für Auftragsnummern, Arbeitsschritt-Codes und
- * Katalogeintraege – siehe `docs/spezifikation_auftrag_barcode_laufkarte.md`.
+ * Katalogeinträge – siehe `docs/spezifikation_auftrag_barcode_laufkarte.md`.
  *
  * **Warum Code 128 und nicht QR:** Im Betrieb sind 1D-Handscanner im Einsatz,
  * und die Maschinen-Codes des Projekts sind ebenfalls Code 128
  * (`MaschineQrCodeService::erzeugeBarcodePng`). Ein einziger Codetyp bedeutet:
  * ein Scannertyp, keine Sonderfaelle. Code 128 kann Buchstaben, Ziffern und
  * Sonderzeichen, deshalb steht im Strichcode weiterhin **der Code selbst**
- * (z. B. `fraesen`) – es braucht keine kuenstliche Nummer.
+ * (z. B. `fraesen`) – es braucht keine künstliche Nummer.
  *
  * Zwei Ausgabewege, weil zwei Ziele bedient werden:
  * - `stelleBildBereit()` schreibt eine PNG-Datei unterhalb von `public/` für
@@ -30,7 +30,7 @@ class BarcodeService
     /** Standard-Speicherort unterhalb von `public/`, per Konfiguration aenderbar. */
     private const STANDARD_REL_PFAD = 'uploads/auftrag_codes';
 
-    /** Modulbreite und Hoehe der erzeugten PNG-Dateien (Bildschirmanzeige). */
+    /** Modulbreite und Höhe der erzeugten PNG-Dateien (Bildschirmanzeige). */
     private const PNG_MODULBREITE = 2;
     private const PNG_HOEHE = 60;
 
@@ -55,7 +55,7 @@ class BarcodeService
      *
      * @param string      $nutzdaten   Inhalt des Codes (z. B. `fraesen`)
      * @param string      $dateiname   Dateiname ohne Pfad (z. B. `schritt_12.png`)
-     * @param string|null $geändertAm Änderungszeitpunkt des Datensatzes (Y-m-d H:i:s)
+     * @param string|null $geaendertAm Änderungszeitpunkt des Datensatzes (Y-m-d H:i:s)
      *
      * @return string|null Pfad relativ zu `public/`, oder null bei Fehler
      */
@@ -124,7 +124,7 @@ class BarcodeService
      * - `breite`  Gesamtbreite in Modulen (Grundlage für die Skalierung)
      * - `balken`  Liste dunkler Balken als `['start' => Modul, 'breite' => Module]`
      *
-     * Gedacht für die PDFs: jeder Balken wird dort ein gefuelltes Rechteck.
+     * Gedacht für die PDFs: jeder Balken wird dort ein gefülltes Rechteck.
      * Bei einem Fehler kommt eine leere Liste zurück, damit ein einzelner
      * kaputter Code nie das ganze Dokument verhindert.
      *
@@ -266,7 +266,7 @@ class BarcodeService
             $konfig = KonfigurationService::getInstanz();
             $wert = $konfig->get('auftrag_code_rel_pfad', null);
 
-            // Rückfall auf den alten Schluessel: Der Wert hiess bis
+            // Rückfall auf den alten Schlüssel: Der Wert hiess bis
             // P-2026-08-08-24 `auftrag_qr_rel_pfad`. Installationen, die die
             // Migration noch nicht eingespielt haben, sollen trotzdem ihren
             // eingestellten Pfad behalten statt auf den Standard zu fallen.

@@ -79,7 +79,7 @@ class MitarbeiterAdminController
      * Diese Hilfsroutine vermeidet Code-Duplikate im Save-Flow.
      *
      * @param array<string,mixed> $mitarbeiter
-     * @param array<int,int> $rollenIdsAusgewählt
+     * @param array<int,int> $rollenIdsAusgewaehlt
      */
     private function renderFormMitFehler(array $mitarbeiter, string $fehlermeldung, array $rollenIdsAusgewaehlt): void
     {
