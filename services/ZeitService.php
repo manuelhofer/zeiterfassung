@@ -148,7 +148,8 @@ class ZeitService
     /**
      * Interne Hilfsmethode zum Buchen einer Zeit (Kommen/Gehen).
      *
-     * @return int|null ID der erzeugten Zeitbuchung oder null bei Fehler
+     * @return int|null ID der erzeugten Zeitbuchung, 0 bei Ablage in der
+     *                  Offline-Queue, null bei Fehler – siehe `bucheKommen()`.
      */
     private function bucheZeit(
         int $mitarbeiterId,
@@ -266,7 +267,14 @@ class ZeitService
     /**
      * Bucht ein „Kommen“ für einen Mitarbeiter.
      *
-     * @return int|null ID der neuen Zeitbuchung oder null bei Fehler
+     * Drei Rückgaben, nicht zwei:
+     * - **> 0** – ID der neuen Zeitbuchung (Hauptdatenbank erreichbar).
+     * - **0** – die Buchung liegt in der Offline-Queue und wird später
+     *   eingespielt. Für den Benutzer ein Erfolg, nur eben ohne ID.
+     * - **null** – fehlgeschlagen.
+     *
+     * Wer nur auf `null` prüft, behandelt den Offline-Fall richtig; wer auf
+     * `> 0` prüft, meldet ihn fälschlich als Fehler.
      */
     public function bucheKommen(
         int $mitarbeiterId,
@@ -282,7 +290,14 @@ class ZeitService
     /**
      * Bucht ein „Gehen“ für einen Mitarbeiter.
      *
-     * @return int|null ID der neuen Zeitbuchung oder null bei Fehler
+     * Drei Rückgaben, nicht zwei:
+     * - **> 0** – ID der neuen Zeitbuchung (Hauptdatenbank erreichbar).
+     * - **0** – die Buchung liegt in der Offline-Queue und wird später
+     *   eingespielt. Für den Benutzer ein Erfolg, nur eben ohne ID.
+     * - **null** – fehlgeschlagen.
+     *
+     * Wer nur auf `null` prüft, behandelt den Offline-Fall richtig; wer auf
+     * `> 0` prüft, meldet ihn fälschlich als Fehler.
      */
     public function bucheGehen(
         int $mitarbeiterId,

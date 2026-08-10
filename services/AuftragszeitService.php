@@ -171,7 +171,9 @@ class AuftragszeitService
      * - Schließt automatisch alle aktuell laufenden Hauptaufträge des Mitarbeiters.
      * - Versucht optional, zu einem bekannten Auftragscode die `auftrag_id` zu laden.
      *
-     * @return int|null ID der neuen Auftragszeit oder null bei Fehler/ungültigen Parametern
+     * @return int|null ID der neuen Auftragszeit, **0** bei Ablage in der
+     *                  Offline-Queue (Erfolg ohne ID), null bei Fehler. Wer auf
+     *                  `> 0` prüft, meldet den Offline-Fall fälschlich als Fehler.
      */
     public function starteAuftrag(int $mitarbeiterId, string $auftragscode, ?int $maschineId = null, ?string $arbeitsschrittCode = null): ?int
     {

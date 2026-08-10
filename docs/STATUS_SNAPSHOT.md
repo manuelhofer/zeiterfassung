@@ -52,7 +52,8 @@ den Stufenplan (Abschnitt 11).
   `QueueService`, `DbInjektionsqueueModel`. Zusammenführen – berührt den
   Offline-Pfad, deshalb nur mit Offline-Test.
 - Praxis-Test: Bugs und Anomalien sammeln, als Micro-Patches beheben.
-- Offen aus P-2026-08-08-02: Strichcode-Erzeugung und Terminal-Buchungsflows
-  sind unter PHP 8.5 noch nicht im Browser geprüft.
+- Offen aus P-2026-08-08-02: Terminal-Buchungsflows sind unter PHP 8.5 noch
+  nicht **im Browser** mit angemeldetem Mitarbeiter durchgeklickt. Die
+  Buchungslogik selbst ist seit P-2026-08-10-22 geprüft, online wie offline.
 - Auftragsmodul: Scan-Flow/UX nur bei Bedarf verfeinern.
 - Terminal (Auftrag): Stop-Detailmaske (Fallback) UX vereinfachen.

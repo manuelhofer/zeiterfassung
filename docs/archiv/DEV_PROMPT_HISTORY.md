@@ -70,6 +70,94 @@ in den Statusbericht.
   D-002 entfallen; die Regel selbst gilt weiter.)
 
 
+## P-2026-08-10-22 offline-pfad-durchgespielt
+
+### EINGELESEN
+- `core/OfflineQueueManager.php` vollständig, `services/ZeitService.php`
+  (Offline-Zweig), `services/QueueService.php`.
+- `docs/fachregeln/terminal_und_offline.md`, Abschnitt 5.
+- `config/config.php` und `sql/offline_db_schema.sql`.
+
+### DATEIEN
+- `services/ZeitService.php` (nur Docblocks)
+- `services/AuftragszeitService.php` (nur Docblock)
+- `docs/fachregeln/terminal_und_offline.md`
+- `docs/STATUS_SNAPSHOT.md`
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Eine Kommen-Buchung bei nicht erreichbarer Hauptdatenbank landet in der Queue
+und erscheint nach dem Wiederanlauf unverändert in `zeitbuchung`.
+
+### DONE
+Der Offline-Pfad stand seit P-2026-08-10-21 als „bewusst nicht erreicht" im
+Verlauf – er lässt sich aber sehr wohl lokal prüfen. Vorgehen: eine **Kopie**
+des Projekts im Scratchpad mit eigener `config.local.php`
+(`installation_typ = terminal`, Hauptdatenbank auf Port 59999, wo nichts
+lauscht). Die echte Konfiguration wurde nicht angefasst – nachgewiesen über
+`git status` und Prüfsumme.
+
+Drei Zustände durchgespielt:
+
+**1. Hauptdatenbank weg.** `istHauptdatenbankVerfuegbar()` liefert `false`,
+Offline-Datenbank erreichbar. `bucheKommen()` und `bucheGehen()` legen zwei
+Einträge `zeit_kommen`/`zeit_gehen` in `db_injektionsqueue` ab. Der `Logger`
+fällt korrekt auf `error_log()` zurück, weil `system_log` in der
+Hauptdatenbank liegt.
+
+**2. Hauptdatenbank zurück.** `QueueService::holeZustand()` meldet
+`offen=2, fehler=0, speicherort=offline`. Nach
+`verarbeiteOffeneEintraege()`: `offen=0, fehler=0`, beide Buchungen stehen mit
+korrektem Zeitstempel, Typ und `quelle=terminal` in `zeitbuchung`, beide
+Queue-Einträge auf `verarbeitet` mit `versuche=1`.
+
+**3. Störungsmodus.** Ein absichtlich kaputter Eintrag (`INSERT` in eine
+nicht existierende Tabelle) **vor** einem gültigen: Der kaputte wird auf
+`fehler` gesetzt, die Abarbeitung stoppt, und der Eintrag dahinter bleibt
+`offen` – er wurde nachweislich **nicht** ausgeführt. `holeZustand()` meldet
+`fehler=1` samt letztem Fehlereintrag, `terminal.php` würde den
+Störungsbildschirm zeigen.
+
+Damit ist auch P-2026-08-10-17 (`QueueService::holeZustand()`) in allen drei
+Zuständen belegt, nicht nur im Normalbetrieb.
+
+### Was der Test nebenbei zutage gebracht hat
+`bucheKommen()` liefert im Offline-Fall **0** – weder eine ID noch `null`. Alle
+fünf Aufrufstellen behandeln das richtig (`=== null` für Fehler, `=== 0` für
+offline), aber **kein Docblock erwähnte es**: Dort stand nur „ID der neuen
+Zeitbuchung oder null bei Fehler". Wer sich darauf verlässt und `> 0` prüft,
+zeigt einem Mitarbeiter, der gerade gestempelt hat, „Buchung fehlgeschlagen" –
+obwohl seine Zeit sicher in der Queue liegt.
+
+Docblocks in `ZeitService` (drei Stellen) und `AuftragszeitService`
+(`starteAuftrag`; `stoppeAuftrag` war bereits korrekt) ergänzt, dazu ein
+Abschnitt 10 in `docs/fachregeln/terminal_und_offline.md`.
+
+Ebenfalls bestätigt: **T-102** ist real – die eingespielten Buchungen haben
+`terminal_id = NULL`.
+
+### TEST
+Siehe DONE; alle Zahlen stammen aus dem Durchlauf. Anschließend aufgeräumt:
+zwei Testbuchungen aus `zeitbuchung` gelöscht (Zeitstempel 2099, damit sie
+nicht mit echten Daten zu verwechseln waren), Queue geleert, Projektkopie
+entfernt. Restbestand je 0, `config/` unverändert.
+
+### Gefundene Fehler im eigenen Entwurf
+Der erste Versuch wollte `config/config.local.php` **im Projekt** umschreiben
+und danach zurücksichern. Das ist die Datei mit den echten Zugangsdaten – ein
+abgebrochener Lauf hätte sie beschädigt zurückgelassen und die lokale Umgebung
+lahmgelegt. Stattdessen eine vollständige Kopie im Scratchpad; die kostet drei
+Megabyte und kann nichts kaputtmachen.
+
+### Was bewusst nicht erreicht wurde
+Der Weg **durch den Browser** (Kiosk, RFID-Anmeldung, Knopfdruck) ist weiterhin
+ungeprüft; dafür braucht es einen Chip oder echte Personaldaten. Geprüft ist
+die Schicht darunter – Service, Queue, Wiederanlauf.
+
+### NEXT
+T-106 und T-107 – zwei mechanische Punkte aus dem Aufräum-Durchgang.
+
+
 ## P-2026-08-10-21 aufraeum-durchgang-abgeschlossen
 
 ### EINGELESEN

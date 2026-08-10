@@ -261,3 +261,19 @@ gekoppelt, konnten sich normale Mitarbeiter nicht am Terminal anmelden (B-031).
 **Mehrdeutige numerische Codes** (Personalnummer vs. Mitarbeiter-ID) dürfen
 **nicht** still den falschen Mitarbeiter auswählen – bei Mehrdeutigkeit wird
 abgebrochen (B-036).
+
+## 10. Rückgabewerte der Buchungsdienste
+
+`ZeitService::bucheKommen()`/`bucheGehen()` und
+`AuftragszeitService::starteAuftrag()`/`stoppeAuftrag()` haben **drei**
+Ergebnisse, nicht zwei:
+
+| Rückgabe | Bedeutung |
+| --- | --- |
+| `> 0` | Hauptdatenbank erreichbar, Datensatz angelegt, Wert ist die ID |
+| `0` | Hauptdatenbank offline, Befehl liegt in der Queue – für den Benutzer ein **Erfolg** |
+| `null` | fehlgeschlagen |
+
+Wer nur auf `null` prüft, behandelt den Offline-Fall richtig. Wer auf `> 0`
+prüft, meldet ihn als Fehler – und ein Mitarbeiter, der gestempelt hat, bekommt
+„Buchung fehlgeschlagen" zu sehen, obwohl seine Zeit sicher in der Queue liegt.
