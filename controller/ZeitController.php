@@ -10,6 +10,9 @@ declare(strict_types=1);
  */
 class ZeitController
 {
+    /** Bereichsname fuer `Csrf` – siehe `core/Csrf.php`. */
+    private const CSRF_BEREICH_KORREKTUR = 'zeit_korrektur';
+
     private AuthService $authService;
     private ZeitService $zeitService;
 
@@ -81,18 +84,9 @@ class ZeitController
         $tag = $this->parseYmdOrToday($datumInput);
         $datumYmd = $tag->format('Y-m-d');
 
-        // CSRF Token für Korrektur
-        $csrfToken = '';
-        if ($darfKorrigieren) {
-            if (!isset($_SESSION['zeit_korrektur_csrf']) || !is_string($_SESSION['zeit_korrektur_csrf']) || $_SESSION['zeit_korrektur_csrf'] === '') {
-                try {
-                    $_SESSION['zeit_korrektur_csrf'] = bin2hex(random_bytes(32));
-                } catch (Throwable $e) {
-                    $_SESSION['zeit_korrektur_csrf'] = bin2hex((string)mt_rand());
-                }
-            }
-            $csrfToken = (string)$_SESSION['zeit_korrektur_csrf'];
-        }
+        // CSRF-Token für die Korrekturmaske – nur, wenn sie ueberhaupt
+        // angeboten wird.
+        $csrfToken = $darfKorrigieren ? Csrf::token(self::CSRF_BEREICH_KORREKTUR) : '';
 
         // Flash
         $flashOk = isset($_SESSION['zeit_korrektur_flash_ok']) ? (string)$_SESSION['zeit_korrektur_flash_ok'] : null;
@@ -121,10 +115,9 @@ class ZeitController
 
         // POST: Korrekturen nur mit Recht
         if ($darfKorrigieren && ($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {
-            $postToken = (string)($_POST['csrf'] ?? '');
             $aktion = (string)($_POST['aktion'] ?? '');
 
-            if ($csrfToken === '' || !hash_equals($csrfToken, $postToken)) {
+            if (!Csrf::istGueltig(self::CSRF_BEREICH_KORREKTUR)) {
                 $_SESSION['zeit_korrektur_flash_fehler'] = 'CSRF-Check fehlgeschlagen.';
                 $this->redirect($this->buildTagesansichtUrl($datumYmd, $zielMitarbeiterId, $darfAndereMitarbeiter, null));
                 return;

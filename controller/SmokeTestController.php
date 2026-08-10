@@ -12,6 +12,9 @@ declare(strict_types=1);
  */
 class SmokeTestController
 {
+    /** Bereichsname fuer `Csrf` – siehe `core/Csrf.php`. */
+    private const CSRF_BEREICH = 'smoke_test';
+
     private AuthService $auth;
     private ?Database $db = null;
 
@@ -781,16 +784,7 @@ class SmokeTestController
             session_start();
         }
 
-        $csrfKey = 'smoke_test_csrf_token';
-        $csrfToken = $_SESSION[$csrfKey] ?? null;
-        if (!is_string($csrfToken) || $csrfToken === '') {
-            try {
-                $csrfToken = bin2hex(random_bytes(32));
-            } catch (\Throwable) {
-                $csrfToken = bin2hex((string)mt_rand());
-            }
-            $_SESSION[$csrfKey] = $csrfToken;
-        }
+        $csrfToken = Csrf::token(self::CSRF_BEREICH);
 
         $flashKey = 'smoke_test_flash';
         $smokeFlash = $_SESSION[$flashKey] ?? null;
@@ -824,8 +818,7 @@ class SmokeTestController
 
         // Aktion: Offline-Queue Roundtrip (harmloses SQL `DO 1`)
         if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST' && (string)($_POST['action'] ?? '') === 'queue_roundtrip') {
-            $postToken = (string)($_POST['csrf_token'] ?? '');
-            if (!hash_equals((string)$csrfToken, $postToken)) {
+            if (!Csrf::istGueltig(self::CSRF_BEREICH)) {
                 $_SESSION[$flashKey] = 'CSRF-Token ungültig – Aktion abgebrochen.';
             } else {
                 $msg = null;
@@ -1972,8 +1965,7 @@ class SmokeTestController
                 $pdfDbMultiListLimit = 20;
             }
 
-            $postToken = (string)($_POST['csrf_token'] ?? '');
-            if ($postToken === '' || !hash_equals((string)$csrfToken, $postToken)) {
+            if (!Csrf::istGueltig(self::CSRF_BEREICH)) {
                 $pdfDbMultiListHinweis = 'CSRF-Token ungültig – Aktion abgebrochen.';
             } elseif ($this->db === null) {
                 $pdfDbMultiListHinweis = 'Database::getInstanz() ist nicht verfügbar.';
@@ -2187,8 +2179,7 @@ class SmokeTestController
                 $pdfDbMultiWindowMonate = 24;
             }
 
-            $postToken = (string)($_POST['csrf_token'] ?? '');
-            if ($postToken === '' || !hash_equals((string)$csrfToken, $postToken)) {
+            if (!Csrf::istGueltig(self::CSRF_BEREICH)) {
                 $pdfDbMultiHinweis = 'CSRF-Token ungültig – Aktion abgebrochen.';
             } elseif ($this->db === null) {
                 $pdfDbMultiHinweis = 'Database::getInstanz() ist nicht verfügbar.';

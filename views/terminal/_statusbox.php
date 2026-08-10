@@ -186,12 +186,9 @@ if (!empty($_SESSION['terminal_debug_aktiv'])) {
     $startUrl .= '&debug=1';
 }
 
-$csrf = '';
-if (isset($csrfToken) && is_string($csrfToken) && $csrfToken !== '') {
-    $csrf = $csrfToken;
-} elseif (isset($_SESSION['terminal_csrf_token']) && is_string($_SESSION['terminal_csrf_token']) && (string)$_SESSION['terminal_csrf_token'] !== '') {
-    $csrf = (string)$_SESSION['terminal_csrf_token'];
-}
+$csrf = (isset($csrfToken) && is_string($csrfToken) && $csrfToken !== '')
+    ? $csrfToken
+    : Csrf::token(TerminalController::CSRF_BEREICH);
 
 ?>
 

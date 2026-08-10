@@ -20,12 +20,11 @@ if ($letzterAuftragTyp !== '' && $letzterAuftragTyp !== 'haupt') {
 }
 $letzterAuftragCode = (is_array($letzterAuftrag) && isset($letzterAuftrag['auftragscode']) && is_string($letzterAuftrag['auftragscode'])) ? trim($letzterAuftrag['auftragscode']) : '';
 
-$csrfToken = (isset($csrfToken) && is_string($csrfToken)) ? $csrfToken : (string)($_SESSION['terminal_csrf_token'] ?? '');
-if ($csrfToken === '') {
-    // Fallback: falls Controller den Token nicht liefert (sollte normal nicht passieren)
-    $csrfToken = bin2hex(random_bytes(32));
-    $_SESSION['terminal_csrf_token'] = $csrfToken;
-}
+// Der Controller reicht den Token normalerweise durch; `Csrf::token()` legt
+// ihn sonst an. Beides fuehrt zum selben Token des Bereichs.
+$csrfToken = (isset($csrfToken) && is_string($csrfToken) && $csrfToken !== '')
+    ? $csrfToken
+    : Csrf::token(TerminalController::CSRF_BEREICH);
 
 $letzterAuftragStatus = (is_array($letzterAuftrag) && isset($letzterAuftrag['status']) && is_string($letzterAuftrag['status'])) ? (string)$letzterAuftrag['status'] : '';
 $letzterIstLaufend = ($letzterAuftragCode !== '' && $letzterAuftragStatus === 'laufend');

@@ -68,6 +68,18 @@ class Csrf
     }
 
     /**
+     * Verwirft das Token eines Bereichs.
+     *
+     * Gebraucht beim Abmelden am Terminal: Der naechste Nutzer soll ein
+     * frisches Token bekommen und nicht das des Vorgaengers weiterverwenden.
+     */
+    public static function verwerfe(string $bereich): void
+    {
+        self::stelleSessionSicher();
+        unset($_SESSION[self::sessionSchluessel($bereich)]);
+    }
+
+    /**
      * Liefert das fertige versteckte Formularfeld.
      *
      * Spart in jeder Maske dieselbe Zeile aus `htmlspecialchars` und

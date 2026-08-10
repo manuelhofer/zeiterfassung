@@ -21,6 +21,9 @@ declare(strict_types=1);
  */
 class TerminalEinrichtungController
 {
+    /** Bereichsname fuer `Csrf` – siehe `core/Csrf.php`. */
+    private const CSRF_BEREICH = 'terminal_einrichtung';
+
     /** Zeitlimit fuer den Aufruf des Backends (Sekunden). */
     private const ANFRAGE_TIMEOUT = 20;
 
@@ -103,7 +106,7 @@ class TerminalEinrichtungController
 
         $werte = ['serveradresse' => $adresse, 'kopplungscode' => $code];
 
-        if (!$this->istCsrfGueltig()) {
+        if (!Csrf::istGueltig(self::CSRF_BEREICH)) {
             $this->zeigeFormular('Die Sitzung ist abgelaufen. Bitte die Eingaben wiederholen.', $werte);
             return;
         }
@@ -641,7 +644,7 @@ class TerminalEinrichtungController
      */
     private function zeigeFormular(?string $fehlermeldung = null, array $werte = [], ?string $abtippInhalt = null): void
     {
-        $csrfToken       = $this->holeOderErzeugeCsrfToken();
+        $csrfToken       = Csrf::token(self::CSRF_BEREICH);
         $formularwerte   = $werte;
         $konfigPfad      = self::konfigPfad();
         $verzeichnisOk   = is_dir(dirname($konfigPfad)) && is_writable(dirname($konfigPfad));
@@ -682,28 +685,4 @@ class TerminalEinrichtungController
     // CSRF (gleiches Muster wie im TerminalController)
     // ------------------------------------------------------------------
 
-    private function holeOderErzeugeCsrfToken(): string
-    {
-        $token = $_SESSION['terminal_einrichtung_csrf'] ?? '';
-        if (is_string($token) && strlen($token) >= 20) {
-            return $token;
-        }
-
-        $token = bin2hex(random_bytes(16));
-        $_SESSION['terminal_einrichtung_csrf'] = $token;
-
-        return $token;
-    }
-
-    private function istCsrfGueltig(): bool
-    {
-        $post = (string)($_POST['csrf_token'] ?? '');
-        $sess = $_SESSION['terminal_einrichtung_csrf'] ?? '';
-
-        if (!is_string($sess) || $sess === '' || $post === '') {
-            return false;
-        }
-
-        return hash_equals($sess, $post);
-    }
 }

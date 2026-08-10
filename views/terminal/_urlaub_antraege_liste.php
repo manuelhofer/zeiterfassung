@@ -21,11 +21,8 @@ if (!is_array($urlaubsantraege)) {
 $csrfToken = isset($csrfToken) && is_string($csrfToken) ? $csrfToken : '';
 
 // Defensive: falls eine View den Token nicht durchreicht, versuchen wir, ihn aus der Session zu laden.
-if (($csrfToken === '' || strlen($csrfToken) < 20) && session_status() === PHP_SESSION_ACTIVE) {
-    $sessToken = $_SESSION['terminal_csrf_token'] ?? '';
-    if (is_string($sessToken) && strlen($sessToken) >= 20) {
-        $csrfToken = $sessToken;
-    }
+if ($csrfToken === '' || strlen($csrfToken) < 20) {
+    $csrfToken = Csrf::token(TerminalController::CSRF_BEREICH);
 }
 
 $urlaubListeOpen = isset($urlaubListeOpen) ? (bool)$urlaubListeOpen : true;

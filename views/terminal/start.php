@@ -43,8 +43,8 @@ $csrfToken = isset($csrfToken) && is_string($csrfToken) ? $csrfToken : '';
 // Defensive: einige Controller-Pfade rendern den Startscreen ohne explizit
 // $csrfToken zu setzen. Wenn der Token bereits in der Session existiert,
 // nutzen wir ihn, damit POST-Formulare weiterhin funktionieren.
-if ($csrfToken === '' && isset($_SESSION['terminal_csrf_token']) && is_string($_SESSION['terminal_csrf_token'])) {
-    $csrfToken = (string)$_SESSION['terminal_csrf_token'];
+if ($csrfToken === '') {
+    $csrfToken = Csrf::token(TerminalController::CSRF_BEREICH);
 }
 
 $zeigeUrlaubFormular = (bool)($zeigeUrlaubFormular ?? false);

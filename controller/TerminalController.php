@@ -14,46 +14,17 @@ declare(strict_types=1);
  */
 class TerminalController
 {
+    /**
+     * Bereichsname fuer `Csrf` – siehe `core/Csrf.php`.
+     *
+     * Oeffentlich, weil die Terminal-Partials in `views/terminal/` den Token
+     * ebenfalls brauchen, wenn ein Controller-Pfad ihn nicht durchreicht.
+     */
+    public const CSRF_BEREICH = 'terminal';
+
     private AuftragszeitService $auftragszeitService;
     private ZeitService $zeitService;
     private Database $datenbank;
-
-    /**
-     * Sehr einfaches CSRF-Token (nur für Terminal-POSTs).
-     *
-     * Hinweis:
-     * - Das Terminal ist meist ein internes Kiosk-System.
-     * - Trotzdem vermeiden wir damit versehentliche/unerwünschte POSTs.
-     */
-    private function holeOderErzeugeCsrfToken(): string
-    {
-        $token = $_SESSION['terminal_csrf_token'] ?? '';
-        if (is_string($token) && strlen($token) >= 20) {
-            return $token;
-        }
-
-        try {
-            $token = bin2hex(random_bytes(16));
-        } catch (Throwable $e) {
-            // Fallback, sollte in der Praxis nie nötig sein
-            $token = bin2hex(pack('N', time())) . bin2hex(pack('N', random_int(1, PHP_INT_MAX)));
-        }
-
-        $_SESSION['terminal_csrf_token'] = $token;
-        return $token;
-    }
-
-    private function istCsrfTokenGueltigAusPost(): bool
-    {
-        $post = isset($_POST['csrf_token']) ? (string)$_POST['csrf_token'] : '';
-        $sess = $_SESSION['terminal_csrf_token'] ?? '';
-
-        if (!is_string($sess) || $sess === '' || !is_string($post) || $post === '') {
-            return false;
-        }
-
-        return hash_equals($sess, $post);
-    }
 
     /**
      * T-069: De-Bounce gegen Doppelbuchungen am Terminal (Doppelklick / Doppel-Scan).
@@ -1394,10 +1365,10 @@ class TerminalController
         // Kein Caching – wir wollen keine „Zurück“-Effekte beim Kiosk.
         header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
 
-        $csrfToken = $this->holeOderErzeugeCsrfToken();
+        $csrfToken = Csrf::token(self::CSRF_BEREICH);
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            if (!$this->istCsrfTokenGueltigAusPost()) {
+            if (!Csrf::istGueltig(self::CSRF_BEREICH)) {
                 $_SESSION['terminal_flash_fehler'] = 'Ungültiges CSRF-Token.';
                 header('Location: terminal.php?aktion=start');
                 exit;
@@ -1448,7 +1419,7 @@ class TerminalController
         unset($_SESSION['terminal_anwesend_zeit']);
 
         // Token bewusst verwerfen, damit der naechste Nutzer einen frischen Token bekommt.
-        unset($_SESSION['terminal_csrf_token']);
+        Csrf::verwerfe(self::CSRF_BEREICH);
 
         // Debug-Flag nicht in Produktion "kleben" lassen
         unset($_SESSION['terminal_debug_aktiv']);
@@ -1541,7 +1512,7 @@ class TerminalController
      */
     public function offlineInfo(): void
     {
-        $csrfToken = $this->holeOderErzeugeCsrfToken();
+        $csrfToken = Csrf::token(self::CSRF_BEREICH);
         $queueStatus = $_SESSION['terminal_queue_status'] ?? null;
 
         $qsOffen = 0;
@@ -1580,7 +1551,7 @@ class TerminalController
 
         // CSRF-Token für Terminal-POSTs (Login, Kommen/Gehen, Aufträge, ...)
         // Wird in mehreren Formularen des Startscreens genutzt.
-        $csrfToken = $this->holeOderErzeugeCsrfToken();
+        $csrfToken = Csrf::token(self::CSRF_BEREICH);
 
         // Legacy-Logout (GET) darf nicht mutieren: wir leiten sauber auf die Logout-Aktion um.
         if (isset($_GET['logout'])) {
@@ -1834,7 +1805,7 @@ class TerminalController
         // Login-Versuch per POST
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             // Login mutiert die Session → ebenfalls CSRF schützen (Token ist bereits im Formular vorhanden).
-            if (!$this->istCsrfTokenGueltigAusPost()) {
+            if (!Csrf::istGueltig(self::CSRF_BEREICH)) {
                 $fehlerText = 'Ungültiges CSRF-Token.';
             } else {
                 // Optional: Hinweis „RFID unbekannt“ am Terminal loeschen.
@@ -2571,7 +2542,7 @@ class TerminalController
         $nachricht  = $meldung;
         $fehlerText = $fehlermeldung;
         $terminalTimeoutSekunden = $this->holeTerminalTimeoutSekunden('standard');
-        $csrfToken = $this->holeOderErzeugeCsrfToken();
+        $csrfToken = Csrf::token(self::CSRF_BEREICH);
         // Monatsstatus (fuer Mitarbeiterpanel in Auftrag-Views): Soll Monat / Soll bis heute / IST bis heute.
         $monatsStatus = null;
 
@@ -2599,7 +2570,7 @@ class TerminalController
         }
 
 
-        if (!$this->istCsrfTokenGueltigAusPost()) {
+        if (!Csrf::istGueltig(self::CSRF_BEREICH)) {
             $this->auftragStartenForm(null, 'Ungültiges Formular-Token (CSRF). Bitte erneut versuchen.');
             return;
         }
@@ -2702,7 +2673,7 @@ class TerminalController
         $nachricht  = $meldung;
         $fehlerText = $fehlermeldung;
         $terminalTimeoutSekunden = $this->holeTerminalTimeoutSekunden('standard');
-        $csrfToken = $this->holeOderErzeugeCsrfToken();
+        $csrfToken = Csrf::token(self::CSRF_BEREICH);
         // Monatsstatus (fuer Mitarbeiterpanel in Auftrag-Views): Soll Monat / Soll bis heute / IST bis heute.
         $monatsStatus = null;
 
@@ -2733,7 +2704,7 @@ class TerminalController
             return;
         }
 
-        if (!$this->istCsrfTokenGueltigAusPost()) {
+        if (!Csrf::istGueltig(self::CSRF_BEREICH)) {
             $_SESSION['terminal_flash_fehler'] = 'Ungültiges Formular-Token (CSRF). Bitte erneut versuchen.';
             header('Location: terminal.php?aktion=start');
             exit;
@@ -2840,7 +2811,7 @@ class TerminalController
         }
 
 
-        if (!$this->istCsrfTokenGueltigAusPost()) {
+        if (!Csrf::istGueltig(self::CSRF_BEREICH)) {
             $this->auftragStoppenForm(null, 'Ungültiges Formular-Token (CSRF). Bitte erneut versuchen.');
             return;
         }
@@ -3052,7 +3023,7 @@ class TerminalController
         }
 
         $terminalTimeoutSekunden = $this->holeTerminalTimeoutSekunden('standard');
-        $csrfToken = $this->holeOderErzeugeCsrfToken();
+        $csrfToken = Csrf::token(self::CSRF_BEREICH);
         // Monatsstatus (fuer Mitarbeiterpanel am Startscreen im Nebenauftrag-Flow).
         $monatsStatus = null;
         if ($this->istHauptdatenbankAktiv() && isset($mitarbeiter['id'])) {
@@ -3078,7 +3049,7 @@ class TerminalController
             return;
         }
 
-        if (!$this->istCsrfTokenGueltigAusPost()) {
+        if (!Csrf::istGueltig(self::CSRF_BEREICH)) {
             $this->nebenauftragStartenForm(null, 'Ungültiges Formular-Token (CSRF). Bitte erneut versuchen.', [
                 'auftragscode' => isset($_POST['auftragscode']) ? (string)$_POST['auftragscode'] : '',
                 'arbeitsschritt_code' => isset($_POST['arbeitsschritt_code']) ? (string)$_POST['arbeitsschritt_code'] : '',
@@ -3222,7 +3193,7 @@ class TerminalController
         }
 
         $terminalTimeoutSekunden = $this->holeTerminalTimeoutSekunden('standard');
-        $csrfToken = $this->holeOderErzeugeCsrfToken();
+        $csrfToken = Csrf::token(self::CSRF_BEREICH);
         // Monatsstatus (fuer Mitarbeiterpanel am Startscreen im Nebenauftrag-Stop-Flow).
         $monatsStatus = null;
         if ($this->istHauptdatenbankAktiv() && isset($mitarbeiter['id'])) {
@@ -3247,7 +3218,7 @@ class TerminalController
             return;
         }
 
-        if (!$this->istCsrfTokenGueltigAusPost()) {
+        if (!Csrf::istGueltig(self::CSRF_BEREICH)) {
             $this->nebenauftragStoppenForm(null, 'Ungültiges Formular-Token (CSRF). Bitte erneut versuchen.');
             return;
         }
@@ -3737,7 +3708,7 @@ class TerminalController
         }
 
         $terminalTimeoutSekunden = $this->holeTerminalTimeoutSekunden('standard');
-        $csrfToken = $this->holeOderErzeugeCsrfToken();
+        $csrfToken = Csrf::token(self::CSRF_BEREICH);
 
         // Monatsstatus (Mitarbeiterpanel): Soll Monat / Soll bis heute / IST bis heute (nur online).
         $monatsStatus = null;
@@ -3785,7 +3756,7 @@ class TerminalController
             exit;
         }
 
-        if (!$this->istCsrfTokenGueltigAusPost()) {
+        if (!Csrf::istGueltig(self::CSRF_BEREICH)) {
             $this->rfidZuweisenForm('Ungültiges Formular-Token (CSRF). Bitte erneut versuchen.', [
                 'ziel_mitarbeiter_id' => isset($_POST['ziel_mitarbeiter_id']) ? (string)$_POST['ziel_mitarbeiter_id'] : '',
                 'rfid_code'           => isset($_POST['rfid_code']) ? (string)$_POST['rfid_code'] : '',
@@ -3937,7 +3908,7 @@ class TerminalController
         ];
 
 
-        $csrfToken = $this->holeOderErzeugeCsrfToken();
+        $csrfToken = Csrf::token(self::CSRF_BEREICH);
 
         // Letzte Anträge anzeigen (T-012)
         $urlaubsantraege = [];
@@ -4103,7 +4074,7 @@ $urlaubSaldo = null;
             return;
         }
 
-        if (!$this->istCsrfTokenGueltigAusPost()) {
+        if (!Csrf::istGueltig(self::CSRF_BEREICH)) {
             $this->urlaubBeantragenForm('Sicherheits-Token ist abgelaufen. Bitte erneut versuchen.', [
                 'von_datum'             => (string)($_POST['von_datum'] ?? ''),
                 'bis_datum'             => (string)($_POST['bis_datum'] ?? ''),
@@ -4272,7 +4243,7 @@ $urlaubSaldo = null;
             return;
         }
 
-        if (!$this->istCsrfTokenGueltigAusPost()) {
+        if (!Csrf::istGueltig(self::CSRF_BEREICH)) {
             $_SESSION['terminal_flash_fehler'] = 'Sicherheits-Token ist abgelaufen. Bitte erneut versuchen.';
             header('Location: terminal.php?aktion=urlaub_beantragen');
             return;
@@ -4353,7 +4324,7 @@ $urlaubSaldo = null;
             header('Location: terminal.php?aktion=start');
             exit;
         }
-        if (!$this->istCsrfTokenGueltigAusPost()) {
+        if (!Csrf::istGueltig(self::CSRF_BEREICH)) {
             $_SESSION['terminal_flash_fehler'] = 'Ungültiges CSRF-Token.';
             header('Location: terminal.php?aktion=start');
             exit;
@@ -4405,7 +4376,7 @@ $urlaubSaldo = null;
 
             $nachricht  = null;
             $fehlerText = 'Bitte zuerst am Terminal anmelden (RFID).';
-            $csrfToken = $this->holeOderErzeugeCsrfToken();
+            $csrfToken = Csrf::token(self::CSRF_BEREICH);
             require __DIR__ . '/../views/terminal/start.php';
             return;
         }
@@ -4537,7 +4508,7 @@ $urlaubSaldo = null;
             header('Location: terminal.php?aktion=start');
             exit;
         }
-        if (!$this->istCsrfTokenGueltigAusPost()) {
+        if (!Csrf::istGueltig(self::CSRF_BEREICH)) {
             $_SESSION['terminal_flash_fehler'] = 'Ungültiges CSRF-Token.';
             header('Location: terminal.php?aktion=start');
             exit;
@@ -4589,7 +4560,7 @@ $urlaubSaldo = null;
 
             $nachricht  = null;
             $fehlerText = 'Bitte zuerst am Terminal anmelden (RFID).';
-            $csrfToken = $this->holeOderErzeugeCsrfToken();
+            $csrfToken = Csrf::token(self::CSRF_BEREICH);
             require __DIR__ . '/../views/terminal/start.php';
             return;
         }

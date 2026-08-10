@@ -70,6 +70,91 @@ in den Statusbericht.
   D-002 entfallen; die Regel selbst gilt weiter.)
 
 
+## P-2026-08-10-14 csrf-umstellung-abgeschlossen
+
+### EINGELESEN
+- Die restlichen zehn Controller mit eigener CSRF-Mechanik, vollstaendig.
+- `views/terminal/_logout_form.php`, `_statusbox.php`,
+  `_urlaub_antraege_liste.php`, `auftrag_stoppen.php`, `start.php` – die
+  Partials, die den Token aus der Session lesen.
+- `views/zeit/tagesansicht.php` wegen des abweichenden Feldnamens.
+
+### DATEIEN
+17 Dateien: `core/Csrf.php` (um `verwerfe()` ergaenzt), zehn Controller, fuenf
+Terminal-Partials, `views/zeit/tagesansicht.php`.
+
+### AKZEPTANZKRITERIUM
+Kein Controller und keine View bauen mehr ein CSRF-Token oder einen
+Tokenvergleich selbst, und jedes POST-Formular im Backend und im Terminal
+traegt ein gueltiges Token.
+
+### DONE
+Die Umstellung ist abgeschlossen: **396 Zeilen entfernt, 134 hinzugefuegt.**
+`grep -rn hash_equals` findet ausserhalb von `core/Csrf.php` nichts mehr.
+
+Drei Funde, die beim blossen Ersetzen aufgefallen sind:
+
+**1. Fuenf Terminal-Partials lesen den Token direkt aus der Session.** Weil der
+Schluessel von `terminal_csrf_token` auf `csrf_token_terminal` wechselte,
+haetten sie ab sofort einen leeren Token geliefert – die Terminal-Formulare
+waeren stillschweigend unbrauchbar geworden. Sie holen ihn jetzt ueber
+`Csrf::token(TerminalController::CSRF_BEREICH)`; die Konstante ist dafuer
+`public`.
+
+**2. `views/terminal/_logout_form.php` erzeugte im Notfall ein Token aus der
+Uhrzeit:**
+
+```php
+$csrfToken = bin2hex(pack('N', time())) . bin2hex(pack('N', random_int(1, PHP_INT_MAX)));
+```
+
+Die erste Haelfte ist der Unix-Zeitstempel im Klartext. Ersatzlos entfallen.
+
+**3. `views/zeit/tagesansicht.php` nannte das Feld `csrf` statt `csrf_token`**
+– an sieben Stellen. Ein blosses Umstellen des Controllers auf
+`Csrf::istGueltig()` (das `$_POST['csrf_token']` liest) haette die
+Tageskorrektur lautlos unbedienbar gemacht: Das Formular haette abgeschickt,
+die Pruefung waere immer fehlgeschlagen. Feldname vereinheitlicht.
+
+Ebenfalls eingesammelt: `ZeitController` und `SmokeTestController` hatten
+Tokenerzeugung ohne eigene Methode direkt im Ablauf stehen und waren im
+urspruenglichen Fund von 14 Kopien gar nicht enthalten.
+
+### TEST
+1. **18 Backend-Masken** mit angemeldeter Superuser-Session gerendert und jedes
+   `<form method="post">` im erzeugten HTML geprueft:
+   **16 POST-Formulare, 0 ohne gueltiges Token (64 Hexzeichen), 0 Ausnahmen.**
+   Darunter die Tagesansicht mit 5, die Rundungsregeln mit 4, die
+   Urlaubsverwaltung mit 2 und die Betriebsferien mit 2 Formularen.
+2. **Terminal ueber den echten Webserver:** 1 POST-Formular, 1 gueltiges Token,
+   kein leeres.
+3. Einheitentest von `Csrf`: richtiges Token gilt, fremdes/leeres/fehlendes
+   nicht, zwei Bereiche liefern verschiedene Tokens.
+4. `Csrf::istGueltig()` mit falschem Token gegen
+   `BetriebsferienAdminController::toggleAktiv()`: Aktion wurde abgewiesen,
+   der Datensatz blieb unveraendert.
+5. `php -l` ueber alle 17 Dateien sauber, Apache-Fehlerlog ohne neue Meldungen.
+
+### Gefundene Fehler im eigenen Entwurf
+Der Versuch, die Ablehnung **ueber den Webserver** am Terminal zu zeigen, war
+untauglich: `terminal.php?aktion=logout` leitet ohne angemeldeten Mitarbeiter
+in jedem Fall auf `aktion=start` um, mit richtigem wie mit falschem Token
+identisch (302 auf dieselbe Adresse). Der Test beweist also nichts. Der
+Nachweis der Ablehnung steht deshalb auf Punkt 3 und 4 – dort ist er echt.
+
+Zweitens hat mich die Groessenkontrolle des Diffs gerettet, nicht `php -l`:
+Nach dem Ersetzen zeigte `grep`, dass fuenf Views noch auf den alten
+Session-Schluessel zugriffen. Syntaktisch war alles tadellos.
+
+### Was bewusst nicht erreicht wurde
+Die Views bauen ihr verstecktes Feld weiter von Hand statt ueber
+`Csrf::feld()`. 70 Stellen, rein kosmetisch, kein eigener Patch wert – neue
+Formulare sollten `Csrf::feld()` benutzen.
+
+### NEXT
+P-2026-08-10-15: die beiden Konfigurationsdienste zusammenfuehren.
+
+
 ## P-2026-08-10-13 csrf-umstellung-teil-2
 
 ### EINGELESEN

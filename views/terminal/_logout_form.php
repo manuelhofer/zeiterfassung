@@ -20,20 +20,7 @@ $csrfToken = isset($csrfToken) && is_string($csrfToken) ? $csrfToken : '';
 // Wir versuchen daher zuerst, den Token aus der Session zu lesen.
 // Wenn es keinen gibt, erzeugen wir ihn analog zur TerminalController-Logik.
 if ($csrfToken === '' || strlen($csrfToken) < 20) {
-    if (session_status() === PHP_SESSION_ACTIVE) {
-        $sessToken = $_SESSION['terminal_csrf_token'] ?? '';
-        if (is_string($sessToken) && strlen($sessToken) >= 20) {
-            $csrfToken = $sessToken;
-        } else {
-            try {
-                $csrfToken = bin2hex(random_bytes(16));
-            } catch (Throwable $e) {
-                // Fallback, sollte in der Praxis nie nötig sein
-                $csrfToken = bin2hex(pack('N', time())) . bin2hex(pack('N', random_int(1, PHP_INT_MAX)));
-            }
-            $_SESSION['terminal_csrf_token'] = $csrfToken;
-        }
-    }
+    $csrfToken = Csrf::token(TerminalController::CSRF_BEREICH);
 }
 
 $logoutFormHidden = isset($logoutFormHidden) ? (bool)$logoutFormHidden : false;

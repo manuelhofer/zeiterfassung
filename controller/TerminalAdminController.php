@@ -8,7 +8,8 @@ declare(strict_types=1);
  */
 class TerminalAdminController
 {
-    private const CSRF_KEY = 'terminal_admin_csrf_token';
+    /** Bereichsname fuer `Csrf` – siehe `core/Csrf.php`. */
+    private const CSRF_BEREICH = 'terminal_admin';
     private const FLASH_OK_KEY = 'terminal_admin_flash_nachricht';
     private const FLASH_ERR_KEY = 'terminal_admin_flash_error';
     private const FLASH_CODE_KEY = 'terminal_admin_flash_kopplungscode';
@@ -25,28 +26,6 @@ class TerminalAdminController
         $this->datenbank     = Database::getInstanz();
         $this->terminalModel = new TerminalModel();
         $this->abteilungModel = new AbteilungModel();
-    }
-
-    /**
-     * Holt oder erzeugt ein CSRF-Token für Terminal-Admin-POST-Formulare.
-     */
-    private function holeOderErzeugeCsrfToken(): string
-    {
-        if (session_status() === PHP_SESSION_NONE) {
-            session_start();
-        }
-
-        $token = $_SESSION[self::CSRF_KEY] ?? null;
-        if (!is_string($token) || $token === '') {
-            try {
-                $token = bin2hex(random_bytes(32));
-            } catch (\Throwable) {
-                $token = bin2hex((string)mt_rand());
-            }
-            $_SESSION[self::CSRF_KEY] = $token;
-        }
-
-        return (string)$token;
     }
 
     /**
@@ -116,7 +95,7 @@ class TerminalAdminController
         $terminals = [];
 
         // CSRF-Token wird in der Liste für Quick-Toggle-POSTs benötigt.
-        $csrfToken = $this->holeOderErzeugeCsrfToken();
+        $csrfToken = Csrf::token(self::CSRF_BEREICH);
 
         try {
             $sql = 'SELECT t.*, a.name AS abteilung_name
@@ -314,9 +293,8 @@ class TerminalAdminController
             return;
         }
 
-        $csrfToken = $this->holeOderErzeugeCsrfToken();
-        $postToken = isset($_POST['csrf_token']) ? (string)$_POST['csrf_token'] : '';
-        if (!hash_equals($csrfToken, $postToken)) {
+        $csrfToken = Csrf::token(self::CSRF_BEREICH);
+        if (!Csrf::istGueltig(self::CSRF_BEREICH)) {
             if (session_status() === PHP_SESSION_NONE) {
                 session_start();
             }
@@ -402,8 +380,8 @@ class TerminalAdminController
             return;
         }
 
-        $csrfToken = $this->holeOderErzeugeCsrfToken();
-        if ($csrfToken === '' || !hash_equals($csrfToken, (string)($_POST['csrf_token'] ?? ''))) {
+        $csrfToken = Csrf::token(self::CSRF_BEREICH);
+        if (!Csrf::istGueltig(self::CSRF_BEREICH)) {
             $_SESSION[self::FLASH_ERR_KEY] = 'Die Sitzung ist abgelaufen. Bitte erneut versuchen.';
             header('Location: ?seite=terminal_admin');
             return;
@@ -474,8 +452,8 @@ class TerminalAdminController
             return;
         }
 
-        $csrfToken = $this->holeOderErzeugeCsrfToken();
-        if ($csrfToken === '' || !hash_equals($csrfToken, (string)($_POST['csrf_token'] ?? ''))) {
+        $csrfToken = Csrf::token(self::CSRF_BEREICH);
+        if (!Csrf::istGueltig(self::CSRF_BEREICH)) {
             $_SESSION[self::FLASH_ERR_KEY] = 'Die Sitzung ist abgelaufen. Bitte erneut versuchen.';
             header('Location: ?seite=terminal_admin');
             return;
@@ -631,7 +609,7 @@ class TerminalAdminController
             $abteilungen = [];
         }
 
-        $csrfToken = $this->holeOderErzeugeCsrfToken();
+        $csrfToken = Csrf::token(self::CSRF_BEREICH);
         $this->renderFormular($terminal, $abteilungen, $fehlermeldung, $csrfToken);
     }
 
@@ -644,9 +622,8 @@ class TerminalAdminController
             return;
         }
 
-        $csrfToken = $this->holeOderErzeugeCsrfToken();
-        $postToken = isset($_POST['csrf_token']) ? (string)$_POST['csrf_token'] : '';
-        if (!hash_equals($csrfToken, $postToken)) {
+        $csrfToken = Csrf::token(self::CSRF_BEREICH);
+        if (!Csrf::istGueltig(self::CSRF_BEREICH)) {
             http_response_code(400);
             $fehlermeldung = 'CSRF-Check fehlgeschlagen. Bitte Seite neu laden.';
             $this->renderFormular($this->leseTerminalAusPost(), $this->abteilungModel->holeAlleAktiven(), $fehlermeldung, $csrfToken);

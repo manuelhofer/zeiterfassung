@@ -13,7 +13,8 @@ declare(strict_types=1);
  */
 class UrlaubKontingentAdminController
 {
-    private const CSRF_KEY = 'urlaub_kontingent_admin_csrf_token';
+    /** Bereichsname fuer `Csrf` – siehe `core/Csrf.php`. */
+    private const CSRF_BEREICH = 'urlaub_kontingent_admin';
 
     private AuthService $authService;
     private Database $datenbank;
@@ -275,7 +276,7 @@ class UrlaubKontingentAdminController
         $korrektur = $kontingent['korrektur_tage'] ?? '0.00';
         $notiz     = $kontingent['notiz'] ?? '';
 
-        $csrfToken = $this->holeOderErzeugeCsrfToken(self::CSRF_KEY);
+        $csrfToken = Csrf::token(self::CSRF_BEREICH);
         $aktuellesJahr = (int)date('Y');
         $vorjahr = $aktuellesJahr - 1;
 
@@ -425,7 +426,7 @@ class UrlaubKontingentAdminController
             return;
         }
 
-        if (!$this->istCsrfTokenGueltigAusPost(self::CSRF_KEY)) {
+        if (!Csrf::istGueltig(self::CSRF_BEREICH)) {
             http_response_code(400);
             echo '<p>CSRF-Token ungültig. Bitte Seite neu laden.</p>';
             return;
@@ -543,39 +544,6 @@ class UrlaubKontingentAdminController
     private function istValidesJahr(int $jahr): bool
     {
         return $jahr >= 2000 && $jahr <= 2100;
-    }
-
-    /**
-     * Erzeugt oder holt CSRF-Token.
-     */
-    private function holeOderErzeugeCsrfToken(string $sessionKey): string
-    {
-        if (session_status() === PHP_SESSION_NONE) {
-            session_start();
-        }
-
-        $token = $_SESSION[$sessionKey] ?? '';
-        if (!is_string($token) || $token === '') {
-            $token = bin2hex(random_bytes(32));
-            $_SESSION[$sessionKey] = $token;
-        }
-
-        return $token;
-    }
-
-    private function istCsrfTokenGueltigAusPost(string $sessionKey): bool
-    {
-        if (session_status() === PHP_SESSION_NONE) {
-            session_start();
-        }
-
-        $post = isset($_POST['csrf_token']) ? (string)$_POST['csrf_token'] : '';
-        $sess = $_SESSION[$sessionKey] ?? '';
-        if (!is_string($sess) || $sess === '') {
-            return false;
-        }
-
-        return hash_equals($sess, $post);
     }
 
     /**

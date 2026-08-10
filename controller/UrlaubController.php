@@ -15,50 +15,15 @@ class UrlaubController
     private UrlaubService $urlaubService;
 
     /** Session-Key für CSRF im Bereich "urlaub_meine" (Antrag stellen + Storno). */
-    private const CSRF_KEY_MEINE = 'urlaub_meine_csrf_token';
-    private const CSRF_KEY_VERWALTUNG = 'urlaub_verwaltung_csrf_token';
+    /** Bereichsname fuer `Csrf` – siehe `core/Csrf.php`. */
+    private const CSRF_BEREICH_MEINE = 'urlaub_meine';
+        private const CSRF_BEREICH_VERWALTUNG = 'urlaub_verwaltung';
+    private const CSRF_BEREICH_GENEHMIGUNG = 'urlaub_genehmigung';
 
     public function __construct()
     {
         $this->authService   = AuthService::getInstanz();
         $this->urlaubService = UrlaubService::getInstanz();
-    }
-
-    /**
-     * CSRF-Token (Backend) für einfache Formular-POSTs.
-     *
-     * Hinweis:
-     * - Backend ist öffentlich erreichbar → CSRF-Schutz ist Pflicht.
-     * - Wir verwenden bewusst einen eigenen Session-Key pro Funktionsbereich.
-     */
-    private function holeOderErzeugeCsrfToken(string $sessionKey): string
-    {
-        $token = $_SESSION[$sessionKey] ?? '';
-        if (is_string($token) && strlen($token) >= 20) {
-            return $token;
-        }
-
-        try {
-            $token = bin2hex(random_bytes(16));
-        } catch (Throwable $e) {
-            // Fallback (sollte praktisch nie nötig sein)
-            $token = bin2hex(pack('N', time())) . bin2hex(pack('N', random_int(1, PHP_INT_MAX)));
-        }
-
-        $_SESSION[$sessionKey] = $token;
-        return $token;
-    }
-
-    private function istCsrfTokenGueltigAusPost(string $sessionKey): bool
-    {
-        $post = isset($_POST['csrf_token']) ? (string)$_POST['csrf_token'] : '';
-        $sess = $_SESSION[$sessionKey] ?? '';
-
-        if (!is_string($sess) || $sess === '' || $post === '') {
-            return false;
-        }
-
-        return hash_equals($sess, $post);
     }
 
     private function redirectZurGenehmigungListe(): void
@@ -92,9 +57,7 @@ class UrlaubController
      */
     private function verarbeiteUrlaubGenehmigungPost(Database $db, int $genehmigerId, bool $darfAlle, bool $darfBereich, bool $darfSelf): void
     {
-        $csrfKey = 'urlaub_genehmigung_csrf_token';
-
-        if (!$this->istCsrfTokenGueltigAusPost($csrfKey)) {
+        if (!Csrf::istGueltig(self::CSRF_BEREICH_GENEHMIGUNG)) {
             $_SESSION['urlaub_genehmigung_flash_error'] = 'Sicherheits-Token ist abgelaufen. Bitte erneut versuchen.';
             $this->redirectZurGenehmigungListe();
             return;
@@ -361,7 +324,7 @@ class UrlaubController
      */
     private function verarbeiteUrlaubMeineStornoPost(Database $db, int $mitarbeiterId): void
     {
-        if (!$this->istCsrfTokenGueltigAusPost(self::CSRF_KEY_MEINE)) {
+        if (!Csrf::istGueltig(self::CSRF_BEREICH_MEINE)) {
             $_SESSION['urlaub_flash_error'] = 'Sicherheits-Token ist abgelaufen. Bitte erneut versuchen.';
             $this->redirectZurMeineAntraege();
             return;
@@ -453,7 +416,7 @@ class UrlaubController
 
         $mitarbeiterId = (int)$mitarbeiter['id'];
 
-        $csrfToken = $this->holeOderErzeugeCsrfToken(self::CSRF_KEY_MEINE);
+        $csrfToken = Csrf::token(self::CSRF_BEREICH_MEINE);
 
         // Flash-Meldungen (einfach, ohne separates Framework)
         $meldung = null;
@@ -500,7 +463,7 @@ class UrlaubController
 
         // POST: Antrag anlegen
         if ($istPost && $zeigeFormular) {
-            if (!$this->istCsrfTokenGueltigAusPost(self::CSRF_KEY_MEINE)) {
+            if (!Csrf::istGueltig(self::CSRF_BEREICH_MEINE)) {
                 $fehlermeldung = 'Sicherheits-Token ist abgelaufen. Bitte erneut versuchen.';
             } else {
                 $von = trim((string)($_POST['von_datum'] ?? ''));
@@ -863,7 +826,7 @@ class UrlaubController
     ): void {
         $returnQuery = $this->baueUrlaubVerwaltungQueryAusPost();
 
-        if (!$this->istCsrfTokenGueltigAusPost(self::CSRF_KEY_VERWALTUNG)) {
+        if (!Csrf::istGueltig(self::CSRF_BEREICH_VERWALTUNG)) {
             $_SESSION['urlaub_verwaltung_flash_error'] = 'Sicherheits-Token ist abgelaufen. Bitte erneut versuchen.';
             $this->redirectZurUrlaubsverwaltung($returnQuery);
             return;
@@ -1040,7 +1003,7 @@ class UrlaubController
     ): void {
         $returnQuery = $this->baueUrlaubVerwaltungQueryAusPost();
 
-        if (!$this->istCsrfTokenGueltigAusPost(self::CSRF_KEY_VERWALTUNG)) {
+        if (!Csrf::istGueltig(self::CSRF_BEREICH_VERWALTUNG)) {
             $_SESSION['urlaub_verwaltung_flash_error'] = 'Sicherheits-Token ist abgelaufen. Bitte erneut versuchen.';
             $this->redirectZurUrlaubsverwaltung($returnQuery);
             return;
@@ -1353,7 +1316,7 @@ class UrlaubController
             }
         }
 
-        $csrfToken = $this->holeOderErzeugeCsrfToken(self::CSRF_KEY_VERWALTUNG);
+        $csrfToken = Csrf::token(self::CSRF_BEREICH_VERWALTUNG);
 
         require __DIR__ . '/../views/urlaub/verwaltung.php';
     }
@@ -1447,7 +1410,7 @@ class UrlaubController
             unset($_SESSION['urlaub_genehmigung_flash_error']);
         }
 
-        $csrfToken = $this->holeOderErzeugeCsrfToken('urlaub_genehmigung_csrf_token');
+        $csrfToken = Csrf::token(self::CSRF_BEREICH_GENEHMIGUNG);
 
         $params = [];
         $sql =

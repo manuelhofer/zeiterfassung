@@ -285,7 +285,7 @@ foreach ($buchungen as $b) {
                             <a href="<?php echo htmlspecialchars($editUrl, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>">Bearbeiten</a>
                             &nbsp;|
                             <form method="post" style="display:inline;" onsubmit="return confirm('Buchung wirklich löschen?');">
-                                <input type="hidden" name="csrf" value="<?php echo htmlspecialchars($csrfToken, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>">
+                                <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($csrfToken, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>">
                                 <input type="hidden" name="aktion" value="delete">
                                 <input type="hidden" name="id" value="<?php echo $id; ?>">
                                 <?php if ($zeigeMicroBuchungen): ?>
@@ -313,7 +313,7 @@ foreach ($buchungen as $b) {
     <div id="buchung-bearbeiten" style="border:1px solid #b00020; border-radius: 8px; padding: 10px 12px; background:#fff5f5; margin: 12px 0;">
         <h3 style="margin: 0 0 8px 0; color:#b00020;">Buchung bearbeiten (ID <?php echo $editId; ?>)</h3>
         <form method="post" style="margin: 0;">
-            <input type="hidden" name="csrf" value="<?php echo htmlspecialchars($csrfToken, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>">
+            <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($csrfToken, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>">
             <input type="hidden" name="aktion" value="update">
             <input type="hidden" name="id" value="<?php echo $editId; ?>">
 
@@ -356,7 +356,7 @@ foreach ($buchungen as $b) {
             <div class="zeit-tool-card zeit-tool-primary">
                 <h3>Neue Buchung hinzufügen</h3>
                 <form method="post">
-                    <input type="hidden" name="csrf" value="<?php echo htmlspecialchars($csrfToken, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>">
+                    <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($csrfToken, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>">
                     <input type="hidden" name="aktion" value="add">
 
                     <label>
@@ -459,7 +459,7 @@ foreach ($buchungen as $b) {
         <?php endif; ?>
 
         <form method="post" style="margin: 8px 0 18px 0;">
-            <input type="hidden" name="csrf" value="<?php echo htmlspecialchars($csrfToken, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>">
+            <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($csrfToken, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>">
             <input type="hidden" name="aktion" value="set_pause_override">
 
             <label style="margin-right: 10px;">
@@ -516,7 +516,7 @@ foreach ($buchungen as $b) {
         <h4>Kurzarbeit</h4>
 
         <form method="post" style="margin: 8px 0 18px 0;">
-            <input type="hidden" name="csrf" value="<?php echo htmlspecialchars($csrfToken, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>">
+            <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($csrfToken, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>">
             <input type="hidden" name="aktion" value="set_kurzarbeit">
 
             <label style="margin-right: 10px;">
@@ -609,7 +609,7 @@ foreach ($buchungen as $b) {
         <h4>Krank (LFZ / KK)</h4>
 
         <form method="post" style="margin-bottom: 16px;">
-            <input type="hidden" name="csrf" value="<?php echo htmlspecialchars($csrfToken, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>">
+            <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($csrfToken, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>">
             <input type="hidden" name="aktion" value="set_krank">
 
             <label style="margin-right: 10px;">
@@ -655,7 +655,7 @@ foreach ($buchungen as $b) {
             </p>
         <?php else: ?>
             <form method="post" style="margin-bottom: 16px;">
-                <input type="hidden" name="csrf" value="<?php echo htmlspecialchars($csrfToken, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>">
+                <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($csrfToken, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>">
                 <input type="hidden" name="aktion" value="set_sonstiges">
 
                 <label>

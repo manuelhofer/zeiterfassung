@@ -16,8 +16,9 @@ declare(strict_types=1);
  */
 class AuftragController
 {
-    private const CSRF_KEY_AUFTRAGSZEIT_BEARBEITEN = 'auftragszeit_bearbeiten_csrf_token';
-    private const CSRF_KEY_AUFTRAG_STAMM = 'auftrag_stamm_csrf_token';
+    /** Bereichsname fuer `Csrf` – siehe `core/Csrf.php`. */
+    private const CSRF_BEREICH_AUFTRAGSZEIT = 'auftragszeit_bearbeiten';
+        private const CSRF_BEREICH_STAMM = 'auftrag_stamm';
 
     /**
      * Auswaehlbare Auftragsstatus.
@@ -628,7 +629,7 @@ class AuftragController
                 // Ab hier die Stammdaten - bewusst ausserhalb des Buchungs-Zweigs,
                 // damit sie auch bei einem Auftrag ohne Buchung erscheinen.
                 $darfVerwalten = $this->darfAuftraegeVerwalten();
-                $stammCsrf = $this->holeOderErzeugeCsrfTokenStamm();
+                $stammCsrf = Csrf::token(self::CSRF_BEREICH_STAMM);
                 $escD = static function ($wert): string {
                     return htmlspecialchars((string)$wert, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
                 };
@@ -829,7 +830,7 @@ class AuftragController
             return;
         }
 
-        $csrfToken = $this->holeOderErzeugeCsrfToken();
+        $csrfToken = Csrf::token(self::CSRF_BEREICH_AUFTRAGSZEIT);
         $fehlermeldung = null;
 
         $status = (string)($datensatz['status'] ?? '');
@@ -840,8 +841,7 @@ class AuftragController
         $endeUhrzeit = $this->formatUhrzeitFuerForm((string)($datensatz['endzeit'] ?? ''));
 
         if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {
-            $postToken = (string)($_POST['csrf_token'] ?? '');
-            if ($csrfToken === '' || !hash_equals($csrfToken, $postToken)) {
+            if (!Csrf::istGueltig(self::CSRF_BEREICH_AUFTRAGSZEIT)) {
                 $fehlermeldung = 'CSRF-Check fehlgeschlagen.';
             } else {
                 $startDatum = trim((string)($_POST['start_datum'] ?? ''));
@@ -998,9 +998,8 @@ class AuftragController
             return;
         }
 
-        $csrfToken = $this->holeOderErzeugeCsrfTokenStamm();
-        $postToken = (string)($_POST['csrf_token'] ?? '');
-        if ($csrfToken === '' || !hash_equals($csrfToken, $postToken)) {
+        $csrfToken = Csrf::token(self::CSRF_BEREICH_STAMM);
+        if (!Csrf::istGueltig(self::CSRF_BEREICH_STAMM)) {
             $_SESSION['auftrag_flash_fehler'] = 'Die Sitzung ist abgelaufen. Bitte erneut versuchen.';
             header('Location: ?seite=auftrag');
             return;
@@ -1130,7 +1129,7 @@ class AuftragController
         $kunde            = (string)($auftrag['kunde'] ?? '');
         $status           = (string)($auftrag['status'] ?? '');
         $aktiv            = (int)($auftrag['aktiv'] ?? 1) === 1;
-        $csrfToken        = $this->holeOderErzeugeCsrfTokenStamm();
+        $csrfToken        = Csrf::token(self::CSRF_BEREICH_STAMM);
 
         $esc = static function ($wert): string {
             return htmlspecialchars((string)$wert, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
@@ -1350,9 +1349,8 @@ class AuftragController
             return;
         }
 
-        $csrfToken = $this->holeOderErzeugeCsrfTokenStamm();
-        $postToken = (string)($_POST['csrf_token'] ?? '');
-        if ($csrfToken === '' || !hash_equals($csrfToken, $postToken)) {
+        $csrfToken = Csrf::token(self::CSRF_BEREICH_STAMM);
+        if (!Csrf::istGueltig(self::CSRF_BEREICH_STAMM)) {
             $_SESSION['auftrag_flash_fehler'] = 'Die Sitzung ist abgelaufen. Bitte erneut versuchen.';
             header('Location: ?seite=auftrag');
             return;
@@ -1479,7 +1477,7 @@ class AuftragController
         $code           = (string)($schritt['arbeitsschritt_code'] ?? '');
         $bezeichnung    = (string)($schritt['bezeichnung'] ?? '');
         $aktiv          = (int)($schritt['aktiv'] ?? 1) === 1;
-        $csrfToken      = $this->holeOderErzeugeCsrfTokenStamm();
+        $csrfToken      = Csrf::token(self::CSRF_BEREICH_STAMM);
 
         $esc = static function ($wert): string {
             return htmlspecialchars((string)$wert, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
@@ -1552,8 +1550,8 @@ class AuftragController
             return;
         }
 
-        $csrfToken = $this->holeOderErzeugeCsrfTokenStamm();
-        if ($csrfToken === '' || !hash_equals($csrfToken, (string)($_POST['csrf_token'] ?? ''))) {
+        $csrfToken = Csrf::token(self::CSRF_BEREICH_STAMM);
+        if (!Csrf::istGueltig(self::CSRF_BEREICH_STAMM)) {
             $_SESSION['auftrag_flash_fehler'] = 'Die Sitzung ist abgelaufen. Bitte erneut versuchen.';
             header('Location: ?seite=auftrag');
             return;
@@ -1768,21 +1766,6 @@ class AuftragController
         return '';
     }
 
-    private function holeOderErzeugeCsrfToken(): string
-    {
-        $token = $_SESSION[self::CSRF_KEY_AUFTRAGSZEIT_BEARBEITEN] ?? null;
-        if (!is_string($token) || $token === '') {
-            try {
-                $token = bin2hex(random_bytes(32));
-            } catch (\Throwable $e) {
-                $token = bin2hex((string)mt_rand());
-            }
-            $_SESSION[self::CSRF_KEY_AUFTRAGSZEIT_BEARBEITEN] = $token;
-        }
-
-        return (string)$token;
-    }
-
     /**
      * Darf der angemeldete Benutzer Auftragsstammdaten pflegen?
      *
@@ -1803,24 +1786,6 @@ class AuftragController
         );
 
         return $this->authService->hatRecht('AUFTRAEGE_VERWALTEN') || $legacyAdmin;
-    }
-
-    /**
-     * CSRF-Token fuer die Stammdatenformulare (Auftrag, Arbeitsschritte).
-     */
-    private function holeOderErzeugeCsrfTokenStamm(): string
-    {
-        $token = $_SESSION[self::CSRF_KEY_AUFTRAG_STAMM] ?? null;
-        if (!is_string($token) || $token === '') {
-            try {
-                $token = bin2hex(random_bytes(32));
-            } catch (\Throwable $e) {
-                $token = bin2hex((string)mt_rand());
-            }
-            $_SESSION[self::CSRF_KEY_AUFTRAG_STAMM] = $token;
-        }
-
-        return (string)$token;
     }
 
     private function darfAuftragszeitAlleBearbeiten(): bool

@@ -78,25 +78,8 @@ class ReportController
     }
 
 
-    private const CSRF_KEY_MONATSABSCHLUSS = 'csrf_token_report_monat_monatsabschluss';
-
-    private function holeOderErzeugeCsrfTokenMonatsabschluss(): string
-    {
-        if (session_status() === PHP_SESSION_NONE) {
-            @session_start();
-        }
-
-        if (!isset($_SESSION[self::CSRF_KEY_MONATSABSCHLUSS]) || !is_string($_SESSION[self::CSRF_KEY_MONATSABSCHLUSS]) || trim((string)$_SESSION[self::CSRF_KEY_MONATSABSCHLUSS]) === '') {
-            try {
-                $_SESSION[self::CSRF_KEY_MONATSABSCHLUSS] = bin2hex(random_bytes(32));
-            } catch (\Throwable $e) {
-                // Fallback (sollte praktisch nie passieren)
-                $_SESSION[self::CSRF_KEY_MONATSABSCHLUSS] = sha1((string)microtime(true));
-            }
-        }
-
-        return (string)$_SESSION[self::CSRF_KEY_MONATSABSCHLUSS];
-    }
+    /** Bereichsname fuer `Csrf` – siehe `core/Csrf.php`. */
+    private const CSRF_BEREICH_MONATSABSCHLUSS = 'report_monatsabschluss';
 
     private function hatStundenkontoVerwaltenRecht(): bool
     {
@@ -404,7 +387,7 @@ class ReportController
 
 
         // Stundenkonto: Monatsabschluss (Differenz Soll/Ist) als Buchung ins Stundenkonto schreiben (nur fuer vergangene Monate).
-        $csrfTokenMonatsabschluss = $this->holeOderErzeugeCsrfTokenMonatsabschluss();
+        $csrfTokenMonatsabschluss = Csrf::token(self::CSRF_BEREICH_MONATSABSCHLUSS);
         $kannStundenkontoVerwalten = $this->hatStundenkontoVerwaltenRecht();
         $istMonatVergangen = $this->istMonatVergangen($jahr, $monat);
 
@@ -421,8 +404,7 @@ class ReportController
         $stundenkontoMonatsabschlussMsg = isset($_GET['sk_msg']) ? (string)$_GET['sk_msg'] : '';
 
         if ((string)($_SERVER['REQUEST_METHOD'] ?? '') === 'POST' && (string)($_POST['aktion'] ?? '') === 'monatsabschluss_buchen') {
-            $postToken = (string)($_POST['csrf_token'] ?? '');
-            if (!hash_equals($csrfTokenMonatsabschluss, $postToken)) {
+            if (!Csrf::istGueltig(self::CSRF_BEREICH_MONATSABSCHLUSS)) {
                 $url = '?seite=report_monat&jahr=' . $jahr . '&monat=' . $monat;
                 if ($hatReportMonatViewAll) {
                     $url .= '&mitarbeiter_id=' . $mitarbeiterId;

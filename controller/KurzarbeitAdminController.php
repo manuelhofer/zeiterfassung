@@ -12,7 +12,8 @@ declare(strict_types=1);
  */
 class KurzarbeitAdminController
 {
-    private const CSRF_KEY = 'kurzarbeit_admin_csrf_token';
+    /** Bereichsname fuer `Csrf` – siehe `core/Csrf.php`. */
+    private const CSRF_BEREICH = 'kurzarbeit_admin';
     private const FLASH_OK_KEY = 'kurzarbeit_admin_flash_ok';
     private const FLASH_ERR_KEY = 'kurzarbeit_admin_flash_err';
 
@@ -62,50 +63,6 @@ class KurzarbeitAdminController
         http_response_code(403);
         echo '<p>Sie haben keine Berechtigung, Kurzarbeit zu verwalten.</p>';
         return false;
-    }
-
-    /**
-     * Holt oder erzeugt ein CSRF-Token für Kurzarbeit-Admin-POST-Formulare.
-     */
-    private function holeOderErzeugeCsrfToken(): string
-    {
-        if (session_status() === PHP_SESSION_NONE) {
-            session_start();
-        }
-
-        $token = $_SESSION[self::CSRF_KEY] ?? null;
-        if (!is_string($token) || $token === '') {
-            try {
-                $token = bin2hex(random_bytes(32));
-            } catch (Throwable) {
-                $token = bin2hex((string)mt_rand());
-            }
-            $_SESSION[self::CSRF_KEY] = $token;
-        }
-
-        return (string)$token;
-    }
-
-    /**
-     * Prüft das CSRF-Token aus POST.
-     */
-    private function istCsrfTokenGueltigAusPost(): bool
-    {
-        if (session_status() === PHP_SESSION_NONE) {
-            session_start();
-        }
-
-        $tokenSession = $_SESSION[self::CSRF_KEY] ?? '';
-        $tokenPost    = $_POST['csrf_token'] ?? '';
-
-        if (!is_string($tokenSession) || $tokenSession === '') {
-            return false;
-        }
-        if (!is_string($tokenPost) || $tokenPost === '') {
-            return false;
-        }
-
-        return hash_equals($tokenSession, $tokenPost);
     }
 
     /**
@@ -234,7 +191,7 @@ class KurzarbeitAdminController
         }
 
         $flash = $this->holeFlash();
-        $csrfToken = $this->holeOderErzeugeCsrfToken();
+        $csrfToken = Csrf::token(self::CSRF_BEREICH);
 
         $plaene = [];
         $fehlermeldung = null;
@@ -355,7 +312,7 @@ class KurzarbeitAdminController
         }
 
         $flash = $this->holeFlash();
-        $csrfToken = $this->holeOderErzeugeCsrfToken();
+        $csrfToken = Csrf::token(self::CSRF_BEREICH);
 
         $id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 
@@ -536,7 +493,7 @@ class KurzarbeitAdminController
             return;
         }
 
-        if (!$this->istCsrfTokenGueltigAusPost()) {
+        if (!Csrf::istGueltig(self::CSRF_BEREICH)) {
             $this->setFlashErr('CSRF-Check fehlgeschlagen. Bitte Seite neu laden.');
             header('Location: ?seite=kurzarbeit_admin');
             return;
@@ -691,7 +648,7 @@ class KurzarbeitAdminController
             return;
         }
 
-        if (!$this->istCsrfTokenGueltigAusPost()) {
+        if (!Csrf::istGueltig(self::CSRF_BEREICH)) {
             $this->setFlashErr('CSRF-Check fehlgeschlagen. Bitte Seite neu laden.');
             header('Location: ?seite=kurzarbeit_admin');
             return;
