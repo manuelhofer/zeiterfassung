@@ -70,6 +70,78 @@ in den Statusbericht.
   D-002 entfallen; die Regel selbst gilt weiter.)
 
 
+## P-2026-08-10-12 tote-views-entfernt
+
+### EINGELESEN
+- Alle acht Dateien vollstaendig, bevor geloescht wurde.
+- `controller/BetriebsferienAdminController.php`,
+  `controller/MaschineAdminController.php` – wie sie tatsaechlich rendern.
+- `views/terminal/start.php` als das lebende Gegenstueck.
+
+### DATEIEN
+Geloescht:
+- `views/betriebsferien/liste.php` (95 Zeilen),
+  `views/betriebsferien/formular.php` (83), `views/maschine/liste.php` (68)
+- `views/terminal/index.php` (27), `views/terminal/hauptmenue.php` (25),
+  `views/terminal/info_uebersicht.php` (25),
+  `views/terminal/urlaub_beantragen.php` (13)
+- `views/zeit/monatskalender.php` (23)
+- dazu `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Betriebsferien-Liste, Maschinenliste und Terminal sehen unveraendert aus, und
+in `views/` liegt keine Datei mehr, die nirgends eingebunden wird.
+
+### DONE
+Zwei verschiedene Sorten:
+
+**Drei Views mit lebendem Zwilling.** `betriebsferien/liste.php`,
+`betriebsferien/formular.php` und `maschine/liste.php` werden **nirgends**
+eingebunden – die zugehoerigen Controller erzeugen ihr HTML selbst, zwischen
+`layout/header.php` und `layout/footer.php`. Das ist die unangenehmste Sorte
+toter Code: Wer die Betriebsferien-Liste aendern will, findet
+`views/betriebsferien/liste.php`, aendert sie – und im Browser passiert nichts.
+Genau diese Falle stand kurz bevor, weil P-2026-08-10-04 den Aktiv-Schalter in
+den Controller eingebaut hat.
+
+**Fuenf Platzhalter.** Sie sagen selbst, was sie sind („Legacy/Platzhalter-View
+(nicht aktiv geroutet)"). Vor dem Loeschen gelesen: keiner enthaelt Fachwissen,
+das im Controller fehlt.
+
+`views/terminal/index.php` begruendete seine Existenz damit, „versehentliche
+Direktaufrufe (z. B. durch falsche Links/Bookmarks) abzufangen". Nachgemessen:
+Der DocumentRoot zeigt auf `public/`, `views/` ist ueber den Webserver gar nicht
+erreichbar (HTTP 404). Der Zweck konnte also nie eintreten.
+
+### TEST
+- Vor dem Loeschen je Datei geprueft, ob ihr Pfad **mit Verzeichnis** irgendwo
+  eingebunden wird: null Treffer.
+- Nach dem Loeschen ueber alle verbliebenen Views gelaufen: jede wird
+  eingebunden.
+- `views/terminal/index.php` und `../views/terminal/index.php` ueber den
+  Webserver: beide HTTP 404, waehrend `css/terminal.css` 200 liefert – Beleg,
+  dass der DocumentRoot `public/` ist.
+- `index.php`, `terminal.php`, Health: dreimal HTTP 200.
+
+### Gefundene Fehler im eigenen Entwurf
+Die erste Pruefung suchte mit `grep -e "/$basename"` und meldete fuer
+`betriebsferien/liste.php` sechs und fuer `formular.php` vierzehn
+Einbindungen – gefunden hatte sie in Wahrheit **jede** `liste.php` und
+`formular.php` des Projekts. Beinahe haette ich drei tote Dateien als lebendig
+eingestuft. Richtig ist die Suche mit Verzeichnisanteil (`betriebsferien/liste.php`),
+und die liefert null.
+
+### Was bewusst nicht erreicht wurde
+Die Controller erzeugen ihr HTML weiterhin selbst. Das umgekehrte Vorgehen –
+das Markup in die Views ziehen statt die Views zu loeschen – waere naeher an
+der Struktur des Projekts, ist aber ein eigenes Vorhaben mit echtem
+Regressionsrisiko. Als T-104 im Snapshot notiert.
+
+### NEXT
+Phase 5: doppelter Code (CSRF-Rest, Konfigurationsdienste, `getPdo`,
+`class_exists`).
+
+
 ## P-2026-08-10-11 tote-klassen-entfernt
 
 ### EINGELESEN
