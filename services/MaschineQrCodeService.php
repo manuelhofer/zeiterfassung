@@ -4,7 +4,18 @@ declare(strict_types=1);
 /**
  * MaschineQrCodeService
  *
- * Erzeugt QR-Codes und Barcodes fuer Maschinen und kann diese direkt ausgeben.
+ * Erzeugt Strichcodes (Code 128) fuer Maschinen und kann sie direkt ausgeben.
+ *
+ * **Der Name ist Historie.** Frueher waren die Maschinen-Codes QR-Codes; seit
+ * der Umstellung auf Code 128 (P-2026-08-08-24) ist alles im Projekt derselbe
+ * Codetyp, weil in der Halle 1D-Handscanner im Einsatz sind – Begruendung im
+ * Kopf von `services/BarcodeService.php`. Der QR-Zweig wurde in
+ * P-2026-08-10-05 entfernt: Er lief nur noch als Rueckfall und lieferte dann
+ * ein Bild, das an diesen Scannern gar kein Code ist.
+ *
+ * Umbenannt wird die Klasse bewusst spaeter – der Name steht auch in
+ * Konfigurationsschluesseln (`maschinen_qr_url`, `maschinen_qr_rel_pfad`), und
+ * die gehoeren in einen eigenen Patch mit Migration.
  */
 class MaschineQrCodeService
 {
@@ -20,34 +31,7 @@ class MaschineQrCodeService
         $this->relativerSpeicherPfad = $this->ermittleRelativenSpeicherPfad($konfiguration);
         $this->relativerUrlPfad = $this->ermittleRelativenUrlPfad($konfiguration, $this->relativerSpeicherPfad);
         $this->maschinenQrUrl = $this->ermittleMaschinenQrUrl($konfiguration);
-        $this->ladeBibliothek();
         $this->ladeBarcodeBibliothek();
-    }
-
-    public function erzeugeMaschinenQrCode(int $maschinenId): ?string
-    {
-        if ($maschinenId <= 0) {
-            return null;
-        }
-
-        $dateiname = 'maschine_' . $maschinenId . '.png';
-        $relativerPfad = $this->relativerSpeicherPfad . '/' . $dateiname;
-        $zielPfad = $this->basisVerzeichnis . '/' . $relativerPfad;
-
-        $zielOrdner = dirname($zielPfad);
-        if (!is_dir($zielOrdner)) {
-            if (!mkdir($zielOrdner, 0755, true) && !is_dir($zielOrdner)) {
-                return null;
-            }
-        }
-
-        $this->erzeugePng((string)$maschinenId, $zielPfad);
-
-        if (!is_file($zielPfad)) {
-            return null;
-        }
-
-        return $relativerPfad;
     }
 
     public function erzeugeMaschinenBarcode(int $maschinenId, string $maschinenName): ?string
@@ -80,22 +64,12 @@ class MaschineQrCodeService
         return $relativerPfad;
     }
 
-    public function gebeQrPngAus(string $daten, int $groesse = 6, int $rand = 2): void
-    {
-        $this->erzeugePng($daten, null, $groesse, $rand);
-    }
-
     public function gebeBarcodePngAus(string $daten, int $breiteFaktor = 2, int $hoehe = 60): void
     {
         $pngDaten = $this->erzeugeBarcodePngDaten($daten, $breiteFaktor, $hoehe);
         if ($pngDaten !== null) {
             echo $pngDaten;
         }
-    }
-
-    private function ladeBibliothek(): void
-    {
-        require_once __DIR__ . '/phpqrcode/qrlib.php';
     }
 
     private function ladeBarcodeBibliothek(): void
@@ -308,14 +282,6 @@ class MaschineQrCodeService
         }
 
         return '/' . trim($this->maschinenQrUrl, '/') . '/' . $relativerPfad;
-    }
-
-    private function erzeugePng(string $daten, ?string $zielPfad, int $groesse = 6, int $rand = 2): void
-    {
-        $level = defined('QR_ECLEVEL_M') ? QR_ECLEVEL_M : 'M';
-        $ziel = $zielPfad ?? false;
-
-        QRcode::png($daten, $ziel, $level, $groesse, $rand);
     }
 
     private function erzeugeBarcodePng(string $daten, string $zielPfad, int $breiteFaktor = 2, int $hoehe = 60): bool

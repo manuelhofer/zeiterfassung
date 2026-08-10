@@ -287,15 +287,10 @@ class MaschineAdminController
 
         $maschinenId = $id > 0 ? $id : (int)$this->datenbank->letzteInsertId();
         $codeBildPfad = null;
-        $barcodeFallback = false;
 
         try {
-            $qrService = new MaschineQrCodeService();
-            $codeBildPfad = $qrService->erzeugeMaschinenBarcode($maschinenId, $name);
-            if ($codeBildPfad === null) {
-                $barcodeFallback = true;
-                $codeBildPfad = $qrService->erzeugeMaschinenQrCode($maschinenId);
-            }
+            $codeService = new MaschineQrCodeService();
+            $codeBildPfad = $codeService->erzeugeMaschinenBarcode($maschinenId, $name);
             if ($codeBildPfad !== null) {
                 $codeBildPfad = $this->normalisiereCodeBildPfad($codeBildPfad);
                 $sql = 'UPDATE maschine
@@ -318,8 +313,6 @@ class MaschineAdminController
 
         if ($codeBildPfad === null) {
             $fehlermeldung = 'Die Maschine wurde gespeichert, aber der Barcode konnte nicht erstellt werden. Bitte Schreibrechte im Verzeichnis public/uploads/maschinen_codes prüfen.';
-        } elseif ($barcodeFallback) {
-            $erfolgsmeldung = 'Die Maschine wurde gespeichert. Der Barcode konnte nicht erstellt werden, daher wurde ein QR-Code hinterlegt.';
         } else {
             $erfolgsmeldung = 'Die Maschine wurde gespeichert und der Barcode wurde aktualisiert.';
         }
@@ -372,15 +365,10 @@ class MaschineAdminController
         if ($maschine !== null && $fehlermeldung === null) {
             $maschinenName = (string)($maschine['name'] ?? '');
             $codeBildPfad = null;
-            $barcodeFallback = false;
 
             try {
-                $qrService = new MaschineQrCodeService();
-                $codeBildPfad = $qrService->erzeugeMaschinenBarcode($id, $maschinenName);
-                if ($codeBildPfad === null) {
-                    $barcodeFallback = true;
-                    $codeBildPfad = $qrService->erzeugeMaschinenQrCode($id);
-                }
+                $codeService = new MaschineQrCodeService();
+                $codeBildPfad = $codeService->erzeugeMaschinenBarcode($id, $maschinenName);
                 if ($codeBildPfad !== null) {
                     $codeBildPfad = $this->normalisiereCodeBildPfad($codeBildPfad);
                     $sql = 'UPDATE maschine
@@ -404,8 +392,6 @@ class MaschineAdminController
 
             if ($codeBildPfad === null) {
                 $fehlermeldung = 'Der Barcode konnte nicht neu erzeugt werden. Bitte Schreibrechte im Verzeichnis public/uploads/maschinen_codes prüfen.';
-            } elseif ($barcodeFallback) {
-                $erfolgsmeldung = 'Der Barcode konnte nicht erstellt werden, daher wurde ein QR-Code hinterlegt.';
             } else {
                 $erfolgsmeldung = 'Der Barcode wurde neu generiert.';
             }

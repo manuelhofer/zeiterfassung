@@ -70,6 +70,67 @@ in den Statusbericht.
   D-002 entfallen; die Regel selbst gilt weiter.)
 
 
+## P-2026-08-10-05 kein-qr-rueckfall-bei-maschinencodes
+
+### EINGELESEN
+- `public/maschine_code.php`, `controller/MaschineAdminController.php`,
+  `services/MaschineQrCodeService.php`.
+- `services/BarcodeService.php`, Kopfkommentar – dort steht die Festlegung auf
+  Code 128 und ihre Begruendung.
+- `docs/spezifikation_auftrag_barcode_laufkarte.md`, Abschnitt Codetypen.
+
+### DATEIEN
+- `public/maschine_code.php`
+- `controller/MaschineAdminController.php`
+- `services/MaschineQrCodeService.php`
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Schlaegt die Strichcode-Erzeugung fehl, liefert `maschine_code.php` einen
+HTTP-500 mit Klartext statt eines QR-Codes.
+
+### DONE
+An drei Stellen wurde bei fehlgeschlagener Strichcode-Erzeugung ersatzweise ein
+**QR-Code** ausgegeben oder gespeichert. Das widerspricht der Festlegung im Kopf
+von `BarcodeService`: In der Halle sind 1D-Handscanner im Einsatz, deshalb ist
+im Projekt alles Code 128. Fuer diese Geraete ist ein QR-Code kein schlechterer
+Code – er ist gar keiner. Der Rueckfall lieferte also ein Etikett, das
+brauchbar aussieht und erst an der Maschine auffaellt. Die Erfolgsmeldung sagte
+sogar ausdruecklich „daher wurde ein QR-Code hinterlegt", als waere das eine
+Loesung.
+
+Stattdessen jetzt: `Logger::error` und eine ehrliche Fehlermeldung
+(HTTP 500 als Text bzw. Fehlermeldung in der Maske). Die damit aufruferlosen
+QR-Methoden `erzeugeMaschinenQrCode()`, `gebeQrPngAus()`, `erzeugePng()` und
+`ladeBibliothek()` sind entfernt.
+
+### TEST
+- Strichcode-Ausgabe: 200 Byte PNG mit gueltiger Signatur.
+- `erzeugeMaschinenBarcode(999, 'Probe')` legt die Datei an (182 B), Probe
+  wieder entfernt.
+- `php -l` ueber alle drei Dateien sauber.
+- `grep` bestaetigt: ausserhalb von `services/phpqrcode/` ruft nichts mehr die
+  QR-Bibliothek auf.
+
+### Gefundene Fehler im eigenen Entwurf
+Der erste Umbau von `maschine_code.php` liess die Bild-Header stehen, wo sie
+waren – **vor** der Erzeugung. Damit stand bei einem Fehlschlag bereits
+`Content-Type: image/png` fest, und die neue Klartext-Fehlermeldung waere im
+Browser als kaputtes Bild angekommen: genau derselbe Fehler in Gruen. Die
+Header wandern jetzt hinter die Erzeugung.
+
+### Was bewusst nicht erreicht wurde
+Die Klasse heisst weiterhin `MaschineQrCodeService`, obwohl sie keine QR-Codes
+mehr erzeugt. Der Name steckt auch in Konfigurationsschluesseln
+(`maschinen_qr_url`, `maschinen_qr_rel_pfad`); ein Umbenennen braucht eine
+Migration und gehoert in einen eigenen Patch. Im Klassenkopf steht jetzt, warum
+der Name so ist.
+
+### NEXT
+P-2026-08-10-06: `services/phpqrcode/` entfernen – nach diesem Patch ohne
+Aufrufer.
+
+
 ## P-2026-08-10-04 betriebsferien-aktiv-schalter
 
 ### EINGELESEN

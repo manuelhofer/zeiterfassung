@@ -65,29 +65,38 @@ if (!function_exists('imagecreatetruecolor') && !extension_loaded('imagick')) {
     exit;
 }
 
-$qrService = new MaschineQrCodeService();
+$codeService = new MaschineQrCodeService();
 $name = trim((string)($_GET['name'] ?? ''));
 $barcodeDaten = $id . '_' . $name;
+
+// Erst erzeugen, dann Bild-Header senden: Sonst steht bei einem Fehlschlag
+// bereits `Content-Type: image/png` fest und die Fehlermeldung kaeme als
+// kaputtes Bild an.
+ob_start();
+$codeService->gebeBarcodePngAus($barcodeDaten);
+$ausgabe = ob_get_clean();
+
+if ($ausgabe === '' || $ausgabe === false) {
+    // Frueher wurde hier ersatzweise ein QR-Code ausgegeben. Das war schlechter
+    // als eine Fehlermeldung: In der Halle sind 1D-Handscanner im Einsatz, fuer
+    // die ein QR-Code kein schlechterer Code ist, sondern gar keiner (siehe
+    // Kopf von services/BarcodeService.php). Das Etikett sah brauchbar aus und
+    // fiel erst an der Maschine auf.
+    Logger::error('Barcode-Ausgabe fuer Maschine fehlgeschlagen', [
+        'id'   => $id,
+        'name' => $name,
+    ], $id, null, 'maschine');
+
+    http_response_code(500);
+    header('Content-Type: text/plain; charset=UTF-8');
+    echo 'Der Barcode konnte nicht erzeugt werden. Bitte im Systemlog nachsehen.';
+    exit;
+}
 
 // Cache defensiv aus (damit der Download immer frisch ist).
 header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
 header('Pragma: no-cache');
 header('Content-Type: image/png');
 header('Content-Disposition: inline; filename="maschine-' . $id . '-barcode.png"');
-
-ob_start();
-$qrService->gebeBarcodePngAus($barcodeDaten);
-$ausgabe = ob_get_clean();
-
-if ($ausgabe === '' || $ausgabe === false) {
-    if (class_exists('Logger')) {
-        Logger::error('Barcode-Ausgabe fehlgeschlagen, Fallback auf QR', [
-            'id' => $id,
-            'name' => $name,
-        ], $id, null, 'maschine');
-    }
-    $qrService->gebeQrPngAus((string)$id);
-    exit;
-}
 
 echo $ausgabe;
