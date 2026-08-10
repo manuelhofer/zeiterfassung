@@ -37,25 +37,22 @@ den Stufenplan (Abschnitt 11).
   bevor weiter gesucht wird.**
 
 ## Offene Tasks
-- **T-102 Buchungen tragen keine `terminal_id`.** Seit P-2026-08-09-01 steht die
-  ID in `config.local.php` (`terminal.id`) und ließe sich durchreichen.
-- **T-104 Neun Controller erzeugen HTML selbst**, statt `views/` zu benutzen –
-  größter Brocken `SmokeTestController` (283 HTML-Zeilen), dazu
-  `KonfigurationController` (201) und `AuftragController` (137). Auflösen, wenn
-  ohnehin an der jeweiligen Maske gearbeitet wird.
-- **T-105 `SmokeTestController::index()` ist eine Methode mit ~3.700 Zeilen.**
-  Berührt keine Fachlogik (Diagnosewerkzeug), aber praktisch nicht mehr
-  änderbar. Zerlegen, wenn der Selbsttest ohnehin angefasst wird.
-- **T-106 Ein Prüfschritt des Selbsttests durchsucht Quelltext nach einer
-  Zeichenkette** (`SmokeTestController`, Suche nach
-  `function beendeLetztePassendeLaufendeAuftragszeit…`). Beim Umbenennen der
-  Methode schlägt der Test fehl, obwohl alles funktioniert.
-- **T-107 Die Liste `$geschuetzteSeiten` in `public/index.php` wiederholt jeden
-  `case`-Zweig des Routers von Hand.** Heute stimmen beide überein; beim
-  nächsten Route-Zusatz wird eine davon vergessen.
+- **T-102** Buchungen tragen keine `terminal_id`, obwohl sie seit
+  P-2026-08-09-01 in `config.local.php` (`terminal.id`) steht.
+- **T-104** Neun Controller erzeugen HTML selbst, statt `views/` zu benutzen –
+  größter Brocken `SmokeTestController` (283 Zeilen), dann
+  `KonfigurationController` (201), `AuftragController` (137).
+- **T-105** `SmokeTestController::index()` ist eine Methode mit ~3.700 Zeilen.
+  Diagnosewerkzeug, keine Fachlogik – aber praktisch nicht mehr änderbar.
+- **T-106** Ein Prüfschritt des Selbsttests sucht im Quelltext nach einem
+  Methodennamen; ein Umbenennen lässt ihn fehlschlagen, obwohl alles läuft.
+- **T-107** `$geschuetzteSeiten` in `public/index.php` wiederholt jeden
+  `case`-Zweig des Routers von Hand. Heute stimmen beide überein.
+- **T-108** Drei Zugriffswege auf `db_injektionsqueue`: `OfflineQueueManager`,
+  `QueueService`, `DbInjektionsqueueModel`. Zusammenführen – berührt den
+  Offline-Pfad, deshalb nur mit Offline-Test.
 - Praxis-Test: Bugs und Anomalien sammeln, als Micro-Patches beheben.
 - Offen aus P-2026-08-08-02: Strichcode-Erzeugung und Terminal-Buchungsflows
-  sind unter PHP 8.5 noch nicht im Browser geprüft (brauchen einen
-  angemeldeten Durchlauf).
-- Auftragsmodul: Scan-Flow/UX nur bei Bedarf weiter verfeinern.
+  sind unter PHP 8.5 noch nicht im Browser geprüft.
+- Auftragsmodul: Scan-Flow/UX nur bei Bedarf verfeinern.
 - Terminal (Auftrag): Stop-Detailmaske (Fallback) UX vereinfachen.

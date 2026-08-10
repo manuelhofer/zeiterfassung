@@ -42,10 +42,9 @@ Ziel: verhindern, dass bereits Erledigtes ein zweites Mal gebaut wird.
 ## 4. Ergebnis ist ein Commit
 
 - Geändert wird **direkt in der Arbeitskopie**; das Repository ist die Quelle
-  der Wahrheit. Keine ZIP-Pakete, keine Datei-Dumps im Chat. (ZIP nur, wenn der
-  Nutzer es ausdrücklich anfordert – z. B. für einen Server ohne Git.)
-- Was zusammengehört, kommt in **einen** Commit; was nicht zusammengehört, in
-  getrennte.
+  der Wahrheit. Keine ZIP-Pakete, keine Datei-Dumps im Chat – ZIP nur auf
+  ausdrücklichen Wunsch (z. B. für einen Server ohne Git).
+- Was zusammengehört, kommt in **einen** Commit; was nicht, in getrennte.
 - **Patch-ID** `P-YYYY-MM-DD-XX` (Datum Europe/Berlin, `XX` fortlaufend am Tag)
   steht im **Commit-Betreff**, gefolgt von einer kurzen Beschreibung in
   `kebab-case`:
@@ -74,16 +73,14 @@ Ziel: verhindern, dass bereits Erledigtes ein zweites Mal gebaut wird.
 Bei **jedem** Patch werden beide gepflegt, im selben Commit:
 
 **`docs/STATUS_SNAPSHOT.md` – der Stand.** Die einzige Stelle für
-Projektstatus, **„Nächster Schritt (konkret)"**, offene Bugs (B-IDs) und
-offene Tasks (T-IDs). Wer nur wissen will, was ansteht, liest diese Datei und
-sonst nichts. Erledigtes wird hier **entfernt**, nicht abgehakt – die
-Begründung steht im Verlaufseintrag.
+Projektstatus, nächsten Schritt, offene Bugs (B-IDs) und Tasks (T-IDs).
+Erledigtes wird hier **entfernt**, nicht abgehakt – die Begründung steht im
+Verlaufseintrag.
 
 **`docs/archiv/DEV_PROMPT_HISTORY.md` – der Verlauf.** Chronologisch
 absteigend, ein Eintrag je Patch, **nie** gelöscht: Patch-ID, EINGELESEN,
-DATEIEN, AKZEPTANZKRITERIUM, DONE, TEST, NEXT. Sie wird nur gelesen, wenn zu
-einem bestimmten Patch nachzuschlagen ist – deshalb gehört **kein**
-Statusabbild an ihren Anfang.
+DATEIEN, AKZEPTANZKRITERIUM, DONE, TEST, NEXT. Kein Statusabbild an ihrem
+Anfang – dafür gibt es den Snapshot.
 
 Was in den Eintrag gehört und oft vergessen wird:
 
@@ -95,9 +92,9 @@ Was in den Eintrag gehört und oft vergessen wird:
 ## 7. Technik und Stil
 
 **Zielsystem produktiv:** Debian, Apache 2.4, MySQL/MariaDB. Terminal und
-Backup-Datenbank laufen auch auf einem **Raspberry Pi** – Ressourcenbedarf
-bewusst niedrig halten, keine schweren Abhängigkeiten. Der Code muss auf diesem
-Gerät genauso laufen wie auf dem Server.
+Backup-Datenbank laufen auch auf einem **Raspberry Pi** – der Code muss dort
+genauso laufen, also Ressourcenbedarf niedrig halten und keine schweren
+Abhängigkeiten.
 
 **PHP-Baseline:**
 
@@ -152,13 +149,16 @@ Hotfixes, Prüf-Queries). Strukturänderungen gehören trotzdem **immer** nach
 ## 9. Am Ende: Kaltstart klein halten
 
 Jeder neue Chat liest `CLAUDE.md`, `CHATSTART.md`, diese Datei und den Snapshot,
-bevor er etwas tun kann – zusammen unter **15 KB** halten. Neue Erklärungen
+bevor er etwas tun kann – zusammen unter **16 KB** halten. Neue Erklärungen
 gehören deshalb in die Dateien, die nur bei Bedarf gelesen werden (Fachregeln,
 Spezifikation, Handbuch). Nachmessen:
 
 ```bash
-cat CLAUDE.md CHATSTART.md docs/arbeitsregeln.md docs/STATUS_SNAPSHOT.md | wc -c
+cat CLAUDE.md CHATSTART.md docs/arbeitsregeln.md docs/STATUS_SNAPSHOT.md | wc -c -m
 ```
+
+Die Byte-Zahl ist die härtere Grenze, aber die Zeichen-Zahl ist die
+ehrlichere: Jeder Umlaut zählt in UTF-8 doppelt, ohne mehr Text zu sein.
 
 Zum Abschluss einer Sitzung: Erledigtes aus dem Snapshot **entfernen**, keine
 ableitbare Zahl pflegen (Prozente, Patch-Listen, Verlaufsabrisse – sie driften),

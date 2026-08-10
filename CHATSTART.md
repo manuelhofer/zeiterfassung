@@ -13,17 +13,13 @@ alles.**
 Webbasierte **Zeiterfassung** für einen Handwerks-/Fertigungsbetrieb, dazu eine
 **Terminal-Oberfläche (Kiosk)** für die Werkstatt mit RFID-Login und
 Offline-Queue. Reines PHP ohne großes Framework, MariaDB/MySQL, Apache.
-Produktiv auf Debian; Terminals laufen auch auf einem Raspberry Pi.
 
-**Einstiegspunkte:**
+**Einstiegspunkte:** Backend `public/index.php` (`?seite=…`), Terminal
+`public/terminal.php` (`?aktion=…`).
 
-- Backend: `public/index.php` (Routing über `?seite=…`)
-- Terminal: `public/terminal.php` (Routing über `?aktion=…`)
-
-**Zwei Installationstypen**, unterschieden über `app.installation_typ` in
-`config/config.local.php`: `backend` (der Server) und `terminal` (Kiosk in der
-Halle). Ein Terminal ohne Konfiguration zeigt automatisch seine
-Einrichtungsseite und koppelt sich per Code am Backend an.
+**Zwei Installationstypen** über `app.installation_typ` in
+`config/config.local.php`: `backend` und `terminal`. Ein Terminal ohne
+Konfiguration zeigt seine Einrichtungsseite und koppelt sich per Code an.
 
 ## 2. Die vier Regeln, die immer gelten
 
@@ -66,9 +62,6 @@ Verstoß nicht mehr zu reparieren ist:
 `docs/archiv/DEV_PROMPT_HISTORY.md` ist **keine Startlektüre** (über 13.000
 Zeilen). Nur gezielt aufschlagen, wenn zu einem bestimmten Patch die Begründung
 oder der Test gesucht wird (`grep -n "P-2026-08-09-04"`), nie am Stück.
-
-**Eine Regel gehört an genau eine Stelle.** Findest du dieselbe Aussage
-zweimal, ist das ein Fehler – melde ihn.
 
 ## 4. Was du nicht lesen musst
 

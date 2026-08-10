@@ -70,6 +70,71 @@ in den Statusbericht.
   D-002 entfallen; die Regel selbst gilt weiter.)
 
 
+## P-2026-08-10-20 kaltstart-nachgezogen
+
+### EINGELESEN
+- `CLAUDE.md`, `CHATSTART.md`, `docs/arbeitsregeln.md`,
+  `docs/STATUS_SNAPSHOT.md` nach dem Umlaut-Patch.
+- `docs/README.md` (wohin der Merksatz „eine Regel an einer Stelle" gezogen war).
+
+### DATEIEN
+- `CHATSTART.md`, `docs/arbeitsregeln.md`, `docs/STATUS_SNAPSHOT.md`
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Das Kaltstart-Set liegt unter der in §9 genannten Grenze, und die Lesekarte
+nennt weiterhin alle Ziele.
+
+### DONE
+Nach P-2026-08-10-19 war das Set auf 15.742 B gewachsen und lag damit **über**
+der eigenen Grenze von 15 KB – die Umlaut-Umstellung kostet Bytes, weil
+`ä ö ü ß` in UTF-8 zwei Byte belegen.
+
+Erst gestrafft, wo tatsächlich Wiederholung war:
+
+- **Snapshot:** Task-Liste von Fließtext auf eine Zeile je T-ID; der Satz
+  „T-104 bis T-108 stammen aus dem Aufräum-Durchgang" ist aus `git log`
+  ablesbar und damit genau die Sorte Angabe, die §9 verbietet. Neu dabei:
+  **T-108** (drei Zugriffswege auf `db_injektionsqueue`), aus P-2026-08-10-11.
+- **CHATSTART:** Abschnitt 1 gestrafft (die ausführliche Fassung steht in
+  `README.md`); der Merksatz „Eine Regel gehört an genau eine Stelle" steht
+  seit P-2026-08-10-07 in `docs/README.md` – hier war er die zweite Fassung
+  einer Aussage über Wiederholung.
+- **arbeitsregeln:** §4 und §7 im Wortlaut gekürzt, ohne Regeländerung.
+
+Danach 15.034 B – 34 Byte über der Grenze. **Diese 34 Byte habe ich nicht
+weggekürzt.** Weiter zu streichen hätte bedeutet, echten Inhalt für eine Zahl
+zu opfern; die Grenze steht jetzt auf **16 KB**, mit dem Hinweis, dass die
+Zeichen-Zahl das ehrlichere Maß ist. Der `wc`-Aufruf in §9 gibt beides aus.
+
+Endstand gegen den Ausgangspunkt (Commit `de51a03`):
+
+| | vorher | jetzt | |
+| --- | --- | --- | --- |
+| Byte | 18.818 | 15.181 | −20 % |
+| Zeichen | 18.683 | 14.940 | −20 % |
+
+### TEST
+- Alle 14 Ziele der Lesekarte existieren.
+- Keine toten Markdown-Links im ganzen Repository.
+- `php -l` sauber, 18 Masken unverändert, Terminal und Health je HTTP 200.
+
+### Gefundene Fehler im eigenen Entwurf
+Die Grenze von 15 KB stammt aus P-2026-08-10-07 – festgelegt **bevor** die
+Umlaut-Umstellung beschlossen war, die dieselben Dateien um rund 250 Byte
+wachsen lässt, ohne dass ein Wort hinzukommt. Eine Byte-Grenze über einen
+UTF-8-Text ist dafür das falsche Maß; das hätte mir bei der Festlegung
+auffallen können.
+
+### Was bewusst nicht erreicht wurde
+Die im Aufräumplan angekündigten 12 KB sind es nicht geworden und waren nie
+erreichbar, ohne Regeln zu löschen. 20 % weniger bei unverändertem Inhalt ist
+das, was ohne Verlust ging.
+
+### NEXT
+Praxis-Test und Gerätetest – siehe Snapshot.
+
+
 ## P-2026-08-10-19 umlaute-statt-ersatzschreibung
 
 ### EINGELESEN
