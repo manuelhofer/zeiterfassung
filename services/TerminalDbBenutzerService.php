@@ -93,7 +93,7 @@ class TerminalDbBenutzerService
         'zeitbuchung'                 => 'SELECT, INSERT',
         // Das Terminal legt fehlende Stammdaten selbst an - eine Buchung darf
         // nie daran scheitern, dass ein Auftrag noch nicht gepflegt ist
-        // (Master-Prompt, Abschnitt 7).
+        // (`docs/spezifikation_terminal_installation.md`, Abschnitt 2a).
         'auftrag'                     => 'SELECT, INSERT, UPDATE',
         'auftrag_arbeitsschritt'      => 'SELECT, INSERT, UPDATE',
         'auftragszeit'                => 'SELECT, INSERT, UPDATE',

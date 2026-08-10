@@ -186,7 +186,7 @@ class ZeitService
         // Offline-Queue (Terminal):
         // Wenn die Hauptdatenbank nicht erreichbar ist, speichern wir den
         // INSERT-Befehl in `db_injektionsqueue`, damit das Terminal weiter
-        // arbeiten kann (Master-Prompt).
+        // arbeiten kann (`docs/fachregeln/terminal_und_offline.md`).
         // ------------------------------------------------------------
 
         $db = null;

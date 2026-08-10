@@ -1158,7 +1158,7 @@ if (is_array($tageswerte) && $tageswerte !== []) {
                 <th>Ab</th>
                 <th>Ist (Block)</th>
                 <th>Pausen</th>
-	                <th>Kurzarbeit</th>
+                    <th>Kurzarbeit</th>
                 <th>Feiertag</th>
                 <th>Urlaub</th>
                 <th>Typ</th>

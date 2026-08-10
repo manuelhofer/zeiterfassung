@@ -45,8 +45,9 @@ class DefaultsSeeder
             return;
         }
 
-        // Defaults laut Master-Prompt / TerminalController
-        // Hinweis: Rundung der Rohzeiten beim Buchen ist laut Master-Prompt deaktiviert (Rohdaten immer sekundengenau).
+        // Defaults – Begruendung in `docs/fachregeln/zeit_rundung_pausen.md` und `docs/fachregeln/terminal_und_offline.md`.
+        // Hinweis: Rohzeiten werden beim Buchen **nicht** gerundet – immer sekundengenau.
+        // Gerundet wird erst bei Auswertung/Export (`docs/fachregeln/zeit_rundung_pausen.md`).
         // Daher wird hier kein Config-Key wie 'zeit_rundung_beim_buchen' mehr geseedet.
         $defaults = [
             [

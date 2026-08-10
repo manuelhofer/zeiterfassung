@@ -1237,7 +1237,7 @@ class ReportService
  *
  * @return array<string,bool> Map: 'Y-m-d' => true
  */
-private function holeBetriebsferienTageFuerMitarbeiterUndMonat(int $mitarbeiterId, \DateTimeImmutable $monatStart): array
+    private function holeBetriebsferienTageFuerMitarbeiterUndMonat(int $mitarbeiterId, \DateTimeImmutable $monatStart): array
 {
     $tage = [];
 

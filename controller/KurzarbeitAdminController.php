@@ -89,7 +89,7 @@ class KurzarbeitAdminController
         return ['ok' => $ok, 'err' => $err];
     }
 
-    private function setFlashOk(string $msg): void
+    private function setzeHinweis(string $msg): void
     {
         if (session_status() === PHP_SESSION_NONE) {
             session_start();
@@ -97,7 +97,7 @@ class KurzarbeitAdminController
         $_SESSION[self::FLASH_OK_KEY] = $msg;
     }
 
-    private function setFlashErr(string $msg): void
+    private function setzeFehler(string $msg): void
     {
         if (session_status() === PHP_SESSION_NONE) {
             session_start();
@@ -331,12 +331,12 @@ class KurzarbeitAdminController
                 if (is_array($row)) {
                     $plan = array_merge($plan, $row);
                 } else {
-                    $this->setFlashErr('Eintrag nicht gefunden.');
+                    $this->setzeFehler('Eintrag nicht gefunden.');
                     header('Location: ?seite=kurzarbeit_admin');
                     return;
                 }
             } catch (Throwable $e) {
-                $this->setFlashErr('Eintrag konnte nicht geladen werden.');
+                $this->setzeFehler('Eintrag konnte nicht geladen werden.');
                 Logger::error('Fehler beim Laden kurzarbeit_plan (Admin bearbeiten)', [
                     'id' => $id,
                     'exception' => $e->getMessage(),
@@ -488,7 +488,7 @@ class KurzarbeitAdminController
         }
 
         if (!Csrf::istGueltig(self::CSRF_BEREICH)) {
-            $this->setFlashErr('CSRF-Check fehlgeschlagen. Bitte Seite neu laden.');
+            $this->setzeFehler('CSRF-Check fehlgeschlagen. Bitte Seite neu laden.');
             header('Location: ?seite=kurzarbeit_admin');
             return;
         }
@@ -509,17 +509,17 @@ class KurzarbeitAdminController
         $bis = trim((string)($_POST['bis_datum'] ?? ''));
 
         if ($von === '' || $bis === '') {
-            $this->setFlashErr('Bitte Von/Bis-Datum angeben.');
+            $this->setzeFehler('Bitte Von/Bis-Datum angeben.');
             header('Location: ?seite=kurzarbeit_admin_bearbeiten' . ($id > 0 ? '&id=' . $id : ''));
             return;
         }
         if ($von > $bis) {
-            $this->setFlashErr('Das Von-Datum darf nicht nach dem Bis-Datum liegen.');
+            $this->setzeFehler('Das Von-Datum darf nicht nach dem Bis-Datum liegen.');
             header('Location: ?seite=kurzarbeit_admin_bearbeiten' . ($id > 0 ? '&id=' . $id : ''));
             return;
         }
         if ($scope === 'mitarbeiter' && $mitarbeiterId <= 0) {
-            $this->setFlashErr('Bitte einen Mitarbeiter auswählen (Scope = Mitarbeiter).');
+            $this->setzeFehler('Bitte einen Mitarbeiter auswählen (Scope = Mitarbeiter).');
             header('Location: ?seite=kurzarbeit_admin_bearbeiten' . ($id > 0 ? '&id=' . $id : ''));
             return;
         }
@@ -612,11 +612,11 @@ class KurzarbeitAdminController
                 $id = (int)$this->datenbank->letzteInsertId();
             }
 
-            $this->setFlashOk('Gespeichert.');
+            $this->setzeHinweis('Gespeichert.');
             header('Location: ?seite=kurzarbeit_admin');
             return;
         } catch (Throwable $e) {
-            $this->setFlashErr('Speichern fehlgeschlagen.');
+            $this->setzeFehler('Speichern fehlgeschlagen.');
             Logger::error('Fehler beim Speichern kurzarbeit_plan (Admin)', [
                 'id' => $id,
                 'exception' => $e->getMessage(),
@@ -641,7 +641,7 @@ class KurzarbeitAdminController
         }
 
         if (!Csrf::istGueltig(self::CSRF_BEREICH)) {
-            $this->setFlashErr('CSRF-Check fehlgeschlagen. Bitte Seite neu laden.');
+            $this->setzeFehler('CSRF-Check fehlgeschlagen. Bitte Seite neu laden.');
             header('Location: ?seite=kurzarbeit_admin');
             return;
         }
@@ -650,7 +650,7 @@ class KurzarbeitAdminController
         $aktiv = (int)($_POST['aktiv'] ?? 0) === 1 ? 1 : 0;
 
         if ($id <= 0) {
-            $this->setFlashErr('Ungültige ID.');
+            $this->setzeFehler('Ungültige ID.');
             header('Location: ?seite=kurzarbeit_admin');
             return;
         }
@@ -660,9 +660,9 @@ class KurzarbeitAdminController
                 'UPDATE kurzarbeit_plan SET aktiv = :aktiv WHERE id = :id',
                 ['aktiv' => $aktiv, 'id' => $id]
             );
-            $this->setFlashOk('Aktualisiert.');
+            $this->setzeHinweis('Aktualisiert.');
         } catch (Throwable $e) {
-            $this->setFlashErr('Aktualisieren fehlgeschlagen.');
+            $this->setzeFehler('Aktualisieren fehlgeschlagen.');
             Logger::error('Fehler beim Toggle kurzarbeit_plan (Admin)', [
                 'id' => $id,
                 'aktiv' => $aktiv,

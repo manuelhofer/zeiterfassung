@@ -107,18 +107,18 @@ require __DIR__ . '/_layout_top.php';
             $mitarbeiterId = (int)($mitarbeiter['id'] ?? 0);
         ?>
 
-		<details class="status-box terminal-mitarbeiterpanel">
-			<summary class="status-title">
-				<a href="terminal.php?aktion=start&amp;view=arbeitszeit" style="display:flex; justify-content:space-between; width:100%; color:inherit; text-decoration:none;">
-					<span>
-						Mitarbeiter:
-						<strong><?php echo htmlspecialchars($mitarbeiterName, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></strong>
-						(ID: <?php echo (int)$mitarbeiterId; ?>)
-					</span>
-					<span class="status-small">Arbeitszeit</span>
-				</a>
-			</summary>
-		</details>
+        <details class="status-box terminal-mitarbeiterpanel">
+            <summary class="status-title">
+                <a href="terminal.php?aktion=start&amp;view=arbeitszeit" style="display:flex; justify-content:space-between; width:100%; color:inherit; text-decoration:none;">
+                    <span>
+                        Mitarbeiter:
+                        <strong><?php echo htmlspecialchars($mitarbeiterName, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></strong>
+                        (ID: <?php echo (int)$mitarbeiterId; ?>)
+                    </span>
+                    <span class="status-small">Arbeitszeit</span>
+                </a>
+            </summary>
+        </details>
     <?php endif; ?>
 
 <?php require __DIR__ . '/_layout_bottom.php'; ?>

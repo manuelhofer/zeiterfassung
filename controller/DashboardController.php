@@ -402,11 +402,11 @@ class DashboardController
                         $zeitUnstimmigkeiten = null;
                     }
                 }
-	        } catch (Throwable $e) {
-	            $zeitUnstimmigkeiten = null;
-	            $zeitUnstimmigkeitenFehler = $e->getMessage();
-	            error_log('Dashboard: Zeitwarnungen konnten nicht geladen werden: ' . $e->getMessage() . ' @ ' . $e->getFile() . ':' . $e->getLine());
-	        }
+            } catch (Throwable $e) {
+                $zeitUnstimmigkeiten = null;
+                $zeitUnstimmigkeitenFehler = $e->getMessage();
+                error_log('Dashboard: Zeitwarnungen konnten nicht geladen werden: ' . $e->getMessage() . ' @ ' . $e->getFile() . ':' . $e->getLine());
+            }
         }
 
         
@@ -805,7 +805,7 @@ class DashboardController
                     $schemaChecks = [
                         'zeitbuchung' => ['id', 'mitarbeiter_id', 'typ', 'zeitstempel', 'quelle', 'manuell_geaendert', 'kommentar', 'terminal_id'],
                         'auftragszeit' => ['id', 'mitarbeiter_id', 'auftrag_id', 'arbeitsschritt_id', 'auftragscode', 'arbeitsschritt_code', 'maschine_id', 'terminal_id', 'typ', 'startzeit', 'endzeit', 'status', 'kommentar'],
-                        // Gemäß Master-Prompt: `auftrag` ist minimal/optional – Kern ist die Auftragsnummer.
+                        // `auftrag` ist minimal/optional – Kern ist die Auftragsnummer (`docs/fachregeln/auftraege_und_codes.md`).
                         'auftrag' => ['id', 'auftragsnummer', 'aktiv'],
                         'auftrag_arbeitsschritt' => ['id', 'auftrag_id', 'arbeitsschritt_code', 'aktiv'],
                         'terminal' => ['id', 'name', 'modus', 'aktiv', 'offline_erlaubt_kommen_gehen', 'offline_erlaubt_auftraege'],

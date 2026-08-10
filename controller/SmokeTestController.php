@@ -1215,7 +1215,7 @@ class SmokeTestController
             } elseif ($this->db === null) {
                 $terminalLoginHinweis = 'Database::getInstanz() ist nicht verfügbar.';
             } else {
-				try {
+                try {
                     $pdo = $this->db->getVerbindung();
 
                     $fetchOne = static function (PDO $pdo, string $sql, array $params): ?array {
@@ -1225,10 +1225,10 @@ class SmokeTestController
                         return is_array($row) ? $row : null;
                     };
 
-					$match = null;
-					$matchTyp = null;
-					$warnungen = [];
-					$fehlerCode = null;
+                    $match = null;
+                    $matchTyp = null;
+                    $warnungen = [];
+                    $fehlerCode = null;
 
                     // 1) RFID (aktiv)
                     $match = $fetchOne(
@@ -1310,84 +1310,84 @@ class SmokeTestController
                     }
 
 
-					// Zusatz (T-069): Mehrdeutigkeits-Check für numerische Codes
-					// - In der Praxis können Personalnummern versehentlich mit Mitarbeiter-IDs kollidieren.
-					// - Terminal-Logik (B-036): RFID → Personalnummer → ID, ABER:
-					//   Wenn RFID nicht passt und sowohl Personalnummer als auch ID auf verschiedene aktive Mitarbeiter zeigen,
-					//   wird der Login abgebrochen (kein stilles „falsches Einloggen“).
-					$alternativeTreffer = [];
-					if (ctype_digit($terminalLoginCode)) {
-						$cInt = (int)$terminalLoginCode;
+                    // Zusatz (T-069): Mehrdeutigkeits-Check für numerische Codes
+                    // - In der Praxis können Personalnummern versehentlich mit Mitarbeiter-IDs kollidieren.
+                    // - Terminal-Logik (B-036): RFID → Personalnummer → ID, ABER:
+                    //   Wenn RFID nicht passt und sowohl Personalnummer als auch ID auf verschiedene aktive Mitarbeiter zeigen,
+                    //   wird der Login abgebrochen (kein stilles „falsches Einloggen“).
+                    $alternativeTreffer = [];
+                    if (ctype_digit($terminalLoginCode)) {
+                        $cInt = (int)$terminalLoginCode;
 
-						$byRfid = $fetchOne(
-							$pdo,
-							'SELECT id, vorname, nachname, personalnummer, rfid_code, aktiv
-							 FROM mitarbeiter
-							 WHERE rfid_code = :code AND aktiv = 1
-							 LIMIT 1',
-							['code' => $terminalLoginCode]
-						);
+                        $byRfid = $fetchOne(
+                            $pdo,
+                            'SELECT id, vorname, nachname, personalnummer, rfid_code, aktiv
+                             FROM mitarbeiter
+                             WHERE rfid_code = :code AND aktiv = 1
+                             LIMIT 1',
+                            ['code' => $terminalLoginCode]
+                        );
 
-						$byPn = $fetchOne(
-							$pdo,
-							'SELECT id, vorname, nachname, personalnummer, rfid_code, aktiv
-							 FROM mitarbeiter
-							 WHERE personalnummer = :pn AND aktiv = 1
-							 LIMIT 1',
-							['pn' => $terminalLoginCode]
-						);
+                        $byPn = $fetchOne(
+                            $pdo,
+                            'SELECT id, vorname, nachname, personalnummer, rfid_code, aktiv
+                             FROM mitarbeiter
+                             WHERE personalnummer = :pn AND aktiv = 1
+                             LIMIT 1',
+                            ['pn' => $terminalLoginCode]
+                        );
 
-						$byId = $fetchOne(
-							$pdo,
-							'SELECT id, vorname, nachname, personalnummer, rfid_code, aktiv
-							 FROM mitarbeiter
-							 WHERE id = :id AND aktiv = 1
-							 LIMIT 1',
-							['id' => $cInt]
-						);
+                        $byId = $fetchOne(
+                            $pdo,
+                            'SELECT id, vorname, nachname, personalnummer, rfid_code, aktiv
+                             FROM mitarbeiter
+                             WHERE id = :id AND aktiv = 1
+                             LIMIT 1',
+                            ['id' => $cInt]
+                        );
 
-						// Alternativen sammeln (für Diagnose-Ausgabe)
-						$alts = [
-							'RFID'          => $byRfid,
-							'Personalnummer' => $byPn,
-							'Mitarbeiter-ID' => $byId,
-						];
-						foreach ($alts as $t => $rowAlt) {
-							if (!is_array($rowAlt) || !isset($rowAlt['id'])) {
-								continue;
-							}
-							$alternativeTreffer[$t] = $rowAlt;
-						}
+                        // Alternativen sammeln (für Diagnose-Ausgabe)
+                        $alts = [
+                            'RFID'          => $byRfid,
+                            'Personalnummer' => $byPn,
+                            'Mitarbeiter-ID' => $byId,
+                        ];
+                        foreach ($alts as $t => $rowAlt) {
+                            if (!is_array($rowAlt) || !isset($rowAlt['id'])) {
+                                continue;
+                            }
+                            $alternativeTreffer[$t] = $rowAlt;
+                        }
 
-						// Terminal-Verhalten emulieren: Mehrdeutigkeits-Abbruch nur wenn RFID nicht passt.
-						if (!is_array($byRfid) && is_array($byPn) && is_array($byId)) {
-							$idPn = (int)($byPn['id'] ?? 0);
-							$idId = (int)($byId['id'] ?? 0);
-							if ($idPn > 0 && $idId > 0 && $idPn !== $idId) {
-								$fehlerCode = 'MEHRDEUTIG';
-								$terminalLoginHinweis = 'Mehrdeutiger numerischer Code: Terminal würde den Login abbrechen (Personalnummer vs Mitarbeiter-ID).';
-								$match = null;
-								$matchTyp = null;
-							}
-						}
+                        // Terminal-Verhalten emulieren: Mehrdeutigkeits-Abbruch nur wenn RFID nicht passt.
+                        if (!is_array($byRfid) && is_array($byPn) && is_array($byId)) {
+                            $idPn = (int)($byPn['id'] ?? 0);
+                            $idId = (int)($byId['id'] ?? 0);
+                            if ($idPn > 0 && $idId > 0 && $idPn !== $idId) {
+                                $fehlerCode = 'MEHRDEUTIG';
+                                $terminalLoginHinweis = 'Mehrdeutiger numerischer Code: Terminal würde den Login abbrechen (Personalnummer vs Mitarbeiter-ID).';
+                                $match = null;
+                                $matchTyp = null;
+                            }
+                        }
 
-						// Zusatzhinweis: Code kollidiert zwar, Terminal würde aber gemäß Reihenfolge eindeutig wählen.
-						if ($fehlerCode === null && $matchTyp !== null && is_array($match) && isset($match['id'])) {
-							$primId = (int)$match['id'];
-							$teile = [];
-							foreach ($alternativeTreffer as $t => $rowAlt) {
-								$altId = (int)($rowAlt['id'] ?? 0);
-								if ($altId === $primId) {
-									continue;
-								}
-								$name = trim((string)($rowAlt['vorname'] ?? '') . ' ' . (string)($rowAlt['nachname'] ?? ''));
-								$teile[] = $t . ' → ID ' . $altId . ($name !== '' ? ' (' . $name . ')' : '');
-							}
-							if (count($teile) > 0) {
-								$warnungen[] = 'Achtung: numerischer Code kollidiert auch mit ' . implode(', ', $teile) . '. Terminal-Reihenfolge: RFID → Personalnummer → ID.';
-							}
-						}
-					}
+                        // Zusatzhinweis: Code kollidiert zwar, Terminal würde aber gemäß Reihenfolge eindeutig wählen.
+                        if ($fehlerCode === null && $matchTyp !== null && is_array($match) && isset($match['id'])) {
+                            $primId = (int)$match['id'];
+                            $teile = [];
+                            foreach ($alternativeTreffer as $t => $rowAlt) {
+                                $altId = (int)($rowAlt['id'] ?? 0);
+                                if ($altId === $primId) {
+                                    continue;
+                                }
+                                $name = trim((string)($rowAlt['vorname'] ?? '') . ' ' . (string)($rowAlt['nachname'] ?? ''));
+                                $teile[] = $t . ' → ID ' . $altId . ($name !== '' ? ' (' . $name . ')' : '');
+                            }
+                            if (count($teile) > 0) {
+                                $warnungen[] = 'Achtung: numerischer Code kollidiert auch mit ' . implode(', ', $teile) . '. Terminal-Reihenfolge: RFID → Personalnummer → ID.';
+                            }
+                        }
+                    }
 
                     // Zusatz (T-069): Anwesenheit heute (rein lesend)
                     // - hilft beim Debuggen der Terminal-Menülogik (Kommen/Gehen-Buttons).
@@ -1451,17 +1451,17 @@ class SmokeTestController
 
 
 
-					if ($matchTyp === null || !is_array($match) || !isset($match['id'])) {
-						if ($fehlerCode !== 'MEHRDEUTIG') {
-							$terminalLoginHinweis = 'Kein aktiver Mitarbeiter für diesen Code gefunden.';
-						}
+                    if ($matchTyp === null || !is_array($match) || !isset($match['id'])) {
+                        if ($fehlerCode !== 'MEHRDEUTIG') {
+                            $terminalLoginHinweis = 'Kein aktiver Mitarbeiter für diesen Code gefunden.';
+                        }
                         $terminalLoginErgebnis = [
                             'typ' => null,
                             'mitarbeiter' => null,
                             'warnungen' => $warnungen,
                             'alternativen' => $alternativeTreffer,
                             'anwesenheit' => $anwesenheit,
-							'fehler_code' => $fehlerCode,
+                            'fehler_code' => $fehlerCode,
                         ];
                     } else {
                         $terminalLoginErgebnis = [
@@ -1470,7 +1470,7 @@ class SmokeTestController
                             'warnungen' => $warnungen,
                             'alternativen' => $alternativeTreffer,
                             'anwesenheit' => $anwesenheit,
-							'fehler_code' => $fehlerCode,
+                            'fehler_code' => $fehlerCode,
                         ];
                     }
                 } catch (Throwable $e) {
@@ -4162,32 +4162,32 @@ class SmokeTestController
                             <p style="margin:0;"><strong>Anwesenheit-Check:</strong> Fehler: <?php echo htmlspecialchars((string)$a['fehler'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></p>
                         <?php endif; ?>
 
-					<?php else:
-						$fc = (string)($terminalLoginErgebnis['fehler_code'] ?? '');
-						if ($fc === 'MEHRDEUTIG'):
-							?>
-							<p style="margin:0;"><strong>BLOCK:</strong> Mehrdeutiger numerischer Code – Terminal würde den Login abbrechen.</p>
-						<?php else: ?>
-							<p style="margin:0;"><strong>FAIL:</strong> Kein aktiver Mitarbeiter für diesen Code gefunden.</p>
-						<?php endif; ?>
-					<?php endif; ?>
+                    <?php else:
+                        $fc = (string)($terminalLoginErgebnis['fehler_code'] ?? '');
+                        if ($fc === 'MEHRDEUTIG'):
+                            ?>
+                            <p style="margin:0;"><strong>BLOCK:</strong> Mehrdeutiger numerischer Code – Terminal würde den Login abbrechen.</p>
+                        <?php else: ?>
+                            <p style="margin:0;"><strong>FAIL:</strong> Kein aktiver Mitarbeiter für diesen Code gefunden.</p>
+                        <?php endif; ?>
+                    <?php endif; ?>
 
-					<?php
-					$alts = $terminalLoginErgebnis['alternativen'] ?? [];
-					if (is_array($alts) && count($alts) > 0):
-						?>
-						<hr>
-						<p style="margin:0 0 6px 0;"><strong>Alternative Treffer (Mehrdeutigkeits-Check):</strong></p>
-						<ul style="margin:0;">
-							<?php foreach ($alts as $t => $rowAlt):
-								$altId = (int)($rowAlt['id'] ?? 0);
-								$altName = trim((string)($rowAlt['vorname'] ?? '') . ' ' . (string)($rowAlt['nachname'] ?? ''));
-								$altLine = (string)$t . ': ID ' . $altId . ($altName !== '' ? ' (' . $altName . ')' : '');
-								?>
-								<li><?php echo htmlspecialchars($altLine, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></li>
-							<?php endforeach; ?>
-						</ul>
-					<?php endif; ?>
+                    <?php
+                    $alts = $terminalLoginErgebnis['alternativen'] ?? [];
+                    if (is_array($alts) && count($alts) > 0):
+                        ?>
+                        <hr>
+                        <p style="margin:0 0 6px 0;"><strong>Alternative Treffer (Mehrdeutigkeits-Check):</strong></p>
+                        <ul style="margin:0;">
+                            <?php foreach ($alts as $t => $rowAlt):
+                                $altId = (int)($rowAlt['id'] ?? 0);
+                                $altName = trim((string)($rowAlt['vorname'] ?? '') . ' ' . (string)($rowAlt['nachname'] ?? ''));
+                                $altLine = (string)$t . ': ID ' . $altId . ($altName !== '' ? ' (' . $altName . ')' : '');
+                                ?>
+                                <li><?php echo htmlspecialchars($altLine, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></li>
+                            <?php endforeach; ?>
+                        </ul>
+                    <?php endif; ?>
 
                     <?php if (is_array($warn) && count($warn) > 0): ?>
                         <hr>

@@ -415,24 +415,24 @@ class AuthService
                 }
             }
 
-			// Hinweis:
-			// Mitarbeiter-Overrides (Allow/Deny) werden bereits beim ersten Laden aus der DB
-			// in `ladeRechteCodesAusDb()` eingerechnet. Im Cache-Zweig wird daher nur noch
-			// defensiv normalisiert (Strings) und case-insensitiv dedupliziert.
-			$norm = static function (string $v): string {
-				if (function_exists('mb_strtolower')) {
-					return mb_strtolower($v, 'UTF-8');
-				}
+            // Hinweis:
+            // Mitarbeiter-Overrides (Allow/Deny) werden bereits beim ersten Laden aus der DB
+            // in `ladeRechteCodesAusDb()` eingerechnet. Im Cache-Zweig wird daher nur noch
+            // defensiv normalisiert (Strings) und case-insensitiv dedupliziert.
+            $norm = static function (string $v): string {
+                if (function_exists('mb_strtolower')) {
+                    return mb_strtolower($v, 'UTF-8');
+                }
 
-				return strtolower($v);
-			};
+                return strtolower($v);
+            };
 
-			$set = [];
-			foreach ($out as $c) {
-				$set[$norm($c)] = $c;
-			}
+            $set = [];
+            foreach ($out as $c) {
+                $set[$norm($c)] = $c;
+            }
 
-			return array_values($set);
+            return array_values($set);
         }
 
         $codes = $this->ladeRechteCodesAusDb($mid);

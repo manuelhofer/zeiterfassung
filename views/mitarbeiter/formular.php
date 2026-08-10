@@ -661,10 +661,10 @@ $zeigeAbteilungsrollenBereich = $hatAbteilungen || count($rollenScopesAbteilung)
             <?php if (count($alleRechte) === 0): ?>
                 <p>Es sind noch keine Rechte definiert.</p>
             <?php else: ?>
-				<?php
-					$rechteVererbt = (isset($rechteVererbt) && is_array($rechteVererbt)) ? $rechteVererbt : [];
-					$rechteEffektiv = (isset($rechteEffektiv) && is_array($rechteEffektiv)) ? $rechteEffektiv : [];
-				?>
+                <?php
+                    $rechteVererbt = (isset($rechteVererbt) && is_array($rechteVererbt)) ? $rechteVererbt : [];
+                    $rechteEffektiv = (isset($rechteEffektiv) && is_array($rechteEffektiv)) ? $rechteEffektiv : [];
+                ?>
                 <div>
                 <?php
                 /**

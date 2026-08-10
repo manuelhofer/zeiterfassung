@@ -6,7 +6,7 @@ declare(strict_types=1);
  *
  * Berechnet Pausenminuten für einen Arbeitsblock.
  *
- * Regeln (Master-Prompt v6 / T-072):
+ * Regeln (T-072, siehe `docs/fachregeln/zeit_rundung_pausen.md`):
  * - Zwangspausen (betrieblich): Überlappung des Arbeitsblocks mit aktiven Pausenfenstern (Uhrzeitfenster).
  * - Gesetzliche Mindestpause: schwellenbasiert (Konfig-Keys, Default 6h/30m und 9h/45m).
  * - Gesamtabzug pro Block: max(Zwangspause, gesetzliche Mindestpause).

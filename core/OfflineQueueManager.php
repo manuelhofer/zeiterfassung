@@ -112,7 +112,7 @@ class OfflineQueueManager
     /**
      * Abarbeitung aller offenen Queue-Einträge in zeitlicher Reihenfolge.
      *
-     * Regeln gemäß Master-Prompt:
+     * Regeln (siehe `docs/fachregeln/terminal_und_offline.md`):
      * - Es werden nur Einträge mit Status 'offen' verarbeitet.
      * - Abarbeitung in aufsteigender Reihenfolge von `erstellt_am`, dann `id`.
      * - Beim ersten Fehler:

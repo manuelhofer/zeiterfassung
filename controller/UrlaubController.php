@@ -214,36 +214,36 @@ class UrlaubController
                     'bis'                 => $bisDatumAntrag,
                     'overlap_antrag_id'   => $ovId,
                     'overlap_von'         => $ovVon,
-	                        'overlap_bis'         => $ovBis,
-	                        'darf_alle'           => $darfAlle ? 1 : 0,
-	                        'darf_bereich'        => $darfBereich ? 1 : 0,
-	                        'darf_self'           => $darfSelf ? 1 : 0,
+                            'overlap_bis'         => $ovBis,
+                            'darf_alle'           => $darfAlle ? 1 : 0,
+                            'darf_bereich'        => $darfBereich ? 1 : 0,
+                            'darf_self'           => $darfSelf ? 1 : 0,
                 ], $genehmigerId, null, 'urlaub_genehmigung');
 
                 $this->redirectZurGenehmigungListe();
                 return;
             }
-	        }
+            }
 
-	        try {
-	            // Atomar: nur dann updaten, wenn der Antrag noch offen ist.
-	            // Zusätzlich (T-020): Beim Genehmigen per NOT EXISTS sicherstellen, dass kein anderer genehmigter Urlaub überlappt.
-	            $sqlUpdate =
-	                "UPDATE urlaubsantrag ua\n"
-	                . "SET ua.status = :status,\n"
-	                . "    ua.entscheidungs_mitarbeiter_id = :gid,\n"
-	                . "    ua.entscheidungs_datum = NOW(),\n"
-	                . "    ua.kommentar_genehmiger = :kommentar\n"
-	                . "WHERE ua.id = :id\n"
-	                . "  AND ua.status = 'offen'\n"
-	                . "  AND ua.mitarbeiter_id = :mid";
+            try {
+                // Atomar: nur dann updaten, wenn der Antrag noch offen ist.
+                // Zusätzlich (T-020): Beim Genehmigen per NOT EXISTS sicherstellen, dass kein anderer genehmigter Urlaub überlappt.
+                $sqlUpdate =
+                    "UPDATE urlaubsantrag ua\n"
+                    . "SET ua.status = :status,\n"
+                    . "    ua.entscheidungs_mitarbeiter_id = :gid,\n"
+                    . "    ua.entscheidungs_datum = NOW(),\n"
+                    . "    ua.kommentar_genehmiger = :kommentar\n"
+                    . "WHERE ua.id = :id\n"
+                    . "  AND ua.status = 'offen'\n"
+                    . "  AND ua.mitarbeiter_id = :mid";
 
-	            // Self-Approval nur, wenn das entsprechende Recht vorhanden ist.
-	            if (!$darfSelf) {
-	                $sqlUpdate .= "\n  AND ua.mitarbeiter_id <> :gid";
-	            }
+                // Self-Approval nur, wenn das entsprechende Recht vorhanden ist.
+                if (!$darfSelf) {
+                    $sqlUpdate .= "\n  AND ua.mitarbeiter_id <> :gid";
+                }
 
-	            if ($statusNeu === 'genehmigt') {
+                if ($statusNeu === 'genehmigt') {
                 $sqlUpdate .=
                     "\n  AND NOT EXISTS (\n"
                     . "      SELECT 1\n"
@@ -303,9 +303,9 @@ class UrlaubController
             'mitarbeiter_id' => $mitarbeiterIdAntrag,
             'status_neu'     => $statusNeu,
             'kommentar'      => ($kommentar !== '' ? 'ja' : 'nein'),
-	                'darf_alle'      => $darfAlle ? 1 : 0,
-	                'darf_bereich'   => $darfBereich ? 1 : 0,
-	                'darf_self'      => $darfSelf ? 1 : 0,
+                    'darf_alle'      => $darfAlle ? 1 : 0,
+                    'darf_bereich'   => $darfBereich ? 1 : 0,
+                    'darf_self'      => $darfSelf ? 1 : 0,
         ], $genehmigerId, null, 'urlaub_genehmigung');
 
         $this->redirectZurGenehmigungListe();

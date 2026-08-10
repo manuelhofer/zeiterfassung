@@ -70,6 +70,90 @@ in den Statusbericht.
   D-002 entfallen; die Regel selbst gilt weiter.)
 
 
+## P-2026-08-10-18 kleinigkeiten-einrueckung-verweise-bezeichner
+
+### EINGELESEN
+- `public/index.php` (Docblocks, Jahr/Monat-Bloecke, Routenliste).
+- Alle 21 Code-Kommentare mit „Master-Prompt" und die Fachregel-Dateien, auf
+  die sie jetzt zeigen.
+- `views/login/initial_admin.php`, `controller/KurzarbeitAdminController.php`.
+
+### DATEIEN
+`public/index.php`, `views/login/initial_admin.php`,
+`controller/KurzarbeitAdminController.php`, `services/QueueService.php`,
+`services/ReportService.php`, dazu 9 Dateien mit Tab-Einrueckung und 11 mit
+Verweisen auf den Master-Prompt.
+
+### AKZEPTANZKRITERIUM
+Monatsreport, Monats-PDF und Sammelexport reagieren auf die Jahr/Monat-Stepper
+genau wie vorher, auch bei `monat=0` und `monat=13`.
+
+### DONE
+Fuenf kleine Dinge, die einzeln zu klein fuer einen Patch sind:
+
+**Verwaister Kommentarblock.** In `index.php` beschrieb ein Docblock
+(„T-069 Teil 2a/2b … Wir clampen defensiv") die Funktion
+`normalize_jahr_monat`, stand aber vor `verarbeite_jahr_monat_aktion`, die
+ihren eigenen hatte. `normalize_jahr_monat` selbst stand ohne. Zugeordnet.
+
+**Dreimal derselbe Fuenfzeiler.** Die Jahr/Monat-Ermittlung stand fuer
+Monatsuebersicht, Monats-PDF und Sammelexport zeichengleich da. Jetzt
+`holeJahrMonatAusRequest()`.
+
+**`?seite=urlaubsplanung`** ist nirgends mehr verlinkt, bleibt aber als
+Alt-Link fuer Lesezeichen aus dem Betrieb – jetzt mit einer Zeile Kommentar,
+damit die naechste Suche nach toten Routen nicht wieder darueber stolpert.
+
+**Einrueckung.** 230 Zeilen mit fuehrenden Tabs in 9 Dateien auf vier
+Leerzeichen gebracht; zwei Methodendeklarationen (`QueueService::holeStatusSummary`,
+`ReportService::holeBetriebsferienTageFuerMitarbeiterUndMonat`) standen in
+Spalte 1 statt eingerueckt.
+
+**Ein Ausreisser beim Escaping.** 338 Stellen benutzen
+`htmlspecialchars($x, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8')`, nur
+`views/login/initial_admin.php` an fuenf Stellen `ENT_QUOTES` ohne
+`ENT_SUBSTITUTE`. Ohne das Flag liefert `htmlspecialchars` bei ungueltigem
+UTF-8 einen **leeren String** – auf der Erstinstallationsmaske haette das
+geheissen: Eingabe verschwindet ohne Meldung.
+
+**21 Verweise auf den Master-Prompt** („Master-Prompt v6", „v9",
+„Abschnitt 7") zeigten auf ein Dokument, das seit dem Doku-Umbau in
+`docs/archiv/` liegt und nicht mehr gilt. Alle auf die heute gueltige Datei
+umgebogen, meist `docs/fachregeln/terminal_und_offline.md`. Jede genannte Regel
+wurde dort nachgeschlagen – keine fehlte.
+
+**Zwei englische Methodennamen.** `setFlashOk`/`setFlashErr` im
+`KurzarbeitAdminController` heissen jetzt `setzeHinweis`/`setzeFehler`, passend
+zum uebrigen Projekt.
+
+### TEST
+- `holeJahrMonatAusRequest()` gegen acht Faelle: `8`→08, `0`→01, `13`→12,
+  Jahr `1900`→2026, Monat 12 + Stepper plus → 2027/01, Monat 1 + minus →
+  2025/12, `jahr_plus` → 2027/06, ohne Parameter → laufender Monat.
+- 18 Backend-Masken gerendert: unveraendert bis auf 3 Byte im Monatsreport –
+  das ist die eine Tab-Zeile in `views/report/monatsuebersicht.php`, die zu
+  vier Leerzeichen wurde.
+- `grep`: kein `Master-Prompt`, kein fuehrender Tab, kein `ENT_QUOTES` ohne
+  `ENT_SUBSTITUTE`, keine Methodendeklaration in Spalte 1 mehr.
+- `php -l` ueber alle Dateien sauber, Terminal und Health je HTTP 200.
+
+### Gefundene Fehler im eigenen Entwurf
+Der Aufraeumplan hatte fuer die Whitespace-Aenderung einen **eigenen** Patch
+vorgesehen, „damit `git blame` nachvollziehbar bleibt". Das ist hier nicht
+eingehalten: Die Tab-Umstellung steckt mit in diesem Sammelpatch. Bei 230
+Zeilen in 9 Dateien ist der Diff ueberschaubar geblieben, aber die Begruendung
+im Plan war richtig – bei einem groesseren Umfang waere die Trennung noetig
+gewesen.
+
+### Was bewusst nicht erreicht wurde
+Die Liste `$geschuetzteSeiten` in `index.php` wiederholt weiterhin jeden
+`case`-Zweig des Routers von Hand. Heute stimmen beide ueberein (geprueft);
+beim naechsten Route-Zusatz wird eine davon vergessen. Als T-107 notiert.
+
+### NEXT
+Umlaut-Konvention im Code umsetzen (F-3), danach Abschlusspruefung.
+
+
 ## P-2026-08-10-17 queue-zustand-und-programmstart-aus-einer-hand
 
 ### EINGELESEN

@@ -49,7 +49,7 @@ $markierterAntragId = isset($_GET['antrag_id']) ? (int)$_GET['antrag_id'] : 0;
                 <th>Von</th>
                 <th>Bis</th>
                 <th>Tage gesamt</th>
-	                <th>Urlaubssaldo</th>
+                    <th>Urlaubssaldo</th>
                 <th>Kommentar Mitarbeiter</th>
                 <th>Aktion</th>
             </tr>
