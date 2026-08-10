@@ -64,7 +64,7 @@ class MitarbeiterAdminController
      * Diese Hilfsroutine vermeidet Code-Duplikate im Save-Flow.
      *
      * @param array<string,mixed> $mitarbeiter
-     * @param array<int,int> $rollenIdsAusgewaehlt
+     * @param array<int,int> $rollenIdsAusgewählt
      */
     private function renderFormMitFehler(array $mitarbeiter, string $fehlermeldung, array $rollenIdsAusgewaehlt): void
     {
@@ -210,7 +210,7 @@ class MitarbeiterAdminController
 
 
 
-        // Abteilungs-Mitgliedschaften aus POST rekonstruieren (optional, Mehrfach moeglich)
+        // Abteilungs-Mitgliedschaften aus POST rekonstruieren (optional, Mehrfach möglich)
         $abteilungenIdsPost = $_POST['abteilungen_ids'] ?? [];
         if (!is_array($abteilungenIdsPost)) {
             $abteilungenIdsPost = [];
@@ -262,7 +262,7 @@ class MitarbeiterAdminController
     }
 
     /**
-     * Laedt die bestehenden Stundenkonto-Anzeigedaten fuer einen Mitarbeiter.
+     * Laedt die bestehenden Stundenkonto-Anzeigedaten für einen Mitarbeiter.
      *
      * @return array{saldo_text:?string,korrekturen:array<int,array<string,mixed>>,batches:array<int,array<string,mixed>>}
      */
@@ -313,7 +313,7 @@ class MitarbeiterAdminController
                 ['mid' => $mitarbeiterId]
             );
         } catch (\Throwable) {
-            // Tabellen koennen in Legacy/Setup fehlen; dann einfach nichts anzeigen.
+            // Tabellen können in Legacy/Setup fehlen; dann einfach nichts anzeigen.
             $saldoText = null;
             $korrekturen = [];
             $batches = [];
@@ -649,7 +649,7 @@ class MitarbeiterAdminController
         if ($id > 0 && $mitarbeiter !== null) {
             try {
                 $db = Database::getInstanz();
-                // Schema-SoT: Spalte heisst `erlaubt` (Migration 15).
+                // Schema-SoT: Spalte heißt `erlaubt` (Migration 15).
                 $rows = $db->fetchAlle(
                     'SELECT recht_id, erlaubt FROM mitarbeiter_hat_recht WHERE mitarbeiter_id = :mid',
                     ['mid' => $id]
@@ -788,7 +788,7 @@ class MitarbeiterAdminController
 
 
 
-        // Abteilungs-Mitgliedschaften (optional, Mehrfach moeglich) laden
+        // Abteilungs-Mitgliedschaften (optional, Mehrfach möglich) laden
         if ($id > 0 && $mitarbeiter !== null) {
             $mitarbeiter['abteilungen_ids'] = [];
             try {
@@ -879,7 +879,7 @@ class MitarbeiterAdminController
                     ['mid' => $id]
                 );
             } catch (\Throwable) {
-                // Tabellen koennen in Legacy/Setup fehlen; dann einfach nichts anzeigen.
+                // Tabellen können in Legacy/Setup fehlen; dann einfach nichts anzeigen.
                 $stundenkontoSaldoAktuellMinuten = null;
                 $stundenkontoSaldoAktuellText = null;
                 $stundenkontoLetzteKorrekturen = [];
@@ -1115,7 +1115,7 @@ class MitarbeiterAdminController
         $stammabteilungIdPost = (int)($_POST['stammabteilung_id'] ?? 0);
 
 
-        // Abteilungen (Mitgliedschaften) – optional, Mehrfach moeglich
+        // Abteilungen (Mitgliedschaften) – optional, Mehrfach möglich
         $abteilungenIdsPost = $_POST['abteilungen_ids'] ?? [];
         if (!is_array($abteilungenIdsPost)) {
             $abteilungenIdsPost = [];

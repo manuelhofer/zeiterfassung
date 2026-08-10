@@ -10,7 +10,7 @@ declare(strict_types=1);
  *
  * Verwendung in einer View:
  *   $seitenTitel = '...';            // optional, <title>
- *   $seitenUeberschrift = '...';     // optional, <h1>
+ *   $seitenÜberschrift = '...';     // optional, <h1>
  *   $bodyKlasse = 'terminal-wide';   // optional, Body-Klasse(n) für Layout-Varianten
  *   require __DIR__ . '/_layout_top.php';
  *

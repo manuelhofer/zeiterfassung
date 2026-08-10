@@ -120,7 +120,7 @@ Wenn die Seite leer bleibt oder Fehler zeigt, prüfe:
 - Konfiguration in `config/config.local.php`
 - Datenbank-Zugangsdaten
 
-Fuer wiederholbare technische und manuelle Pruefungen siehe
+Für wiederholbare technische und manuelle Prüfungen siehe
 `docs/wartungscheckliste.md`.
 
 ## 7) Terminal-Installation (optional)

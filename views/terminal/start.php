@@ -201,7 +201,7 @@ if (!empty($mitarbeiter) && isset($mitarbeiter['id'])) {
     }
 }
 
-// Laufende Auftraege (nur fuer Button-Logik am Startscreen):
+// Laufende Auftraege (nur für Button-Logik am Startscreen):
 // - Online: aus DB via $laufendeAuftraege
 // - Offline: Hauptauftrag-Fallback via Session-Merker (terminal_letzter_auftrag)
 $hatLaufenderHauptauftrag = false;
@@ -227,7 +227,7 @@ if ($hauptdbOk === true && is_array($laufendeAuftraege) && count($laufendeAuftra
     }
 }
 
-// Offline-Fallback fuer Nebenauftraege: Terminal merkt lokal, ob mindestens ein Nebenauftrag gestartet wurde.
+// Offline-Fallback für Nebenauftraege: Terminal merkt lokal, ob mindestens ein Nebenauftrag gestartet wurde.
 if ($hauptdbOk !== true) {
     $cnt = $_SESSION['terminal_nebenauftrag_laufend_count'] ?? 0;
     if (is_numeric($cnt) && (int)$cnt > 0) {
@@ -529,7 +529,7 @@ require __DIR__ . '/_layout_top.php';
                 }
 
                 // UX (Offline): Wenn vorhanden, zeigen wir einen Vorschlag an,
-                // basierend auf der letzten lokalen Offline-Buchung fuer diesen RFID.
+                // basierend auf der letzten lokalen Offline-Buchung für diesen RFID.
                 $offlineHint = null;
                 if ($offlineRfid !== '' && isset($_SESSION['terminal_offline_rfid_hint']) && is_array($_SESSION['terminal_offline_rfid_hint'])) {
                     $h = $_SESSION['terminal_offline_rfid_hint'];

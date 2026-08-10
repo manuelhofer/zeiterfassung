@@ -1,16 +1,16 @@
 # Wartungscheckliste
 
-Diese Checkliste dient als sichere Basis vor und nach Aenderungen. Sie ersetzt
+Diese Checkliste dient als sichere Basis vor und nach Änderungen. Sie ersetzt
 keine fachliche Abnahme, hilft aber dabei, bestehende Funktionalitaet bewusst
 zu schuetzen.
 
 ## Grundsatz
 
-- Keine Fachlogik aendern, wenn nur Dokumentation oder Einstiegspunkte
+- Keine Fachlogik ändern, wenn nur Dokumentation oder Einstiegspunkte
   verbessert werden sollen.
-- Vor groesseren Aenderungen zuerst den aktuellen Stand sichern.
-- Nach jeder Aenderung mindestens Syntaxcheck und die passenden manuellen
-  Kernablaeufe pruefen.
+- Vor größeren Änderungen zuerst den aktuellen Stand sichern.
+- Nach jeder Änderung mindestens Syntaxcheck und die passenden manuellen
+  Kernablaeufe prüfen.
 
 ## Technischer Schnellcheck
 
@@ -21,7 +21,7 @@ git status --short
 php -v
 ```
 
-Alle PHP-Dateien auf Syntaxfehler pruefen:
+Alle PHP-Dateien auf Syntaxfehler prüfen:
 
 ```bash
 find . -name '*.php' -not -path './.git/*' -print0 \
@@ -30,13 +30,13 @@ find . -name '*.php' -not -path './.git/*' -print0 \
   || echo 'OK: alle PHP-Dateien syntaktisch sauber'
 ```
 
-Nur die geaenderten Dateien pruefen (schneller, im Alltag meist ausreichend):
+Nur die geänderten Dateien prüfen (schneller, im Alltag meist ausreichend):
 
 ```bash
 git diff --name-only --diff-filter=ACM | grep '\.php$' | xargs -r -n1 php -l
 ```
 
-Nach dem Klicktest zusaetzlich das Log auf PHP-Meldungen ansehen – hier tauchen
+Nach dem Klicktest zusätzlich das Log auf PHP-Meldungen ansehen – hier tauchen
 Deprecations auf, die im Browser unsichtbar bleiben:
 
 ```bash
@@ -45,7 +45,7 @@ sudo tail -50 /var/log/httpd/error_log
 
 ## Manuelle Kernablaeufe
 
-Nach Aenderungen an Backend, Auth, Session, Rechten oder Layout:
+Nach Änderungen an Backend, Auth, Session, Rechten oder Layout:
 
 - Login als Admin
 - Dashboard oeffnen
@@ -56,7 +56,7 @@ Nach Aenderungen an Backend, Auth, Session, Rechten oder Layout:
 - Urlaub beantragen und Liste oeffnen
 - Urlaub-Genehmigungsliste oeffnen, sofern Berechtigung vorhanden
 
-Nach Aenderungen am Terminal:
+Nach Änderungen am Terminal:
 
 - Terminal-Startseite oeffnen
 - RFID/Login testen
@@ -64,31 +64,31 @@ Nach Aenderungen am Terminal:
 - Gehen buchen
 - Auftrag starten
 - Auftrag stoppen
-- Auto-Logout pruefen
-- Health-Endpunkt `public/terminal.php?aktion=health` pruefen
+- Auto-Logout prüfen
+- Health-Endpunkt `public/terminal.php?aktion=health` prüfen
 
-Nach Aenderungen an den Installationsskripten (`scripts/terminal/`):
+Nach Änderungen an den Installationsskripten (`scripts/terminal/`):
 
 - Debian-12-Container mit systemd starten, die vier Skripte der Reihe nach
   laufen lassen, jedes ein zweites Mal (Idempotenz)
-- `selbsttest.sh --ohne-scan` – der Rueckgabewert muss zum Ergebnis passen
+- `selbsttest.sh --ohne-scan` – der Rückgabewert muss zum Ergebnis passen
 - Nach `install_peripherie.sh`: Passwort in `config/geraet.local.php` muss
   dasselbe geblieben sein, sonst ist die Offline-Queue tot
 
-Nach Aenderungen an der Terminalverwaltung (Backend):
+Nach Änderungen an der Terminalverwaltung (Backend):
 
-- Terminalliste oeffnen, Spalte *Kopplung* pruefen
-- Kopplungscode erzeugen, am Terminal einloesen
+- Terminalliste oeffnen, Spalte *Kopplung* prüfen
+- Kopplungscode erzeugen, am Terminal einlösen
 - Entkoppeln: Datenbankbenutzer muss verschwinden, das Geraet danach nicht mehr
-  buchen koennen
+  buchen können
 
-Nach Aenderungen an Offline-Queue oder Datenbankverbindung:
+Nach Änderungen an Offline-Queue oder Datenbankverbindung:
 
 - Queue-Admin oeffnen
 - Status `offen`, `fehler`, `verarbeitet` ansehen
 - Terminal bei erreichbarer Hauptdatenbank testen
 - Terminal mit nicht erreichbarer Hauptdatenbank nur kontrolliert testen
-- Wiederanlauf der Queue pruefen
+- Wiederanlauf der Queue prüfen
 
 ## Bereiche mit besonderer Vorsicht
 
@@ -99,5 +99,5 @@ Nach Aenderungen an Offline-Queue oder Datenbankverbindung:
 - `views/layout/header.php`
 - Monatsreport/PDF-Services
 
-Diese Bereiche funktionieren aktuell, sind aber zentral fuer viele Ablaeufe.
-Hier nur kleine, gut pruefbare Schritte machen.
+Diese Bereiche funktionieren aktuell, sind aber zentral für viele Ablaeufe.
+Hier nur kleine, gut prüfbare Schritte machen.

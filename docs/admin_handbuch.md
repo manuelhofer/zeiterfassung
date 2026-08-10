@@ -93,11 +93,11 @@ an.
 Arbeitsschritt-Katalog*)
 
 Hier stehen die wiederkehrenden Taetigkeiten: `saegen`, `drehen`, `fraesen`,
-`entgraten` … Einmal gepflegt, fuer jeden Auftrag nutzbar.
+`entgraten` … Einmal gepflegt, für jeden Auftrag nutzbar.
 
-Ueber *x drucken* laesst sich ein Schritt in beliebiger Stueckzahl als
+Über *x drucken* lässt sich ein Schritt in beliebiger Stückzahl als
 Kartenblatt ausgeben. Bei mehreren Fraesmaschinen also z. B. 20 Karten
-`fraesen` – ausschneiden und an jede Maschine haengen.
+`fraesen` – ausschneiden und an jede Maschine hängen.
 
 **2. Auftrag anlegen** (Menue *Auftraege → Auftrag anlegen*)
 
@@ -106,13 +106,13 @@ freiwillig; was leer bleibt, erscheint auch nicht auf dem Ausdruck.
 
 **3. Arbeitsschritte zuordnen** (in der Auftrags-Detailansicht)
 
-Entweder frei eintippen (fuer werkstueckspezifische Schritte wie
-„Aussendurchmesser auf 40 mm drehen“) oder aus dem Katalog uebernehmen.
+Entweder frei eintippen (für werkstückspezifische Schritte wie
+„Aussendurchmesser auf 40 mm drehen“) oder aus dem Katalog übernehmen.
 
 **4. Laufkarte drucken** (Detailansicht, *Laufkarte als PDF drucken*)
 
 Enthaelt den Auftrags-Strichcode und je Arbeitsschritt einen Strichcode plus
-Felder fuer Datum, Name, Menge und i. O. Die Karte begleitet das Werkstueck.
+Felder für Datum, Name, Menge und i. O. Die Karte begleitet das Werkstück.
 
 **5. Am Terminal**
 
@@ -121,10 +121,10 @@ entweder von der Laufkarte oder von der Karte an der Maschine.
 
 **Wichtig beim Aendern:** Wird ein Code umbenannt, entsteht ein neuer
 Strichcode. Bereits gedruckte Laufkarten und Maschinenkarten werden dadurch
-ungueltig und muessen neu gedruckt werden.
+ungültig und müssen neu gedruckt werden.
 
 ## Verlinkte Referenzen
 - Verzeichnis aller Dokumente: [`docs/README.md`](README.md)
 - Status/Letzte Änderungen: [`docs/STATUS_SNAPSHOT.md`](STATUS_SNAPSHOT.md)
-- Wartungs- und Pruefcheckliste: [`docs/wartungscheckliste.md`](wartungscheckliste.md)
+- Wartungs- und Prüfcheckliste: [`docs/wartungscheckliste.md`](wartungscheckliste.md)
 - RFID-Reader-Setup: [`docs/rfid_reader_setup.md`](rfid_reader_setup.md)

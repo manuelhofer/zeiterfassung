@@ -149,20 +149,20 @@ class Helper
     }
 
     /**
-     * Maskiert einen Wert fuer die Verwendung in einem SQL-Stringliteral –
-     * **ohne** die umschliessenden Anfuehrungszeichen.
+     * Maskiert einen Wert für die Verwendung in einem SQL-Stringliteral –
+     * **ohne** die umschließenden Anführungszeichen.
      *
-     * Warum es diese Funktion ueberhaupt gibt: Die Offline-Queue speichert
-     * fertigen SQL-Text, der spaeter ausgefuehrt wird. Dort sind Prepared
-     * Statements nicht moeglich, also muss von Hand maskiert werden – und dann
+     * Warum es diese Funktion überhaupt gibt: Die Offline-Queue speichert
+     * fertigen SQL-Text, der später ausgeführt wird. Dort sind Prepared
+     * Statements nicht möglich, also muss von Hand maskiert werden – und dann
      * bitte an genau einer Stelle.
      *
      * Warum der Backslash zuerst kommt: MySQL und MariaDB behandeln `\` in der
      * Standardeinstellung als Fluchtzeichen (`NO_BACKSLASH_ESCAPES` ist aus).
-     * Ein Wert, der auf `\` endet, wuerde sonst das schliessende
-     * Anfuehrungszeichen maskieren, das Literal offen lassen und alles
+     * Ein Wert, der auf `\` endet, wuerde sonst das schließende
+     * Anführungszeichen maskieren, das Literal offen lassen und alles
      * Nachfolgende zu SQL machen. Die Reihenfolge ist wesentlich: erst
-     * Backslashes verdoppeln, dann Anfuehrungszeichen – umgekehrt wuerden die
+     * Backslashes verdoppeln, dann Anführungszeichen – umgekehrt wuerden die
      * frisch erzeugten Backslashes gleich wieder verdoppelt.
      */
     public static function sqlEscape(string $wert): string
@@ -171,8 +171,8 @@ class Helper
     }
 
     /**
-     * Liefert einen Wert als vollstaendiges SQL-Stringliteral, inklusive
-     * Anfuehrungszeichen. Siehe `sqlEscape()` fuer die Begruendung.
+     * Liefert einen Wert als vollständiges SQL-Stringliteral, inklusive
+     * Anführungszeichen. Siehe `sqlEscape()` für die Begruendung.
      */
     public static function sqlLiteral(string $wert): string
     {
@@ -184,15 +184,15 @@ class Helper
      *
      * Wird gebraucht, um aus einem Pfad unterhalb von `public/` eine URL zu
      * bauen, die im Browser funktioniert – egal ob die Anwendung direkt auf der
-     * Domain-Wurzel oder in einem Unterordner (`/zeiterfassung`) haengt.
+     * Domain-Wurzel oder in einem Unterordner (`/zeiterfassung`) hängt.
      *
      * Reihenfolge:
      * 1. `app.base_url` aus der Konfigurationsdatei, falls gesetzt,
      * 2. sonst das Verzeichnis des laufenden Skripts (`SCRIPT_NAME`),
      * 3. sonst leer = Domain-Wurzel.
      *
-     * Rueckgabe ohne fuehrenden/abschliessenden Schraegstrich (z. B.
-     * `zeiterfassung`) oder eine vollstaendige URL, wenn `base_url` eine solche
+     * Rückgabe ohne führenden/abschließenden Schraegstrich (z. B.
+     * `zeiterfassung`) oder eine vollständige URL, wenn `base_url` eine solche
      * ist. Leerer String bedeutet Domain-Wurzel.
      */
     public static function ermittleWebBasis(): string

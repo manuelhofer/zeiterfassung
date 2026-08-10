@@ -4,7 +4,7 @@ declare(strict_types=1);
 /**
  * BarcodeService
  *
- * Erzeugt Strichcodes (Code 128) fuer Auftragsnummern, Arbeitsschritt-Codes und
+ * Erzeugt Strichcodes (Code 128) für Auftragsnummern, Arbeitsschritt-Codes und
  * Katalogeintraege – siehe `docs/spezifikation_auftrag_barcode_laufkarte.md`.
  *
  * **Warum Code 128 und nicht QR:** Im Betrieb sind 1D-Handscanner im Einsatz,
@@ -15,15 +15,15 @@ declare(strict_types=1);
  * (z. B. `fraesen`) – es braucht keine kuenstliche Nummer.
  *
  * Zwei Ausgabewege, weil zwei Ziele bedient werden:
- * - `stelleBildBereit()` schreibt eine PNG-Datei unterhalb von `public/` fuer
+ * - `stelleBildBereit()` schreibt eine PNG-Datei unterhalb von `public/` für
  *   die Anzeige im Backend.
  * - `holeBalken()` liefert die reine Balkenfolge, damit die PDFs den Code als
- *   Vektor zeichnen koennen. Der PDF-Writer des Projekts kann keine Bilder
+ *   Vektor zeichnen können. Der PDF-Writer des Projekts kann keine Bilder
  *   einbetten, und gezeichnete Balken drucken ohnehin schaerfer.
  *
  * Der Inhalt ist immer **nur der nackte Code** – kein Praefix, keine URL. Das
  * Terminal liest seine Scan-Felder als reinen Text, deshalb funktionieren
- * gedruckte Codes ohne jede Aenderung am Terminal.
+ * gedruckte Codes ohne jede Änderung am Terminal.
  */
 class BarcodeService
 {
@@ -45,17 +45,17 @@ class BarcodeService
     }
 
     /**
-     * Stellt sicher, dass fuer die Nutzdaten eine PNG-Datei existiert, und
+     * Stellt sicher, dass für die Nutzdaten eine PNG-Datei existiert, und
      * liefert deren Pfad relativ zu `public/`.
      *
      * Neu erzeugt wird nur, wenn die Datei fehlt oder aelter ist als der
-     * uebergebene Aenderungszeitpunkt des Datensatzes. So bekommt ein
+     * übergebene Änderungszeitpunkt des Datensatzes. So bekommt ein
      * umbenannter Arbeitsschritt automatisch einen neuen Code, ohne dass bei
      * jedem Seitenaufruf gerechnet wird.
      *
      * @param string      $nutzdaten   Inhalt des Codes (z. B. `fraesen`)
      * @param string      $dateiname   Dateiname ohne Pfad (z. B. `schritt_12.png`)
-     * @param string|null $geaendertAm Aenderungszeitpunkt des Datensatzes (Y-m-d H:i:s)
+     * @param string|null $geändertAm Änderungszeitpunkt des Datensatzes (Y-m-d H:i:s)
      *
      * @return string|null Pfad relativ zu `public/`, oder null bei Fehler
      */
@@ -120,12 +120,12 @@ class BarcodeService
     /**
      * Liefert die Balkenfolge eines Code-128-Strichcodes.
      *
-     * Rueckgabe:
-     * - `breite`  Gesamtbreite in Modulen (Grundlage fuer die Skalierung)
+     * Rückgabe:
+     * - `breite`  Gesamtbreite in Modulen (Grundlage für die Skalierung)
      * - `balken`  Liste dunkler Balken als `['start' => Modul, 'breite' => Module]`
      *
-     * Gedacht fuer die PDFs: jeder Balken wird dort ein gefuelltes Rechteck.
-     * Bei einem Fehler kommt eine leere Liste zurueck, damit ein einzelner
+     * Gedacht für die PDFs: jeder Balken wird dort ein gefuelltes Rechteck.
+     * Bei einem Fehler kommt eine leere Liste zurück, damit ein einzelner
      * kaputter Code nie das ganze Dokument verhindert.
      *
      * @return array{breite:int,balken:array<int,array{start:int,breite:int}>}
@@ -164,7 +164,7 @@ class BarcodeService
     }
 
     /**
-     * Dateiname fuer den Strichcode eines Auftrags.
+     * Dateiname für den Strichcode eines Auftrags.
      */
     public function dateinameAuftrag(int $auftragId): string
     {
@@ -172,7 +172,7 @@ class BarcodeService
     }
 
     /**
-     * Dateiname fuer den Strichcode eines Arbeitsschritts am Auftrag.
+     * Dateiname für den Strichcode eines Arbeitsschritts am Auftrag.
      */
     public function dateinameArbeitsschritt(int $arbeitsschrittId): string
     {
@@ -180,7 +180,7 @@ class BarcodeService
     }
 
     /**
-     * Dateiname fuer den Strichcode eines Katalogeintrags.
+     * Dateiname für den Strichcode eines Katalogeintrags.
      */
     public function dateinameKatalog(int $katalogId): string
     {
@@ -256,7 +256,7 @@ class BarcodeService
     }
 
     /**
-     * Speicherpfad aus der Konfiguration, mit Standard als Rueckfallebene.
+     * Speicherpfad aus der Konfiguration, mit Standard als Rückfallebene.
      */
     private function ermittleRelativenPfad(): string
     {
@@ -266,7 +266,7 @@ class BarcodeService
             $konfig = KonfigurationService::getInstanz();
             $wert = $konfig->get('auftrag_code_rel_pfad', null);
 
-            // Rueckfall auf den alten Schluessel: Der Wert hiess bis
+            // Rückfall auf den alten Schluessel: Der Wert hiess bis
             // P-2026-08-08-24 `auftrag_qr_rel_pfad`. Installationen, die die
             // Migration noch nicht eingespielt haben, sollen trotzdem ihren
             // eingestellten Pfad behalten statt auf den Standard zu fallen.
@@ -283,7 +283,7 @@ class BarcodeService
 
         $wert = str_replace('\\', '/', trim($wert));
         $wert = ltrim($wert, '/');
-        // Ein versehentlich mitgegebenes `public/` waere doppelt.
+        // Ein versehentlich mitgegebenes `public/` wäre doppelt.
         $wert = (string)preg_replace('~^public(?:/|$)~i', '', $wert);
         $wert = trim($wert, '/');
 

@@ -18,24 +18,24 @@ $konfig = Start::los();
 // Geraets darf Mitarbeiterstammdaten, Zeitbuchungen und Stundenkonten **lesen**
 // (siehe Rechteliste in docs/spezifikation_terminal_installation.md). Wer das
 // Geraet aufschraubt, liest die Zugangsdaten aus `config.local.php` und kommt
-// an diese Daten - daran aendert diese Sperre nichts. Sie nimmt lediglich die
+// an diese Daten - daran ändert diese Sperre nichts. Sie nimmt lediglich die
 // Backend-Oberflaeche aus dem Weg, die auf einem Hallengeraet nichts zu suchen
 // hat. Der Schutz der Daten liegt bei der Rechteliste, nicht hier.
 //
-// Bewusst **ohne Ausnahme fuer den Kopplungs-Endpunkt**: Der laeuft auf dem
+// Bewusst **ohne Ausnahme für den Kopplungs-Endpunkt**: Der läuft auf dem
 // Backend. Ein Terminal, das ihn selbst anboete, wuerde Datenbankbenutzer
 // verteilen - genau das, was die Kopplung verhindern soll.
 //
-// Rueckweg fuer die Wartung: `installation_typ` in `config/config.local.php`
+// Rückweg für die Wartung: `installation_typ` in `config/config.local.php`
 // auf 'backend' setzen. Das braucht Zugriff auf die Datei, und das ist die
 // richtige Huerde.
 $istTerminal = ($konfig['app']['installation_typ'] ?? 'backend') === 'terminal';
 
 // Zweiter Fall, sonst bliebe eine Luecke von Tagen: Zwischen dem Aufsetzen und
 // dem Koppeln gibt es noch keine `config.local.php`, also gilt der Standard
-// 'backend' - und ein Geraet, das schon in der Halle haengt, zeigte bis dahin
+// 'backend' - und ein Geraet, das schon in der Halle hängt, zeigte bis dahin
 // die Anmeldemaske. Woran ein solches Geraet zu erkennen ist:
-// `config/geraet.local.php` legt ausschliesslich install_terminal.sh an.
+// `config/geraet.local.php` legt ausschließlich install_terminal.sh an.
 //
 // Nur wenn `config.local.php` fehlt. Ist sie da und nennt 'backend', ist das
 // eine ausdrueckliche Entscheidung und gewinnt.
@@ -49,7 +49,7 @@ if (!$istTerminal
 if ($istTerminal) {
     // Weiterleiten statt 404: Auf einem Kiosk ist die Terminal-Oberflaeche das,
     // was der Aufrufer gemeint hat - bei einem noch nicht gekoppelten Geraet
-    // ist das die Einrichtungsseite. Ein Fehlerbild waere hier nur im Weg.
+    // ist das die Einrichtungsseite. Ein Fehlerbild wäre hier nur im Weg.
     header('Location: terminal.php', true, 302);
     header('Cache-Control: no-store');
     exit;
@@ -58,7 +58,7 @@ if ($istTerminal) {
 /**
  * Liest Jahr und Monat aus dem Request, wendet die Stepper an und begrenzt sie.
  *
- * Fasst zusammen, was fuer Monatsuebersicht, Monats-PDF und Sammelexport
+ * Fasst zusammen, was für Monatsübersicht, Monats-PDF und Sammelexport
  * dreimal zeichengleich dastand.
  *
  * @return array{0:int,1:int}
@@ -124,7 +124,7 @@ function verarbeite_jahr_monat_aktion(int $jahr, int $monat): array
  * Begrenzt Jahr und Monat auf sinnvolle Werte.
  *
  * Hintergrund (T-069 Teil 2a/2b): Durch Browser-Back/Forward, Copy&Paste oder
- * Tippfehler entstehen Werte wie `monat=0` oder `monat=13`. Die fuehren in
+ * Tippfehler entstehen Werte wie `monat=0` oder `monat=13`. Die führen in
  * Reports und PDFs zu DateTime-Fehlern und je nach PHP-Einstellung zu
  * Warnungen im Log. Deshalb wird defensiv begrenzt statt hart abgebrochen.
  */
@@ -248,7 +248,7 @@ try {
             $controller->logout();
             break;
 
-        // Kopplungs-Endpunkt fuer Terminals. Bewusst **ohne** Anmeldung: Ein
+        // Kopplungs-Endpunkt für Terminals. Bewusst **ohne** Anmeldung: Ein
         // frisch installiertes Geraet hat noch keinen Benutzer - der
         // Kopplungscode ist der Nachweis (siehe TerminalKopplungController).
         case 'terminal_kopplung':
@@ -287,7 +287,7 @@ try {
             break;
 
         case 'urlaub_jahresuebersicht':
-        // Alt-Link: nirgends mehr verlinkt, bleibt fuer Lesezeichen aus dem Betrieb.
+        // Alt-Link: nirgends mehr verlinkt, bleibt für Lesezeichen aus dem Betrieb.
         case 'urlaubsplanung':
             $controller = new UrlaubJahresuebersichtController();
             $controller->index();

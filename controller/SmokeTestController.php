@@ -12,7 +12,7 @@ declare(strict_types=1);
  */
 class SmokeTestController
 {
-    /** Bereichsname fuer `Csrf` – siehe `core/Csrf.php`. */
+    /** Bereichsname für `Csrf` – siehe `core/Csrf.php`. */
     private const CSRF_BEREICH = 'smoke_test';
 
     private AuthService $auth;
@@ -1159,7 +1159,7 @@ class SmokeTestController
         $feiertagSeedHinweis = null;
 
         // T-069 (Teil): Monatsreport-Raster-Check
-        // - Prüft, ob `ReportService::holeMonatsdatenFuerMitarbeiter()` wirklich ein vollständiges Monatsraster liefert.
+        // - Prüft, ob `ReportService::holeMonatsdatenFürMitarbeiter()` wirklich ein vollständiges Monatsraster liefert.
         // - Erwartung: Anzahl Tageswerte = Anzahl Kalendertage im Monat UND alle Datumswerte (YYYY-MM-DD) sind vorhanden.
         $monatsrasterTestJahr = (int)date('Y');
         $monatsrasterTestMonat = (int)date('n');
@@ -1168,7 +1168,7 @@ class SmokeTestController
         $monatsrasterTestHinweis = null;
 
         // T-069 (Fortsetzung): Monatsreport-Fallback-Check (lueckenhafte Tageswerte)
-        // - Prueft, ob es Tage mit Zeitbuchungen gibt, die noch keinen Datensatz in `tageswerte_mitarbeiter` haben,
+        // - Prüft, ob es Tage mit Zeitbuchungen gibt, die noch keinen Datensatz in `tageswerte_mitarbeiter` haben,
         //   und ob der Monatsreport diese Tage trotzdem sinnvoll fuellt (Fallback aus Zeitbuchungen).
         $monatsfallbackTestJahr = (int)date('Y');
         $monatsfallbackTestMonat = (int)date('n');
@@ -1179,7 +1179,7 @@ class SmokeTestController
 
         // T-069 (Fortsetzung): Kommen/Gehen-Sequenz-Check (Monat)
         // - Analysiert die Reihenfolge der Zeitbuchungen pro Tag (kommen/gehen).
-        // - Findet Auffaelligkeiten: doppelte Typen, gehen ohne kommen, offener Block (kommen ohne gehen), ungerade Anzahl.
+        // - Findet Auffälligkeiten: doppelte Typen, gehen ohne kommen, offener Block (kommen ohne gehen), ungerade Anzahl.
         // - Rein lesend.
         $buchungssequenzTestJahr = (int)date('Y');
         $buchungssequenzTestMonat = (int)date('n');

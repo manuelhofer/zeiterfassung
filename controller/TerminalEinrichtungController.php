@@ -13,29 +13,29 @@ declare(strict_types=1);
  * passt so auf beliebig viele Geraete. Fehlt deshalb `config/config.local.php`,
  * zeigt `public/terminal.php` nicht die Bedienoberflaeche, sondern diese Seite.
  * Das ist dieselbe Mechanik wie die Erstinstallation im Backend
- * (`views/login/initial_admin.php`), nur fuer den Touchscreen gebaut.
+ * (`views/login/initial_admin.php`), nur für den Touchscreen gebaut.
  *
  * Ablauf: Server-Adresse und Kopplungscode eingeben -> das Terminal ruft
  * `?seite=terminal_kopplung` des Backends auf -> aus der Antwort entsteht
- * `config/config.local.php` -> danach laeuft das Terminal normal.
+ * `config/config.local.php` -> danach läuft das Terminal normal.
  */
 class TerminalEinrichtungController
 {
-    /** Bereichsname fuer `Csrf` – siehe `core/Csrf.php`. */
+    /** Bereichsname für `Csrf` – siehe `core/Csrf.php`. */
     private const CSRF_BEREICH = 'terminal_einrichtung';
 
-    /** Zeitlimit fuer den Aufruf des Backends (Sekunden). */
+    /** Zeitlimit für den Aufruf des Backends (Sekunden). */
     private const ANFRAGE_TIMEOUT = 20;
 
-    /** Zeitlimit nur fuer den Verbindungsaufbau (Sekunden). */
+    /** Zeitlimit nur für den Verbindungsaufbau (Sekunden). */
     private const VERBINDUNG_TIMEOUT = 8;
 
     /**
      * Optionale Datei mit den **geraetelokalen** Einstellungen, die das
-     * Installationsskript (Stufe 3) hinterlaesst: Zugangsdaten der lokalen
+     * Installationsskript (Stufe 3) hinterlässt: Zugangsdaten der lokalen
      * Ausweichdatenbank und die RFID-Bridge.
      *
-     * Warum getrennt: Diese Werte gehoeren der Maschine und nicht dem Backend -
+     * Warum getrennt: Diese Werte gehören der Maschine und nicht dem Backend -
      * sie stehen beim Koppeln also nicht in der Antwort. Fehlt die Datei
      * (z. B. weil Stufe 3 noch nicht gelaufen ist), koppelt das Terminal
      * trotzdem; es hat dann nur keine Offline-Ausweichdatenbank, und die Seite
@@ -58,16 +58,16 @@ class TerminalEinrichtungController
      * erreichbar". Ein Terminal ohne Netz ist kein unkonfiguriertes Terminal:
      * Der Offline-Betrieb mit Queue ist eine gewollte Betriebsart. Wuerde ein
      * Netzausfall die Einrichtungsseite hervorholen, stuende ein Monteur bei
-     * jeder Stoerung vor einer Maske, die nach einem Kopplungscode fragt - und
-     * die Buchungen der Halle waeren weg.
+     * jeder Störung vor einer Maske, die nach einem Kopplungscode fragt - und
+     * die Buchungen der Halle wären weg.
      */
     public static function istEingerichtet(): bool
     {
         $pfad = self::konfigPfad();
 
         // Der realpath-Cache merkt sich auch, dass eine Datei **nicht**
-        // existiert. Ohne dieses Leeren koennte ein Arbeitsprozess die eben
-        // geschriebene Konfiguration minutenlang uebersehen und das frisch
+        // existiert. Ohne dieses Leeren könnte ein Arbeitsprozess die eben
+        // geschriebene Konfiguration minutenlang übersehen und das frisch
         // gekoppelte Terminal weiter zur Einrichtung schicken.
         clearstatcache(true, $pfad);
 
@@ -75,12 +75,12 @@ class TerminalEinrichtungController
     }
 
     /**
-     * Einstiegspunkt: GET zeigt das Formular, POST fuehrt die Kopplung durch.
+     * Einstiegspunkt: GET zeigt das Formular, POST führt die Kopplung durch.
      */
     public function bearbeiten(): void
     {
-        // Eine vorhandene Konfiguration wird niemals ueberschrieben. Sonst
-        // liesse sich ein laufendes Terminal ueber diese Seite auf einen
+        // Eine vorhandene Konfiguration wird niemals überschrieben. Sonst
+        // liesse sich ein laufendes Terminal über diese Seite auf einen
         // fremden Server umbiegen.
         if (self::istEingerichtet()) {
             header('Location: terminal.php?aktion=start');
@@ -185,17 +185,17 @@ class TerminalEinrichtungController
     }
 
     /**
-     * Ruft der Reihe nach die moeglichen Endpunkt-Adressen auf.
+     * Ruft der Reihe nach die möglichen Endpunkt-Adressen auf.
      *
      * Warum mehrere: Je nach Installation zeigt der Webserver direkt auf
      * `public/` (Produktivserver laut Installationsanleitung) oder auf das
      * Projektverzeichnis. Der Monteur soll deshalb nur den Namen des Servers
-     * eintippen muessen und nicht wissen, wie dort der Pfad aufgebaut ist.
+     * eintippen müssen und nicht wissen, wie dort der Pfad aufgebaut ist.
      *
      * Es wird nur so lange weitergesucht, bis eine Antwort **unseres**
-     * Endpunkts kommt (gueltiges JSON mit `ok`). Ein Fehlversuch auf einem
+     * Endpunkts kommt (gültiges JSON mit `ok`). Ein Fehlversuch auf einem
      * falschen Pfad verbraucht den Kopplungscode nicht, weil der Endpunkt dort
-     * gar nicht laeuft.
+     * gar nicht läuft.
      *
      * @param array<int,string> $kandidaten
      *
@@ -266,8 +266,8 @@ class TerminalEinrichtungController
 
                 // Kein `curl_close()`: seit PHP 8.0 wirkungslos und seit 8.5
                 // ausdruecklich veraltet. Die Verbindung raeumt der
-                // Speicherverwalter auf, sobald `$ch` aus dem Gueltigkeits-
-                // bereich faellt.
+                // Speicherverwalter auf, sobald `$ch` aus dem Gültigkeits-
+                // bereich fällt.
                 unset($ch);
 
                 if (!is_string($body)) {
@@ -288,7 +288,7 @@ class TerminalEinrichtungController
             }
         }
 
-        // Rueckfallebene ohne cURL (Minimalinstallation eines Terminals).
+        // Rückfallebene ohne cURL (Minimalinstallation eines Terminals).
         $kontext = stream_context_create([
             'http' => [
                 'method'           => 'POST',
@@ -332,7 +332,7 @@ class TerminalEinrichtungController
     }
 
     /**
-     * Baut aus der eingegebenen Adresse die moeglichen Endpunkt-URLs.
+     * Baut aus der eingegebenen Adresse die möglichen Endpunkt-URLs.
      *
      * @return array<int,string>
      */
@@ -524,8 +524,8 @@ class TerminalEinrichtungController
      * hinterlassen hat.
      *
      * Bewusst mit fester Auswahl: Aus dieser Datei werden **nur**
-     * Ausweichdatenbank und RFID-Bridge uebernommen. Die Zugangsdaten zur
-     * Hauptdatenbank kommen ausschliesslich aus der Kopplung - sonst waere die
+     * Ausweichdatenbank und RFID-Bridge übernommen. Die Zugangsdaten zur
+     * Hauptdatenbank kommen ausschließlich aus der Kopplung - sonst wäre die
      * Trennung zwischen Skript und Kopplung wieder aufgeweicht.
      *
      * @return array{offline_db:array<string,mixed>|null,rfid_ws:array<string,mixed>}
@@ -561,7 +561,7 @@ class TerminalEinrichtungController
             $dbname = (string)($roh['dbname'] ?? '');
             $user   = (string)($roh['user'] ?? '');
 
-            // Ohne Datenbankname und Benutzer waere der Block wertlos; dann
+            // Ohne Datenbankname und Benutzer wäre der Block wertlos; dann
             // lieber ehrlich "nicht eingerichtet" schreiben.
             if ($dbname !== '' && $user !== '') {
                 $offline = [
@@ -591,11 +591,11 @@ class TerminalEinrichtungController
     }
 
     /**
-     * Schreibt die Konfiguration - erst vollstaendig daneben, dann umbenennen.
+     * Schreibt die Konfiguration - erst vollständig daneben, dann umbenennen.
      *
-     * Grund fuer den Umweg: Eine halb geschriebene `config.local.php` waere
+     * Grund für den Umweg: Eine halb geschriebene `config.local.php` wäre
      * schlimmer als gar keine. Sie wuerde von `config/config.php` eingelesen
-     * und koennte das Terminal mit einem Syntaxfehler lahmlegen - und zwar
+     * und könnte das Terminal mit einem Syntaxfehler lahmlegen - und zwar
      * dauerhaft, weil die Einrichtungsseite dann auch nicht mehr erscheint.
      */
     private function schreibeKonfig(string $inhalt): bool
@@ -616,13 +616,13 @@ class TerminalEinrichtungController
         }
 
         // Gegenlesen statt vertrauen: Eine volle Platte meldet sich sonst erst
-        // beim naechsten Start des Terminals.
+        // beim nächsten Start des Terminals.
         if (@file_get_contents($temp) !== $inhalt) {
             @unlink($temp);
             return false;
         }
 
-        // Zugangsdaten - nicht fuer alle lesbar.
+        // Zugangsdaten - nicht für alle lesbar.
         @chmod($temp, 0640);
 
         if (!@rename($temp, $ziel)) {
@@ -674,7 +674,7 @@ class TerminalEinrichtungController
     }
 
     /**
-     * Text fuer einen PHP-Kommentar entschaerfen (kein Kommentarende einbauen).
+     * Text für einen PHP-Kommentar entschaerfen (kein Kommentarende einbauen).
      */
     private function kommentarText(string $text): string
     {

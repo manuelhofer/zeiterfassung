@@ -9,12 +9,12 @@ declare(strict_types=1);
  *
  * Warum als eigene Datei: Die drei Einstiegspunkte hatten denselben Vorspann
  * dreimal – Konfiguration laden, Zeitzone setzen, Session starten, jeweils mit
- * demselben `if/else` und demselben Rueckfall `Europe/Berlin`. Drei Kopien
- * heissen: Eine Aenderung an der Zeitzonenlogik wird an zwei Stellen gemacht
+ * demselben `if/else` und demselben Rückfall `Europe/Berlin`. Drei Kopien
+ * heißen: Eine Änderung an der Zeitzonenlogik wird an zwei Stellen gemacht
  * und an der dritten vergessen.
  *
- * Diese Datei wird per `require` geladen, **nicht** ueber den Autoloader – sie
- * laeuft, bevor es einen gibt.
+ * Diese Datei wird per `require` geladen, **nicht** über den Autoloader – sie
+ * läuft, bevor es einen gibt.
  */
 final class Start
 {

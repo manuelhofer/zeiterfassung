@@ -21,7 +21,7 @@ if ($letzterAuftragTyp !== '' && $letzterAuftragTyp !== 'haupt') {
 $letzterAuftragCode = (is_array($letzterAuftrag) && isset($letzterAuftrag['auftragscode']) && is_string($letzterAuftrag['auftragscode'])) ? trim($letzterAuftrag['auftragscode']) : '';
 
 // Der Controller reicht den Token normalerweise durch; `Csrf::token()` legt
-// ihn sonst an. Beides fuehrt zum selben Token des Bereichs.
+// ihn sonst an. Beides führt zum selben Token des Bereichs.
 $csrfToken = (isset($csrfToken) && is_string($csrfToken) && $csrfToken !== '')
     ? $csrfToken
     : Csrf::token(TerminalController::CSRF_BEREICH);

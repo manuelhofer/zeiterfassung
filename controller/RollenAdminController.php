@@ -8,7 +8,7 @@ declare(strict_types=1);
  */
 class RollenAdminController
 {
-    /** Bereichsname fuer `Csrf` – siehe `core/Csrf.php`. */
+    /** Bereichsname für `Csrf` – siehe `core/Csrf.php`. */
     private const CSRF_BEREICH = 'rollen_admin';
 
     private AuthService $authService;

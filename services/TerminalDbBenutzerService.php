@@ -4,17 +4,17 @@ declare(strict_types=1);
 /**
  * TerminalDbBenutzerService
  *
- * Legt fuer ein Terminal einen **eigenen Datenbankbenutzer** mit
+ * Legt für ein Terminal einen **eigenen Datenbankbenutzer** mit
  * eingeschraenkten Rechten an (siehe
  * `docs/spezifikation_terminal_installation.md`, Abschnitt 2a).
  *
- * Warum ueberhaupt ein eigener Benutzer je Geraet:
+ * Warum überhaupt ein eigener Benutzer je Geraet:
  *
  * - **Einzeln sperrbar:** Ein Hallenterminal steht frei zugaenglich herum. Wer
  *   es mitnimmt, hat die Zugangsdaten. Mit einem eigenen Benutzer genuegt ein
- *   `DROP USER` fuer genau dieses Geraet - alle anderen laufen weiter.
+ *   `DROP USER` für genau dieses Geraet - alle anderen laufen weiter.
  * - **Eingeschraenkt:** Das Terminal stempelt, bucht Auftragszeiten und nimmt
- *   Urlaubsantraege entgegen. Es braucht dafuer nirgends `DELETE`, `DROP` oder
+ *   Urlaubsantraege entgegen. Es braucht dafür nirgends `DELETE`, `DROP` oder
  *   `ALTER` und keinen Schreibzugriff auf Rechte, Rollen oder Stundenkonto.
  * - **Nachvollziehbar:** In den Datenbankprotokollen ist erkennbar, welches
  *   Geraet was getan hat.
@@ -23,12 +23,12 @@ declare(strict_types=1);
  *
  * **Bewusste Abweichung von der Regel „immer prepared statements“:**
  * `CREATE USER` und `GRANT` sind DDL. MySQL/MariaDB erlauben dort **keine**
- * Platzhalter - weder fuer Benutzernamen noch fuer Passwoerter oder
- * Tabellennamen. Die Anweisungen muessen also zusammengesetzt werden. Statt zu
+ * Platzhalter - weder für Benutzernamen noch für Passwoerter oder
+ * Tabellennamen. Die Anweisungen müssen also zusammengesetzt werden. Statt zu
  * escapen wird deshalb **eingegrenzt**: Benutzername, Host, Schema- und
- * Tabellennamen werden vor der Verwendung gegen ein enges Muster geprueft, das
- * Passwort besteht ausschliesslich aus Buchstaben und Ziffern. Was dem Muster
- * nicht entspricht, wird nicht ausgefuehrt, sondern abgebrochen.
+ * Tabellennamen werden vor der Verwendung gegen ein enges Muster geprüft, das
+ * Passwort besteht ausschließlich aus Buchstaben und Ziffern. Was dem Muster
+ * nicht entspricht, wird nicht ausgeführt, sondern abgebrochen.
  */
 class TerminalDbBenutzerService
 {
@@ -44,7 +44,7 @@ class TerminalDbBenutzerService
     private const STANDARD_HOST = '%';
 
     /**
-     * Rechte des Terminal-Benutzers, Tabelle fuer Tabelle.
+     * Rechte des Terminal-Benutzers, Tabelle für Tabelle.
      *
      * Die Liste ist **aus dem Code hergeleitet** (alles, was `terminal.php` und
      * die von dort genutzten Dienste anfassen), nicht geraten. Fehlt ein Recht,
@@ -57,7 +57,7 @@ class TerminalDbBenutzerService
         // --- Lesen ------------------------------------------------------
         // Anmeldung am Terminal, Namen, Wochenarbeitszeit, Urlaubsanspruch.
         'mitarbeiter'                => 'SELECT',
-        // Rechtepruefung (welche Knoepfe darf dieser Mitarbeiter sehen).
+        // Rechteprüfung (welche Knoepfe darf dieser Mitarbeiter sehen).
         'mitarbeiter_hat_rolle'       => 'SELECT',
         'mitarbeiter_hat_rolle_scope' => 'SELECT',
         'mitarbeiter_hat_recht'       => 'SELECT',
@@ -67,12 +67,12 @@ class TerminalDbBenutzerService
         'rolle_hat_recht'             => 'SELECT',
         'recht'                       => 'SELECT',
         'abteilung'                   => 'SELECT',
-        // Stammdaten fuer Buchung und Anzeige.
+        // Stammdaten für Buchung und Anzeige.
         'maschine'                    => 'SELECT',
         'terminal'                    => 'SELECT',
         'config'                      => 'SELECT',
         'arbeitsschritt_katalog'      => 'SELECT',
-        // Auswertung/Anzeige am Terminal (Monatsstatus, Urlaubsuebersicht).
+        // Auswertung/Anzeige am Terminal (Monatsstatus, Urlaubsübersicht).
         'zeit_rundungsregel'          => 'SELECT',
         'pausenfenster'               => 'SELECT',
         'pausenentscheidung'          => 'SELECT',
@@ -83,12 +83,12 @@ class TerminalDbBenutzerService
         'tageswerte_mitarbeiter'      => 'SELECT',
         'monatswerte_mitarbeiter'     => 'SELECT',
         // Das Terminal zeigt Gut-/Minusstunden an (P-2026-01-17-19) und muss
-        // sie deshalb lesen duerfen. Schreiben nicht - Buchungen aufs
+        // sie deshalb lesen dürfen. Schreiben nicht - Buchungen aufs
         // Stundenkonto bleiben Sache des Backends.
         'stundenkonto_korrektur'      => 'SELECT',
 
         // --- Lesen und Schreiben ---------------------------------------
-        // Kommen/Gehen. Aendern und Loeschen von Stempeln ist Korrekturarbeit
+        // Kommen/Gehen. Aendern und Löschen von Stempeln ist Korrekturarbeit
         // im Backend, nicht Aufgabe des Terminals.
         'zeitbuchung'                 => 'SELECT, INSERT',
         // Das Terminal legt fehlende Stammdaten selbst an - eine Buchung darf
@@ -97,20 +97,20 @@ class TerminalDbBenutzerService
         'auftrag'                     => 'SELECT, INSERT, UPDATE',
         'auftrag_arbeitsschritt'      => 'SELECT, INSERT, UPDATE',
         'auftragszeit'                => 'SELECT, INSERT, UPDATE',
-        // Antrag stellen und - fuer Genehmiger am Terminal - entscheiden.
+        // Antrag stellen und - für Genehmiger am Terminal - entscheiden.
         'urlaubsantrag'               => 'SELECT, INSERT, UPDATE',
         // Feiertage werden bei Bedarf nachgeneriert (UrlaubService). Ohne
         // INSERT rechnet ein Terminal im Januar ohne die Feiertage des neuen
-        // Jahres - das faellt niemandem auf und ist deshalb gefaehrlicher als
+        // Jahres - das fällt niemandem auf und ist deshalb gefaehrlicher als
         // das Recht selbst.
         'feiertag'                    => 'SELECT, INSERT',
         // Protokoll. Lesen, weil die Monatsauswertung Pausen-Overrides aus dem
         // Protokoll zieht.
         'system_log'                  => 'SELECT, INSERT',
-        // Rueckfallebene: Normalerweise liegt die Offline-Queue in der lokalen
+        // Rückfallebene: Normalerweise liegt die Offline-Queue in der lokalen
         // Ausweichdatenbank des Terminals. Fehlt die, greift der
-        // OfflineQueueManager auf die Hauptdatenbank zurueck. Kein DELETE -
-        // haengengebliebene Eintraege raeumt ein Admin im Backend weg.
+        // OfflineQueueManager auf die Hauptdatenbank zurück. Kein DELETE -
+        // hängengebliebene Eintraege raeumt ein Admin im Backend weg.
         'db_injektionsqueue'          => 'SELECT, INSERT, UPDATE',
     ];
 
@@ -118,7 +118,7 @@ class TerminalDbBenutzerService
      * Spaltenweise Rechte.
      *
      * `mitarbeiter` ist absichtlich der einzige Fall: Am Terminal lassen sich
-     * RFID-Chips zuweisen, dafuer genuegt genau diese eine Spalte.
+     * RFID-Chips zuweisen, dafür genuegt genau diese eine Spalte.
      *
      * @var array<string,array<string,array<int,string>>>
      */
@@ -130,22 +130,22 @@ class TerminalDbBenutzerService
      * Spalten, die der Terminal-Benutzer **nicht** lesen darf (T-101).
      *
      * Auf einem Terminal liegen die Zugangsdaten lesbar in `config.local.php`.
-     * Mit `SELECT` auf die ganze Tabelle `mitarbeiter` haette damit jeder, der
-     * an ein Hallengeraet kommt, auch saemtliche **Passwort-Hashes** – und
+     * Mit `SELECT` auf die ganze Tabelle `mitarbeiter` hätte damit jeder, der
+     * an ein Hallengeraet kommt, auch sämtliche **Passwort-Hashes** – und
      * damit die Grundlage, sie offline durchzuprobieren. Das ist genau der
      * Schaden, den die Kopplung begrenzen soll.
      *
-     * Fuer jede hier genannte Tabelle wird das Leserecht deshalb **spaltenweise**
+     * Für jede hier genannte Tabelle wird das Leserecht deshalb **spaltenweise**
      * vergeben: alle Spalten ausser den gesperrten, zur Kopplungszeit aus dem
-     * `information_schema` aufgeloest. Dadurch nimmt eine neue Spalte
+     * `information_schema` aufgelöst. Dadurch nimmt eine neue Spalte
      * automatisch am Recht teil, sobald ein Geraet neu gekoppelt wird – eine
-     * von Hand gepflegte Positivliste waere beim naechsten Schema-Zuwachs still
-     * unvollstaendig.
+     * von Hand gepflegte Positivliste wäre beim nächsten Schema-Zuwachs still
+     * unvollständig.
      *
      * Der Preis: `SELECT *` auf diese Tabelle schlaegt am Terminal fehl. Das ist
      * gewollt und heute unkritisch – der gesamte Terminalpfad nennt seine
-     * Spalten einzeln (geprueft in P-2026-08-09-16); `MitarbeiterModel` mit
-     * seinen `SELECT *` laeuft ausschliesslich im Backend.
+     * Spalten einzeln (geprüft in P-2026-08-09-16); `MitarbeiterModel` mit
+     * seinen `SELECT *` läuft ausschließlich im Backend.
      *
      * @var array<string,array<int,string>>
      */
@@ -172,18 +172,18 @@ class TerminalDbBenutzerService
     }
 
     /**
-     * Legt den Datenbankbenutzer fuer ein Terminal an.
+     * Legt den Datenbankbenutzer für ein Terminal an.
      *
      * Ein vorhandener Benutzer desselben Terminals wird dabei **entfernt**, statt
      * einen zweiten anzulegen: Wird ein Geraet neu gekoppelt (Austausch,
-     * Neuinstallation), soll danach genau ein gueltiger Zugang existieren.
+     * Neuinstallation), soll danach genau ein gültiger Zugang existieren.
      *
      * @param string|null $alterBenutzer Benutzer aus der vorherigen Kopplung, falls vorhanden
-     * @param string|null $alterHost     zugehoeriger Host der vorherigen Kopplung
+     * @param string|null $alterHost     zugehöriger Host der vorherigen Kopplung
      *
      * @return array{benutzer:string,passwort:string,host:string,dbname:string}|null
      *         Zugangsdaten - das Passwort ist hier **einmalig** im Klartext
-     *         verfuegbar und wird nirgends gespeichert. Null bei Fehler.
+     *         verfügbar und wird nirgends gespeichert. Null bei Fehler.
      */
     public function legeAnOderErsetze(
         int $terminalId,
@@ -217,7 +217,7 @@ class TerminalDbBenutzerService
         }
 
         // Vor dem Anlegen: Sind alle Rechte bestimmbar? Sonst gar nicht erst
-        // anfangen - ein Benutzer ohne vollstaendige Rechte waere schlimmer als
+        // anfangen - ein Benutzer ohne vollständige Rechte wäre schlimmer als
         // keiner, weil das Terminal dann sporadisch scheitert statt sofort.
         $grantAnweisungen = $this->baueGrantAnweisungen($benutzer, $host, $dbname);
         if ($grantAnweisungen === null) {
@@ -258,7 +258,7 @@ class TerminalDbBenutzerService
             }
         } catch (\Throwable $e) {
             // Halbfertigen Benutzer nicht stehen lassen - ein Zugang ohne
-            // vollstaendige Rechte waere schlimmer als gar keiner, weil das
+            // vollständige Rechte wäre schlimmer als gar keiner, weil das
             // Terminal dann sporadisch scheitert statt sofort.
             try {
                 $this->entferne($benutzer, $host);
@@ -322,11 +322,11 @@ class TerminalDbBenutzerService
     }
 
     /**
-     * Prueft vorab, ob der Datenbankbenutzer des Backends ueberhaupt Benutzer
+     * Prüft vorab, ob der Datenbankbenutzer des Backends überhaupt Benutzer
      * anlegen darf.
      *
-     * Das ist bewusst nur eine Vorpruefung fuer eine verstaendliche Meldung -
-     * massgeblich ist, was die Datenbank beim Ausfuehren sagt.
+     * Das ist bewusst nur eine Vorprüfung für eine verstaendliche Meldung -
+     * maßgeblich ist, was die Datenbank beim Ausführen sagt.
      */
     public function istVerfuegbar(): bool
     {
@@ -359,7 +359,7 @@ class TerminalDbBenutzerService
     /**
      * Leitet den Benutzernamen aus Terminal-Name und -ID ab.
      *
-     * Die ID haengt bewusst hinten dran: Zwei Terminals duerfen gleich heissen,
+     * Die ID hängt bewusst hinten dran: Zwei Terminals dürfen gleich heißen,
      * zwei Datenbankbenutzer nicht.
      */
     public function benutzernameFuer(int $terminalId, string $terminalName): string
@@ -419,7 +419,7 @@ class TerminalDbBenutzerService
 
             if ($erlaubteSpalten === null) {
                 // Kein Rateschluss: Ein Zugang, dessen Spaltenliste nicht
-                // sicher bestimmbar ist, waere entweder unbrauchbar oder
+                // sicher bestimmbar ist, wäre entweder unbrauchbar oder
                 // wuerde die gesperrten Spalten doch wieder freigeben.
                 $this->protokolliere('error', 'Terminal-Datenbankbenutzer: Spaltenliste nicht bestimmbar', [
                     'tabelle'  => $tabelle,
@@ -486,7 +486,7 @@ class TerminalDbBenutzerService
     /**
      * Spalten einer Tabelle **ohne** die gesperrten, in Schema-Reihenfolge.
      *
-     * Zur Kopplungszeit aufgeloest, damit eine spaeter hinzugekommene Spalte
+     * Zur Kopplungszeit aufgelöst, damit eine später hinzugekommene Spalte
      * automatisch mitkommt. Liefert null, sobald etwas nicht stimmt - der
      * Aufrufer bricht dann ab, statt ein halbrichtiges Recht zu vergeben.
      *
@@ -516,8 +516,8 @@ class TerminalDbBenutzerService
         $spalten = array_map(static fn ($s): string => (string)$s, $spalten);
 
         // Gegenprobe zuerst: Jede gesperrte Spalte muss es wirklich geben.
-        // Waere `passwort_hash` umbenannt worden, sperrte die Liste nichts mehr
-        // und niemand haette es gemerkt - der stille Fall ist der gefaehrliche.
+        // Wäre `passwort_hash` umbenannt worden, sperrte die Liste nichts mehr
+        // und niemand hätte es gemerkt - der stille Fall ist der gefaehrliche.
         foreach ($gesperrt as $spalte) {
             if (!in_array($spalte, $spalten, true)) {
                 return null;
@@ -566,7 +566,7 @@ class TerminalDbBenutzerService
      *
      * Standard ist `%` (beliebiger Rechner). Das ist eine bewusste Abwaegung:
      * Terminals bekommen ihre Adresse per DHCP, eine feste Bindung wuerde beim
-     * naechsten Neustart stillschweigend den Zugang kappen. Wer sein Netz kennt,
+     * nächsten Neustart stillschweigend den Zugang kappen. Wer sein Netz kennt,
      * traegt in der `config` ein engeres Muster ein (z. B. `192.168.10.%`).
      */
     private function holeHostMuster(): string
@@ -642,7 +642,7 @@ class TerminalDbBenutzerService
     }
 
     /**
-     * `'benutzer'@'host'` - beide Teile sind vorher geprueft, es kann also
+     * `'benutzer'@'host'` - beide Teile sind vorher geprüft, es kann also
      * nichts aus dem Muster ausbrechen.
      */
     private function quoteBenutzer(string $benutzer, string $host): string
@@ -651,8 +651,8 @@ class TerminalDbBenutzerService
     }
 
     /**
-     * Textliteral fuer das Passwort. Das Alphabet enthaelt ausschliesslich
-     * Buchstaben und Ziffern; trotzdem wird hier geprueft statt vertraut.
+     * Textliteral für das Passwort. Das Alphabet enthaelt ausschließlich
+     * Buchstaben und Ziffern; trotzdem wird hier geprüft statt vertraut.
      */
     private function quoteText(string $text): string
     {

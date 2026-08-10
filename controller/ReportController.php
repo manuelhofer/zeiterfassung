@@ -70,7 +70,7 @@ class ReportController
     }
 
 
-    /** Bereichsname fuer `Csrf` – siehe `core/Csrf.php`. */
+    /** Bereichsname für `Csrf` – siehe `core/Csrf.php`. */
     private const CSRF_BEREICH_MONATSABSCHLUSS = 'report_monatsabschluss';
 
     private function hatStundenkontoVerwaltenRecht(): bool
@@ -370,7 +370,7 @@ class ReportController
         $showMicro = (isset($_GET['show_micro']) && (string)$_GET['show_micro'] === '1');
 
 
-        // Stundenkonto: Monatsabschluss (Differenz Soll/Ist) als Buchung ins Stundenkonto schreiben (nur fuer vergangene Monate).
+        // Stundenkonto: Monatsabschluss (Differenz Soll/Ist) als Buchung ins Stundenkonto schreiben (nur für vergangene Monate).
         $csrfTokenMonatsabschluss = Csrf::token(self::CSRF_BEREICH_MONATSABSCHLUSS);
         $kannStundenkontoVerwalten = $this->hatStundenkontoVerwaltenRecht();
         $istMonatVergangen = $this->istMonatVergangen($jahr, $monat);

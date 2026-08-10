@@ -153,13 +153,13 @@ class QueueService
  * Liefert eine Status-Zusammenfassung der Queue (für Dashboard/Admin-Übersicht).
  *
  * @return array<string,mixed>
- *   - verfuegbar (bool)
+ *   - verfügbar (bool)
  *   - quelle (string) 'offline' oder 'haupt'
  *   - offen (int)
  *   - fehler (int)
  *   - verarbeitet (int)
  *   - letzte_erstellung (?string)
- *   - letzte_ausfuehrung (?string)
+ *   - letzte_ausführung (?string)
  */
     public function holeStatusSummary(): array
 {
@@ -231,20 +231,20 @@ class QueueService
     }
 
     /**
-     * Ermittelt den Zustand der Offline-Queue in **einer** Form fuer alle
+     * Ermittelt den Zustand der Offline-Queue in **einer** Form für alle
      * Anzeigen.
      *
      * Warum es diese Methode gibt: Der Zustand wurde in `public/terminal.php`
-     * zweimal fast gleich ermittelt – einmal fuer den Health-Endpunkt, einmal
-     * fuer den Bildschirm. Zwei Fassungen derselben Wahrheit driften
-     * auseinander, und dann meldet die Ueberwachung etwas anderes als das
+     * zweimal fast gleich ermittelt – einmal für den Health-Endpunkt, einmal
+     * für den Bildschirm. Zwei Fassungen derselben Wahrheit driften
+     * auseinander, und dann meldet die Überwachung etwas anderes als das
      * Geraet in der Halle anzeigt.
      *
      * `null` bedeutet durchweg **unbekannt**, nicht `false`: Wenn sich die
-     * Datenbank gar nicht ansprechen laesst, ist „nicht verfuegbar" eine
-     * staerkere Aussage, als gerechtfertigt waere.
+     * Datenbank gar nicht ansprechen lässt, ist „nicht verfügbar" eine
+     * staerkere Aussage, als gerechtfertigt wäre.
      *
-     * @return array{hauptdb_verfuegbar:?bool, queue_verfuegbar:?bool,
+     * @return array{hauptdb_verfügbar:?bool, queue_verfügbar:?bool,
      *               queue_speicherort:?string, offen:?int, fehler:?int,
      *               letzter_fehler:?array<string,mixed>}
      */
@@ -298,7 +298,7 @@ class QueueService
                 $zustand['offen']  = (int)$pdo->query("SELECT COUNT(*) FROM db_injektionsqueue WHERE status = 'offen'")->fetchColumn();
                 $zustand['fehler'] = (int)$pdo->query("SELECT COUNT(*) FROM db_injektionsqueue WHERE status = 'fehler'")->fetchColumn();
             } catch (\Throwable $e) {
-                // Zaehler sind fuer die Anzeige, nicht fuer den Betrieb.
+                // Zaehler sind für die Anzeige, nicht für den Betrieb.
             }
         }
 

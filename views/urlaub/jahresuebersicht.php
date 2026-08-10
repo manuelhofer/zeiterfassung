@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 /**
- * Template: Urlaub Jahresuebersicht
+ * Template: Urlaub Jahresübersicht
  *
  * Erwartet:
  * - $jahr (int)

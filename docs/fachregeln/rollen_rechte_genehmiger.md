@@ -1,9 +1,9 @@
 # Fachregeln: Rollen, Rechte, Bereiche, Genehmiger
 
-*Gilt fuer:* `services/AuthService.php`, Rollen- und
+*Gilt für:* `services/AuthService.php`, Rollen- und
 Rechteverwaltung im Backend.
-*Source of Truth fuer die einzelnen Rechte-Codes:* `docs/rechte_prompt.md` –
-dort steht, welches Recht wofuer gebraucht wird und wo es im Code geprueft wird.
+*Source of Truth für die einzelnen Rechte-Codes:* `docs/rechte_prompt.md` –
+dort steht, welches Recht wofür gebraucht wird und wo es im Code geprüft wird.
 *Herkunft:* Master-Prompt v13, Abschnitt 3 sowie v4-Abschnitte A/B und
 v7 komplett.
 
@@ -13,7 +13,7 @@ v7 komplett.
 
 - **Rolle:** Buendel von Rechten (z. B. `Schichtleiter`, `Personalbuero`).
 - **Recht:** konkrete Faehigkeit (z. B. „Urlaub genehmigen").
-- **Scope/Bereich:** *wofuer* ein Recht gilt (global oder Abteilung, optional
+- **Scope/Bereich:** *wofür* ein Recht gilt (global oder Abteilung, optional
   inklusive Unterabteilungen).
 
 Tabellen:
@@ -26,7 +26,7 @@ Tabellen:
   behandelt.
 - `mitarbeiter_hat_rolle_scope` – scoped Rollenzuweisung (siehe 3).
 - `mitarbeiter_hat_recht` – gezielte Ausnahmen je Mitarbeiter. Die Spalte
-  `erlaubt` entscheidet: `1` gewaehrt zusaetzlich, `0` entzieht trotz Rolle.
+  `erlaubt` entscheidet: `1` gewaehrt zusätzlich, `0` entzieht trotz Rolle.
 - `mitarbeiter_genehmiger` – siehe 5.
 
 ## 2. Chef darf immer alles (Superuser-Pflicht)
@@ -35,11 +35,11 @@ Tabellen:
 **eine** Rolle mit `ist_superuser = 1`, gilt **jeder** Rechte-Check als erlaubt.
 
 Trotzdem Pflicht: Alle sicherheitsrelevanten Aktionen (Genehmigen, Editieren,
-Admin-Aenderungen) werden in `system_log` protokolliert.
+Admin-Änderungen) werden in `system_log` protokolliert.
 
 ## 3. Warum Rollen scoped zugewiesen werden
 
-Ohne Bereiche muesste man je Abteilung eigene Rollen anlegen
+Ohne Bereiche müsste man je Abteilung eigene Rollen anlegen
 („Schichtleiter CNC", „Schichtleiter Montage", …). Das skaliert nicht.
 
 `mitarbeiter_hat_rolle_scope`:
@@ -58,10 +58,10 @@ Ein Mitarbeiter kann dieselbe Rolle **mehrfach** haben – in unterschiedlichen
 Bereichen.
 
 **Bereichsmodell:** Kanonischer Bereich ist die vorhandene Tabelle `abteilung`
-mit `parent_id` als Hierarchie. Mitarbeiter sind ueber
+mit `parent_id` als Hierarchie. Mitarbeiter sind über
 `mitarbeiter_hat_abteilung` M:N zugeordnet (inkl. `ist_stammabteilung`).
 
-Scope-Pruefung – **so ist es gedacht, so ist es noch nicht gebaut**
+Scope-Prüfung – **so ist es gedacht, so ist es noch nicht gebaut**
 (siehe Abschnitt 4 und B-093):
 
 - `scope = global` passt immer. *(umgesetzt)*
@@ -70,13 +70,13 @@ Scope-Pruefung – **so ist es gedacht, so ist es noch nicht gebaut**
 - Mit `gilt_unterbereiche = 1` passt auch alles im Unterbaum.
   *(nicht umgesetzt – die Spalte wird gespeichert, aber nie gelesen)*
 
-Fuer sehr grosse Baeume koennte spaeter eine Materialized-Path-Spalte oder eine
-Closure-Tabelle ergaenzt werden; fuer den aktuellen Umfang reicht rekursives
+Für sehr grosse Baeume könnte später eine Materialized-Path-Spalte oder eine
+Closure-Tabelle ergaenzt werden; für den aktuellen Umfang reicht rekursives
 Traversieren.
 
-## 4. Zentrale Rechtepruefung (Pflicht)
+## 4. Zentrale Rechteprüfung (Pflicht)
 
-**Nie** in Controllern „Rollenname == …" pruefen. Es gibt genau eine zentrale
+**Nie** in Controllern „Rollenname == …" prüfen. Es gibt genau eine zentrale
 Stelle, den `AuthService`:
 
 ```php
@@ -87,7 +87,7 @@ hatRecht(string $rechtCode): bool
 **Das ist der Ist-Zustand, und er ist bewusst kleiner als das Bereichsmodell
 aus Abschnitt 3.** Bis P-2026-08-10-09 stand hier eine Signatur mit
 `$zielMitarbeiterId`/`$zielAbteilungId` und eine Scope-Aufloesung, die es im
-Code nie gab – wer sich darauf verliess, uebergab Argumente, die stillschweigend
+Code nie gab – wer sich darauf verliess, übergab Argumente, die stillschweigend
 ignoriert wurden. Was der Code wirklich tut:
 
 Ablauf von `hatRecht()`:
@@ -102,14 +102,14 @@ Die effektiven Codes (`ladeRechteCodesAusDb()`) entstehen so:
 1. Rollen aus `mitarbeiter_hat_rolle` **und** aus `mitarbeiter_hat_rolle_scope`
    – dort aber **nur Zeilen mit `scope_typ = 'global'`**.
 2. Rechte je Rolle aus `rolle_hat_recht`, nur `recht.aktiv = 1`.
-3. Overrides aus `mitarbeiter_hat_recht`: `erlaubt = 1` gewaehrt zusaetzlich
+3. Overrides aus `mitarbeiter_hat_recht`: `erlaubt = 1` gewaehrt zusätzlich
    (auch ohne Rollenrecht), `erlaubt = 0` entzieht. **Entzug gewinnt**, und
    Overrides stechen Rollen.
 4. Caching pro Session; der Cache wird verworfen, wenn sich die Mitarbeiter-ID
-   aendert.
+   ändert.
 
-**Was daraus folgt und leicht uebersehen wird:** Eine Rollenzuweisung mit
-`scope_typ = 'abteilung'` gewaehrt derzeit **gar nichts**. Sie laesst sich in
+**Was daraus folgt und leicht übersehen wird:** Eine Rollenzuweisung mit
+`scope_typ = 'abteilung'` gewaehrt derzeit **gar nichts**. Sie lässt sich in
 der Mitarbeiterverwaltung anlegen, `gilt_unterbereiche` wird gespeichert – aber
 `hatRecht()` sieht sie nie an. Siehe B-093 im Status-Snapshot.
 
@@ -121,9 +121,9 @@ Tabelle `mitarbeiter_genehmiger`:
 - `genehmiger_mitarbeiter_id` – wer genehmigen darf
 - `prioritaet` – 1 = Hauptgenehmiger, 2 = Stellvertretung, …
 
-Urlaubsantraege duerfen genehmigt/abgelehnt werden von den eingetragenen
+Urlaubsantraege dürfen genehmigt/abgelehnt werden von den eingetragenen
 Genehmigern **oder** von Mitarbeitern mit der Rolle `Chef` (globale
-Genehmigungsrolle). Das Modell ist unabhaengig von Abteilungsgrenzen und bildet
+Genehmigungsrolle). Das Modell ist unabhängig von Abteilungsgrenzen und bildet
 reale Vorgesetztenstrukturen ab.
 
 ## 6. Verwaltung im Backend
@@ -137,12 +137,12 @@ reale Vorgesetztenstrukturen ab.
 **Mitarbeiter → Rollen (Bereiche)**
 
 - Scoped Rollen zuweisen: Rolle + Bereich (global/Abteilung) +
-  „Unterabteilungen einschliessen".
+  „Unterabteilungen einschließen".
 - Optional Overrides (allow/deny) mit Begruendung.
 
 **Pflichtseite „Effektive Rechte"**
 
-- Mitarbeiter auswaehlen → zeigt alle aktiven Rechte, aus welchem Grant
+- Mitarbeiter auswählen → zeigt alle aktiven Rechte, aus welchem Grant
   (Rolle oder Override) sie kommen und mit welchem Scope.
 
 **Genehmiger**
@@ -157,29 +157,29 @@ reale Vorgesetztenstrukturen ab.
 **Urlaub genehmigen**
 
 - `URLAUB_GENEHMIGEN` gilt scoped (Abteilung des Antragstellers).
-- `URLAUB_GENEHMIGEN_ALLE` ist ein Legacy-Kuerzel fuer global und darf intern
+- `URLAUB_GENEHMIGEN_ALLE` ist ein Legacy-Kürzel für global und darf intern
   als globaler Grant interpretiert werden.
-- Eigener Antrag: zusaetzlich `URLAUB_GENEHMIGEN_SELF`.
+- Eigener Antrag: zusätzlich `URLAUB_GENEHMIGEN_SELF`.
 
 **Zeiten bearbeiten**
 
-- `ZEIT_EDIT_ALLE` ist ein Legacy-Kuerzel fuer global.
-- Bevorzugt ist ein Code ohne „ALLE"-Suffix (z. B. `ZEIT_EDIT`), der ueber den
+- `ZEIT_EDIT_ALLE` ist ein Legacy-Kürzel für global.
+- Bevorzugt ist ein Code ohne „ALLE"-Suffix (z. B. `ZEIT_EDIT`), der über den
   Scope gesteuert wird.
 - Audit und Markierung bleiben Pflicht (siehe
   [zeit_rundung_pausen.md](zeit_rundung_pausen.md), Abschnitt 7).
 
 **Reports**
 
-- `REPORT_MONAT_ALLE` ist ein Legacy-Kuerzel fuer global.
+- `REPORT_MONAT_ALLE` ist ein Legacy-Kürzel für global.
 - Bevorzugt `REPORT_MONAT_VIEW` / `REPORT_MONAT_EXPORT`, scoped.
 
 ## 8. Kompatibilitaet und Migration
 
-- Bestehende Tabellen und Funktionen duerfen nicht hart brechen.
+- Bestehende Tabellen und Funktionen dürfen nicht hart brechen.
 - Legacy-Rechte mit Suffix `_ALLE` bleiben bestehen und werden bis zur
-  vollstaendigen Umstellung parallel unterstuetzt.
-- **Neue Features werden immer ueber `hatRecht()` abgesichert** und nutzen
+  vollständigen Umstellung parallel unterstuetzt.
+- **Neue Features werden immer über `hatRecht()` abgesichert** und nutzen
   Scope, statt neue Rollen zu erfinden.
 - Ein neues Recht wird **immer** in `docs/rechte_prompt.md` dokumentiert
-  (Code, Zweck, Pruefpunkte im Code und in der SQL).
+  (Code, Zweck, Prüfpunkte im Code und in der SQL).

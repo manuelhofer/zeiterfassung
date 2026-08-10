@@ -143,7 +143,7 @@ class UrlaubService
                     }
                 }
 
-                // Wenn andere Kennzeichen gesetzt sind (z. B. Urlaub/Krank), soll BF nicht zusaetzlich zaehlen.
+                // Wenn andere Kennzeichen gesetzt sind (z. B. Urlaub/Krank), soll BF nicht zusätzlich zaehlen.
                 $hatAndereKennzeichen = (
                     ((int)($tw['kennzeichen_feiertag'] ?? 0) === 1)
                     || ((int)($tw['kennzeichen_urlaub'] ?? 0) === 1)
@@ -549,7 +549,7 @@ class UrlaubService
                     }
                 }
 
-                // Wenn andere Kennzeichen gesetzt sind (z. B. Urlaub/Krank), soll BF nicht zusaetzlich zaehlen.
+                // Wenn andere Kennzeichen gesetzt sind (z. B. Urlaub/Krank), soll BF nicht zusätzlich zaehlen.
                 $hatAndereKennzeichen = (
                     ((int)($tw['kennzeichen_feiertag'] ?? 0) === 1)
                     || ((int)($tw['kennzeichen_urlaub'] ?? 0) === 1)
@@ -925,7 +925,7 @@ class UrlaubService
                 ]
             );
         } catch (\Throwable $e) {
-            // Fallback: Manche Installationen haben die Spalte `uebertrag_tage` noch nicht.
+            // Fallback: Manche Installationen haben die Spalte `übertrag_tage` noch nicht.
             // Dann darf der gesamte Kontingent-Block (inkl. Korrektur!) nicht ausfallen.
             try {
                 $kRow = $db->fetchEine(
@@ -952,7 +952,7 @@ class UrlaubService
                 $anspruchOverride = (float)$kRow['anspruch_override_tage'];
             }
 
-            // `uebertrag_tage` wird nur genutzt, wenn Auto-Übertrag bewusst deaktiviert ist (z. B. Vorjahr-Berechnung ohne Rekursion).
+            // `übertrag_tage` wird nur genutzt, wenn Auto-Übertrag bewusst deaktiviert ist (z. B. Vorjahr-Berechnung ohne Rekursion).
             if (!$autoUebertrag && array_key_exists('uebertrag_tage', $kRow) && $kRow['uebertrag_tage'] !== null) {
                 $uebertrag = (float)$kRow['uebertrag_tage'];
             }
@@ -1235,7 +1235,7 @@ class UrlaubService
         }
 
         // Wichtig: Saldo-Berechnung muss exakt den gleichen Weg nutzen wie die Anzeige pro Betriebsferien-Block,
-        // sonst entstehen Abweichungen (z. B. 9.50 vs 10.00). Daher: zentrale Zaehlung ueber die gleiche Funktion.
+        // sonst entstehen Abweichungen (z. B. 9.50 vs 10.00). Daher: zentrale Zaehlung über die gleiche Funktion.
         $betriebsferienUrlaubTage = 0.0;
         try {
             $betriebsferienUrlaubTage = (float)$this->zaehleBetriebsferienArbeitstageFuerMitarbeiter(
@@ -1244,7 +1244,7 @@ class UrlaubService
                 $ende->format('Y-m-d')
             );
         } catch (\Throwable $e) {
-            // Rueckfall auf 0 Tage veraendert den Saldo sichtbar – das darf
+            // Rückfall auf 0 Tage verändert den Saldo sichtbar – das darf
             // niemals stillschweigend passieren, sonst ist eine falsche
             // Urlaubsberechnung hinterher nicht mehr nachvollziehbar.
             Logger::warn('Urlaubssaldo: Betriebsferien-Tage konnten nicht gezaehlt werden (Rueckfall auf 0)', [

@@ -218,7 +218,7 @@ class RundungsService
         } elseif ($richtung === 'ab') {
             $faktor = (int)floor($wert);
         } else {
-            // naechstgelegen
+            // nächstgelegen
             $faktor = (int)round($wert);
         }
 

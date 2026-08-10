@@ -10,7 +10,7 @@ class DashboardController
 {
     private AuthService $authService;
 
-    /** Bereichsname fuer `Csrf` – siehe `core/Csrf.php`. */
+    /** Bereichsname für `Csrf` – siehe `core/Csrf.php`. */
     private const CSRF_BEREICH = 'dashboard_pausenentscheidung';
 
     public function __construct()
@@ -138,8 +138,8 @@ class DashboardController
             $darfZeitUnstimmigkeitenSehen = false;
         }
 
-        // Zeitwarnungen duerfen nicht nach X Tagen verschwinden:
-        // Jeder vergangene Tag mit unvollstaendigen Kommen/Gehen-Stempeln bleibt sichtbar,
+        // Zeitwarnungen dürfen nicht nach X Tagen verschwinden:
+        // Jeder vergangene Tag mit unvollständigen Kommen/Gehen-Stempeln bleibt sichtbar,
         // bis er korrigiert wurde.
         $zeitUnstimmigkeitenTage = 0;
         $zeitUnstimmigkeitenZeitraumLabel = 'alle vergangenen Tage';
@@ -181,7 +181,7 @@ class DashboardController
                     $zeitUnstimmigkeiten = [];
 
                     // Nachtschicht-Grenzfall: Kommen am Abend + Gehen am Folgetag frueh
-                    // soll nicht als Unstimmigkeit gelten (paarweise ueber Mitternacht).
+                    // soll nicht als Unstimmigkeit gelten (paarweise über Mitternacht).
                     // Robust: funktioniert auch dann, wenn am Folgetag weitere Stempel existieren.
                     $istNachtschichtGrenzfall = function (int $mid, string $datum, array $r) use ($db): bool {
                         $d = DateTimeImmutable::createFromFormat('Y-m-d', $datum);

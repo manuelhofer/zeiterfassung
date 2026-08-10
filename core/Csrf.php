@@ -7,14 +7,14 @@ declare(strict_types=1);
  * Ein Token je Bereich, in der Session gehalten – die eine Stelle, an der
  * CSRF-Schutz im Projekt definiert ist.
  *
- * **Warum je Bereich und nicht ein Token fuer alles:** Die Masken des Backends
- * sind unabhaengig voneinander. Ein gemeinsames Token wuerde bedeuten, dass ein
+ * **Warum je Bereich und nicht ein Token für alles:** Die Masken des Backends
+ * sind unabhängig voneinander. Ein gemeinsames Token wuerde bedeuten, dass ein
  * Neuladen der Rollenmaske das Token der Terminalverwaltung mit erneuert – ein
  * offenes Formular in einem zweiten Tab liesse sich dann nicht mehr
  * abschicken. Der Bereichsname entspricht dem, was frueher als
  * `CSRF_KEY`-Konstante in jedem Controller stand.
  *
- * **Warum kein Rueckfall auf ein schwaches Token:** Die frueheren Kopien
+ * **Warum kein Rückfall auf ein schwaches Token:** Die frueheren Kopien
  * fingen ein misslungenes `random_bytes()` ab und setzten ersatzweise
  * `bin2hex((string)mt_rand())` – acht Hexzeichen, vorhersagbar, und damit
  * schlechter als gar kein Schutz, weil er einen vortaeuscht. Wenn das System
@@ -45,10 +45,10 @@ class Csrf
     }
 
     /**
-     * Prueft das aus `$_POST` gesendete Token gegen den Bereich.
+     * Prüft das aus `$_POST` gesendete Token gegen den Bereich.
      *
-     * Der Vergleich laeuft ueber `hash_equals()`, damit die Laufzeit nichts
-     * ueber das erwartete Token verraet.
+     * Der Vergleich läuft über `hash_equals()`, damit die Laufzeit nichts
+     * über das erwartete Token verraet.
      */
     public static function istGueltig(string $bereich): bool
     {
@@ -70,8 +70,8 @@ class Csrf
     /**
      * Verwirft das Token eines Bereichs.
      *
-     * Gebraucht beim Abmelden am Terminal: Der naechste Nutzer soll ein
-     * frisches Token bekommen und nicht das des Vorgaengers weiterverwenden.
+     * Gebraucht beim Abmelden am Terminal: Der nächste Nutzer soll ein
+     * frisches Token bekommen und nicht das des Vorgängers weiterverwenden.
      */
     public static function verwerfe(string $bereich): void
     {
@@ -99,7 +99,7 @@ class Csrf
 
     /**
      * Die Einstiegspunkte starten die Session bereits. Der Aufruf hier ist die
-     * Absicherung fuer Pfade, die einen Controller direkt einbinden.
+     * Absicherung für Pfade, die einen Controller direkt einbinden.
      */
     private static function stelleSessionSicher(): void
     {

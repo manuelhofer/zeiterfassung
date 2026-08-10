@@ -127,7 +127,7 @@ class PDFService
     /**
      * Erzeugt die Laufkarte zu einem Auftrag als PDF (A4 hoch).
      *
-     * Die Laufkarte begleitet das Werkstueck durch die Werkstatt: oben der
+     * Die Laufkarte begleitet das Werkstück durch die Werkstatt: oben der
      * Auftrag mit QR-Code, darunter je Arbeitsschritt ein Block mit QR-Code und
      * freien Feldern zum handschriftlichen Eintragen.
      *
@@ -229,7 +229,7 @@ class PDFService
                 $content .= "ET\n";
                 $y -= 16;
 
-                // Unterkante des Strichcodes samt Beschriftung nicht ueberschreiben
+                // Unterkante des Strichcodes samt Beschriftung nicht überschreiben
                 $y = min($y, $qrY - 32);
             } else {
                 $content .= "BT\n";
@@ -267,7 +267,7 @@ class PDFService
             }
             $nummer++;
 
-            // Seitenumbruch, wenn der naechste Block nicht mehr passt.
+            // Seitenumbruch, wenn der nächste Block nicht mehr passt.
             if (($y - $zeilenHoehe) < $untenGrenze) {
                 $seiten[] = $content;
                 $content = '';
@@ -334,15 +334,15 @@ class PDFService
     }
 
     /**
-     * Erzeugt ein Druckblatt mit Strichcode-Karten fuer Arbeitsschritte.
+     * Erzeugt ein Druckblatt mit Strichcode-Karten für Arbeitsschritte.
      *
-     * Gedacht zum Ausschneiden und an die Maschine haengen: Wer mehrere
+     * Gedacht zum Ausschneiden und an die Maschine hängen: Wer mehrere
      * Fraesmaschinen hat, druckt die Karte `fraesen` entsprechend oft und
-     * haengt sie an jede davon. Gescannt wird dann Auftrag (von der Laufkarte)
+     * hängt sie an jede davon. Gescannt wird dann Auftrag (von der Laufkarte)
      * plus Arbeitsschritt (von der Maschine).
      *
      * Sechs Karten je A4-Seite (2 Spalten x 3 Zeilen). Der Strichcode ist rund
-     * 80 mm breit und 25 mm hoch - gross genug fuer einen Handscanner aus
+     * 80 mm breit und 25 mm hoch - gross genug für einen Handscanner aus
      * Armlaenge.
      *
      * @param array<int,array<string,mixed>> $karten je Eintrag `code` und optional `bezeichnung`
@@ -447,7 +447,7 @@ class PDFService
      * Zeichnet einen Code-128-Strichcode als gefuellte Rechtecke.
      *
      * Der `BarcodeService` liefert die Balken in Modulen; hier werden sie auf
-     * die gewuenschte Breite skaliert. Gezeichnete Balken drucken schaerfer als
+     * die gewünschte Breite skaliert. Gezeichnete Balken drucken schaerfer als
      * ein hochskaliertes Pixelbild - und der PDF-Writer dieses Projekts kann
      * ohnehin keine Bilder einbetten.
      *
@@ -508,8 +508,8 @@ class PDFService
         $tableX     = $marginL;
         $tableTopY  = 750.0;
         // Etwas kompaktere Zeilenhoehe, damit Monate mit wenigen Mehrfach-Bloecken
-        // (z.B. 1-2 Tage mit mehreren Kommen/Gehen-Paaren) haeufig noch auf 1 Seite passen.
-        // Hinweis: Die Zeilenhoehe wird spaeter ggf. automatisch minimal reduziert, wenn dadurch
+        // (z.B. 1-2 Tage mit mehreren Kommen/Gehen-Paaren) häufig noch auf 1 Seite passen.
+        // Hinweis: Die Zeilenhoehe wird später ggf. automatisch minimal reduziert, wenn dadurch
         // ein Grenzfall (knapp 2-seitig) wieder auf 1 Seite passt.
         $rowH       = 15.0;
 
@@ -563,8 +563,8 @@ class PDFService
         $daysInMonth = (int)$bis->format('j');
 
         // Mikro-Buchungs-Grenze (Sekunden) aus Konfiguration (Default 180).
-        // Wichtig: Der PDF-Mikro-Filter muss sich wie die Monatsuebersicht primär am Rohstempel orientieren,
-        // da Rundungen sonst zu Rueckspruengen (Ende < Start) fuehren koennen.
+        // Wichtig: Der PDF-Mikro-Filter muss sich wie die Monatsübersicht primär am Rohstempel orientieren,
+        // da Rundungen sonst zu Rueckspruengen (Ende < Start) führen können.
         $microMaxSeconds = $this->holeMicroBuchungMaxSeconds();
 
         // Header + Datenzeilen (Mehrfach-Kommen/Gehen: je Arbeitsblock eine Zeile)
@@ -710,8 +710,8 @@ class PDFService
                     }
                 } elseif (!empty($t['ist_betriebsferien'])) {
                     // Fallback: Betriebsferien nur dann als "BF" markieren, wenn sie auch tatsaechlich als Urlaub zaehlen.
-                    // Hintergrund: Betriebsferien koennen Feiertage/Wochenenden schneiden oder es kann an einem BF-Tag
-                    // gearbeitet worden sein. In diesen Faellen darf im PDF kein "BF" stehen, da es sonst wie "Urlaub"
+                    // Hintergrund: Betriebsferien können Feiertage/Wochenenden schneiden oder es kann an einem BF-Tag
+                    // gearbeitet worden sein. In diesen Fällen darf im PDF kein "BF" stehen, da es sonst wie "Urlaub"
                     // wirken wuerde.
 
                     $kennUrlaub = (int)($t['kennzeichen_urlaub'] ?? 0);
@@ -767,7 +767,7 @@ class PDFService
             }
 
             // Mikro-Buchungen (<= 3 Minuten) sollen im PDF standardmäßig nicht als eigene Block-Zeilen auftauchen.
-            // Sie bleiben weiterhin nicht gewertet, koennen aber per ?show_micro=1 sichtbar gemacht werden.
+            // Sie bleiben weiterhin nicht gewertet, können aber per ?show_micro=1 sichtbar gemacht werden.
             if (!$showMicro) {
                 $microIgnoriert = ((int)($t['micro_arbeitszeit_ignoriert'] ?? 0) === 1);
 
@@ -812,7 +812,7 @@ class PDFService
             // Standard: ohne show_micro zeigen wir alle NICHT-Mikro-Arbeitsbloecke als eigene Zeilen.
             // (Mehrfach-Kommen/Gehen bleibt sichtbar; Mikro-Bloecke wurden oben bereits gefiltert.)
 
-            // Primaer-Zeile fuer Meta-Felder (Pause/Kurzarbeit/Feiertag/Urlaub):
+            // Primaer-Zeile für Meta-Felder (Pause/Kurzarbeit/Feiertag/Urlaub):
             // Erste sichtbare Blockzeile mit Dauer >= 60 Minuten, sonst die erste Blockzeile.
             $metaPrimaryMinSeconds = 3600;
             $metaPrimaryIndex = 0;
@@ -1021,9 +1021,9 @@ class PDFService
         // Auto-Compact (T-069): Wenn es durch wenige Mehrfach-Kommen/Gehen-Bloecke knapp auf 2 Seiten rutscht,
         // versuchen wir zuerst die Zeilenhoehe minimal zu reduzieren. Falls das nicht reicht, kann (nur im 2-Seiten-Grenzfall)
         // der Summen-/Bemerkungsbereich minimal nach unten geschoben werden, um eine zusätzliche Tabellenzeile auf 1 Seite zu gewinnen.
-        // Lesbarkeit bleibt dabei erhalten (kein aggressives Shrinking fuer echte Mehrseiten-Monate).
-        $bottomLimitY = 210.0; // Standard: Reserve fuer Summen/Bemerkungen (Letzte Seite)
-        $bottomLimitYOhneSummary = 90.0; // Reserve fuer Seiten ohne Summenblock (mehr Tabellenzeilen moeglich)
+        // Lesbarkeit bleibt dabei erhalten (kein aggressives Shrinking für echte Mehrseiten-Monate).
+        $bottomLimitY = 210.0; // Standard: Reserve für Summen/Bemerkungen (Letzte Seite)
+        $bottomLimitYOhneSummary = 90.0; // Reserve für Seiten ohne Summenblock (mehr Tabellenzeilen möglich)
         $sumGapY      = 20.0;  // Abstand zwischen Tabellenende und Summenblock-Start (wie in der Vorlage-Annäherung)
 
         $calcSeiten = function (float $testRowH, float $testBottomLimitY) use ($tableTopY, $rows): int {
@@ -1069,8 +1069,8 @@ class PDFService
         }
 
         // Summen-/Bemerkungsblock-Start passend zur Reserve berechnen (wird unten im Rendern genutzt)
-        // Summenblock leicht nach links verschieben, damit rechts Platz fuer Zusatzblock bleibt.
-        // Links bleibt weiterhin Platz fuer Bemerkungen.
+        // Summenblock leicht nach links verschieben, damit rechts Platz für Zusatzblock bleibt.
+        // Links bleibt weiterhin Platz für Bemerkungen.
         $sumLabelX = 190.0;
         $sumValueX = 385.0;
         $sumStartY = $bottomLimitY - $sumGapY;
@@ -1701,7 +1701,7 @@ class PDFService
     }
 
     /**
-     * Mikro-Block-Erkennung analog zur Monatsuebersicht:
+     * Mikro-Block-Erkennung analog zur Monatsübersicht:
      * 1) Roh-Paar diffen (wenn vorhanden) und mit abs() bewerten.
      * 2) Fallback: Main-Paar (korr bevorzugt, sonst roh) und ebenfalls abs().
      */
@@ -1712,9 +1712,9 @@ class PDFService
         $kK   = isset($block['kommen_korr']) ? trim((string)$block['kommen_korr']) : '';
         $gK   = isset($block['gehen_korr']) ? trim((string)$block['gehen_korr']) : '';
 
-        // Sonderfall: Rundungsregeln koennen kurze Bloecke „umdrehen“/neutralisieren
+        // Sonderfall: Rundungsregeln können kurze Bloecke „umdrehen“/neutralisieren
         // (gehen_korr <= kommen_korr). Diese Bloecke ergeben effektiv 0 Arbeitszeit
-        // und sollen im Report standardmaessig nicht als eigene Block-Zeilen auftauchen.
+        // und sollen im Report standardmäßig nicht als eigene Block-Zeilen auftauchen.
         if ($kK !== '' && $gK !== '' && substr($kK, 0, 10) !== '0000-00-00' && substr($gK, 0, 10) !== '0000-00-00') {
             $kDt = $this->parseDtBerlin($kK);
             $gDt = $this->parseDtBerlin($gK);
@@ -1727,7 +1727,7 @@ class PDFService
             return false;
         }
 
-        // 1) Roh-Paar vorhanden -> Roh-Diff pruefen
+        // 1) Roh-Paar vorhanden -> Roh-Diff prüfen
         if ($kRaw !== '' && $gRaw !== '') {
             $kDt = $this->parseDtBerlin($kRaw);
             $gDt = $this->parseDtBerlin($gRaw);
@@ -1761,7 +1761,7 @@ class PDFService
     
     /**
      * Block-Dauer in Sekunden.
-     * Wird genutzt, um bei Mehrfach-Bloecken eine Primaer-Zeile fuer Meta-Felder zu bestimmen.
+     * Wird genutzt, um bei Mehrfach-Bloecken eine Primaer-Zeile für Meta-Felder zu bestimmen.
      */
     private function calcBlockSeconds(array $block): int
     {
@@ -1792,7 +1792,7 @@ class PDFService
             $start = $kK;
             $ende  = $gK;
         } elseif ($kRawValid && $gRawValid) {
-            // 2) Roh-Paar, wenn keine vollstaendige Korrektur vorliegt.
+            // 2) Roh-Paar, wenn keine vollständige Korrektur vorliegt.
             $start = $kRaw;
             $ende  = $gRaw;
         } else {

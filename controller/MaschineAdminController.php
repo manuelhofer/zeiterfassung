@@ -318,7 +318,7 @@ class MaschineAdminController
     }
 
     /**
-     * Barcode fuer eine Maschine neu generieren.
+     * Barcode für eine Maschine neu generieren.
      */
     public function barcodeNeuGenerieren(): void
     {

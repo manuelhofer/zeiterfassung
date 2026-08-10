@@ -2,9 +2,9 @@
 declare(strict_types=1);
 
 /**
- * UrlaubJahresuebersichtController
+ * UrlaubJahresübersichtController
  *
- * Read-only Jahresuebersicht fuer Urlaub.
+ * Read-only Jahresübersicht für Urlaub.
  */
 class UrlaubJahresuebersichtController
 {
@@ -254,9 +254,9 @@ class UrlaubJahresuebersichtController
     /**
      * Monatsabschluss-Marker aus dem Stundenkonto.
      *
-     * Die Monatsuebersicht markiert einen Mitarbeiter als abgeschlossen, sobald
+     * Die Monatsübersicht markiert einen Mitarbeiter als abgeschlossen, sobald
      * eine manuelle Stundenkonto-Korrektur "Monatsabschluss YYYY-MM" am letzten
-     * Tag des Monats existiert. Die Jahresuebersicht muss dieselbe Wahrheit nutzen.
+     * Tag des Monats existiert. Die Jahresübersicht muss dieselbe Wahrheit nutzen.
      *
      * @param int[] $mitarbeiterIds
      * @return array<int,array<int,array{delta_minuten:int}>>

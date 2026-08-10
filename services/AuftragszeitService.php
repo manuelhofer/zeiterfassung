@@ -219,7 +219,7 @@ class AuftragszeitService
                 . " AND typ='haupt' AND status='laufend' AND endzeit IS NULL";
 
 
-            // 2) Auftrag (Minimaldatensatz) sicherstellen, damit die Buchung spaeter aufloesbar ist
+            // 2) Auftrag (Minimaldatensatz) sicherstellen, damit die Buchung später aufloesbar ist
             $sql2 = 'INSERT INTO auftrag (auftragsnummer, aktiv) VALUES ('
                 . $this->sqlNullableString($auftragscode, 100) . ', 1)
                 ON DUPLICATE KEY UPDATE auftragsnummer = auftragsnummer';

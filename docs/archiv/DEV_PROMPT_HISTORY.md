@@ -70,6 +70,90 @@ in den Statusbericht.
   D-002 entfallen; die Regel selbst gilt weiter.)
 
 
+## P-2026-08-10-19 umlaute-statt-ersatzschreibung
+
+### EINGELESEN
+- `docs/arbeitsregeln.md` §7 „Stil" – die in P-2026-08-10-07 festgeschriebene
+  Regel.
+- Verteilung der Ersatzschreibung ueber Code und Doku (gemessen, nicht
+  geschaetzt): 1.918 Zeilen mit Umlauten gegen mehrere hundert mit `ae/oe/ue`,
+  teils in derselben Datei – `TerminalController` 150 zu 39,
+  `AuftragController` 9 zu 31.
+
+### DATEIEN
+Rund 130 PHP-Dateien (nur Kommentare) und 15 Markdown-Dateien.
+`docs/archiv/` bleibt unangetastet.
+
+### AKZEPTANZKRITERIUM
+Kommentare und Dokumentation schreiben Umlaute, waehrend Bezeichner,
+Formularwerte, JavaScript, SQL und Konfigurationsschluessel unveraendert
+bleiben.
+
+### DONE
+Die Regel aus §7 umgesetzt: **313 Kommentarabschnitte** in PHP-Dateien und
+**527 Zeilen** in 15 Markdown-Dateien.
+
+Der Zustand vorher war nicht „eine Konvention mit Ausnahmen", sondern zwei
+Konventionen nebeneinander, teils innerhalb einer Datei. Ausgenommen bleiben,
+wie in §7 festgelegt: Bezeichner, Dateinamen, Datenbankfelder und -werte,
+Konfigurationsschluessel, Shell-Skripte – und das Archiv.
+
+### TEST
+- `php -l` ueber alle Dateien sauber.
+- 18 Backend-Masken gerendert: unveraendert, 16 POST-Formulare, keines ohne
+  Token, 0 Ausnahmen.
+- `index.php`, `terminal.php`, Health je HTTP 200.
+- Alle Markdown-Links gegengeprueft: keiner zerschossen.
+- Gezielte Gegenprobe am kritischsten Wert: `views/queue/liste.php` sendet
+  weiterhin `value="loeschen"`, und `QueueController` vergleicht weiterhin
+  gegen `'loeschen'`.
+
+### Gefundene Fehler im eigenen Entwurf
+**Zwei Anlaeufe, beide mit ernsten Fehlern – und beide nur durch Nachsehen
+aufgefallen, nicht durch einen Test.**
+
+*Erster Anlauf, reine Textersetzung.* Der Probelauf auf einer Kopie von
+`PausenService.php` benannte prompt eine **Methode** um:
+`berechnePausenMinutenFuerBlock` → `…FürBlock`. Ein Textersetzer kann Sprache
+nicht von Bezeichnern unterscheiden. Verworfen.
+
+*Zweiter Anlauf, ueber `token_get_all()`* – richtig im Ansatz, aber ich hatte
+`T_INLINE_HTML` mitgenommen, also den HTML-Text der Views. Ergebnis:
+
+- **Ein Formularwert wurde uebersetzt.** `views/queue/liste.php` sendete
+  danach `<input name="aktion" value="löschen">`, waehrend
+  `QueueController` weiter gegen `'loeschen'` vergleicht. Das Loeschen eines
+  fehlerhaften Queue-Eintrags waere **lautlos wirkungslos** geworden – in
+  genau der Maske, die man im Stoerungsfall braucht.
+- **Vier JavaScript-Funktionsnamen** wurden umbenannt
+  (`prüfeAktivenSchritt`, `löscheKommentarZeichen`, …). In diesem Fall
+  zufaellig konsistent, weil Definition und Aufrufe in derselben Datei liegen –
+  aber ein Aufruf aus einer anderen Datei haette das Terminal zerlegt.
+- Dazu `@param`-Namen in Docblocks, die danach nicht mehr zur Variablen passten.
+
+Beides nicht durch `php -l` erkennbar: Alle drei Fassungen waren syntaktisch
+tadellos. Aufgefallen ist es, weil ich nach dem Lauf gezielt nach Umlauten in
+Bezeichnern gesucht habe.
+
+Der dritte Anlauf beschraenkt sich auf `T_COMMENT` und `T_DOC_COMMENT`.
+Strings bleiben aussen vor: Dort stecken SQL, Rechte-Codes, Rollennamen
+(`'Personalbuero'` ist ein Wert in der Datenbank) und Konfigurationsschluessel.
+
+Fuer Markdown ein eigenes Skript, das Codebloecke (``` und eingerueckt) und
+Inline-Code (`` ` ``) ueberspringt – dort stehen Shell-Befehle und Pfade.
+
+### Was bewusst nicht erreicht wurde
+Oberflaechentexte in **PHP-Strings** sind nicht umgestellt. Sie sind ganz
+ueberwiegend schon in Umlauten geschrieben; der Rest liesse sich nur einzeln
+pruefen, weil in denselben Strings SQL und Schluessel stehen. Wer eine solche
+Meldung ohnehin anfasst, zieht sie mit.
+
+Ebenfalls nicht angefasst: `docs/archiv/`. Archiv wird nicht umgeschrieben.
+
+### NEXT
+Abschlusspruefung (Phase 7 des Aufraeumplans).
+
+
 ## P-2026-08-10-18 kleinigkeiten-einrueckung-verweise-bezeichner
 
 ### EINGELESEN

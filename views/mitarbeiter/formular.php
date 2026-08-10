@@ -10,7 +10,7 @@ declare(strict_types=1);
  * - $rollen (array<int,array<string,mixed>>) – optional, vollständige Rollenobjekte des Mitarbeiters (nur Anzeige/Zusatzinfos)
  * - $genehmiger (array<int,array<string,mixed>>) – Genehmiger-Datensätze für dieses Formular
  * - $alleRollen (array<int,array<string,mixed>>) – alle aktiven Rollen für die Checkbox-Auswahl
- * - $rollenIdsAusgewaehlt (array<int,int>) – Rollen-IDs, die aktuell für diesen Mitarbeiter gesetzt sind
+ * - $rollenIdsAusgewählt (array<int,int>) – Rollen-IDs, die aktuell für diesen Mitarbeiter gesetzt sind
   * - $alleMitarbeiterGenehmiger (array<int,array<string,mixed>>) – alle aktiven Mitarbeiter für die Genehmiger-Auswahl
 */
 
@@ -34,7 +34,7 @@ $rollenScopesAbteilung = $rollenScopesAbteilung ?? [];
 
 /** @var array<int,int> $rechteOverrides */
 $rechteOverrides = $rechteOverrides ?? [];
-/** @var array<int,int> $rollenIdsAusgewaehlt */
+/** @var array<int,int> $rollenIdsAusgewählt */
 $rollenIdsAusgewaehlt = $rollenIdsAusgewaehlt ?? [];
 $fehlermeldung = $fehlermeldung ?? null;
 $successmeldung = $successmeldung ?? null;

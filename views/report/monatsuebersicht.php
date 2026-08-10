@@ -29,7 +29,7 @@ $monatsabschlussStatusMap = isset($monatsabschlussStatusMap) && is_array($monats
  * Anzeigenummer eines Mitarbeiters.
  *
  * Fachlich zaehlt die Personalnummer, nicht die Datenbank-ID - die ist eine
- * rein technische Groesse und sagt niemandem in der Verwaltung etwas. Ist keine
+ * rein technische Größe und sagt niemandem in der Verwaltung etwas. Ist keine
  * Personalnummer gepflegt, wird ersatzweise die ID gezeigt, damit die Zeile
  * eindeutig zuordenbar bleibt.
  *
@@ -83,7 +83,7 @@ if ($mitarbeiterId > 0) {
 
 // ------------------------------------------------------------
 // Urlaubstage (abzgl. geplante Betriebsferien) - Jahres-Resturlaub
-// Quelle: UrlaubService->berechneUrlaubssaldoFuerJahr(...)[verbleibend].
+// Quelle: UrlaubService->berechneUrlaubssaldoFürJahr(...)[verbleibend].
 // Dieser Wert ist bereits inkl. Betriebsferien (Zwangsurlaub) berechnet.
 // BF (Rest Jahr) bleibt als separate Info (nach Monatsende bis 31.12.).
 // ------------------------------------------------------------
@@ -130,13 +130,13 @@ if ($monatswerte !== null && $mitarbeiterId > 0) {
         $bfRestArbeitstageText = '';
     }
 }
-// Heuristik: Unvollstaendige Kommen/Gehen-Stempel werden erst nach Tagesende markiert.
-// Daher ignorieren wir "heute" und zukuenftige Tage in der Monatsuebersicht (Europe/Berlin).
+// Heuristik: Unvollständige Kommen/Gehen-Stempel werden erst nach Tagesende markiert.
+// Daher ignorieren wir "heute" und zukuenftige Tage in der Monatsübersicht (Europe/Berlin).
 $heuteIso = (new \DateTimeImmutable('now', new \DateTimeZone('Europe/Berlin')))->format('Y-m-d');
 
 // ------------------------------------------------------------
 // T-069 (Teil 2a): Unstimmigkeiten in Kommen/Gehen sichtbar machen.
-// - Ziel: In der Monatsuebersicht soll sofort erkennbar sein, wenn z. B.
+// - Ziel: In der Monatsübersicht soll sofort erkennbar sein, wenn z. B.
 //   nur "Kommen" ohne "Gehen" existiert.
 // ------------------------------------------------------------
 // (Wir markieren betroffene Tage/Zellen rein visuell; keine Datenmutation.)
@@ -249,7 +249,7 @@ if (!function_exists('report_parse_dt_berlin')) {
     /**
      * Parst einen DATETIME-String robust in Europe/Berlin.
      *
-     * Hinweis: Wir brauchen DateTime-Objekte fuer die Nachtschicht-Heuristik
+     * Hinweis: Wir brauchen DateTime-Objekte für die Nachtschicht-Heuristik
      * (Kommen gestern, Gehen heute).
      */
     function report_parse_dt_berlin(?string $datetime): ?\DateTimeImmutable
@@ -293,8 +293,8 @@ if (!function_exists('report_is_micro_block')) {
      *
      * Regeln:
      * 1) Wenn ein korrigiertes Paar existiert und nach Rundung/Regel zu einer
-     *    Null-/Negativdauer fuehrt (gehen_korr <= kommen_korr), gilt der Block
-     *    als „Rundung->0“ und wird wie Mikro behandelt (standardmaessig ausblenden).
+     *    Null-/Negativdauer führt (gehen_korr <= kommen_korr), gilt der Block
+     *    als „Rundung->0“ und wird wie Mikro behandelt (standardmäßig ausblenden).
      * 2) Sonst Mikro-Erkennung am Roh-Paar (kommen_roh/gehen_roh), damit Rundung
      *    Mikro-Buchungen nicht aufblaeht.
      * 3) Fallback: Main-Paar (korr bevorzugt, sonst roh).
@@ -310,8 +310,8 @@ if (!function_exists('report_is_micro_block')) {
         $kK   = isset($block['kommen_korr']) ? trim((string)$block['kommen_korr']) : '';
         $gK   = isset($block['gehen_korr']) ? trim((string)$block['gehen_korr']) : '';
 
-        // Sonderfall: Rundungsregeln koennen kurze Bloecke „umdrehen“ (z. B. 11:01–11:05 -> 11:15–11:00).
-        // Diese Bloecke ergeben effektiv 0 Arbeitszeit und sollen standardmaessig nicht angezeigt werden.
+        // Sonderfall: Rundungsregeln können kurze Bloecke „umdrehen“ (z. B. 11:01–11:05 -> 11:15–11:00).
+        // Diese Bloecke ergeben effektiv 0 Arbeitszeit und sollen standardmäßig nicht angezeigt werden.
         if ($kK !== '' && $gK !== '' && substr($kK, 0, 10) !== '0000-00-00' && substr($gK, 0, 10) !== '0000-00-00') {
             $kDt = report_parse_dt_berlin($kK);
             $gDt = report_parse_dt_berlin($gK);
@@ -324,7 +324,7 @@ if (!function_exists('report_is_micro_block')) {
             return false;
         }
 
-        // 1) Roh-Paar vorhanden -> Roh-Diff pruefen (Rundung darf Mikro nicht aufblasen)
+        // 1) Roh-Paar vorhanden -> Roh-Diff prüfen (Rundung darf Mikro nicht aufblasen)
         if ($kRaw !== '' && $gRaw !== '' && substr($kRaw, 0, 10) !== '0000-00-00' && substr($gRaw, 0, 10) !== '0000-00-00') {
             $kDt = report_parse_dt_berlin($kRaw);
             $gDt = report_parse_dt_berlin($gRaw);
@@ -403,7 +403,7 @@ if (!function_exists('report_calc_block_ist_dez2')) {
             $start = $kK;
             $ende  = $gK;
         } elseif ($kRawValid && $gRawValid) {
-            // 2) Roh-Paar, wenn keine vollstaendige Korrektur vorliegt.
+            // 2) Roh-Paar, wenn keine vollständige Korrektur vorliegt.
             $start = $kRaw;
             $ende  = $gRaw;
         } else {
@@ -479,7 +479,7 @@ if (!function_exists('report_calc_block_seconds')) {
             $start = $kK;
             $ende  = $gK;
         } elseif ($kRawValid && $gRawValid) {
-            // 2) Roh-Paar, wenn keine vollstaendige Korrektur vorliegt.
+            // 2) Roh-Paar, wenn keine vollständige Korrektur vorliegt.
             $start = $kRaw;
             $ende  = $gRaw;
         } else {
@@ -516,7 +516,7 @@ if (!function_exists('report_collapse_blocks')) {
      * Kollabiert mehrere Arbeitsbloecke zu einem Tagesblock (erster Start + letzter Endzeit).
      * Start/Ende werden anhand der Main-Zeiten bestimmt (korr bevorzugt, sonst roh).
      *
-     * Rueckgabe ist ein einzelner Block im gleichen Format wie 'arbeitsbloecke'.
+     * Rückgabe ist ein einzelner Block im gleichen Format wie 'arbeitsbloecke'.
      */
     function report_collapse_blocks(array $bloecke): array
     {
@@ -586,7 +586,7 @@ if (isset($microBuchungMaxSeconds)) {
 // Nacht-Schicht-Heuristik: Wenn am Folgetag ein fruehes "Gehen" vor dem ersten "Kommen"
 // existiert, behandeln wir dieses Gehen als Schichtende des Vortags.
 // Dadurch wird der Vortag (innerhalb eines Zeitfensters) nicht als FEHLT markiert.
-$reportOvernightMaxSeconds = 12 * 3600; // 12h Fenster (spaeter ggf. DB-config)
+$reportOvernightMaxSeconds = 12 * 3600; // 12h Fenster (später ggf. DB-config)
 $reportOvernightClosingGoByDatum = [];
 
 if (is_array($tageswerte) && $tageswerte !== []) {
@@ -810,7 +810,7 @@ if (is_array($tageswerte) && $tageswerte !== []) {
                                             $abschlussOptionClass = 'monatsabschluss-status-erledigt';
                                             $abschlussOptionStyle = 'background-color: #e8f5e9; color: #1b5e20;';
                                             $abschlussOptionTitle = 'Monatsabschluss erledigt';
-                                            // Zusaetzliches Textzeichen: Farbe allein ist nicht
+                                            // Zusätzliches Textzeichen: Farbe allein ist nicht
                                             // barrierefrei und wird je nach Browser/Thema nicht
                                             // gezeichnet. Das Zeichen kommt immer an.
                                             $abschlussOptionMarker = ' ✓';
@@ -956,7 +956,7 @@ if (is_array($tageswerte) && $tageswerte !== []) {
 
 
     <?php
-        // Stundenkonto: Monatsabschluss-Knopf (Differenz Soll/Ist als geprueften Stand buchen)
+        // Stundenkonto: Monatsabschluss-Knopf (Differenz Soll/Ist als geprüften Stand buchen)
         $monatsabschlussMsgText = '';
         $monatsabschlussMsgColor = '#333';
         $msg = isset($stundenkontoMonatsabschlussMsg) ? (string)$stundenkontoMonatsabschlussMsg : '';
@@ -1043,7 +1043,7 @@ if (is_array($tageswerte) && $tageswerte !== []) {
 
 
     <?php
-        // Vorab-Scan: Monat enthaelt Tage mit unvollstaendigen Kommen/Gehen-Stempeln?
+        // Vorab-Scan: Monat enthaelt Tage mit unvollständigen Kommen/Gehen-Stempeln?
         $monatHatZeitUnstimmigkeit = false;
         $zeitUnstimmigeTage = [];
 
@@ -1181,8 +1181,8 @@ if (is_array($tageswerte) && $tageswerte !== []) {
                     // Arbeitsblöcke (Mehrfach-Kommen/Gehen): falls vorhanden, Tag mehrfach anzeigen.
                     $bloecke = [];
 
-                    // Wichtig: defensive Normalisierung – einzelne Elemente koennen (durch fehlerhafte Daten)
-                    // keine Arrays sein. Das wuerde spaeter in der View zu TypeErrors fuehren.
+                    // Wichtig: defensive Normalisierung – einzelne Elemente können (durch fehlerhafte Daten)
+                    // keine Arrays sein. Das wuerde später in der View zu TypeErrors führen.
                     if (isset($t['arbeitsbloecke']) && is_array($t['arbeitsbloecke']) && $t['arbeitsbloecke'] !== []) {
                         $tmp = [];
                         foreach ($t['arbeitsbloecke'] as $bTmp) {
@@ -1229,7 +1229,7 @@ if (is_array($tageswerte) && $tageswerte !== []) {
                         }
                         $bloecke = $tmpBlocks;
                     }
-                    // Primaer-Zeile fuer Meta-Felder (Pause/Kurzarbeit/Feiertag/Urlaub):
+                    // Primaer-Zeile für Meta-Felder (Pause/Kurzarbeit/Feiertag/Urlaub):
                     // Erste sichtbare Blockzeile mit Dauer >= 60 Minuten, sonst die erste Blockzeile.
                     $reportMetaPrimaryMinSeconds = 3600;
                     $metaPrimaryIndex = 0;
@@ -1241,7 +1241,7 @@ if (is_array($tageswerte) && $tageswerte !== []) {
                     }
 
                     // Tages-Warnflag: mind. ein Block hat nur Kommen oder nur Gehen.
-                    // Wichtig: fuer "heute" (und zukuenftige Tage) markieren wir das nicht als Fehler.
+                    // Wichtig: für "heute" (und zukuenftige Tage) markieren wir das nicht als Fehler.
                     $tagIstVergangen = ($datumIso !== '' && $datumIso < $heuteIso);
 
                     // Nachtschicht-Helper: (Kommen gestern, Gehen heute)
@@ -1276,7 +1276,7 @@ if (is_array($tageswerte) && $tageswerte !== []) {
 
                         $hatStempel = ($kR !== '' || $gR !== '' || $kK !== '' || $gK !== '');
                         if ($tagIstVergangen && $hatStempel && ($kMain === '' || $gMain === '')) {
-                            // Ausnahme: Nachtschicht ueber Mitternacht.
+                            // Ausnahme: Nachtschicht über Mitternacht.
                             // - Vortag: Kommen vorhanden, Gehen fehlt, aber am Folgetag existiert ein fruehes Gehen (vor dem ersten Kommen)
                             //   innerhalb $reportOvernightMaxSeconds.
                             // - Folgetag: Dieses fruehe Gehen ohne Kommen gilt als Abschluss des Vortags (nicht als FEHLT).

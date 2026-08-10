@@ -10,7 +10,7 @@ declare(strict_types=1);
  */
 class ZeitController
 {
-    /** Bereichsname fuer `Csrf` – siehe `core/Csrf.php`. */
+    /** Bereichsname für `Csrf` – siehe `core/Csrf.php`. */
     private const CSRF_BEREICH_KORREKTUR = 'zeit_korrektur';
 
     private AuthService $authService;
@@ -84,7 +84,7 @@ class ZeitController
         $tag = $this->parseYmdOrToday($datumInput);
         $datumYmd = $tag->format('Y-m-d');
 
-        // CSRF-Token für die Korrekturmaske – nur, wenn sie ueberhaupt
+        // CSRF-Token für die Korrekturmaske – nur, wenn sie überhaupt
         // angeboten wird.
         $csrfToken = $darfKorrigieren ? Csrf::token(self::CSRF_BEREICH_KORREKTUR) : '';
 

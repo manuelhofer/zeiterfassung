@@ -4,7 +4,7 @@ declare(strict_types=1);
 /**
  * TerminalKopplungService
  *
- * Vergibt und prueft die Kopplungscodes, mit denen sich ein Terminal am
+ * Vergibt und prüft die Kopplungscodes, mit denen sich ein Terminal am
  * Backend anmeldet (siehe `docs/spezifikation_terminal_installation.md`,
  * Abschnitt 2a).
  *
@@ -18,15 +18,15 @@ declare(strict_types=1);
  * - **Nur der Hash wird gespeichert.** Der Code ist ein Geheimnis auf Zeit und
  *   wird wie ein Passwort behandelt: einmal anzeigen, danach nicht mehr
  *   rekonstruierbar. Wer ihn verliert, erzeugt einen neuen.
- * - **Einmalig verwendbar.** Nach dem Einloesen ist er verbraucht; ein
- *   abgehoerter Code nuetzt niemandem mehr.
+ * - **Einmalig verwendbar.** Nach dem Einlösen ist er verbraucht; ein
+ *   abgehörter Code nuetzt niemandem mehr.
  * - **Zeitlich begrenzt** (Standard 30 Minuten) - ein vergessener Zettel am
  *   Terminal wird damit von selbst wertlos.
  * - **Alphabet ohne Verwechslungen:** kein O/0, kein I/1/l. Der Code wird an
  *   einem Touchscreen in der Halle abgetippt, oft von einem Zettel.
- * - **Laenge 8 aus 32 Zeichen** ergibt rund 10^12 Moeglichkeiten. Ein
- *   Durchprobieren ueber das Netz ist damit aussichtslos; zusaetzlich wird
- *   jeder Fehlversuch protokolliert, damit ein Versuch ueberhaupt auffaellt.
+ * - **Laenge 8 aus 32 Zeichen** ergibt rund 10^12 Möglichkeiten. Ein
+ *   Durchprobieren über das Netz ist damit aussichtslos; zusätzlich wird
+ *   jeder Fehlversuch protokolliert, damit ein Versuch überhaupt auffällt.
  */
 class TerminalKopplungService
 {
@@ -55,11 +55,11 @@ class TerminalKopplungService
     }
 
     /**
-     * Erzeugt einen Kopplungscode fuer ein Terminal.
+     * Erzeugt einen Kopplungscode für ein Terminal.
      *
      * Vorhandene, noch offene Codes desselben Terminals werden dabei entwertet:
-     * Es soll immer nur ein gueltiger Code je Geraet unterwegs sein, sonst
-     * weiss niemand mehr, welcher Zettel noch zaehlt.
+     * Es soll immer nur ein gültiger Code je Geraet unterwegs sein, sonst
+     * weiß niemand mehr, welcher Zettel noch zaehlt.
      *
      * @return string|null Der Code im Klartext - **einmalig**, danach nur noch
      *                     als Hash vorhanden. Null bei Fehler.
@@ -117,10 +117,10 @@ class TerminalKopplungService
     }
 
     /**
-     * Prueft einen Code und verbraucht ihn bei Erfolg.
+     * Prüft einen Code und verbraucht ihn bei Erfolg.
      *
-     * Die Pruefung ist bewusst **eine** Abfrage samt Gueltigkeitsbedingung, und
-     * das Verbrauchen laeuft als bedingtes UPDATE. So kann derselbe Code auch
+     * Die Prüfung ist bewusst **eine** Abfrage samt Gültigkeitsbedingung, und
+     * das Verbrauchen läuft als bedingtes UPDATE. So kann derselbe Code auch
      * bei zwei gleichzeitigen Anfragen nur einmal gewinnen.
      *
      * @param string      $code Klartext-Code, wie am Terminal eingetippt
@@ -204,8 +204,8 @@ class TerminalKopplungService
     }
 
     /**
-     * Offener, noch gueltiger Code eines Terminals - fuer die Anzeige
-     * „Kopplung laeuft noch bis …“. Der Code selbst ist nicht enthalten.
+     * Offener, noch gültiger Code eines Terminals - für die Anzeige
+     * „Kopplung läuft noch bis …“. Der Code selbst ist nicht enthalten.
      *
      * @return array<string,mixed>|null
      */
@@ -232,8 +232,8 @@ class TerminalKopplungService
     }
 
     /**
-     * Entwertet noch offene Codes eines Terminals, indem ihre Gueltigkeit
-     * zurueckgesetzt wird. Geloescht wird nicht - der Verlauf bleibt
+     * Entwertet noch offene Codes eines Terminals, indem ihre Gültigkeit
+     * zurückgesetzt wird. Gelöscht wird nicht - der Verlauf bleibt
      * nachvollziehbar.
      *
      * Oeffentlich, weil nicht nur ein neuer Code die alten ersetzt: Auch das
@@ -242,9 +242,9 @@ class TerminalKopplungService
      */
     public function entwerteOffeneCodes(int $terminalId): void
     {
-        // Eine Sekunde in die Vergangenheit, nicht auf NOW(): Die Pruefung beim
-        // Einloesen laesst `gueltig_bis >= NOW()` gelten - auf NOW() gesetzt
-        // waere der alte Code also noch eine Sekunde lang gueltig.
+        // Eine Sekunde in die Vergangenheit, nicht auf NOW(): Die Prüfung beim
+        // Einlösen lässt `gültig_bis >= NOW()` gelten - auf NOW() gesetzt
+        // wäre der alte Code also noch eine Sekunde lang gültig.
         $this->db->ausfuehren(
             'UPDATE terminal_kopplung
                 SET gueltig_bis = DATE_SUB(NOW(), INTERVAL 1 SECOND)

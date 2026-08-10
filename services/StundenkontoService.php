@@ -7,9 +7,9 @@ declare(strict_types=1);
  * Read-only Zugriff auf das Stundenkonto (Gutstunden/Minusstunden).
  *
  * Ziel (Zusatz2):
- * - Terminal/Report/PDF sollen den **aktuellen Saldo** anzeigen koennen,
- *   ohne dafuer "25 Jahre" Zeitbuchungen neu zu aggregieren.
- * - In der Monatsuebersicht soll z. B. der Saldo **bis Ende Vormonat**
+ * - Terminal/Report/PDF sollen den **aktuellen Saldo** anzeigen können,
+ *   ohne dafür "25 Jahre" Zeitbuchungen neu zu aggregieren.
+ * - In der Monatsübersicht soll z. B. der Saldo **bis Ende Vormonat**
  *   angezeigt werden (exklusiv der Stunden des aktuellen Monatsreports).
  *
  * Hinweis:

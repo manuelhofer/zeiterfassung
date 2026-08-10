@@ -1,23 +1,23 @@
 # Fachregeln
 
 Die Fachlogik des Projekts, nach Thema getrennt. **Lies nur die Datei, die zu
-deiner Aufgabe gehoert** – nicht alle.
+deiner Aufgabe gehört** – nicht alle.
 
 | Datei | Thema |
 | --- | --- |
 | [zeit_rundung_pausen.md](zeit_rundung_pausen.md) | Kommen/Gehen, Rohdaten, Rundungsregeln, Arbeitsbloecke, Pausen, Tageswerte, Korrekturmaske, Audit-Trail |
-| [urlaub_abwesenheit_feiertage.md](urlaub_abwesenheit_feiertage.md) | Urlaubsantrag, Saldo, Uebertrag, Genehmigung, Betriebsferien, Feiertage |
+| [urlaub_abwesenheit_feiertage.md](urlaub_abwesenheit_feiertage.md) | Urlaubsantrag, Saldo, Übertrag, Genehmigung, Betriebsferien, Feiertage |
 | [rollen_rechte_genehmiger.md](rollen_rechte_genehmiger.md) | Rollen, Rechte, Bereiche (Scope), Superuser, Genehmiger, `hatRecht()` |
-| [terminal_und_offline.md](terminal_und_offline.md) | Terminal-UI, RFID, Auto-Logout, Offline-Queue, Stoerungsmodus, Kopplung |
+| [terminal_und_offline.md](terminal_und_offline.md) | Terminal-UI, RFID, Auto-Logout, Offline-Queue, Störungsmodus, Kopplung |
 | [auftraege_und_codes.md](auftraege_und_codes.md) | Auftraege, Auftragszeiten, Haupt-/Nebenauftrag, Strichcodes, Laufkarte |
-| [auswertung_und_pdf.md](auswertung_und_pdf.md) | Monatsuebersicht, Monatsreport, PDF-Technik, Stundenkonto, Dashboard-Warnungen |
+| [auswertung_und_pdf.md](auswertung_und_pdf.md) | Monatsübersicht, Monatsreport, PDF-Technik, Stundenkonto, Dashboard-Warnungen |
 | [stammdaten_und_datenbank.md](stammdaten_und_datenbank.md) | Mitarbeiter, Abteilungen, Maschinen, Konfiguration, DB-Regeln |
 
-**Source of Truth fuer die Datenbankstruktur** ist immer
+**Source of Truth für die Datenbankstruktur** ist immer
 `sql/01_initial_schema.sql`, nicht diese Dateien. Hier steht das **Warum**,
 dort stehen die aktuellen Spalten.
 
-**Source of Truth fuer Rechte-Codes** ist `docs/rechte_prompt.md`.
+**Source of Truth für Rechte-Codes** ist `docs/rechte_prompt.md`.
 
 ## Herkunft
 
@@ -27,6 +27,6 @@ Dokument zu gross geworden war. Jede Datei nennt oben, aus welchen Abschnitten
 sie stammt. Inhaltlich wurde nichts weggelassen; ergaenzt wurden Regeln, die
 sich aus der Fehlerhistorie ergeben hatten und bisher nur dort standen.
 
-**Eine Regel gehoert an genau eine Stelle.** Steht dieselbe Aussage in zwei
-Dateien, driftet sie frueher oder spaeter auseinander – dann weiss niemand
+**Eine Regel gehört an genau eine Stelle.** Steht dieselbe Aussage in zwei
+Dateien, driftet sie frueher oder später auseinander – dann weiß niemand
 mehr, welche Fassung gilt. Verweise statt kopieren.

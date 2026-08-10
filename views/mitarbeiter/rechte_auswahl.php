@@ -2,7 +2,7 @@
 declare(strict_types=1);
 
 /**
- * Backend-Ansicht: Mitarbeiter fuer Rollen & Rechte auswaehlen.
+ * Backend-Ansicht: Mitarbeiter für Rollen & Rechte auswählen.
  *
  * Erwartet:
  * - $mitarbeiterListe (array<int,array<string,mixed>>)

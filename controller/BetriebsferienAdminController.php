@@ -15,7 +15,7 @@ declare(strict_types=1);
  */
 class BetriebsferienAdminController
 {
-    /** Bereichsname fuer `Csrf` – siehe `core/Csrf.php`. */
+    /** Bereichsname für `Csrf` – siehe `core/Csrf.php`. */
     private const CSRF_BEREICH = 'betriebsferien_admin';
 
     private AuthService $authService;
@@ -74,7 +74,7 @@ class BetriebsferienAdminController
         $fehlermeldung = null;
         $eintraege     = [];
 
-        // Rueckmeldungen aus toggleAktiv() – der leitet hierher zurueck, damit
+        // Rückmeldungen aus toggleAktiv() – der leitet hierher zurück, damit
         // ein Neuladen die Aktion nicht wiederholt.
         $meldung = isset($_GET['meldung']) ? (string)$_GET['meldung'] : '';
         if ($meldung === 'csrf_ungueltig') {
@@ -412,9 +412,9 @@ class BetriebsferienAdminController
      * Schaltet einen Betriebsferien-Eintrag aktiv/inaktiv.
      *
      * Warum es das braucht: Alle Leser werten `betriebsferien.aktiv` aus
-     * (`BetriebsferienModel::holeAktive()`, `UrlaubJahresuebersichtController`,
+     * (`BetriebsferienModel::holeAktive()`, `UrlaubJahresübersichtController`,
      * `ReportService`), gesetzt wurde die Spalte aber nur beim Anlegen. Ein
-     * Eintrag liess sich also nur loeschen, nicht stilllegen – und Loeschen
+     * Eintrag liess sich also nur löschen, nicht stilllegen – und Löschen
      * nimmt die Historie mit. Aufbau bewusst wie
      * `KurzarbeitAdminController::toggleAktiv()`, damit beide Masken sich
      * gleich verhalten.
@@ -425,7 +425,7 @@ class BetriebsferienAdminController
             return;
         }
 
-        // Mutierende Aktion: nur per POST, und nur mit gueltigem Token.
+        // Mutierende Aktion: nur per POST, und nur mit gültigem Token.
         if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST') {
             header('Location: ?seite=betriebsferien_admin');
             return;

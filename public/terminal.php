@@ -24,7 +24,7 @@ $aktion = isset($_GET['aktion']) ? (string)$_GET['aktion'] : 'start';
 //
 // Bewusst **vor** allem Datenbank-Kram: Ohne Konfiguration gibt es keine
 // sinnvolle Verbindung, und der Healthcheck bleibt trotzdem erreichbar, damit
-// eine Ueberwachung auch ein frisches Geraet abfragen kann.
+// eine Überwachung auch ein frisches Geraet abfragen kann.
 if ($aktion !== 'health' && !TerminalEinrichtungController::istEingerichtet()) {
     (new TerminalEinrichtungController())->bearbeiten();
     exit;
@@ -224,7 +224,7 @@ try {
     }
 
     // ------------------------------------------------------------
-    // Stoerungsmodus (siehe `docs/fachregeln/terminal_und_offline.md`):
+    // Störungsmodus (siehe `docs/fachregeln/terminal_und_offline.md`):
     // Wenn ein Fehler-Eintrag in der Queue existiert, muss das Terminal
     // in einen blockierenden Störungsmodus wechseln, bis ein Admin den
     // problematischen Queue-Eintrag löscht/ignoriert.

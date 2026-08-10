@@ -4,7 +4,7 @@ declare(strict_types=1);
 /**
  * AuditLogController
  *
- * Lesbare Audit-Ansicht fuer fachliche system_log-Eintraege.
+ * Lesbare Audit-Ansicht für fachliche system_log-Eintraege.
  * Das technische Warn-/Fehler-Log unter Konfiguration bleibt davon getrennt.
  */
 class AuditLogController

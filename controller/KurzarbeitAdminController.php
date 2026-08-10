@@ -12,7 +12,7 @@ declare(strict_types=1);
  */
 class KurzarbeitAdminController
 {
-    /** Bereichsname fuer `Csrf` – siehe `core/Csrf.php`. */
+    /** Bereichsname für `Csrf` – siehe `core/Csrf.php`. */
     private const CSRF_BEREICH = 'kurzarbeit_admin';
     private const FLASH_OK_KEY = 'kurzarbeit_admin_flash_ok';
     private const FLASH_ERR_KEY = 'kurzarbeit_admin_flash_err';

@@ -90,11 +90,11 @@ class MitarbeiterModel
      * Wochenarbeitszeit eines Mitarbeiters – und sonst nichts.
      *
      * Eigene Methode statt `holeNachId()`, weil der `ReportService` an zwei
-     * Stellen nur diesen einen Wert braucht und **auch am Terminal** laeuft
+     * Stellen nur diesen einen Wert braucht und **auch am Terminal** läuft
      * (Monatsstatus). Der Terminal-Datenbankbenutzer darf `passwort_hash` seit
-     * P-2026-08-09-16 nicht mehr lesen, und ein Spaltenrecht laesst `SELECT *`
+     * P-2026-08-09-16 nicht mehr lesen, und ein Spaltenrecht lässt `SELECT *`
      * scheitern. Beide Aufrufstellen fangen Fehler ab und rechnen dann mit
-     * 0 Stunden weiter – der Ausfall waere also **kein Absturz, sondern eine
+     * 0 Stunden weiter – der Ausfall wäre also **kein Absturz, sondern eine
      * stille Falschrechnung**. Genau davor schuetzt diese Methode.
      *
      * @return float|null null, wenn es den Mitarbeiter nicht gibt oder nichts
@@ -178,7 +178,7 @@ class MitarbeiterModel
     }
 
     /**
-     * Holt alle inaktiven Mitarbeiter fuer die Admin-Liste.
+     * Holt alle inaktiven Mitarbeiter für die Admin-Liste.
      *
      * @return array<int,array<string,mixed>>
      */

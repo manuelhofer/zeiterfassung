@@ -15,7 +15,7 @@ class UrlaubController
     private UrlaubService $urlaubService;
 
     /** Session-Key für CSRF im Bereich "urlaub_meine" (Antrag stellen + Storno). */
-    /** Bereichsname fuer `Csrf` – siehe `core/Csrf.php`. */
+    /** Bereichsname für `Csrf` – siehe `core/Csrf.php`. */
     private const CSRF_BEREICH_MEINE = 'urlaub_meine';
         private const CSRF_BEREICH_VERWALTUNG = 'urlaub_verwaltung';
     private const CSRF_BEREICH_GENEHMIGUNG = 'urlaub_genehmigung';

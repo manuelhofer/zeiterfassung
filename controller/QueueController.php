@@ -12,7 +12,7 @@ declare(strict_types=1);
  */
 class QueueController
 {
-    /** Bereichsname fuer `Csrf` – siehe `core/Csrf.php`. */
+    /** Bereichsname für `Csrf` – siehe `core/Csrf.php`. */
     private const CSRF_BEREICH = 'queue_admin';
 
     private const FLASH_REPORT_KEY = 'queue_admin_flash_report';

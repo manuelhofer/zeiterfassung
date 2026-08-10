@@ -2,14 +2,14 @@
 
 Diese Anleitung beschreibt, wie das Projekt auf einem Entwicklungsrechner zum
 Laufen gebracht wird, so dass die App im Browser unter
-`http://localhost/zeiterfassung` erreichbar ist und Aenderungen am Code sofort
+`http://localhost/zeiterfassung` erreichbar ist und Änderungen am Code sofort
 sichtbar werden.
 
-**Abgrenzung:** Fuer die Produktivinstallation (Debian/Apache auf dem Server,
+**Abgrenzung:** Für die Produktivinstallation (Debian/Apache auf dem Server,
 Terminal auf dem Raspberry Pi) gilt weiterhin
 [`docs/installationsanleitung.md`](installationsanleitung.md). Die hier
-beschriebene Umgebung ist bewusst bequemer und dafuer weniger streng
-abgesichert – sie gehoert nicht ins Internet.
+beschriebene Umgebung ist bewusst bequemer und dafür weniger streng
+abgesichert – sie gehört nicht ins Internet.
 
 ---
 
@@ -49,7 +49,7 @@ Das Skript ist idempotent und macht alles aus Abschnitt 4 automatisch. Danach
 `http://localhost/zeiterfassung` aufrufen und den Erst-Admin anlegen
 (Abschnitt 6).
 
-Fuer andere Distributionen dient das Skript als Vorlage – die Schritte sind
+Für andere Distributionen dient das Skript als Vorlage – die Schritte sind
 identisch, nur Paketnamen und Pfade unterscheiden sich (siehe Abschnitt 4).
 
 ## 4. Was dabei passiert (und wie es auf Debian aussieht)
@@ -71,10 +71,10 @@ Zeilen). Debian aktiviert die Module beim Paketinstall selbst.
 ### 4.2 Apache
 
 Konfiguration liegt in `/etc/httpd/conf/extra/zeiterfassung-dev.conf`
-(Debian: `/etc/apache2/sites-available/…`), eingebunden ueber `httpd.conf`:
+(Debian: `/etc/apache2/sites-available/…`), eingebunden über `httpd.conf`:
 
 - `.php` wird per `SetHandler proxy:unix:/run/php-fpm/php-fpm.sock` an php-fpm
-  durchgereicht (Module `proxy` und `proxy_fcgi` muessen aktiv sein)
+  durchgereicht (Module `proxy` und `proxy_fcgi` müssen aktiv sein)
 - `Alias /zeiterfassung` zeigt auf `public/` – nicht auf die Projektwurzel
 - `Alias /phpmyadmin` zeigt auf die phpMyAdmin-Installation
 
@@ -88,10 +88,10 @@ Angelegt werden zwei Datenbanken und der Benutzer aus dem Master-Prompt:
 | Offline-Datenbank | `zeiterfassung_offline` |
 | Benutzer / Passwort | `zeiterfassung` / `zeiterfassung` |
 
-Anschliessend werden `sql/01_initial_schema.sql` und
+Anschließend werden `sql/01_initial_schema.sql` und
 `sql/offline_db_schema.sql` importiert (nur wenn die DB noch leer ist).
 
-Der Benutzer wird fuer `localhost` **und** `127.0.0.1` angelegt: MariaDB
+Der Benutzer wird für `localhost` **und** `127.0.0.1` angelegt: MariaDB
 unterscheidet die beiden: `localhost` bedeutet Unix-Socket, `127.0.0.1`
 bedeutet TCP. Die App verbindet per TCP, phpMyAdmin per Socket.
 
@@ -102,14 +102,14 @@ bedeutet TCP. Die App verbindet per TCP, phpMyAdmin per Socket.
 - `base_url` = `/zeiterfassung` – passend zum Apache-Alias
 - `debug` = `true` – lokal sollen Fehler sichtbar sein
 - DB-Zugangsdaten wie oben
-- `terminal.rfid_ws.enabled` = `false` – lokal laeuft kein RFID-Bridge-Dienst,
+- `terminal.rfid_ws.enabled` = `false` – lokal läuft kein RFID-Bridge-Dienst,
   sonst wartet die Terminal-UI dauerhaft auf einen toten WebSocket
 
 Vorlage: `config/config.php.example`.
 
 ### 4.5 Dateirechte
 
-Der Code gehoert dem angemeldeten Benutzer – das muss so bleiben, sonst wird
+Der Code gehört dem angemeldeten Benutzer – das muss so bleiben, sonst wird
 das Arbeiten mit Git muehsam. Der Webserver bekommt deshalb **nur** per ACL
 Schreibrechte auf die Verzeichnisse, in die er wirklich schreibt:
 
@@ -118,27 +118,27 @@ sudo setfacl -R    -m u:http:rwX -m u:$USER:rwX public/uploads public/img
 sudo setfacl -R -d -m u:http:rwX -m u:$USER:rwX public/uploads public/img
 ```
 
-Die zweite Zeile setzt die Default-ACL, damit auch spaeter erzeugte Dateien
+Die zweite Zeile setzt die Default-ACL, damit auch später erzeugte Dateien
 passende Rechte bekommen.
 
-**Beide Benutzer eintragen, nicht nur `http`.** Sonst gehoeren die vom
-Webserver erzeugten Dateien dem Benutzer `http`, und der eigene Benutzer faellt
-auf `other` zurueck – Lesen ja, Ueberschreiben nein. Das faellt erst auf, wenn
+**Beide Benutzer eintragen, nicht nur `http`.** Sonst gehören die vom
+Webserver erzeugten Dateien dem Benutzer `http`, und der eigene Benutzer fällt
+auf `other` zurück – Lesen ja, Überschreiben nein. Das fällt erst auf, wenn
 man dieselbe Datei einmal ausserhalb des Browsers erzeugen will:
 
 ```
 file_put_contents(.../maschine_5_barcode.png): Failed to open stream: Permission denied
 ```
 
-Die erzeugten Dateien selbst gehoeren nicht ins Repository – sie entstehen im
-Betrieb. `.gitignore` schliesst den Inhalt von `public/uploads/` aus und behaelt
+Die erzeugten Dateien selbst gehören nicht ins Repository – sie entstehen im
+Betrieb. `.gitignore` schließt den Inhalt von `public/uploads/` aus und behaelt
 nur die `.gitkeep`-Dateien, damit die Verzeichnisse erhalten bleiben.
 
 ## 5. Stolpersteine (real aufgetreten)
 
 **HTTP 403, obwohl die Rechte stimmen.**
 `httpd.service` und `php-fpm.service` laufen unter Arch mit `ProtectHome=on`.
-Damit ist `/home` fuer die Dienste unsichtbar, egal wie die Dateirechte
+Damit ist `/home` für die Dienste unsichtbar, egal wie die Dateirechte
 aussehen. Im Log steht dann:
 
 ```
@@ -146,8 +146,8 @@ AH00035: access to /zeiterfassung/ denied (filesystem path '/home/manuel')
 because search permissions are missing on a component of the path
 ```
 
-Loesung: systemd-Drop-in mit `ProtectHome=false` fuer beide Dienste
-(macht das Setup-Skript). Alternative waere, das Projekt nach `/srv/http` zu
+Lösung: systemd-Drop-in mit `ProtectHome=false` für beide Dienste
+(macht das Setup-Skript). Alternative wäre, das Projekt nach `/srv/http` zu
 legen – dann liegt die Git-Arbeitskopie aber ausserhalb des Home-Verzeichnisses.
 
 **Paketkonflikt `mariadb-libs` vs. `mariadb-lts-libs`.**
@@ -164,13 +164,13 @@ erzeugt eines und traegt es in `/etc/webapps/phpmyadmin/config.inc.php` ein.
 Das Schema legt Rollen und Rechte an, aber keinen Benutzer. Beim ersten Aufruf
 von `http://localhost/zeiterfassung` erscheint deshalb die Maske
 **Erstinstallation**, in der der erste Administrator angelegt wird
-(`views/login/initial_admin.php`). Danach laeuft der normale Login.
+(`views/login/initial_admin.php`). Danach läuft der normale Login.
 
 ## 6a. Echten Datenbestand einspielen (Server-Dump)
 
 Zum Entwickeln ist ein realistischer Datenbestand oft wertvoller als eine leere
-Datenbank – etwa fuer Monatsuebersichten, PDFs und Saldenberechnungen. Ein
-phpMyAdmin-Export vom Server laesst sich direkt einspielen:
+Datenbank – etwa für Monatsübersichten, PDFs und Saldenberechnungen. Ein
+phpMyAdmin-Export vom Server lässt sich direkt einspielen:
 
 ```bash
 # 1. Aktuellen lokalen Stand sichern (dauert Sekunden, erspart Aerger)
@@ -187,11 +187,11 @@ mariadb -h 127.0.0.1 -u zeiterfassung -pzeiterfassung zeiterfassung < dump.sql
 ```
 
 Dasselbe geht in phpMyAdmin unter *Importieren*; bei grossen Dumps ist die
-Kommandozeile schneller und laeuft nicht in Upload-Limits.
+Kommandozeile schneller und läuft nicht in Upload-Limits.
 
-**Vorher pruefen, ob das Schema auseinanderlaeuft.** Ein Server-Dump zeigt den
+**Vorher prüfen, ob das Schema auseinanderläuft.** Ein Server-Dump zeigt den
 echten Produktivstand – Abweichungen zu `sql/01_initial_schema.sql` sind ein
-Befund, kein Detail. Vergleich ohne Risiko fuer die Arbeits-Datenbank:
+Befund, kein Detail. Vergleich ohne Risiko für die Arbeits-Datenbank:
 
 ```bash
 # Dump und Repo-Schema in zwei Wegwerf-Datenbanken laden und Spalten vergleichen
@@ -214,24 +214,24 @@ mariadb -h 127.0.0.1 -u zeiterfassung -pzeiterfassung -e \
   "DROP DATABASE zf_check_prod; DROP DATABASE zf_check_repo;"
 ```
 
-**Solche Dumps gehoeren niemals ins Repository.** Sie enthalten
+**Solche Dumps gehören niemals ins Repository.** Sie enthalten
 personenbezogene Daten – Klarnamen, E-Mail-Adressen, Geburtsdaten,
 RFID-Codes und Passwort-Hashes –, und das Repository ist oeffentlich. Der
-Datenbestand bleibt lokal; im Repo steht ausschliesslich das Schema mit den
+Datenbestand bleibt lokal; im Repo steht ausschließlich das Schema mit den
 technischen Startwerten (Rollen, Rechte, Pausenfenster).
 
 ## 6b. Was in dieser Datenbank kuenstlich ist (Stand 2026-08-08)
 
-Damit sich niemand ueber Daten wundert, die nicht aus dem Betrieb stammen:
+Damit sich niemand über Daten wundert, die nicht aus dem Betrieb stammen:
 
 - **Zeitbuchungen:** 10.032, davon **360 kuenstlich ergaenzt** (Kommentar
   `Import Altzeiten 2026 (lokal ergaenzt bis 08.08.2026)`), um den Bestand bis
-  zum 07.08.2026 zu fuellen. Mit einem `DELETE` ueber diesen Kommentar wieder
+  zum 07.08.2026 zu fuellen. Mit einem `DELETE` über diesen Kommentar wieder
   entfernbar.
 - **Auftraege:** 3, davon 2 Testauftraege (`A-2026-0815`, `A-2026-0999`) mit
   Arbeitsschritten – reine Anschauungsdaten.
 - **Arbeitsschritt-Katalog:** 8 Beispieleintraege (saegen, drehen, fraesen,
-  bohren, schleifen, entgraten, montage, pruefen). Als Startbestand brauchbar.
+  bohren, schleifen, entgraten, montage, prüfen). Als Startbestand brauchbar.
 - **Terminals:** keine; keine offenen Kopplungen (Testdaten entfernt).
 - Der eigentliche Datenbestand stammt aus dem Serverdump vom 2026-08-08 und
   enthaelt echte Personendaten – deshalb liegt er **nicht** im Repository.
@@ -254,19 +254,19 @@ mariadb      -h 127.0.0.1 -u zeiterfassung -p zeiterfassung < dump.sql
 
 Dasselbe geht komfortabel in phpMyAdmin unter *Exportieren* / *Importieren*.
 
-Nach Aenderungen an `config/config.local.php` oder an PHP-Einstellungen:
+Nach Änderungen an `config/config.local.php` oder an PHP-Einstellungen:
 `sudo systemctl restart php-fpm` (OPcache).
 
 ## 8. Bewusste Kompromisse dieser Umgebung
 
-Diese Punkte sind **Absicht** und gehoeren so nicht auf einen Produktivserver:
+Diese Punkte sind **Absicht** und gehören so nicht auf einen Produktivserver:
 
 - Der DB-Benutzer hat globale Rechte (`ON *.*`), damit phpMyAdmin frei
   importieren, exportieren und anlegen kann. Produktiv: Rechte nur auf
   `zeiterfassung` und `zeiterfassung_offline`.
 - Passwort = Benutzername (`zeiterfassung`), so wie im Master-Prompt als
   Standard hinterlegt.
-- `ProtectHome=false` fuer Apache und php-fpm.
+- `ProtectHome=false` für Apache und php-fpm.
 - `debug = true` in der lokalen Konfiguration.
 - Kein HTTPS.
 
@@ -274,6 +274,6 @@ Diese Punkte sind **Absicht** und gehoeren so nicht auf einen Produktivserver:
 
 - [`docs/installationsanleitung.md`](installationsanleitung.md) – Produktivsetup
 - [`docs/arbeitsregeln.md`](arbeitsregeln.md) – Projektregeln (der Master-Prompt
-  v13 liegt abgeloest in `docs/archiv/`)
-- [`docs/wartungscheckliste.md`](wartungscheckliste.md) – was vor/nach Aenderungen zu pruefen ist
+  v13 liegt abgelöst in `docs/archiv/`)
+- [`docs/wartungscheckliste.md`](wartungscheckliste.md) – was vor/nach Änderungen zu prüfen ist
 - [`docs/rfid_reader_setup.md`](rfid_reader_setup.md) – RFID-Leser am Terminal

@@ -4,18 +4,18 @@ declare(strict_types=1);
 /**
  * MaschineQrCodeService
  *
- * Erzeugt Strichcodes (Code 128) fuer Maschinen und kann sie direkt ausgeben.
+ * Erzeugt Strichcodes (Code 128) für Maschinen und kann sie direkt ausgeben.
  *
  * **Der Name ist Historie.** Frueher waren die Maschinen-Codes QR-Codes; seit
  * der Umstellung auf Code 128 (P-2026-08-08-24) ist alles im Projekt derselbe
  * Codetyp, weil in der Halle 1D-Handscanner im Einsatz sind – Begruendung im
  * Kopf von `services/BarcodeService.php`. Der QR-Zweig wurde in
- * P-2026-08-10-05 entfernt: Er lief nur noch als Rueckfall und lieferte dann
+ * P-2026-08-10-05 entfernt: Er lief nur noch als Rückfall und lieferte dann
  * ein Bild, das an diesen Scannern gar kein Code ist.
  *
- * Umbenannt wird die Klasse bewusst spaeter – der Name steht auch in
+ * Umbenannt wird die Klasse bewusst später – der Name steht auch in
  * Konfigurationsschluesseln (`maschinen_qr_url`, `maschinen_qr_rel_pfad`), und
- * die gehoeren in einen eigenen Patch mit Migration.
+ * die gehören in einen eigenen Patch mit Migration.
  */
 class MaschineQrCodeService
 {
@@ -168,8 +168,8 @@ class MaschineQrCodeService
      * Ermittelt den Web-Basispfad der laufenden Installation.
      *
      * Hintergrund: Die Bilder liegen immer unter `public/<maschinen_qr_rel_pfad>`.
-     * Damit ist die Browser-URL vollstaendig bestimmt, sobald bekannt ist, unter
-     * welchem Pfad `public/` im Web haengt. Genau das wird ermittelt, damit
+     * Damit ist die Browser-URL vollständig bestimmt, sobald bekannt ist, unter
+     * welchem Pfad `public/` im Web hängt. Genau das wird ermittelt, damit
      * niemand denselben Pfad ein zweites Mal von Hand pflegen muss.
      *
      * Die eigentliche Ableitung steht in `Helper::ermittleWebBasis()`, weil sie
@@ -236,7 +236,7 @@ class MaschineQrCodeService
      * aus `ermittleMaschinenQrUrl()` - entweder ausdruecklich konfiguriert oder
      * automatisch aus der Installation abgeleitet.
      *
-     * Rueckgabe: leerer String, wenn kein Bild hinterlegt ist.
+     * Rückgabe: leerer String, wenn kein Bild hinterlegt ist.
      */
     public function baueBildUrl(string $gespeicherterPfad): string
     {
@@ -245,7 +245,7 @@ class MaschineQrCodeService
             return '';
         }
 
-        // Bereits eine vollstaendige URL (z. B. Bilder auf einem anderen Host).
+        // Bereits eine vollständige URL (z. B. Bilder auf einem anderen Host).
         if (preg_match('~^https?://~i', $gespeicherterPfad) === 1) {
             return $gespeicherterPfad;
         }

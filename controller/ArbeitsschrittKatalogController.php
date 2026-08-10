@@ -4,21 +4,21 @@ declare(strict_types=1);
 /**
  * ArbeitsschrittKatalogController
  *
- * Verwaltung der zentralen, auftragsunabhaengigen Standard-Arbeitsschritte
+ * Verwaltung der zentralen, auftragsunabhängigen Standard-Arbeitsschritte
  * (siehe `docs/spezifikation_auftrag_barcode_laufkarte.md`, Abschnitt 4a).
  *
  * Gedanke dahinter: `fraesen` ist bei jedem Auftrag dasselbe `fraesen`. Die
  * Arbeitsvorbereitung pflegt den Schritt einmal, druckt seinen Strichcode so oft
- * aus wie noetig und haengt ihn an die Maschinen. Gescannt wird dann
+ * aus wie noetig und hängt ihn an die Maschinen. Gescannt wird dann
  * Auftrag (von der Laufkarte) + Arbeitsschritt (von der Maschine).
  *
  * Der Katalog ist eine **Vorlage**, keine Buchungsquelle: Beim Scannen entsteht
- * wie bisher ein Eintrag in `auftrag_arbeitsschritt`; gezaehlt wird ueber
+ * wie bisher ein Eintrag in `auftrag_arbeitsschritt`; gezaehlt wird über
  * `auftragszeit`. Ein nicht katalogisierter Code wird weiterhin angenommen.
  */
 class ArbeitsschrittKatalogController
 {
-    /** Bereichsname fuer `Csrf` – siehe `core/Csrf.php`. */
+    /** Bereichsname für `Csrf` – siehe `core/Csrf.php`. */
     private const CSRF_BEREICH = 'arbeitsschritt_katalog';
 
     private AuthService $authService;
@@ -169,7 +169,7 @@ class ArbeitsschrittKatalogController
     }
 
     /**
-     * Formular fuer einen neuen Katalogeintrag.
+     * Formular für einen neuen Katalogeintrag.
      * Route: ?seite=arbeitsschritt_katalog_neu
      */
     public function neu(): void
@@ -193,7 +193,7 @@ class ArbeitsschrittKatalogController
     }
 
     /**
-     * Formular fuer einen vorhandenen Katalogeintrag.
+     * Formular für einen vorhandenen Katalogeintrag.
      * Route: ?seite=arbeitsschritt_katalog_bearbeiten&id=...
      */
     public function bearbeiten(): void
@@ -279,8 +279,8 @@ class ArbeitsschrittKatalogController
             return;
         }
 
-        // Codes sind betriebsweit eindeutig - ein an der Maschine haengender
-        // Code muss ueberall dasselbe bedeuten.
+        // Codes sind betriebsweit eindeutig - ein an der Maschine hängender
+        // Code muss überall dasselbe bedeuten.
         try {
             $vorhanden = $this->db->fetchEine(
                 'SELECT id FROM arbeitsschritt_katalog WHERE code = :code AND id <> :id LIMIT 1',
@@ -341,10 +341,10 @@ class ArbeitsschrittKatalogController
      *
      * Ohne Parameter: alle aktiven Katalogschritte, eine Karte je Schritt.
      * Mit `id` und `anzahl`: derselbe Schritt mehrfach – der Fall
-     * „20-mal fraesen fuer 20 Fraesmaschinen“.
+     * „20-mal fraesen für 20 Fraesmaschinen“.
      *
      * Bewusst ohne Verwaltungsrecht: Einen Code nachdrucken, weil die Karte an
-     * der Maschine unleserlich geworden ist, muss ohne Aenderungsrecht gehen.
+     * der Maschine unleserlich geworden ist, muss ohne Änderungsrecht gehen.
      */
     public function blatt(): void
     {
@@ -517,13 +517,13 @@ class ArbeitsschrittKatalogController
     }
 
     /**
-     * Gleiche Pruefung wie im `AuftragController`: Wer Auftraege pflegen darf,
-     * pflegt auch die Vorlagen dafuer. Ein eigenes Recht fuer den Katalog waere
-     * zusaetzliche Verwaltung ohne erkennbaren Nutzen.
+     * Gleiche Prüfung wie im `AuftragController`: Wer Auftraege pflegen darf,
+     * pflegt auch die Vorlagen dafür. Ein eigenes Recht für den Katalog wäre
+     * zusätzliche Verwaltung ohne erkennbaren Nutzen.
      *
-     * Die Legacy-Rollen werden mitgeprueft, weil das im gesamten Projekt so
+     * Die Legacy-Rollen werden mitgeprüft, weil das im gesamten Projekt so
      * gehandhabt wird (15 Controller) – bestehende Installationen sollen ohne
-     * Rechtevergabe weiterarbeiten koennen.
+     * Rechtevergabe weiterarbeiten können.
      */
     private function darfVerwalten(): bool
     {

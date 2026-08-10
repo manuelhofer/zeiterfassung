@@ -8,7 +8,7 @@ declare(strict_types=1);
  */
 class KonfigurationController
 {
-    /** Bereichsname fuer `Csrf` – siehe `core/Csrf.php`. */
+    /** Bereichsname für `Csrf` – siehe `core/Csrf.php`. */
     private const CSRF_BEREICH = 'konfiguration_admin';
     private AuthService $authService;
     private Database $datenbank;
@@ -766,7 +766,7 @@ class KonfigurationController
                                 $fehlermeldung = $regelFehler;
                             }
                         } catch (Throwable) {
-                            // defensiv: der bestehende Overlap-Check bleibt als Rueckfall aktiv
+                            // defensiv: der bestehende Overlap-Check bleibt als Rückfall aktiv
                         }
                     }
 
@@ -1018,7 +1018,7 @@ class KonfigurationController
                 </p>
 
                 <?php
-                    // Optionaler UX-Helper (T-071): Vorschlag fuer den Wechsel von Krank LF (Lohnfortzahlung) zu Krank KK nach 6 Wochen.
+                    // Optionaler UX-Helper (T-071): Vorschlag für den Wechsel von Krank LF (Lohnfortzahlung) zu Krank KK nach 6 Wochen.
                     // Faustregel: 6 Wochen = 42 Kalendertage ab Start (inkl. Starttag).
                     // -> LFZ bis = Start + 41 Tage, KK ab = Start + 42 Tage.
                     $v6wVon = trim((string)($form['von_datum'] ?? ''));

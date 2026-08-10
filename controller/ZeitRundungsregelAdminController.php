@@ -12,7 +12,7 @@ declare(strict_types=1);
  */
 class ZeitRundungsregelAdminController
 {
-    /** Bereichsname fuer `Csrf` – siehe `core/Csrf.php`. */
+    /** Bereichsname für `Csrf` – siehe `core/Csrf.php`. */
     private const CSRF_BEREICH = 'zeit_rundungsregel_admin';
     private AuthService $authService;
     private Database $db;

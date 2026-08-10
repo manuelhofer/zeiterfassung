@@ -5,24 +5,24 @@
 
 ## Migrationen (Updates bestehender Installationen)
 Migrationen sind fortlaufend nummeriert und **idempotent**: Mehrfaches
-Ausfuehren ist unschaedlich. Sie werden nur fuer bestehende Installationen
-gebraucht - Neuinstallationen bekommen alles ueber `01_initial_schema.sql`.
+Ausführen ist unschaedlich. Sie werden nur für bestehende Installationen
+gebraucht - Neuinstallationen bekommen alles über `01_initial_schema.sql`.
 
 - `02_migration_recht_auftraege_verwalten.sql`: legt das Recht
   `AUFTRAEGE_VERWALTEN` an und ordnet es den Superuser-Rollen zu
   (Patch P-2026-08-08-08).
 - `03_migration_arbeitsschritt_katalog.sql`: legt die Tabelle
-  `arbeitsschritt_katalog` fuer zentrale Standard-Arbeitsschritte an
+  `arbeitsschritt_katalog` für zentrale Standard-Arbeitsschritte an
   (Patch P-2026-08-08-12).
 - `05_migration_terminal_kopplung.sql`: legt die Tabelle `terminal_kopplung`
-  fuer die Terminal-Anmeldung per Kopplungscode an (Patch P-2026-08-08-30).
+  für die Terminal-Anmeldung per Kopplungscode an (Patch P-2026-08-08-30).
 - `04_migration_auftrag_code_rel_pfad.sql`: benennt den Konfigurationsschluessel
   `auftrag_qr_rel_pfad` in `auftrag_code_rel_pfad` um, nachdem die Codes von QR
   auf Strichcode umgestellt wurden (Patch P-2026-08-08-24). Rein kosmetisch -
   ohne die Migration liest die Anwendung ersatzweise den alten Schluessel.
 - `06_migration_terminal_db_benutzer.sql`: ergaenzt `terminal` um die Spalten zum
-  Datenbankbenutzer der Kopplung (Patch P-2026-08-08-35). **Enthaelt zusaetzlich
-  die GRANT-Anweisungen, die ein Administrator einmal von Hand ausfuehren muss**,
+  Datenbankbenutzer der Kopplung (Patch P-2026-08-08-35). **Enthaelt zusätzlich
+  die GRANT-Anweisungen, die ein Administrator einmal von Hand ausführen muss**,
   damit das Backend Terminal-Benutzer anlegen darf (`CREATE USER`,
   `GRANT OPTION`) - die Anwendung kann sich diese Rechte nicht selbst geben.
 

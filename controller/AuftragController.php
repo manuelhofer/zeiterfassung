@@ -4,7 +4,7 @@ declare(strict_types=1);
 /**
  * AuftragController
  *
- * Backend-Auswertung fuer Auftragszeiten.
+ * Backend-Auswertung für Auftragszeiten.
  *
  * Scope (Micro-Patch):
  * - Listet Auftraege anhand von `auftragszeit` (auftragscode/auftrag_id).
@@ -16,20 +16,20 @@ declare(strict_types=1);
  */
 class AuftragController
 {
-    /** Bereichsname fuer `Csrf` – siehe `core/Csrf.php`. */
+    /** Bereichsname für `Csrf` – siehe `core/Csrf.php`. */
     private const CSRF_BEREICH_AUFTRAGSZEIT = 'auftragszeit_bearbeiten';
         private const CSRF_BEREICH_STAMM = 'auftrag_stamm';
 
     /**
-     * Auswaehlbare Auftragsstatus.
+     * Auswählbare Auftragsstatus.
      *
      * Bewusst eine feste Liste statt eines Freitextfelds: Frei eingetippte
      * Werte lassen sich nicht auswerten und gehen bei jedem Tippfehler
      * auseinander ("offen", "Offen", "offfen"). Der Status in der Auftragsliste
      * wird ohnehin aus den Buchungen berechnet - dieses Feld ist nur die
-     * zusaetzliche Einschaetzung der Arbeitsvorbereitung.
+     * zusätzliche Einschaetzung der Arbeitsvorbereitung.
      *
-     * Altbestand mit abweichenden Werten bleibt erhalten und waehlbar.
+     * Altbestand mit abweichenden Werten bleibt erhalten und wählbar.
      */
     private const STATUS_AUSWAHL = [
         'offen'         => 'offen',
@@ -56,7 +56,7 @@ class AuftragController
         }
 
         // Aktuell: jeder eingeloggte Benutzer darf Auswertungen sehen.
-        // (Rechte/Scopes koennen spaeter ergaenzt werden, ohne bestehende Funktionen zu entfernen.)
+        // (Rechte/Scopes können später ergaenzt werden, ohne bestehende Funktionen zu entfernen.)
         return true;
     }
 
@@ -135,12 +135,12 @@ class AuftragController
             // (`auftrag`) UND aus den Buchungen (`auftragszeit`).
             //
             // Wichtig: Frueher startete diese Abfrage bei `auftragszeit`. Ein im
-            // Backend angelegter Auftrag ohne Buchung war damit unsichtbar. Ueber
+            // Backend angelegter Auftrag ohne Buchung war damit unsichtbar. Über
             // die UNION-Grundmenge erscheint er sofort - mit 0 Buchungen und dem
             // Status "angelegt".
             //
             // Alle Spalten sind aggregiert (MAX/COUNT/SUM), damit die Abfrage auch
-            // unter ONLY_FULL_GROUP_BY laeuft (vgl. B-085 / P-2026-01-25-02).
+            // unter ONLY_FULL_GROUP_BY läuft (vgl. B-085 / P-2026-01-25-02).
             $sql = "
                 SELECT
                     nummern.auftragsnummer AS auftragsnummer,
@@ -410,7 +410,7 @@ class AuftragController
 
         // Stammdaten des Auftrags und seine Arbeitsschritte laden.
         //
-        // Das ist bewusst unabhaengig von den Buchungen: Ein frisch angelegter
+        // Das ist bewusst unabhängig von den Buchungen: Ein frisch angelegter
         // Auftrag hat noch keine Buchung, soll aber trotzdem Strichcode und
         // Arbeitsschritte zeigen.
         $auftragStamm = null;
@@ -913,7 +913,7 @@ class AuftragController
     }
 
     /**
-     * Formular fuer einen neuen Auftrag.
+     * Formular für einen neuen Auftrag.
      * Route: ?seite=auftrag_neu
      */
     public function neu(): void
@@ -938,7 +938,7 @@ class AuftragController
     }
 
     /**
-     * Formular fuer einen vorhandenen Auftrag.
+     * Formular für einen vorhandenen Auftrag.
      * Route: ?seite=auftrag_bearbeiten&id=...
      */
     public function bearbeiten(): void
@@ -975,7 +975,7 @@ class AuftragController
     }
 
     /**
-     * Speichert einen Auftrag (anlegen oder aendern).
+     * Speichert einen Auftrag (anlegen oder ändern).
      * Route: ?seite=auftrag_speichern (POST)
      */
     public function speichern(): void
@@ -1028,7 +1028,7 @@ class AuftragController
         }
 
         // Das Dropdown im Browser ist keine Sicherung - der Wert wird hier
-        // geprueft. Unbekannte Werte sind nur erlaubt, wenn sie schon vorher am
+        // geprüft. Unbekannte Werte sind nur erlaubt, wenn sie schon vorher am
         // Auftrag standen (Altbestand aus der Freitext-Zeit).
         if ($status !== '' && !isset(self::STATUS_AUSWAHL[$status])) {
             $altwert = '';
@@ -1177,7 +1177,7 @@ class AuftragController
                             </option>
                         <?php endforeach; ?>
                         <?php if ($status !== '' && !isset(self::STATUS_AUSWAHL[$status])): ?>
-                            <?php /* Altbestand: frei eingetippte Werte bleiben waehlbar, statt still zu verschwinden. */ ?>
+                            <?php /* Altbestand: frei eingetippte Werte bleiben wählbar, statt still zu verschwinden. */ ?>
                             <option value="<?php echo $esc($status); ?>" selected><?php echo $esc($status); ?> (Altwert)</option>
                         <?php endif; ?>
                     </select>
@@ -1204,7 +1204,7 @@ class AuftragController
      * Route: ?seite=auftrag_laufkarte&code=...
      *
      * Bewusst ohne Verwaltungsrecht: Wer in der Werkstatt eine Laufkarte
-     * nachdrucken muss, soll dafuer kein Recht zum Aendern brauchen.
+     * nachdrucken muss, soll dafür kein Recht zum Aendern brauchen.
      */
     public function laufkarte(): void
     {
@@ -1228,7 +1228,7 @@ class AuftragController
             );
 
             if (is_array($auftrag)) {
-                // Nur aktive Schritte - inaktive gehoeren nicht auf einen Ausdruck.
+                // Nur aktive Schritte - inaktive gehören nicht auf einen Ausdruck.
                 $schritte = $this->db->fetchAlle(
                     'SELECT * FROM auftrag_arbeitsschritt
                       WHERE auftrag_id = :aid AND aktiv = 1
@@ -1279,7 +1279,7 @@ class AuftragController
     }
 
     /**
-     * Formular fuer einen vorhandenen Arbeitsschritt.
+     * Formular für einen vorhandenen Arbeitsschritt.
      * Route: ?seite=auftrag_schritt_bearbeiten&id=...
      */
     public function schrittBearbeiten(): void
@@ -1326,7 +1326,7 @@ class AuftragController
     }
 
     /**
-     * Speichert einen Arbeitsschritt (anlegen oder aendern).
+     * Speichert einen Arbeitsschritt (anlegen oder ändern).
      * Route: ?seite=auftrag_schritt_speichern (POST)
      */
     public function schrittSpeichern(): void
@@ -1358,7 +1358,7 @@ class AuftragController
         $bezeichnung = trim((string)($_POST['bezeichnung'] ?? ''));
         $aktiv       = isset($_POST['aktiv']) ? 1 : 0;
 
-        // Auftragsnummer fuer die Rueckleitung ermitteln.
+        // Auftragsnummer für die Rueckleitung ermitteln.
         $auftragsnummer = '';
         try {
             $auftrag = $this->db->fetchEine('SELECT auftragsnummer FROM auftrag WHERE id = :id LIMIT 1', ['id' => $auftragId]);
@@ -1461,7 +1461,7 @@ class AuftragController
     }
 
     /**
-     * Rendert das Formular fuer einen Arbeitsschritt.
+     * Rendert das Formular für einen Arbeitsschritt.
      *
      * @param array<string,mixed> $schritt
      */
@@ -1527,7 +1527,7 @@ class AuftragController
     }
 
     /**
-     * Uebernimmt ausgewaehlte Katalogschritte in einen Auftrag.
+     * Übernimmt ausgewählte Katalogschritte in einen Auftrag.
      * Route: ?seite=auftrag_schritte_aus_katalog (POST)
      */
     public function schritteAusKatalog(): void
@@ -1607,7 +1607,7 @@ class AuftragController
                     continue;
                 }
 
-                // Vorhandene Codes werden uebersprungen, nicht ueberschrieben -
+                // Vorhandene Codes werden übersprungen, nicht überschrieben -
                 // eine bereits gepflegte Bezeichnung am Auftrag ist die
                 // speziellere und soll gewinnen.
                 $betroffen = $this->db->ausfuehren(
@@ -1621,7 +1621,7 @@ class AuftragController
                     ]
                 );
 
-                // MySQL liefert 1 fuer INSERT, 0 wenn der Eintrag schon existierte.
+                // MySQL liefert 1 für INSERT, 0 wenn der Eintrag schon existierte.
                 if ($betroffen > 0) {
                     $uebernommen++;
                 } else {
@@ -1659,7 +1659,7 @@ class AuftragController
      *
      * - Eine Buchung kann dadurch niemals scheitern – das ist die oberste
      *   Regel in der Halle.
-     * - Es wirkt auch fuer Buchungen, die ueber die Offline-Queue nachlaufen.
+     * - Es wirkt auch für Buchungen, die über die Offline-Queue nachlaufen.
      * - Eine am Auftrag gepflegte Bezeichnung bleibt unberuehrt; sie ist die
      *   speziellere und gewinnt.
      *
@@ -1763,13 +1763,13 @@ class AuftragController
     /**
      * Darf der angemeldete Benutzer Auftragsstammdaten pflegen?
      *
-     * Bewusst nur fuer Anlegen/Bearbeiten. Ansehen der Auftraege und das
+     * Bewusst nur für Anlegen/Bearbeiten. Ansehen der Auftraege und das
      * Laufkarten-PDF bleiben ohne dieses Recht erreichbar - wer in der Werkstatt
-     * eine Laufkarte nachdruckt, soll dafuer kein Verwaltungsrecht brauchen.
+     * eine Laufkarte nachdruckt, soll dafür kein Verwaltungsrecht brauchen.
      *
      * Die Legacy-Rollen werden wie an den anderen Stellen dieses Controllers
-     * mitgeprueft, damit bestehende Installationen ohne Rechtevergabe
-     * weiterarbeiten koennen.
+     * mitgeprüft, damit bestehende Installationen ohne Rechtevergabe
+     * weiterarbeiten können.
      */
     private function darfAuftraegeVerwalten(): bool
     {

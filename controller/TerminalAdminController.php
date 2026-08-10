@@ -8,7 +8,7 @@ declare(strict_types=1);
  */
 class TerminalAdminController
 {
-    /** Bereichsname fuer `Csrf` – siehe `core/Csrf.php`. */
+    /** Bereichsname für `Csrf` – siehe `core/Csrf.php`. */
     private const CSRF_BEREICH = 'terminal_admin';
     private const FLASH_OK_KEY = 'terminal_admin_flash_nachricht';
     private const FLASH_ERR_KEY = 'terminal_admin_flash_error';
@@ -233,7 +233,7 @@ class TerminalAdminController
                                             <br><small style="color:#666;">seit <?php echo htmlspecialchars($gekoppeltAm, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></small>
                                         <?php endif; ?>
                                         <?php /* Rueckfrage bewusst ohne Geraetenamen: Der steht in derselben Zeile,
-                                                 und ein Name im JavaScript-Text waere nur eine weitere Stelle zum
+                                                 und ein Name im JavaScript-Text wäre nur eine weitere Stelle zum
                                                  Maskieren. */ ?>
                                         <form method="post" action="?seite=terminal_admin_entkoppeln" style="display:block; margin-top:0.35rem;"
                                               onsubmit="return confirm('Dieses Terminal entkoppeln?\n\nDer Datenbankbenutzer wird geloescht. Das Geraet kann danach nicht mehr buchen, bis es mit einem neuen Kopplungscode erneut gekoppelt wird.');">
@@ -356,10 +356,10 @@ class TerminalAdminController
      * Formular zum Anlegen/Bearbeiten eines Terminals.
      */
     /**
-     * Erzeugt einen Kopplungscode fuer ein Terminal.
+     * Erzeugt einen Kopplungscode für ein Terminal.
      * Route: ?seite=terminal_admin_kopplung (POST)
      *
-     * Der Code wird ueber die Sitzung genau einmal an die Liste
+     * Der Code wird über die Sitzung genau einmal an die Liste
      * weitergereicht und dort sofort verbraucht - er landet weder in der
      * Adresszeile noch dauerhaft in der Sitzung.
      */
@@ -421,17 +421,17 @@ class TerminalAdminController
      * Route: ?seite=terminal_admin_entkoppeln (POST)
      *
      * Warum es das geben muss: Ohne diese Aktion bleibt der Datenbankbenutzer
-     * eines ausgemusterten Geraets gueltig - fuer immer. Wer das Geraet aus der
+     * eines ausgemusterten Geraets gültig - für immer. Wer das Geraet aus der
      * Halle mitnimmt, liest die Zugangsdaten aus `config.local.php` und kommt
-     * weiter an alles, was dieses Terminal durfte. `aktiv = 0` genuegt dafuer
+     * weiter an alles, was dieses Terminal durfte. `aktiv = 0` genuegt dafür
      * nicht: Das verhindert nur eine **neue** Kopplung, nicht den bestehenden
      * Zugang.
      *
      * Reihenfolge mit Absicht: erst der Datenbankbenutzer, dann der Vermerk am
-     * Terminal. Scheitert das Loeschen, bleibt der Vermerk stehen und der
-     * Zugang laesst sich weiterhin zuordnen und spaeter erneut entfernen.
-     * Andersherum bliebe ein gueltiger Benutzer uebrig, von dem niemand mehr
-     * weiss, zu welchem Geraet er gehoert.
+     * Terminal. Scheitert das Löschen, bleibt der Vermerk stehen und der
+     * Zugang lässt sich weiterhin zuordnen und später erneut entfernen.
+     * Andersherum bliebe ein gültiger Benutzer übrig, von dem niemand mehr
+     * weiß, zu welchem Geraet er gehört.
      */
     public function entkoppeln(): void
     {
@@ -474,13 +474,13 @@ class TerminalAdminController
         $benutzer = isset($terminal['db_benutzer']) ? (string)$terminal['db_benutzer'] : '';
         $host     = isset($terminal['db_benutzer_host']) ? (string)$terminal['db_benutzer_host'] : '';
 
-        // Offene Codes zuerst entwerten - unabhaengig davon, ob ueberhaupt ein
-        // Zugang existiert. Ein noch gueltiger Code waere sonst genau der Weg,
-        // sich das eben Abgemeldete zurueckzuholen.
+        // Offene Codes zuerst entwerten - unabhängig davon, ob überhaupt ein
+        // Zugang existiert. Ein noch gültiger Code wäre sonst genau der Weg,
+        // sich das eben Abgemeldete zurückzuholen.
         try {
             TerminalKopplungService::getInstanz()->entwerteOffeneCodes($id);
         } catch (\Throwable $e) {
-            // Nicht abbrechen: Das Loeschen des Zugangs ist das Wichtigere.
+            // Nicht abbrechen: Das Löschen des Zugangs ist das Wichtigere.
             Logger::warn('Entkoppeln: offene Kopplungscodes konnten nicht entwertet werden', [
                 'exception' => $e->getMessage(),
             ], null, $id, 'terminal_kopplung');
@@ -515,7 +515,7 @@ class TerminalAdminController
             );
         } catch (\Throwable $e) {
             // Der Zugang ist weg - das Geraet kommt nicht mehr an die Daten.
-            // Nur der Vermerk haengt nach; das ist die harmlose Haelfte.
+            // Nur der Vermerk hängt nach; das ist die harmlose Haelfte.
             Logger::error('Entkoppeln: Kopplungsvermerk konnte nicht geleert werden', [
                 'benutzer'  => $benutzer,
                 'exception' => $e->getMessage(),

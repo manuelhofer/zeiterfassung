@@ -9,13 +9,13 @@ declare(strict_types=1);
  *
  * Ablauf am Geraet: Auf dem Touchscreen werden Server-Adresse und der im
  * Backend erzeugte Kopplungscode eingegeben. Das Terminal ruft damit diesen
- * Endpunkt auf und bekommt alles zurueck, was es braucht - Terminal-ID,
+ * Endpunkt auf und bekommt alles zurück, was es braucht - Terminal-ID,
  * eigene Zugangsdaten zur Datenbank und seine Einstellungen. Aus der Antwort
  * schreibt es seine `config.local.php`.
  *
  * **Warum ohne Anmeldung:** Ein frisches Geraet hat keinen Benutzer, mit dem es
- * sich anmelden koennte - das ist ja gerade der Zweck der Kopplung. Der
- * Kopplungscode **ist** der Nachweis: einmalig, 30 Minuten gueltig, nur als
+ * sich anmelden könnte - das ist ja gerade der Zweck der Kopplung. Der
+ * Kopplungscode **ist** der Nachweis: einmalig, 30 Minuten gültig, nur als
  * Hash gespeichert (siehe `TerminalKopplungService`).
  *
  * Siehe `docs/spezifikation_terminal_installation.md`, Abschnitt 2a.
@@ -65,9 +65,9 @@ class TerminalKopplungController
             return;
         }
 
-        // Vorpruefung mit klarer Meldung: Ohne `CREATE USER` kann das Backend
+        // Vorprüfung mit klarer Meldung: Ohne `CREATE USER` kann das Backend
         // keinen Datenbankbenutzer anlegen. Das ist ein Einrichtungsfehler des
-        // Servers und darf nicht als „Code ungueltig“ beim Monteur ankommen -
+        // Servers und darf nicht als „Code ungültig“ beim Monteur ankommen -
         // sonst sucht er am falschen Ende.
         $benutzerDienst = TerminalDbBenutzerService::getInstanz();
         if (!$benutzerDienst->istVerfuegbar()) {
@@ -101,7 +101,7 @@ class TerminalKopplungController
 
         $terminalId = (int)($terminal['id'] ?? 0);
 
-        // Ein stillgelegtes Geraet darf sich nicht zurueckholen.
+        // Ein stillgelegtes Geraet darf sich nicht zurückholen.
         if ((int)($terminal['aktiv'] ?? 0) !== 1) {
             Logger::warn('Kopplung abgelehnt: Terminal ist nicht aktiv', [
                 'terminal_id' => $terminalId,
@@ -130,8 +130,8 @@ class TerminalKopplungController
             return;
         }
 
-        // Merken, welcher Benutzer zu diesem Geraet gehoert - sonst laesst sich
-        // eine spaetere Kopplung nicht sauber ersetzen und ein ausgemustertes
+        // Merken, welcher Benutzer zu diesem Geraet gehört - sonst lässt sich
+        // eine spätere Kopplung nicht sauber ersetzen und ein ausgemustertes
         // Geraet nicht gezielt sperren.
         try {
             $this->datenbank->ausfuehren(
@@ -150,8 +150,8 @@ class TerminalKopplungController
             );
         } catch (\Throwable $e) {
             // Kein halber Zustand: Ein Datenbankbenutzer, von dem das Backend
-            // nichts weiss, laesst sich spaeter nicht mehr zuordnen und bliebe
-            // fuer immer gueltig.
+            // nichts weiß, lässt sich später nicht mehr zuordnen und bliebe
+            // für immer gültig.
             $benutzerDienst->entferne($zugang['benutzer'], $zugang['host']);
 
             Logger::error('Kopplung konnte nicht gespeichert werden', [
@@ -188,9 +188,9 @@ class TerminalKopplungController
             ],
         ];
 
-        // Bei der Kopplung gehen Zugangsdaten ueber das Netz. Ohne HTTPS liest
+        // Bei der Kopplung gehen Zugangsdaten über das Netz. Ohne HTTPS liest
         // sie jeder mit, der im Hallennetz mithoert - das Terminal soll das
-        // anzeigen koennen, statt dass es niemandem auffaellt.
+        // anzeigen können, statt dass es niemandem auffällt.
         if (!$this->istVerschluesselt()) {
             $antwort['warnung'] = 'Die Kopplung lief unverschluesselt ueber HTTP. '
                                 . 'Die Zugangsdaten waren im Netz mitlesbar - bitte HTTPS einrichten '
@@ -212,7 +212,7 @@ class TerminalKopplungController
      * Adresse, unter der das Terminal die Datenbank erreicht.
      *
      * Der Haken: In der Konfiguration des Backends steht meist `localhost` -
-     * fuer ein Terminal im Hallennetz ist das wertlos, es wuerde sich selbst
+     * für ein Terminal im Hallennetz ist das wertlos, es wuerde sich selbst
      * ansprechen. Deshalb:
      *
      * 1. `config: terminal_db_host_extern`, falls gepflegt (letztes Wort),
@@ -281,7 +281,7 @@ class TerminalKopplungController
      * Zaehlt die Fehlversuche desselben Absenders im aktuellen Zeitfenster.
      *
      * Der Code selbst ist mit 8 Zeichen aus 31 nicht zu erraten; die Bremse
-     * sorgt vor allem dafuer, dass ein Dauerbeschuss auffaellt und den Server
+     * sorgt vor allem dafür, dass ein Dauerbeschuss auffällt und den Server
      * nicht beschaeftigt.
      */
     private function zuVieleFehlversuche(): bool
@@ -324,7 +324,7 @@ class TerminalKopplungController
 
     /**
      * IP-Adresse des Anfragenden. Bewusst ohne Auswertung von
-     * `X-Forwarded-For`: Diesen Kopf darf jeder frei setzen, er waere als
+     * `X-Forwarded-For`: Diesen Kopf darf jeder frei setzen, er wäre als
      * Grundlage einer Sperre wertlos.
      */
     private function absender(): string

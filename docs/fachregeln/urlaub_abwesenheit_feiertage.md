@@ -1,6 +1,6 @@
 # Fachregeln: Urlaub, Betriebsferien, Feiertage
 
-*Gilt fuer:* `services/UrlaubService.php`, `services/FeiertagService.php`,
+*Gilt für:* `services/UrlaubService.php`, `services/FeiertagService.php`,
 Urlaubsmasken in Backend und Terminal.
 *Herkunft:* Master-Prompt v13, Abschnitte 12, 13, 14 sowie v4-Abschnitt B.
 
@@ -8,11 +8,11 @@ Urlaubsmasken in Backend und Terminal.
 
 ## 1. Urlaub beantragen (Terminal)
 
-Der Knopf „Urlaub beantragen" zeigt die verfuegbaren Urlaubstage, berechnet aus
+Der Knopf „Urlaub beantragen" zeigt die verfügbaren Urlaubstage, berechnet aus
 Jahresanspruch, bereits genehmigten Antraegen, Betriebsferien und Feiertagen –
-inklusive **Uebertrag aus dem Vorjahr** und Verbrauchsreihenfolge (siehe 3).
+inklusive **Übertrag aus dem Vorjahr** und Verbrauchsreihenfolge (siehe 3).
 
-Touch-Maske: Von- und Bis-Datum ueber Pfeiltasten fuer Tag/Monat/Jahr.
+Touch-Maske: Von- und Bis-Datum über Pfeiltasten für Tag/Monat/Jahr.
 
 Validierungen: Datum existiert, Von ≤ Bis, Zeitraum im aktuellen oder
 Folgejahr. Gespeichert wird ein Datensatz in `urlaubsantrag` mit Status
@@ -22,36 +22,36 @@ Ein Antrag, der **0,00 verrechenbare Urlaubstage** ergibt (z. B. komplett
 Wochenende, Feiertag oder Betriebsferien), wird abgelehnt – sonst entstehen
 verwirrende Eintraege in „Meine Urlaubsantraege" (B-075).
 
-## 2. Uebersicht fuer Mitarbeiter
+## 2. Übersicht für Mitarbeiter
 
-Der Knopf „Uebersicht" zeigt:
+Der Knopf „Übersicht" zeigt:
 
 - verbleibende Urlaubstage,
 - alle Urlaubsantraege (offen / genehmigt / abgelehnt),
 - Betriebsferien,
-- aktuellen Stand Ueber-/Minusstunden,
+- aktuellen Stand Über-/Minusstunden,
 - Rest-Sollstunden des Monats.
 
 Grundlage: Rohdaten + Rundungsregeln, `tageswerte_mitarbeiter`,
 `monatswerte_mitarbeiter`, Feiertags- und Betriebsferienlogik.
 
-## 3. Urlaubssaldo, Uebertrag und Verbrauchsreihenfolge
+## 3. Urlaubssaldo, Übertrag und Verbrauchsreihenfolge
 
-**Uebertrag Vorjahr:** Resturlaub aus dem Vorjahr (YYYY-1) wird automatisch als
-„Uebertrag" ins aktuelle Jahr uebernommen, sofern noch Rest vorhanden ist. Das
+**Übertrag Vorjahr:** Resturlaub aus dem Vorjahr (YYYY-1) wird automatisch als
+„Übertrag" ins aktuelle Jahr übernommen, sofern noch Rest vorhanden ist. Das
 ist keine separate manuelle Pflege, sondern ergibt sich aus der
 Saldo-Berechnung.
 
 **Verbrauchsreihenfolge (Pflicht):**
 
-1. zuerst der **Uebertrag** (aeltester Rest zuerst),
+1. zuerst der **Übertrag** (aeltester Rest zuerst),
 2. danach das **Kontingent des aktuellen Jahres**.
 
-**Anzeige** (Terminal und Uebersicht): aufgeschluesselt nach
+**Anzeige** (Terminal und Übersicht): aufgeschluesselt nach
 `Uebertrag (YYYY-1)` und `Jahr YYYY`.
 
 **Negativer Rest wird nicht gekappt.** Minusurlaub muss sich im Folgejahr
-ausgleichen koennen (B-082).
+ausgleichen können (B-082).
 
 **Anteiliger Anspruch:** Bei Eintritt oder Anlage im laufenden Jahr wird
 anteilig gerechnet, nicht der volle Jahresanspruch (B-082).
@@ -59,7 +59,7 @@ anteilig gerechnet, nicht der volle Jahresanspruch (B-082).
 **Fehlendes Kontingent:** Ist `mitarbeiter.urlaub_monatsanspruch` = 0,00, greift
 ein Standardanspruch (`config:urlaub_standard_monatsanspruch`, sonst
 `config:urlaub_standard_jahresanspruch`, sonst Fallback 2,50 = 30 Tage/Jahr)
-plus Hinweistext. Ohne diesen Rueckfall werden die Werte durch den
+plus Hinweistext. Ohne diesen Rückfall werden die Werte durch den
 Betriebsferien-Abzug unplausibel negativ.
 
 **Halbe Tage:** Heiligabend (24.12.) und Silvester (31.12.) zaehlen als
@@ -74,7 +74,7 @@ Recht sichtbar) zeigt alle Antraege, die dieser Benutzer genehmigen darf:
 - plus **alle**, wenn der Benutzer die Rolle `Chef` hat (globale Sicht).
 
 Darstellung: offen / genehmigt / abgelehnt, Filter, Hinweise zu
-Ueberschneidungen.
+Überschneidungen.
 
 Aktionen:
 
@@ -83,9 +83,9 @@ Aktionen:
 - **Ablehnen** → Status `abgelehnt`, Kommentar optional, dieselben
   Entscheidungsfelder setzen.
 
-**Eigene Antraege:** Standardmaessig darf niemand seine eigenen Antraege
+**Eigene Antraege:** Standardmäßig darf niemand seine eigenen Antraege
 genehmigen. Ausnahme: Benutzer mit `URLAUB_GENEHMIGEN_SELF` (typisch `Chef`,
-`Personalbuero`). Dann duerfen Genehmigungslisten auch eigene offene Antraege
+`Personalbuero`). Dann dürfen Genehmigungslisten auch eigene offene Antraege
 enthalten.
 
 **Sichtbarer Hinweis:** Gibt es offene Antraege, wird der Knopf
@@ -94,7 +94,7 @@ enthalten.
 ## 5. Betriebsferien
 
 Tabelle `betriebsferien`: `von_datum`, `bis_datum`, `beschreibung`, optional
-`abteilung_id`, Timestamps. Im Backend anlegen, bearbeiten, loeschen; Anzeige in
+`abteilung_id`, Timestamps. Im Backend anlegen, bearbeiten, löschen; Anzeige in
 Urlaubsansicht und Monatswerten.
 
 **Betriebsferien gelten als Urlaub (Zwangsurlaub):**
@@ -106,7 +106,7 @@ Urlaubsansicht und Monatswerten.
 - Feiertage und Wochenenden innerhalb eines Betriebsferien-Zeitraums bleiben
   Feiertag bzw. Wochenende und zaehlen **nicht** als Urlaub.
 - Betriebsferien reduzieren das **Soll nicht** (wie ein normaler Arbeitstag);
-  die Stunden laufen ueber „Urlaub".
+  die Stunden laufen über „Urlaub".
 - Im Urlaubssaldo werden sie als **genommener Urlaub** beruecksichtigt (nur
   Arbeitstage). Urlaubsantraege zaehlen diese Tage **nicht doppelt**.
 
@@ -115,7 +115,7 @@ Urlaubsansicht und Monatswerten.
 - Wenn an dem Tag tatsaechlich gearbeitet wurde (B-024, B-025),
 - wenn bereits ein anderes Kennzeichen gesetzt ist (z. B. krank),
 - wenn ein aktiver Krankzeitraum (LFZ/KK) den Tag umfasst – **Krank hat Vorrang
-  vor Betriebsferien** (B-076, B-077): kein BF-Kuerzel, Urlaub 0, Krank 8,00.
+  vor Betriebsferien** (B-076, B-077): kein BF-Kürzel, Urlaub 0, Krank 8,00.
 
 Der Abzug im Saldo nutzt dieselbe zentrale BF-Zaehllogik wie die Anzeige, sonst
 driften beide auseinander (B-080, P-2026-01-23-02).
@@ -130,14 +130,14 @@ Backend erlaubt manuelle Korrektur, Ergaenzung und Anpassung des
 Betriebsfrei-Flags.
 
 **Idempotentes Nachseeden:** Ein Jahr gilt **nicht** schon dann als fertig, wenn
-irgendein Feiertag dafuer existiert. Fehlende bundeseinheitliche Feiertage
+irgendein Feiertag dafür existiert. Fehlende bundeseinheitliche Feiertage
 werden nachtraeglich ergaenzt – sonst fehlt z. B. der 01.01. unbemerkt (B-071).
 
 **Im Monatsreport:** Kalender-Feiertage werden in der Tagesliste als Feiertag
-gefuehrt und bei **keiner** Arbeitszeit mit Tagesstunden befuellt (Fallback
+geführt und bei **keiner** Arbeitszeit mit Tagesstunden befuellt (Fallback
 8,00 bzw. Tages-Soll) – abgegrenzt gegen Urlaub und Betriebsferien (B-070).
 
 > Warum das Terminal Feiertage schreiben darf: Der `UrlaubService` generiert die
 > Feiertage eines Jahres bei Bedarf nach. Ohne `INSERT`-Recht rechnet ein
-> Terminal im Januar still ohne die Feiertage des neuen Jahres – und das faellt
+> Terminal im Januar still ohne die Feiertage des neuen Jahres – und das fällt
 > niemandem auf. Siehe [terminal_und_offline.md](terminal_und_offline.md).

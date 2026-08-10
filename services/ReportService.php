@@ -109,7 +109,7 @@ class ReportService
 
     /**
      * Ermittelt alle Tage (YYYY-MM-DD) in einem Monat, an denen mindestens eine Zeitbuchung
-     * manuell geändert wurde (`zeitbuchung.manuell_geaendert=1`).
+     * manuell geändert wurde (`zeitbuchung.manuell_geändert=1`).
      *
      * @return array<string,bool> Set: ['2026-01-03' => true, ...]
      */
@@ -163,8 +163,8 @@ class ReportService
      * Warum so?
      * - Pause-Override darf auch mit 0,00h gespeichert werden.
      * - `tageswerte_mitarbeiter.pause_korr_minuten` ist bei 0 nicht unterscheidbar (Default/Override).
-     * - `felder_manuell_geaendert` wird auch von anderen Tagesfeldern gesetzt und kann daher
-     *   nicht als alleiniger Indikator fuer Pause-Override dienen.
+     * - `felder_manuell_geändert` wird auch von anderen Tagesfeldern gesetzt und kann daher
+     *   nicht als alleiniger Indikator für Pause-Override dienen.
      *
      * Wir lesen pro Monat die Logeintraege:
      * - "Tageswerte gesetzt: Pause-Override"
@@ -283,7 +283,7 @@ class ReportService
      * Liefert Arbeitsblöcke (Kommen->Gehen) pro Tag für einen Monat, basierend auf `zeitbuchung`.
      * Für offene Blöcke (Kommen ohne Gehen) wird `gehen_*` als null gesetzt.
      *
-     * @return array<string,array<int,array<string,mixed>>> Map: 'Y-m-d' => [ ['kommen_roh'=>..., 'gehen_roh'=>..., 'kommen_korr'=>..., 'gehen_korr'=>..., 'ist_stunden'=>..., 'pause_stunden'=>..., 'zeit_manuell_geaendert'=>0|1], ...]
+     * @return array<string,array<int,array<string,mixed>>> Map: 'Y-m-d' => [ ['kommen_roh'=>..., 'gehen_roh'=>..., 'kommen_korr'=>..., 'gehen_korr'=>..., 'ist_stunden'=>..., 'pause_stunden'=>..., 'zeit_manuell_geändert'=>0|1], ...]
      */
     private function holeArbeitsbloeckeProTagFuerMonat(
         int $mitarbeiterId,
@@ -1181,7 +1181,7 @@ class ReportService
         $wochenarbeitszeit = 0.0;
 
         try {
-            // Gezielt nur diese Spalte: Diese Methode laeuft auch am Terminal,
+            // Gezielt nur diese Spalte: Diese Methode läuft auch am Terminal,
             // und dort ist `SELECT *` auf `mitarbeiter` seit P-2026-08-09-16
             // nicht mehr erlaubt (Passwort-Hashes).
             $wert = $this->mitarbeiterModel->holeWochenarbeitszeit($mitarbeiterId);
@@ -1674,7 +1674,7 @@ class ReportService
             $monatswerte = [
                 'sollstunden'        => (string)($monatswerteRoh['soll_stunden'] ?? '0.00'),
                 'iststunden'         => (string)($monatswerteRoh['ist_stunden'] ?? '0.00'),
-                // `ueberstunden` wird als Differenz interpretiert
+                // `überstunden` wird als Differenz interpretiert
                 'differenzstunden'   => (string)($monatswerteRoh['ueberstunden'] ?? '0.00'),
                 'urlaub_genommen'    => (string)($monatswerteRoh['urlaubstage_genommen'] ?? '0.00'),
                 'urlaub_verbleibend' => (string)($monatswerteRoh['urlaubstage_verbleibend'] ?? '0.00'),
@@ -1703,7 +1703,7 @@ class ReportService
         $manuellZeitbuchungTage = $this->holeManuellGeaenderteZeitbuchungTage($mitarbeiterId, $start);
 
         // Pause-Override Status (Audit-Log), damit "Haken raus" wieder die normalen Pausenregeln nutzt
-        // (auch wenn andere Tagesfelder manuell gesetzt sind) und Override=0,00 weiterhin moeglich ist.
+        // (auch wenn andere Tagesfelder manuell gesetzt sind) und Override=0,00 weiterhin möglich ist.
         $pauseOverrideStatusProTag = $this->holePauseOverrideStatusProTagFuerMonat($mitarbeiterId, $start);
 
         // Fallback: Zeitbuchungen direkt auswerten.
@@ -1908,8 +1908,8 @@ class ReportService
         // Auch wenn `tageswerte_mitarbeiter` nur einzelne Tage enthält.
         $tageswerte = $this->komplettiereMonatsraster($tageswerte, $start, $betriebsferienTage);
 
-        // Arbeitsbloecke (Rohbuchungen) je Tag: Basis fuer Mehrfach-Kommen/Gehen und echte Stunden-Summe.
-        // Wichtig: Wir berechnen hier **Summe der Bloecke** (nicht Min/Max ueber den ganzen Tag),
+        // Arbeitsbloecke (Rohbuchungen) je Tag: Basis für Mehrfach-Kommen/Gehen und echte Stunden-Summe.
+        // Wichtig: Wir berechnen hier **Summe der Bloecke** (nicht Min/Max über den ganzen Tag),
         // damit Pausen/Unterbrechungen nicht als Arbeitszeit zaehlen.
         $arbeitsBloeckeProTag = $this->holeArbeitsbloeckeProTagFuerMonat(
             $mitarbeiterId,
@@ -1924,7 +1924,7 @@ class ReportService
             $bloecke = $this->ergaenzeIstUndPauseInArbeitsbloecken($bloecke, $pauseOverrideAktiv);
             $tageswerte[$i]['arbeitsbloecke'] = $bloecke;
 
-            // Wenn der Tag zuvor als "Mikro-Arbeitszeit" komplett ignoriert wurde, ueberschreiben wir nichts.
+            // Wenn der Tag zuvor als "Mikro-Arbeitszeit" komplett ignoriert wurde, überschreiben wir nichts.
             if (!empty($row['micro_arbeitszeit_ignoriert'])) {
                 continue;
             }
@@ -2044,7 +2044,7 @@ class ReportService
         $wochenarbeitszeit = 0.0;
         try {
             // Siehe berechneSollstundenFallback(): nur diese eine Spalte, damit
-            // die Monatsuebersicht auch am Terminal rechnet.
+            // die Monatsübersicht auch am Terminal rechnet.
             $wert = $this->mitarbeiterModel->holeWochenarbeitszeit($mitarbeiterId);
             if ($wert !== null) {
                 $wochenarbeitszeit = $wert;
@@ -2108,7 +2108,7 @@ class ReportService
                     $row['feiertag_stunden'] = sprintf('%.2f', $feiertagStdDefault);
                 }
             } else {
-                // Bei Arbeitszeit am Feiertag sollen keine zusaetzlichen Feiertagsstunden gezaehlt werden.
+                // Bei Arbeitszeit am Feiertag sollen keine zusätzlichen Feiertagsstunden gezaehlt werden.
                 $row['feiertag_stunden'] = sprintf('%.2f', 0.0);
             }
 
@@ -2138,9 +2138,9 @@ class ReportService
         $volltagKurzarbeitStd = ($tagesSoll > 0.0) ? $tagesSoll : self::KURZARBEIT_DEFAULT_VOLLTAG_STUNDEN;
         $tageswerte = $this->wendeKurzarbeitVolltagWieBetriebsferienAn($tageswerte, $volltagKurzarbeitStd);
 
-        // Monatswerte fuer Anzeige verlässlich aus Tageswerten ableiten:
+        // Monatswerte für Anzeige verlässlich aus Tageswerten ableiten:
         // - IST: Blockweise Summe der IST-Spalte (arbeitsbloecke[].ist_stunden)
-        // - Abwesenheiten werden fuer Summen separat erfasst.
+        // - Abwesenheiten werden für Summen separat erfasst.
         // - Kurzarbeit reduziert das Soll, zaehlt aber **nicht** als IST (MasterPrompt).
         $parseStundenZuMinuten = function ($wert): int {
             $s = trim((string)$wert);
@@ -2205,7 +2205,7 @@ class ReportService
                             }
                         }
                     } catch (\Throwable $e) {
-                        // Ignorieren, falls Blockzeiten nicht parst werden koennen.
+                        // Ignorieren, falls Blockzeiten nicht parst werden können.
                     }
                 }
 
@@ -2286,7 +2286,7 @@ class ReportService
                 $sollShow = $sollCalc;
                 $override = true;
             } else {
-                // Bei Kurzarbeit: Wenn DB-Soll offensichtlich noch nicht reduziert ist, reduzieren wir fuer die Anzeige.
+                // Bei Kurzarbeit: Wenn DB-Soll offensichtlich noch nicht reduziert ist, reduzieren wir für die Anzeige.
                 if ($kurzarbeitReduktion > 0.01) {
                     $baseSoll = $baseSollFallback;
                     if (abs($sollShow - $baseSoll) <= 0.02) {

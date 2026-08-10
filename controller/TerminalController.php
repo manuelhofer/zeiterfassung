@@ -15,7 +15,7 @@ declare(strict_types=1);
 class TerminalController
 {
     /**
-     * Bereichsname fuer `Csrf` – siehe `core/Csrf.php`.
+     * Bereichsname für `Csrf` – siehe `core/Csrf.php`.
      *
      * Oeffentlich, weil die Terminal-Partials in `views/terminal/` den Token
      * ebenfalls brauchen, wenn ein Controller-Pfad ihn nicht durchreicht.
@@ -81,7 +81,7 @@ class TerminalController
             return null;
         }
 
-        // De-Bounce nur fuer dieselbe Person (online: Mitarbeiter-ID, offline: RFID-Code),
+        // De-Bounce nur für dieselbe Person (online: Mitarbeiter-ID, offline: RFID-Code),
         // damit mehrere Mitarbeiter kurz hintereinander nicht faelschlich blockiert werden.
         if ($mitarbeiterId !== null) {
             if ($lastMitarbeiterId === null || $lastMitarbeiterId !== $mitarbeiterId) {
@@ -249,7 +249,7 @@ class TerminalController
     }
 
     /**
-     * Terminal-Timeouts fuer den Auto-Logout (`docs/fachregeln/terminal_und_offline.md`). Werte kommen aus `config`.
+     * Terminal-Timeouts für den Auto-Logout (`docs/fachregeln/terminal_und_offline.md`). Werte kommen aus `config`.
      *
      * Erwartete Keys:
      * - terminal_timeout_standard (Sekunden, Default 60)
@@ -661,7 +661,7 @@ class TerminalController
     }
 
     /**
-     * Monatsstatus fuer das Mitarbeiterpanel.
+     * Monatsstatus für das Mitarbeiterpanel.
      * - Soll Monat gesamt
      * - Soll bis heute
      * - Ist bis heute (inkl. laufendem heutigen Arbeitstag)
@@ -802,7 +802,7 @@ class TerminalController
                                                 }
                                             }
                                         } catch (Throwable $e) {
-                                            // Ignorieren, falls Blockzeiten nicht gelesen werden koennen.
+                                            // Ignorieren, falls Blockzeiten nicht gelesen werden können.
                                         }
                                     }
 
@@ -871,7 +871,7 @@ class TerminalController
                                             }
                                         }
                                     } catch (Throwable $e) {
-                                        // Ignorieren, falls Blockzeiten nicht gelesen werden koennen.
+                                        // Ignorieren, falls Blockzeiten nicht gelesen werden können.
                                     }
                                 }
 
@@ -982,7 +982,7 @@ class TerminalController
                 : (int)round($sollBisHeute * 60.0);
             $sollMonatGesamtMinuten = (int)round($sollMonatGesamt * 60.0);
 
-            // Extras fuer Startscreen-Info.
+            // Extras für Startscreen-Info.
             $restBisMonatsendeMinuten = $sollMonatGesamtMinuten - $istBisherMinuten;
             $saldoBisHeuteMinuten = $istBisherMinuten - $sollBisHeuteMinuten;
             $saldoLabel = $saldoBisHeuteMinuten >= 0 ? 'im Plan' : 'Rueckstand';
@@ -1112,7 +1112,7 @@ class TerminalController
         $zeitStr = $zeitpunkt->format('Y-m-d H:i:s');
 
         // SQL-Literal-Maskierung zentral aus Helper – wichtig, weil
-        // ermittleOfflineHintFuerRfid() denselben Text wiederfinden muss.
+        // ermittleOfflineHintFürRfid() denselben Text wiederfinden muss.
         $q = static function (string $s): string {
             return Helper::sqlLiteral($s);
         };
@@ -1150,7 +1150,7 @@ class TerminalController
     }
 
     /**
-     * Ermittelt anhand der lokalen Offline-Queue die letzte bekannte Aktion fuer einen RFID-Code
+     * Ermittelt anhand der lokalen Offline-Queue die letzte bekannte Aktion für einen RFID-Code
      * und liefert einen Vorschlag, welcher Button wahrscheinlich korrekt ist.
      *
      * Hinweis:
@@ -1243,7 +1243,7 @@ class TerminalController
     }
 
     /**
-     * Stoerungsmodus (siehe `docs/fachregeln/terminal_und_offline.md`):
+     * Störungsmodus (siehe `docs/fachregeln/terminal_und_offline.md`):
      *
      * Sobald ein Queue-Eintrag auf Status "fehler" steht, müssen alle Aktionen
      * am Terminal blockiert werden. Die Seite zeigt den konkreten SQL-Befehl,
@@ -1287,12 +1287,12 @@ class TerminalController
             }
         }
 
-        // View-Kompatibilität: `views/terminal/stoerung.php` erwartet `$stoerungEintrag`.
+        // View-Kompatibilität: `views/terminal/störung.php` erwartet `$störungEintrag`.
         $stoerungEintrag = is_array($letzterFehler) ? $letzterFehler : null;
 
-        // Wenn keine Queue-Fehler (mehr) vorhanden sind, ist der Stoerungsmodus beendet.
-        // Wichtig: Der Benutzer kann auf dieser URL (aktion=stoerung) "festhaengen", wenn ein Admin
-        // den Fehler im Backend behebt. Dann soll ein Reload automatisch zur Startseite zurueck.
+        // Wenn keine Queue-Fehler (mehr) vorhanden sind, ist der Störungsmodus beendet.
+        // Wichtig: Der Benutzer kann auf dieser URL (aktion=störung) "festhängen", wenn ein Admin
+        // den Fehler im Backend behebt. Dann soll ein Reload automatisch zur Startseite zurück.
 
         $fatalOhneQueue = false;
         if (is_array($queueStatus)) {
@@ -1316,7 +1316,7 @@ class TerminalController
 
         // Terminal ist funktional eingeschraenkt.
         http_response_code(503);
-        // Monatsstatus fuer das Mitarbeiterpanel (Soll Monat / Soll bis heute / IST bis heute) – nur online.
+        // Monatsstatus für das Mitarbeiterpanel (Soll Monat / Soll bis heute / IST bis heute) – nur online.
         $monatsStatus = null;
         if (is_array($mitarbeiter) && isset($mitarbeiter['id'])) {
             $monatsStatus = $this->berechneMonatsStatusFuerMitarbeiter((int)$mitarbeiter['id']);
@@ -1360,7 +1360,7 @@ class TerminalController
         // GET: zeigt eine kleine Seite, die den POST automatisch auslöst.
         $mitarbeiter = $this->holeAngemeldetenTerminalMitarbeiter();
         $terminalTimeoutSekunden = $this->holeTerminalTimeoutSekunden('standard');
-        // Monatsstatus (fuer Mitarbeiterpanel im Logout-Screen): Soll Monat / Soll bis heute / Ist bis heute.
+        // Monatsstatus (für Mitarbeiterpanel im Logout-Screen): Soll Monat / Soll bis heute / Ist bis heute.
         $monatsStatus = null;
 
         if ($this->istHauptdatenbankAktiv() && is_array($mitarbeiter) && isset($mitarbeiter['id'])) {
@@ -1374,12 +1374,12 @@ class TerminalController
 
 
     /**
-     * Loescht alle Session-Keys, die eine Terminal-Anmeldung an einen Mitarbeiter binden.
+     * Löscht alle Session-Keys, die eine Terminal-Anmeldung an einen Mitarbeiter binden.
      *
      * Hintergrund (Kiosk):
-     * - Der Browser laeuft dauerhaft und teilt sich eine Session ueber viele Mitarbeiter.
+     * - Der Browser läuft dauerhaft und teilt sich eine Session über viele Mitarbeiter.
      * - Nach Logout oder nach erfolgreichem Kommen/Gehen sollen keine Statuswerte
-     *   (z. B. Offline-Fallback "terminal_anwesend") vom Vorgaenger uebrig bleiben.
+     *   (z. B. Offline-Fallback "terminal_anwesend") vom Vorgänger übrig bleiben.
      */
     private function loescheTerminalMitarbeiterSession(): void
     {
@@ -1389,11 +1389,11 @@ class TerminalController
         unset($_SESSION['terminal_darf_rfid_zuweisen']);
 
         // Offline-Fallback-Status ist nicht mitarbeiter-spezifisch gespeichert.
-        // Daher beim Benutzerwechsel immer loeschen, damit es keine "falschen" Buttons gibt.
+        // Daher beim Benutzerwechsel immer löschen, damit es keine "falschen" Buttons gibt.
         unset($_SESSION['terminal_anwesend']);
         unset($_SESSION['terminal_anwesend_zeit']);
 
-        // Token bewusst verwerfen, damit der naechste Nutzer einen frischen Token bekommt.
+        // Token bewusst verwerfen, damit der nächste Nutzer einen frischen Token bekommt.
         Csrf::verwerfe(self::CSRF_BEREICH);
 
         // Debug-Flag nicht in Produktion "kleben" lassen
@@ -1514,7 +1514,7 @@ class TerminalController
 
         // Offline-Queue Hinweis (End-to-End Feldtest):
         // Wir zeigen bei offenen/fehlerhaften Queue-Eintraegen eine kleine Statusbox.
-        // Ziel: Im Feld ist sofort sichtbar, ob lokale Buchungen noch "warten" oder ob die Queue in Stoerung ist.
+        // Ziel: Im Feld ist sofort sichtbar, ob lokale Buchungen noch "warten" oder ob die Queue in Störung ist.
         $queueStatus = [
             'offen' => 0,
             'fehler' => 0,
@@ -1574,9 +1574,9 @@ class TerminalController
         }
 
         // Offline-Queue Replay-Trigger (End-to-End Feldtest):
-        // Sobald die Hauptdatenbank wieder verfuegbar ist, versuchen wir bei jedem
+        // Sobald die Hauptdatenbank wieder verfügbar ist, versuchen wir bei jedem
         // Aufruf der Startseite die offenen Queue-Eintraege abzuarbeiten.
-        // Rate-Limit ueber Session, damit wir bei schnellen Reloads nicht spammen.
+        // Rate-Limit über Session, damit wir bei schnellen Reloads nicht spammen.
         try {
             $db = Database::getInstanz();
             $hauptOk = false;
@@ -1638,7 +1638,7 @@ class TerminalController
             }
         }
 
-        // Offline-Queue Status (immer lesen, aber nur anzeigen wenn Auffaelligkeiten da sind).
+        // Offline-Queue Status (immer lesen, aber nur anzeigen wenn Auffälligkeiten da sind).
         // Wir versuchen bevorzugt die Offline-DB (Terminal), sonst Fallback auf Haupt-DB.
         $queueStatus = [
             'offen'       => 0,
@@ -1755,9 +1755,9 @@ class TerminalController
             if (!Csrf::istGueltig(self::CSRF_BEREICH)) {
                 $fehlerText = 'Ungültiges CSRF-Token.';
             } else {
-                // Optional: Hinweis „RFID unbekannt“ am Terminal loeschen.
+                // Optional: Hinweis „RFID unbekannt“ am Terminal löschen.
                 // Hintergrund: Im Feld kann es vorkommen, dass kurz ein falscher Chip gescannt wurde.
-                // Dann soll der rote Banner ohne Admin-Aktion wieder entfernt werden koennen.
+                // Dann soll der rote Banner ohne Admin-Aktion wieder entfernt werden können.
                 if (isset($_POST['clear_unknown_rfid']) && (string)$_POST['clear_unknown_rfid'] === '1') {
                     unset($_SESSION['terminal_last_unknown_rfid'], $_SESSION['terminal_last_unknown_rfid_ts']);
                     $_SESSION['terminal_flash_nachricht'] = 'Hinweis gelöscht.';
@@ -1987,7 +1987,7 @@ class TerminalController
                     $mitarbeiterId = isset($_POST['mitarbeiter_id']) ? (int)$_POST['mitarbeiter_id'] : 0;
 
                     if ($rfidCode === '' && $mitarbeiterId <= 0) {
-                        // UI-Vorgabe (Kiosk): Nur RFID kommunizieren, Demo-Fallbacks bleiben intern moeglich.
+                        // UI-Vorgabe (Kiosk): Nur RFID kommunizieren, Demo-Fallbacks bleiben intern möglich.
                         $fehlerText = 'Bitte RFID scannen oder eingeben.';
                     } else {
                         $mitarbeiter = null;
@@ -2163,7 +2163,7 @@ class TerminalController
                 $tmp = [];
 
                 // Nachtschicht-Grenzfall: Kommen (nachtshift=1) am Abend + Gehen am Folgetag frueh
-                // soll nicht als Warnung erscheinen (paarweise ueber Mitternacht).
+                // soll nicht als Warnung erscheinen (paarweise über Mitternacht).
                 $mid = (int)$mitarbeiter['id'];
                 $db = $this->datenbank;
                 $istNachtschichtGrenzfall = function (string $datum, array $r) use ($mid, $db): bool {
@@ -2275,7 +2275,7 @@ class TerminalController
                 $zeitWarnungen = null;
             }
         } elseif (is_array($mitarbeiter) && isset($mitarbeiter['id']) && !$hauptdbAktiv) {
-            // Offline-Fall: Komplexe Uebersichten sind gesperrt (`docs/fachregeln/terminal_und_offline.md`).
+            // Offline-Fall: Komplexe Übersichten sind gesperrt (`docs/fachregeln/terminal_und_offline.md`).
             $heuteDatum = (new DateTimeImmutable('today'))->format('Y-m-d');
             $heuteFehler = 'Hauptdatenbank offline – Übersicht ist nur online verfügbar.';
         }
@@ -2464,7 +2464,7 @@ class TerminalController
         $fehlerText = $fehlermeldung;
         $terminalTimeoutSekunden = $this->holeTerminalTimeoutSekunden('standard');
         $csrfToken = Csrf::token(self::CSRF_BEREICH);
-        // Monatsstatus (fuer Mitarbeiterpanel in Auftrag-Views): Soll Monat / Soll bis heute / IST bis heute.
+        // Monatsstatus (für Mitarbeiterpanel in Auftrag-Views): Soll Monat / Soll bis heute / IST bis heute.
         $monatsStatus = null;
 
         if ($this->istHauptdatenbankAktiv() && isset($mitarbeiter['id'])) {
@@ -2542,7 +2542,7 @@ class TerminalController
                 ];
 
                 // Wenn ein neuer Hauptauftrag startet, werden laufende Nebenauftraege automatisch abgeschlossen.
-                // Daher local/state ebenfalls zuruecksetzen.
+                // Daher local/state ebenfalls zurücksetzen.
                 $_SESSION['terminal_nebenauftrag_laufend_count'] = 0;
                 $ln = $_SESSION['terminal_letzter_nebenauftrag'] ?? null;
                 if (is_array($ln)) {
@@ -2595,7 +2595,7 @@ class TerminalController
         $fehlerText = $fehlermeldung;
         $terminalTimeoutSekunden = $this->holeTerminalTimeoutSekunden('standard');
         $csrfToken = Csrf::token(self::CSRF_BEREICH);
-        // Monatsstatus (fuer Mitarbeiterpanel in Auftrag-Views): Soll Monat / Soll bis heute / IST bis heute.
+        // Monatsstatus (für Mitarbeiterpanel in Auftrag-Views): Soll Monat / Soll bis heute / IST bis heute.
         $monatsStatus = null;
 
         if ($this->istHauptdatenbankAktiv() && isset($mitarbeiter['id'])) {
@@ -2833,10 +2833,10 @@ class TerminalController
     // ---------------------------------------------------------------------
 
     /**
-     * Nebenauftrag darf nur gestartet werden, wenn ein Hauptauftrag laeuft.
+     * Nebenauftrag darf nur gestartet werden, wenn ein Hauptauftrag läuft.
      *
-     * - Online: prueft `auftragszeit` auf einen laufenden Eintrag mit typ='haupt'.
-     * - Offline: Fallback ueber Session-Merker `terminal_letzter_auftrag`.
+     * - Online: prüft `auftragszeit` auf einen laufenden Eintrag mit typ='haupt'.
+     * - Offline: Fallback über Session-Merker `terminal_letzter_auftrag`.
      */
     private function hatLaufendenHauptauftragFuerMitarbeiter(int $mitarbeiterId): bool
     {
@@ -2845,7 +2845,7 @@ class TerminalController
             return false;
         }
 
-        // Offline: nur Session-Fallback moeglich
+        // Offline: nur Session-Fallback möglich
         if (!$this->istHauptdatenbankAktiv()) {
             try {
                 if (session_status() === PHP_SESSION_ACTIVE && isset($_SESSION['terminal_letzter_auftrag']) && is_array($_SESSION['terminal_letzter_auftrag'])) {
@@ -2862,7 +2862,7 @@ class TerminalController
             return false;
         }
 
-        // Online: DB pruefen
+        // Online: DB prüfen
         try {
             $m = new AuftragszeitModel();
             $laufende = $m->holeLaufendeFuerMitarbeiter($mitarbeiterId);
@@ -2907,7 +2907,7 @@ class TerminalController
             exit;
         }
 
-        // Regel: Nebenauftrag nur, wenn ein Hauptauftrag laeuft (serverseitig absichern)
+        // Regel: Nebenauftrag nur, wenn ein Hauptauftrag läuft (serverseitig absichern)
         if (!$this->hatLaufendenHauptauftragFuerMitarbeiter((int)$mitarbeiter['id'])) {
             $_SESSION['terminal_flash_fehler'] = 'Nebenauftrag ist nur moeglich, wenn ein Hauptauftrag laeuft.';
             header('Location: terminal.php?aktion=start');
@@ -2945,7 +2945,7 @@ class TerminalController
 
         $terminalTimeoutSekunden = $this->holeTerminalTimeoutSekunden('standard');
         $csrfToken = Csrf::token(self::CSRF_BEREICH);
-        // Monatsstatus (fuer Mitarbeiterpanel am Startscreen im Nebenauftrag-Flow).
+        // Monatsstatus (für Mitarbeiterpanel am Startscreen im Nebenauftrag-Flow).
         $monatsStatus = null;
         if ($this->istHauptdatenbankAktiv() && isset($mitarbeiter['id'])) {
             $monatsStatus = $this->berechneMonatsStatusFuerMitarbeiter((int)$mitarbeiter['id']);
@@ -2987,7 +2987,7 @@ class TerminalController
                     exit;
                 }
 
-                // Regel: Nebenauftrag nur, wenn ein Hauptauftrag laeuft (serverseitig absichern)
+                // Regel: Nebenauftrag nur, wenn ein Hauptauftrag läuft (serverseitig absichern)
                 if (!$this->hatLaufendenHauptauftragFuerMitarbeiter((int)$mitarbeiter['id'])) {
                     $_SESSION['terminal_flash_fehler'] = 'Nebenauftrag ist nur moeglich, wenn ein Hauptauftrag laeuft.';
                     header('Location: terminal.php?aktion=start');
@@ -3030,7 +3030,7 @@ class TerminalController
         }
 
 
-        // Session-Merker: Nebenauftrag (fuer UI-Logik im Offline-Betrieb)
+        // Session-Merker: Nebenauftrag (für UI-Logik im Offline-Betrieb)
         try {
             if (session_status() === PHP_SESSION_ACTIVE) {
                 $cnt = $_SESSION['terminal_nebenauftrag_laufend_count'] ?? 0;
@@ -3115,7 +3115,7 @@ class TerminalController
 
         $terminalTimeoutSekunden = $this->holeTerminalTimeoutSekunden('standard');
         $csrfToken = Csrf::token(self::CSRF_BEREICH);
-        // Monatsstatus (fuer Mitarbeiterpanel am Startscreen im Nebenauftrag-Stop-Flow).
+        // Monatsstatus (für Mitarbeiterpanel am Startscreen im Nebenauftrag-Stop-Flow).
         $monatsStatus = null;
         if ($this->istHauptdatenbankAktiv() && isset($mitarbeiter['id'])) {
             $monatsStatus = $this->berechneMonatsStatusFuerMitarbeiter((int)$mitarbeiter['id']);
@@ -3160,7 +3160,7 @@ class TerminalController
         $status = 'abgeschlossen';
 
         // Wenn ein Auftragscode gescannt wurde, hat dieser Vorrang (z.B. bei mehreren Nebenauftraegen).
-        // In dem Fall ignorieren wir eine ggf. vorausgewaehlte Auftragszeit-ID aus dem Dropdown.
+        // In dem Fall ignorieren wir eine ggf. vorausgewählte Auftragszeit-ID aus dem Dropdown.
         if ($auftragscode !== '') {
             $auftragszeitId = null;
         }
@@ -3288,7 +3288,7 @@ class TerminalController
 
         // Offline: nur in Queue schreiben
         if (!$this->istHauptdatenbankAktiv()) {
-            // Auftrag (Minimaldatensatz) sicherstellen, damit die Buchung spaeter aufloesbar ist
+            // Auftrag (Minimaldatensatz) sicherstellen, damit die Buchung später aufloesbar ist
             // (analog Hauptauftrag-Start in AuftragszeitService).
             $sqlEnsureAuftrag = 'INSERT INTO auftrag (auftragsnummer, aktiv) VALUES ('
                 . $this->sqlString($auftragscode) . ', 1) '
@@ -3874,7 +3874,7 @@ $urlaubSaldo = null;
                             if ($calcVon->getTimestamp() <= $calcBis->getTimestamp()) {
                                 // Für Betriebsferien brauchen wir die Anzahl der Tage, die für diesen Mitarbeiter
                                 // tatsächlich als Zwangsurlaub zählen.
-                                // Das muss 1:1 zu UrlaubService::berechneUrlaubssaldoFuerJahr passen:
+                                // Das muss 1:1 zu UrlaubService::berechneUrlaubssaldoFürJahr passen:
                                 // - Wochenenden und betriebsfreie Feiertage zählen nicht.
                                 // - Wenn an einem BF-Tag gearbeitet wurde (oder andere Kennzeichen/Krankzeitraum greifen),
                                 //   darf der Tag nicht als Urlaub abgezogen werden.
@@ -4380,7 +4380,7 @@ $urlaubSaldo = null;
             $_SESSION['terminal_flash_nachricht'] = $nachricht;
         }
 
-        // Kiosk: nach erfolgreicher Buchung direkt abmelden, damit der naechste Mitarbeiter
+        // Kiosk: nach erfolgreicher Buchung direkt abmelden, damit der nächste Mitarbeiter
         // sofort scannen kann (kein Warten auf Timeout/Abbrechen).
         if ($fehlerText === null) {
             $this->loescheTerminalMitarbeiterSession();
@@ -4544,7 +4544,7 @@ $urlaubSaldo = null;
             $_SESSION['terminal_flash_nachricht'] = $nachricht;
         }
 
-        // Kiosk: nach erfolgreicher Buchung direkt abmelden, damit der naechste Mitarbeiter
+        // Kiosk: nach erfolgreicher Buchung direkt abmelden, damit der nächste Mitarbeiter
         // sofort scannen kann (kein Warten auf Timeout/Abbrechen).
         if ($fehlerText === null) {
             $this->loescheTerminalMitarbeiterSession();
