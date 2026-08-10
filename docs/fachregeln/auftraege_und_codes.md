@@ -59,6 +59,11 @@ Die **Zeichnungsnummer** ist wie alles ausser der Auftragsnummer freiwillig. Sie
 steht in der Auftragsliste, wird von der Suche mitgefunden und erscheint auf der
 Laufkarte – leer bleibt sie auch dort unsichtbar.
 
+Die **Suche** in der Auftragsliste ist ein einziges Feld für vier Spalten:
+Auftragsnummer, Kunde, Zeichnungsnummer und Kurzbeschreibung. Wer „Muster GmbH"
+im Kopf hat, tippt das und soll nicht vorher entscheiden müssen, in welcher
+Spalte es steht. `%` und `_` werden maskiert und suchen sich selbst.
+
 **`auftragszeit`:** `mitarbeiter_id`, `auftrag_id` bzw. `auftragscode`,
 `arbeitsschritt_code`, `maschine_id`, `terminal_id`, `typ` (`haupt`/`neben`),
 `startzeit`, `endzeit`, `status`, `kommentar`, Timestamps.

@@ -70,6 +70,67 @@ in den Statusbericht.
   D-002 entfallen; die Regel selbst gilt weiter.)
 
 
+## P-2026-08-10-34 auftragssuche-ueber-alle-felder
+
+### EINGELESEN
+- `controller/AuftragController.php::index()`, Abfrage und Suchformular.
+- `core/Database.php`, PDO-Attribute der Verbindung.
+- `docs/fachregeln/auftraege_und_codes.md`, Abschnitt 4.
+
+### DATEIEN
+- `controller/AuftragController.php`
+- `docs/fachregeln/auftraege_und_codes.md`
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Die Suche nach `Muster` findet den Auftrag `A-2026-0815`, obwohl „Muster GmbH"
+dort nicht in der Auftragsnummer, sondern im Kundenfeld steht.
+
+### DONE
+Das Suchfeld hiess „Suche (Auftragsnummer)" und tat auch genau das. Gesucht wird
+aber nach dem, was man im Kopf hat – dem Kunden, der Zeichnung, dem Werkstück.
+
+Ein Feld für vier Spalten: Auftragsnummer, Kunde, Zeichnungsnummer,
+Kurzbeschreibung. Bewusst **kein** zweites Eingabefeld je Spalte – wer suchen
+will, soll nicht vorher entscheiden müssen, wo der Begriff steht.
+
+Gefiltert wird weiterhin auf der Grundmenge aus Stammdaten und Buchungen, nicht
+auf den verbundenen Buchungszeilen: Ein Auftrag ohne Buchung bleibt auffindbar.
+
+Bei null Treffern nennt die Meldung jetzt den Suchbegriff und die durchsuchten
+Felder, statt zu behaupten, es gebe „noch keine Auftragsbuchungen".
+
+### TEST
+- `Muster` → 1 Treffer (steht nur im Kundenfeld).
+- `ZN-4711` → 1 Treffer (nur in der Zeichnungsnummer).
+- `Getriebewelle` → 1 Treffer (nur in der Kurzbeschreibung).
+- `A-2026` → 2 Treffer (Auftragsnummer, Teiltreffer).
+- `gibtsnicht` → 0 Treffer, Meldung nennt den Begriff.
+- `%` und `_` → je 0 Treffer: Die Maskierung hält, die Platzhalter suchen sich
+  selbst und öffnen die Liste nicht.
+- `php -l` sauber, keine Meldungen im Seitenaufbau.
+
+### Gefundene Fehler im eigenen Entwurf
+Der erste Entwurf benutzte viermal denselben Platzhalter `:q`. Das geht nur mit
+emulierten Prepared Statements – `core/Database.php` setzt
+`ATTR_EMULATE_PREPARES = false`, und dann zählt MySQL die Platzhalter und wirft
+`HY093`. Jetzt `:q1` bis `:q4` mit demselben Wert. Beim Lesen einer fremden
+Abfrage im selben Projekt fällt das nicht auf, deshalb steht die Begründung als
+Kommentar an der Abfrage.
+
+### Was bewusst nicht erreicht wurde
+Keine Volltextsuche und kein Index-Nutzen: `LIKE '%…%'` liest die Tabelle
+durch. Bei der Grössenordnung dieses Betriebs (einige tausend Aufträge) ist das
+unkritisch; wird es das nicht mehr, ist ein FULLTEXT-Index der nächste Schritt.
+
+Der **Status** wird nicht mitdurchsucht – er ist eine feste Auswahl, für die ein
+eigener Filter besser passt als ein Textvergleich.
+
+### NEXT
+Blättern: Die Liste ist bei 200 Zeilen hart abgeschnitten, das trägt nicht mehr,
+sobald die Suche mehr findet.
+
+
 ## P-2026-08-10-33 auftrag-zeichnungsnummer
 
 ### EINGELESEN

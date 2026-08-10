@@ -124,11 +124,25 @@ class AuftragController
             $where = '';
             $params = [];
             if ($like !== null) {
-                // Gefiltert wird auf der Grundmenge der Auftragsnummern, nicht auf
-                // den verbundenen Buchungen. Sonst faende die Suche einen Auftrag
-                // ohne Buchung nicht.
-                $where = 'WHERE nummern.auftragsnummer LIKE :q ESCAPE "\\\\"';
-                $params['q'] = $like;
+                // Gefiltert wird auf der Grundmenge der Auftragsnummern und den
+                // Stammdaten, nicht auf den verbundenen Buchungen. Sonst faende
+                // die Suche einen Auftrag ohne Buchung nicht.
+                //
+                // Ein Suchfeld für alle Spalten statt vier einzelner Felder: Wer
+                // "Muster GmbH" im Kopf hat, tippt das - und soll nicht vorher
+                // entscheiden muessen, in welcher Spalte es steht.
+                //
+                // Vier Platzhalter für denselben Wert, weil die Verbindung ohne
+                // Emulation praepariert (`ATTR_EMULATE_PREPARES = false`): Ein
+                // benannter Platzhalter darf dort nur einmal vorkommen.
+                $where = 'WHERE (nummern.auftragsnummer LIKE :q1 ESCAPE "\\\\"
+                              OR a.kunde LIKE :q2 ESCAPE "\\\\"
+                              OR a.zeichnungsnummer LIKE :q3 ESCAPE "\\\\"
+                              OR a.kurzbeschreibung LIKE :q4 ESCAPE "\\\\")';
+                $params['q1'] = $like;
+                $params['q2'] = $like;
+                $params['q3'] = $like;
+                $params['q4'] = $like;
             }
 
             // Grundmenge sind alle bekannten Auftragsnummern - aus den Stammdaten
@@ -222,13 +236,15 @@ class AuftragController
             <form method="get" action="" style="margin-bottom: 1rem;">
                 <input type="hidden" name="seite" value="auftrag">
                 <label>
-                    Suche (Auftragsnummer):
-                    <input type="text" name="q" value="<?php echo htmlspecialchars($q, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>" style="min-width: 240px;">
+                    Suche:
+                    <input type="text" name="q" value="<?php echo htmlspecialchars($q, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>" style="min-width: 240px;"
+                           placeholder="Auftragsnummer, Kunde, Zeichnung, Beschreibung">
                 </label>
                 <button type="submit">Suchen</button>
                 <?php if ($q !== ''): ?>
                     <a href="?seite=auftrag" style="margin-left: 0.5rem;">Reset</a>
                 <?php endif; ?>
+                <br><small>Durchsucht Auftragsnummer, Kunde, Zeichnungsnummer und Kurzbeschreibung.</small>
             </form>
 
 
@@ -239,8 +255,13 @@ class AuftragController
             <?php endif; ?>
 
             <?php if (count($auftraege) === 0): ?>
-                <p>Keine Auftraege gefunden (noch keine Auftragsbuchungen vorhanden).</p>
-                <p><small>Hinweis: Diese Auswertung basiert auf vorhandenen Buchungen in <code>auftragszeit</code>.</small></p>
+                <?php if ($q !== ''): ?>
+                    <p>Keine Auftraege zu &bdquo;<?php echo htmlspecialchars($q, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>&ldquo; gefunden.</p>
+                    <p><small>Gesucht wurde in Auftragsnummer, Kunde, Zeichnungsnummer und Kurzbeschreibung.</small></p>
+                <?php else: ?>
+                    <p>Keine Auftraege vorhanden.</p>
+                    <p><small>Hier erscheinen angelegte Auftraege und alle Auftragsnummern, zu denen es Buchungen gibt.</small></p>
+                <?php endif; ?>
             <?php else: ?>
                 <table>
                     <thead>
