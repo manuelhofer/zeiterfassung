@@ -50,11 +50,6 @@ Grundlage: `docs/spezifikation_terminal_installation.md` (Abschnitte 6, 7, 8).
 der Spezifikation** (Abschnitt 11) – hier bewusst nicht ein zweites Mal.
 
 ## Offene Bugs
-- **B-092:** Die Route `?seite=betriebsferien_admin_toggle` ruft
-  `BetriebsferienAdminController::toggleAktiv()` auf – **diese Methode existiert
-  nicht**. Ein Aufruf endet in einem Fatal. Kein Menuepunkt verlinkt darauf, der
-  Fehler ist also latent. Vorher klaeren, was gewollt ist: Methode nachruesten
-  oder tote Route entfernen.
 - **B-080:** Urlaubssaldo wirkt teils verwirrend (Nutzerrueckmeldung
   „Urlaubsberechnung stimmt nicht") – BF/Feiertage/Arbeitszeit-Abgrenzung
   nochmals pruefen. Teilfix in P-2026-01-18-07. Seit P-2026-08-10-02 meldet

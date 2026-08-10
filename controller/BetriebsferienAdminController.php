@@ -15,6 +15,9 @@ declare(strict_types=1);
  */
 class BetriebsferienAdminController
 {
+    /** Bereichsname fuer `Csrf` – siehe `core/Csrf.php`. */
+    private const CSRF_BEREICH = 'betriebsferien_admin';
+
     private AuthService $authService;
     private Database $datenbank;
     private AbteilungModel $abteilungModel;
@@ -70,6 +73,17 @@ class BetriebsferienAdminController
 
         $fehlermeldung = null;
         $eintraege     = [];
+
+        // Rueckmeldungen aus toggleAktiv() – der leitet hierher zurueck, damit
+        // ein Neuladen die Aktion nicht wiederholt.
+        $meldung = isset($_GET['meldung']) ? (string)$_GET['meldung'] : '';
+        if ($meldung === 'csrf_ungueltig') {
+            $fehlermeldung = 'Sicherheitsprüfung fehlgeschlagen. Bitte die Seite neu laden.';
+        } elseif ($meldung === 'ungueltige_id') {
+            $fehlermeldung = 'Der Eintrag wurde nicht gefunden.';
+        } elseif ($meldung === 'speichern_fehlgeschlagen') {
+            $fehlermeldung = 'Der Eintrag konnte nicht umgeschaltet werden.';
+        }
 
         try {
             $sql = 'SELECT bf.*, a.name AS abteilung_name
@@ -135,6 +149,12 @@ class BetriebsferienAdminController
                                 <td><?php echo $aktiv ? 'Ja' : 'Nein'; ?></td>
                                 <td>
                                     <a href="?seite=betriebsferien_admin_bearbeiten&amp;id=<?php echo $id; ?>">Bearbeiten</a>
+                                    <form method="post" action="?seite=betriebsferien_admin_toggle" style="display:inline;">
+                                        <?php echo Csrf::feld(self::CSRF_BEREICH); ?>
+                                        <input type="hidden" name="id" value="<?php echo $id; ?>">
+                                        <input type="hidden" name="aktiv" value="<?php echo $aktiv ? '0' : '1'; ?>">
+                                        <button type="submit"><?php echo $aktiv ? 'Deaktivieren' : 'Aktivieren'; ?></button>
+                                    </form>
                                 </td>
                             </tr>
                         <?php endforeach; ?>
@@ -392,6 +412,61 @@ class BetriebsferienAdminController
         <?php
 
         require __DIR__ . '/../views/layout/footer.php';
+    }
+
+    /**
+     * Schaltet einen Betriebsferien-Eintrag aktiv/inaktiv.
+     *
+     * Warum es das braucht: Alle Leser werten `betriebsferien.aktiv` aus
+     * (`BetriebsferienModel::holeAktive()`, `UrlaubJahresuebersichtController`,
+     * `ReportService`), gesetzt wurde die Spalte aber nur beim Anlegen. Ein
+     * Eintrag liess sich also nur loeschen, nicht stilllegen – und Loeschen
+     * nimmt die Historie mit. Aufbau bewusst wie
+     * `KurzarbeitAdminController::toggleAktiv()`, damit beide Masken sich
+     * gleich verhalten.
+     */
+    public function toggleAktiv(): void
+    {
+        if (!$this->pruefeZugriff()) {
+            return;
+        }
+
+        // Mutierende Aktion: nur per POST, und nur mit gueltigem Token.
+        if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST') {
+            header('Location: ?seite=betriebsferien_admin');
+            return;
+        }
+
+        if (!Csrf::istGueltig(self::CSRF_BEREICH)) {
+            header('Location: ?seite=betriebsferien_admin&meldung=csrf_ungueltig');
+            return;
+        }
+
+        $id    = isset($_POST['id']) ? (int)$_POST['id'] : 0;
+        $aktiv = (isset($_POST['aktiv']) && (int)$_POST['aktiv'] === 1) ? 1 : 0;
+
+        if ($id <= 0) {
+            header('Location: ?seite=betriebsferien_admin&meldung=ungueltige_id');
+            return;
+        }
+
+        try {
+            $this->datenbank->ausfuehren(
+                'UPDATE betriebsferien SET aktiv = :aktiv WHERE id = :id',
+                ['aktiv' => $aktiv, 'id' => $id]
+            );
+        } catch (\Throwable $e) {
+            Logger::error('Fehler beim Umschalten von betriebsferien.aktiv', [
+                'id'        => $id,
+                'aktiv'     => $aktiv,
+                'exception' => $e->getMessage(),
+            ], null, null, 'betriebsferien');
+
+            header('Location: ?seite=betriebsferien_admin&meldung=speichern_fehlgeschlagen');
+            return;
+        }
+
+        header('Location: ?seite=betriebsferien_admin');
     }
 
     private function istValidesDatum(string $datum): bool

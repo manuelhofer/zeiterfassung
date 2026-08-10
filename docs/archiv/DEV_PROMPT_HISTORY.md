@@ -70,6 +70,69 @@ in den Statusbericht.
   D-002 entfallen; die Regel selbst gilt weiter.)
 
 
+## P-2026-08-10-04 betriebsferien-aktiv-schalter
+
+### EINGELESEN
+- `docs/STATUS_SNAPSHOT.md`, B-092.
+- `controller/BetriebsferienAdminController.php`, `controller/KurzarbeitAdminController.php`
+  (`toggleAktiv()` als Vorlage), `modelle/BetriebsferienModel.php`.
+- `sql/01_initial_schema.sql`, Tabelle `betriebsferien`.
+- `core/Csrf.php` aus P-2026-08-10-03.
+
+### DATEIEN
+- `controller/BetriebsferienAdminController.php`
+- `docs/STATUS_SNAPSHOT.md`
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Ein Betriebsferien-Eintrag laesst sich in der Liste auf inaktiv schalten und
+verschwindet danach aus `BetriebsferienModel::holeAktive()`, ohne geloescht zu
+werden.
+
+### DONE
+B-092 behoben. Die Route `?seite=betriebsferien_admin_toggle` existierte samt
+Eintrag in der Liste der geschuetzten Seiten, die aufgerufene Methode aber
+nicht – jeder Aufruf endete im 500er des Front-Controllers.
+
+Dahinter steckte mehr als eine fehlende Methode: `betriebsferien.aktiv` wird von
+allen Lesern respektiert (`BetriebsferienModel::holeAktive()`,
+`UrlaubJahresuebersichtController`, `ReportService`), gesetzt wurde die Spalte
+aber nur beim Anlegen. Ein Eintrag liess sich damit nur loeschen, nicht
+stilllegen – und Loeschen nimmt die Historie mit.
+
+`toggleAktiv()` nachgeruestet, aufgebaut wie bei Kurzarbeit: POST-Pflicht,
+CSRF ueber `Csrf`, Rechtepruefung ueber `pruefeZugriff()`, Redirect zurueck auf
+die Liste. Die Liste bekommt in der bereits vorhandenen Spalte *Aktiv* einen
+Schalter, und die Rueckmeldungen aus dem Redirect (`meldung=…`) werden oben
+angezeigt statt stillschweigend zu verschwinden.
+
+### TEST
+1. Datenebene: Probeeintrag angelegt – in `holeAktive()` sichtbar (1),
+   nach `aktiv=0` nicht mehr (0), nach `aktiv=1` wieder (1), Probe entfernt.
+2. Controller mit angemeldeter Superuser-Session und gueltigem Token:
+   `aktiv` ging 1 → 0.
+3. Gegenprobe mit falschem Token: `aktiv` blieb 0, die Aktion wurde
+   abgewiesen.
+4. `php -l` sauber.
+
+### Gefundene Fehler im eigenen Entwurf
+Im Plan stand, die Liste zeige die Spalte *Aktiv* gar nicht an. Das war falsch –
+sie zeigt sie seit jeher als „Ja/Nein", nur eben ohne Schalter. Der Patch ist
+dadurch kleiner als gedacht.
+
+Ausserdem war der erste Versuch, die Route ueber den Webserver zu pruefen,
+wertlos: Ohne Anmeldung greift die Umleitung auf die Loginmaske **vor** dem
+Controller, also lieferten Fassung mit und ohne Fix beide 302. Der Fatal trat
+nur angemeldet auf. Erst der Test mit gesetzter Session zeigt etwas.
+
+### Was bewusst nicht erreicht wurde
+Der Controller erzeugt sein HTML weiterhin selbst, statt `views/betriebsferien/`
+zu benutzen – siehe T-104.
+
+### NEXT
+P-2026-08-10-05: QR-Rueckfall bei Maschinen-Codes.
+
+
 ## P-2026-08-10-03 csrf-an-einer-stelle
 
 ### EINGELESEN
