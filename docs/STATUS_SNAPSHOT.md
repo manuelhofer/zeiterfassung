@@ -29,12 +29,15 @@ den Stufenplan (Abschnitt 11).
   Gefunden bei der Doku-Prüfung in P-2026-08-10-09. Vorher klären, was gewollt
   ist: Scope-Auswertung nachbauen (dann Abschnitt 3+4 der Fachregel als
   Zielbild nehmen) oder die Scope-Auswahl aus der Oberfläche nehmen.
-- **B-080:** Urlaubssaldo wirkt teils verwirrend (Nutzerrückmeldung
-  „Urlaubsberechnung stimmt nicht") – BF/Feiertage/Arbeitszeit-Abgrenzung
-  nochmals prüfen. Teilfix in P-2026-01-18-07. Seit P-2026-08-10-02 meldet sich
-  der Rückfall „Betriebsferien-Tage nicht zählbar" in `system_log` (Kategorie
-  `urlaubservice`) – vorher schwieg er. **Nächster Schritt: dort nachsehen,
-  bevor weiter gesucht wird.**
+- **B-080: Der Übertrag bricht die Kette – Resturlaub aus dem Vorvorjahr geht
+  verloren.** Am 10.08.2026 reproduziert, damit ist die alte Meldung
+  „Urlaubsberechnung stimmt nicht" konkret: Die Maske für 2025 zeigt 25,00 Tage
+  Rest, die Maske für 2026 übernimmt daraus **−5,00** – 30 Tage weg. Ursache:
+  `berechneUrlaubssaldoFuerJahr()` rechnet das Vorjahr mit
+  `autoUebertrag = false`, alle neun Aufrufstellen der Oberfläche aber mit
+  `true`. Betrifft jeden, der zwei Jahre hintereinander Resturlaub hatte.
+  **Ungelöst, weil es um echte Urlaubstage geht – drei Wege stehen zur Wahl,
+  vollständige Analyse in P-2026-08-10-24.**
 
 ## Offene Tasks
 - **T-102** Buchungen tragen keine `terminal_id`, obwohl sie seit

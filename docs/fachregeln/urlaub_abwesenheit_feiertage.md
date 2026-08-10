@@ -37,10 +37,14 @@ Grundlage: Rohdaten + Rundungsregeln, `tageswerte_mitarbeiter`,
 
 ## 3. Urlaubssaldo, Übertrag und Verbrauchsreihenfolge
 
-**Übertrag Vorjahr:** Resturlaub aus dem Vorjahr (YYYY-1) wird automatisch als
-„Übertrag" ins aktuelle Jahr übernommen, sofern noch Rest vorhanden ist. Das
-ist keine separate manuelle Pflege, sondern ergibt sich aus der
+**Übertrag Vorjahr:** Der Rest aus dem Vorjahr (YYYY-1) wird automatisch als
+„Übertrag" ins aktuelle Jahr übernommen – auch ein **negativer** Rest, siehe
+unten. Das ist keine separate manuelle Pflege, sondern ergibt sich aus der
 Saldo-Berechnung.
+
+**Achtung, offener Fehler:** Das Vorjahr wird dabei **ohne** eigenen Übertrag
+gerechnet. Resturlaub aus YYYY-2 fällt beim Jahreswechsel deshalb weg – siehe
+B-080 im Status-Snapshot. Wer hier etwas ändert, liest den Eintrag zuerst.
 
 **Verbrauchsreihenfolge (Pflicht):**
 

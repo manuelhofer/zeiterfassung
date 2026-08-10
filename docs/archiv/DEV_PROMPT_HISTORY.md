@@ -70,6 +70,101 @@ in den Statusbericht.
   D-002 entfallen; die Regel selbst gilt weiter.)
 
 
+## P-2026-08-10-24 b-080-reproduziert
+
+### EINGELESEN
+- `services/UrlaubService.php`, `berechneUrlaubssaldoFuerJahr()` vollständig.
+- `docs/fachregeln/urlaub_abwesenheit_feiertage.md`, Abschnitt 3.
+- Alle neun Aufrufstellen der Saldo-Berechnung.
+- `system_log`, Kategorie `urlaubservice` (seit P-2026-08-10-02 sichtbar).
+
+### DATEIEN
+- `docs/STATUS_SNAPSHOT.md`
+- `docs/fachregeln/urlaub_abwesenheit_feiertage.md`
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+B-080 ist mit konkreten Zahlen reproduziert, oder die bisherigen Verdächtigen
+sind ausgeschlossen.
+
+### DONE
+**Reproduziert.** Aus „Urlaubsberechnung stimmt nicht" ist ein Fall mit Zahlen
+geworden.
+
+`berechneUrlaubssaldoFuerJahr($mid, $jahr)` holt den Übertrag so:
+
+```php
+$vorjahrSaldo = $this->berechneUrlaubssaldoFuerJahr($mitarbeiterId, $jahr - 1, false);
+```
+
+Das `false` unterdrückt den Auto-Übertrag des Vorjahres – als Rekursionsbremse
+gedacht und für sich vernünftig. Alle neun Aufrufstellen der Oberfläche rufen
+dagegen mit dem Standard `true` auf: Urlaubsmaske, Jahresübersicht,
+Kontingentverwaltung, PDF, Monatsübersicht und dreimal das Terminal.
+
+Damit zeigt die Anwendung für ein Jahr eine andere Zahl, als sie im Folgejahr
+übernimmt. Für Mitarbeiter 15:
+
+| Jahr | mit Auto-Übertrag (das sieht der Nutzer) | ohne (das wird übernommen) |
+| --- | --- | --- |
+| 2024 | Übertrag 30,00 → Rest 60,00 | Übertrag 0,00 → Rest 30,00 |
+| 2025 | Übertrag 30,00 → Rest **25,00** | Übertrag 0,00 → Rest **−5,00** |
+| 2026 | Übertrag **−5,00** → Rest 12,00 | – |
+
+Der Mitarbeiter sieht 2025 einen Rest von 25 Tagen und findet ihn 2026 als
+**−5** wieder. Die Differenz von genau 30 Tagen ist der Übertrag aus 2024, der
+beim Sprung verschwindet.
+
+In der lokalen Datenbank betroffen: **2 von 13** aktiven Mitarbeitern – nämlich
+die beiden mit Urlaubshistorie in 2024. Die übrigen elf haben keine, deshalb
+Differenz 0. Betroffen ist grundsätzlich jeder, der zwei Jahre hintereinander
+Resturlaub hatte.
+
+### Was ausgeschlossen ist
+Damit es niemand erneut prüft:
+
+- **Die Arithmetik stimmt.** Für alle 13 Mitarbeiter gilt
+  `anspruch + übertrag + korrektur − genommen − beantragt = verbleibend`
+  auf zwei Nachkommastellen. Keine negativen `genommen`, kein Anspruch ≤ 0.
+- **Der negative Übertrag ist gewollt**, nicht der Fehler – die Fachregel sagt
+  ausdrücklich „Negativer Rest wird nicht gekappt" (B-082).
+- **Der Rückfall aus P-2026-08-10-02 hat nie ausgelöst**: `system_log` enthält
+  null Einträge der Kategorie `urlaubservice`. Die Betriebsferien-Zählung ist
+  also nicht die Ursache. Dass dieser Pfad jetzt sichtbar ist, war trotzdem die
+  Voraussetzung dafür, ihn ausschliessen zu können.
+- **Kein Performanceproblem.** Die Rekursion geht genau eine Ebene tief;
+  ein Saldo braucht ~5 ms, dreizehn ~32 ms.
+
+### Nicht behoben – und warum
+Es geht um **Urlaubstage**, also um etwas mit Geldwert. Jeder der drei
+möglichen Wege ändert die Zahlen bestehender Mitarbeiter:
+
+1. **Kette rechnen** – Rekursion bis zum Eintrittsjahr. Ehrlich und ohne
+   Migration, ändert aber rückwirkend die angezeigten Salden.
+2. **Übertrag festschreiben** – beim Jahreswechsel einmalig nach
+   `urlaub_kontingent_jahr.uebertrag_tage`. Danach stabil, nachvollziehbar und
+   von Hand korrigierbar; braucht eine Migration für die Altjahre und eine
+   Entscheidung, welcher Wert für 2025/2026 gilt.
+3. **Nur die Anzeige klarstellen** – kleinster Eingriff, lässt die Tage aber
+   verschwunden.
+
+Die Arbeitsregeln verlangen für neue Fachlogik erst eine Spezifikation
+(§1). Diese Entscheidung gehört dem Betrieb, nicht dem Werkzeug.
+
+### TEST
+Kein Code geändert. Die Zahlen oben stammen aus einem Durchlauf über alle 13
+aktiven Mitarbeiter gegen die lokale Datenbank; es wurden keine Namen
+ausgegeben und nichts geschrieben.
+
+### Was bewusst nicht erreicht wurde
+Ob im **Produktivbestand** dieselbe Konstellation vorkommt, ist offen – die
+lokale Datenbank ist laut `docs/lokale_entwicklungsumgebung.md` in Teilen
+künstlich. Die Ursache liegt aber im Code, nicht in den Daten.
+
+### NEXT
+Entscheidung zu B-080 und B-093 einholen.
+
+
 ## P-2026-08-10-23 zugang-fail-safe-und-selbsttest-robuster
 
 ### EINGELESEN
