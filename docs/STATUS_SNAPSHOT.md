@@ -57,7 +57,10 @@ der Spezifikation** (Abschnitt 11) – hier bewusst nicht ein zweites Mal.
   oder tote Route entfernen.
 - **B-080:** Urlaubssaldo wirkt teils verwirrend (Nutzerrueckmeldung
   „Urlaubsberechnung stimmt nicht") – BF/Feiertage/Arbeitszeit-Abgrenzung
-  nochmals pruefen. Teilfix in P-2026-01-18-07.
+  nochmals pruefen. Teilfix in P-2026-01-18-07. Seit P-2026-08-10-02 meldet
+  sich der Rueckfall „Betriebsferien-Tage nicht zaehlbar" in `system_log`
+  (Kategorie `urlaubservice`) – vorher schwieg er. **Naechster Schritt: dort
+  nachsehen, bevor weiter gesucht wird.**
 
 ## Offene Tasks
 - **T-102 Buchungen tragen keine `terminal_id`.** Seit P-2026-08-09-01 steht die

@@ -1266,13 +1266,15 @@ class UrlaubService
                 $ende->format('Y-m-d')
             );
         } catch (\Throwable $e) {
-            if (class_exists('LoggerService')) {
-                (new LoggerService())->log('WARN', 'UrlaubService: Betriebsferien-Tage konnten nicht sauber gezaehlt werden (Fallback=0).', [
-                    'mitarbeiter_id' => $mitarbeiterId,
-                    'jahr'           => $jahr,
-                    'exception'      => $e->getMessage(),
-                ], $mitarbeiterId, null, 'urlaubservice');
-            }
+            // Rueckfall auf 0 Tage veraendert den Saldo sichtbar – das darf
+            // niemals stillschweigend passieren, sonst ist eine falsche
+            // Urlaubsberechnung hinterher nicht mehr nachvollziehbar.
+            Logger::warn('Urlaubssaldo: Betriebsferien-Tage konnten nicht gezaehlt werden (Rueckfall auf 0)', [
+                'mitarbeiter_id' => $mitarbeiterId,
+                'jahr'           => $jahr,
+                'exception'      => $e->getMessage(),
+            ], $mitarbeiterId, null, 'urlaubservice');
+
             $betriebsferienUrlaubTage = 0.0;
         }
 

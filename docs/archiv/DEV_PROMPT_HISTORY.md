@@ -70,6 +70,57 @@ in den Statusbericht.
   D-002 entfallen; die Regel selbst gilt weiter.)
 
 
+## P-2026-08-10-02 urlaubssaldo-rueckfall-meldet-sich
+
+### EINGELESEN
+- `services/UrlaubService.php`, Umgebung von `zaehleBetriebsferienArbeitstageFuerMitarbeiter()`.
+- `core/Logger.php` (Signatur der Log-Methoden).
+- `docs/STATUS_SNAPSHOT.md`, B-080.
+- Duplicate-Check: `git log -S"LoggerService"` – die Klasse wurde nie angelegt.
+
+### DATEIEN
+- `services/UrlaubService.php`
+- `docs/STATUS_SNAPSHOT.md`
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Scheitert die Betriebsferien-Zaehlung, steht ein `warn`-Eintrag mit
+Mitarbeiter-ID, Jahr und Ausnahmetext in `system_log`, statt dass
+stillschweigend mit 0 Tagen weitergerechnet wird.
+
+### DONE
+Der Fehlerzweig prueft mit `class_exists('LoggerService')` auf eine Klasse, die
+es im Repository **nie gab**. Die Bedingung war immer falsch. Konnte die
+Betriebsferien-Zaehlung nicht laufen, wurde ohne jede Spur mit **0 Tagen**
+weitergerechnet – und 0 Tage Betriebsferien veraendern den Urlaubssaldo
+sichtbar.
+
+Umgestellt auf `Logger::warn()`, wie im ganzen Projekt sonst auch. Die
+`class_exists`-Huelle faellt weg: `core/Logger.php` liegt im Autoloader-Pfad
+und ist immer da.
+
+### TEST
+`Logger::warn()` mit derselben Signatur gegen die lokale Datenbank aufgerufen:
+`system_log` mit Kategorie `urlaubservice` ging von 0 auf 1 Eintrag, Probe
+danach wieder entfernt. `php -l` sauber. `grep -rn LoggerService` liefert im
+ganzen Repository keinen Treffer mehr.
+
+### Gefundene Fehler im eigenen Entwurf
+Zuerst nur als „toter Zweig" eingeordnet und fast mit dem grossen
+`class_exists`-Aufraeumen (P-2026-08-10-2x) zusammengelegt. Das waere falsch
+gewesen: Die anderen 305 Stellen pruefen auf Klassen, die es **gibt** – dort
+aendert das Entfernen nichts am Verhalten. Hier war der Zweig echt tot und ein
+Fehlerpfad blieb unsichtbar. Das ist ein Bugfix und gehoert in einen eigenen
+Patch mit eigenem Test.
+
+### Was bewusst nicht erreicht wurde
+B-080 ist damit **nicht** behoben – nur beobachtbar gemacht. Ob der Rueckfall
+im Betrieb ueberhaupt eintritt, muss `system_log` zeigen.
+
+### NEXT
+P-2026-08-10-03: B-092, fehlende Methode `toggleAktiv()` bei Betriebsferien.
+
+
 ## P-2026-08-10-01 sql-maskierung-offline-queue
 
 ### EINGELESEN
