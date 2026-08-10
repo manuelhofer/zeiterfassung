@@ -70,6 +70,73 @@ in den Statusbericht.
   D-002 entfallen; die Regel selbst gilt weiter.)
 
 
+## P-2026-08-10-03 csrf-an-einer-stelle
+
+### EINGELESEN
+- Alle 14 Controller mit `holeOderErzeugeCsrfToken()`, im Vergleich gelesen.
+- `core/Helper.php` (Ablage fuer zentrale Kleinigkeiten), `core/Autoloader.php`.
+- Duplicate-Check: `git log -S"class Csrf"` – leer.
+
+### DATEIEN
+- `core/Csrf.php` (neu)
+- `controller/QueueController.php`
+- `controller/RollenAdminController.php`
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Queue-Admin und Rollenverwaltung speichern weiterhin, und ein Formular mit
+fehlendem oder fremdem Token wird abgewiesen.
+
+### DONE
+`holeOderErzeugeCsrfToken()` stand in **14 Controllern** als Kopie (15 Fassungen
+– `AuftragController` hatte zwei). Die Kopien waren nicht mehr gleich, und das
+ist der eigentliche Befund:
+
+- **Tokenlaenge:** meist `random_bytes(32)`, im `TerminalController` 16.
+- **Rueckfall:** meist `bin2hex((string)mt_rand())` – acht Hexzeichen,
+  vorhersagbar. Ein Schutz, der keiner ist, aber wie einer aussieht.
+  Im `TerminalController` stattdessen `random_int()`, das im `catch` von
+  `random_bytes()` mit derselben Wahrscheinlichkeit ebenfalls wirft.
+- **`\Throwable` vs. `Throwable`**, uneinheitlich.
+- Manche Kopien riefen `session_start()` erneut, manche nicht.
+
+Neu: `core/Csrf.php` mit `token()`, `istGueltig()` und `feld()`. Ein Token je
+**Bereich** – das entspricht den bisherigen `CSRF_KEY`-Konstanten und ist
+gewollt: Ein gemeinsames Token wuerde beim Neuladen einer Maske das Formular in
+einem zweiten Tab entwerten. Der schwache Rueckfall entfaellt ersatzlos: Kann
+das System keine Zufallszahlen liefern, ist das ein echter Fehler und soll
+auffallen.
+
+Umgestellt sind zuerst `QueueController` und `RollenAdminController`. Die
+uebrigen zwoelf folgen in eigenen Patches, damit jede umgestellte Maske einzeln
+angeklickt werden kann.
+
+### TEST
+Funktionsprobe gegen `core/Csrf.php`: Token 64 Hexzeichen; zwei Bereiche
+liefern verschiedene Tokens; zweiter Aufruf liefert dasselbe Token; richtiges
+Token gilt, fremdes/leeres/fehlendes gilt nicht. `php -l` ueber alle drei
+Dateien sauber.
+
+### Gefundene Fehler im eigenen Entwurf
+Erster Entwurf hatte einen Bereich `standard` als Vorgabewert. Das haette dazu
+verfuehrt, den Bereich beim Umstellen wegzulassen – und damit genau die
+Vermischung erzeugt, die der Bereichsname verhindern soll. Der Parameter ist
+jetzt Pflicht.
+
+Ausserdem aendert sich der Session-Schluessel von `queue_admin_csrf_token` zu
+`csrf_token_queue_admin`. Beim ersten Aufruf nach dem Update wird also ein
+neues Token erzeugt. Das ist harmlos, weil das Token ohnehin in der Session
+lebt – ein zum Update-Zeitpunkt offenes Formular muss aber einmal neu geladen
+werden.
+
+### Was bewusst nicht erreicht wurde
+`SmokeTestController` verwaltet sein Token noch von Hand ohne eigene Methode –
+kommt mit den uebrigen Controllern.
+
+### NEXT
+P-2026-08-10-04: B-092, `toggleAktiv()` bei Betriebsferien – nutzt `Csrf`.
+
+
 ## P-2026-08-10-02 urlaubssaldo-rueckfall-meldet-sich
 
 ### EINGELESEN

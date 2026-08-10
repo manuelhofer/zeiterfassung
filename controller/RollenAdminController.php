@@ -8,7 +8,8 @@ declare(strict_types=1);
  */
 class RollenAdminController
 {
-    private const CSRF_KEY = 'rollen_admin_csrf_token';
+    /** Bereichsname fuer `Csrf` – siehe `core/Csrf.php`. */
+    private const CSRF_BEREICH = 'rollen_admin';
 
     private AuthService $authService;
     private RolleModel $rolleModel;
@@ -58,27 +59,6 @@ class RollenAdminController
         return false;
     }
 
-    /**
-     * Holt oder erzeugt ein CSRF-Token für Rollen-POST-Formulare.
-     */
-    private function holeOderErzeugeCsrfToken(): string
-    {
-        if (session_status() === PHP_SESSION_NONE) {
-            session_start();
-        }
-
-        $token = $_SESSION[self::CSRF_KEY] ?? null;
-        if (!is_string($token) || $token === '') {
-            try {
-                $token = bin2hex(random_bytes(32));
-            } catch (\Throwable) {
-                $token = bin2hex((string)mt_rand());
-            }
-            $_SESSION[self::CSRF_KEY] = $token;
-        }
-
-        return (string)$token;
-    }
 
     /**
      * Platzhalter: Liste aller Rollen.
@@ -129,7 +109,7 @@ class RollenAdminController
         $rechteAlle = $this->rolleModel->holeAlleRechte(true);
         $rolleRechtIds = $id > 0 ? $this->rolleModel->holeRechtIdsFuerRolle($id) : [];
 
-        $csrfToken = $this->holeOderErzeugeCsrfToken();
+        $csrfToken = Csrf::token(self::CSRF_BEREICH);
 
         require __DIR__ . '/../views/rolle/formular.php';
     }
@@ -143,9 +123,8 @@ class RollenAdminController
             return;
         }
 
-        $csrfToken = $this->holeOderErzeugeCsrfToken();
-        $postToken = isset($_POST['csrf_token']) ? (string)$_POST['csrf_token'] : '';
-        if (!hash_equals($csrfToken, $postToken)) {
+        $csrfToken = Csrf::token(self::CSRF_BEREICH);
+        if (!Csrf::istGueltig(self::CSRF_BEREICH)) {
             http_response_code(400);
 
             // Für Neu/Bearbeiten wieder laden

@@ -12,7 +12,9 @@ declare(strict_types=1);
  */
 class QueueController
 {
-    private const CSRF_KEY = 'queue_admin_csrf_token';
+    /** Bereichsname fuer `Csrf` – siehe `core/Csrf.php`. */
+    private const CSRF_BEREICH = 'queue_admin';
+
     private const FLASH_REPORT_KEY = 'queue_admin_flash_report';
 
     private AuthService $authService;
@@ -24,28 +26,6 @@ class QueueController
         $this->authService = AuthService::getInstanz();
         $this->queueService = QueueService::getInstanz();
         $this->datenbank     = Database::getInstanz();
-    }
-
-    /**
-     * Holt oder erzeugt ein CSRF-Token für Queue-Admin-POST-Formulare.
-     */
-    private function holeOderErzeugeCsrfToken(): string
-    {
-        if (session_status() === PHP_SESSION_NONE) {
-            session_start();
-        }
-
-        $token = $_SESSION[self::CSRF_KEY] ?? null;
-        if (!is_string($token) || $token === '') {
-            try {
-                $token = bin2hex(random_bytes(32));
-            } catch (\Throwable) {
-                $token = bin2hex((string)mt_rand());
-            }
-            $_SESSION[self::CSRF_KEY] = $token;
-        }
-
-        return (string)$token;
     }
 
     /**
@@ -332,7 +312,7 @@ class QueueController
         $status = in_array($status, ['offen', 'verarbeitet', 'fehler'], true) ? $status : 'offen';
 
         // CSRF-Token für die View.
-        $csrfToken = $this->holeOderErzeugeCsrfToken();
+        $csrfToken = Csrf::token(self::CSRF_BEREICH);
 
         // Admin-Aktionen (POST + CSRF):
         // - Queue verarbeiten (manuell anstoßen)
@@ -342,8 +322,7 @@ class QueueController
             $aktion = isset($_POST['aktion']) ? (string)$_POST['aktion'] : '';
             $id     = isset($_POST['id']) ? (int)$_POST['id'] : 0;
 
-            $postToken = isset($_POST['csrf_token']) ? (string)$_POST['csrf_token'] : '';
-            if (!hash_equals($csrfToken, $postToken)) {
+            if (!Csrf::istGueltig(self::CSRF_BEREICH)) {
                 header('Location: ?seite=queue_admin&status=' . urlencode($status) . '&meldung=csrf_ungueltig');
                 exit;
             }
