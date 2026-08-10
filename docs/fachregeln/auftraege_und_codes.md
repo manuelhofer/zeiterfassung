@@ -64,6 +64,10 @@ Auftragsnummer, Kunde, Zeichnungsnummer und Kurzbeschreibung. Wer „Muster GmbH
 im Kopf hat, tippt das und soll nicht vorher entscheiden müssen, in welcher
 Spalte es steht. `%` und `_` werden maskiert und suchen sich selbst.
 
+Die Liste zeigt **25 Aufträge je Seite**. Seitenzahlen stehen immer darunter,
+die Sprungpfeile (Anfang, zurück, vor, Ende) ab fünf Seiten. Suche, Ansicht und
+Seitenzahl bleiben beim Blättern und beim Umschalten erhalten.
+
 **`aktiv = 0` heisst „aus dem Weg", nicht „weg".** Die Auftragsliste zeigt nur
 aktive Aufträge; die inaktiven stehen unter `?seite=auftrag&ansicht=inaktiv` und
 sind von dort mit einem Klick zurückzuholen. Umgestellt wird direkt in der

@@ -70,6 +70,81 @@ in den Statusbericht.
   D-002 entfallen; die Regel selbst gilt weiter.)
 
 
+## P-2026-08-10-36 auftragsliste-blaettern
+
+### EINGELESEN
+- `controller/AuftragController.php::index()` nach P-2026-08-10-35.
+- `core/Database.php`, `fetchEine`/`fetchAlle` und die PDO-Attribute.
+
+### DATEIEN
+- `controller/AuftragController.php`
+- `docs/fachregeln/auftraege_und_codes.md`
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Bei 162 Aufträgen zeigt die Liste 25 Zeilen, darunter „1–25 von 162
+Auftraegen", und `?seite=auftrag&s=7` zeigt die letzten 12.
+
+### DONE
+Die Liste war bei `LIMIT 200` hart abgeschnitten – ohne Hinweis, dass etwas
+fehlt. Jetzt 25 Zeilen je Seite mit Blätternavigation darunter:
+
+- **Seitenzahlen** immer, mit einem Fenster von drei Seiten um die aktuelle und
+  Auslassungspunkten zu Anfang und Ende (`1 … 4 5 6 7`).
+- **Sprungpfeile** `«` (Anfang), `‹` (zurück), `›` (vor), `»` (Ende) erst ab
+  fünf Seiten. Bei vier Seiten stehen ohnehin alle Zahlen da; Pfeile waeren nur
+  ein zweiter Weg zum selben Ziel. Am Rand sind sie ausgegraut statt versteckt,
+  damit die Zeile nicht springt.
+- **Trefferzeile** „26–50 von 162 Auftraegen" – die Zahl ist die eigentliche
+  Auskunft, die vorher fehlte.
+
+Gezählt wird mit einer eigenen Abfrage über dieselbe Grundmenge, aber **ohne**
+den Join auf `auftragszeit`: Gefiltert wird nur über `nummern` und `auftrag`, und
+je Auftragsnummer gibt es dort genau eine Zeile. Der UNION-Block steht deshalb
+nur einmal im Code und wird von beiden Abfragen benutzt.
+
+Suche, Ansicht und Seite überleben jede Aktion: Die Blätterlinks tragen `q` und
+`ansicht` mit, das Umschalten aktiv/inaktiv kehrt auf dieselbe Seite zurück, und
+eine neue Suche beginnt wieder bei Seite 1.
+
+### TEST
+Mit 162 angelegten Testaufträgen:
+
+- Seite 1 und 2 je 25 Zeilen, Seite 7 zwölf Zeilen.
+- `s=99` landet auf Seite 7 statt auf einer leeren Liste; `s=0` und `s=-5` auf
+  Seite 1.
+- Bei 3 Seiten (62 Aufträge) erscheinen nur Zahlen, keine Pfeile; ab 7 Seiten
+  sind die Pfeile da.
+- Auf Seite 1 sind `«` und `‹` deaktivierte `span`, auf Seite 7 sind es
+  `›` und `»`.
+- Fenster geprüft: Seite 1 → `1 2 3 4 … 7`, Seite 5 → alle Zahlen, Seite 7 →
+  `1 … 4 5 6 7`.
+- Suche `Blaetterei` mit `s=2`: 160 Treffer, Blätterlinks enthalten `q`.
+- Inaktiv-Ansicht: „1 Auftrag", keine Navigation.
+- Testdaten danach entfernt, Bestand wieder 3 Aufträge.
+- `php -l` sauber, keine Meldungen im Seitenaufbau.
+
+### Gefundene Fehler im eigenen Entwurf
+`LIMIT :limit OFFSET :offset` als Platzhalter geht hier **nicht**: Ohne
+Emulation (`ATTR_EMULATE_PREPARES = false`) bindet PDO die Werte aus einem
+assoziativen Array als Zeichenkette, und `LIMIT '25'` ist ein Syntaxfehler. Beide
+Werte stehen jetzt als geprüfte Ganzzahl in der Abfrage, mit Begründung als
+Kommentar – sonst baut der Nächste den Platzhalter wieder ein.
+
+Ausserdem hatte der erste Entwurf die Zählabfrage aus derselben Zeichenkette
+gebaut wie die Datenabfrage, samt `LEFT JOIN auftragszeit`. Das haette bei
+mehreren Buchungen je Auftrag zu hohe Trefferzahlen geliefert.
+
+### Was bewusst nicht erreicht wurde
+Keine wählbare Seitengrösse und keine Sortierung per Spaltenkopf. Beides ist
+sinnvoll, aber jeweils ein eigenes Thema; die Reihenfolge bleibt „zuletzt
+gebucht zuerst".
+
+### NEXT
+Rückmeldung aus dem Praxis-Test: Die Suche soll auch inaktive Aufträge finden,
+und die Bedienelemente der Liste sollen einheitlich als Knöpfe aussehen.
+
+
 ## P-2026-08-10-35 inaktive-auftraege-aus-der-liste
 
 ### EINGELESEN

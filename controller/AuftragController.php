@@ -21,6 +21,23 @@ class AuftragController
         private const CSRF_BEREICH_STAMM = 'auftrag_stamm';
 
     /**
+     * Zeilen je Seite in der Auftragsliste.
+     *
+     * 25 passt auf einen Bildschirm, ohne dass gescrollt werden muss – und
+     * begrenzt zugleich, wie viel eine Suche über mehrere tausend Aufträge
+     * überhaupt zusammensuchen muss.
+     */
+    private const TREFFER_JE_SEITE = 25;
+
+    /**
+     * Ab wie vielen Seiten die Sprungpfeile erscheinen.
+     *
+     * Bei vier Seiten sind alle Seitenzahlen ohnehin sichtbar; Pfeile waeren
+     * dann nur ein zweiter Weg zum selben Ziel.
+     */
+    private const PFEILE_AB_SEITEN = 5;
+
+    /**
      * Auswählbare Auftragsstatus.
      *
      * Bewusst eine feste Liste statt eines Freitextfelds: Frei eingetippte
@@ -122,9 +139,16 @@ class AuftragController
             $like = '%' . $q2 . '%';
         }
 
+        $seiteNr = (int)($_GET['s'] ?? 1);
+        if ($seiteNr < 1) {
+            $seiteNr = 1;
+        }
+
         $fehlermeldung = null;
         $auftraege = [];
         $anzahlInaktive = $this->zaehleInaktiveAuftraege();
+        $treffer = 0;
+        $seitenGesamt = 1;
 
         try {
             $bedingungen = [];
@@ -168,7 +192,38 @@ class AuftragController
             // Backend angelegter Auftrag ohne Buchung war damit unsichtbar. Über
             // die UNION-Grundmenge erscheint er sofort - mit 0 Buchungen und dem
             // Status "angelegt".
-            //
+            $nummern = "
+                (
+                    SELECT auftragsnummer AS auftragsnummer
+                      FROM auftrag
+                     WHERE auftragsnummer IS NOT NULL AND auftragsnummer <> ''
+                    UNION
+                    SELECT DISTINCT az2.auftragscode
+                      FROM auftragszeit az2
+                     WHERE az2.auftragscode IS NOT NULL AND az2.auftragscode <> ''
+                ) AS nummern
+                LEFT JOIN auftrag a
+                       ON a.auftragsnummer = nummern.auftragsnummer
+            ";
+
+            // Erst zaehlen, dann die eine Seite holen. Der Zaehler kommt ohne die
+            // Buchungen aus: Gefiltert wird nur ueber `nummern` und `a`, und je
+            // Auftragsnummer gibt es dort genau eine Zeile.
+            $anzahlZeile = $this->db->fetchEine("SELECT COUNT(*) AS anzahl FROM {$nummern} {$where}", $params);
+            $treffer = is_array($anzahlZeile) ? (int)($anzahlZeile['anzahl'] ?? 0) : 0;
+
+            $seitenGesamt = (int)max(1, (int)ceil($treffer / self::TREFFER_JE_SEITE));
+            if ($seiteNr > $seitenGesamt) {
+                $seiteNr = $seitenGesamt;
+            }
+
+            // LIMIT/OFFSET stehen als Zahl in der Abfrage, nicht als Platzhalter:
+            // Ohne Emulation praeparierte Statements binden sie als Zeichenkette
+            // (`LIMIT '25'`), und das ist ein Syntaxfehler. Beide Werte sind hier
+            // nachweislich ganzzahlig.
+            $limit  = self::TREFFER_JE_SEITE;
+            $offset = ($seiteNr - 1) * self::TREFFER_JE_SEITE;
+
             // Alle Spalten sind aggregiert (MAX/COUNT/SUM), damit die Abfrage auch
             // unter ONLY_FULL_GROUP_BY läuft (vgl. B-085 / P-2026-01-25-02).
             $sql = "
@@ -191,24 +246,14 @@ class AuftragController
                     MIN(az.startzeit) AS erste_startzeit,
                     MAX(COALESCE(az.endzeit, az.startzeit)) AS letzte_zeit,
                     COALESCE(MAX(a.geaendert_am), MAX(COALESCE(az.endzeit, az.startzeit))) AS zuletzt_bearbeitet
-                FROM (
-                    SELECT auftragsnummer AS auftragsnummer
-                      FROM auftrag
-                     WHERE auftragsnummer IS NOT NULL AND auftragsnummer <> ''
-                    UNION
-                    SELECT DISTINCT az2.auftragscode
-                      FROM auftragszeit az2
-                     WHERE az2.auftragscode IS NOT NULL AND az2.auftragscode <> ''
-                ) AS nummern
-                LEFT JOIN auftrag a
-                       ON a.auftragsnummer = nummern.auftragsnummer
+                FROM {$nummern}
                 LEFT JOIN auftragszeit az
                        ON az.auftragscode = nummern.auftragsnummer
                        OR (a.id IS NOT NULL AND az.auftrag_id = a.id)
                 {$where}
                 GROUP BY nummern.auftragsnummer
                 ORDER BY COALESCE(MAX(COALESCE(az.endzeit, az.startzeit)), MAX(a.geaendert_am)) DESC
-                LIMIT 200
+                LIMIT {$limit} OFFSET {$offset}
             ";
 
             $auftraege = $this->db->fetchAlle($sql, $params);
@@ -366,6 +411,7 @@ class AuftragController
                                                 <input type="hidden" name="aktiv" value="<?php echo $nurInaktive ? '1' : '0'; ?>">
                                                 <input type="hidden" name="q" value="<?php echo htmlspecialchars($q, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>">
                                                 <input type="hidden" name="ansicht" value="<?php echo $nurInaktive ? 'inaktiv' : ''; ?>">
+                                                <input type="hidden" name="s" value="<?php echo $seiteNr; ?>">
                                                 <button type="submit" style="border:none;background:none;padding:0;color:#2b6cb0;text-decoration:underline;cursor:pointer;font:inherit;">
                                                     <?php echo $nurInaktive ? 'Aktiv setzen' : 'Inaktiv setzen'; ?>
                                                 </button>
@@ -379,6 +425,8 @@ class AuftragController
                         <?php endforeach; ?>
                     </tbody>
                 </table>
+
+                <?php $this->zeigeBlaetternavigation($seiteNr, $seitenGesamt, $treffer, $q, $nurInaktive); ?>
 
                 <p style="margin-top: 0.75rem;">
                     <small>
@@ -417,7 +465,8 @@ class AuftragController
 
         $zielUrl = $this->baueListenUrl(
             trim((string)($_POST['q'] ?? '')),
-            ((string)($_POST['ansicht'] ?? '')) === 'inaktiv'
+            ((string)($_POST['ansicht'] ?? '')) === 'inaktiv',
+            max(1, (int)($_POST['s'] ?? 1))
         );
 
         if (!Csrf::istGueltig(self::CSRF_BEREICH_STAMM)) {
@@ -477,6 +526,98 @@ class AuftragController
     }
 
     /**
+     * Blätternavigation unter der Auftragsliste.
+     *
+     * Die Seitenzahlen stehen immer da. Die Sprungpfeile (Anfang, zurueck, vor,
+     * Ende) kommen erst ab `PFEILE_AB_SEITEN` dazu - bei vier Seiten sind alle
+     * Zahlen ohnehin sichtbar.
+     */
+    private function zeigeBlaetternavigation(
+        int $seiteNr,
+        int $seitenGesamt,
+        int $treffer,
+        string $q,
+        bool $nurInaktive
+    ): void {
+        $esc = static function ($wert): string {
+            return htmlspecialchars((string)$wert, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+        };
+
+        $von = (($seiteNr - 1) * self::TREFFER_JE_SEITE) + 1;
+        $bis = min($seiteNr * self::TREFFER_JE_SEITE, $treffer);
+
+        $url = fn (int $ziel): string => $esc($this->baueListenUrl($q, $nurInaktive, $ziel));
+
+        // Wieviele Zahlen um die aktuelle Seite herum stehen. Bei sehr vielen
+        // Seiten wuerde die Zeile sonst umbrechen und unlesbar werden.
+        $fenster = 3;
+        $ersteZahl = max(1, $seiteNr - $fenster);
+        $letzteZahl = min($seitenGesamt, $seiteNr + $fenster);
+
+        $mitPfeilen = $seitenGesamt >= self::PFEILE_AB_SEITEN;
+
+        $knopf = 'display:inline-block;padding:4px 9px;border:1px solid #cfd8dc;border-radius:4px;'
+               . 'background:#fff;color:#2b6cb0;text-decoration:none;min-width:1.6rem;text-align:center;';
+        $knopfAktiv = 'display:inline-block;padding:4px 9px;border:1px solid #2b6cb0;border-radius:4px;'
+                    . 'background:#2b6cb0;color:#fff;min-width:1.6rem;text-align:center;font-weight:600;';
+        $knopfAus = 'display:inline-block;padding:4px 9px;border:1px solid #e0e0e0;border-radius:4px;'
+                  . 'background:#f5f5f5;color:#9e9e9e;min-width:1.6rem;text-align:center;';
+        ?>
+        <nav style="margin-top:0.75rem;display:flex;gap:0.35rem;align-items:center;flex-wrap:wrap;">
+            <span style="margin-right:0.5rem;">
+                <?php echo $treffer === 1
+                    ? '1 Auftrag'
+                    : $von . '&ndash;' . $bis . ' von ' . $treffer . ' Auftraegen'; ?>
+            </span>
+
+            <?php if ($seitenGesamt > 1): ?>
+                <?php if ($mitPfeilen): ?>
+                    <?php if ($seiteNr > 1): ?>
+                        <a href="<?php echo $url(1); ?>" style="<?php echo $knopf; ?>" title="Erste Seite">&laquo;</a>
+                        <a href="<?php echo $url($seiteNr - 1); ?>" style="<?php echo $knopf; ?>" title="Eine Seite zurueck">&lsaquo;</a>
+                    <?php else: ?>
+                        <span style="<?php echo $knopfAus; ?>">&laquo;</span>
+                        <span style="<?php echo $knopfAus; ?>">&lsaquo;</span>
+                    <?php endif; ?>
+                <?php endif; ?>
+
+                <?php if ($ersteZahl > 1): ?>
+                    <a href="<?php echo $url(1); ?>" style="<?php echo $knopf; ?>">1</a>
+                    <?php if ($ersteZahl > 2): ?><span>&hellip;</span><?php endif; ?>
+                <?php endif; ?>
+
+                <?php for ($i = $ersteZahl; $i <= $letzteZahl; $i++): ?>
+                    <?php if ($i === $seiteNr): ?>
+                        <span style="<?php echo $knopfAktiv; ?>"><?php echo $i; ?></span>
+                    <?php else: ?>
+                        <a href="<?php echo $url($i); ?>" style="<?php echo $knopf; ?>"><?php echo $i; ?></a>
+                    <?php endif; ?>
+                <?php endfor; ?>
+
+                <?php if ($letzteZahl < $seitenGesamt): ?>
+                    <?php if ($letzteZahl < $seitenGesamt - 1): ?><span>&hellip;</span><?php endif; ?>
+                    <a href="<?php echo $url($seitenGesamt); ?>" style="<?php echo $knopf; ?>"><?php echo $seitenGesamt; ?></a>
+                <?php endif; ?>
+
+                <?php if ($mitPfeilen): ?>
+                    <?php if ($seiteNr < $seitenGesamt): ?>
+                        <a href="<?php echo $url($seiteNr + 1); ?>" style="<?php echo $knopf; ?>" title="Eine Seite vor">&rsaquo;</a>
+                        <a href="<?php echo $url($seitenGesamt); ?>" style="<?php echo $knopf; ?>" title="Letzte Seite">&raquo;</a>
+                    <?php else: ?>
+                        <span style="<?php echo $knopfAus; ?>">&rsaquo;</span>
+                        <span style="<?php echo $knopfAus; ?>">&raquo;</span>
+                    <?php endif; ?>
+                <?php endif; ?>
+
+                <span style="margin-left:0.5rem;color:#666;">
+                    <small>Seite <?php echo $seiteNr; ?> von <?php echo $seitenGesamt; ?></small>
+                </span>
+            <?php endif; ?>
+        </nav>
+        <?php
+    }
+
+    /**
      * Wie viele Auftraege sind auf inaktiv gesetzt?
      *
      * Nur fuer die Beschriftung des Links. Faellt die Abfrage aus, steht dort
@@ -500,7 +641,7 @@ class AuftragController
      * Rueckleitungsziel, das aus dem Formular kommt, waere eine offene
      * Weiterleitung.
      */
-    private function baueListenUrl(string $q, bool $nurInaktive): string
+    private function baueListenUrl(string $q, bool $nurInaktive, int $seiteNr = 1): string
     {
         $parameter = ['seite' => 'auftrag'];
 
@@ -510,6 +651,10 @@ class AuftragController
 
         if ($q !== '') {
             $parameter['q'] = $q;
+        }
+
+        if ($seiteNr > 1) {
+            $parameter['s'] = $seiteNr;
         }
 
         return '?' . http_build_query($parameter);
