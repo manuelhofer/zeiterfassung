@@ -70,6 +70,45 @@ in den Statusbericht.
   D-002 entfallen; die Regel selbst gilt weiter.)
 
 
+## P-2026-08-10-06 qr-bibliothek-entfernt
+
+### EINGELESEN
+- `services/MaschineQrCodeService.php` nach P-2026-08-10-05.
+- Vollstaendige Suche nach `QRcode`, `qrlib`, `phpqrcode` im Projektcode.
+
+### DATEIEN
+- `services/phpqrcode/` (13 Dateien, geloescht)
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Maschinen-Strichcodes werden weiterhin erzeugt und Backend wie Terminal starten
+fehlerfrei, obwohl die QR-Bibliothek nicht mehr im Repository liegt.
+
+### DONE
+`services/phpqrcode/` war nach P-2026-08-10-05 ohne Aufrufer – 3.562 Zeilen
+einer Bibliothek von 2010, die bei jeder Suche im Projekt mitgelesen wurde und
+bei jedem PHP-Sprung als Deprecation-Kandidat mitgeprueft werden musste.
+
+Sie wurde ueber `require_once` geladen, nicht ueber den Autoloader; die einzige
+Ladestelle war `MaschineQrCodeService::ladeBibliothek()`, die im Vorpatch
+entfallen ist.
+
+### TEST
+- Strichcode-Ausgabe nach dem Loeschen: 200 Byte PNG, gueltige Signatur.
+- `erzeugeMaschinenBarcode()` legt die Datei an (182 B), Probe entfernt.
+- Ueber den lokalen Webserver: `index.php` 200, `terminal.php` 200,
+  `terminal.php?aktion=health` 200.
+- `php -l` sauber.
+
+### Was bewusst nicht erreicht wurde
+Sollte je wieder ein QR-Code gebraucht werden, kommt die Bibliothek nicht
+zurueck – dann waere eine gepflegte Fassung die richtige Wahl. Der alte Stand
+bleibt ueber `git log` erreichbar.
+
+### NEXT
+Phase 2 des Aufraeumplans: Kaltstart verkleinern (A-1 bis A-5).
+
+
 ## P-2026-08-10-05 kein-qr-rueckfall-bei-maschinencodes
 
 ### EINGELESEN
