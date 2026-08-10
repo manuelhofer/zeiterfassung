@@ -288,6 +288,11 @@ try {
             $controller->speichern();
             break;
 
+        case 'auftrag_aktiv_setzen':
+            $controller = new AuftragController();
+            $controller->aktivSetzen();
+            break;
+
         case 'arbeitsschritt_katalog':
             $controller = new ArbeitsschrittKatalogController();
             $controller->index();

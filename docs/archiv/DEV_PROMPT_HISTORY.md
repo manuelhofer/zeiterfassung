@@ -70,6 +70,83 @@ in den Statusbericht.
   D-002 entfallen; die Regel selbst gilt weiter.)
 
 
+## P-2026-08-10-35 inaktive-auftraege-aus-der-liste
+
+### EINGELESEN
+- `controller/AuftragController.php::index()` und die Rechteprüfungen am
+  Dateiende.
+- `public/index.php`, Routen `auftrag_*`.
+- `core/Csrf.php`, Bereichs-Token.
+- `docs/fachregeln/auftraege_und_codes.md`, Abschnitt 4.
+
+### DATEIEN
+- `controller/AuftragController.php`
+- `public/index.php`
+- `docs/fachregeln/auftraege_und_codes.md`
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Wer in der Auftragsliste bei `A-2026-0999` auf „Inaktiv setzen" klickt, sieht
+die Zeile dort nicht mehr – und findet sie unverändert unter „Inaktive
+Auftraege" wieder.
+
+### DONE
+Die Liste wuchs bisher nur. Ein erledigter Auftrag von 2024 stand neben dem von
+heute, und die einzige Abhilfe waere Löschen gewesen – mit dem Verlust der
+Stunden, die daran hängen.
+
+Jetzt gibt es zwei Ansichten auf dieselbe Liste:
+
+- **`?seite=auftrag`** zeigt aktive Aufträge. Dazu zählen ausdrücklich auch
+  Auftragsnummern **ohne** Stammdatensatz (`a.aktiv IS NULL`) – die stammen
+  allein aus Buchungen und waeren sonst nirgends zu sehen.
+- **`?seite=auftrag&ansicht=inaktiv`** zeigt die abgelegten. Der Link steht oben
+  neben „+ Auftrag hinzufuegen", mit der Anzahl in Klammern.
+
+Umgestellt wird in der Aktionsspalte neben „Details" – ein POST mit
+Bereichs-Token, sichtbar nur mit `AUFTRAEGE_VERWALTEN`. Die Suche gilt in beiden
+Ansichten und bleibt beim Umschalten erhalten.
+
+Das Rückleitungsziel wird aus `q` und `ansicht` **neu gebaut**, nicht aus dem
+Formular übernommen: Ein mitgeschicktes Ziel waere eine offene Weiterleitung.
+
+Sonderfall Auftragsnummer ohne Stammdatensatz: Dort gibt es nichts, woran
+„inaktiv" haengen koennte. Statt den Knopf zu verstecken, legt die Aktion den
+Stammdatensatz an (`INSERT auftragsnummer, aktiv`) – sonst liesse sich genau die
+Zeile nicht ausblenden, die stört.
+
+### TEST
+- Ausgangslage 3 Aufträge, davon `A-2026-0999` inaktiv: normale Liste 2 Zeilen,
+  Inaktiv-Ansicht 1 Zeile, Link zeigt „Inaktive Auftraege (1)".
+- `A-2026-0815` inaktiv gesetzt → Meldung „ist jetzt inaktiv und aus der Liste
+  verschwunden", Zeile verschwunden, in der Inaktiv-Ansicht vorhanden.
+- Aus der Inaktiv-Ansicht wieder aktiv gesetzt → „ist wieder aktiv", Zeile zurück
+  in der normalen Liste.
+- POST ohne gültiges Token → „Die Sitzung ist abgelaufen", Datenbank unverändert.
+- Buchung auf `TEST-NUR-BUCHUNG` angelegt (keine Stammdaten): Zeile erscheint,
+  „Inaktiv setzen" legt den Stammdatensatz mit `aktiv=0` an, Zeile verschwindet
+  aus der normalen Liste und steht in der Inaktiv-Ansicht. Testdaten danach
+  entfernt, Bestand wieder 3 Aufträge und 1 Buchung.
+- `php -l` auf beiden geänderten Dateien sauber, keine Meldungen im Seitenaufbau.
+
+### Gefundene Fehler im eigenen Entwurf
+Der erste Entwurf filterte schlicht auf `a.aktiv = 1`. Damit waeren alle
+Auftragsnummern verschwunden, die nur aus Buchungen stammen – ausgerechnet die,
+die das Terminal ohne Rückfrage anlegt. `a.aktiv IS NULL` gehört zur aktiven
+Menge.
+
+### Was bewusst nicht erreicht wurde
+Kein Massenumschalten über Auswahlkästchen. Das lohnt erst, wenn nach einem
+Jahreswechsel dreissig Aufträge auf einmal abgelegt werden – bis dahin ist ein
+Knopf je Zeile ehrlicher.
+
+Die Detailansicht bekommt keinen eigenen Umschalter; dort erledigt das weiterhin
+das Häkchen „Aktiv" im Bearbeiten-Formular.
+
+### NEXT
+Blättern: Die Liste ist weiterhin bei 200 Zeilen hart abgeschnitten.
+
+
 ## P-2026-08-10-34 auftragssuche-ueber-alle-felder
 
 ### EINGELESEN

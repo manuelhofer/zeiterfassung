@@ -64,6 +64,13 @@ Auftragsnummer, Kunde, Zeichnungsnummer und Kurzbeschreibung. Wer „Muster GmbH
 im Kopf hat, tippt das und soll nicht vorher entscheiden müssen, in welcher
 Spalte es steht. `%` und `_` werden maskiert und suchen sich selbst.
 
+**`aktiv = 0` heisst „aus dem Weg", nicht „weg".** Die Auftragsliste zeigt nur
+aktive Aufträge; die inaktiven stehen unter `?seite=auftrag&ansicht=inaktiv` und
+sind von dort mit einem Klick zurückzuholen. Umgestellt wird direkt in der
+Liste (Recht `AUFTRAEGE_VERWALTEN`). Eine Auftragsnummer, die nur aus Buchungen
+stammt, bekommt dabei ihren Stammdatensatz – sonst liesse sich genau die Zeile
+nicht ausblenden, die stört.
+
 **`auftragszeit`:** `mitarbeiter_id`, `auftrag_id` bzw. `auftragscode`,
 `arbeitsschritt_code`, `maschine_id`, `terminal_id`, `typ` (`haupt`/`neben`),
 `startzeit`, `endzeit`, `status`, `kommentar`, Timestamps.

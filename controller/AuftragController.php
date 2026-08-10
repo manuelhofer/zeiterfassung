@@ -110,6 +110,11 @@ class AuftragController
 
         $q = trim((string)($_GET['q'] ?? ''));
 
+        // Zwei Ansichten auf dieselbe Liste. Erledigte Auftraege werden auf
+        // inaktiv gesetzt und verschwinden damit aus dem Alltag - geloescht wird
+        // dabei nichts, die Buchungen bleiben zuordenbar.
+        $nurInaktive = ((string)($_GET['ansicht'] ?? '')) === 'inaktiv';
+
         $like = null;
         if ($q !== '') {
             // LIKE-Pattern defensiv escapen
@@ -119,10 +124,19 @@ class AuftragController
 
         $fehlermeldung = null;
         $auftraege = [];
+        $anzahlInaktive = $this->zaehleInaktiveAuftraege();
 
         try {
-            $where = '';
+            $bedingungen = [];
             $params = [];
+
+            // Eine Auftragsnummer ohne Stammdatensatz (`a.aktiv IS NULL`) stammt
+            // allein aus Buchungen. Sie gilt als aktiv, sonst waere sie nirgends
+            // zu sehen.
+            $bedingungen[] = $nurInaktive
+                ? 'a.aktiv = 0'
+                : '(a.aktiv IS NULL OR a.aktiv = 1)';
+
             if ($like !== null) {
                 // Gefiltert wird auf der Grundmenge der Auftragsnummern und den
                 // Stammdaten, nicht auf den verbundenen Buchungen. Sonst faende
@@ -135,15 +149,17 @@ class AuftragController
                 // Vier Platzhalter für denselben Wert, weil die Verbindung ohne
                 // Emulation praepariert (`ATTR_EMULATE_PREPARES = false`): Ein
                 // benannter Platzhalter darf dort nur einmal vorkommen.
-                $where = 'WHERE (nummern.auftragsnummer LIKE :q1 ESCAPE "\\\\"
-                              OR a.kunde LIKE :q2 ESCAPE "\\\\"
-                              OR a.zeichnungsnummer LIKE :q3 ESCAPE "\\\\"
-                              OR a.kurzbeschreibung LIKE :q4 ESCAPE "\\\\")';
+                $bedingungen[] = '(nummern.auftragsnummer LIKE :q1 ESCAPE "\\\\"
+                               OR a.kunde LIKE :q2 ESCAPE "\\\\"
+                               OR a.zeichnungsnummer LIKE :q3 ESCAPE "\\\\"
+                               OR a.kurzbeschreibung LIKE :q4 ESCAPE "\\\\")';
                 $params['q1'] = $like;
                 $params['q2'] = $like;
                 $params['q3'] = $like;
                 $params['q4'] = $like;
             }
+
+            $where = 'WHERE ' . implode(' AND ', $bedingungen);
 
             // Grundmenge sind alle bekannten Auftragsnummern - aus den Stammdaten
             // (`auftrag`) UND aus den Buchungen (`auftragszeit`).
@@ -204,10 +220,13 @@ class AuftragController
             ], null, null, 'auftrag');
         }
 
+        $darfVerwaltenListe = $this->darfAuftraegeVerwalten();
+        $listenCsrf = Csrf::token(self::CSRF_BEREICH_STAMM);
+
         require __DIR__ . '/../views/layout/header.php';
         ?>
         <section>
-            <h2>Auftraege</h2>
+            <h2><?php echo $nurInaktive ? 'Inaktive Auftraege' : 'Auftraege'; ?></h2>
 
             <?php
                 $flashFehlerListe = isset($_SESSION['auftrag_flash_fehler']) ? (string)$_SESSION['auftrag_flash_fehler'] : '';
@@ -225,16 +244,33 @@ class AuftragController
                 </p>
             <?php endif; ?>
 
-            <?php if ($this->darfAuftraegeVerwalten()): ?>
-                <p>
-                    <a href="?seite=auftrag_neu" style="display:inline-block;padding:6px 12px;border:1px solid #2b6cb0;border-radius:4px;background:#2b6cb0;color:#fff;text-decoration:none;">
-                        + Auftrag hinzufuegen
+            <p style="display:flex;gap:1rem;align-items:center;flex-wrap:wrap;">
+                <?php if (!$nurInaktive): ?>
+                    <?php if ($darfVerwaltenListe): ?>
+                        <a href="?seite=auftrag_neu" style="display:inline-block;padding:6px 12px;border:1px solid #2b6cb0;border-radius:4px;background:#2b6cb0;color:#fff;text-decoration:none;">
+                            + Auftrag hinzufuegen
+                        </a>
+                    <?php endif; ?>
+                    <a href="?seite=auftrag&amp;ansicht=inaktiv">
+                        Inaktive Auftraege<?php echo $anzahlInaktive > 0 ? ' (' . $anzahlInaktive . ')' : ''; ?>
                     </a>
-                </p>
+                <?php else: ?>
+                    <a href="?seite=auftrag">&laquo; Zurueck zu den aktiven Auftraegen</a>
+                <?php endif; ?>
+            </p>
+
+            <?php if ($nurInaktive): ?>
+                <p><small>
+                    Inaktive Auftraege erscheinen nicht in der normalen Liste. Sie sind
+                    nicht geloescht: Buchungen, Stunden und Laufkarte bleiben erhalten.
+                </small></p>
             <?php endif; ?>
 
             <form method="get" action="" style="margin-bottom: 1rem;">
                 <input type="hidden" name="seite" value="auftrag">
+                <?php if ($nurInaktive): ?>
+                    <input type="hidden" name="ansicht" value="inaktiv">
+                <?php endif; ?>
                 <label>
                     Suche:
                     <input type="text" name="q" value="<?php echo htmlspecialchars($q, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>" style="min-width: 240px;"
@@ -242,9 +278,9 @@ class AuftragController
                 </label>
                 <button type="submit">Suchen</button>
                 <?php if ($q !== ''): ?>
-                    <a href="?seite=auftrag" style="margin-left: 0.5rem;">Reset</a>
+                    <a href="<?php echo $nurInaktive ? '?seite=auftrag&amp;ansicht=inaktiv' : '?seite=auftrag'; ?>" style="margin-left: 0.5rem;">Reset</a>
                 <?php endif; ?>
-                <br><small>Durchsucht Auftragsnummer, Kunde, Zeichnungsnummer und Kurzbeschreibung.</small>
+                <br><small>Durchsucht Auftragsnummer, Kunde, Zeichnungsnummer und Kurzbeschreibung<?php echo $nurInaktive ? ' – nur unter den inaktiven Auftraegen' : ''; ?>.</small>
             </form>
 
 
@@ -258,6 +294,8 @@ class AuftragController
                 <?php if ($q !== ''): ?>
                     <p>Keine Auftraege zu &bdquo;<?php echo htmlspecialchars($q, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>&ldquo; gefunden.</p>
                     <p><small>Gesucht wurde in Auftragsnummer, Kunde, Zeichnungsnummer und Kurzbeschreibung.</small></p>
+                <?php elseif ($nurInaktive): ?>
+                    <p>Kein Auftrag ist auf inaktiv gesetzt.</p>
                 <?php else: ?>
                     <p>Keine Auftraege vorhanden.</p>
                     <p><small>Hier erscheinen angelegte Auftraege und alle Auftragsnummern, zu denen es Buchungen gibt.</small></p>
@@ -316,9 +354,23 @@ class AuftragController
                                 <td><?php echo htmlspecialchars($letzte, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></td>
                                 <td><?php echo $aktivText; ?></td>
                                 <td><?php echo htmlspecialchars($zuletztBearbeitet, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></td>
-                                <td>
+                                <td style="white-space:nowrap;">
                                     <?php if ($nr !== ''): ?>
                                         <a href="?seite=auftrag_detail&amp;code=<?php echo urlencode($nr); ?>">Details</a>
+                                        <?php if ($darfVerwaltenListe): ?>
+                                            <?php /* Umschalten direkt in der Zeile - dafuer erst die Details zu oeffnen waere ein Umweg. */ ?>
+                                            &middot;
+                                            <form method="post" action="?seite=auftrag_aktiv_setzen" style="display:inline;">
+                                                <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($listenCsrf, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>">
+                                                <input type="hidden" name="auftragsnummer" value="<?php echo $nrEsc; ?>">
+                                                <input type="hidden" name="aktiv" value="<?php echo $nurInaktive ? '1' : '0'; ?>">
+                                                <input type="hidden" name="q" value="<?php echo htmlspecialchars($q, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>">
+                                                <input type="hidden" name="ansicht" value="<?php echo $nurInaktive ? 'inaktiv' : ''; ?>">
+                                                <button type="submit" style="border:none;background:none;padding:0;color:#2b6cb0;text-decoration:underline;cursor:pointer;font:inherit;">
+                                                    <?php echo $nurInaktive ? 'Aktiv setzen' : 'Inaktiv setzen'; ?>
+                                                </button>
+                                            </form>
+                                        <?php endif; ?>
                                     <?php else: ?>
                                         -
                                     <?php endif; ?>
@@ -337,6 +389,130 @@ class AuftragController
         </section>
         <?php
         require __DIR__ . '/../views/layout/footer.php';
+    }
+
+    /**
+     * Setzt einen Auftrag aktiv oder inaktiv.
+     * Route: ?seite=auftrag_aktiv_setzen (POST)
+     *
+     * Inaktiv statt geloescht ist der Regelweg: Der Auftrag verschwindet aus der
+     * Liste, seine Buchungen und Stunden bleiben aber zuordenbar - und wenn die
+     * Halle den Code doch noch einmal scannt, faellt nichts um.
+     */
+    public function aktivSetzen(): void
+    {
+        if (!$this->pruefeZugriff()) {
+            return;
+        }
+
+        if (!$this->darfAuftraegeVerwalten()) {
+            $this->zeigeKeinRecht();
+            return;
+        }
+
+        if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST') {
+            header('Location: ?seite=auftrag');
+            return;
+        }
+
+        $zielUrl = $this->baueListenUrl(
+            trim((string)($_POST['q'] ?? '')),
+            ((string)($_POST['ansicht'] ?? '')) === 'inaktiv'
+        );
+
+        if (!Csrf::istGueltig(self::CSRF_BEREICH_STAMM)) {
+            $_SESSION['auftrag_flash_fehler'] = 'Die Sitzung ist abgelaufen. Bitte erneut versuchen.';
+            header('Location: ' . $zielUrl);
+            return;
+        }
+
+        $auftragsnummer = trim((string)($_POST['auftragsnummer'] ?? ''));
+        $aktiv = ((int)($_POST['aktiv'] ?? 1) === 1) ? 1 : 0;
+
+        if ($auftragsnummer === '') {
+            $_SESSION['auftrag_flash_fehler'] = 'Es war kein Auftrag ausgewaehlt.';
+            header('Location: ' . $zielUrl);
+            return;
+        }
+
+        try {
+            // Zu einer Auftragsnummer, die nur aus Buchungen stammt, gibt es
+            // keinen Stammdatensatz - und damit nichts, woran "inaktiv" haengen
+            // koennte. Der Datensatz wird dann angelegt, sonst liesse sich genau
+            // die Zeile nicht ausblenden, die stoert.
+            $betroffen = $this->db->ausfuehren(
+                'UPDATE auftrag SET aktiv = :aktiv WHERE auftragsnummer = :nr',
+                ['aktiv' => $aktiv, 'nr' => $auftragsnummer]
+            );
+
+            if ($betroffen === 0) {
+                $vorhanden = $this->db->fetchEine(
+                    'SELECT id FROM auftrag WHERE auftragsnummer = :nr LIMIT 1',
+                    ['nr' => $auftragsnummer]
+                );
+
+                if (!is_array($vorhanden)) {
+                    $this->db->ausfuehren(
+                        'INSERT INTO auftrag (auftragsnummer, aktiv) VALUES (:nr, :aktiv)',
+                        ['nr' => $auftragsnummer, 'aktiv' => $aktiv]
+                    );
+                }
+            }
+        } catch (\Throwable $e) {
+            $this->protokolliere('Auftrag konnte nicht umgestellt werden', [
+                'auftragsnummer' => $auftragsnummer,
+                'aktiv'          => $aktiv,
+                'exception'      => $e->getMessage(),
+            ]);
+            $_SESSION['auftrag_flash_fehler'] = 'Der Auftrag konnte nicht umgestellt werden.';
+            header('Location: ' . $zielUrl);
+            return;
+        }
+
+        $_SESSION['auftrag_flash_ok'] = $aktiv === 1
+            ? 'Auftrag "' . $auftragsnummer . '" ist wieder aktiv.'
+            : 'Auftrag "' . $auftragsnummer . '" ist jetzt inaktiv und aus der Liste verschwunden.';
+
+        header('Location: ' . $zielUrl);
+    }
+
+    /**
+     * Wie viele Auftraege sind auf inaktiv gesetzt?
+     *
+     * Nur fuer die Beschriftung des Links. Faellt die Abfrage aus, steht dort
+     * eben keine Zahl - die Liste selbst haengt nicht daran.
+     */
+    private function zaehleInaktiveAuftraege(): int
+    {
+        try {
+            $row = $this->db->fetchEine('SELECT COUNT(*) AS anzahl FROM auftrag WHERE aktiv = 0');
+
+            return is_array($row) ? (int)($row['anzahl'] ?? 0) : 0;
+        } catch (\Throwable $e) {
+            return 0;
+        }
+    }
+
+    /**
+     * Baut die URL der Auftragsliste aus den bekannten Parametern neu auf.
+     *
+     * Bewusst aus Einzelwerten statt aus einem mitgeschickten Ziel: Ein
+     * Rueckleitungsziel, das aus dem Formular kommt, waere eine offene
+     * Weiterleitung.
+     */
+    private function baueListenUrl(string $q, bool $nurInaktive): string
+    {
+        $parameter = ['seite' => 'auftrag'];
+
+        if ($nurInaktive) {
+            $parameter['ansicht'] = 'inaktiv';
+        }
+
+        if ($q !== '') {
+            $parameter['q'] = $q;
+        }
+
+        return '?' . http_build_query($parameter);
     }
 
     /**
