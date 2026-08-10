@@ -107,11 +107,9 @@ class ZeitRundungsregelAdminController
                     header('Location: ?seite=zeit_rundungsregel_admin&seed_err=1');
                     return;
                 } catch (\Throwable $e) {
-                    if (class_exists('Logger')) {
-                        Logger::error('Fehler beim Seeden der Standard-Rundungsregeln (Admin-Button)', [
-                            'exception' => $e->getMessage(),
-                        ], null, null, 'rundungsregeln');
-                    }
+                    Logger::error('Fehler beim Seeden der Standard-Rundungsregeln (Admin-Button)', [
+                        'exception' => $e->getMessage(),
+                    ], null, null, 'rundungsregeln');
                     header('Location: ?seite=zeit_rundungsregel_admin&seed_err=1');
                     return;
                 }
@@ -143,12 +141,10 @@ class ZeitRundungsregelAdminController
                     header('Location: ?seite=zeit_rundungsregel_admin&toggle_nf=1');
                     return;
                 } catch (\Throwable $e) {
-                    if (class_exists('Logger')) {
-                        Logger::error('Fehler beim Quick-Toggle einer Rundungsregel (aktiv)', [
-                            'id'        => $id,
-                            'exception' => $e->getMessage(),
-                        ], $id, null, 'rundungsregeln');
-                    }
+                    Logger::error('Fehler beim Quick-Toggle einer Rundungsregel (aktiv)', [
+                        'id'        => $id,
+                        'exception' => $e->getMessage(),
+                    ], $id, null, 'rundungsregeln');
                     header('Location: ?seite=zeit_rundungsregel_admin&toggle_err=1');
                     return;
                 }
@@ -167,11 +163,9 @@ class ZeitRundungsregelAdminController
         try {
             RundungsService::getInstanz();
         } catch (\Throwable $e) {
-            if (class_exists('Logger')) {
-                Logger::warn('RundungsService konnte nicht initialisiert werden (Default-Seeding ggf. übersprungen).', [
-                    'exception' => $e->getMessage(),
-                ], null, null, 'rundungsregeln');
-            }
+            Logger::warn('RundungsService konnte nicht initialisiert werden (Default-Seeding ggf. übersprungen).', [
+                'exception' => $e->getMessage(),
+            ], null, null, 'rundungsregeln');
         }
 
         $fehlermeldung = null;
@@ -231,11 +225,9 @@ class ZeitRundungsregelAdminController
             $regeln = [];
             $fehlermeldung = 'Fehler beim Laden der Rundungsregeln.';
 
-            if (class_exists('Logger')) {
-                Logger::error('Fehler beim Laden der Rundungsregeln (Admin)', [
-                    'exception' => $e->getMessage(),
-                ], null, null, 'rundungsregeln');
-            }
+            Logger::error('Fehler beim Laden der Rundungsregeln (Admin)', [
+                'exception' => $e->getMessage(),
+            ], null, null, 'rundungsregeln');
         }
 
         require __DIR__ . '/../views/zeit_rundungsregel/liste.php';
@@ -282,17 +274,13 @@ class ZeitRundungsregelAdminController
                 'besch2'    => 'Standard: 07:00–24:00 auf 15 Minuten runden (nächstgelegen)',
             ]);
 
-            if (class_exists('Logger')) {
-                Logger::info('Standard-Rundungsregeln wurden per Admin-UI angelegt (Tabelle war leer).', [], null, null, 'rundungsregeln');
-            }
+            Logger::info('Standard-Rundungsregeln wurden per Admin-UI angelegt (Tabelle war leer).', [], null, null, 'rundungsregeln');
 
             return 'seeded';
         } catch (\Throwable $e) {
-            if (class_exists('Logger')) {
-                Logger::error('Fehler beim Anlegen der Standard-Rundungsregeln (Admin-UI).', [
-                    'exception' => $e->getMessage(),
-                ], null, null, 'rundungsregeln');
-            }
+            Logger::error('Fehler beim Anlegen der Standard-Rundungsregeln (Admin-UI).', [
+                'exception' => $e->getMessage(),
+            ], null, null, 'rundungsregeln');
             return 'error';
         }
     }
@@ -448,13 +436,11 @@ class ZeitRundungsregelAdminController
                     return;
                 } catch (\Throwable $e) {
                     $fehlermeldung = 'Die Rundungsregel konnte nicht gespeichert werden.';
-                    if (class_exists('Logger')) {
-                        Logger::error('Fehler beim Speichern einer Rundungsregel', [
-                            'id'        => $id,
-                            'regel'     => $regel,
-                            'exception' => $e->getMessage(),
-                        ], $id > 0 ? $id : null, null, 'rundungsregeln');
-                    }
+                    Logger::error('Fehler beim Speichern einer Rundungsregel', [
+                        'id'        => $id,
+                        'regel'     => $regel,
+                        'exception' => $e->getMessage(),
+                    ], $id > 0 ? $id : null, null, 'rundungsregeln');
                 }
             }
         }
@@ -470,12 +456,10 @@ class ZeitRundungsregelAdminController
                     }
                 } catch (\Throwable $e) {
                     $fehlermeldung = 'Die Rundungsregel konnte nicht geladen werden.';
-                    if (class_exists('Logger')) {
-                        Logger::error('Fehler beim Laden einer Rundungsregel (Admin)', [
-                            'id'        => $id,
-                            'exception' => $e->getMessage(),
-                        ], $id, null, 'rundungsregeln');
-                    }
+                    Logger::error('Fehler beim Laden einer Rundungsregel (Admin)', [
+                        'id'        => $id,
+                        'exception' => $e->getMessage(),
+                    ], $id, null, 'rundungsregeln');
                 }
             }
 

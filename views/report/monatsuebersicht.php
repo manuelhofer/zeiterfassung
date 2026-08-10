@@ -62,7 +62,7 @@ $stundenkontoSaldoMinuten = null;
 $stundenkontoSaldoLabel = "";
 $stundenkontoSaldoText = "";
 
-if (class_exists("StundenkontoService") && $mitarbeiterId > 0) {
+if ($mitarbeiterId > 0) {
     try {
         $sk = StundenkontoService::getInstanz();
         $stundenkontoSaldoMinuten = $sk->holeSaldoMinutenBisVormonat($mitarbeiterId, (int)$jahr, (int)$monat);
@@ -90,7 +90,7 @@ if (class_exists("StundenkontoService") && $mitarbeiterId > 0) {
 $urlaubAbzglBfText = '';
 $bfRestArbeitstageText = '';
 
-if ($monatswerte !== null && $mitarbeiterId > 0 && class_exists('UrlaubService')) {
+if ($monatswerte !== null && $mitarbeiterId > 0) {
     try {
         $urlaubVerbleibendTage = 0.0;
 
@@ -1004,9 +1004,7 @@ if (is_array($tageswerte) && $tageswerte !== []) {
 
         $skFormat = null;
         try {
-            if (class_exists('StundenkontoService')) {
-                $skFormat = StundenkontoService::getInstanz();
-            }
+            $skFormat = StundenkontoService::getInstanz();
         } catch (\Throwable $e) {
             $skFormat = null;
         }

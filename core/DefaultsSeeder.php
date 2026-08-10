@@ -153,17 +153,15 @@ class DefaultsSeeder
         try {
             $betroffen = $db->ausfuehren($sql, $parameter);
 
-            if ($betroffen > 0 && class_exists('Logger')) {
+            if ($betroffen > 0) {
                 Logger::info('Default-Config-Werte wurden automatisch angelegt (fehlende Keys).', [
                     'keys' => array_column($defaults, 'schluessel'),
                 ], null, null, 'config');
             }
         } catch (Throwable $e) {
-            if (class_exists('Logger')) {
-                Logger::warn('Default-Config-Werte konnten nicht automatisch angelegt werden.', [
-                    'exception' => $e->getMessage(),
-                ], null, null, 'config');
-            }
+            Logger::warn('Default-Config-Werte konnten nicht automatisch angelegt werden.', [
+                'exception' => $e->getMessage(),
+            ], null, null, 'config');
         }
     }
 

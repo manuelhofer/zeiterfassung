@@ -196,12 +196,10 @@ class TerminalController
 
             return $this->datenbank->fetchAlle($sql, ['mid' => $mitarbeiterId]);
         } catch (Throwable $e) {
-            if (class_exists('Logger')) {
-                Logger::warn('Terminal: Urlaubsanträge konnten nicht geladen werden', [
-                    'mitarbeiter_id' => $mitarbeiterId,
-                    'exception'      => $e->getMessage(),
-                ], $mitarbeiterId, null, 'terminal_urlaub');
-            }
+            Logger::warn('Terminal: Urlaubsanträge konnten nicht geladen werden', [
+                'mitarbeiter_id' => $mitarbeiterId,
+                'exception'      => $e->getMessage(),
+            ], $mitarbeiterId, null, 'terminal_urlaub');
             return [];
         }
     }
@@ -305,12 +303,10 @@ class TerminalController
                 'fehler'    => null,
             ];
         } catch (Throwable $e) {
-            if (class_exists('Logger')) {
-                Logger::warn('Zeitübersicht (heute) konnte am Terminal nicht geladen werden', [
-                    'mitarbeiter_id' => $mitarbeiterId,
-                    'exception'      => $e->getMessage(),
-                ], $mitarbeiterId, null, 'terminal');
-            }
+            Logger::warn('Zeitübersicht (heute) konnte am Terminal nicht geladen werden', [
+                'mitarbeiter_id' => $mitarbeiterId,
+                'exception'      => $e->getMessage(),
+            ], $mitarbeiterId, null, 'terminal');
 
             return [
                 'datum'     => $heute->format('Y-m-d'),
@@ -509,13 +505,11 @@ class TerminalController
             $rr = $this->datenbank->fetchEine($sqlRolleRecht, ['mid' => $mitarbeiterId, 'mid2' => $mitarbeiterId, 'code' => $rechtCode]);
             return (is_array($rr) && !empty($rr));
         } catch (Throwable $e) {
-            if (class_exists('Logger')) {
-                Logger::error('Terminal-Rechteprüfung fehlgeschlagen', [
-                    'mitarbeiter_id' => $mitarbeiterId,
-                    'recht'          => $rechtCode,
-                    'exception'      => $e->getMessage(),
-                ], $mitarbeiterId, null, 'terminal');
-            }
+            Logger::error('Terminal-Rechteprüfung fehlgeschlagen', [
+                'mitarbeiter_id' => $mitarbeiterId,
+                'recht'          => $rechtCode,
+                'exception'      => $e->getMessage(),
+            ], $mitarbeiterId, null, 'terminal');
             return false;
         }
     }
@@ -743,123 +737,53 @@ class TerminalController
             $hatZusammenfassungAusReport = false;
             $monatswerte = null;
 
-            if (class_exists('ReportService')) {
-                try {
-                    $reportService = ReportService::getInstanz();
-                    $monatsdaten = $reportService->holeMonatsdatenFuerMitarbeiter($mitarbeiterId, $jahr, $monat);
-                    if (!is_array($monatsdaten)) {
-                        $datenOk = false;
-                        $datenFehlerText = 'Monatsübersicht konnte nicht geladen werden.';
-                    } else {
-                        $tageswerte = $monatsdaten['tageswerte'] ?? [];
-                        $zusammenfassungAusReport = $monatsdaten['monatszusammenfassung'] ?? null;
-                        $monatswerte = $monatsdaten['monatswerte'] ?? null;
-                        $hatTageswerte = is_array($tageswerte) && count($tageswerte) > 0;
-                        $hatZusammenfassungAusReport = is_array($zusammenfassungAusReport);
+            try {
+                $reportService = ReportService::getInstanz();
+                $monatsdaten = $reportService->holeMonatsdatenFuerMitarbeiter($mitarbeiterId, $jahr, $monat);
+                if (!is_array($monatsdaten)) {
+                    $datenOk = false;
+                    $datenFehlerText = 'Monatsübersicht konnte nicht geladen werden.';
+                } else {
+                    $tageswerte = $monatsdaten['tageswerte'] ?? [];
+                    $zusammenfassungAusReport = $monatsdaten['monatszusammenfassung'] ?? null;
+                    $monatswerte = $monatsdaten['monatswerte'] ?? null;
+                    $hatTageswerte = is_array($tageswerte) && count($tageswerte) > 0;
+                    $hatZusammenfassungAusReport = is_array($zusammenfassungAusReport);
 
-                        if (!$hatTageswerte && is_array($monatswerte) && class_exists('Logger')) {
-                            Logger::warn('Terminal: Tageswerte fehlen trotz Monatswerten', [
-                                'mitarbeiter_id' => $mitarbeiterId,
-                                'jahr' => $jahr,
-                                'monat' => $monat,
-                                'monatswerte_keys' => array_keys($monatswerte),
-                            ], $mitarbeiterId, null, 'terminal_monatsstatus');
-                        }
+                    if (!$hatTageswerte && is_array($monatswerte)) {
+                        Logger::warn('Terminal: Tageswerte fehlen trotz Monatswerten', [
+                            'mitarbeiter_id' => $mitarbeiterId,
+                            'jahr' => $jahr,
+                            'monat' => $monat,
+                            'monatswerte_keys' => array_keys($monatswerte),
+                        ], $mitarbeiterId, null, 'terminal_monatsstatus');
+                    }
 
-                        if (is_array($tageswerte)) {
-                            foreach ($tageswerte as $t) {
-                                if (!is_array($t)) {
-                                    continue;
-                                }
+                    if (is_array($tageswerte)) {
+                        foreach ($tageswerte as $t) {
+                            if (!is_array($t)) {
+                                continue;
+                            }
 
-                                $sumArztMinuten += $parseStundenZuMinuten($t['arzt_stunden'] ?? '0');
-                                $sumKrankLfzMinuten += $parseStundenZuMinuten($t['krank_lfz_stunden'] ?? '0');
-                                $sumKrankKkMinuten += $parseStundenZuMinuten($t['krank_kk_stunden'] ?? '0');
-                                $sumUrlaubMinuten += $parseStundenZuMinuten($t['urlaub_stunden'] ?? '0');
-                                $sumFeiertagMinuten += $parseStundenZuMinuten($t['feiertag_stunden'] ?? '0');
-                                $sumKurzarbeitMinuten += $parseStundenZuMinuten($t['kurzarbeit_stunden'] ?? '0');
-                                $sumSonstMinuten += $parseStundenZuMinuten($t['sonstige_stunden'] ?? '0');
+                            $sumArztMinuten += $parseStundenZuMinuten($t['arzt_stunden'] ?? '0');
+                            $sumKrankLfzMinuten += $parseStundenZuMinuten($t['krank_lfz_stunden'] ?? '0');
+                            $sumKrankKkMinuten += $parseStundenZuMinuten($t['krank_kk_stunden'] ?? '0');
+                            $sumUrlaubMinuten += $parseStundenZuMinuten($t['urlaub_stunden'] ?? '0');
+                            $sumFeiertagMinuten += $parseStundenZuMinuten($t['feiertag_stunden'] ?? '0');
+                            $sumKurzarbeitMinuten += $parseStundenZuMinuten($t['kurzarbeit_stunden'] ?? '0');
+                            $sumSonstMinuten += $parseStundenZuMinuten($t['sonstige_stunden'] ?? '0');
 
-                                $datum = (string)($t['datum'] ?? '');
-                                $istMinutenTagFuerAnzeige = 0;
-                                $hatBlockIstFuerAnzeige = false;
+                            $datum = (string)($t['datum'] ?? '');
+                            $istMinutenTagFuerAnzeige = 0;
+                            $hatBlockIstFuerAnzeige = false;
 
-                                if (empty($t['micro_arbeitszeit_ignoriert'])) {
-                                    $bloeckeFuerAnzeige = [];
-                                    if (isset($t['arbeitsbloecke']) && is_array($t['arbeitsbloecke'])) {
-                                        $bloeckeFuerAnzeige = $t['arbeitsbloecke'];
-                                    }
-
-                                    foreach ($bloeckeFuerAnzeige as $b) {
-                                        if (!is_array($b)) {
-                                            continue;
-                                        }
-
-                                        $kStr = (string)($b['kommen_korr'] ?? $b['kommen_roh'] ?? '');
-                                        $gStr = (string)($b['gehen_korr'] ?? $b['gehen_roh'] ?? '');
-                                        if ($kStr !== '' && $gStr !== '') {
-                                            try {
-                                                $k = new DateTimeImmutable($kStr);
-                                                $g = new DateTimeImmutable($gStr);
-                                                if ($g > $k) {
-                                                    $durSek = $g->getTimestamp() - $k->getTimestamp();
-                                                    $durStd = $durSek / 3600.0;
-                                                    if ($durStd < 0.05) {
-                                                        continue;
-                                                    }
-                                                }
-                                            } catch (Throwable $e) {
-                                                // Ignorieren, falls Blockzeiten nicht gelesen werden koennen.
-                                            }
-                                        }
-
-                                        $minuten = $parseStundenZuMinuten($b['ist_stunden'] ?? '0');
-                                        if ($minuten <= 0) {
-                                            continue;
-                                        }
-
-                                        $hatBlockIstFuerAnzeige = true;
-                                        $istMinutenTagFuerAnzeige += $minuten;
-                                    }
-                                }
-
-                                if (!$hatBlockIstFuerAnzeige) {
-                                    $istMinutenTagFuerAnzeige = $parseStundenZuMinuten($t['arbeitszeit_stunden'] ?? '0');
-                                }
-
-                                $istMinutenTagFuerAnzeige += $parseStundenZuMinuten($t['arzt_stunden'] ?? '0')
-                                    + $parseStundenZuMinuten($t['krank_lfz_stunden'] ?? '0')
-                                    + $parseStundenZuMinuten($t['krank_kk_stunden'] ?? '0')
-                                    + $parseStundenZuMinuten($t['urlaub_stunden'] ?? '0')
-                                    + $parseStundenZuMinuten($t['feiertag_stunden'] ?? '0')
-                                    + $parseStundenZuMinuten($t['sonstige_stunden'] ?? '0');
-
-                                if ($datum !== '' && $datum <= $heuteStr) {
-                                    $sumIstMinutenBisHeute += $istMinutenTagFuerAnzeige;
-
-                                    $sollFeldKandidaten = ['soll_stunden', 'tagessoll', 'soll'];
-                                    foreach ($sollFeldKandidaten as $feld) {
-                                        if (array_key_exists($feld, $t)) {
-                                            $hatSollAusTagen = true;
-                                            $sollBisHeuteMinutenAusTagen += $parseStundenZuMinuten($t[$feld]);
-                                            break;
-                                        }
-                                    }
-                                }
-
-                                if (!empty($t['micro_arbeitszeit_ignoriert'])) {
-                                    continue;
-                                }
-
-                                $bloecke = [];
+                            if (empty($t['micro_arbeitszeit_ignoriert'])) {
+                                $bloeckeFuerAnzeige = [];
                                 if (isset($t['arbeitsbloecke']) && is_array($t['arbeitsbloecke'])) {
-                                    $bloecke = $t['arbeitsbloecke'];
+                                    $bloeckeFuerAnzeige = $t['arbeitsbloecke'];
                                 }
 
-                                $istMinutenTag = 0;
-                                $hatBlockIst = false;
-
-                                foreach ($bloecke as $b) {
+                                foreach ($bloeckeFuerAnzeige as $b) {
                                     if (!is_array($b)) {
                                         continue;
                                     }
@@ -887,65 +811,126 @@ class TerminalController
                                         continue;
                                     }
 
-                                    $hatBlockIst = true;
-                                    $istMinutenTag += $minuten;
+                                    $hatBlockIstFuerAnzeige = true;
+                                    $istMinutenTagFuerAnzeige += $minuten;
                                 }
-
-                                if (!$hatBlockIst) {
-                                    $istMinutenTag = $parseStundenZuMinuten($t['arbeitszeit_stunden'] ?? '0');
-                                }
-
-                                if ($istMinutenTag > 0) {
-                                    $sumIstMinuten += $istMinutenTag;
-                                }
-
                             }
-                        }
 
-                        if (!$hatTageswerte && $hatZusammenfassungAusReport) {
-                            $sumIstMinuten = $parseStundenZuMinuten($zusammenfassungAusReport['iststunden'] ?? '0');
-                            $sumArztMinuten = $parseStundenZuMinuten($zusammenfassungAusReport['arzt'] ?? '0');
-                            $sumKrankLfzMinuten = $parseStundenZuMinuten($zusammenfassungAusReport['krank_lfz'] ?? '0');
-                            $sumKrankKkMinuten = $parseStundenZuMinuten($zusammenfassungAusReport['krank_kk'] ?? '0');
-                            $sumUrlaubMinuten = $parseStundenZuMinuten($zusammenfassungAusReport['urlaub'] ?? '0');
-                            $sumFeiertagMinuten = $parseStundenZuMinuten($zusammenfassungAusReport['feiertag'] ?? '0');
-                            $sumKurzarbeitMinuten = $parseStundenZuMinuten($zusammenfassungAusReport['kurzarbeit'] ?? '0');
-                            $sumSonstMinuten = $parseStundenZuMinuten($zusammenfassungAusReport['sonst'] ?? '0');
-                            $sumIstMinutenBisHeute = $sumIstMinuten;
-                        } elseif (!$hatTageswerte && !$hatZusammenfassungAusReport) {
-                            $datenOk = false;
-                            $datenFehlerText = 'Monatsübersicht konnte nicht geladen werden.';
-                        }
+                            if (!$hatBlockIstFuerAnzeige) {
+                                $istMinutenTagFuerAnzeige = $parseStundenZuMinuten($t['arbeitszeit_stunden'] ?? '0');
+                            }
 
-                        if (isset($monatsdaten['monatswerte']) && is_array($monatsdaten['monatswerte'])) {
-                            $sollMinuten = $parseStundenZuMinuten($monatsdaten['monatswerte']['sollstunden'] ?? '0');
+                            $istMinutenTagFuerAnzeige += $parseStundenZuMinuten($t['arzt_stunden'] ?? '0')
+                                + $parseStundenZuMinuten($t['krank_lfz_stunden'] ?? '0')
+                                + $parseStundenZuMinuten($t['krank_kk_stunden'] ?? '0')
+                                + $parseStundenZuMinuten($t['urlaub_stunden'] ?? '0')
+                                + $parseStundenZuMinuten($t['feiertag_stunden'] ?? '0')
+                                + $parseStundenZuMinuten($t['sonstige_stunden'] ?? '0');
+
+                            if ($datum !== '' && $datum <= $heuteStr) {
+                                $sumIstMinutenBisHeute += $istMinutenTagFuerAnzeige;
+
+                                $sollFeldKandidaten = ['soll_stunden', 'tagessoll', 'soll'];
+                                foreach ($sollFeldKandidaten as $feld) {
+                                    if (array_key_exists($feld, $t)) {
+                                        $hatSollAusTagen = true;
+                                        $sollBisHeuteMinutenAusTagen += $parseStundenZuMinuten($t[$feld]);
+                                        break;
+                                    }
+                                }
+                            }
+
+                            if (!empty($t['micro_arbeitszeit_ignoriert'])) {
+                                continue;
+                            }
+
+                            $bloecke = [];
+                            if (isset($t['arbeitsbloecke']) && is_array($t['arbeitsbloecke'])) {
+                                $bloecke = $t['arbeitsbloecke'];
+                            }
+
+                            $istMinutenTag = 0;
+                            $hatBlockIst = false;
+
+                            foreach ($bloecke as $b) {
+                                if (!is_array($b)) {
+                                    continue;
+                                }
+
+                                $kStr = (string)($b['kommen_korr'] ?? $b['kommen_roh'] ?? '');
+                                $gStr = (string)($b['gehen_korr'] ?? $b['gehen_roh'] ?? '');
+                                if ($kStr !== '' && $gStr !== '') {
+                                    try {
+                                        $k = new DateTimeImmutable($kStr);
+                                        $g = new DateTimeImmutable($gStr);
+                                        if ($g > $k) {
+                                            $durSek = $g->getTimestamp() - $k->getTimestamp();
+                                            $durStd = $durSek / 3600.0;
+                                            if ($durStd < 0.05) {
+                                                continue;
+                                            }
+                                        }
+                                    } catch (Throwable $e) {
+                                        // Ignorieren, falls Blockzeiten nicht gelesen werden koennen.
+                                    }
+                                }
+
+                                $minuten = $parseStundenZuMinuten($b['ist_stunden'] ?? '0');
+                                if ($minuten <= 0) {
+                                    continue;
+                                }
+
+                                $hatBlockIst = true;
+                                $istMinutenTag += $minuten;
+                            }
+
+                            if (!$hatBlockIst) {
+                                $istMinutenTag = $parseStundenZuMinuten($t['arbeitszeit_stunden'] ?? '0');
+                            }
+
+                            if ($istMinutenTag > 0) {
+                                $sumIstMinuten += $istMinutenTag;
+                            }
+
                         }
                     }
-                } catch (Throwable $e) {
-                    if (class_exists('Logger')) {
-                        Logger::warn('Terminal: Monatsstatus via ReportService fehlgeschlagen', [
-                            'mitarbeiter_id' => $mitarbeiterId,
-                            'jahr' => $jahr,
-                            'monat' => $monat,
-                            'exception' => $e->getMessage(),
-                        ], $mitarbeiterId, null, 'terminal_monatsstatus');
+
+                    if (!$hatTageswerte && $hatZusammenfassungAusReport) {
+                        $sumIstMinuten = $parseStundenZuMinuten($zusammenfassungAusReport['iststunden'] ?? '0');
+                        $sumArztMinuten = $parseStundenZuMinuten($zusammenfassungAusReport['arzt'] ?? '0');
+                        $sumKrankLfzMinuten = $parseStundenZuMinuten($zusammenfassungAusReport['krank_lfz'] ?? '0');
+                        $sumKrankKkMinuten = $parseStundenZuMinuten($zusammenfassungAusReport['krank_kk'] ?? '0');
+                        $sumUrlaubMinuten = $parseStundenZuMinuten($zusammenfassungAusReport['urlaub'] ?? '0');
+                        $sumFeiertagMinuten = $parseStundenZuMinuten($zusammenfassungAusReport['feiertag'] ?? '0');
+                        $sumKurzarbeitMinuten = $parseStundenZuMinuten($zusammenfassungAusReport['kurzarbeit'] ?? '0');
+                        $sumSonstMinuten = $parseStundenZuMinuten($zusammenfassungAusReport['sonst'] ?? '0');
+                        $sumIstMinutenBisHeute = $sumIstMinuten;
+                    } elseif (!$hatTageswerte && !$hatZusammenfassungAusReport) {
+                        $datenOk = false;
+                        $datenFehlerText = 'Monatsübersicht konnte nicht geladen werden.';
                     }
-                    $datenOk = false;
-                    $datenFehlerText = 'Monatsübersicht konnte nicht geladen werden.';
+
+                    if (isset($monatsdaten['monatswerte']) && is_array($monatsdaten['monatswerte'])) {
+                        $sollMinuten = $parseStundenZuMinuten($monatsdaten['monatswerte']['sollstunden'] ?? '0');
+                    }
                 }
-            } else {
+            } catch (Throwable $e) {
+                Logger::warn('Terminal: Monatsstatus via ReportService fehlgeschlagen', [
+                    'mitarbeiter_id' => $mitarbeiterId,
+                    'jahr' => $jahr,
+                    'monat' => $monat,
+                    'exception' => $e->getMessage(),
+                ], $mitarbeiterId, null, 'terminal_monatsstatus');
                 $datenOk = false;
                 $datenFehlerText = 'Monatsübersicht konnte nicht geladen werden.';
             }
 
-            if (class_exists('StundenkontoService')) {
-                try {
-                    $stundenkontoService = StundenkontoService::getInstanz();
-                    $saldoMinuten = $stundenkontoService->holeSaldoMinutenBisVormonat($mitarbeiterId, $jahr, $monat);
-                    $stundenkontoSaldoText = str_replace('.', ',', $stundenkontoService->formatMinutenAlsStundenString((int)$saldoMinuten, true));
-                } catch (Throwable $e) {
-                    $stundenkontoSaldoText = '';
-                }
+            try {
+                $stundenkontoService = StundenkontoService::getInstanz();
+                $saldoMinuten = $stundenkontoService->holeSaldoMinutenBisVormonat($mitarbeiterId, $jahr, $monat);
+                $stundenkontoSaldoText = str_replace('.', ',', $stundenkontoService->formatMinutenAlsStundenString((int)$saldoMinuten, true));
+            } catch (Throwable $e) {
+                $stundenkontoSaldoText = '';
             }
 
             $istBisherMinuten = $sumIstMinutenBisHeute;
@@ -1079,14 +1064,12 @@ class TerminalController
                 'fehler_text'        => $datenFehlerText,
             ];
         } catch (Throwable $e) {
-            if (class_exists('Logger')) {
-                Logger::warn('Terminal: Monatsstatus konnte nicht berechnet werden', [
-                    'mitarbeiter_id' => $mitarbeiterId,
-                    'jahr' => $jahr,
-                    'monat' => $monat,
-                    'exception' => $e->getMessage(),
-                ], $mitarbeiterId, null, 'terminal_monatsstatus');
-            }
+            Logger::warn('Terminal: Monatsstatus konnte nicht berechnet werden', [
+                'mitarbeiter_id' => $mitarbeiterId,
+                'jahr' => $jahr,
+                'monat' => $monat,
+                'exception' => $e->getMessage(),
+            ], $mitarbeiterId, null, 'terminal_monatsstatus');
 
             return [
                 'jahr'               => $jahr,
@@ -1157,13 +1140,11 @@ class TerminalController
 
             return $ok ? 0 : null;
         } catch (Throwable $e) {
-            if (class_exists('Logger')) {
-                Logger::error('Terminal: Offline-Buchung per RFID in Queue fehlgeschlagen', [
-                    'typ'       => $typ,
-                    'rfid_code' => $rfidCode,
-                    'exception' => $e->getMessage(),
-                ], null, null, 'terminal_offline_rfid');
-            }
+            Logger::error('Terminal: Offline-Buchung per RFID in Queue fehlgeschlagen', [
+                'typ'       => $typ,
+                'rfid_code' => $rfidCode,
+                'exception' => $e->getMessage(),
+            ], null, null, 'terminal_offline_rfid');
             return null;
         }
     }
@@ -1298,7 +1279,7 @@ class TerminalController
         }
 
         // Fallback: direkt aus dem Queue-Manager laden, falls die Session noch nichts hat.
-        if ($letzterFehler === null && class_exists('OfflineQueueManager')) {
+        if ($letzterFehler === null) {
             try {
                 $letzterFehler = OfflineQueueManager::getInstanz()->holeLetztenFehlerEintrag();
             } catch (Throwable $e) {
@@ -1479,12 +1460,10 @@ class TerminalController
 
             $mitarbeiter = $this->datenbank->fetchEine($sql, ['id' => $id]);
         } catch (Throwable $e) {
-            if (class_exists('Logger')) {
-                Logger::error('Fehler beim Laden des angemeldeten Terminal-Mitarbeiters', [
-                    'id'        => $id,
-                    'exception' => $e->getMessage(),
-                ], $id, null, 'terminal');
-            }
+            Logger::error('Fehler beim Laden des angemeldeten Terminal-Mitarbeiters', [
+                'id'        => $id,
+                'exception' => $e->getMessage(),
+            ], $id, null, 'terminal');
             return null;
         }
 
@@ -1600,33 +1579,31 @@ class TerminalController
         // Sobald die Hauptdatenbank wieder verfuegbar ist, versuchen wir bei jedem
         // Aufruf der Startseite die offenen Queue-Eintraege abzuarbeiten.
         // Rate-Limit ueber Session, damit wir bei schnellen Reloads nicht spammen.
-        if (class_exists('OfflineQueueManager') && class_exists('Database')) {
-            try {
-                $db = Database::getInstanz();
-                $hauptOk = false;
-                $hauptOk = (bool)$db->istHauptdatenbankVerfuegbar();
+        try {
+            $db = Database::getInstanz();
+            $hauptOk = false;
+            $hauptOk = (bool)$db->istHauptdatenbankVerfuegbar();
 
-                if ($hauptOk) {
-                    $now = time();
-                    $last = 0;
-                    if (isset($_SESSION['terminal_offlinequeue_replay_last'])) {
-                        $last = (int)$_SESSION['terminal_offlinequeue_replay_last'];
-                    }
-
-                    // 10s Mindestabstand
-                    if (($now - $last) >= 10) {
-                        $_SESSION['terminal_offlinequeue_replay_last'] = $now;
-                        OfflineQueueManager::getInstanz()->verarbeiteOffeneEintraege();
-                    }
+            if ($hauptOk) {
+                $now = time();
+                $last = 0;
+                if (isset($_SESSION['terminal_offlinequeue_replay_last'])) {
+                    $last = (int)$_SESSION['terminal_offlinequeue_replay_last'];
                 }
-            } catch (Throwable $e) {
-                // bewusst ignorieren: Terminal darf dadurch nicht ausfallen.
+
+                // 10s Mindestabstand
+                if (($now - $last) >= 10) {
+                    $_SESSION['terminal_offlinequeue_replay_last'] = $now;
+                    OfflineQueueManager::getInstanz()->verarbeiteOffeneEintraege();
+                }
             }
+        } catch (Throwable $e) {
+            // bewusst ignorieren: Terminal darf dadurch nicht ausfallen.
         }
 
         // Debug-Ansicht: letzte Queue-Einträge anzeigen (hilft bei T-069 Teil 2b: Offline-Queue)
         $debugQueueEintraege = null;
-        if ($debugAktiv && class_exists('Database')) {
+        if ($debugAktiv) {
             try {
                 $db = Database::getInstanz();
                 $pdo = null;
@@ -1672,110 +1649,106 @@ class TerminalController
             'letzter_fehler_kurz' => null,
         ];
 
-        if (class_exists('Database')) {
-            try {
-                $db = Database::getInstanz();
-                $pdo = null;
+        try {
+            $db = Database::getInstanz();
+            $pdo = null;
 
+            try {
+                $pdo = $db->getOfflineVerbindung();
+            } catch (Throwable $e) {
+                $pdo = null;
+            }
+
+            if (!($pdo instanceof PDO)) {
                 try {
-                    $pdo = $db->getOfflineVerbindung();
+                        $pdo = $db->getVerbindung();
                 } catch (Throwable $e) {
                     $pdo = null;
                 }
-
-                if (!($pdo instanceof PDO)) {
-                    try {
-                            $pdo = $db->getVerbindung();
-                    } catch (Throwable $e) {
-                        $pdo = null;
-                    }
-                }
-
-                if ($pdo instanceof PDO) {
-                    $stmt = $pdo->query("SELECT status, COUNT(*) AS cnt FROM db_injektionsqueue GROUP BY status");
-                    if ($stmt !== false) {
-                        while (($row = $stmt->fetch(PDO::FETCH_ASSOC)) !== false) {
-                            $st = (string)($row['status'] ?? '');
-                            $cnt = (int)($row['cnt'] ?? 0);
-                            if ($st !== '' && array_key_exists($st, $queueStatus)) {
-                                $queueStatus[$st] = $cnt;
-                            }
-                        }
-                    }
-
-                    if ((int)$queueStatus['fehler'] > 0) {
-                        $stmt2 = $pdo->query(
-                            "SELECT LEFT(COALESCE(fehlernachricht,''), 140) AS fehler_kurz "
-                            . "FROM db_injektionsqueue WHERE status='fehler' ORDER BY letzte_ausfuehrung DESC, id DESC LIMIT 1"
-                        );
-                        if ($stmt2 !== false) {
-                            $row2 = $stmt2->fetch(PDO::FETCH_ASSOC);
-                            if (is_array($row2) && isset($row2['fehler_kurz'])) {
-                                $t = trim((string)$row2['fehler_kurz']);
-                                if ($t !== '') {
-                                    $queueStatus['letzter_fehler_kurz'] = $t;
-                                }
-                            }
-                        }
-                    }
-                }
-            } catch (Throwable $e) {
-                // Status bleibt auf Default (0) – Terminal darf nicht blockieren.
             }
+
+            if ($pdo instanceof PDO) {
+                $stmt = $pdo->query("SELECT status, COUNT(*) AS cnt FROM db_injektionsqueue GROUP BY status");
+                if ($stmt !== false) {
+                    while (($row = $stmt->fetch(PDO::FETCH_ASSOC)) !== false) {
+                        $st = (string)($row['status'] ?? '');
+                        $cnt = (int)($row['cnt'] ?? 0);
+                        if ($st !== '' && array_key_exists($st, $queueStatus)) {
+                            $queueStatus[$st] = $cnt;
+                        }
+                    }
+                }
+
+                if ((int)$queueStatus['fehler'] > 0) {
+                    $stmt2 = $pdo->query(
+                        "SELECT LEFT(COALESCE(fehlernachricht,''), 140) AS fehler_kurz "
+                        . "FROM db_injektionsqueue WHERE status='fehler' ORDER BY letzte_ausfuehrung DESC, id DESC LIMIT 1"
+                    );
+                    if ($stmt2 !== false) {
+                        $row2 = $stmt2->fetch(PDO::FETCH_ASSOC);
+                        if (is_array($row2) && isset($row2['fehler_kurz'])) {
+                            $t = trim((string)$row2['fehler_kurz']);
+                            if ($t !== '') {
+                                $queueStatus['letzter_fehler_kurz'] = $t;
+                            }
+                        }
+                    }
+                }
+            }
+        } catch (Throwable $e) {
+            // Status bleibt auf Default (0) – Terminal darf nicht blockieren.
         }
 
         // Queue-Status (auch ohne Debug): nur counts + letzter Fehler (kurz).
         // Die Verbindung kann je nach Setup die Offline-DB oder (Fallback) die Haupt-DB sein.
-        if (class_exists('Database')) {
-            try {
-                $db = Database::getInstanz();
-                $pdo = null;
+        try {
+            $db = Database::getInstanz();
+            $pdo = null;
 
+            try {
+                $pdo = $db->getOfflineVerbindung();
+            } catch (Throwable $e) {
+                $pdo = null;
+            }
+
+            if (!($pdo instanceof PDO)) {
                 try {
-                    $pdo = $db->getOfflineVerbindung();
+                        $pdo = $db->getVerbindung();
                 } catch (Throwable $e) {
                     $pdo = null;
                 }
-
-                if (!($pdo instanceof PDO)) {
-                    try {
-                            $pdo = $db->getVerbindung();
-                    } catch (Throwable $e) {
-                        $pdo = null;
-                    }
-                }
-
-                if ($pdo instanceof PDO) {
-                    $stmt = $pdo->query("SELECT status, COUNT(*) AS c FROM db_injektionsqueue GROUP BY status");
-                    if ($stmt !== false) {
-                        while (($row = $stmt->fetch(PDO::FETCH_ASSOC)) !== false) {
-                            $status = (string)($row['status'] ?? '');
-                            $cnt = (int)($row['c'] ?? 0);
-                            if (isset($queueStatus[$status])) {
-                                $queueStatus[$status] = $cnt;
-                            }
-                        }
-                    }
-
-                    if ((int)$queueStatus['fehler'] > 0) {
-                        $stmt2 = $pdo->query(
-                            "SELECT LEFT(COALESCE(fehlernachricht,''), 140) AS fehler_kurz FROM db_injektionsqueue "
-                            . "WHERE status='fehler' ORDER BY letzte_ausfuehrung DESC, id DESC LIMIT 1"
-                        );
-                        if ($stmt2 !== false) {
-                            $row2 = $stmt2->fetch(PDO::FETCH_ASSOC);
-                            if (is_array($row2) && isset($row2['fehler_kurz'])) {
-                                $t = trim((string)$row2['fehler_kurz']);
-                                if ($t !== '') {
-                                    $queueStatus['letzter_fehler_kurz'] = $t;
-                                }
-                            }
-                        }
-                    }
-                }
-            } catch (Throwable $e) {
-                // leise ignorieren – Terminal darf nie daran scheitern.
             }
+
+            if ($pdo instanceof PDO) {
+                $stmt = $pdo->query("SELECT status, COUNT(*) AS c FROM db_injektionsqueue GROUP BY status");
+                if ($stmt !== false) {
+                    while (($row = $stmt->fetch(PDO::FETCH_ASSOC)) !== false) {
+                        $status = (string)($row['status'] ?? '');
+                        $cnt = (int)($row['c'] ?? 0);
+                        if (isset($queueStatus[$status])) {
+                            $queueStatus[$status] = $cnt;
+                        }
+                    }
+                }
+
+                if ((int)$queueStatus['fehler'] > 0) {
+                    $stmt2 = $pdo->query(
+                        "SELECT LEFT(COALESCE(fehlernachricht,''), 140) AS fehler_kurz FROM db_injektionsqueue "
+                        . "WHERE status='fehler' ORDER BY letzte_ausfuehrung DESC, id DESC LIMIT 1"
+                    );
+                    if ($stmt2 !== false) {
+                        $row2 = $stmt2->fetch(PDO::FETCH_ASSOC);
+                        if (is_array($row2) && isset($row2['fehler_kurz'])) {
+                            $t = trim((string)$row2['fehler_kurz']);
+                            if ($t !== '') {
+                                $queueStatus['letzter_fehler_kurz'] = $t;
+                            }
+                        }
+                    }
+                }
+            }
+        } catch (Throwable $e) {
+            // leise ignorieren – Terminal darf nie daran scheitern.
         }
 
         // Login-Versuch per POST
@@ -1840,21 +1813,19 @@ class TerminalController
 
                     try {
                         $pdo = null;
-                        if (class_exists('Database')) {
-                            $db = Database::getInstanz();
+                        $db = Database::getInstanz();
 
+                        try {
+                            $pdo = $db->getOfflineVerbindung();
+                        } catch (Throwable $e) {
+                            $pdo = null;
+                        }
+
+                        if (!($pdo instanceof PDO)) {
                             try {
-                                $pdo = $db->getOfflineVerbindung();
+                                    $pdo = $db->getVerbindung();
                             } catch (Throwable $e) {
                                 $pdo = null;
-                            }
-
-                            if (!($pdo instanceof PDO)) {
-                                try {
-                                        $pdo = $db->getVerbindung();
-                                } catch (Throwable $e) {
-                                    $pdo = null;
-                                }
                             }
                         }
 
@@ -1864,9 +1835,7 @@ class TerminalController
                         }
 
                         $t0 = microtime(true);
-                        if (class_exists('OfflineQueueManager')) {
-                            OfflineQueueManager::getInstanz()->verarbeiteOffeneEintraege();
-                        }
+                        OfflineQueueManager::getInstanz()->verarbeiteOffeneEintraege();
                         $t1 = microtime(true);
                         $dauerMs = (int)round(max(($t1 - $t0) * 1000.0, 0));
 
@@ -1953,17 +1922,15 @@ class TerminalController
                         ];
                     }
 
-                    if (class_exists('Logger')) {
-                        Logger::warn('Terminal Bugreport (T-069)', [
-                            'bug_id' => $bugId,
-                            'text' => $text,
-                            'aktion' => (string)($_GET['aktion'] ?? 'start'),
-                            'uri' => (string)($_SERVER['REQUEST_URI'] ?? ''),
-                            'session_anwesend' => $_SESSION['terminal_anwesend'] ?? null,
-                            'session_anwesend_zeit' => $_SESSION['terminal_anwesend_zeit'] ?? null,
-                            'queue' => $qsKurz,
-                        ], $mid, null, 'terminal_bug');
-                    }
+                    Logger::warn('Terminal Bugreport (T-069)', [
+                        'bug_id' => $bugId,
+                        'text' => $text,
+                        'aktion' => (string)($_GET['aktion'] ?? 'start'),
+                        'uri' => (string)($_SERVER['REQUEST_URI'] ?? ''),
+                        'session_anwesend' => $_SESSION['terminal_anwesend'] ?? null,
+                        'session_anwesend_zeit' => $_SESSION['terminal_anwesend_zeit'] ?? null,
+                        'queue' => $qsKurz,
+                    ], $mid, null, 'terminal_bug');
 
                     $_SESSION['terminal_flash_nachricht'] = 'Bug-Notiz gespeichert (LOG).';
                     header('Location: terminal.php?aktion=start&debug=1');
@@ -2086,12 +2053,10 @@ class TerminalController
                                         // UI-Vorgabe (Kiosk): Keine Hinweise auf Personalnummer/Mitarbeiter-ID anzeigen.
                                         $loginFehler = 'Code ist mehrdeutig (passt zu mehreren Mitarbeitern). Bitte RFID scannen oder Personalbüro informieren.';
 
-                                        if (class_exists('Logger')) {
-                                            Logger::warn('Terminal-Login: Mehrdeutiger numerischer Code (Personalnummer vs ID)', [
-                                                'code' => $rfidCode,
-                                                'treffer' => $ids,
-                                            ], null, null, 'terminal_login');
-                                        }
+                                        Logger::warn('Terminal-Login: Mehrdeutiger numerischer Code (Personalnummer vs ID)', [
+                                            'code' => $rfidCode,
+                                            'treffer' => $ids,
+                                        ], null, null, 'terminal_login');
                                     } elseif (isset($treffer['personalnummer']) && is_array($treffer['personalnummer']) && isset($treffer['personalnummer']['id'])) {
                                         $mitarbeiter = $treffer['personalnummer'];
                                     } elseif (isset($treffer['id']) && is_array($treffer['id']) && isset($treffer['id']['id'])) {
@@ -2113,13 +2078,11 @@ class TerminalController
                                 );
                             }
                         } catch (Throwable $e) {
-                            if (class_exists('Logger')) {
-                                Logger::error('Fehler beim Login am Terminal', [
-                                    'rfid_code'      => $rfidCode,
-                                    'mitarbeiter_id' => $mitarbeiterId,
-                                    'exception'      => $e->getMessage(),
-                                ], null, null, 'terminal_login');
-                            }
+                            Logger::error('Fehler beim Login am Terminal', [
+                                'rfid_code'      => $rfidCode,
+                                'mitarbeiter_id' => $mitarbeiterId,
+                                'exception'      => $e->getMessage(),
+                            ], null, null, 'terminal_login');
                             $mitarbeiter = null;
                         }
 
@@ -2396,32 +2359,28 @@ class TerminalController
         $stundenkontoSaldoFehler = null;
 
         if (is_array($mitarbeiter) && isset($mitarbeiter['id']) && $hauptdbAktiv) {
-            if (class_exists('StundenkontoService')) {
-                try {
-                    $stundenkontoService = StundenkontoService::getInstanz();
-                    $now = new DateTimeImmutable('now', new DateTimeZone('Europe/Berlin'));
-                    $jahr = (int)$now->format('Y');
-                    $monat = (int)$now->format('n');
+            try {
+                $stundenkontoService = StundenkontoService::getInstanz();
+                $now = new DateTimeImmutable('now', new DateTimeZone('Europe/Berlin'));
+                $jahr = (int)$now->format('Y');
+                $monat = (int)$now->format('n');
 
-                    $saldoMin = $stundenkontoService->holeSaldoMinutenBisVormonat((int)$mitarbeiter['id'], $jahr, $monat);
+                $saldoMin = $stundenkontoService->holeSaldoMinutenBisVormonat((int)$mitarbeiter['id'], $jahr, $monat);
 
-                    $stundenkontoSaldo = [
-                        'saldo_minuten_bis_vormonat' => $saldoMin,
-                        'saldo_stunden_bis_vormonat' => $stundenkontoService->formatMinutenAlsStundenString($saldoMin, true),
-                        'jahr' => $jahr,
-                        'monat' => $monat,
-                    ];
-                } catch (Throwable $e) {
-                    $stundenkontoSaldo = null;
-                    $stundenkontoSaldoFehler = 'Stundenkonto konnte nicht geladen werden.';
+                $stundenkontoSaldo = [
+                    'saldo_minuten_bis_vormonat' => $saldoMin,
+                    'saldo_stunden_bis_vormonat' => $stundenkontoService->formatMinutenAlsStundenString($saldoMin, true),
+                    'jahr' => $jahr,
+                    'monat' => $monat,
+                ];
+            } catch (Throwable $e) {
+                $stundenkontoSaldo = null;
+                $stundenkontoSaldoFehler = 'Stundenkonto konnte nicht geladen werden.';
 
-                    if (class_exists('Logger')) {
-                        Logger::warn('Terminal: Stundenkonto konnte nicht geladen werden', [
-                            'mitarbeiter_id' => (int)$mitarbeiter['id'],
-                            'exception'      => $e->getMessage(),
-                        ], (int)$mitarbeiter['id'], null, 'stundenkonto');
-                    }
-                }
+                Logger::warn('Terminal: Stundenkonto konnte nicht geladen werden', [
+                    'mitarbeiter_id' => (int)$mitarbeiter['id'],
+                    'exception'      => $e->getMessage(),
+                ], (int)$mitarbeiter['id'], null, 'stundenkonto');
             }
         }
 
@@ -2430,32 +2389,28 @@ class TerminalController
         $stundenkontoSaldoFehler = null;
 
         if (is_array($mitarbeiter) && isset($mitarbeiter['id']) && $hauptdbAktiv) {
-            if (class_exists('StundenkontoService')) {
-                try {
-                    $stundenkontoService = StundenkontoService::getInstanz();
-                    $now = new DateTimeImmutable('now', new DateTimeZone('Europe/Berlin'));
-                    $jahr = (int)$now->format('Y');
-                    $monat = (int)$now->format('n');
+            try {
+                $stundenkontoService = StundenkontoService::getInstanz();
+                $now = new DateTimeImmutable('now', new DateTimeZone('Europe/Berlin'));
+                $jahr = (int)$now->format('Y');
+                $monat = (int)$now->format('n');
 
-                    $saldoMin = $stundenkontoService->holeSaldoMinutenBisVormonat((int)$mitarbeiter['id'], $jahr, $monat);
+                $saldoMin = $stundenkontoService->holeSaldoMinutenBisVormonat((int)$mitarbeiter['id'], $jahr, $monat);
 
-                    $stundenkontoSaldo = [
-                        'saldo_minuten_bis_vormonat' => $saldoMin,
-                        'saldo_stunden_bis_vormonat' => $stundenkontoService->formatMinutenAlsStundenString($saldoMin, true),
-                        'jahr' => $jahr,
-                        'monat' => $monat,
-                    ];
-                } catch (Throwable $e) {
-                    $stundenkontoSaldo = null;
-                    $stundenkontoSaldoFehler = 'Stundenkonto konnte nicht geladen werden.';
+                $stundenkontoSaldo = [
+                    'saldo_minuten_bis_vormonat' => $saldoMin,
+                    'saldo_stunden_bis_vormonat' => $stundenkontoService->formatMinutenAlsStundenString($saldoMin, true),
+                    'jahr' => $jahr,
+                    'monat' => $monat,
+                ];
+            } catch (Throwable $e) {
+                $stundenkontoSaldo = null;
+                $stundenkontoSaldoFehler = 'Stundenkonto konnte nicht geladen werden.';
 
-                    if (class_exists('Logger')) {
-                        Logger::warn('Terminal: Stundenkonto konnte nicht geladen werden', [
-                            'mitarbeiter_id' => (int)$mitarbeiter['id'],
-                            'exception'      => $e->getMessage(),
-                        ], (int)$mitarbeiter['id'], null, 'stundenkonto');
-                    }
-                }
+                Logger::warn('Terminal: Stundenkonto konnte nicht geladen werden', [
+                    'mitarbeiter_id' => (int)$mitarbeiter['id'],
+                    'exception'      => $e->getMessage(),
+                ], (int)$mitarbeiter['id'], null, 'stundenkonto');
             }
         }
         // Urlaubssaldo (aktuelles Jahr) – nur online sinnvoll.
@@ -2472,13 +2427,11 @@ class TerminalController
                 $urlaubSaldo = null;
                 $urlaubSaldoFehler = 'Urlaubssaldo konnte nicht geladen werden.';
 
-                if (class_exists('Logger')) {
-                    Logger::warn('Terminal: Urlaubssaldo konnte nicht geladen werden', [
-                        'mitarbeiter_id' => (int)$mitarbeiter['id'],
-                        'jahr'           => $urlaubJahr,
-                        'exception'      => $e->getMessage(),
-                    ], (int)$mitarbeiter['id'], null, 'terminal_urlaub');
-                }
+                Logger::warn('Terminal: Urlaubssaldo konnte nicht geladen werden', [
+                    'mitarbeiter_id' => (int)$mitarbeiter['id'],
+                    'jahr'           => $urlaubJahr,
+                    'exception'      => $e->getMessage(),
+                ], (int)$mitarbeiter['id'], null, 'terminal_urlaub');
             }
         }
 
@@ -3280,7 +3233,7 @@ class TerminalController
     {
         $auftragId = $auftragId !== null ? (int)$auftragId : 0;
         $arbeitsschrittCode = $arbeitsschrittCode !== null ? trim((string)$arbeitsschrittCode) : '';
-        if ($auftragId <= 0 || $arbeitsschrittCode === '' || !class_exists('Database')) {
+        if ($auftragId <= 0 || $arbeitsschrittCode === '') {
             return null;
         }
 
@@ -3311,13 +3264,11 @@ class TerminalController
                 return (int)$row['id'];
             }
         } catch (Throwable $e) {
-            if (class_exists('Logger')) {
-                Logger::warn('Terminal: Arbeitsschritt konnte nicht angelegt werden', [
-                    'auftrag_id' => $auftragId,
-                    'arbeitsschritt_code' => $arbeitsschrittCode,
-                    'exception' => $e->getMessage(),
-                ], null, null, 'terminal_nebenauftrag');
-            }
+            Logger::warn('Terminal: Arbeitsschritt konnte nicht angelegt werden', [
+                'auftrag_id' => $auftragId,
+                'arbeitsschritt_code' => $arbeitsschrittCode,
+                'exception' => $e->getMessage(),
+            ], null, null, 'terminal_nebenauftrag');
         }
 
         return null;
@@ -3339,10 +3290,6 @@ class TerminalController
 
         // Offline: nur in Queue schreiben
         if (!$this->istHauptdatenbankAktiv()) {
-            if (!class_exists('OfflineQueueManager')) {
-                return null;
-            }
-
             // Auftrag (Minimaldatensatz) sicherstellen, damit die Buchung spaeter aufloesbar ist
             // (analog Hauptauftrag-Start in AuftragszeitService).
             $sqlEnsureAuftrag = 'INSERT INTO auftrag (auftragsnummer, aktiv) VALUES ('
@@ -3382,13 +3329,11 @@ class TerminalController
                 OfflineQueueManager::getInstanz()->speichereInQueue($sql, $mitarbeiterId, null, 'nebenauftrag_start');
                 return 0;
             } catch (Throwable $e) {
-                if (class_exists('Logger')) {
-                    Logger::error('Terminal: Nebenauftrag konnte nicht in Offline-Queue geschrieben werden', [
-                        'mitarbeiter_id' => $mitarbeiterId,
-                        'auftragscode'   => $auftragscode,
-                        'exception'      => $e->getMessage(),
-                    ], $mitarbeiterId, null, 'terminal_nebenauftrag');
-                }
+                Logger::error('Terminal: Nebenauftrag konnte nicht in Offline-Queue geschrieben werden', [
+                    'mitarbeiter_id' => $mitarbeiterId,
+                    'auftragscode'   => $auftragscode,
+                    'exception'      => $e->getMessage(),
+                ], $mitarbeiterId, null, 'terminal_nebenauftrag');
                 return null;
             }
         }
@@ -3406,7 +3351,7 @@ class TerminalController
         }
 
         // Falls nicht vorhanden: Minimaldatensatz anlegen (idempotent)
-        if ($auftragId === null && class_exists('Database')) {
+        if ($auftragId === null) {
             try {
                 $dbEnsure = Database::getInstanz();
                 $dbEnsure->ausfuehren(
@@ -3444,14 +3389,12 @@ class TerminalController
 
             return $neueId;
         } catch (Throwable $e) {
-            if (class_exists('Logger')) {
-                Logger::error('Terminal: Nebenauftrag konnte nicht gestartet werden', [
-                    'mitarbeiter_id' => $mitarbeiterId,
-                    'auftragscode'   => $auftragscode,
-                    'maschine_id'    => $maschineId,
-                    'exception'      => $e->getMessage(),
-                ], $mitarbeiterId, null, 'terminal_nebenauftrag');
-            }
+            Logger::error('Terminal: Nebenauftrag konnte nicht gestartet werden', [
+                'mitarbeiter_id' => $mitarbeiterId,
+                'auftragscode'   => $auftragscode,
+                'maschine_id'    => $maschineId,
+                'exception'      => $e->getMessage(),
+            ], $mitarbeiterId, null, 'terminal_nebenauftrag');
             return null;
         }
     }
@@ -3478,10 +3421,6 @@ class TerminalController
 
         // Offline: nur in Queue schreiben
         if (!$this->istHauptdatenbankAktiv()) {
-            if (!class_exists('OfflineQueueManager')) {
-                return null;
-            }
-
             $sql = 'UPDATE auftragszeit SET endzeit = ' . $this->sqlString($jetzt->format('Y-m-d H:i:s')) . ', status = ' . $this->sqlString($status)
                 . ' WHERE mitarbeiter_id = ' . $this->sqlInt($mitarbeiterId)
                 . ' AND typ = ' . $this->sqlString('neben')
@@ -3502,14 +3441,12 @@ class TerminalController
                 OfflineQueueManager::getInstanz()->speichereInQueue($sql, $mitarbeiterId, null, 'nebenauftrag_stop');
                 return 0;
             } catch (Throwable $e) {
-                if (class_exists('Logger')) {
-                    Logger::error('Terminal: Nebenauftrag-Stopp konnte nicht in Offline-Queue geschrieben werden', [
-                        'mitarbeiter_id'  => $mitarbeiterId,
-                        'auftragszeit_id' => $auftragszeitId,
-                        'auftragscode'    => $auftragscode,
-                        'exception'       => $e->getMessage(),
-                    ], $mitarbeiterId, null, 'terminal_nebenauftrag');
-                }
+                Logger::error('Terminal: Nebenauftrag-Stopp konnte nicht in Offline-Queue geschrieben werden', [
+                    'mitarbeiter_id'  => $mitarbeiterId,
+                    'auftragszeit_id' => $auftragszeitId,
+                    'auftragscode'    => $auftragscode,
+                    'exception'       => $e->getMessage(),
+                ], $mitarbeiterId, null, 'terminal_nebenauftrag');
                 return null;
             }
         }
@@ -3793,14 +3730,12 @@ class TerminalController
                 ['code' => $rfidCode, 'id' => $zielMitarbeiterId]
             );
 
-            if (class_exists('Logger')) {
-                Logger::info('Terminal: RFID-Code zugewiesen', [
-                    'ziel_mitarbeiter_id'  => $zielMitarbeiterId,
-                    'ziel_name'            => $zielName,
-                    'ziel_personalnummer'  => $zielPn,
-                    'rfid_code'            => $rfidCode,
-                ], (int)$mitarbeiter['id'], null, 'terminal_admin');
-            }
+            Logger::info('Terminal: RFID-Code zugewiesen', [
+                'ziel_mitarbeiter_id'  => $zielMitarbeiterId,
+                'ziel_name'            => $zielName,
+                'ziel_personalnummer'  => $zielPn,
+                'rfid_code'            => $rfidCode,
+            ], (int)$mitarbeiter['id'], null, 'terminal_admin');
 
             $_SESSION['terminal_flash_nachricht'] = 'RFID-Code wurde zugewiesen an: ' . $zielName . $zielZusatz . '.';
             unset($_SESSION['terminal_last_unknown_rfid'], $_SESSION['terminal_last_unknown_rfid_ts']);
@@ -3808,13 +3743,11 @@ class TerminalController
             header('Location: terminal.php?aktion=start');
             exit;
         } catch (Throwable $e) {
-            if (class_exists('Logger')) {
-                Logger::error('Terminal: RFID-Zuweisung fehlgeschlagen', [
-                    'ziel_mitarbeiter_id' => $zielMitarbeiterId,
-                    'rfid_code'           => $rfidCode,
-                    'exception'           => $e->getMessage(),
-                ], (int)$mitarbeiter['id'], null, 'terminal_admin');
-            }
+            Logger::error('Terminal: RFID-Zuweisung fehlgeschlagen', [
+                'ziel_mitarbeiter_id' => $zielMitarbeiterId,
+                'rfid_code'           => $rfidCode,
+                'exception'           => $e->getMessage(),
+            ], (int)$mitarbeiter['id'], null, 'terminal_admin');
 
             $this->rfidZuweisenForm('RFID-Zuweisung fehlgeschlagen. Bitte erneut versuchen.', [
                 'ziel_mitarbeiter_id' => (string)$zielMitarbeiterId,
@@ -3989,13 +3922,11 @@ $urlaubSaldo = null;
             $urlaubSaldo = null;
             $urlaubSaldoFehler = 'Urlaubssaldo konnte nicht geladen werden.';
 
-            if (class_exists('Logger')) {
-                Logger::warn('Terminal: Urlaubssaldo/Vorschau konnte nicht geladen werden', [
-                    'mitarbeiter_id' => (int)$mitarbeiter['id'],
-                    'jahr'           => $urlaubJahr,
-                    'exception'      => $e->getMessage(),
-                ], (int)$mitarbeiter['id'], null, 'terminal_urlaub');
-            }
+            Logger::warn('Terminal: Urlaubssaldo/Vorschau konnte nicht geladen werden', [
+                'mitarbeiter_id' => (int)$mitarbeiter['id'],
+                'jahr'           => $urlaubJahr,
+                'exception'      => $e->getMessage(),
+            ], (int)$mitarbeiter['id'], null, 'terminal_urlaub');
         }
 
         // Auto-Logout (Kontext: Urlaub)
@@ -4177,14 +4108,12 @@ $urlaubSaldo = null;
                 ]
             );
         } catch (Throwable $e) {
-            if (class_exists('Logger')) {
-                Logger::error('Terminal: Fehler beim Speichern des Urlaubsantrags', [
-                    'mitarbeiter_id' => $mitarbeiterId,
-                    'von'            => $von,
-                    'bis'            => $bis,
-                    'exception'      => $e->getMessage(),
-                ], $mitarbeiterId, null, 'terminal_urlaub');
-            }
+            Logger::error('Terminal: Fehler beim Speichern des Urlaubsantrags', [
+                'mitarbeiter_id' => $mitarbeiterId,
+                'von'            => $von,
+                'bis'            => $bis,
+                'exception'      => $e->getMessage(),
+            ], $mitarbeiterId, null, 'terminal_urlaub');
 
             $this->urlaubBeantragenForm('Urlaubsantrag konnte nicht gespeichert werden.', $formular);
             return;
@@ -4262,13 +4191,11 @@ $urlaubSaldo = null;
             );
         } catch (Throwable $e) {
             $betroffen = 0;
-            if (class_exists('Logger')) {
-                Logger::error('Terminal: Fehler beim Stornieren des Urlaubsantrags', [
-                    'mitarbeiter_id' => $mitarbeiterId,
-                    'antrag_id'      => $antragId,
-                    'exception'      => $e->getMessage(),
-                ], $mitarbeiterId, null, 'terminal_urlaub');
-            }
+            Logger::error('Terminal: Fehler beim Stornieren des Urlaubsantrags', [
+                'mitarbeiter_id' => $mitarbeiterId,
+                'antrag_id'      => $antragId,
+                'exception'      => $e->getMessage(),
+            ], $mitarbeiterId, null, 'terminal_urlaub');
         }
 
         if ($betroffen <= 0) {

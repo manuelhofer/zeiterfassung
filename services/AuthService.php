@@ -68,12 +68,10 @@ class AuthService
 
         $this->setzeSessionFuerMitarbeiter((int)$mitarbeiter['id']);
 
-        if (class_exists('Logger')) {
-            Logger::info('Login erfolgreich (Benutzername/E-Mail)', [
-                'kennung'       => $kennung,
-                'mitarbeiter_id'=> (int)$mitarbeiter['id'],
-            ], (int)$mitarbeiter['id'], null, 'auth');
-        }
+        Logger::info('Login erfolgreich (Benutzername/E-Mail)', [
+            'kennung'       => $kennung,
+            'mitarbeiter_id'=> (int)$mitarbeiter['id'],
+        ], (int)$mitarbeiter['id'], null, 'auth');
 
         return true;
     }
@@ -98,12 +96,10 @@ class AuthService
 
         $this->setzeSessionFuerMitarbeiter((int)$mitarbeiter['id']);
 
-        if (class_exists('Logger')) {
-            Logger::info('Login erfolgreich (RFID)', [
-                'rfid'          => $code,
-                'mitarbeiter_id'=> (int)$mitarbeiter['id'],
-            ], (int)$mitarbeiter['id'], null, 'auth');
-        }
+        Logger::info('Login erfolgreich (RFID)', [
+            'rfid'          => $code,
+            'mitarbeiter_id'=> (int)$mitarbeiter['id'],
+        ], (int)$mitarbeiter['id'], null, 'auth');
 
         return true;
     }
@@ -454,7 +450,7 @@ class AuthService
     {
         $mitarbeiterId = $this->holeAngemeldeteMitarbeiterId();
 
-        if (class_exists('Logger') && $mitarbeiterId !== null) {
+        if ($mitarbeiterId !== null) {
             Logger::info('Logout', [
                 'mitarbeiter_id' => $mitarbeiterId,
             ], $mitarbeiterId, null, 'auth');
@@ -681,10 +677,6 @@ class AuthService
      */
     private function logLoginFehler(string $kennung, string $grund): void
     {
-        if (!class_exists('Logger')) {
-            return;
-        }
-
         Logger::warn('Login fehlgeschlagen', [
             'kennung'   => $kennung,
             'grund'     => $grund,

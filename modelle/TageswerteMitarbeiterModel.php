@@ -138,13 +138,11 @@ class TageswerteMitarbeiterModel
             $this->db->ausfuehren($sql, $params);
             return true;
         } catch (\Throwable $e) {
-            if (class_exists('Logger')) {
-                Logger::warn('Tageswerte Upsert fehlgeschlagen', [
-                    'mitarbeiter_id' => $mitarbeiterId,
-                    'datum'          => $datum,
-                    'exception'      => $e->getMessage(),
-                ], $mitarbeiterId, null, 'tageswerte');
-            }
+            Logger::warn('Tageswerte Upsert fehlgeschlagen', [
+                'mitarbeiter_id' => $mitarbeiterId,
+                'datum'          => $datum,
+                'exception'      => $e->getMessage(),
+            ], $mitarbeiterId, null, 'tageswerte');
             return false;
         }
     }

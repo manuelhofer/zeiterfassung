@@ -85,12 +85,10 @@ class FeiertagController
         try {
             $feiertage = $this->feiertagModel->holeFuerJahr($jahr, null);
         } catch (\Throwable $e) {
-            if (class_exists('Logger')) {
-                Logger::error('Fehler beim Laden der Feiertage', [
-                    'jahr'      => $jahr,
-                    'exception' => $e->getMessage(),
-                ], null, null, 'feiertag');
-            }
+            Logger::error('Fehler beim Laden der Feiertage', [
+                'jahr'      => $jahr,
+                'exception' => $e->getMessage(),
+            ], null, null, 'feiertag');
         }
 
         require __DIR__ . '/../views/feiertag/liste.php';
@@ -117,12 +115,10 @@ class FeiertagController
         try {
             $feiertag = $this->feiertagModel->holeNachId($id);
         } catch (\Throwable $e) {
-            if (class_exists('Logger')) {
-                Logger::error('Fehler beim Laden eines Feiertags', [
-                    'id'        => $id,
-                    'exception' => $e->getMessage(),
-                ], null, null, 'feiertag');
-            }
+            Logger::error('Fehler beim Laden eines Feiertags', [
+                'id'        => $id,
+                'exception' => $e->getMessage(),
+            ], null, null, 'feiertag');
         }
 
         if ($feiertag === null) {
@@ -172,12 +168,10 @@ class FeiertagController
                 $istBetriebsfrei
             );
         } catch (\Throwable $e) {
-            if (class_exists('Logger')) {
-                Logger::error('Fehler beim Speichern eines Feiertags', [
-                    'id'        => $id,
-                    'exception' => $e->getMessage(),
-                ], null, null, 'feiertag');
-            }
+            Logger::error('Fehler beim Speichern eines Feiertags', [
+                'id'        => $id,
+                'exception' => $e->getMessage(),
+            ], null, null, 'feiertag');
             echo '<p>Beim Speichern des Feiertags ist ein Fehler aufgetreten.</p>';
             return;
         }

@@ -94,24 +94,22 @@ if (isset($_SESSION['terminal_healthcheck_interval'])) {
 
 // Wenn die Haupt-DB erreichbar ist, Config aus DB laden (darf niemals hard-crashen).
 try {
-    if (class_exists('Database')) {
-        /** @var Database $dbTmp */
-        $dbTmp = Database::getInstanz();
+    /** @var Database $dbTmp */
+    $dbTmp = Database::getInstanz();
 
+    $hauptdbOk = null;
+    try {
+        $hauptdbOk = $dbTmp->istHauptdatenbankVerfuegbar();
+    } catch (Throwable $e) {
         $hauptdbOk = null;
-        try {
-            $hauptdbOk = $dbTmp->istHauptdatenbankVerfuegbar();
-        } catch (Throwable $e) {
-            $hauptdbOk = null;
-        }
+    }
 
-        if ($hauptdbOk === true) {
-            $healthIntervalSekunden = KonfigurationService::getInstanz()
-                ->getInt('terminal_healthcheck_interval', $healthIntervalSekunden);
+    if ($hauptdbOk === true) {
+        $healthIntervalSekunden = KonfigurationService::getInstanz()
+            ->getInt('terminal_healthcheck_interval', $healthIntervalSekunden);
 
-            // Für Offline-Phasen merken.
-            $_SESSION['terminal_healthcheck_interval'] = $healthIntervalSekunden;
-        }
+        // Für Offline-Phasen merken.
+        $_SESSION['terminal_healthcheck_interval'] = $healthIntervalSekunden;
     }
 } catch (Throwable $e) {
     // Ignorieren – wir bleiben beim Default.

@@ -65,12 +65,10 @@ class ZeitbuchungModel
         try {
             $row = $this->db->fetchEine($sql, ['id' => $id]);
         } catch (\Throwable $e) {
-            if (class_exists('Logger')) {
-                Logger::warn('Fehler beim Laden einer Zeitbuchung per ID', [
-                    'id'        => $id,
-                    'exception' => $e->getMessage(),
-                ], null, null, 'zeitbuchung_model');
-            }
+            Logger::warn('Fehler beim Laden einer Zeitbuchung per ID', [
+                'id'        => $id,
+                'exception' => $e->getMessage(),
+            ], null, null, 'zeitbuchung_model');
             return null;
         }
 
@@ -127,13 +125,11 @@ class ZeitbuchungModel
             $row = $this->db->fetchEine($sql, $params);
             return is_array($row);
         } catch (\Throwable $e) {
-            if (class_exists('Logger')) {
-                Logger::warn('Fehler beim Prüfen auf Zeitstempel-Konflikte', [
-                    'mitarbeiter_id' => $mitarbeiterId,
-                    'typ'            => $typ ?? '',
-                    'exception'      => $e->getMessage(),
-                ], $mitarbeiterId, null, 'zeitbuchung_model');
-            }
+            Logger::warn('Fehler beim Prüfen auf Zeitstempel-Konflikte', [
+                'mitarbeiter_id' => $mitarbeiterId,
+                'typ'            => $typ ?? '',
+                'exception'      => $e->getMessage(),
+            ], $mitarbeiterId, null, 'zeitbuchung_model');
             return false;
         }
     }
@@ -223,16 +219,14 @@ class ZeitbuchungModel
             $this->db->ausfuehren($sql, $params);
             return (int)$this->db->letzteInsertId();
         } catch (\Throwable $e) {
-            if (class_exists('Logger')) {
-                Logger::error('Fehler beim Erstellen einer Zeitbuchung', [
-                    'mitarbeiter_id' => $mitarbeiterId,
-                    'typ'            => $typ,
-                    'quelle'         => $quelle,
-                    'terminal_id'    => $terminalId,
-                    'manuell'        => $manuellGeaendert,
-                    'exception'      => $e->getMessage(),
-                ], $mitarbeiterId, $terminalId, 'zeitbuchung_model');
-            }
+            Logger::error('Fehler beim Erstellen einer Zeitbuchung', [
+                'mitarbeiter_id' => $mitarbeiterId,
+                'typ'            => $typ,
+                'quelle'         => $quelle,
+                'terminal_id'    => $terminalId,
+                'manuell'        => $manuellGeaendert,
+                'exception'      => $e->getMessage(),
+            ], $mitarbeiterId, $terminalId, 'zeitbuchung_model');
 
             return null;
         }
@@ -291,13 +285,11 @@ class ZeitbuchungModel
             ]);
             return true;
         } catch (\Throwable $e) {
-            if (class_exists('Logger')) {
-                Logger::error('Fehler beim Aktualisieren einer Zeitbuchung', [
-                    'id'        => $id,
-                    'typ'       => $typ,
-                    'exception' => $e->getMessage(),
-                ], null, null, 'zeitbuchung_model');
-            }
+            Logger::error('Fehler beim Aktualisieren einer Zeitbuchung', [
+                'id'        => $id,
+                'typ'       => $typ,
+                'exception' => $e->getMessage(),
+            ], null, null, 'zeitbuchung_model');
             return false;
         }
     }
@@ -316,12 +308,10 @@ class ZeitbuchungModel
             $this->db->ausfuehren('DELETE FROM zeitbuchung WHERE id = :id', ['id' => $id]);
             return true;
         } catch (\Throwable $e) {
-            if (class_exists('Logger')) {
-                Logger::error('Fehler beim Löschen einer Zeitbuchung', [
-                    'id'        => $id,
-                    'exception' => $e->getMessage(),
-                ], null, null, 'zeitbuchung_model');
-            }
+            Logger::error('Fehler beim Löschen einer Zeitbuchung', [
+                'id'        => $id,
+                'exception' => $e->getMessage(),
+            ], null, null, 'zeitbuchung_model');
             return false;
         }
     }

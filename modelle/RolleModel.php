@@ -87,12 +87,10 @@ class RolleModel
 
             return (int)$this->db->letzteInsertId();
         } catch (\Throwable $e) {
-            if (class_exists('Logger')) {
-                Logger::error('Fehler beim Anlegen einer Rolle', [
-                    'daten'     => $parameter,
-                    'exception' => $e->getMessage(),
-                ], null, null, 'rolle');
-            }
+            Logger::error('Fehler beim Anlegen einer Rolle', [
+                'daten'     => $parameter,
+                'exception' => $e->getMessage(),
+            ], null, null, 'rolle');
 
             return null;
         }
@@ -137,13 +135,11 @@ class RolleModel
 
             return true;
         } catch (\Throwable $e) {
-            if (class_exists('Logger')) {
-                Logger::error('Fehler beim Aktualisieren einer Rolle', [
-                    'id'        => $id,
-                    'daten'     => $parameter,
-                    'exception' => $e->getMessage(),
-                ], $id, null, 'rolle');
-            }
+            Logger::error('Fehler beim Aktualisieren einer Rolle', [
+                'id'        => $id,
+                'daten'     => $parameter,
+                'exception' => $e->getMessage(),
+            ], $id, null, 'rolle');
 
             return false;
         }
@@ -315,14 +311,12 @@ class RolleModel
                 // ignore
             }
 
-            if (class_exists('Logger')) {
-                Logger::error('Fehler beim Speichern einer Rolle inkl. Rechte', [
-                    'rolle_id'   => $rolleId > 0 ? $rolleId : null,
-                    'name'       => $name,
-                    'recht_ids'  => $rechtIds,
-                    'exception'  => $e->getMessage(),
-                ], $rolleId > 0 ? $rolleId : null, null, 'rolle');
-            }
+            Logger::error('Fehler beim Speichern einer Rolle inkl. Rechte', [
+                'rolle_id'   => $rolleId > 0 ? $rolleId : null,
+                'name'       => $name,
+                'recht_ids'  => $rechtIds,
+                'exception'  => $e->getMessage(),
+            ], $rolleId > 0 ? $rolleId : null, null, 'rolle');
 
             return null;
         }

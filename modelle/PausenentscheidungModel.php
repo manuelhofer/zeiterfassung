@@ -41,13 +41,11 @@ class PausenentscheidungModel
                 'datum' => $datum,
             ]);
         } catch (Throwable $e) {
-            if (class_exists('Logger')) {
-                Logger::debug('Pausenentscheidung: Tabelle fehlt oder Query-Fehler (ignoriert)', [
-                    'mitarbeiter_id' => $mitarbeiterId,
-                    'datum'          => $datum,
-                    'exception'      => $e->getMessage(),
-                ], $mitarbeiterId, null, 'pause');
-            }
+            Logger::debug('Pausenentscheidung: Tabelle fehlt oder Query-Fehler (ignoriert)', [
+                'mitarbeiter_id' => $mitarbeiterId,
+                'datum'          => $datum,
+                'exception'      => $e->getMessage(),
+            ], $mitarbeiterId, null, 'pause');
             return null;
         }
     }
@@ -104,14 +102,12 @@ class PausenentscheidungModel
             ]);
             return $rc >= 0;
         } catch (Throwable $e) {
-            if (class_exists('Logger')) {
-                Logger::warn('Pausenentscheidung: Schreiben fehlgeschlagen', [
-                    'mitarbeiter_id' => $mitarbeiterId,
-                    'datum'          => $datum,
-                    'entscheidung'   => $entscheidung,
-                    'exception'      => $e->getMessage(),
-                ], $mitarbeiterId, null, 'pause');
-            }
+            Logger::warn('Pausenentscheidung: Schreiben fehlgeschlagen', [
+                'mitarbeiter_id' => $mitarbeiterId,
+                'datum'          => $datum,
+                'entscheidung'   => $entscheidung,
+                'exception'      => $e->getMessage(),
+            ], $mitarbeiterId, null, 'pause');
             return false;
         }
     }

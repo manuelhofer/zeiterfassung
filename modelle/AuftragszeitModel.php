@@ -45,13 +45,11 @@ class AuftragszeitModel
 
             return $this->datenbank->fetchEine($sql, $params);
         } catch (\Throwable $e) {
-            if (class_exists('Logger')) {
-                Logger::error('Fehler beim Laden der zuletzt pausierten Auftragszeit', [
-                    'mitarbeiter_id' => $mitarbeiterId,
-                    'typ'            => $typ,
-                    'exception'      => $e->getMessage(),
-                ], $mitarbeiterId, null, 'auftrag');
-            }
+            Logger::error('Fehler beim Laden der zuletzt pausierten Auftragszeit', [
+                'mitarbeiter_id' => $mitarbeiterId,
+                'typ'            => $typ,
+                'exception'      => $e->getMessage(),
+            ], $mitarbeiterId, null, 'auftrag');
 
             return null;
         }
@@ -75,12 +73,10 @@ class AuftragszeitModel
 
             return $this->datenbank->fetchAlle($sql, ['mitarbeiter_id' => $mitarbeiterId]);
         } catch (\Throwable $e) {
-            if (class_exists('Logger')) {
-                Logger::error('Fehler beim Laden pausierter Auftragszeiten', [
-                    'mitarbeiter_id' => $mitarbeiterId,
-                    'exception'      => $e->getMessage(),
-                ], $mitarbeiterId, null, 'auftrag');
-            }
+            Logger::error('Fehler beim Laden pausierter Auftragszeiten', [
+                'mitarbeiter_id' => $mitarbeiterId,
+                'exception'      => $e->getMessage(),
+            ], $mitarbeiterId, null, 'auftrag');
 
             return [];
         }
@@ -105,12 +101,10 @@ class AuftragszeitModel
 
             return $this->datenbank->fetchEine($sql, ['id' => $id]);
         } catch (\Throwable $e) {
-            if (class_exists('Logger')) {
-                Logger::error('Fehler beim Laden einer Auftragszeit nach ID', [
-                    'id'        => $id,
-                    'exception' => $e->getMessage(),
-                ], null, null, 'auftrag');
-            }
+            Logger::error('Fehler beim Laden einer Auftragszeit nach ID', [
+                'id'        => $id,
+                'exception' => $e->getMessage(),
+            ], null, null, 'auftrag');
 
             return null;
         }
@@ -134,12 +128,10 @@ class AuftragszeitModel
 
             return $this->datenbank->fetchAlle($sql, ['mitarbeiter_id' => $mitarbeiterId]);
         } catch (\Throwable $e) {
-            if (class_exists('Logger')) {
-                Logger::error('Fehler beim Laden laufender Auftragszeiten eines Mitarbeiters (Model)', [
-                    'mitarbeiter_id' => $mitarbeiterId,
-                    'exception'      => $e->getMessage(),
-                ], $mitarbeiterId, null, 'auftrag');
-            }
+            Logger::error('Fehler beim Laden laufender Auftragszeiten eines Mitarbeiters (Model)', [
+                'mitarbeiter_id' => $mitarbeiterId,
+                'exception'      => $e->getMessage(),
+            ], $mitarbeiterId, null, 'auftrag');
 
             return [];
         }
@@ -174,13 +166,11 @@ class AuftragszeitModel
                 'stichtag' => $zeitpunktStr,
             ]);
         } catch (\Throwable $e) {
-            if (class_exists('Logger')) {
-                Logger::error('Fehler beim Laden der letzten laufenden Auftragszeit bis Zeitpunkt', [
-                    'mitarbeiter_id' => $mitarbeiterId,
-                    'stichtag' => $zeitpunktStr,
-                    'exception' => $e->getMessage(),
-                ], $mitarbeiterId, null, 'auftrag');
-            }
+            Logger::error('Fehler beim Laden der letzten laufenden Auftragszeit bis Zeitpunkt', [
+                'mitarbeiter_id' => $mitarbeiterId,
+                'stichtag' => $zeitpunktStr,
+                'exception' => $e->getMessage(),
+            ], $mitarbeiterId, null, 'auftrag');
 
             return null;
         }
@@ -210,12 +200,10 @@ class AuftragszeitModel
                 'mitarbeiter_id' => $mitarbeiterId,
             ]);
         } catch (\Throwable $e) {
-            if (class_exists('Logger')) {
-                Logger::error('Fehler beim Beenden laufender Hauptaufträge (Model)', [
-                    'mitarbeiter_id' => $mitarbeiterId,
-                    'exception'      => $e->getMessage(),
-                ], $mitarbeiterId, null, 'auftrag');
-            }
+            Logger::error('Fehler beim Beenden laufender Hauptaufträge (Model)', [
+                'mitarbeiter_id' => $mitarbeiterId,
+                'exception'      => $e->getMessage(),
+            ], $mitarbeiterId, null, 'auftrag');
         }
     }
 
@@ -280,19 +268,17 @@ class AuftragszeitModel
             $this->datenbank->ausfuehren($sql, $params);
             return (int)$this->datenbank->letzteInsertId();
         } catch (\Throwable $e) {
-            if (class_exists('Logger')) {
-                Logger::error('Fehler beim Erstellen einer Auftragszeit (Model)', [
-                    'mitarbeiter_id' => $mitarbeiterId,
-                    'auftrag_id'     => $auftragId,
-                    'auftragscode'   => $auftragscode,
-                    'arbeitsschritt_id' => $arbeitsschrittId,
-                    'arbeitsschritt_code' => $arbeitsschrittCode,
-                    'maschine_id'    => $maschineId,
-                    'terminal_id'    => $terminalId,
-                    'typ'            => $typ,
-                    'exception'      => $e->getMessage(),
-                ], $mitarbeiterId, null, 'auftrag');
-            }
+            Logger::error('Fehler beim Erstellen einer Auftragszeit (Model)', [
+                'mitarbeiter_id' => $mitarbeiterId,
+                'auftrag_id'     => $auftragId,
+                'auftragscode'   => $auftragscode,
+                'arbeitsschritt_id' => $arbeitsschrittId,
+                'arbeitsschritt_code' => $arbeitsschrittCode,
+                'maschine_id'    => $maschineId,
+                'terminal_id'    => $terminalId,
+                'typ'            => $typ,
+                'exception'      => $e->getMessage(),
+            ], $mitarbeiterId, null, 'auftrag');
 
             return null;
         }
@@ -335,13 +321,11 @@ class AuftragszeitModel
 
             return true;
         } catch (\Throwable $e) {
-            if (class_exists('Logger')) {
-                Logger::error('Fehler beim Beenden einer Auftragszeit (Model)', [
-                    'auftragszeit_id' => $auftragszeitId,
-                    'status'          => $status,
-                    'exception'       => $e->getMessage(),
-                ], null, null, 'auftrag');
-            }
+            Logger::error('Fehler beim Beenden einer Auftragszeit (Model)', [
+                'auftragszeit_id' => $auftragszeitId,
+                'status'          => $status,
+                'exception'       => $e->getMessage(),
+            ], null, null, 'auftrag');
 
             return false;
         }
@@ -385,15 +369,13 @@ class AuftragszeitModel
 
             return true;
         } catch (\Throwable $e) {
-            if (class_exists('Logger')) {
-                Logger::error('Fehler beim Aktualisieren einer Auftragszeit (Model)', [
-                    'auftragszeit_id' => $auftragszeitId,
-                    'startzeit' => $startzeit->format('Y-m-d H:i:s'),
-                    'endzeit' => $endzeit !== null ? $endzeit->format('Y-m-d H:i:s') : null,
-                    'status' => $status,
-                    'exception' => $e->getMessage(),
-                ], null, null, 'auftrag');
-            }
+            Logger::error('Fehler beim Aktualisieren einer Auftragszeit (Model)', [
+                'auftragszeit_id' => $auftragszeitId,
+                'startzeit' => $startzeit->format('Y-m-d H:i:s'),
+                'endzeit' => $endzeit !== null ? $endzeit->format('Y-m-d H:i:s') : null,
+                'status' => $status,
+                'exception' => $e->getMessage(),
+            ], null, null, 'auftrag');
 
             return false;
         }

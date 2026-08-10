@@ -70,6 +70,88 @@ in den Statusbericht.
   D-002 entfallen; die Regel selbst gilt weiter.)
 
 
+## P-2026-08-10-16 class-exists-ballast-entfernt
+
+### EINGELESEN
+- Alle 366 `class_exists`-Fundstellen, gruppiert nach gepruefter Klasse.
+- `core/Autoloader.php` – welche Verzeichnisse er bedient.
+- `controller/SmokeTestController.php` und den Selbsttest im
+  `DashboardController`, um die legitimen Pruefungen abzugrenzen.
+
+### DATEIEN
+60 Dateien in `controller/`, `core/`, `modelle/`, `services/`, `views/`,
+`public/`.
+
+### AKZEPTANZKRITERIUM
+Alle Backend-Masken erzeugen dasselbe HTML wie vor dem Patch, `Logger` schreibt
+weiterhin nach `system_log`, und `class_exists` steht nur noch dort, wo die
+Klasse tatsaechlich fehlen kann.
+
+### DONE
+**366 → 17 Fundstellen**, 2.532 Zeilen entfernt (bei 1.845 wieder eingerueckten).
+
+Allein `class_exists('Logger')` stand **287-mal** im Projekt, dazu 27-mal
+`class_exists('Database')` und rund 50 weitere auf Projektklassen. Alle sind
+immer wahr: `core/Autoloader.php` wird von jedem der drei Einstiegspunkte als
+Erstes geladen und findet jede Klasse aus `core/`, `modelle/`, `services/`,
+`controller/`. Das Muster war ueberall dasselbe:
+
+```php
+if (class_exists('Logger')) {
+    Logger::error('…', […], null, null, 'kategorie');
+}
+```
+
+Der Schaden ist nicht die Rechenzeit, sondern die Aussage: Es liest sich, als
+sei das Protokollieren optional und koenne fehlen. In einem System, dessen
+Fehlersuche an `system_log` haengt, ist das die falsche Botschaft – siehe
+P-2026-08-10-02, wo genau so ein Zweig einen Fehlerpfad verschluckt hat.
+
+**Die 17 verbliebenen bleiben mit gutem Grund:**
+
+- `class_exists('ZipArchive')` – eine PHP-**Erweiterung**, die fehlen kann. Der
+  Selbsttest prueft sie absichtlich.
+- vier auf `Picqer\Barcode\…` – ueber `require_once` geladen, nicht ueber den
+  Autoloader.
+- zwoelf in `SmokeTestController` – dort ist die Pruefung der Zweck, nicht die
+  Absicherung.
+
+Nebenbei fielen zwei **unerreichbare `else`-Zweige** auf, die nur durch die
+Huelle am Leben gehalten wurden – unter anderem im `TerminalController` ein
+Ersatzpfad fuer den Monatsstatus, der nie lief.
+
+### TEST
+- **18 Backend-Masken gerendert und die HTML-Groessen mit dem Lauf vor dem
+  Patch verglichen: byte-identisch** (Dashboard 25.933, Tagesansicht 31.283,
+  Monatsreport 97.113 usw.). 16 POST-Formulare, keines ohne gueltiges Token,
+  0 Ausnahmen.
+- `Logger::error()` gegen die Datenbank: `system_log` 0 → 1 Eintrag, Probe
+  wieder entfernt.
+- `index.php`, `terminal.php`, Health je HTTP 200; `maschine_code.php` liefert
+  403 ohne Anmeldung (unveraendert richtig).
+- `php -l` ueber **alle** PHP-Dateien: sauber.
+
+### Gefundene Fehler im eigenen Entwurf
+Beim Aufloesen von `if (class_exists('ReportService')) {` im
+`TerminalController` hat mein Skript das passende `}` gefunden – aber der Block
+hatte einen `} else {`-Zweig dazwischen, den die Klammersuche uebersprungen hat.
+Ergebnis: ein verwaistes `} else {` und ein **Parse-Fehler**. Das Skript
+enthaelt eine Abbruchbedingung fuer `} else`, die hier nicht griff, weil die
+Einrueckung des `else` von der des `if` abwich.
+
+Aufgefallen sofort durch `php -l` – anders als beim Hilfsskript in
+P-2026-08-10-13, wo die kaputte Datei syntaktisch sauber blieb. Von Hand
+korrigiert; der `else`-Zweig war ohnehin unerreichbar und ist entfallen.
+
+### Was bewusst nicht erreicht wurde
+`try`/`catch`-Bloecke, die eine Ausnahme fangen und stillschweigend
+weitermachen, gibt es weiterhin an vielen Stellen. Ob das jeweils richtig ist,
+laesst sich nur einzeln beurteilen – kein Fall fuer einen mechanischen Patch.
+
+### NEXT
+Phase 6: Kleinigkeiten (`index.php`, Einrueckung, Master-Prompt-Verweise).
+
+
 ## P-2026-08-10-15 datenbankschnittstelle-und-konfiguration-vereinheitlicht
 
 ### EINGELESEN

@@ -73,12 +73,10 @@ class KonfigurationService
 
             return $wert !== null ? $wert : $standardWert;
         } catch (\Throwable $e) {
-            if (class_exists('Logger')) {
-                Logger::error('Fehler beim Lesen eines Konfigurationswertes', [
-                    'schluessel' => $schluessel,
-                    'exception'  => $e->getMessage(),
-                ], null, null, 'config');
-            }
+            Logger::error('Fehler beim Lesen eines Konfigurationswertes', [
+                'schluessel' => $schluessel,
+                'exception'  => $e->getMessage(),
+            ], null, null, 'config');
 
             return $standardWert;
         }
@@ -161,12 +159,10 @@ class KonfigurationService
             // Cache aktualisieren
             $this->cache[$schluessel] = $wert;
         } catch (\Throwable $e) {
-            if (class_exists('Logger')) {
-                Logger::error('Fehler beim Schreiben eines Konfigurationswertes', [
-                    'schluessel' => $schluessel,
-                    'exception'  => $e->getMessage(),
-                ], null, null, 'config');
-            }
+            Logger::error('Fehler beim Schreiben eines Konfigurationswertes', [
+                'schluessel' => $schluessel,
+                'exception'  => $e->getMessage(),
+            ], null, null, 'config');
         }
     }
 
@@ -184,11 +180,9 @@ class KonfigurationService
 
             return $this->datenbank->fetchAlle($sql);
         } catch (\Throwable $e) {
-            if (class_exists('Logger')) {
-                Logger::error('Fehler beim Laden aller Konfigurationseinträge', [
-                    'exception' => $e->getMessage(),
-                ], null, null, 'config');
-            }
+            Logger::error('Fehler beim Laden aller Konfigurationseinträge', [
+                'exception' => $e->getMessage(),
+            ], null, null, 'config');
             return [];
         }
     }

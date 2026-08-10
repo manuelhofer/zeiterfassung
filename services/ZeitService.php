@@ -113,13 +113,11 @@ class ZeitService
             );
         } catch (\Throwable $e) {
             $buchungen = [];
-            if (class_exists('Logger')) {
-                Logger::error('Fehler beim Laden der Zeitbuchungen für Tagesansicht', [
-                    'mitarbeiter_id' => $mitarbeiterId,
-                    'datum'          => $datum->format('Y-m-d'),
-                    'exception'      => $e->getMessage(),
-                ], $mitarbeiterId, null, 'zeitservice');
-            }
+            Logger::error('Fehler beim Laden der Zeitbuchungen für Tagesansicht', [
+                'mitarbeiter_id' => $mitarbeiterId,
+                'datum'          => $datum->format('Y-m-d'),
+                'exception'      => $e->getMessage(),
+            ], $mitarbeiterId, null, 'zeitservice');
         }
 
         // Aggregierte Tageswerte (falls vorhanden) laden
@@ -131,13 +129,11 @@ class ZeitService
             );
         } catch (\Throwable $e) {
             $tageswerte = null;
-            if (class_exists('Logger')) {
-                Logger::warn('Fehler beim Laden der Tageswerte für Tagesansicht', [
-                    'mitarbeiter_id' => $mitarbeiterId,
-                    'datum'          => $datum->format('Y-m-d'),
-                    'exception'      => $e->getMessage(),
-                ], $mitarbeiterId, null, 'zeitservice');
-            }
+            Logger::warn('Fehler beim Laden der Tageswerte für Tagesansicht', [
+                'mitarbeiter_id' => $mitarbeiterId,
+                'datum'          => $datum->format('Y-m-d'),
+                'exception'      => $e->getMessage(),
+            ], $mitarbeiterId, null, 'zeitservice');
         }
 
         return [
@@ -194,9 +190,7 @@ class ZeitService
         // ------------------------------------------------------------
 
         $db = null;
-        if (class_exists('Database')) {
-            $db = Database::getInstanz();
-        }
+        $db = Database::getInstanz();
 
         $hauptDbOk = null;
         if ($db !== null) {
@@ -236,13 +230,11 @@ class ZeitService
                 // Die echte ID entsteht erst beim späteren Einspielen in die Hauptdatenbank.
                 return $ok ? 0 : null;
             } catch (\Throwable $e) {
-                if (class_exists('Logger')) {
-                    Logger::error('ZeitService: Offline-Queue-Buchung fehlgeschlagen', [
-                        'mitarbeiter_id' => $mitarbeiterId,
-                        'typ'            => $typ,
-                        'exception'      => $e->getMessage(),
-                    ], $mitarbeiterId, $terminalId, 'zeitservice_offline');
-                }
+                Logger::error('ZeitService: Offline-Queue-Buchung fehlgeschlagen', [
+                    'mitarbeiter_id' => $mitarbeiterId,
+                    'typ'            => $typ,
+                    'exception'      => $e->getMessage(),
+                ], $mitarbeiterId, $terminalId, 'zeitservice_offline');
                 return null;
             }
         }
@@ -259,15 +251,13 @@ class ZeitService
                 $nachtshift
             );
         } catch (\Throwable $e) {
-            if (class_exists('Logger')) {
-                Logger::error('Fehler beim Buchen einer Zeit', [
-                    'mitarbeiter_id' => $mitarbeiterId,
-                    'typ'            => $typ,
-                    'quelle'         => $quelle,
-                    'terminal_id'    => $terminalId,
-                    'exception'      => $e->getMessage(),
-                ], $mitarbeiterId, null, 'zeitservice');
-            }
+            Logger::error('Fehler beim Buchen einer Zeit', [
+                'mitarbeiter_id' => $mitarbeiterId,
+                'typ'            => $typ,
+                'quelle'         => $quelle,
+                'terminal_id'    => $terminalId,
+                'exception'      => $e->getMessage(),
+            ], $mitarbeiterId, null, 'zeitservice');
 
             return null;
         }
@@ -336,13 +326,11 @@ class ZeitService
         try {
             $buchungen = $this->zeitbuchungModel->holeFuerMitarbeiterUndZeitraum($mitarbeiterId, $start, $ende);
         } catch (\Throwable $e) {
-            if (class_exists('Logger')) {
-                Logger::warn('Synchronisierung Tageswerte: Zeitbuchungen konnten nicht geladen werden', [
-                    'mitarbeiter_id' => $mitarbeiterId,
-                    'datum'          => $datumYmd,
-                    'exception'      => $e->getMessage(),
-                ], $mitarbeiterId, null, 'zeitservice');
-            }
+            Logger::warn('Synchronisierung Tageswerte: Zeitbuchungen konnten nicht geladen werden', [
+                'mitarbeiter_id' => $mitarbeiterId,
+                'datum'          => $datumYmd,
+                'exception'      => $e->getMessage(),
+            ], $mitarbeiterId, null, 'zeitservice');
             return false;
         }
 
@@ -496,7 +484,7 @@ class ZeitService
             $pauseMin
         );
 
-        if ($ok && class_exists('Logger')) {
+        if ($ok) {
             Logger::info('Synchronisierung Tageswerte abgeschlossen', [
                 'mitarbeiter_id' => $mitarbeiterId,
                 'datum'          => $datumYmd,

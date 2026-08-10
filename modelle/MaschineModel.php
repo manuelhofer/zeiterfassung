@@ -30,11 +30,9 @@ class MaschineModel
 
             return $this->datenbank->fetchAlle($sql);
         } catch (\Throwable $e) {
-            if (class_exists('Logger')) {
-                Logger::error('Fehler beim Laden aktiver Maschinen', [
-                    'exception' => $e->getMessage(),
-                ], null, null, 'maschine');
-            }
+            Logger::error('Fehler beim Laden aktiver Maschinen', [
+                'exception' => $e->getMessage(),
+            ], null, null, 'maschine');
 
             return [];
         }
@@ -59,12 +57,10 @@ class MaschineModel
 
             return $this->datenbank->fetchEine($sql, ['id' => $id]);
         } catch (\Throwable $e) {
-            if (class_exists('Logger')) {
-                Logger::error('Fehler beim Laden einer Maschine nach ID', [
-                    'id'        => $id,
-                    'exception' => $e->getMessage(),
-                ], null, null, 'maschine');
-            }
+            Logger::error('Fehler beim Laden einer Maschine nach ID', [
+                'id'        => $id,
+                'exception' => $e->getMessage(),
+            ], null, null, 'maschine');
 
             return null;
         }

@@ -568,8 +568,6 @@ class ArbeitsschrittKatalogController
      */
     private function protokolliere(string $nachricht, array $kontext): void
     {
-        if (class_exists('Logger')) {
-            Logger::error($nachricht, $kontext, null, null, 'arbeitsschritt_katalog');
-        }
+        Logger::error($nachricht, $kontext, null, null, 'arbeitsschritt_katalog');
     }
 }

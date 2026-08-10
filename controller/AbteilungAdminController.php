@@ -70,11 +70,9 @@ class AbteilungAdminController
         } catch (\Throwable $e) {
             $abteilungen  = [];
             $fehlermeldung = 'Die Abteilungen konnten nicht geladen werden.';
-            if (class_exists('Logger')) {
-                Logger::error('Fehler beim Laden der Abteilungen im Admin-Bereich', [
-                    'exception' => $e->getMessage(),
-                ], null, null, 'abteilung');
-            }
+            Logger::error('Fehler beim Laden der Abteilungen im Admin-Bereich', [
+                'exception' => $e->getMessage(),
+            ], null, null, 'abteilung');
         }
 
         require __DIR__ . '/../views/abteilung/liste.php';
@@ -109,12 +107,10 @@ class AbteilungAdminController
             }
         } catch (\Throwable $e) {
             $fehlermeldung = 'Die Abteilung konnte nicht geladen werden.';
-            if (class_exists('Logger')) {
-                Logger::error('Fehler beim Laden einer Abteilung im Admin-Bereich', [
-                    'id'        => $id,
-                    'exception' => $e->getMessage(),
-                ], $id, null, 'abteilung');
-            }
+            Logger::error('Fehler beim Laden einer Abteilung im Admin-Bereich', [
+                'id'        => $id,
+                'exception' => $e->getMessage(),
+            ], $id, null, 'abteilung');
         }
 
         require __DIR__ . '/../views/abteilung/formular.php';
@@ -169,11 +165,9 @@ class AbteilungAdminController
                 $alleAbteilungen = $this->abteilungModel->holeAlleAktiven();
             } catch (\Throwable $e) {
                 $alleAbteilungen = [];
-                if (class_exists('Logger')) {
-                    Logger::error('Fehler beim Nachladen der Abteilungen für das Formular', [
-                        'exception' => $e->getMessage(),
-                    ], null, null, 'abteilung');
-                }
+                Logger::error('Fehler beim Nachladen der Abteilungen für das Formular', [
+                    'exception' => $e->getMessage(),
+                ], null, null, 'abteilung');
             }
 
             $fehlermeldungLok = $fehlermeldung;
@@ -207,13 +201,11 @@ class AbteilungAdminController
             return;
         } catch (\Throwable $e) {
             $fehlermeldung = 'Die Abteilung konnte nicht gespeichert werden.';
-            if (class_exists('Logger')) {
-                Logger::error('Fehler beim Speichern einer Abteilung', [
-                    'id'        => $id,
-                    'daten'     => $daten,
-                    'exception' => $e->getMessage(),
-                ], $id, null, 'abteilung');
-            }
+            Logger::error('Fehler beim Speichern einer Abteilung', [
+                'id'        => $id,
+                'daten'     => $daten,
+                'exception' => $e->getMessage(),
+            ], $id, null, 'abteilung');
 
             $abteilung = [
                 'id'           => $id,
@@ -227,11 +219,9 @@ class AbteilungAdminController
                 $alleAbteilungen = $this->abteilungModel->holeAlleAktiven();
             } catch (\Throwable $e2) {
                 $alleAbteilungen = [];
-                if (class_exists('Logger')) {
-                    Logger::error('Fehler beim Nachladen der Abteilungen nach einem Speicherfehler', [
-                        'exception' => $e2->getMessage(),
-                    ], null, null, 'abteilung');
-                }
+                Logger::error('Fehler beim Nachladen der Abteilungen nach einem Speicherfehler', [
+                    'exception' => $e2->getMessage(),
+                ], null, null, 'abteilung');
             }
 
             require __DIR__ . '/../views/abteilung/formular.php';

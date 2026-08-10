@@ -74,11 +74,9 @@ class MaschineAdminController
             $maschinen = $this->datenbank->fetchAlle($sql);
         } catch (\Throwable $e) {
             $fehlermeldung = 'Die Maschinen konnten nicht geladen werden.';
-            if (class_exists('Logger')) {
-                Logger::error('Fehler beim Laden der Maschinen im Admin-Bereich', [
-                    'exception' => $e->getMessage(),
-                ], null, null, 'maschine');
-            }
+            Logger::error('Fehler beim Laden der Maschinen im Admin-Bereich', [
+                'exception' => $e->getMessage(),
+            ], null, null, 'maschine');
         }
 
         require __DIR__ . '/../views/layout/header.php';
@@ -168,12 +166,10 @@ class MaschineAdminController
             }
         } catch (\Throwable $e) {
             $fehlermeldung = 'Die Maschine konnte nicht geladen werden.';
-            if (class_exists('Logger')) {
-                Logger::error('Fehler beim Laden einer Maschine im Admin-Bereich', [
-                    'id'        => $id,
-                    'exception' => $e->getMessage(),
-                ], $id, null, 'maschine');
-            }
+            Logger::error('Fehler beim Laden einer Maschine im Admin-Bereich', [
+                'id'        => $id,
+                'exception' => $e->getMessage(),
+            ], $id, null, 'maschine');
         }
 
         $abteilungen = [];
@@ -181,11 +177,9 @@ class MaschineAdminController
             $abteilungen = $this->abteilungModel->holeAlleAktiven();
         } catch (\Throwable $e) {
             $abteilungen = [];
-            if (class_exists('Logger')) {
-                Logger::error('Fehler beim Laden der Abteilungen für Maschinen-Formular', [
-                    'exception' => $e->getMessage(),
-                ], null, null, 'maschine');
-            }
+            Logger::error('Fehler beim Laden der Abteilungen für Maschinen-Formular', [
+                'exception' => $e->getMessage(),
+            ], null, null, 'maschine');
         }
 
         $this->renderFormular($maschine, $abteilungen, $fehlermeldung, null);
@@ -273,13 +267,11 @@ class MaschineAdminController
             }
         } catch (\Throwable $e) {
             $fehlermeldung = 'Die Maschine konnte nicht gespeichert werden. Bitte prüfen Sie die Datenbankverbindung.';
-            if (class_exists('Logger')) {
-                Logger::error('Fehler beim Speichern einer Maschine', [
-                    'id'        => $id,
-                    'maschine'  => $maschine,
-                    'exception' => $e->getMessage(),
-                ], $id > 0 ? $id : null, null, 'maschine');
-            }
+            Logger::error('Fehler beim Speichern einer Maschine', [
+                'id'        => $id,
+                'maschine'  => $maschine,
+                'exception' => $e->getMessage(),
+            ], $id > 0 ? $id : null, null, 'maschine');
 
             $this->renderFormular($maschine, $abteilungen, $fehlermeldung, $erfolgsmeldung);
             return;
@@ -303,12 +295,10 @@ class MaschineAdminController
             }
         } catch (\Throwable $e) {
             $codeBildPfad = null;
-            if (class_exists('Logger')) {
-                Logger::error('Fehler beim Erzeugen des Maschinen-Barcodes', [
-                    'id'        => $maschinenId,
-                    'exception' => $e->getMessage(),
-                ], $maschinenId, null, 'maschine');
-            }
+            Logger::error('Fehler beim Erzeugen des Maschinen-Barcodes', [
+                'id'        => $maschinenId,
+                'exception' => $e->getMessage(),
+            ], $maschinenId, null, 'maschine');
         }
 
         if ($codeBildPfad === null) {
@@ -353,12 +343,10 @@ class MaschineAdminController
                 }
             } catch (\Throwable $e) {
                 $fehlermeldung = 'Die Maschine konnte nicht geladen werden.';
-                if (class_exists('Logger')) {
-                    Logger::error('Fehler beim Laden einer Maschine für Barcode-Neuerzeugung', [
-                        'id'        => $id,
-                        'exception' => $e->getMessage(),
-                    ], $id, null, 'maschine');
-                }
+                Logger::error('Fehler beim Laden einer Maschine für Barcode-Neuerzeugung', [
+                    'id'        => $id,
+                    'exception' => $e->getMessage(),
+                ], $id, null, 'maschine');
             }
         }
 
@@ -382,12 +370,10 @@ class MaschineAdminController
                 }
             } catch (\Throwable $e) {
                 $codeBildPfad = null;
-                if (class_exists('Logger')) {
-                    Logger::error('Fehler beim Neuerzeugen des Maschinen-Barcodes', [
-                        'id'        => $id,
-                        'exception' => $e->getMessage(),
-                    ], $id, null, 'maschine');
-                }
+                Logger::error('Fehler beim Neuerzeugen des Maschinen-Barcodes', [
+                    'id'        => $id,
+                    'exception' => $e->getMessage(),
+                ], $id, null, 'maschine');
             }
 
             if ($codeBildPfad === null) {
@@ -402,11 +388,9 @@ class MaschineAdminController
             $abteilungen = $this->abteilungModel->holeAlleAktiven();
         } catch (\Throwable $e) {
             $abteilungen = [];
-            if (class_exists('Logger')) {
-                Logger::error('Fehler beim Laden der Abteilungen für Barcode-Neuerzeugung', [
-                    'exception' => $e->getMessage(),
-                ], $id > 0 ? $id : null, null, 'maschine');
-            }
+            Logger::error('Fehler beim Laden der Abteilungen für Barcode-Neuerzeugung', [
+                'exception' => $e->getMessage(),
+            ], $id > 0 ? $id : null, null, 'maschine');
         }
 
         if ($maschine === null) {

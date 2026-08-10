@@ -222,11 +222,9 @@ class KonfigurationController
             $eintraege = $this->konfigurationService->getAlle();
         } catch (Throwable $e) {
             $fehlermeldung = 'Die Konfiguration konnte nicht geladen werden.';
-            if (class_exists('Logger')) {
-                Logger::error('Fehler beim Laden der Konfiguration', [
-                    'exception' => $e->getMessage(),
-                ], null, null, 'config');
-            }
+            Logger::error('Fehler beim Laden der Konfiguration', [
+                'exception' => $e->getMessage(),
+            ], null, null, 'config');
         }
 
         require __DIR__ . '/../views/layout/header.php';
@@ -338,12 +336,10 @@ class KonfigurationController
                             return;
                         } catch (Throwable $e) {
                             $fehlermeldung = 'Löschen fehlgeschlagen.';
-                            if (class_exists('Logger')) {
-                                Logger::error('Fehler beim Löschen eines System-Log-Eintrags', [
-                                    'id' => $id,
-                                    'exception' => $e->getMessage(),
-                                ], $this->authService->holeAngemeldeteMitarbeiterId(), null, 'system_log');
-                            }
+                            Logger::error('Fehler beim Löschen eines System-Log-Eintrags', [
+                                'id' => $id,
+                                'exception' => $e->getMessage(),
+                            ], $this->authService->holeAngemeldeteMitarbeiterId(), null, 'system_log');
                         }
                     }
                 }
@@ -355,11 +351,9 @@ class KonfigurationController
                         return;
                     } catch (Throwable $e) {
                         $fehlermeldung = 'Das System-Log konnte nicht geleert werden.';
-                        if (class_exists('Logger')) {
-                            Logger::error('Fehler beim Leeren des System-Logs', [
-                                'exception' => $e->getMessage(),
-                            ], $this->authService->holeAngemeldeteMitarbeiterId(), null, 'system_log');
-                        }
+                        Logger::error('Fehler beim Leeren des System-Logs', [
+                            'exception' => $e->getMessage(),
+                        ], $this->authService->holeAngemeldeteMitarbeiterId(), null, 'system_log');
                     }
                 }
             }
@@ -376,11 +370,9 @@ class KonfigurationController
             $eintraege = $this->datenbank->fetchAlle($sql);
         } catch (Throwable $e) {
             $fehlermeldung = 'Das System-Log konnte nicht geladen werden.';
-            if (class_exists('Logger')) {
-                Logger::error('Fehler beim Laden des System-Logs', [
-                    'exception' => $e->getMessage(),
-                ], $this->authService->holeAngemeldeteMitarbeiterId(), null, 'system_log');
-            }
+            Logger::error('Fehler beim Laden des System-Logs', [
+                'exception' => $e->getMessage(),
+            ], $this->authService->holeAngemeldeteMitarbeiterId(), null, 'system_log');
         }
 
         require __DIR__ . '/../views/layout/header.php';
@@ -710,13 +702,11 @@ class KonfigurationController
                             }
                         } catch (Throwable $e) {
                             $fehlermeldung = 'Speichern fehlgeschlagen.';
-                            if (class_exists('Logger')) {
-                                Logger::error('Fehler beim Toggle krankzeitraum', [
-                                    'id' => $id,
-                                    'aktiv' => $aktiv,
-                                    'exception' => $e->getMessage(),
-                                ], $this->authService->holeAngemeldeteMitarbeiterId(), null, 'krank');
-                            }
+                            Logger::error('Fehler beim Toggle krankzeitraum', [
+                                'id' => $id,
+                                'aktiv' => $aktiv,
+                                'exception' => $e->getMessage(),
+                            ], $this->authService->holeAngemeldeteMitarbeiterId(), null, 'krank');
                         }
                     }
                 }
@@ -852,17 +842,15 @@ class KonfigurationController
                             return;
                         } catch (Throwable $e) {
                             $fehlermeldung = 'Speichern fehlgeschlagen.';
-                            if (class_exists('Logger')) {
-                                Logger::error('Fehler beim Speichern krankzeitraum', [
-                                    'id' => $id,
-                                    'mid' => $mitarbeiterId,
-                                    'typ' => $typ,
-                                    'von' => $von,
-                                    'bis' => $bis,
-                                    'aktiv' => $aktiv,
-                                    'exception' => $e->getMessage(),
-                                ], $angemeldeterId, null, 'krank');
-                            }
+                            Logger::error('Fehler beim Speichern krankzeitraum', [
+                                'id' => $id,
+                                'mid' => $mitarbeiterId,
+                                'typ' => $typ,
+                                'von' => $von,
+                                'bis' => $bis,
+                                'aktiv' => $aktiv,
+                                'exception' => $e->getMessage(),
+                            ], $angemeldeterId, null, 'krank');
                         }
                     }
                 }
@@ -945,11 +933,9 @@ class KonfigurationController
             if ($fehlermeldung === null) {
                 $fehlermeldung = 'Die Krankzeiten konnten nicht geladen werden.';
             }
-            if (class_exists('Logger')) {
-                Logger::error('Fehler beim Laden krankzeitraum (Admin)', [
-                    'exception' => $e->getMessage(),
-                ], $this->authService->holeAngemeldeteMitarbeiterId(), null, 'krank');
-            }
+            Logger::error('Fehler beim Laden krankzeitraum (Admin)', [
+                'exception' => $e->getMessage(),
+            ], $this->authService->holeAngemeldeteMitarbeiterId(), null, 'krank');
         }
 
         $mitarbeiterListe = $this->holeMitarbeiterListe((int)($form['mitarbeiter_id'] ?? 0));
@@ -1302,13 +1288,11 @@ class KonfigurationController
                             return;
                         } catch (Throwable $e) {
                             $fehlermeldung = 'Speichern fehlgeschlagen.';
-                            if (class_exists('Logger')) {
-                                Logger::error('Fehler beim Toggle pausenfenster', [
-                                    'id' => $id,
-                                    'aktiv' => $aktiv,
-                                    'exception' => $e->getMessage(),
-                                ], $this->authService->holeAngemeldeteMitarbeiterId(), null, 'pause');
-                            }
+                            Logger::error('Fehler beim Toggle pausenfenster', [
+                                'id' => $id,
+                                'aktiv' => $aktiv,
+                                'exception' => $e->getMessage(),
+                            ], $this->authService->holeAngemeldeteMitarbeiterId(), null, 'pause');
                         }
                     }
                 }
@@ -1384,16 +1368,14 @@ class KonfigurationController
                             return;
                         } catch (Throwable $e) {
                             $fehlermeldung = 'Speichern fehlgeschlagen.';
-                            if (class_exists('Logger')) {
-                                Logger::error('Fehler beim Speichern pausenfenster', [
-                                    'id' => $id,
-                                    'von' => $von,
-                                    'bis' => $bis,
-                                    'sort_order' => $sortOrder,
-                                    'aktiv' => $aktiv,
-                                    'exception' => $e->getMessage(),
-                                ], $angemeldeterId, null, 'pause');
-                            }
+                            Logger::error('Fehler beim Speichern pausenfenster', [
+                                'id' => $id,
+                                'von' => $von,
+                                'bis' => $bis,
+                                'sort_order' => $sortOrder,
+                                'aktiv' => $aktiv,
+                                'exception' => $e->getMessage(),
+                            ], $angemeldeterId, null, 'pause');
                         }
                     }
                 }
@@ -1458,11 +1440,9 @@ class KonfigurationController
             if ($fehlermeldung === null) {
                 $fehlermeldung = 'Die Pausenfenster konnten nicht geladen werden.';
             }
-            if (class_exists('Logger')) {
-                Logger::error('Fehler beim Laden pausenfenster (Admin)', [
-                    'exception' => $e->getMessage(),
-                ], $this->authService->holeAngemeldeteMitarbeiterId(), null, 'pause');
-            }
+            Logger::error('Fehler beim Laden pausenfenster (Admin)', [
+                'exception' => $e->getMessage(),
+            ], $this->authService->holeAngemeldeteMitarbeiterId(), null, 'pause');
         }
 
         // Gesetzliche Werte erneut laden (falls im POST oben geändert wurde)
@@ -1686,13 +1666,11 @@ class KonfigurationController
                             return;
                         } catch (Throwable $e) {
                             $fehlermeldung = 'Speichern fehlgeschlagen.';
-                            if (class_exists('Logger')) {
-                                Logger::error('Fehler beim Toggle sonstiges_grund', [
-                                    'id' => $id,
-                                    'aktiv' => $aktiv,
-                                    'exception' => $e->getMessage(),
-                                ], $this->authService->holeAngemeldeteMitarbeiterId(), null, 'sonstiges');
-                            }
+                            Logger::error('Fehler beim Toggle sonstiges_grund', [
+                                'id' => $id,
+                                'aktiv' => $aktiv,
+                                'exception' => $e->getMessage(),
+                            ], $this->authService->holeAngemeldeteMitarbeiterId(), null, 'sonstiges');
                         }
                     }
                 }
@@ -1805,17 +1783,15 @@ class KonfigurationController
                                 $fehlermeldung = 'Speichern fehlgeschlagen.';
                             }
 
-                            if (class_exists('Logger')) {
-                                Logger::error('Fehler beim Speichern sonstiges_grund', [
-                                    'id' => $id,
-                                    'code' => $code,
-                                    'titel' => $titel,
-                                    'default_stunden' => $dsDb,
-                                    'begruendung_pflicht' => $begruendungPflicht,
-                                    'aktiv' => $aktiv,
-                                    'exception' => $e->getMessage(),
-                                ], $this->authService->holeAngemeldeteMitarbeiterId(), null, 'sonstiges');
-                            }
+                            Logger::error('Fehler beim Speichern sonstiges_grund', [
+                                'id' => $id,
+                                'code' => $code,
+                                'titel' => $titel,
+                                'default_stunden' => $dsDb,
+                                'begruendung_pflicht' => $begruendungPflicht,
+                                'aktiv' => $aktiv,
+                                'exception' => $e->getMessage(),
+                            ], $this->authService->holeAngemeldeteMitarbeiterId(), null, 'sonstiges');
                         }
                     }
                 }
@@ -1857,11 +1833,9 @@ class KonfigurationController
             if ($fehlermeldung === null) {
                 $fehlermeldung = 'Die Sonstiges-Gründe konnten nicht geladen werden (Tabelle vorhanden?).';
             }
-            if (class_exists('Logger')) {
-                Logger::error('Fehler beim Laden sonstiges_grund (Admin)', [
-                    'exception' => $e->getMessage(),
-                ], $this->authService->holeAngemeldeteMitarbeiterId(), null, 'sonstiges');
-            }
+            Logger::error('Fehler beim Laden sonstiges_grund (Admin)', [
+                'exception' => $e->getMessage(),
+            ], $this->authService->holeAngemeldeteMitarbeiterId(), null, 'sonstiges');
         }
 
         require __DIR__ . '/../views/layout/header.php';
@@ -2053,12 +2027,10 @@ class KonfigurationController
                 }
             } catch (Throwable $e) {
                 $fehlermeldung = 'Der Eintrag konnte nicht geladen werden.';
-                if (class_exists('Logger')) {
-                    Logger::error('Fehler beim Laden eines Config-Eintrags', [
-                        'schluessel' => $schluessel,
-                        'exception'  => $e->getMessage(),
-                    ], null, null, 'config');
-                }
+                Logger::error('Fehler beim Laden eines Config-Eintrags', [
+                    'schluessel' => $schluessel,
+                    'exception'  => $e->getMessage(),
+                ], null, null, 'config');
             }
         }
 
@@ -2106,12 +2078,10 @@ class KonfigurationController
                     exit;
                 } catch (Throwable $e) {
                     $fehlermeldung = 'Der Eintrag konnte nicht gespeichert werden.';
-                    if (class_exists('Logger')) {
-                        Logger::error('Fehler beim Speichern eines Config-Eintrags', [
-                            'schluessel' => $schluessel,
-                            'exception'  => $e->getMessage(),
-                        ], null, null, 'config');
-                    }
+                    Logger::error('Fehler beim Speichern eines Config-Eintrags', [
+                        'schluessel' => $schluessel,
+                        'exception'  => $e->getMessage(),
+                    ], null, null, 'config');
                 }
             }
         }

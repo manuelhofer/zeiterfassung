@@ -227,27 +227,23 @@ class ZeitController
                         'kenn'  => $kenn,
                     ]);
 
-                    if (class_exists('Logger')) {
-                        Logger::info('Tageswerte gesetzt: Kurzarbeit', [
-                            'ziel_mitarbeiter_id'    => $zielMitarbeiterId,
-                            'datum'                  => $datumYmd,
-                            'kennzeichen_kurzarbeit' => $kenn,
-                            'kurzarbeit_stunden'     => sprintf('%.2f', $stunden),
-                            'begruendung'            => $begruendung,
-                        ], $angemeldeteId, null, 'tageswerte_audit');
-                    }
+                    Logger::info('Tageswerte gesetzt: Kurzarbeit', [
+                        'ziel_mitarbeiter_id'    => $zielMitarbeiterId,
+                        'datum'                  => $datumYmd,
+                        'kennzeichen_kurzarbeit' => $kenn,
+                        'kurzarbeit_stunden'     => sprintf('%.2f', $stunden),
+                        'begruendung'            => $begruendung,
+                    ], $angemeldeteId, null, 'tageswerte_audit');
 
                     $_SESSION['zeit_korrektur_flash_ok'] = 'Kurzarbeit wurde gespeichert.';
                 } catch (Throwable $e) {
-                    if (class_exists('Logger')) {
-                        Logger::error('Fehler beim Speichern Kurzarbeit (Tagesansicht)', [
-                            'ziel_mitarbeiter_id'    => $zielMitarbeiterId,
-                            'datum'                  => $datumYmd,
-                            'kennzeichen_kurzarbeit' => $kenn,
-                            'kurzarbeit_stunden'     => sprintf('%.2f', $stunden),
-                            'exception'              => $e->getMessage(),
-                        ], $angemeldeteId, null, 'tageswerte_audit');
-                    }
+                    Logger::error('Fehler beim Speichern Kurzarbeit (Tagesansicht)', [
+                        'ziel_mitarbeiter_id'    => $zielMitarbeiterId,
+                        'datum'                  => $datumYmd,
+                        'kennzeichen_kurzarbeit' => $kenn,
+                        'kurzarbeit_stunden'     => sprintf('%.2f', $stunden),
+                        'exception'              => $e->getMessage(),
+                    ], $angemeldeteId, null, 'tageswerte_audit');
                     $_SESSION['zeit_korrektur_flash_fehler'] = 'Kurzarbeit konnte nicht gespeichert werden.';
                 }
 
@@ -370,20 +366,18 @@ class ZeitController
                         'kk_kenn'  => $kennK,
                     ]);
 
-                    if (class_exists('Logger')) {
-                        $msg = $aktiv ? 'Tageswerte gesetzt: Krank' : 'Tageswerte entfernt: Krank';
-                        Logger::info($msg, [
-                            'ziel_mitarbeiter_id' => $zielMitarbeiterId,
-                            'datum'               => $datumYmd,
-                            'typ'                 => $typ,
-                            'stunden'             => $stunden,
-                            'kennzeichen_krank_lfz' => $kennL,
-                            'kennzeichen_krank_kk'  => $kennK,
-                            'krank_lfz_stunden'     => $lfzStd,
-                            'krank_kk_stunden'      => $kkStd,
-                            'begruendung'           => $begruendung,
-                        ], $angemeldeteId, null, 'tageswerte_audit');
-                    }
+                    $msg = $aktiv ? 'Tageswerte gesetzt: Krank' : 'Tageswerte entfernt: Krank';
+                    Logger::info($msg, [
+                        'ziel_mitarbeiter_id' => $zielMitarbeiterId,
+                        'datum'               => $datumYmd,
+                        'typ'                 => $typ,
+                        'stunden'             => $stunden,
+                        'kennzeichen_krank_lfz' => $kennL,
+                        'kennzeichen_krank_kk'  => $kennK,
+                        'krank_lfz_stunden'     => $lfzStd,
+                        'krank_kk_stunden'      => $kkStd,
+                        'begruendung'           => $begruendung,
+                    ], $angemeldeteId, null, 'tageswerte_audit');
 
 
                     if ($aktiv) {
@@ -531,27 +525,23 @@ class ZeitController
                             'kom'   => $kommentar,
                         ]);
 
-                        if (class_exists('Logger')) {
-                            Logger::info('Tageswerte gesetzt: Sonstiges', [
-                                'ziel_mitarbeiter_id'   => $zielMitarbeiterId,
-                                'datum'                 => $datumYmd,
-                                'sonstiges_grund_id'    => (int)($grund['id'] ?? 0),
-                                'sonstiges_code'        => $code,
-                                'sonstige_stunden'      => sprintf('%.2f', $stunden),
-                                'begruendung'           => $begruendung,
-                            ], $angemeldeteId, null, 'tageswerte_audit');
-                        }
+                        Logger::info('Tageswerte gesetzt: Sonstiges', [
+                            'ziel_mitarbeiter_id'   => $zielMitarbeiterId,
+                            'datum'                 => $datumYmd,
+                            'sonstiges_grund_id'    => (int)($grund['id'] ?? 0),
+                            'sonstiges_code'        => $code,
+                            'sonstige_stunden'      => sprintf('%.2f', $stunden),
+                            'begruendung'           => $begruendung,
+                        ], $angemeldeteId, null, 'tageswerte_audit');
 
                         $_SESSION['zeit_korrektur_flash_ok'] = 'Sonstiges wurde gespeichert.';
                     } catch (Throwable $e) {
-                        if (class_exists('Logger')) {
-                            Logger::error('Fehler beim Speichern Sonstiges (Tagesansicht)', [
-                                'ziel_mitarbeiter_id' => $zielMitarbeiterId,
-                                'datum'               => $datumYmd,
-                                'sonstiges_grund_id'  => $grundId,
-                                'exception'           => $e->getMessage(),
-                            ], $angemeldeteId, null, 'tageswerte_audit');
-                        }
+                        Logger::error('Fehler beim Speichern Sonstiges (Tagesansicht)', [
+                            'ziel_mitarbeiter_id' => $zielMitarbeiterId,
+                            'datum'               => $datumYmd,
+                            'sonstiges_grund_id'  => $grundId,
+                            'exception'           => $e->getMessage(),
+                        ], $angemeldeteId, null, 'tageswerte_audit');
                         $_SESSION['zeit_korrektur_flash_fehler'] = 'Sonstiges konnte nicht gespeichert werden.';
                     }
                 } else {
@@ -615,13 +605,11 @@ class ZeitController
                             ]);
                         }
 
-                        if (class_exists('Logger')) {
-                            Logger::info('Tageswerte entfernt: Sonstiges', [
-                                'ziel_mitarbeiter_id' => $zielMitarbeiterId,
-                                'datum'               => $datumYmd,
-                                'begruendung'         => $begruendung,
-                            ], $angemeldeteId, null, 'tageswerte_audit');
-                        }
+                        Logger::info('Tageswerte entfernt: Sonstiges', [
+                            'ziel_mitarbeiter_id' => $zielMitarbeiterId,
+                            'datum'               => $datumYmd,
+                            'begruendung'         => $begruendung,
+                        ], $angemeldeteId, null, 'tageswerte_audit');
 
                         $_SESSION['zeit_korrektur_flash_ok'] = 'Sonstiges wurde entfernt.';
                     } catch (Throwable $e) {
@@ -690,7 +678,7 @@ class ZeitController
                             );
                         }
 
-                        if ($warAktiv && class_exists('Logger')) {
+                        if ($warAktiv) {
                             Logger::info('Tageswerte entfernt: Pause-Override', [
                                 'ziel_mitarbeiter_id' => $zielMitarbeiterId,
                                 'datum'               => $datumYmd,
@@ -701,13 +689,11 @@ class ZeitController
 
                         $_SESSION['zeit_korrektur_flash_ok'] = $warAktiv ? 'Pause-Override wurde entfernt.' : 'Pause-Override war nicht aktiv.';
                     } catch (Throwable $e) {
-                        if (class_exists('Logger')) {
-                            Logger::error('Fehler beim Entfernen Pause-Override (Tagesansicht)', [
-                                'ziel_mitarbeiter_id' => $zielMitarbeiterId,
-                                'datum'               => $datumYmd,
-                                'exception'           => $e->getMessage(),
-                            ], $angemeldeteId, null, 'tageswerte_audit');
-                        }
+                        Logger::error('Fehler beim Entfernen Pause-Override (Tagesansicht)', [
+                            'ziel_mitarbeiter_id' => $zielMitarbeiterId,
+                            'datum'               => $datumYmd,
+                            'exception'           => $e->getMessage(),
+                        ], $angemeldeteId, null, 'tageswerte_audit');
                         $_SESSION['zeit_korrektur_flash_fehler'] = 'Pause-Override konnte nicht entfernt werden.';
                     }
 
@@ -769,26 +755,22 @@ class ZeitController
                         'gesetzt_am'  => (new DateTimeImmutable())->format('Y-m-d H:i:s'),
                     ]);
 
-                    if (class_exists('Logger')) {
-                        Logger::info('Tageswerte gesetzt: Pause-Override', [
-                            'ziel_mitarbeiter_id' => $zielMitarbeiterId,
-                            'datum'               => $datumYmd,
-                            'pause_stunden'       => round($stundenFloat, 2),
-                            'pause_minuten'       => $minuten,
-                            'begruendung'         => $begruendung,
-                        ], $angemeldeteId, null, 'tageswerte_audit');
-                    }
+                    Logger::info('Tageswerte gesetzt: Pause-Override', [
+                        'ziel_mitarbeiter_id' => $zielMitarbeiterId,
+                        'datum'               => $datumYmd,
+                        'pause_stunden'       => round($stundenFloat, 2),
+                        'pause_minuten'       => $minuten,
+                        'begruendung'         => $begruendung,
+                    ], $angemeldeteId, null, 'tageswerte_audit');
 
                     $_SESSION['zeit_korrektur_flash_ok'] = 'Pause-Override wurde gespeichert.';
                 } catch (Throwable $e) {
-                    if (class_exists('Logger')) {
-                        Logger::error('Fehler beim Speichern Pause-Override (Tagesansicht)', [
-                            'ziel_mitarbeiter_id' => $zielMitarbeiterId,
-                            'datum'               => $datumYmd,
-                            'pause_minuten'       => $minuten,
-                            'exception'           => $e->getMessage(),
-                        ], $angemeldeteId, null, 'tageswerte_audit');
-                    }
+                    Logger::error('Fehler beim Speichern Pause-Override (Tagesansicht)', [
+                        'ziel_mitarbeiter_id' => $zielMitarbeiterId,
+                        'datum'               => $datumYmd,
+                        'pause_minuten'       => $minuten,
+                        'exception'           => $e->getMessage(),
+                    ], $angemeldeteId, null, 'tageswerte_audit');
                     $_SESSION['zeit_korrektur_flash_fehler'] = 'Pause-Override konnte nicht gespeichert werden.';
                 }
 
@@ -888,12 +870,10 @@ class ZeitController
         // Default: 5 Sekunden.
         $microBuchungGrenzeSekunden = 5;
         try {
-            if (class_exists('KonfigurationService')) {
-                $cfg = KonfigurationService::getInstanz();
-                $val = $cfg->getInt('micro_buchung_max_sekunden', 5);
-                if ($val !== null) {
-                    $microBuchungGrenzeSekunden = (int)$val;
-                }
+            $cfg = KonfigurationService::getInstanz();
+            $val = $cfg->getInt('micro_buchung_max_sekunden', 5);
+            if ($val !== null) {
+                $microBuchungGrenzeSekunden = (int)$val;
             }
         } catch (Throwable $e) {
             // Fallback bleibt Default.
@@ -1389,10 +1369,6 @@ class ZeitController
         ?array $neu,
         string $begruendung
     ): void {
-        if (!class_exists('Logger')) {
-            return;
-        }
-
         Logger::info('Zeitbuchung korrigiert', [
             'aktion'              => $aktion,
             'buchung_id'          => $buchungId,
@@ -1541,12 +1517,10 @@ class ZeitController
 
         $toleranzSekunden = 5;
         try {
-            if (class_exists('KonfigurationService')) {
-                $cfg = KonfigurationService::getInstanz();
-                $val = $cfg->getInt('micro_buchung_max_sekunden', 5);
-                if ($val !== null) {
-                    $toleranzSekunden = (int)$val;
-                }
+            $cfg = KonfigurationService::getInstanz();
+            $val = $cfg->getInt('micro_buchung_max_sekunden', 5);
+            if ($val !== null) {
+                $toleranzSekunden = (int)$val;
             }
         } catch (Throwable $e) {
             $toleranzSekunden = 5;
@@ -1618,14 +1592,14 @@ class ZeitController
                 'pausiert'
             );
 
-            if ($res === null && class_exists('Logger')) {
+            if ($res === null) {
                 Logger::warn('Manuelle Zeitkorrektur: Keine passende laufende Auftragszeit zum Pausieren gefunden', [
                     'mitarbeiter_id' => $mitarbeiterId,
                     'zeitpunkt' => $zeitpunkt->format('Y-m-d H:i:s'),
                 ], $mitarbeiterId, null, 'zeit_korrektur');
             }
 
-            if (is_array($res) && class_exists('Logger')) {
+            if (is_array($res)) {
                 Logger::info('Manuelle Zeitkorrektur: Laufende Auftragszeit gezielt pausiert', [
                     'mitarbeiter_id' => $mitarbeiterId,
                     'auftragszeit_id' => $res['auftragszeit_id'] ?? null,
@@ -1643,7 +1617,7 @@ class ZeitController
             'automatisch fortgesetzt (manuelle Zeitkorrektur)'
         );
 
-        if ($res === null && class_exists('Logger')) {
+        if ($res === null) {
             Logger::warn('Manuelle Zeitkorrektur: Pausierte Aufträge konnten nicht fortgesetzt werden', [
                 'mitarbeiter_id' => $mitarbeiterId,
                 'zeitpunkt' => $zeitpunkt->format('Y-m-d H:i:s'),

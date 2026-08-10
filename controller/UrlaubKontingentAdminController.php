@@ -107,12 +107,10 @@ class UrlaubKontingentAdminController
             $zeilen = $this->datenbank->fetchAlle($sql, ['jahr' => $jahr]);
         } catch (Throwable $e) {
             $fehlermeldung = 'Die Urlaubskontingente konnten nicht geladen werden.';
-            if (class_exists('Logger')) {
-                Logger::error('Fehler beim Laden der Urlaubskontingente (Admin)', [
-                    'jahr'      => $jahr,
-                    'exception' => $e->getMessage(),
-                ], null, null, 'urlaub');
-            }
+            Logger::error('Fehler beim Laden der Urlaubskontingente (Admin)', [
+                'jahr'      => $jahr,
+                'exception' => $e->getMessage(),
+            ], null, null, 'urlaub');
         }
 
         require __DIR__ . '/../views/layout/header.php';
@@ -284,12 +282,10 @@ class UrlaubKontingentAdminController
         $autoUebertragTage = null;
         $autoUebertragErmittelt = false;
         try {
-            if (class_exists("UrlaubService")) {
-                $saldoTmp = UrlaubService::getInstanz()->berechneUrlaubssaldoFuerJahr($mitarbeiterId, $jahr);
-                if (is_array($saldoTmp) && array_key_exists("uebertrag", $saldoTmp)) {
-                    $autoUebertragTage = (float)str_replace(",", ".", (string)$saldoTmp["uebertrag"]);
-                    $autoUebertragErmittelt = true;
-                }
+            $saldoTmp = UrlaubService::getInstanz()->berechneUrlaubssaldoFuerJahr($mitarbeiterId, $jahr);
+            if (is_array($saldoTmp) && array_key_exists("uebertrag", $saldoTmp)) {
+                $autoUebertragTage = (float)str_replace(",", ".", (string)$saldoTmp["uebertrag"]);
+                $autoUebertragErmittelt = true;
             }
         } catch (Throwable $e) {
             $autoUebertragTage = null;
@@ -459,22 +455,18 @@ class UrlaubKontingentAdminController
                     ]
                 );
 
-                if (class_exists('Logger')) {
-                    Logger::info('Urlaubsanspruch-Override geloescht', [
-                        'mitarbeiter_id' => $mitarbeiterId,
-                        'jahr'           => $jahr,
-                    ], $mitarbeiterId, null, 'urlaub');
-                }
+                Logger::info('Urlaubsanspruch-Override geloescht', [
+                    'mitarbeiter_id' => $mitarbeiterId,
+                    'jahr'           => $jahr,
+                ], $mitarbeiterId, null, 'urlaub');
 
                 $_SESSION['urlaub_kontingent_admin_flash_ok'] = 'Anspruch-Override gelöscht. Es gilt wieder der Standardanspruch.';
             } catch (Throwable $e) {
-                if (class_exists('Logger')) {
-                    Logger::error('Fehler beim Loeschen des Urlaubsanspruch-Overrides', [
-                        'mitarbeiter_id' => $mitarbeiterId,
-                        'jahr'           => $jahr,
-                        'exception'      => $e->getMessage(),
-                    ], $mitarbeiterId, null, 'urlaub');
-                }
+                Logger::error('Fehler beim Loeschen des Urlaubsanspruch-Overrides', [
+                    'mitarbeiter_id' => $mitarbeiterId,
+                    'jahr'           => $jahr,
+                    'exception'      => $e->getMessage(),
+                ], $mitarbeiterId, null, 'urlaub');
                 $_SESSION['urlaub_kontingent_admin_flash_error'] = 'Anspruch-Override konnte nicht gelöscht werden.';
             }
 
@@ -518,22 +510,18 @@ class UrlaubKontingentAdminController
                 'notiz'=> $notiz,
             ]);
 
-            if (class_exists('Logger')) {
-                Logger::info('Urlaubskontingent gespeichert', [
-                    'mitarbeiter_id' => $mitarbeiterId,
-                    'jahr'           => $jahr,
-                ], $mitarbeiterId, null, 'urlaub');
-            }
+            Logger::info('Urlaubskontingent gespeichert', [
+                'mitarbeiter_id' => $mitarbeiterId,
+                'jahr'           => $jahr,
+            ], $mitarbeiterId, null, 'urlaub');
 
             $_SESSION['urlaub_kontingent_admin_flash_ok'] = 'Gespeichert.';
         } catch (Throwable $e) {
-            if (class_exists('Logger')) {
-                Logger::error('Fehler beim Speichern des Urlaubskontingents', [
-                    'mitarbeiter_id' => $mitarbeiterId,
-                    'jahr'           => $jahr,
-                    'exception'      => $e->getMessage(),
-                ], $mitarbeiterId, null, 'urlaub');
-            }
+            Logger::error('Fehler beim Speichern des Urlaubskontingents', [
+                'mitarbeiter_id' => $mitarbeiterId,
+                'jahr'           => $jahr,
+                'exception'      => $e->getMessage(),
+            ], $mitarbeiterId, null, 'urlaub');
             $_SESSION['urlaub_kontingent_admin_flash_ok'] = 'Speichern fehlgeschlagen (DB-Fehler).';
         }
 

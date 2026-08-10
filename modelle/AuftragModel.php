@@ -41,12 +41,10 @@ class AuftragModel
 
             return $this->datenbank->fetchEine($sql, ['code' => $code]);
         } catch (\Throwable $e) {
-            if (class_exists('Logger')) {
-                Logger::error('Fehler beim Suchen eines Auftrags nach Auftragsnummer', [
-                    'auftragsnummer' => $code,
-                    'exception'      => $e->getMessage(),
-                ], null, null, 'auftrag');
-            }
+            Logger::error('Fehler beim Suchen eines Auftrags nach Auftragsnummer', [
+                'auftragsnummer' => $code,
+                'exception'      => $e->getMessage(),
+            ], null, null, 'auftrag');
 
             return null;
         }
@@ -71,12 +69,10 @@ class AuftragModel
 
             return $this->datenbank->fetchEine($sql, ['id' => $id]);
         } catch (\Throwable $e) {
-            if (class_exists('Logger')) {
-                Logger::error('Fehler beim Laden eines Auftrags nach ID', [
-                    'id'        => $id,
-                    'exception' => $e->getMessage(),
-                ], null, null, 'auftrag');
-            }
+            Logger::error('Fehler beim Laden eines Auftrags nach ID', [
+                'id'        => $id,
+                'exception' => $e->getMessage(),
+            ], null, null, 'auftrag');
 
             return null;
         }

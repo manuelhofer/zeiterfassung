@@ -23,9 +23,7 @@ class SmokeTestController
         $this->auth = AuthService::getInstanz();
 
         try {
-            if (class_exists('Database')) {
-                $this->db = Database::getInstanz();
-            }
+            $this->db = Database::getInstanz();
         } catch (Throwable $e) {
             $this->db = null;
         }
@@ -1504,17 +1502,15 @@ class SmokeTestController
                 $errorHandlerAktiv = false;
                 try {
                     set_error_handler(function (int $severity, string $message, string $file, int $line) use ($pdfTestJahr, $pdfTestMonat, $pdfTestMitarbeiterId): bool {
-                        if (class_exists('Logger')) {
-                            Logger::warn('PHP-Warnung/Notice während SmokeTest-PDF-Quick-Check', [
-                                'severity' => $severity,
-                                'message'  => $message,
-                                'file'     => $file,
-                                'line'     => $line,
-                                'jahr'     => $pdfTestJahr,
-                                'monat'    => $pdfTestMonat,
-                                'mitarbeiter_id' => $pdfTestMitarbeiterId,
-                            ], null, null, 'smoke_test');
-                        }
+                        Logger::warn('PHP-Warnung/Notice während SmokeTest-PDF-Quick-Check', [
+                            'severity' => $severity,
+                            'message'  => $message,
+                            'file'     => $file,
+                            'line'     => $line,
+                            'jahr'     => $pdfTestJahr,
+                            'monat'    => $pdfTestMonat,
+                            'mitarbeiter_id' => $pdfTestMitarbeiterId,
+                        ], null, null, 'smoke_test');
                         return true; // Ausgabe unterdrücken
                     });
                     $errorHandlerAktiv = true;
@@ -2031,16 +2027,14 @@ class SmokeTestController
 
                             $name = 'Mitarbeiter #' . (int)$mid;
                             try {
-                                if (class_exists('MitarbeiterModel')) {
-                                    $mm = new MitarbeiterModel();
-                                    $mrow = $mm->holeNachId($mid);
-                                    if (is_array($mrow)) {
-                                        $vn = trim((string)($mrow['vorname'] ?? ''));
-                                        $nn = trim((string)($mrow['nachname'] ?? ''));
-                                        $full = trim($vn . ' ' . $nn);
-                                        if ($full !== '') {
-                                            $name = $full;
-                                        }
+                                $mm = new MitarbeiterModel();
+                                $mrow = $mm->holeNachId($mid);
+                                if (is_array($mrow)) {
+                                    $vn = trim((string)($mrow['vorname'] ?? ''));
+                                    $nn = trim((string)($mrow['nachname'] ?? ''));
+                                    $full = trim($vn . ' ' . $nn);
+                                    if ($full !== '') {
+                                        $name = $full;
                                     }
                                 }
                             } catch (Throwable $e) {
@@ -2269,16 +2263,14 @@ class SmokeTestController
                         // Name (optional)
                         $name = 'Mitarbeiter #' . (int)$mid;
                         try {
-                            if (class_exists('MitarbeiterModel')) {
-                                $mm = new MitarbeiterModel();
-                                $mrow = $mm->holeNachId($mid);
-                                if (is_array($mrow)) {
-                                    $vn = trim((string)($mrow['vorname'] ?? ''));
-                                    $nn = trim((string)($mrow['nachname'] ?? ''));
-                                    $full = trim($vn . ' ' . $nn);
-                                    if ($full !== '') {
-                                        $name = $full;
-                                    }
+                            $mm = new MitarbeiterModel();
+                            $mrow = $mm->holeNachId($mid);
+                            if (is_array($mrow)) {
+                                $vn = trim((string)($mrow['vorname'] ?? ''));
+                                $nn = trim((string)($mrow['nachname'] ?? ''));
+                                $full = trim($vn . ' ' . $nn);
+                                if ($full !== '') {
+                                    $name = $full;
                                 }
                             }
                         } catch (Throwable $e) {
@@ -2408,10 +2400,8 @@ class SmokeTestController
 
                         $istFeiertag = null;
                         try {
-                            if (class_exists('FeiertagService')) {
-                                $fs = FeiertagService::getInstanz();
-                                $istFeiertag = $fs->istFeiertag($dt, null);
-                            }
+                            $fs = FeiertagService::getInstanz();
+                            $istFeiertag = $fs->istFeiertag($dt, null);
                         } catch (Throwable $e) {
                             $istFeiertag = null;
                         }

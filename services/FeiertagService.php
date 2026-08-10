@@ -79,12 +79,10 @@ class FeiertagService
             $vorhanden = $this->feiertagModel->holeFuerJahr($jahr, null);
         } catch (\Throwable $e) {
             $vorhanden = [];
-            if (class_exists('Logger')) {
-                Logger::warn('Fehler beim Prüfen vorhandener Feiertage', [
-                    'jahr'      => $jahr,
-                    'exception' => $e->getMessage(),
-                ], null, null, 'feiertagservice');
-            }
+            Logger::warn('Fehler beim Prüfen vorhandener Feiertage', [
+                'jahr'      => $jahr,
+                'exception' => $e->getMessage(),
+            ], null, null, 'feiertagservice');
         }
 
         // Jahres-Init darf nicht fälschlich als "fertig" gelten, nur weil irgendein Feiertag existiert.
@@ -334,13 +332,11 @@ class FeiertagService
                     1
                 );
             } catch (\Throwable $e) {
-                if (class_exists('Logger')) {
-                    Logger::error('Feiertag konnte nicht gespeichert werden', [
-                        'datum'     => (string)($ft['datum'] ?? ''),
-                        'name'      => (string)($ft['name'] ?? ''),
-                        'exception' => $e->getMessage(),
-                    ], null, null, 'feiertagservice');
-                }
+                Logger::error('Feiertag konnte nicht gespeichert werden', [
+                    'datum'     => (string)($ft['datum'] ?? ''),
+                    'name'      => (string)($ft['name'] ?? ''),
+                    'exception' => $e->getMessage(),
+                ], null, null, 'feiertagservice');
             }
         }
     }

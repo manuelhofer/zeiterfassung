@@ -94,11 +94,9 @@ class BetriebsferienAdminController
             $eintraege = $this->datenbank->fetchAlle($sql);
         } catch (\Throwable $e) {
             $fehlermeldung = 'Die Betriebsferien konnten nicht geladen werden.';
-            if (class_exists('Logger')) {
-                Logger::error('Fehler beim Laden der Betriebsferien im Admin-Bereich', [
-                    'exception' => $e->getMessage(),
-                ], null, null, 'betriebsferien');
-            }
+            Logger::error('Fehler beim Laden der Betriebsferien im Admin-Bereich', [
+                'exception' => $e->getMessage(),
+            ], null, null, 'betriebsferien');
         }
 
         require __DIR__ . '/../views/layout/header.php';
@@ -207,12 +205,10 @@ class BetriebsferienAdminController
             }
         } catch (\Throwable $e) {
             $fehlermeldung = 'Der Eintrag konnte nicht geladen werden.';
-            if (class_exists('Logger')) {
-                Logger::error('Fehler beim Laden einer Betriebsferien-Zeile', [
-                    'id'        => $id,
-                    'exception' => $e->getMessage(),
-                ], $id > 0 ? $id : null, null, 'betriebsferien');
-            }
+            Logger::error('Fehler beim Laden einer Betriebsferien-Zeile', [
+                'id'        => $id,
+                'exception' => $e->getMessage(),
+            ], $id > 0 ? $id : null, null, 'betriebsferien');
         }
 
         $abteilungen = [];
@@ -320,13 +316,11 @@ class BetriebsferienAdminController
             return;
         } catch (\Throwable $e) {
             $fehlermeldung = 'Der Eintrag konnte nicht gespeichert werden.';
-            if (class_exists('Logger')) {
-                Logger::error('Fehler beim Speichern von Betriebsferien', [
-                    'id'        => $id,
-                    'eintrag'   => $eintrag,
-                    'exception' => $e->getMessage(),
-                ], $id > 0 ? $id : null, null, 'betriebsferien');
-            }
+            Logger::error('Fehler beim Speichern von Betriebsferien', [
+                'id'        => $id,
+                'eintrag'   => $eintrag,
+                'exception' => $e->getMessage(),
+            ], $id > 0 ? $id : null, null, 'betriebsferien');
 
             $this->renderFormular($eintrag, $abteilungen, $fehlermeldung);
         }

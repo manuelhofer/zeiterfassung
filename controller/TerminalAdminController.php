@@ -104,14 +104,12 @@ class TerminalAdminController
             $terminals = $this->datenbank->fetchAlle($sql);
         } catch (\Throwable $e) {
             $fehlermeldung = 'Die Terminals konnten nicht geladen werden.';
-            if (class_exists('Logger')) {
-                Logger::error('Fehler beim Laden der Terminals im Admin-Bereich', [
-                    'exception' => $e->getMessage(),
-                ], null, null, 'terminal');
-            }
+            Logger::error('Fehler beim Laden der Terminals im Admin-Bereich', [
+                'exception' => $e->getMessage(),
+            ], null, null, 'terminal');
         }
 
-        $kopplungService = class_exists('TerminalKopplungService') ? TerminalKopplungService::getInstanz() : null;
+        $kopplungService = TerminalKopplungService::getInstanz();
 
         // Frisch erzeugter Code: steht genau einmal in der Sitzung und wird
         // hier sofort verbraucht. Er ist nirgends sonst wieder abrufbar.
@@ -344,13 +342,11 @@ class TerminalAdminController
             }
             $_SESSION[self::FLASH_ERR_KEY] = 'Änderung fehlgeschlagen. Bitte Admin informieren.';
 
-            if (class_exists('Logger')) {
-                Logger::error('Fehler beim Quick-Toggle eines Terminal-Flags', [
-                    'id'        => $id,
-                    'feld'      => $feld,
-                    'exception' => $e->getMessage(),
-                ], $id, null, 'terminal');
-            }
+            Logger::error('Fehler beim Quick-Toggle eines Terminal-Flags', [
+                'id'        => $id,
+                'feld'      => $feld,
+                'exception' => $e->getMessage(),
+            ], $id, null, 'terminal');
         }
 
         header('Location: ?seite=terminal_admin');
@@ -386,7 +382,7 @@ class TerminalAdminController
         }
 
         $id = (int)($_POST['id'] ?? 0);
-        if ($id <= 0 || !class_exists('TerminalKopplungService')) {
+        if ($id <= 0) {
             $_SESSION[self::FLASH_ERR_KEY] = 'Der Kopplungscode konnte nicht erzeugt werden.';
             header('Location: ?seite=terminal_admin');
             return;
@@ -481,28 +477,18 @@ class TerminalAdminController
         // Offene Codes zuerst entwerten - unabhaengig davon, ob ueberhaupt ein
         // Zugang existiert. Ein noch gueltiger Code waere sonst genau der Weg,
         // sich das eben Abgemeldete zurueckzuholen.
-        if (class_exists('TerminalKopplungService')) {
-            try {
-                TerminalKopplungService::getInstanz()->entwerteOffeneCodes($id);
-            } catch (\Throwable $e) {
-                // Nicht abbrechen: Das Loeschen des Zugangs ist das Wichtigere.
-                if (class_exists('Logger')) {
-                    Logger::warn('Entkoppeln: offene Kopplungscodes konnten nicht entwertet werden', [
-                        'exception' => $e->getMessage(),
-                    ], null, $id, 'terminal_kopplung');
-                }
-            }
+        try {
+            TerminalKopplungService::getInstanz()->entwerteOffeneCodes($id);
+        } catch (\Throwable $e) {
+            // Nicht abbrechen: Das Loeschen des Zugangs ist das Wichtigere.
+            Logger::warn('Entkoppeln: offene Kopplungscodes konnten nicht entwertet werden', [
+                'exception' => $e->getMessage(),
+            ], null, $id, 'terminal_kopplung');
         }
 
         if ($benutzer === '') {
             $_SESSION[self::FLASH_OK_KEY] = 'Dieses Terminal war nicht gekoppelt. '
                 . 'Offene Kopplungscodes wurden entwertet.';
-            header('Location: ?seite=terminal_admin');
-            return;
-        }
-
-        if (!class_exists('TerminalDbBenutzerService')) {
-            $_SESSION[self::FLASH_ERR_KEY] = 'Der Datenbankbenutzer konnte nicht entfernt werden.';
             header('Location: ?seite=terminal_admin');
             return;
         }
@@ -530,12 +516,10 @@ class TerminalAdminController
         } catch (\Throwable $e) {
             // Der Zugang ist weg - das Geraet kommt nicht mehr an die Daten.
             // Nur der Vermerk haengt nach; das ist die harmlose Haelfte.
-            if (class_exists('Logger')) {
-                Logger::error('Entkoppeln: Kopplungsvermerk konnte nicht geleert werden', [
-                    'benutzer'  => $benutzer,
-                    'exception' => $e->getMessage(),
-                ], null, $id, 'terminal_kopplung');
-            }
+            Logger::error('Entkoppeln: Kopplungsvermerk konnte nicht geleert werden', [
+                'benutzer'  => $benutzer,
+                'exception' => $e->getMessage(),
+            ], null, $id, 'terminal_kopplung');
 
             $_SESSION[self::FLASH_ERR_KEY] = 'Der Datenbankbenutzer wurde geloescht, der Vermerk am Terminal '
                 . 'aber nicht geleert. Das Geraet kommt nicht mehr an die Daten - bitte das Serverprotokoll pruefen.';
@@ -543,12 +527,10 @@ class TerminalAdminController
             return;
         }
 
-        if (class_exists('Logger')) {
-            Logger::info('Terminal entkoppelt', [
-                'terminal_id' => $id,
-                'benutzer'    => $benutzer,
-            ], null, $id, 'terminal_kopplung');
-        }
+        Logger::info('Terminal entkoppelt', [
+            'terminal_id' => $id,
+            'benutzer'    => $benutzer,
+        ], null, $id, 'terminal_kopplung');
 
         $_SESSION[self::FLASH_OK_KEY] = 'Terminal entkoppelt. Der Datenbankbenutzer "' . $benutzer . '" ist geloescht; '
             . 'das Geraet braucht einen neuen Kopplungscode.';
@@ -590,12 +572,10 @@ class TerminalAdminController
             }
         } catch (\Throwable $e) {
             $fehlermeldung = 'Das Terminal konnte nicht geladen werden.';
-            if (class_exists('Logger')) {
-                Logger::error('Fehler beim Laden eines Terminals im Admin-Bereich', [
-                    'id'        => $id,
-                    'exception' => $e->getMessage(),
-                ], $id > 0 ? $id : null, null, 'terminal');
-            }
+            Logger::error('Fehler beim Laden eines Terminals im Admin-Bereich', [
+                'id'        => $id,
+                'exception' => $e->getMessage(),
+            ], $id > 0 ? $id : null, null, 'terminal');
         }
 
         $abteilungen = [];
@@ -681,13 +661,11 @@ class TerminalAdminController
             }
         } catch (\Throwable $e) {
             $fehlermeldung = 'Das Terminal konnte nicht gespeichert werden.';
-            if (class_exists('Logger')) {
-                Logger::error('Fehler beim Speichern eines Terminals im Admin-Bereich', [
-                    'id'        => $id,
-                    'daten'     => $terminal,
-                    'exception' => $e->getMessage(),
-                ], $id > 0 ? $id : null, null, 'terminal');
-            }
+            Logger::error('Fehler beim Speichern eines Terminals im Admin-Bereich', [
+                'id'        => $id,
+                'daten'     => $terminal,
+                'exception' => $e->getMessage(),
+            ], $id > 0 ? $id : null, null, 'terminal');
             $this->renderFormular($terminal, $abteilungen, $fehlermeldung, $csrfToken);
             return;
         }

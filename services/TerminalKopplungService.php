@@ -297,10 +297,6 @@ class TerminalKopplungService
      */
     private function protokolliere(string $stufe, string $nachricht, array $kontext, ?int $mitarbeiterId = null): void
     {
-        if (!class_exists('Logger')) {
-            return;
-        }
-
         switch ($stufe) {
             case 'error':
                 Logger::error($nachricht, $kontext, $mitarbeiterId, null, 'terminal_kopplung');

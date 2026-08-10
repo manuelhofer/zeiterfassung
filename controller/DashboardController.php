@@ -144,7 +144,7 @@ class DashboardController
         $zeitUnstimmigkeitenTage = 0;
         $zeitUnstimmigkeitenZeitraumLabel = 'alle vergangenen Tage';
 
-        if ($darfZeitUnstimmigkeitenSehen && class_exists('Database')) {
+        if ($darfZeitUnstimmigkeitenSehen) {
             try {
                 $db = Database::getInstanz();
                 if ($db->istHauptdatenbankVerfuegbar()) {
@@ -427,7 +427,7 @@ class DashboardController
             $darfPausenEntscheidungenSehen = false;
         }
 
-        if ($darfPausenEntscheidungenSehen && class_exists('Database')) {
+        if ($darfPausenEntscheidungenSehen) {
             try {
                 $db = Database::getInstanz();
                 if ($db->istHauptdatenbankVerfuegbar()) {
@@ -882,10 +882,10 @@ class DashboardController
                 // 3e) Terminal-Services (Methoden vorhanden)
                 $t0 = microtime(true);
                 $missingSvc = [];
-                if (!class_exists('ZeitService') || !method_exists('ZeitService', 'getInstanz') || !method_exists('ZeitService', 'bucheKommen') || !method_exists('ZeitService', 'bucheGehen')) {
+                if (!method_exists('ZeitService', 'getInstanz') || !method_exists('ZeitService', 'bucheKommen') || !method_exists('ZeitService', 'bucheGehen')) {
                     $missingSvc[] = 'ZeitService (bucheKommen/bucheGehen)';
                 }
-                if (!class_exists('AuftragszeitService') || !method_exists('AuftragszeitService', 'getInstanz') || !method_exists('AuftragszeitService', 'starteAuftrag') || !method_exists('AuftragszeitService', 'stoppeAuftrag')) {
+                if (!method_exists('AuftragszeitService', 'getInstanz') || !method_exists('AuftragszeitService', 'starteAuftrag') || !method_exists('AuftragszeitService', 'stoppeAuftrag')) {
                     $missingSvc[] = 'AuftragszeitService (starte/stoppe)';
                 }
 

@@ -50,11 +50,9 @@ class MitarbeiterModel
         try {
             $rows = $this->db->fetchAlle($sql);
         } catch (\Throwable $e) {
-            if (class_exists('Logger')) {
-                Logger::error('Fehler beim Lesen der login-berechtigten Mitarbeiter', [
-                    'exception' => $e->getMessage(),
-                ], null, null, 'mitarbeiter');
-            }
+            Logger::error('Fehler beim Lesen der login-berechtigten Mitarbeiter', [
+                'exception' => $e->getMessage(),
+            ], null, null, 'mitarbeiter');
             return [];
         }
 
@@ -244,12 +242,10 @@ class MitarbeiterModel
         try {
             return $this->db->fetchAlle($sql, $params);
         } catch (\Throwable $e) {
-            if (class_exists('Logger')) {
-                Logger::error('Fehler beim Laden mehrerer Mitarbeiter per ID-Liste', [
-                    'ids'       => array_keys($bereinigt),
-                    'exception' => $e->getMessage(),
-                ], null, null, 'mitarbeiter');
-            }
+            Logger::error('Fehler beim Laden mehrerer Mitarbeiter per ID-Liste', [
+                'ids'       => array_keys($bereinigt),
+                'exception' => $e->getMessage(),
+            ], null, null, 'mitarbeiter');
 
             return [];
         }
@@ -312,12 +308,10 @@ class MitarbeiterModel
             $this->db->ausfuehren($sql, $params);
             return (int)$this->db->letzteInsertId();
         } catch (\Throwable $e) {
-            if (class_exists('Logger')) {
-                Logger::error('Fehler beim Anlegen eines Mitarbeiters', [
-                    'daten'     => $daten,
-                    'exception' => $e->getMessage(),
-                ], null, null, 'mitarbeiter');
-            }
+            Logger::error('Fehler beim Anlegen eines Mitarbeiters', [
+                'daten'     => $daten,
+                'exception' => $e->getMessage(),
+            ], null, null, 'mitarbeiter');
 
             return null;
         }
@@ -365,13 +359,11 @@ class MitarbeiterModel
             $this->db->ausfuehren($sql, $params);
             return true;
         } catch (\Throwable $e) {
-            if (class_exists('Logger')) {
-                Logger::error('Fehler beim Aktualisieren eines Mitarbeiters', [
-                    'id'        => $id,
-                    'daten'     => $daten,
-                    'exception' => $e->getMessage(),
-                ], $id, null, 'mitarbeiter');
-            }
+            Logger::error('Fehler beim Aktualisieren eines Mitarbeiters', [
+                'id'        => $id,
+                'daten'     => $daten,
+                'exception' => $e->getMessage(),
+            ], $id, null, 'mitarbeiter');
 
             return false;
         }

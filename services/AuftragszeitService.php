@@ -80,7 +80,7 @@ class AuftragszeitService
     {
         $auftragId = $auftragId !== null ? (int)$auftragId : 0;
         $arbeitsschrittCode = $arbeitsschrittCode !== null ? trim($arbeitsschrittCode) : '';
-        if ($auftragId <= 0 || $arbeitsschrittCode === '' || !class_exists('Database')) {
+        if ($auftragId <= 0 || $arbeitsschrittCode === '') {
             return null;
         }
 
@@ -111,13 +111,11 @@ class AuftragszeitService
                 return (int)$row['id'];
             }
         } catch (\Throwable $e) {
-            if (class_exists('Logger')) {
-                Logger::warn('AuftragszeitService: Arbeitsschritt konnte nicht angelegt werden', [
-                    'auftrag_id' => $auftragId,
-                    'arbeitsschritt_code' => $arbeitsschrittCode,
-                    'exception' => $e->getMessage(),
-                ], null, null, 'auftragszeit_service');
-            }
+            Logger::warn('AuftragszeitService: Arbeitsschritt konnte nicht angelegt werden', [
+                'auftrag_id' => $auftragId,
+                'arbeitsschritt_code' => $arbeitsschrittCode,
+                'exception' => $e->getMessage(),
+            ], null, null, 'auftragszeit_service');
         }
 
         return null;
@@ -141,10 +139,6 @@ class AuftragszeitService
 
         if (!in_array($status, ['abgeschlossen', 'abgebrochen', 'pausiert'], true)) {
             $status = 'abgeschlossen';
-        }
-
-        if (!class_exists('Database')) {
-            return;
         }
 
         try {
@@ -203,9 +197,7 @@ class AuftragszeitService
         // ------------------------------------------------------------
 
         $db = null;
-        if (class_exists('Database')) {
-            $db = Database::getInstanz();
-        }
+        $db = Database::getInstanz();
 
         $hauptDbOk = null;
         if ($db !== null) {
@@ -268,13 +260,11 @@ class AuftragszeitService
 
                 return ($ok1 && $ok2 && $ok3) ? 0 : null;
             } catch (\Throwable $e) {
-                if (class_exists('Logger')) {
-                    Logger::error('AuftragszeitService: Offline-Queue Auftrag starten fehlgeschlagen', [
-                        'mitarbeiter_id' => $mitarbeiterId,
-                        'auftragscode'   => $auftragscode,
-                        'exception'      => $e->getMessage(),
-                    ], $mitarbeiterId, null, 'auftragszeit_service_offline');
-                }
+                Logger::error('AuftragszeitService: Offline-Queue Auftrag starten fehlgeschlagen', [
+                    'mitarbeiter_id' => $mitarbeiterId,
+                    'auftragscode'   => $auftragscode,
+                    'exception'      => $e->getMessage(),
+                ], $mitarbeiterId, null, 'auftragszeit_service_offline');
                 return null;
             }
         }
@@ -288,13 +278,11 @@ class AuftragszeitService
                 $auftragId = (int)$auftrag['id'];
             }
         } catch (\Throwable $e) {
-            if (class_exists('Logger')) {
-                Logger::error('Fehler beim Laden eines Auftrags im AuftragszeitService (starteAuftrag)', [
-                    'mitarbeiter_id' => $mitarbeiterId,
-                    'auftragscode'   => $auftragscode,
-                    'exception'      => $e->getMessage(),
-                ], $mitarbeiterId, null, 'auftragszeit_service');
-            }
+            Logger::error('Fehler beim Laden eines Auftrags im AuftragszeitService (starteAuftrag)', [
+                'mitarbeiter_id' => $mitarbeiterId,
+                'auftragscode'   => $auftragscode,
+                'exception'      => $e->getMessage(),
+            ], $mitarbeiterId, null, 'auftragszeit_service');
         }
 
         // Falls nicht vorhanden: Minimaldatensatz anlegen (idempotent)
@@ -312,13 +300,11 @@ class AuftragszeitService
                 }
             } catch (\Throwable $e) {
                 // Nicht blockieren: dann bleibt auftrag_id NULL, auftragscode ist trotzdem gespeichert.
-                if (class_exists('Logger')) {
-                    Logger::warn('AuftragszeitService: Auftrag konnte nicht automatisch angelegt werden', [
-                        'mitarbeiter_id' => $mitarbeiterId,
-                        'auftragscode'   => $auftragscode,
-                        'exception'      => $e->getMessage(),
-                    ], $mitarbeiterId, null, 'auftragszeit_service');
-                }
+                Logger::warn('AuftragszeitService: Auftrag konnte nicht automatisch angelegt werden', [
+                    'mitarbeiter_id' => $mitarbeiterId,
+                    'auftragscode'   => $auftragscode,
+                    'exception'      => $e->getMessage(),
+                ], $mitarbeiterId, null, 'auftragszeit_service');
             }
         }
 
@@ -344,14 +330,12 @@ class AuftragszeitService
 
             return $neueId;
         } catch (\Throwable $e) {
-            if (class_exists('Logger')) {
-                Logger::error('Fehler beim Starten einer Auftragszeit (Service)', [
-                    'mitarbeiter_id' => $mitarbeiterId,
-                    'auftragscode'   => $auftragscode,
-                    'maschine_id'    => $maschineId,
-                    'exception'      => $e->getMessage(),
-                ], $mitarbeiterId, null, 'auftragszeit_service');
-            }
+            Logger::error('Fehler beim Starten einer Auftragszeit (Service)', [
+                'mitarbeiter_id' => $mitarbeiterId,
+                'auftragscode'   => $auftragscode,
+                'maschine_id'    => $maschineId,
+                'exception'      => $e->getMessage(),
+            ], $mitarbeiterId, null, 'auftragszeit_service');
 
             return null;
         }
@@ -393,9 +377,7 @@ class AuftragszeitService
         // ------------------------------------------------------------
 
         $db = null;
-        if (class_exists('Database')) {
-            $db = Database::getInstanz();
-        }
+        $db = Database::getInstanz();
 
         $hauptDbOk = null;
         if ($db !== null) {
@@ -435,15 +417,13 @@ class AuftragszeitService
 
                 return $ok ? 0 : null;
             } catch (\Throwable $e) {
-                if (class_exists('Logger')) {
-                    Logger::error('AuftragszeitService: Offline-Queue Auftrag stoppen fehlgeschlagen', [
-                        'mitarbeiter_id'  => $mitarbeiterId,
-                        'auftragszeit_id' => $auftragszeitId,
-                        'auftragscode'    => $auftragscodeTrim,
-                        'status'          => $status,
-                        'exception'       => $e->getMessage(),
-                    ], $mitarbeiterId, null, 'auftragszeit_service_offline');
-                }
+                Logger::error('AuftragszeitService: Offline-Queue Auftrag stoppen fehlgeschlagen', [
+                    'mitarbeiter_id'  => $mitarbeiterId,
+                    'auftragszeit_id' => $auftragszeitId,
+                    'auftragscode'    => $auftragscodeTrim,
+                    'status'          => $status,
+                    'exception'       => $e->getMessage(),
+                ], $mitarbeiterId, null, 'auftragszeit_service_offline');
 
                 return null;
             }
@@ -476,12 +456,10 @@ class AuftragszeitService
         try {
             $laufende = $this->auftragszeitModel->holeLaufendeFuerMitarbeiter($mitarbeiterId);
         } catch (\Throwable $e) {
-            if (class_exists('Logger')) {
-                Logger::error('Fehler beim Laden laufender Aufträge im AuftragszeitService (stoppeAuftrag)', [
-                    'mitarbeiter_id' => $mitarbeiterId,
-                    'exception'      => $e->getMessage(),
-                ], $mitarbeiterId, null, 'auftragszeit_service');
-            }
+            Logger::error('Fehler beim Laden laufender Aufträge im AuftragszeitService (stoppeAuftrag)', [
+                'mitarbeiter_id' => $mitarbeiterId,
+                'exception'      => $e->getMessage(),
+            ], $mitarbeiterId, null, 'auftragszeit_service');
 
             return null;
         }
@@ -561,9 +539,7 @@ class AuftragszeitService
         }
 
         $db = null;
-        if (class_exists('Database')) {
-            $db = Database::getInstanz();
-        }
+        $db = Database::getInstanz();
 
         $hauptDbOk = null;
         if ($db !== null) {
@@ -592,13 +568,11 @@ class AuftragszeitService
 
                 return $ok ? 0 : null;
             } catch (\Throwable $e) {
-                if (class_exists('Logger')) {
-                    Logger::error('AuftragszeitService: Offline-Queue Aufträge stoppen fehlgeschlagen', [
-                        'mitarbeiter_id' => $mitarbeiterId,
-                        'status'         => $status,
-                        'exception'      => $e->getMessage(),
-                    ], $mitarbeiterId, null, 'auftragszeit_service_offline');
-                }
+                Logger::error('AuftragszeitService: Offline-Queue Aufträge stoppen fehlgeschlagen', [
+                    'mitarbeiter_id' => $mitarbeiterId,
+                    'status'         => $status,
+                    'exception'      => $e->getMessage(),
+                ], $mitarbeiterId, null, 'auftragszeit_service_offline');
 
                 return null;
             }
@@ -622,13 +596,11 @@ class AuftragszeitService
 
             return 1;
         } catch (\Throwable $e) {
-            if (class_exists('Logger')) {
-                Logger::error('Fehler beim Beenden laufender Aufträge (Service)', [
-                    'mitarbeiter_id' => $mitarbeiterId,
-                    'status'         => $status,
-                    'exception'      => $e->getMessage(),
-                ], $mitarbeiterId, null, 'auftragszeit_service');
-            }
+            Logger::error('Fehler beim Beenden laufender Aufträge (Service)', [
+                'mitarbeiter_id' => $mitarbeiterId,
+                'status'         => $status,
+                'exception'      => $e->getMessage(),
+            ], $mitarbeiterId, null, 'auftragszeit_service');
 
             return null;
         }
@@ -661,9 +633,7 @@ class AuftragszeitService
         }
 
         $db = null;
-        if (class_exists('Database')) {
-            $db = Database::getInstanz();
-        }
+        $db = Database::getInstanz();
 
         $hauptDbOk = null;
         if ($db !== null) {
@@ -695,13 +665,11 @@ class AuftragszeitService
 
                 return $ok ? 0 : null;
             } catch (\Throwable $e) {
-                if (class_exists('Logger')) {
-                    Logger::error('AuftragszeitService: Offline-Queue Aufträge stoppen (bis Zeitpunkt) fehlgeschlagen', [
-                        'mitarbeiter_id' => $mitarbeiterId,
-                        'status'         => $status,
-                        'exception'      => $e->getMessage(),
-                    ], $mitarbeiterId, null, 'auftragszeit_service_offline');
-                }
+                Logger::error('AuftragszeitService: Offline-Queue Aufträge stoppen (bis Zeitpunkt) fehlgeschlagen', [
+                    'mitarbeiter_id' => $mitarbeiterId,
+                    'status'         => $status,
+                    'exception'      => $e->getMessage(),
+                ], $mitarbeiterId, null, 'auftragszeit_service_offline');
 
                 return null;
             }
@@ -726,13 +694,11 @@ class AuftragszeitService
 
             return 1;
         } catch (\Throwable $e) {
-            if (class_exists('Logger')) {
-                Logger::error('Fehler beim Beenden laufender Aufträge (bis Zeitpunkt, Service)', [
-                    'mitarbeiter_id' => $mitarbeiterId,
-                    'status'         => $status,
-                    'exception'      => $e->getMessage(),
-                ], $mitarbeiterId, null, 'auftragszeit_service');
-            }
+            Logger::error('Fehler beim Beenden laufender Aufträge (bis Zeitpunkt, Service)', [
+                'mitarbeiter_id' => $mitarbeiterId,
+                'status'         => $status,
+                'exception'      => $e->getMessage(),
+            ], $mitarbeiterId, null, 'auftragszeit_service');
 
             return null;
         }
@@ -763,9 +729,7 @@ class AuftragszeitService
         }
 
         $db = null;
-        if (class_exists('Database')) {
-            $db = Database::getInstanz();
-        }
+        $db = Database::getInstanz();
 
         $hauptDbOk = null;
         if ($db !== null) {
@@ -808,13 +772,11 @@ class AuftragszeitService
                     'status' => $status,
                 ] : null;
             } catch (\Throwable $e) {
-                if (class_exists('Logger')) {
-                    Logger::error('AuftragszeitService: Offline-Queue letzte passende Auftragszeit stoppen fehlgeschlagen', [
-                        'mitarbeiter_id' => $mitarbeiterId,
-                        'status' => $status,
-                        'exception' => $e->getMessage(),
-                    ], $mitarbeiterId, null, 'auftragszeit_service_offline');
-                }
+                Logger::error('AuftragszeitService: Offline-Queue letzte passende Auftragszeit stoppen fehlgeschlagen', [
+                    'mitarbeiter_id' => $mitarbeiterId,
+                    'status' => $status,
+                    'exception' => $e->getMessage(),
+                ], $mitarbeiterId, null, 'auftragszeit_service_offline');
 
                 return null;
             }
@@ -832,15 +794,13 @@ class AuftragszeitService
 
         $startzeitRoh = isset($kandidat['startzeit']) ? (string)$kandidat['startzeit'] : '';
         if ($startzeitRoh !== '' && $zeitpunkt->format('Y-m-d H:i:s') < $startzeitRoh) {
-            if (class_exists('Logger')) {
-                Logger::warn('AuftragszeitService: Auftragszeit nicht beendet, da Endzeit vor Startzeit läge', [
-                    'auftragszeit_id' => $auftragszeitId,
-                    'mitarbeiter_id' => $mitarbeiterId,
-                    'startzeit' => $startzeitRoh,
-                    'endzeit' => $zeitpunkt->format('Y-m-d H:i:s'),
-                    'status' => $status,
-                ], $mitarbeiterId, null, 'auftragszeit_service');
-            }
+            Logger::warn('AuftragszeitService: Auftragszeit nicht beendet, da Endzeit vor Startzeit läge', [
+                'auftragszeit_id' => $auftragszeitId,
+                'mitarbeiter_id' => $mitarbeiterId,
+                'startzeit' => $startzeitRoh,
+                'endzeit' => $zeitpunkt->format('Y-m-d H:i:s'),
+                'status' => $status,
+            ], $mitarbeiterId, null, 'auftragszeit_service');
 
             return null;
         }
@@ -869,14 +829,12 @@ class AuftragszeitService
                 'status' => $status,
             ];
         } catch (\Throwable $e) {
-            if (class_exists('Logger')) {
-                Logger::error('Fehler beim Beenden der letzten passenden laufenden Auftragszeit (Service)', [
-                    'auftragszeit_id' => $auftragszeitId,
-                    'mitarbeiter_id' => $mitarbeiterId,
-                    'status' => $status,
-                    'exception' => $e->getMessage(),
-                ], $mitarbeiterId, null, 'auftragszeit_service');
-            }
+            Logger::error('Fehler beim Beenden der letzten passenden laufenden Auftragszeit (Service)', [
+                'auftragszeit_id' => $auftragszeitId,
+                'mitarbeiter_id' => $mitarbeiterId,
+                'status' => $status,
+                'exception' => $e->getMessage(),
+            ], $mitarbeiterId, null, 'auftragszeit_service');
 
             return null;
         }
@@ -903,9 +861,7 @@ class AuftragszeitService
         }
 
         $db = null;
-        if (class_exists('Database')) {
-            $db = Database::getInstanz();
-        }
+        $db = Database::getInstanz();
 
         $hauptDbOk = null;
         if ($db !== null) {
@@ -934,13 +890,11 @@ class AuftragszeitService
 
                 return $ok ? 0 : null;
             } catch (\Throwable $e) {
-                if (class_exists('Logger')) {
-                    Logger::error('AuftragszeitService: Offline-Queue Hauptaufträge stoppen fehlgeschlagen', [
-                        'mitarbeiter_id' => $mitarbeiterId,
-                        'status'         => $status,
-                        'exception'      => $e->getMessage(),
-                    ], $mitarbeiterId, null, 'auftragszeit_service_offline');
-                }
+                Logger::error('AuftragszeitService: Offline-Queue Hauptaufträge stoppen fehlgeschlagen', [
+                    'mitarbeiter_id' => $mitarbeiterId,
+                    'status'         => $status,
+                    'exception'      => $e->getMessage(),
+                ], $mitarbeiterId, null, 'auftragszeit_service_offline');
 
                 return null;
             }
@@ -964,13 +918,11 @@ class AuftragszeitService
 
             return 1;
         } catch (\Throwable $e) {
-            if (class_exists('Logger')) {
-                Logger::error('Fehler beim Beenden laufender Hauptaufträge (Service)', [
-                    'mitarbeiter_id' => $mitarbeiterId,
-                    'status'         => $status,
-                    'exception'      => $e->getMessage(),
-                ], $mitarbeiterId, null, 'auftragszeit_service');
-            }
+            Logger::error('Fehler beim Beenden laufender Hauptaufträge (Service)', [
+                'mitarbeiter_id' => $mitarbeiterId,
+                'status'         => $status,
+                'exception'      => $e->getMessage(),
+            ], $mitarbeiterId, null, 'auftragszeit_service');
 
             return null;
         }
@@ -989,9 +941,7 @@ class AuftragszeitService
         }
 
         $db = null;
-        if (class_exists('Database')) {
-            $db = Database::getInstanz();
-        }
+        $db = Database::getInstanz();
 
         $hauptDbOk = null;
         if ($db !== null) {
@@ -1027,12 +977,10 @@ class AuftragszeitService
 
                 return $ok ? ['id' => 0, 'typ' => 'haupt', 'queued' => true] : null;
             } catch (\Throwable $e) {
-                if (class_exists('Logger')) {
-                    Logger::error('AuftragszeitService: Offline-Queue Auftrag fortsetzen fehlgeschlagen', [
-                        'mitarbeiter_id' => $mitarbeiterId,
-                        'exception' => $e->getMessage(),
-                    ], $mitarbeiterId, null, 'auftragszeit_service_offline');
-                }
+                Logger::error('AuftragszeitService: Offline-Queue Auftrag fortsetzen fehlgeschlagen', [
+                    'mitarbeiter_id' => $mitarbeiterId,
+                    'exception' => $e->getMessage(),
+                ], $mitarbeiterId, null, 'auftragszeit_service_offline');
 
                 return null;
             }
@@ -1107,9 +1055,7 @@ class AuftragszeitService
         }
 
         $db = null;
-        if (class_exists('Database')) {
-            $db = Database::getInstanz();
-        }
+        $db = Database::getInstanz();
 
         $hauptDbOk = null;
         if ($db !== null) {
@@ -1142,12 +1088,10 @@ class AuftragszeitService
 
                 return $ok ? ['queued' => true, 'anzahl' => 0, 'auftraege' => []] : null;
             } catch (\Throwable $e) {
-                if (class_exists('Logger')) {
-                    Logger::error('AuftragszeitService: Offline-Queue Auftragsfortsetzung fehlgeschlagen', [
-                        'mitarbeiter_id' => $mitarbeiterId,
-                        'exception' => $e->getMessage(),
-                    ], $mitarbeiterId, null, 'auftragszeit_service_offline');
-                }
+                Logger::error('AuftragszeitService: Offline-Queue Auftragsfortsetzung fehlgeschlagen', [
+                    'mitarbeiter_id' => $mitarbeiterId,
+                    'exception' => $e->getMessage(),
+                ], $mitarbeiterId, null, 'auftragszeit_service_offline');
 
                 return null;
             }
@@ -1235,9 +1179,7 @@ class AuftragszeitService
         }
 
         $db = null;
-        if (class_exists('Database')) {
-            $db = Database::getInstanz();
-        }
+        $db = Database::getInstanz();
 
         $hauptDbOk = null;
         if ($db !== null) {
@@ -1271,12 +1213,10 @@ class AuftragszeitService
 
                 return $ok ? ['queued' => true, 'anzahl' => 0, 'auftraege' => []] : null;
             } catch (\Throwable $e) {
-                if (class_exists('Logger')) {
-                    Logger::error('AuftragszeitService: Offline-Queue Auftragsfortsetzung (bis Zeitpunkt) fehlgeschlagen', [
-                        'mitarbeiter_id' => $mitarbeiterId,
-                        'exception' => $e->getMessage(),
-                    ], $mitarbeiterId, null, 'auftragszeit_service_offline');
-                }
+                Logger::error('AuftragszeitService: Offline-Queue Auftragsfortsetzung (bis Zeitpunkt) fehlgeschlagen', [
+                    'mitarbeiter_id' => $mitarbeiterId,
+                    'exception' => $e->getMessage(),
+                ], $mitarbeiterId, null, 'auftragszeit_service_offline');
 
                 return null;
             }

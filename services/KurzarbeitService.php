@@ -65,14 +65,12 @@ class KurzarbeitService
                 'mid' => $mitarbeiterId,
             ]);
         } catch (\Throwable $e) {
-            if (class_exists('Logger')) {
-                Logger::warn('Fehler beim Laden der Kurzarbeit-Pläne', [
-                    'mitarbeiter_id' => $mitarbeiterId,
-                    'von'            => $von->format('Y-m-d'),
-                    'bis'            => $bis->format('Y-m-d'),
-                    'exception'      => $e->getMessage(),
-                ], $mitarbeiterId, null, 'kurzarbeit');
-            }
+            Logger::warn('Fehler beim Laden der Kurzarbeit-Pläne', [
+                'mitarbeiter_id' => $mitarbeiterId,
+                'von'            => $von->format('Y-m-d'),
+                'bis'            => $bis->format('Y-m-d'),
+                'exception'      => $e->getMessage(),
+            ], $mitarbeiterId, null, 'kurzarbeit');
             return [];
         }
     }

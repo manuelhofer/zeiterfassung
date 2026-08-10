@@ -48,14 +48,12 @@ class PDFService
         try {
             $daten = $this->reportService->holeMonatsdatenFuerMitarbeiter($mitarbeiterId, $jahr, $monat);
         } catch (\Throwable $e) {
-            if (class_exists('Logger')) {
-                Logger::error('Fehler beim Laden der Report-Daten für PDF', [
-                    'mitarbeiter_id' => $mitarbeiterId,
-                    'jahr'           => $jahr,
-                    'monat'          => $monat,
-                    'exception'      => $e->getMessage(),
-                ], $mitarbeiterId, null, 'pdf');
-            }
+            Logger::error('Fehler beim Laden der Report-Daten für PDF', [
+                'mitarbeiter_id' => $mitarbeiterId,
+                'jahr'           => $jahr,
+                'monat'          => $monat,
+                'exception'      => $e->getMessage(),
+            ], $mitarbeiterId, null, 'pdf');
             return '';
         }
 
@@ -87,14 +85,12 @@ class PDFService
         try {
             return $this->baueArbeitszeitlistePdf($mitarbeiterId, $mitarbeiterName, $jahr, $monat, $tageswerte, $monatswerte, (bool)$showMicro);
         } catch (\Throwable $e) {
-            if (class_exists('Logger')) {
-                Logger::error('Fehler beim Generieren des Arbeitszeitliste-PDF', [
-                    'mitarbeiter_id' => $mitarbeiterId,
-                    'jahr'           => $jahr,
-                    'monat'          => $monat,
-                    'exception'      => $e->getMessage(),
-                ], $mitarbeiterId, null, 'pdf');
-            }
+            Logger::error('Fehler beim Generieren des Arbeitszeitliste-PDF', [
+                'mitarbeiter_id' => $mitarbeiterId,
+                'jahr'           => $jahr,
+                'monat'          => $monat,
+                'exception'      => $e->getMessage(),
+            ], $mitarbeiterId, null, 'pdf');
             return '';
         }
     }
@@ -118,14 +114,12 @@ class PDFService
         try {
             return $this->baueArbeitszeitlistePdf($mitarbeiterId, $mitarbeiterName, $jahr, $monat, $tageswerte, $monatswerte, (bool)$showMicro);
         } catch (\Throwable $e) {
-            if (class_exists('Logger')) {
-                Logger::error('Fehler beim Generieren des Arbeitszeitliste-PDF (aus Daten)', [
-                    'mitarbeiter_id' => $mitarbeiterId,
-                    'jahr'           => $jahr,
-                    'monat'          => $monat,
-                    'exception'      => $e->getMessage(),
-                ], $mitarbeiterId, null, 'pdf');
-            }
+            Logger::error('Fehler beim Generieren des Arbeitszeitliste-PDF (aus Daten)', [
+                'mitarbeiter_id' => $mitarbeiterId,
+                'jahr'           => $jahr,
+                'monat'          => $monat,
+                'exception'      => $e->getMessage(),
+            ], $mitarbeiterId, null, 'pdf');
             return '';
         }
     }
@@ -149,12 +143,10 @@ class PDFService
         try {
             return $this->baueLaufkartePdf($auftrag, $arbeitsschritte);
         } catch (\Throwable $e) {
-            if (class_exists('Logger')) {
-                Logger::error('Fehler beim Generieren der Laufkarte', [
-                    'auftrag'   => $auftrag['auftragsnummer'] ?? null,
-                    'exception' => $e->getMessage(),
-                ], null, null, 'pdf');
-            }
+            Logger::error('Fehler beim Generieren der Laufkarte', [
+                'auftrag'   => $auftrag['auftragsnummer'] ?? null,
+                'exception' => $e->getMessage(),
+            ], null, null, 'pdf');
             return '';
         }
     }
@@ -360,12 +352,10 @@ class PDFService
         try {
             return $this->baueArbeitsschrittKartenPdf($karten);
         } catch (\Throwable $e) {
-            if (class_exists('Logger')) {
-                Logger::error('Fehler beim Erzeugen des Arbeitsschritt-Druckblatts', [
-                    'anzahl'    => count($karten),
-                    'exception' => $e->getMessage(),
-                ], null, null, 'pdf');
-            }
+            Logger::error('Fehler beim Erzeugen des Arbeitsschritt-Druckblatts', [
+                'anzahl'    => count($karten),
+                'exception' => $e->getMessage(),
+            ], null, null, 'pdf');
             return '';
         }
     }
@@ -1694,12 +1684,10 @@ class PDFService
         $max = 180;
 
         try {
-            if (class_exists('KonfigurationService')) {
-                $cfg = KonfigurationService::getInstanz();
-                $val = $cfg->getInt('micro_buchung_max_sekunden', 180);
-                if ($val !== null) {
-                    $max = (int)$val;
-                }
+            $cfg = KonfigurationService::getInstanz();
+            $val = $cfg->getInt('micro_buchung_max_sekunden', 180);
+            if ($val !== null) {
+                $max = (int)$val;
             }
         } catch (\Throwable $e) {
             $max = 180;

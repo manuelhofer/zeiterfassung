@@ -1264,13 +1264,11 @@ private function holeBetriebsferienTageFuerMitarbeiterUndMonat(int $mitarbeiterI
             $eintraege = array_merge($eintraege, $this->betriebsferienModel->holeAktive($aid));
         }
     } catch (\Throwable $e) {
-        if (class_exists('Logger')) {
-            Logger::warn('Fehler beim Laden der Betriebsferien für Monatsreport', [
-                'mitarbeiter_id' => $mitarbeiterId,
-                'monat'          => $monatStart->format('Y-m'),
-                'exception'      => $e->getMessage(),
-            ], $mitarbeiterId, null, 'reportservice');
-        }
+        Logger::warn('Fehler beim Laden der Betriebsferien für Monatsreport', [
+            'mitarbeiter_id' => $mitarbeiterId,
+            'monat'          => $monatStart->format('Y-m'),
+            'exception'      => $e->getMessage(),
+        ], $mitarbeiterId, null, 'reportservice');
         return [];
     }
 
@@ -1352,12 +1350,10 @@ private function holeBetriebsferienTageFuerMitarbeiterUndMonat(int $mitarbeiterI
 
         // Pausenentscheidung (optional, defensiv: wenn Migration/Tabelle fehlt -> ignorieren)
         $pausenentscheidungModel = null;
-        if (class_exists('PausenentscheidungModel')) {
-            try {
-                $pausenentscheidungModel = new PausenentscheidungModel();
-            } catch (\Throwable $e) {
-                $pausenentscheidungModel = null;
-            }
+        try {
+            $pausenentscheidungModel = new PausenentscheidungModel();
+        } catch (\Throwable $e) {
+            $pausenentscheidungModel = null;
         }
 
         $start = $monatStart->setTime(0, 0, 0);
@@ -1368,14 +1364,12 @@ private function holeBetriebsferienTageFuerMitarbeiterUndMonat(int $mitarbeiterI
             $buchungen = $this->zeitbuchungModel->holeFuerMitarbeiterUndZeitraum($mitarbeiterId, $start, $endeExclusive);
         } catch (\Throwable $e) {
             $buchungen = [];
-            if (class_exists('Logger')) {
-                Logger::warn('Fallback: Zeitbuchungen für Monatsbericht konnten nicht geladen werden', [
-                    'mitarbeiter_id' => $mitarbeiterId,
-                    'jahr'           => $jahr,
-                    'monat'          => $monat,
-                    'exception'      => $e->getMessage(),
-                ], $mitarbeiterId, null, 'reportservice');
-            }
+            Logger::warn('Fallback: Zeitbuchungen für Monatsbericht konnten nicht geladen werden', [
+                'mitarbeiter_id' => $mitarbeiterId,
+                'jahr'           => $jahr,
+                'monat'          => $monat,
+                'exception'      => $e->getMessage(),
+            ], $mitarbeiterId, null, 'reportservice');
         }
 
         /** @var array<string,array<int,array<string,mixed>>> $buchungenProTag */
@@ -1667,14 +1661,12 @@ private function holeBetriebsferienTageFuerMitarbeiterUndMonat(int $mitarbeiterI
         try {
             $monatswerteRoh = $this->monatswerteModel->holeNachMitarbeiterUndMonat($mitarbeiterId, $jahr, $monat);
         } catch (\Throwable $e) {
-            if (class_exists('Logger')) {
-                Logger::warn('Fehler beim Laden der Monatswerte', [
-                    'mitarbeiter_id' => $mitarbeiterId,
-                    'jahr'           => $jahr,
-                    'monat'          => $monat,
-                    'exception'      => $e->getMessage(),
-                ], $mitarbeiterId, null, 'reportservice');
-            }
+            Logger::warn('Fehler beim Laden der Monatswerte', [
+                'mitarbeiter_id' => $mitarbeiterId,
+                'jahr'           => $jahr,
+                'monat'          => $monat,
+                'exception'      => $e->getMessage(),
+            ], $mitarbeiterId, null, 'reportservice');
         }
 
         $monatswerte = null;
@@ -1696,14 +1688,12 @@ private function holeBetriebsferienTageFuerMitarbeiterUndMonat(int $mitarbeiterI
             $tageswerteRoh = $this->tageswerteModel->holeAlleFuerMitarbeiterUndMonat($mitarbeiterId, $jahr, $monat);
         } catch (\Throwable $e) {
             $tageswerteRoh = [];
-            if (class_exists('Logger')) {
-                Logger::warn('Fehler beim Laden der Tageswerte für Monatsbericht', [
-                    'mitarbeiter_id' => $mitarbeiterId,
-                    'jahr'           => $jahr,
-                    'monat'          => $monat,
-                    'exception'      => $e->getMessage(),
-                ], $mitarbeiterId, null, 'reportservice');
-            }
+            Logger::warn('Fehler beim Laden der Tageswerte für Monatsbericht', [
+                'mitarbeiter_id' => $mitarbeiterId,
+                'jahr'           => $jahr,
+                'monat'          => $monat,
+                'exception'      => $e->getMessage(),
+            ], $mitarbeiterId, null, 'reportservice');
         }
 
         // Betriebsferien-Tage für den Monat ermitteln (für Anzeige im Report)
@@ -2350,14 +2340,12 @@ private function holeBetriebsferienTageFuerMitarbeiterUndMonat(int $mitarbeiterI
         $diffMinuten = $sumAllMinuten - $sollMinuten;
 
         $stundenkontoSaldoText = '';
-        if (class_exists('StundenkontoService')) {
-            try {
-                $stundenkontoService = StundenkontoService::getInstanz();
-                $saldoMinuten = $stundenkontoService->holeSaldoMinutenBisVormonat($mitarbeiterId, $jahr, $monat);
-                $stundenkontoSaldoText = $stundenkontoService->formatMinutenAlsStundenString((int)$saldoMinuten, true);
-            } catch (\Throwable $e) {
-                $stundenkontoSaldoText = '';
-            }
+        try {
+            $stundenkontoService = StundenkontoService::getInstanz();
+            $saldoMinuten = $stundenkontoService->holeSaldoMinutenBisVormonat($mitarbeiterId, $jahr, $monat);
+            $stundenkontoSaldoText = $stundenkontoService->formatMinutenAlsStundenString((int)$saldoMinuten, true);
+        } catch (\Throwable $e) {
+            $stundenkontoSaldoText = '';
         }
 
         $monatszusammenfassung = [

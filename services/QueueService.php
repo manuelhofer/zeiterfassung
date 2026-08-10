@@ -55,11 +55,9 @@ class QueueService
 
             return $stmt->fetchAll(\PDO::FETCH_ASSOC) ?: [];
         } catch (\Throwable $e) {
-            if (class_exists('Logger')) {
-                Logger::error('Fehler beim Laden offener Queue-Einträge', [
-                    'exception' => $e->getMessage(),
-                ], null, null, 'offline_queue');
-            }
+            Logger::error('Fehler beim Laden offener Queue-Einträge', [
+                'exception' => $e->getMessage(),
+            ], null, null, 'offline_queue');
             return [];
         }
     }
@@ -85,11 +83,9 @@ class QueueService
 
             return $stmt->fetchAll(\PDO::FETCH_ASSOC) ?: [];
         } catch (\Throwable $e) {
-            if (class_exists('Logger')) {
-                Logger::error('Fehler beim Laden fehlerhafter Queue-Einträge', [
-                    'exception' => $e->getMessage(),
-                ], null, null, 'offline_queue');
-            }
+            Logger::error('Fehler beim Laden fehlerhafter Queue-Einträge', [
+                'exception' => $e->getMessage(),
+            ], null, null, 'offline_queue');
             return [];
         }
     }
@@ -119,12 +115,10 @@ class QueueService
 
             return $datensatz;
         } catch (\Throwable $e) {
-            if (class_exists('Logger')) {
-                Logger::error('Fehler beim Laden eines Queue-Eintrags', [
-                    'id'        => $id,
-                    'exception' => $e->getMessage(),
-                ], null, null, 'offline_queue');
-            }
+            Logger::error('Fehler beim Laden eines Queue-Eintrags', [
+                'id'        => $id,
+                'exception' => $e->getMessage(),
+            ], null, null, 'offline_queue');
             return null;
         }
     }
@@ -137,16 +131,12 @@ class QueueService
         try {
             $this->offlineQueueManager->loescheEintrag($id);
 
-            if (class_exists('Logger')) {
-                Logger::info('Queue-Eintrag gelöscht', ['id' => $id], null, null, 'offline_queue');
-            }
+            Logger::info('Queue-Eintrag gelöscht', ['id' => $id], null, null, 'offline_queue');
         } catch (\Throwable $e) {
-            if (class_exists('Logger')) {
-                Logger::error('Fehler beim Löschen eines Queue-Eintrags', [
-                    'id'        => $id,
-                    'exception' => $e->getMessage(),
-                ], null, null, 'offline_queue');
-            }
+            Logger::error('Fehler beim Löschen eines Queue-Eintrags', [
+                'id'        => $id,
+                'exception' => $e->getMessage(),
+            ], null, null, 'offline_queue');
         }
     }
 
@@ -217,11 +207,9 @@ public function holeStatusSummary(): array
 
         return $out;
     } catch (\Throwable $e) {
-        if (class_exists('Logger')) {
-            Logger::error('Fehler beim Laden Queue-Status-Summary', [
-                'exception' => $e->getMessage(),
-            ], null, null, 'offline_queue');
-        }
+        Logger::error('Fehler beim Laden Queue-Status-Summary', [
+            'exception' => $e->getMessage(),
+        ], null, null, 'offline_queue');
 
         return $out;
     }

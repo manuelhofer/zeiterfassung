@@ -49,12 +49,10 @@ class BetriebsferienModel
 
             return $this->datenbank->fetchAlle($sql, ['abteilung_id' => (int)$abteilungId]);
         } catch (\Throwable $e) {
-            if (class_exists('Logger')) {
-                Logger::error('Fehler beim Laden aktiver Betriebsferien', [
-                    'abteilung_id' => $abteilungId,
-                    'exception'    => $e->getMessage(),
-                ], null, null, 'betriebsferien');
-            }
+            Logger::error('Fehler beim Laden aktiver Betriebsferien', [
+                'abteilung_id' => $abteilungId,
+                'exception'    => $e->getMessage(),
+            ], null, null, 'betriebsferien');
 
             return [];
         }
@@ -75,11 +73,9 @@ class BetriebsferienModel
 
             return $this->datenbank->fetchAlle($sql);
         } catch (\Throwable $e) {
-            if (class_exists('Logger')) {
-                Logger::error('Fehler beim Laden der Betriebsferien (Admin)', [
-                    'exception' => $e->getMessage(),
-                ], null, null, 'betriebsferien');
-            }
+            Logger::error('Fehler beim Laden der Betriebsferien (Admin)', [
+                'exception' => $e->getMessage(),
+            ], null, null, 'betriebsferien');
 
             return [];
         }
@@ -105,12 +101,10 @@ class BetriebsferienModel
 
             return $this->datenbank->fetchEine($sql, ['id' => $id]);
         } catch (\Throwable $e) {
-            if (class_exists('Logger')) {
-                Logger::error('Fehler beim Laden von Betriebsferien nach ID', [
-                    'id'        => $id,
-                    'exception' => $e->getMessage(),
-                ], $id, null, 'betriebsferien');
-            }
+            Logger::error('Fehler beim Laden von Betriebsferien nach ID', [
+                'id'        => $id,
+                'exception' => $e->getMessage(),
+            ], $id, null, 'betriebsferien');
 
             return null;
         }
@@ -177,13 +171,11 @@ class BetriebsferienModel
             $this->datenbank->ausfuehren($sql, $params);
             return true;
         } catch (\Throwable $e) {
-            if (class_exists('Logger')) {
-                Logger::error('Fehler beim Speichern von Betriebsferien', [
-                    'id'        => $id,
-                    'params'    => $params,
-                    'exception' => $e->getMessage(),
-                ], $id > 0 ? $id : null, null, 'betriebsferien');
-            }
+            Logger::error('Fehler beim Speichern von Betriebsferien', [
+                'id'        => $id,
+                'params'    => $params,
+                'exception' => $e->getMessage(),
+            ], $id > 0 ? $id : null, null, 'betriebsferien');
 
             return false;
         }
@@ -213,13 +205,11 @@ class BetriebsferienModel
 
             return true;
         } catch (\Throwable $e) {
-            if (class_exists('Logger')) {
-                Logger::error('Fehler beim Setzen des Betriebsferien-Status', [
-                    'id'        => $id,
-                    'aktiv'     => $aktiv,
-                    'exception' => $e->getMessage(),
-                ], $id, null, 'betriebsferien');
-            }
+            Logger::error('Fehler beim Setzen des Betriebsferien-Status', [
+                'id'        => $id,
+                'aktiv'     => $aktiv,
+                'exception' => $e->getMessage(),
+            ], $id, null, 'betriebsferien');
 
             return false;
         }

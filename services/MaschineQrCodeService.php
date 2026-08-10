@@ -113,17 +113,6 @@ class MaschineQrCodeService
      */
     private function ladeKonfiguration(): array
     {
-        if (!class_exists('KonfigurationService')) {
-            $pfad = __DIR__ . '/KonfigurationService.php';
-            if (is_file($pfad)) {
-                require_once $pfad;
-            }
-        }
-
-        if (!class_exists('KonfigurationService')) {
-            return [];
-        }
-
         $service = KonfigurationService::getInstanz();
 
         return [
@@ -313,12 +302,10 @@ class MaschineQrCodeService
                 $hoehe
             );
         } catch (\Throwable $e) {
-            if (class_exists('Logger')) {
-                Logger::error('Fehler beim Erzeugen des Maschinen-Barcodes', [
-                    'daten' => $daten,
-                    'exception' => $e->getMessage(),
-                ], null, null, 'maschine');
-            }
+            Logger::error('Fehler beim Erzeugen des Maschinen-Barcodes', [
+                'daten' => $daten,
+                'exception' => $e->getMessage(),
+            ], null, null, 'maschine');
         }
 
         return null;

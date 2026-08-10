@@ -124,12 +124,10 @@ class UrlaubJahresuebersichtController
                     }
                 }
             } catch (\Throwable $e) {
-                if (class_exists('Logger')) {
-                    Logger::warn('Urlaub-Jahresuebersicht: Genehmiger-Scope konnte nicht geladen werden', [
-                        'genehmiger_id' => $angemeldeterId,
-                        'exception' => $e->getMessage(),
-                    ], $angemeldeterId, null, 'urlaub_jahresuebersicht');
-                }
+                Logger::warn('Urlaub-Jahresuebersicht: Genehmiger-Scope konnte nicht geladen werden', [
+                    'genehmiger_id' => $angemeldeterId,
+                    'exception' => $e->getMessage(),
+                ], $angemeldeterId, null, 'urlaub_jahresuebersicht');
             }
         }
 

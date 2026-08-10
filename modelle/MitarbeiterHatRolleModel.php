@@ -31,12 +31,10 @@ class MitarbeiterHatRolleModel
 
             $daten = $this->datenbank->fetchAlle($sql, ['mitarbeiter_id' => $mitarbeiterId]);
         } catch (\Throwable $e) {
-            if (class_exists('Logger')) {
-                Logger::error('Fehler beim Laden von Rollen eines Mitarbeiters', [
-                    'mitarbeiter_id' => $mitarbeiterId,
-                    'exception'      => $e->getMessage(),
-                ], $mitarbeiterId, null, 'rolle');
-            }
+            Logger::error('Fehler beim Laden von Rollen eines Mitarbeiters', [
+                'mitarbeiter_id' => $mitarbeiterId,
+                'exception'      => $e->getMessage(),
+            ], $mitarbeiterId, null, 'rolle');
 
             return [];
         }
@@ -96,13 +94,11 @@ class MitarbeiterHatRolleModel
 
             return true;
         } catch (\Throwable $e) {
-            if (class_exists('Logger')) {
-                Logger::error('Fehler beim Speichern der Rollen eines Mitarbeiters', [
-                    'mitarbeiter_id' => $mitarbeiterId,
-                    'rollen_ids'     => $rollenIdsBereinigt,
-                    'exception'      => $e->getMessage(),
-                ], $mitarbeiterId, null, 'rolle');
-            }
+            Logger::error('Fehler beim Speichern der Rollen eines Mitarbeiters', [
+                'mitarbeiter_id' => $mitarbeiterId,
+                'rollen_ids'     => $rollenIdsBereinigt,
+                'exception'      => $e->getMessage(),
+            ], $mitarbeiterId, null, 'rolle');
 
             return false;
         }

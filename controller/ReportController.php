@@ -236,19 +236,17 @@ class ReportController
                     ]
                 );
 
-                if (class_exists('Logger')) {
-                    Logger::info('Stundenkonto-Monatsabschluss aktualisiert', [
-                        'korrektur_id'   => (int)($existing['id'] ?? 0),
-                        'mitarbeiter_id' => $mitarbeiterId,
-                        'jahr'           => $jahr,
-                        'monat'          => $monat,
-                        'wirksam_datum'  => $wirksam,
-                        'delta_alt'      => (int)($existing['delta_minuten'] ?? 0),
-                        'delta_neu'      => $deltaMinuten,
-                        'begruendung'    => $begruendung,
-                        'erstellt_von'   => $erstelltVonMitarbeiterId,
-                    ], $mitarbeiterId, null, 'stundenkonto');
-                }
+                Logger::info('Stundenkonto-Monatsabschluss aktualisiert', [
+                    'korrektur_id'   => (int)($existing['id'] ?? 0),
+                    'mitarbeiter_id' => $mitarbeiterId,
+                    'jahr'           => $jahr,
+                    'monat'          => $monat,
+                    'wirksam_datum'  => $wirksam,
+                    'delta_alt'      => (int)($existing['delta_minuten'] ?? 0),
+                    'delta_neu'      => $deltaMinuten,
+                    'begruendung'    => $begruendung,
+                    'erstellt_von'   => $erstelltVonMitarbeiterId,
+                ], $mitarbeiterId, null, 'stundenkonto');
 
                 return true;
             }
@@ -267,40 +265,36 @@ class ReportController
                 ]
             );
 
-            if (class_exists('Logger')) {
+            $korrekturId = 0;
+            try {
+                $korrekturId = (int)$db->letzteInsertId();
+            } catch (\Throwable) {
                 $korrekturId = 0;
-                try {
-                    $korrekturId = (int)$db->letzteInsertId();
-                } catch (\Throwable) {
-                    $korrekturId = 0;
-                }
-
-                Logger::info('Stundenkonto-Monatsabschluss gebucht', [
-                    'korrektur_id'   => $korrekturId,
-                    'mitarbeiter_id' => $mitarbeiterId,
-                    'jahr'           => $jahr,
-                    'monat'          => $monat,
-                    'wirksam_datum'  => $wirksam,
-                    'delta_minuten'  => $deltaMinuten,
-                    'begruendung'    => $begruendung,
-                    'erstellt_von'   => $erstelltVonMitarbeiterId,
-                ], $mitarbeiterId, null, 'stundenkonto');
             }
+
+            Logger::info('Stundenkonto-Monatsabschluss gebucht', [
+                'korrektur_id'   => $korrekturId,
+                'mitarbeiter_id' => $mitarbeiterId,
+                'jahr'           => $jahr,
+                'monat'          => $monat,
+                'wirksam_datum'  => $wirksam,
+                'delta_minuten'  => $deltaMinuten,
+                'begruendung'    => $begruendung,
+                'erstellt_von'   => $erstelltVonMitarbeiterId,
+            ], $mitarbeiterId, null, 'stundenkonto');
 
             return true;
         } catch (\Throwable $e) {
-            if (class_exists('Logger')) {
-                Logger::error('Fehler beim Buchen des Stundenkonto-Monatsabschlusses', [
-                    'mitarbeiter_id' => $mitarbeiterId,
-                    'jahr'           => $jahr,
-                    'monat'          => $monat,
-                    'wirksam_datum'  => $wirksam ?? null,
-                    'delta_minuten'  => $deltaMinuten,
-                    'begruendung'    => $begruendung ?? null,
-                    'erstellt_von'   => $erstelltVonMitarbeiterId,
-                    'exception'      => $e->getMessage(),
-                ], $mitarbeiterId, null, 'stundenkonto');
-            }
+            Logger::error('Fehler beim Buchen des Stundenkonto-Monatsabschlusses', [
+                'mitarbeiter_id' => $mitarbeiterId,
+                'jahr'           => $jahr,
+                'monat'          => $monat,
+                'wirksam_datum'  => $wirksam ?? null,
+                'delta_minuten'  => $deltaMinuten,
+                'begruendung'    => $begruendung ?? null,
+                'erstellt_von'   => $erstelltVonMitarbeiterId,
+                'exception'      => $e->getMessage(),
+            ], $mitarbeiterId, null, 'stundenkonto');
             return false;
         }
     }
@@ -467,12 +461,10 @@ class ReportController
         // Ohne show_micro wollen wir diese Mikro-Bloecke komplett ausblenden.
         $microBuchungMaxSeconds = 180;
         try {
-            if (class_exists('KonfigurationService')) {
-                $cfg = KonfigurationService::getInstanz();
-                $val = $cfg->getInt('micro_buchung_max_sekunden', 180);
-                if ($val !== null) {
-                    $microBuchungMaxSeconds = (int)$val;
-                }
+            $cfg = KonfigurationService::getInstanz();
+            $val = $cfg->getInt('micro_buchung_max_sekunden', 180);
+            if ($val !== null) {
+                $microBuchungMaxSeconds = (int)$val;
             }
         } catch (\Throwable $e) {
             $microBuchungMaxSeconds = 180;
@@ -593,16 +585,14 @@ class ReportController
         $errorHandlerAktiv = false;
         try {
             set_error_handler(function (int $severity, string $message, string $file, int $line) use ($jahr, $monat): bool {
-                if (class_exists('Logger')) {
-                    Logger::warn('PHP-Warnung/Notice während PDF-Generierung', [
-                        'severity' => $severity,
-                        'message'  => $message,
-                        'file'     => $file,
-                        'line'     => $line,
-                        'jahr'     => $jahr,
-                        'monat'    => $monat,
-                    ], null, null, 'pdf');
-                }
+                Logger::warn('PHP-Warnung/Notice während PDF-Generierung', [
+                    'severity' => $severity,
+                    'message'  => $message,
+                    'file'     => $file,
+                    'line'     => $line,
+                    'jahr'     => $jahr,
+                    'monat'    => $monat,
+                ], null, null, 'pdf');
                 // Ausgabe unterdrücken
                 return true;
             });
@@ -739,16 +729,14 @@ class ReportController
         $errorHandlerAktiv = false;
         try {
             set_error_handler(function (int $severity, string $message, string $file, int $line) use ($jahr, $monat): bool {
-                if (class_exists('Logger')) {
-                    Logger::warn('PHP-Warnung/Notice während ZIP-Export', [
-                        'severity' => $severity,
-                        'message'  => $message,
-                        'file'     => $file,
-                        'line'     => $line,
-                        'jahr'     => $jahr,
-                        'monat'    => $monat,
-                    ], null, null, 'pdf');
-                }
+                Logger::warn('PHP-Warnung/Notice während ZIP-Export', [
+                    'severity' => $severity,
+                    'message'  => $message,
+                    'file'     => $file,
+                    'line'     => $line,
+                    'jahr'     => $jahr,
+                    'monat'    => $monat,
+                ], null, null, 'pdf');
                 return true;
             });
             $errorHandlerAktiv = true;

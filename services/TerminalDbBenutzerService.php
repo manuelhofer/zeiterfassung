@@ -668,10 +668,6 @@ class TerminalDbBenutzerService
      */
     private function protokolliere(string $stufe, string $nachricht, array $kontext): void
     {
-        if (!class_exists('Logger')) {
-            return;
-        }
-
         // Sicherheitshalber: In diesem Dienst darf niemals ein Passwort ins
         // Protokoll geraten.
         unset($kontext['passwort']);

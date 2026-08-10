@@ -262,28 +262,19 @@ class BarcodeService
     {
         $wert = null;
 
-        if (!class_exists('KonfigurationService')) {
-            $pfad = __DIR__ . '/KonfigurationService.php';
-            if (is_file($pfad)) {
-                require_once $pfad;
-            }
-        }
+        try {
+            $konfig = KonfigurationService::getInstanz();
+            $wert = $konfig->get('auftrag_code_rel_pfad', null);
 
-        if (class_exists('KonfigurationService')) {
-            try {
-                $konfig = KonfigurationService::getInstanz();
-                $wert = $konfig->get('auftrag_code_rel_pfad', null);
-
-                // Rueckfall auf den alten Schluessel: Der Wert hiess bis
-                // P-2026-08-08-24 `auftrag_qr_rel_pfad`. Installationen, die die
-                // Migration noch nicht eingespielt haben, sollen trotzdem ihren
-                // eingestellten Pfad behalten statt auf den Standard zu fallen.
-                if (!is_string($wert) || trim($wert) === '') {
-                    $wert = $konfig->get('auftrag_qr_rel_pfad', null);
-                }
-            } catch (\Throwable $e) {
-                $wert = null;
+            // Rueckfall auf den alten Schluessel: Der Wert hiess bis
+            // P-2026-08-08-24 `auftrag_qr_rel_pfad`. Installationen, die die
+            // Migration noch nicht eingespielt haben, sollen trotzdem ihren
+            // eingestellten Pfad behalten statt auf den Standard zu fallen.
+            if (!is_string($wert) || trim($wert) === '') {
+                $wert = $konfig->get('auftrag_qr_rel_pfad', null);
             }
+        } catch (\Throwable $e) {
+            $wert = null;
         }
 
         if (!is_string($wert) || trim($wert) === '') {
@@ -334,8 +325,6 @@ class BarcodeService
      */
     private function protokolliereFehler(string $nachricht, array $kontext): void
     {
-        if (class_exists('Logger')) {
-            Logger::error($nachricht, $kontext, null, null, 'barcode');
-        }
+        Logger::error($nachricht, $kontext, null, null, 'barcode');
     }
 }

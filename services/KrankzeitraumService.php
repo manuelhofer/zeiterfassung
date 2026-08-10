@@ -63,14 +63,12 @@ class KrankzeitraumService
                 'bis' => $bis->format('Y-m-d'),
             ]);
         } catch (\Throwable $e) {
-            if (class_exists('Logger')) {
-                Logger::warn('Fehler beim Laden der Krankzeiträume', [
-                    'mitarbeiter_id' => $mitarbeiterId,
-                    'von'            => $von->format('Y-m-d'),
-                    'bis'            => $bis->format('Y-m-d'),
-                    'exception'      => $e->getMessage(),
-                ], $mitarbeiterId, null, 'krankzeitraum');
-            }
+            Logger::warn('Fehler beim Laden der Krankzeiträume', [
+                'mitarbeiter_id' => $mitarbeiterId,
+                'von'            => $von->format('Y-m-d'),
+                'bis'            => $bis->format('Y-m-d'),
+                'exception'      => $e->getMessage(),
+            ], $mitarbeiterId, null, 'krankzeitraum');
             return [];
         }
     }

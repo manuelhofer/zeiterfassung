@@ -52,11 +52,9 @@ class RundungsService
             }
         } catch (\Throwable $e) {
             $this->regelnCache = [];
-            if (class_exists('Logger')) {
-                Logger::error('Fehler beim Laden der Zeit-Rundungsregeln', [
-                    'exception' => $e->getMessage(),
-                ], null, null, 'rundung');
-            }
+            Logger::error('Fehler beim Laden der Zeit-Rundungsregeln', [
+                'exception' => $e->getMessage(),
+            ], null, null, 'rundung');
         }
     }
 
@@ -109,17 +107,13 @@ class RundungsService
                 'besch2'    => 'Standard: 07:00–24:00 auf 15 Minuten runden (nächstgelegen)',
             ]);
 
-            if (class_exists('Logger')) {
-                Logger::info('Default-Zeit-Rundungsregeln wurden automatisch angelegt (Tabelle war leer).', [], null, null, 'rundung');
-            }
+            Logger::info('Default-Zeit-Rundungsregeln wurden automatisch angelegt (Tabelle war leer).', [], null, null, 'rundung');
 
             return true;
         } catch (\Throwable $e) {
-            if (class_exists('Logger')) {
-                Logger::warn('Default-Zeit-Rundungsregeln konnten nicht automatisch angelegt werden.', [
-                    'exception' => $e->getMessage(),
-                ], null, null, 'rundung');
-            }
+            Logger::warn('Default-Zeit-Rundungsregeln konnten nicht automatisch angelegt werden.', [
+                'exception' => $e->getMessage(),
+            ], null, null, 'rundung');
 
             return false;
         }
@@ -161,13 +155,11 @@ class RundungsService
             return new \DateTimeImmutable($zeitString, $zeitstempel->getTimezone());
         } catch (\Throwable $e) {
             // Fallback: ursprünglichen Zeitstempel zurückgeben
-            if (class_exists('Logger')) {
-                Logger::warn('Fehler bei der Anwendung der Rundungsregel, verwende Originalzeit', [
-                    'zeit_original' => $zeitstempel->format(DATE_ATOM),
-                    'zeit_string'   => $zeitString,
-                    'exception'     => $e->getMessage(),
-                ], null, null, 'rundung');
-            }
+            Logger::warn('Fehler bei der Anwendung der Rundungsregel, verwende Originalzeit', [
+                'zeit_original' => $zeitstempel->format(DATE_ATOM),
+                'zeit_string'   => $zeitString,
+                'exception'     => $e->getMessage(),
+            ], null, null, 'rundung');
 
             return \DateTimeImmutable::createFromInterface($zeitstempel);
         }

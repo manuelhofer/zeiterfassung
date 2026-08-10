@@ -159,14 +159,12 @@ class UrlaubService
                 }
             }
         } catch (\Throwable $e) {
-            if (class_exists('Logger')) {
-                Logger::warn('Betriebsferien-Zaehler: Tageswerte fuer Skip konnten nicht geladen werden', [
-                    'mitarbeiter_id' => $mitarbeiterId,
-                    'von'            => $von->format('Y-m-d'),
-                    'bis'            => $bis->format('Y-m-d'),
-                    'exception'      => $e->getMessage(),
-                ], $mitarbeiterId, null, 'urlaubservice');
-            }
+            Logger::warn('Betriebsferien-Zaehler: Tageswerte fuer Skip konnten nicht geladen werden', [
+                'mitarbeiter_id' => $mitarbeiterId,
+                'von'            => $von->format('Y-m-d'),
+                'bis'            => $bis->format('Y-m-d'),
+                'exception'      => $e->getMessage(),
+            ], $mitarbeiterId, null, 'urlaubservice');
         }
 
         // Krankzeitraum (LFZ/KK) soll BF-Zwangsurlaub NICHT abziehen.
@@ -238,14 +236,12 @@ class UrlaubService
                 }
             }
         } catch (\Throwable $e) {
-            if (class_exists('Logger')) {
-                Logger::warn('Betriebsferien-Zaehler: Krankzeitraeume fuer Skip konnten nicht geladen werden', [
-                    'mitarbeiter_id' => $mitarbeiterId,
-                    'von'            => $von->format('Y-m-d'),
-                    'bis'            => $bis->format('Y-m-d'),
-                    'exception'      => $e->getMessage(),
-                ], $mitarbeiterId, null, 'urlaubservice');
-            }
+            Logger::warn('Betriebsferien-Zaehler: Krankzeitraeume fuer Skip konnten nicht geladen werden', [
+                'mitarbeiter_id' => $mitarbeiterId,
+                'von'            => $von->format('Y-m-d'),
+                'bis'            => $bis->format('Y-m-d'),
+                'exception'      => $e->getMessage(),
+            ], $mitarbeiterId, null, 'urlaubservice');
         }
 
 
@@ -296,13 +292,11 @@ class UrlaubService
         try {
             return $this->urlaubsantragModel->holeFuerMitarbeiter($mitarbeiterId, $statusFilter);
         } catch (\Throwable $e) {
-            if (class_exists('Logger')) {
-                Logger::error('Fehler beim Laden der Urlaubsanträge', [
-                    'mitarbeiter_id' => $mitarbeiterId,
-                    'status'         => $statusFilter,
-                    'exception'      => $e->getMessage(),
-                ], $mitarbeiterId, null, 'urlaubservice');
-            }
+            Logger::error('Fehler beim Laden der Urlaubsanträge', [
+                'mitarbeiter_id' => $mitarbeiterId,
+                'status'         => $statusFilter,
+                'exception'      => $e->getMessage(),
+            ], $mitarbeiterId, null, 'urlaubservice');
 
             return [];
         }
@@ -364,14 +358,12 @@ class UrlaubService
                 'bis' => $bis->format('Y-m-d'),
             ]);
         } catch (\Throwable $e) {
-            if (class_exists('Logger')) {
-                Logger::warn('Fehler bei Überlappungsprüfung (genehmigter Urlaub)', [
-                    'mitarbeiter_id' => $mitarbeiterId,
-                    'von'            => $vonDatum,
-                    'bis'            => $bisDatum,
-                    'exception'      => $e->getMessage(),
-                ], $mitarbeiterId, null, 'urlaubservice');
-            }
+            Logger::warn('Fehler bei Überlappungsprüfung (genehmigter Urlaub)', [
+                'mitarbeiter_id' => $mitarbeiterId,
+                'von'            => $vonDatum,
+                'bis'            => $bisDatum,
+                'exception'      => $e->getMessage(),
+            ], $mitarbeiterId, null, 'urlaubservice');
             return null;
         }
 
@@ -440,14 +432,12 @@ class UrlaubService
                 'bis' => $bis->format('Y-m-d'),
             ]);
         } catch (\Throwable $e) {
-            if (class_exists('Logger')) {
-                Logger::warn('Fehler bei Überlappungsprüfung (aktiver Urlaub)', [
-                    'mitarbeiter_id' => $mitarbeiterId,
-                    'von'            => $vonDatum,
-                    'bis'            => $bisDatum,
-                    'exception'      => $e->getMessage(),
-                ], $mitarbeiterId, null, 'urlaubservice');
-            }
+            Logger::warn('Fehler bei Überlappungsprüfung (aktiver Urlaub)', [
+                'mitarbeiter_id' => $mitarbeiterId,
+                'von'            => $vonDatum,
+                'bis'            => $bisDatum,
+                'exception'      => $e->getMessage(),
+            ], $mitarbeiterId, null, 'urlaubservice');
             return null;
         }
 
@@ -575,14 +565,12 @@ class UrlaubService
                 }
             }
         } catch (\Throwable $e) {
-            if (class_exists('Logger')) {
-                Logger::warn('Betriebsferien-Zaehler: Tageswerte fuer Skip konnten nicht geladen werden', [
-                    'mitarbeiter_id' => $mitarbeiterId,
-                    'von'            => $von->format('Y-m-d'),
-                    'bis'            => $bis->format('Y-m-d'),
-                    'exception'      => $e->getMessage(),
-                ], $mitarbeiterId, null, 'urlaubservice');
-            }
+            Logger::warn('Betriebsferien-Zaehler: Tageswerte fuer Skip konnten nicht geladen werden', [
+                'mitarbeiter_id' => $mitarbeiterId,
+                'von'            => $von->format('Y-m-d'),
+                'bis'            => $bis->format('Y-m-d'),
+                'exception'      => $e->getMessage(),
+            ], $mitarbeiterId, null, 'urlaubservice');
         }
 
         // Krankzeitraum (LFZ/KK) soll BF-Zwangsurlaub NICHT abziehen.
@@ -654,14 +642,12 @@ class UrlaubService
                 }
             }
         } catch (\Throwable $e) {
-            if (class_exists('Logger')) {
-                Logger::warn('Betriebsferien-Zaehler: Krankzeitraeume fuer Skip konnten nicht geladen werden', [
-                    'mitarbeiter_id' => $mitarbeiterId,
-                    'von'            => $von->format('Y-m-d'),
-                    'bis'            => $bis->format('Y-m-d'),
-                    'exception'      => $e->getMessage(),
-                ], $mitarbeiterId, null, 'urlaubservice');
-            }
+            Logger::warn('Betriebsferien-Zaehler: Krankzeitraeume fuer Skip konnten nicht geladen werden', [
+                'mitarbeiter_id' => $mitarbeiterId,
+                'von'            => $von->format('Y-m-d'),
+                'bis'            => $bis->format('Y-m-d'),
+                'exception'      => $e->getMessage(),
+            ], $mitarbeiterId, null, 'urlaubservice');
         }
 
 
@@ -875,32 +861,30 @@ class UrlaubService
             $stdMonat = 0.0;
 
             try {
-                if (class_exists('KonfigurationService')) {
-                    $cfg = KonfigurationService::getInstanz();
+                $cfg = KonfigurationService::getInstanz();
 
-                    // Primär: urlaub_standard_monatsanspruch (z. B. 2.5)
-                    $v1 = $cfg->get('urlaub_standard_monatsanspruch', null);
-                    if ($v1 !== null) {
-                        $t = trim((string)$v1);
+                // Primär: urlaub_standard_monatsanspruch (z. B. 2.5)
+                $v1 = $cfg->get('urlaub_standard_monatsanspruch', null);
+                if ($v1 !== null) {
+                    $t = trim((string)$v1);
+                    $t = str_replace(',', '.', $t);
+                    if (is_numeric($t)) {
+                        $stdMonat = (float)$t;
+                        $stdQuelle = 'config:urlaub_standard_monatsanspruch';
+                    }
+                }
+
+                // Sekundär: urlaub_standard_jahresanspruch (z. B. 30) -> /12
+                if ($stdMonat <= 0.00001) {
+                    $v2 = $cfg->get('urlaub_standard_jahresanspruch', null);
+                    if ($v2 !== null) {
+                        $t = trim((string)$v2);
                         $t = str_replace(',', '.', $t);
                         if (is_numeric($t)) {
-                            $stdMonat = (float)$t;
-                            $stdQuelle = 'config:urlaub_standard_monatsanspruch';
-                        }
-                    }
-
-                    // Sekundär: urlaub_standard_jahresanspruch (z. B. 30) -> /12
-                    if ($stdMonat <= 0.00001) {
-                        $v2 = $cfg->get('urlaub_standard_jahresanspruch', null);
-                        if ($v2 !== null) {
-                            $t = trim((string)$v2);
-                            $t = str_replace(',', '.', $t);
-                            if (is_numeric($t)) {
-                                $jahrStd = (float)$t;
-                                if ($jahrStd > 0.0) {
-                                    $stdMonat = $jahrStd / 12.0;
-                                    $stdQuelle = 'config:urlaub_standard_jahresanspruch';
-                                }
+                            $jahrStd = (float)$t;
+                            if ($jahrStd > 0.0) {
+                                $stdMonat = $jahrStd / 12.0;
+                                $stdQuelle = 'config:urlaub_standard_jahresanspruch';
                             }
                         }
                     }
@@ -1048,13 +1032,11 @@ class UrlaubService
             }
             $hinweis .= 'Urlaubsanträge konnten nicht geladen werden.';
 
-            if (class_exists('Logger')) {
-                Logger::warn('Urlaubssaldo: Fehler beim Laden der Urlaubsanträge', [
-                    'mitarbeiter_id' => $mitarbeiterId,
-                    'jahr'           => $jahr,
-                    'exception'      => $e->getMessage(),
-                ], $mitarbeiterId, null, 'urlaubservice');
-            }
+            Logger::warn('Urlaubssaldo: Fehler beim Laden der Urlaubsanträge', [
+                'mitarbeiter_id' => $mitarbeiterId,
+                'jahr'           => $jahr,
+                'exception'      => $e->getMessage(),
+            ], $mitarbeiterId, null, 'urlaubservice');
         }
 
         $genommen = 0.0;
@@ -1167,13 +1149,11 @@ class UrlaubService
                 }
             }
         } catch (\Throwable $e) {
-            if (class_exists('Logger')) {
-                Logger::warn('Urlaubssaldo: Tageswerte für Betriebsferien-Skip konnten nicht geladen werden', [
-                    'mitarbeiter_id' => $mitarbeiterId,
-                    'jahr'           => $jahr,
-                    'exception'      => $e->getMessage(),
-                ], $mitarbeiterId, null, 'urlaubservice');
-            }
+            Logger::warn('Urlaubssaldo: Tageswerte für Betriebsferien-Skip konnten nicht geladen werden', [
+                'mitarbeiter_id' => $mitarbeiterId,
+                'jahr'           => $jahr,
+                'exception'      => $e->getMessage(),
+            ], $mitarbeiterId, null, 'urlaubservice');
         }
 
         // Krankzeitraum (LFZ/KK) soll Betriebsferien-Urlaub NICHT abziehen: wenn ein aktiver Krankzeitraum
@@ -1247,13 +1227,11 @@ class UrlaubService
                 }
             }
         } catch (\Throwable $e) {
-            if (class_exists('Logger')) {
-                Logger::warn('Urlaubssaldo: Krankzeitraum für Betriebsferien-Skip konnte nicht geladen werden', [
-                    'mitarbeiter_id' => $mitarbeiterId,
-                    'jahr'           => $jahr,
-                    'exception'      => $e->getMessage(),
-                ], $mitarbeiterId, null, 'urlaubservice');
-            }
+            Logger::warn('Urlaubssaldo: Krankzeitraum für Betriebsferien-Skip konnte nicht geladen werden', [
+                'mitarbeiter_id' => $mitarbeiterId,
+                'jahr'           => $jahr,
+                'exception'      => $e->getMessage(),
+            ], $mitarbeiterId, null, 'urlaubservice');
         }
 
         // Wichtig: Saldo-Berechnung muss exakt den gleichen Weg nutzen wie die Anzeige pro Betriebsferien-Block,
@@ -1304,13 +1282,11 @@ class UrlaubService
                     $hinweis .= ' ';
                 }
                 $hinweis .= 'Übertrag (Vorjahr) konnte nicht automatisch berechnet werden.';
-                if (class_exists('Logger')) {
-                    Logger::warn('Urlaubssaldo: Auto-Übertrag (Vorjahr) fehlgeschlagen', [
-                        'mitarbeiter_id' => $mitarbeiterId,
-                        'jahr'           => $jahr,
-                        'exception'      => $e->getMessage(),
-                    ], $mitarbeiterId, null, 'urlaubservice');
-                }
+                Logger::warn('Urlaubssaldo: Auto-Übertrag (Vorjahr) fehlgeschlagen', [
+                    'mitarbeiter_id' => $mitarbeiterId,
+                    'jahr'           => $jahr,
+                    'exception'      => $e->getMessage(),
+                ], $mitarbeiterId, null, 'urlaubservice');
             }
         }
 
@@ -1335,9 +1311,7 @@ class UrlaubService
     public function istNegativerResturlaubGeblockt(): bool
     {
         try {
-            if (class_exists('KonfigurationService')) {
-                return KonfigurationService::getInstanz()->getBool('urlaub_blocke_negativen_resturlaub', false);
-            }
+            return KonfigurationService::getInstanz()->getBool('urlaub_blocke_negativen_resturlaub', false);
         } catch (Throwable $e) {
             // defensiv: nie hart crashen
         }
@@ -1619,14 +1593,12 @@ class UrlaubService
                 ]);
             }
         } catch (\Throwable $e) {
-            if (class_exists('Logger')) {
-                Logger::warn('Fehler beim Laden von Feiertagen für Arbeitstage-Berechnung', [
-                    'von'       => $vonDatum,
-                    'bis'       => $bisDatum,
-                    'bundesland'=> $bundesland,
-                    'exception' => $e->getMessage(),
-                ], null, null, 'urlaubservice');
-            }
+            Logger::warn('Fehler beim Laden von Feiertagen für Arbeitstage-Berechnung', [
+                'von'       => $vonDatum,
+                'bis'       => $bisDatum,
+                'bundesland'=> $bundesland,
+                'exception' => $e->getMessage(),
+            ], null, null, 'urlaubservice');
             return [];
         }
 

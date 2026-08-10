@@ -615,12 +615,10 @@ try {
             exit;
     }
 } catch (Throwable $e) {
-    if (class_exists('Logger')) {
-        Logger::error('Unbehandelter Fehler im Front-Controller', [
-            'seite'     => isset($seite) ? $seite : null,
-            'exception' => $e->getMessage(),
-        ], null, null, 'frontend');
-    }
+    Logger::error('Unbehandelter Fehler im Front-Controller', [
+        'seite'     => isset($seite) ? $seite : null,
+        'exception' => $e->getMessage(),
+    ], null, null, 'frontend');
 
     http_response_code(500);
     echo '<!DOCTYPE html><html lang="de"><head><meta charset="utf-8"><title>Fehler</title></head><body>';

@@ -82,10 +82,8 @@ if ($aktion === 'health') {
 
     $db = null;
     try {
-        if (class_exists('Database')) {
-            /** @var Database $db */
-            $db = Database::getInstanz();
-        }
+        /** @var Database $db */
+        $db = Database::getInstanz();
     } catch (Throwable $e) {
         $db = null;
     }
@@ -194,21 +192,19 @@ $terminalIdleTimeoutSekunden = 300;
 // Wenn möglich: Wert aus der DB-Config laden (idempotent via DefaultsSeeder).
 // In Offline-Szenarien darf diese Abfrage niemals das Terminal blockieren.
 try {
-    if (class_exists('Database')) {
-        /** @var Database $dbTmp */
-        $dbTmp = Database::getInstanz();
+    /** @var Database $dbTmp */
+    $dbTmp = Database::getInstanz();
 
+    $hauptdbOk = null;
+    try {
+        $hauptdbOk = $dbTmp->istHauptdatenbankVerfuegbar();
+    } catch (Throwable $e) {
         $hauptdbOk = null;
-        try {
-            $hauptdbOk = $dbTmp->istHauptdatenbankVerfuegbar();
-        } catch (Throwable $e) {
-            $hauptdbOk = null;
-        }
+    }
 
-        if ($hauptdbOk === true) {
-            $terminalIdleTimeoutSekunden = KonfigurationService::getInstanz()
-                ->getInt('terminal_session_idle_timeout', $terminalIdleTimeoutSekunden);
-        }
+    if ($hauptdbOk === true) {
+        $terminalIdleTimeoutSekunden = KonfigurationService::getInstanz()
+            ->getInt('terminal_session_idle_timeout', $terminalIdleTimeoutSekunden);
     }
 } catch (Throwable $e) {
     // Ignorieren – wir bleiben beim Default.
@@ -283,16 +279,14 @@ try {
     ];
 
     $db = null;
-    if (class_exists('Database')) {
-        /** @var Database $db */
-        $db = Database::getInstanz();
+    /** @var Database $db */
+    $db = Database::getInstanz();
 
-        // Haupt-DB Healthcheck (falls verfügbar)
-        try {
-            $queueStatus['hauptdb_verfuegbar'] = $db->istHauptdatenbankVerfuegbar();
-        } catch (Throwable $e) {
-            $queueStatus['hauptdb_verfuegbar'] = null;
-        }
+    // Haupt-DB Healthcheck (falls verfügbar)
+    try {
+        $queueStatus['hauptdb_verfuegbar'] = $db->istHauptdatenbankVerfuegbar();
+    } catch (Throwable $e) {
+        $queueStatus['hauptdb_verfuegbar'] = null;
     }
 
     // Queue-Verfuegbarkeit bestimmen (wichtig, wenn die Haupt-DB offline ist)
@@ -326,27 +320,23 @@ try {
     $queueStatus['offline_queue_verfuegbar'] = $queueStatus['queue_verfuegbar'];
 
     $queueManager = null;
-    if (class_exists('OfflineQueueManager')) {
-        /** @var OfflineQueueManager $queueManager */
-        $queueManager = OfflineQueueManager::getInstanz();
+    /** @var OfflineQueueManager $queueManager */
+    $queueManager = OfflineQueueManager::getInstanz();
 
-        // Abarbeitung nur versuchen – Fehler dürfen das Terminal nicht hard-crashen.
-        try {
-            $queueManager->verarbeiteOffeneEintraege();
-        } catch (Throwable $e) {
-            if (class_exists('Logger')) {
-                Logger::error('Terminal: Fehler beim Abarbeiten der Offline-Queue', [
-                    'exception' => $e->getMessage(),
-                ], null, null, 'terminal_offline_queue');
-            }
-        }
+    // Abarbeitung nur versuchen – Fehler dürfen das Terminal nicht hard-crashen.
+    try {
+        $queueManager->verarbeiteOffeneEintraege();
+    } catch (Throwable $e) {
+        Logger::error('Terminal: Fehler beim Abarbeiten der Offline-Queue', [
+            'exception' => $e->getMessage(),
+        ], null, null, 'terminal_offline_queue');
+    }
 
-        // Letzten Fehler-Eintrag laden (für Statusanzeige)
-        try {
-            $queueStatus['letzter_fehler'] = $queueManager->holeLetztenFehlerEintrag();
-        } catch (Throwable $e) {
-            $queueStatus['letzter_fehler'] = null;
-        }
+    // Letzten Fehler-Eintrag laden (für Statusanzeige)
+    try {
+        $queueStatus['letzter_fehler'] = $queueManager->holeLetztenFehlerEintrag();
+    } catch (Throwable $e) {
+        $queueStatus['letzter_fehler'] = null;
     }
 
     // Queue-Zähler bestimmen (auf Queue-DB bzw. Fallback Haupt-DB)
@@ -517,12 +507,10 @@ try {
             break;
     }
 } catch (Throwable $e) {
-    if (class_exists('Logger')) {
-        Logger::error('Unbehandelter Fehler im Terminal-Frontend', [
-            'aktion'    => $aktion,
-            'exception' => $e->getMessage(),
-        ], null, null, 'terminal_frontend');
-    }
+    Logger::error('Unbehandelter Fehler im Terminal-Frontend', [
+        'aktion'    => $aktion,
+        'exception' => $e->getMessage(),
+    ], null, null, 'terminal_frontend');
 
     http_response_code(500);
     echo '<!DOCTYPE html><html lang="de"><head><meta charset="utf-8"><title>Fehler – Terminal</title></head><body>';

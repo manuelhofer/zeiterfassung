@@ -203,11 +203,9 @@ class KurzarbeitAdminController
             );
         } catch (Throwable $e) {
             $fehlermeldung = 'Die Kurzarbeit-Pläne konnten nicht geladen werden.';
-            if (class_exists('Logger')) {
-                Logger::error('Fehler beim Laden der Kurzarbeit-Pläne (Admin)', [
-                    'exception' => $e->getMessage(),
-                ], null, null, 'kurzarbeit');
-            }
+            Logger::error('Fehler beim Laden der Kurzarbeit-Pläne (Admin)', [
+                'exception' => $e->getMessage(),
+            ], null, null, 'kurzarbeit');
         }
 
         require __DIR__ . '/../views/layout/header.php';
@@ -339,12 +337,10 @@ class KurzarbeitAdminController
                 }
             } catch (Throwable $e) {
                 $this->setFlashErr('Eintrag konnte nicht geladen werden.');
-                if (class_exists('Logger')) {
-                    Logger::error('Fehler beim Laden kurzarbeit_plan (Admin bearbeiten)', [
-                        'id' => $id,
-                        'exception' => $e->getMessage(),
-                    ], null, null, 'kurzarbeit');
-                }
+                Logger::error('Fehler beim Laden kurzarbeit_plan (Admin bearbeiten)', [
+                    'id' => $id,
+                    'exception' => $e->getMessage(),
+                ], null, null, 'kurzarbeit');
                 header('Location: ?seite=kurzarbeit_admin');
                 return;
             }
@@ -621,12 +617,10 @@ class KurzarbeitAdminController
             return;
         } catch (Throwable $e) {
             $this->setFlashErr('Speichern fehlgeschlagen.');
-            if (class_exists('Logger')) {
-                Logger::error('Fehler beim Speichern kurzarbeit_plan (Admin)', [
-                    'id' => $id,
-                    'exception' => $e->getMessage(),
-                ], $angelegtVon, null, 'kurzarbeit');
-            }
+            Logger::error('Fehler beim Speichern kurzarbeit_plan (Admin)', [
+                'id' => $id,
+                'exception' => $e->getMessage(),
+            ], $angelegtVon, null, 'kurzarbeit');
             header('Location: ?seite=kurzarbeit_admin_bearbeiten' . ($id > 0 ? '&id=' . $id : ''));
             return;
         }
@@ -669,13 +663,11 @@ class KurzarbeitAdminController
             $this->setFlashOk('Aktualisiert.');
         } catch (Throwable $e) {
             $this->setFlashErr('Aktualisieren fehlgeschlagen.');
-            if (class_exists('Logger')) {
-                Logger::error('Fehler beim Toggle kurzarbeit_plan (Admin)', [
-                    'id' => $id,
-                    'aktiv' => $aktiv,
-                    'exception' => $e->getMessage(),
-                ], null, null, 'kurzarbeit');
-            }
+            Logger::error('Fehler beim Toggle kurzarbeit_plan (Admin)', [
+                'id' => $id,
+                'aktiv' => $aktiv,
+                'exception' => $e->getMessage(),
+            ], null, null, 'kurzarbeit');
         }
 
         header('Location: ?seite=kurzarbeit_admin');

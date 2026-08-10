@@ -30,11 +30,9 @@ class AbteilungModel
 
             return $this->datenbank->fetchAlle($sql);
         } catch (\Throwable $e) {
-            if (class_exists('Logger')) {
-                Logger::error('Fehler beim Laden aktiver Abteilungen', [
-                    'exception' => $e->getMessage(),
-                ], null, null, 'abteilung');
-            }
+            Logger::error('Fehler beim Laden aktiver Abteilungen', [
+                'exception' => $e->getMessage(),
+            ], null, null, 'abteilung');
 
             return [];
         }
@@ -59,12 +57,10 @@ class AbteilungModel
 
             return $this->datenbank->fetchEine($sql, ['id' => $id]);
         } catch (\Throwable $e) {
-            if (class_exists('Logger')) {
-                Logger::error('Fehler beim Laden einer Abteilung nach ID', [
-                    'id'        => $id,
-                    'exception' => $e->getMessage(),
-                ], null, null, 'abteilung');
-            }
+            Logger::error('Fehler beim Laden einer Abteilung nach ID', [
+                'id'        => $id,
+                'exception' => $e->getMessage(),
+            ], null, null, 'abteilung');
 
             return null;
         }
@@ -114,12 +110,10 @@ class AbteilungModel
 
             return (int)$this->datenbank->letzteInsertId();
         } catch (\Throwable $e) {
-            if (class_exists('Logger')) {
-                Logger::error('Fehler beim Anlegen einer Abteilung', [
-                    'daten'     => $parameter,
-                    'exception' => $e->getMessage(),
-                ], null, null, 'abteilung');
-            }
+            Logger::error('Fehler beim Anlegen einer Abteilung', [
+                'daten'     => $parameter,
+                'exception' => $e->getMessage(),
+            ], null, null, 'abteilung');
 
             return null;
         }
@@ -174,13 +168,11 @@ class AbteilungModel
 
             return true;
         } catch (\Throwable $e) {
-            if (class_exists('Logger')) {
-                Logger::error('Fehler beim Aktualisieren einer Abteilung', [
-                    'id'        => $id,
-                    'daten'     => $parameter,
-                    'exception' => $e->getMessage(),
-                ], $id, null, 'abteilung');
-            }
+            Logger::error('Fehler beim Aktualisieren einer Abteilung', [
+                'id'        => $id,
+                'daten'     => $parameter,
+                'exception' => $e->getMessage(),
+            ], $id, null, 'abteilung');
 
             return false;
         }

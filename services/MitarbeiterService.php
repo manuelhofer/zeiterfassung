@@ -48,12 +48,10 @@ class MitarbeiterService
         try {
             $mitarbeiter = $this->mitarbeiterModel->holeNachId($mitarbeiterId);
         } catch (\Throwable $e) {
-            if (class_exists('Logger')) {
-                Logger::error('Mitarbeiter konnte nicht geladen werden', [
-                    'mitarbeiter_id' => $mitarbeiterId,
-                    'exception'      => $e->getMessage(),
-                ], $mitarbeiterId, null, 'mitarbeiter');
-            }
+            Logger::error('Mitarbeiter konnte nicht geladen werden', [
+                'mitarbeiter_id' => $mitarbeiterId,
+                'exception'      => $e->getMessage(),
+            ], $mitarbeiterId, null, 'mitarbeiter');
             return null;
         }
 
@@ -65,24 +63,20 @@ class MitarbeiterService
             $rollen = $this->rolleModel->holeRollenFuerMitarbeiter($mitarbeiterId);
         } catch (\Throwable $e) {
             $rollen = [];
-            if (class_exists('Logger')) {
-                Logger::warn('Rollen für Mitarbeiter konnten nicht geladen werden', [
-                    'mitarbeiter_id' => $mitarbeiterId,
-                    'exception'      => $e->getMessage(),
-                ], $mitarbeiterId, null, 'mitarbeiter');
-            }
+            Logger::warn('Rollen für Mitarbeiter konnten nicht geladen werden', [
+                'mitarbeiter_id' => $mitarbeiterId,
+                'exception'      => $e->getMessage(),
+            ], $mitarbeiterId, null, 'mitarbeiter');
         }
 
         try {
             $genehmiger = $this->genehmigerModel->holeGenehmigerFuerMitarbeiter($mitarbeiterId);
         } catch (\Throwable $e) {
             $genehmiger = [];
-            if (class_exists('Logger')) {
-                Logger::warn('Genehmiger für Mitarbeiter konnten nicht geladen werden', [
-                    'mitarbeiter_id' => $mitarbeiterId,
-                    'exception'      => $e->getMessage(),
-                ], $mitarbeiterId, null, 'mitarbeiter');
-            }
+            Logger::warn('Genehmiger für Mitarbeiter konnten nicht geladen werden', [
+                'mitarbeiter_id' => $mitarbeiterId,
+                'exception'      => $e->getMessage(),
+            ], $mitarbeiterId, null, 'mitarbeiter');
         }
 
         return [
@@ -103,12 +97,10 @@ class MitarbeiterService
         try {
             return $this->mitarbeiterModel->holeLoginFaehigenNachKennung($kennung);
         } catch (\Throwable $e) {
-            if (class_exists('Logger')) {
-                Logger::error('Fehler beim Laden eines loginfähigen Mitarbeiters', [
-                    'kennung'   => $kennung,
-                    'exception' => $e->getMessage(),
-                ], null, null, 'mitarbeiter');
-            }
+            Logger::error('Fehler beim Laden eines loginfähigen Mitarbeiters', [
+                'kennung'   => $kennung,
+                'exception' => $e->getMessage(),
+            ], null, null, 'mitarbeiter');
 
             return null;
         }
@@ -124,12 +116,10 @@ class MitarbeiterService
         try {
             return $this->mitarbeiterModel->holeNachRfidCode($rfidCode);
         } catch (\Throwable $e) {
-            if (class_exists('Logger')) {
-                Logger::error('Fehler beim Laden eines Mitarbeiters per RFID', [
-                    'rfid'      => $rfidCode,
-                    'exception' => $e->getMessage(),
-                ], null, null, 'mitarbeiter');
-            }
+            Logger::error('Fehler beim Laden eines Mitarbeiters per RFID', [
+                'rfid'      => $rfidCode,
+                'exception' => $e->getMessage(),
+            ], null, null, 'mitarbeiter');
 
             return null;
         }

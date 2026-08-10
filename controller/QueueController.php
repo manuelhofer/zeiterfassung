@@ -74,12 +74,10 @@ class QueueController
             $daten = $stmt->fetchAll(\PDO::FETCH_ASSOC);
             return is_array($daten) ? $daten : [];
         } catch (\Throwable $e) {
-            if (class_exists('Logger')) {
-                Logger::error('Fehler beim Laden von Queue-Einträgen', [
-                    'status'    => $status,
-                    'exception' => $e->getMessage(),
-                ], null, null, 'offline_queue');
-            }
+            Logger::error('Fehler beim Laden von Queue-Einträgen', [
+                'status'    => $status,
+                'exception' => $e->getMessage(),
+            ], null, null, 'offline_queue');
             return [];
         }
     }
@@ -240,25 +238,21 @@ class QueueController
 
                 $this->markiereAlsFehler($queuePdo, $id, $e->getMessage());
 
-                if (class_exists('Logger')) {
-                    Logger::error(
-                        'Queue Admin: Retry fehlgeschlagen',
-                        ['id' => $id, 'exception' => $e->getMessage()],
-                        null,
-                        null,
-                        'offline_queue'
-                    );
-                }
+                Logger::error(
+                    'Queue Admin: Retry fehlgeschlagen',
+                    ['id' => $id, 'exception' => $e->getMessage()],
+                    null,
+                    null,
+                    'offline_queue'
+                );
 
                 return 'retry_fehler';
             }
         } catch (\Throwable $e) {
-            if (class_exists('Logger')) {
-                Logger::error('Queue Admin: Fehler beim Retry-Flow', [
-                    'id'        => $id,
-                    'exception' => $e->getMessage(),
-                ], null, null, 'offline_queue');
-            }
+            Logger::error('Queue Admin: Fehler beim Retry-Flow', [
+                'id'        => $id,
+                'exception' => $e->getMessage(),
+            ], null, null, 'offline_queue');
 
             return 'retry_fehler';
         }

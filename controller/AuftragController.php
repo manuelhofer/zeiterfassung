@@ -183,12 +183,10 @@ class AuftragController
             $auftraege = $this->db->fetchAlle($sql, $params);
         } catch (\Throwable $e) {
             $fehlermeldung = 'Die Auftraege konnten nicht geladen werden.';
-            if (class_exists('Logger')) {
-                Logger::error('Fehler beim Laden der Auftragsliste', [
-                    'exception' => $e->getMessage(),
-                    'q' => $q,
-                ], null, null, 'auftrag');
-            }
+            Logger::error('Fehler beim Laden der Auftragsliste', [
+                'exception' => $e->getMessage(),
+                'q' => $q,
+            ], null, null, 'auftrag');
         }
 
         require __DIR__ . '/../views/layout/header.php';
@@ -404,12 +402,10 @@ class AuftragController
             }
         } catch (\Throwable $e) {
             $fehlermeldung = 'Die Auftragsdetails konnten nicht geladen werden.';
-            if (class_exists('Logger')) {
-                Logger::error('Fehler beim Laden der Auftragsdetails', [
-                    'exception' => $e->getMessage(),
-                    'code' => $code,
-                ], null, null, 'auftrag');
-            }
+            Logger::error('Fehler beim Laden der Auftragsdetails', [
+                'exception' => $e->getMessage(),
+                'code' => $code,
+            ], null, null, 'auftrag');
         }
 
         // Stammdaten des Auftrags und seine Arbeitsschritte laden.
@@ -1740,9 +1736,7 @@ class AuftragController
      */
     private function protokolliere(string $nachricht, array $kontext): void
     {
-        if (class_exists('Logger')) {
-            Logger::error($nachricht, $kontext, null, null, 'auftrag');
-        }
+        Logger::error($nachricht, $kontext, null, null, 'auftrag');
     }
 
     private function ermittleAuftragscode(array $auftragszeit, AuftragModel $auftragModel): string

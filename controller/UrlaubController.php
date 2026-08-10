@@ -95,13 +95,11 @@ class UrlaubController
             );
         } catch (Throwable $e) {
             $_SESSION['urlaub_genehmigung_flash_error'] = 'Urlaubsantrag konnte nicht geladen werden.';
-            if (class_exists('Logger')) {
-                Logger::error('Urlaub-Genehmigung: Antrag konnte nicht geladen werden', [
-                    'genehmiger_id' => $genehmigerId,
-                    'antrag_id'     => $antragId,
-                    'exception'     => $e->getMessage(),
-                ], $genehmigerId, null, 'urlaub_genehmigung');
-            }
+            Logger::error('Urlaub-Genehmigung: Antrag konnte nicht geladen werden', [
+                'genehmiger_id' => $genehmigerId,
+                'antrag_id'     => $antragId,
+                'exception'     => $e->getMessage(),
+            ], $genehmigerId, null, 'urlaub_genehmigung');
             $this->redirectZurGenehmigungListe();
             return;
         }
@@ -209,20 +207,18 @@ class UrlaubController
 
                 $_SESSION['urlaub_genehmigung_flash_error'] = $msg;
 
-                if (class_exists('Logger')) {
-                    Logger::warn('Urlaub-Genehmigung: Genehmigung wegen Überlappung blockiert', [
-                        'antrag_id'           => $antragId,
-                        'mitarbeiter_id'      => $mitarbeiterIdAntrag,
-                        'von'                 => $vonDatumAntrag,
-                        'bis'                 => $bisDatumAntrag,
-                        'overlap_antrag_id'   => $ovId,
-                        'overlap_von'         => $ovVon,
+                Logger::warn('Urlaub-Genehmigung: Genehmigung wegen Überlappung blockiert', [
+                    'antrag_id'           => $antragId,
+                    'mitarbeiter_id'      => $mitarbeiterIdAntrag,
+                    'von'                 => $vonDatumAntrag,
+                    'bis'                 => $bisDatumAntrag,
+                    'overlap_antrag_id'   => $ovId,
+                    'overlap_von'         => $ovVon,
 	                        'overlap_bis'         => $ovBis,
 	                        'darf_alle'           => $darfAlle ? 1 : 0,
 	                        'darf_bereich'        => $darfBereich ? 1 : 0,
 	                        'darf_self'           => $darfSelf ? 1 : 0,
-                    ], $genehmigerId, null, 'urlaub_genehmigung');
-                }
+                ], $genehmigerId, null, 'urlaub_genehmigung');
 
                 $this->redirectZurGenehmigungListe();
                 return;
@@ -268,14 +264,12 @@ class UrlaubController
             ]);
         } catch (Throwable $e) {
             $rows = 0;
-            if (class_exists('Logger')) {
-                Logger::error('Urlaub-Genehmigung: Update fehlgeschlagen', [
-                    'genehmiger_id' => $genehmigerId,
-                    'antrag_id'     => $antragId,
-                    'status_neu'    => $statusNeu,
-                    'exception'     => $e->getMessage(),
-                ], $genehmigerId, null, 'urlaub_genehmigung');
-            }
+            Logger::error('Urlaub-Genehmigung: Update fehlgeschlagen', [
+                'genehmiger_id' => $genehmigerId,
+                'antrag_id'     => $antragId,
+                'status_neu'    => $statusNeu,
+                'exception'     => $e->getMessage(),
+            ], $genehmigerId, null, 'urlaub_genehmigung');
         }
 
         if ($rows !== 1) {
@@ -304,17 +298,15 @@ class UrlaubController
             ? 'Urlaubsantrag wurde genehmigt.'
             : 'Urlaubsantrag wurde abgelehnt.';
 
-        if (class_exists('Logger')) {
-            Logger::info('Urlaub-Genehmigung: Antrag entschieden', [
-                'antrag_id'      => $antragId,
-                'mitarbeiter_id' => $mitarbeiterIdAntrag,
-                'status_neu'     => $statusNeu,
-                'kommentar'      => ($kommentar !== '' ? 'ja' : 'nein'),
+        Logger::info('Urlaub-Genehmigung: Antrag entschieden', [
+            'antrag_id'      => $antragId,
+            'mitarbeiter_id' => $mitarbeiterIdAntrag,
+            'status_neu'     => $statusNeu,
+            'kommentar'      => ($kommentar !== '' ? 'ja' : 'nein'),
 	                'darf_alle'      => $darfAlle ? 1 : 0,
 	                'darf_bereich'   => $darfBereich ? 1 : 0,
 	                'darf_self'      => $darfSelf ? 1 : 0,
-            ], $genehmigerId, null, 'urlaub_genehmigung');
-        }
+        ], $genehmigerId, null, 'urlaub_genehmigung');
 
         $this->redirectZurGenehmigungListe();
     }
@@ -371,13 +363,11 @@ class UrlaubController
             );
         } catch (Throwable $e) {
             $betroffen = 0;
-            if (class_exists('Logger')) {
-                Logger::error('Urlaub: Fehler beim Stornieren des Urlaubsantrags (Backend)', [
-                    'mitarbeiter_id' => $mitarbeiterId,
-                    'antrag_id'      => $antragId,
-                    'exception'      => $e->getMessage(),
-                ], $mitarbeiterId, null, 'urlaub');
-            }
+            Logger::error('Urlaub: Fehler beim Stornieren des Urlaubsantrags (Backend)', [
+                'mitarbeiter_id' => $mitarbeiterId,
+                'antrag_id'      => $antragId,
+                'exception'      => $e->getMessage(),
+            ], $mitarbeiterId, null, 'urlaub');
         }
 
         if ($betroffen !== 1) {
@@ -388,12 +378,10 @@ class UrlaubController
 
         $_SESSION['urlaub_flash_ok'] = 'Urlaubsantrag wurde storniert.';
 
-        if (class_exists('Logger')) {
-            Logger::info('Urlaub: Urlaubsantrag storniert (Backend)', [
-                'antrag_id'      => $antragId,
-                'mitarbeiter_id' => $mitarbeiterId,
-            ], $mitarbeiterId, null, 'urlaub');
-        }
+        Logger::info('Urlaub: Urlaubsantrag storniert (Backend)', [
+            'antrag_id'      => $antragId,
+            'mitarbeiter_id' => $mitarbeiterId,
+        ], $mitarbeiterId, null, 'urlaub');
 
         $this->redirectZurMeineAntraege();
     }
@@ -568,14 +556,12 @@ class UrlaubController
                             return;
                         } catch (\Throwable $e) {
                             $fehlermeldung = 'Der Urlaubsantrag konnte nicht gespeichert werden.';
-                            if (class_exists('Logger')) {
-                                Logger::error('Fehler beim Anlegen eines Urlaubsantrags', [
-                                    'mitarbeiter_id' => $mitarbeiterId,
-                                    'von'            => $von,
-                                    'bis'            => $bis,
-                                    'exception'      => $e->getMessage(),
-                                ], $mitarbeiterId, null, 'urlaub');
-                            }
+                            Logger::error('Fehler beim Anlegen eines Urlaubsantrags', [
+                                'mitarbeiter_id' => $mitarbeiterId,
+                                'von'            => $von,
+                                'bis'            => $bis,
+                                'exception'      => $e->getMessage(),
+                            ], $mitarbeiterId, null, 'urlaub');
                         }
                     }
                 }
@@ -880,13 +866,11 @@ class UrlaubController
                 $sonstigesGrund = $this->ladeAktivenSonstigesGrund($db, $sonstigesGrundId);
             } catch (\Throwable $e) {
                 $sonstigesGrund = null;
-                if (class_exists('Logger')) {
-                    Logger::error('Urlaubsverwaltung: Sonstiges-Grund konnte nicht geladen werden', [
-                        'actor_id' => $actorId,
-                        'sonstiges_grund_id' => $sonstigesGrundId,
-                        'exception' => $e->getMessage(),
-                    ], $actorId, null, 'urlaub_verwaltung');
-                }
+                Logger::error('Urlaubsverwaltung: Sonstiges-Grund konnte nicht geladen werden', [
+                    'actor_id' => $actorId,
+                    'sonstiges_grund_id' => $sonstigesGrundId,
+                    'exception' => $e->getMessage(),
+                ], $actorId, null, 'urlaub_verwaltung');
             }
 
             if ($sonstigesGrund === null) {
@@ -962,32 +946,28 @@ class UrlaubController
             );
         } catch (\Throwable $e) {
             $_SESSION['urlaub_verwaltung_flash_error'] = 'Urlaub konnte nicht eingetragen werden.';
-            if (class_exists('Logger')) {
-                Logger::error('Urlaubsverwaltung: Direkteintrag fehlgeschlagen', [
-                    'actor_id' => $actorId,
-                    'mitarbeiter_id' => $mitarbeiterId,
-                    'von' => $von,
-                    'bis' => $bis,
-                    'exception' => $e->getMessage(),
-                ], $actorId, null, 'urlaub_verwaltung');
-            }
+            Logger::error('Urlaubsverwaltung: Direkteintrag fehlgeschlagen', [
+                'actor_id' => $actorId,
+                'mitarbeiter_id' => $mitarbeiterId,
+                'von' => $von,
+                'bis' => $bis,
+                'exception' => $e->getMessage(),
+            ], $actorId, null, 'urlaub_verwaltung');
             $this->redirectZurUrlaubsverwaltung($returnQuery);
             return;
         }
 
         $_SESSION['urlaub_verwaltung_flash_ok'] = 'Urlaub wurde direkt als genehmigt eingetragen.';
 
-        if (class_exists('Logger')) {
-            Logger::info('Urlaubsverwaltung: Urlaub direkt eingetragen', [
-                'mitarbeiter_id' => $mitarbeiterId,
-                'von' => $von,
-                'bis' => $bis,
-                'tage' => $tageGesamt,
-                'begruendung' => $begruendung,
-                'sonstiges_grund_id' => $sonstigesGrundId > 0 ? $sonstigesGrundId : null,
-                'sonstiges_grund' => $sonstigesGrundLabel,
-            ], $actorId, null, 'urlaub_verwaltung');
-        }
+        Logger::info('Urlaubsverwaltung: Urlaub direkt eingetragen', [
+            'mitarbeiter_id' => $mitarbeiterId,
+            'von' => $von,
+            'bis' => $bis,
+            'tage' => $tageGesamt,
+            'begruendung' => $begruendung,
+            'sonstiges_grund_id' => $sonstigesGrundId > 0 ? $sonstigesGrundId : null,
+            'sonstiges_grund' => $sonstigesGrundLabel,
+        ], $actorId, null, 'urlaub_verwaltung');
 
         $this->redirectZurUrlaubsverwaltung($returnQuery);
     }
@@ -1043,13 +1023,11 @@ class UrlaubController
             );
         } catch (\Throwable $e) {
             $_SESSION['urlaub_verwaltung_flash_error'] = 'Urlaubsantrag konnte nicht geladen werden.';
-            if (class_exists('Logger')) {
-                Logger::error('Urlaubsverwaltung: Antrag konnte nicht geladen werden', [
-                    'actor_id' => $actorId,
-                    'antrag_id' => $antragId,
-                    'exception' => $e->getMessage(),
-                ], $actorId, null, 'urlaub_verwaltung');
-            }
+            Logger::error('Urlaubsverwaltung: Antrag konnte nicht geladen werden', [
+                'actor_id' => $actorId,
+                'antrag_id' => $antragId,
+                'exception' => $e->getMessage(),
+            ], $actorId, null, 'urlaub_verwaltung');
             $this->redirectZurUrlaubsverwaltung($returnQuery);
             return;
         }
@@ -1097,14 +1075,12 @@ class UrlaubController
             );
         } catch (\Throwable $e) {
             $betroffen = 0;
-            if (class_exists('Logger')) {
-                Logger::error('Urlaubsverwaltung: Storno fehlgeschlagen', [
-                    'actor_id' => $actorId,
-                    'antrag_id' => $antragId,
-                    'status_alt' => $statusAlt,
-                    'exception' => $e->getMessage(),
-                ], $actorId, null, 'urlaub_verwaltung');
-            }
+            Logger::error('Urlaubsverwaltung: Storno fehlgeschlagen', [
+                'actor_id' => $actorId,
+                'antrag_id' => $antragId,
+                'status_alt' => $statusAlt,
+                'exception' => $e->getMessage(),
+            ], $actorId, null, 'urlaub_verwaltung');
         }
 
         if ($betroffen !== 1) {
@@ -1115,17 +1091,15 @@ class UrlaubController
 
         $_SESSION['urlaub_verwaltung_flash_ok'] = 'Urlaubsantrag wurde storniert/rückgängig gemacht.';
 
-        if (class_exists('Logger')) {
-            Logger::info('Urlaubsverwaltung: Antrag storniert', [
-                'antrag_id' => $antragId,
-                'mitarbeiter_id' => $mitarbeiterIdAntrag,
-                'status_alt' => $statusAlt,
-                'status_neu' => 'storniert',
-                'von' => (string)($antrag['von_datum'] ?? ''),
-                'bis' => (string)($antrag['bis_datum'] ?? ''),
-                'begruendung' => $begruendung,
-            ], $actorId, null, 'urlaub_verwaltung');
-        }
+        Logger::info('Urlaubsverwaltung: Antrag storniert', [
+            'antrag_id' => $antragId,
+            'mitarbeiter_id' => $mitarbeiterIdAntrag,
+            'status_alt' => $statusAlt,
+            'status_neu' => 'storniert',
+            'von' => (string)($antrag['von_datum'] ?? ''),
+            'bis' => (string)($antrag['bis_datum'] ?? ''),
+            'begruendung' => $begruendung,
+        ], $actorId, null, 'urlaub_verwaltung');
 
         $this->redirectZurUrlaubsverwaltung($returnQuery);
     }
@@ -1208,11 +1182,9 @@ class UrlaubController
             $mitarbeiterListe = (new MitarbeiterModel())->holeAlleAktiven();
         } catch (\Throwable $e) {
             $mitarbeiterListe = [];
-            if (class_exists('Logger')) {
-                Logger::error('Urlaubsverwaltung: Mitarbeiterliste konnte nicht geladen werden', [
-                    'exception' => $e->getMessage(),
-                ], $actorId, null, 'urlaub_verwaltung');
-            }
+            Logger::error('Urlaubsverwaltung: Mitarbeiterliste konnte nicht geladen werden', [
+                'exception' => $e->getMessage(),
+            ], $actorId, null, 'urlaub_verwaltung');
         }
 
         $params = [];
@@ -1293,12 +1265,10 @@ class UrlaubController
             $antraege = $db->fetchAlle($sql, $params);
         } catch (\Throwable $e) {
             $antraege = [];
-            if (class_exists('Logger')) {
-                Logger::error('Urlaubsverwaltung: Anträge konnten nicht geladen werden', [
-                    'actor_id' => $actorId,
-                    'exception' => $e->getMessage(),
-                ], $actorId, null, 'urlaub_verwaltung');
-            }
+            Logger::error('Urlaubsverwaltung: Anträge konnten nicht geladen werden', [
+                'actor_id' => $actorId,
+                'exception' => $e->getMessage(),
+            ], $actorId, null, 'urlaub_verwaltung');
             $fehlermeldung = 'Urlaubsanträge konnten nicht geladen werden.';
         }
 
@@ -1306,12 +1276,10 @@ class UrlaubController
             $sonstigesGruende = $this->ladeAktiveSonstigesGruende($db);
         } catch (\Throwable $e) {
             $sonstigesGruende = [];
-            if (class_exists('Logger')) {
-                Logger::error('Urlaubsverwaltung: Sonstiges-Gruende konnten nicht geladen werden', [
-                    'actor_id' => $actorId,
-                    'exception' => $e->getMessage(),
-                ], $actorId, null, 'urlaub_verwaltung');
-            }
+            Logger::error('Urlaubsverwaltung: Sonstiges-Gruende konnten nicht geladen werden', [
+                'actor_id' => $actorId,
+                'exception' => $e->getMessage(),
+            ], $actorId, null, 'urlaub_verwaltung');
         }
 
         $csrfToken = Csrf::token(self::CSRF_BEREICH_VERWALTUNG);
@@ -1471,15 +1439,13 @@ class UrlaubController
             $antraege = $db->fetchAlle($sql, $params);
         } catch (Throwable $e) {
             $antraege = [];
-            if (class_exists('Logger')) {
-                Logger::error('Urlaub-Genehmigung: Anträge konnten nicht geladen werden', [
-                    'genehmiger_id' => $genehmigerId,
-                    'darf_alle'     => $darfAlle ? 1 : 0,
-                    'darf_bereich'  => $darfBereich ? 1 : 0,
-                    'darf_self'     => $darfSelf ? 1 : 0,
-                    'exception'     => $e->getMessage(),
-                ], $genehmigerId, null, 'urlaub_genehmigung');
-            }
+            Logger::error('Urlaub-Genehmigung: Anträge konnten nicht geladen werden', [
+                'genehmiger_id' => $genehmigerId,
+                'darf_alle'     => $darfAlle ? 1 : 0,
+                'darf_bereich'  => $darfBereich ? 1 : 0,
+                'darf_self'     => $darfSelf ? 1 : 0,
+                'exception'     => $e->getMessage(),
+            ], $genehmigerId, null, 'urlaub_genehmigung');
         }
 
         // T-024: In der Genehmigungsliste pro Antrag den aktuellen Urlaubssaldo anzeigen

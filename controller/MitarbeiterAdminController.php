@@ -109,11 +109,9 @@ class MitarbeiterAdminController
             $alleRollen = $rolleModel->holeAlleAktiven();
         } catch (\Throwable $e) {
             $alleRollen = [];
-            if (class_exists('Logger')) {
-                Logger::error('Rollen-Liste konnte nicht geladen werden (Validierungsfehler)', [
-                    'exception' => $e->getMessage(),
-                ], isset($mitarbeiter['id']) ? (int)$mitarbeiter['id'] : null, null, 'rolle');
-            }
+            Logger::error('Rollen-Liste konnte nicht geladen werden (Validierungsfehler)', [
+                'exception' => $e->getMessage(),
+            ], isset($mitarbeiter['id']) ? (int)$mitarbeiter['id'] : null, null, 'rolle');
         }
 
         // Alle aktiven Mitarbeiter für die Genehmiger-Auswahlliste laden (auch im Validierungsfehler-Fall)
@@ -122,12 +120,10 @@ class MitarbeiterAdminController
             $alleMitarbeiterGenehmiger = $this->mitarbeiterModel->holeAlleAktiven();
         } catch (\Throwable $e) {
             $alleMitarbeiterGenehmiger = [];
-            if (class_exists('Logger')) {
-                Logger::error('Mitarbeiterliste für Genehmiger-Auswahl konnte nicht geladen werden (Validierungsfehler)', [
-                    'mitarbeiter_id' => isset($mitarbeiter['id']) ? (int)$mitarbeiter['id'] : null,
-                    'exception'      => $e->getMessage(),
-                ], isset($mitarbeiter['id']) ? (int)$mitarbeiter['id'] : null, null, 'genehmiger');
-            }
+            Logger::error('Mitarbeiterliste für Genehmiger-Auswahl konnte nicht geladen werden (Validierungsfehler)', [
+                'mitarbeiter_id' => isset($mitarbeiter['id']) ? (int)$mitarbeiter['id'] : null,
+                'exception'      => $e->getMessage(),
+            ], isset($mitarbeiter['id']) ? (int)$mitarbeiter['id'] : null, null, 'genehmiger');
         }
 
         // Rechte-Overrides (Allow/Deny pro Mitarbeiter) aus POST rekonstruieren, damit Eingaben bei Validierungsfehler nicht verloren gehen.
@@ -139,11 +135,9 @@ class MitarbeiterAdminController
             $alleRechte = $rolleModel->holeAlleRechte(true);
         } catch (\Throwable $e) {
             $alleRechte = [];
-            if (class_exists('Logger')) {
-                Logger::error('Rechte-Liste konnte nicht geladen werden (Validierungsfehler)', [
-                    'exception' => $e->getMessage(),
-                ], isset($mitarbeiter['id']) ? (int)$mitarbeiter['id'] : null, null, 'recht');
-            }
+            Logger::error('Rechte-Liste konnte nicht geladen werden (Validierungsfehler)', [
+                'exception' => $e->getMessage(),
+            ], isset($mitarbeiter['id']) ? (int)$mitarbeiter['id'] : null, null, 'recht');
         }
 
         $rechteOverrides = [];
@@ -259,11 +253,9 @@ class MitarbeiterAdminController
                 : $this->mitarbeiterModel->holeAlleAktiven();
         } catch (\Throwable $e) {
             $fehlermeldung = 'Die Mitarbeiterliste konnte nicht geladen werden.';
-            if (class_exists('Logger')) {
-                Logger::error('Fehler beim Laden der Mitarbeiterliste im Admin', [
-                    'exception' => $e->getMessage(),
-                ], null, null, 'mitarbeiter');
-            }
+            Logger::error('Fehler beim Laden der Mitarbeiterliste im Admin', [
+                'exception' => $e->getMessage(),
+            ], null, null, 'mitarbeiter');
         }
 
         require __DIR__ . '/../views/mitarbeiter/liste.php';
@@ -399,11 +391,9 @@ class MitarbeiterAdminController
         } catch (\Throwable $e) {
             $mitarbeiterListe = [];
             $fehlermeldung = $fehlermeldung ?? 'Die Mitarbeiterliste konnte nicht geladen werden.';
-            if (class_exists('Logger')) {
-                Logger::error('Stundenkonto: Mitarbeiterliste konnte nicht geladen werden', [
-                    'exception' => $e->getMessage(),
-                ], null, null, 'stundenkonto');
-            }
+            Logger::error('Stundenkonto: Mitarbeiterliste konnte nicht geladen werden', [
+                'exception' => $e->getMessage(),
+            ], null, null, 'stundenkonto');
         }
 
         $id = isset($_GET['mitarbeiter_id']) ? (int)$_GET['mitarbeiter_id'] : 0;
@@ -480,14 +470,12 @@ class MitarbeiterAdminController
                     $stundenkontoUmbuchungMonatswerte = null;
                     $stundenkontoUmbuchungZusammenfassung = null;
                     $stundenkontoUmbuchungFehler = 'Die Monatsdaten fuer die Sammelumbuchung konnten nicht geladen werden.';
-                    if (class_exists('Logger')) {
-                        Logger::warn('Stundenkonto: Monatsdaten fuer Sammelumbuchung konnten nicht geladen werden', [
-                            'mitarbeiter_id' => $id,
-                            'jahr'           => $stundenkontoUmbuchungJahr,
-                            'monat'          => $stundenkontoUmbuchungMonat,
-                            'exception'      => $e->getMessage(),
-                        ], $id, null, 'stundenkonto');
-                    }
+                    Logger::warn('Stundenkonto: Monatsdaten fuer Sammelumbuchung konnten nicht geladen werden', [
+                        'mitarbeiter_id' => $id,
+                        'jahr'           => $stundenkontoUmbuchungJahr,
+                        'monat'          => $stundenkontoUmbuchungMonat,
+                        'exception'      => $e->getMessage(),
+                    ], $id, null, 'stundenkonto');
                 }
             }
         }
@@ -535,11 +523,9 @@ class MitarbeiterAdminController
                 $mitarbeiterListe = $this->mitarbeiterModel->holeAlleAktiven();
             } catch (\Throwable $e) {
                 $fehlermeldung = 'Die Mitarbeiterliste konnte nicht geladen werden.';
-                if (class_exists('Logger')) {
-                    Logger::error('Fehler beim Laden der Mitarbeiterliste fuer Rollen/Rechte', [
-                        'exception' => $e->getMessage(),
-                    ], null, null, 'mitarbeiter');
-                }
+                Logger::error('Fehler beim Laden der Mitarbeiterliste fuer Rollen/Rechte', [
+                    'exception' => $e->getMessage(),
+                ], null, null, 'mitarbeiter');
             }
 
             require __DIR__ . '/../views/mitarbeiter/rechte_auswahl.php';
@@ -554,12 +540,10 @@ class MitarbeiterAdminController
             // Sicherheitscheck: Wenn ein anderer Datensatz als angefordert geliefert wird,
             // brechen wir ab, statt einen falschen Mitarbeiter zu bearbeiten.
             if ($mitarbeiter !== null && (int)($mitarbeiter['id'] ?? 0) !== $id) {
-                if (class_exists('Logger')) {
-                    Logger::error('Inkonsistente Mitarbeiter-ID beim Bearbeiten', [
-                        'angeforderte_id' => $id,
-                        'gefunden_id'     => isset($mitarbeiter['id']) ? (int)$mitarbeiter['id'] : null,
-                    ], null, null, 'mitarbeiter');
-                }
+                Logger::error('Inkonsistente Mitarbeiter-ID beim Bearbeiten', [
+                    'angeforderte_id' => $id,
+                    'gefunden_id'     => isset($mitarbeiter['id']) ? (int)$mitarbeiter['id'] : null,
+                ], null, null, 'mitarbeiter');
                 $mitarbeiter   = null;
                 $fehlermeldung = 'Der ausgewählte Mitarbeiter konnte nicht eindeutig geladen werden.';
             } elseif ($mitarbeiter === null) {
@@ -593,11 +577,9 @@ class MitarbeiterAdminController
         } catch (\Throwable $e) {
             $alleRollen = [];
             $alleRechte = [];
-            if (class_exists('Logger')) {
-                Logger::error('Rollen-Liste konnte nicht geladen werden', [
-                    'exception' => $e->getMessage(),
-                ], $id > 0 ? $id : null, null, 'rolle');
-            }
+            Logger::error('Rollen-Liste konnte nicht geladen werden', [
+                'exception' => $e->getMessage(),
+            ], $id > 0 ? $id : null, null, 'rolle');
         }
 
         // Ausgewählte Rollen eines bestehenden Mitarbeiters laden
@@ -640,12 +622,10 @@ class MitarbeiterAdminController
                     $rollenIdsAusgewaehlt = $rollenZuordnungModel->holeRollenIdsFuerMitarbeiter($id);
                 } catch (\Throwable $e) {
                     $rollenIdsAusgewaehlt = [];
-                    if (class_exists('Logger')) {
-                        Logger::error('Rollen für Mitarbeiter konnten nicht geladen werden', [
-                            'mitarbeiter_id' => $id,
-                            'exception'      => $e->getMessage(),
-                        ], $id, null, 'rolle');
-                    }
+                    Logger::error('Rollen für Mitarbeiter konnten nicht geladen werden', [
+                        'mitarbeiter_id' => $id,
+                        'exception'      => $e->getMessage(),
+                    ], $id, null, 'rolle');
                 }
             }
         }
@@ -657,12 +637,10 @@ class MitarbeiterAdminController
                 $genehmigerModel = new MitarbeiterGenehmigerModel();
                 $genehmiger      = $genehmigerModel->holeGenehmigerFuerMitarbeiter($id);
             } catch (\Throwable $e) {
-                if (class_exists('Logger')) {
-                    Logger::error('Genehmiger für Mitarbeiter konnten nicht geladen werden', [
-                        'mitarbeiter_id' => $id,
-                        'exception'      => $e->getMessage(),
-                    ], $id, null, 'genehmiger');
-                }
+                Logger::error('Genehmiger für Mitarbeiter konnten nicht geladen werden', [
+                    'mitarbeiter_id' => $id,
+                    'exception'      => $e->getMessage(),
+                ], $id, null, 'genehmiger');
                 $genehmiger = [];
             }
         }
@@ -686,12 +664,10 @@ class MitarbeiterAdminController
                 }
             } catch (\Throwable $e) {
                 $rechteOverrides = [];
-                if (class_exists('Logger')) {
-                    Logger::error('Rechte-Overrides für Mitarbeiter konnten nicht geladen werden', [
-                        'mitarbeiter_id' => $id,
-                        'exception'      => $e->getMessage(),
-                    ], $id, null, 'recht');
-                }
+                Logger::error('Rechte-Overrides für Mitarbeiter konnten nicht geladen werden', [
+                    'mitarbeiter_id' => $id,
+                    'exception'      => $e->getMessage(),
+                ], $id, null, 'recht');
             }
         }
 
@@ -711,12 +687,10 @@ class MitarbeiterAdminController
             $alleMitarbeiterGenehmiger = $this->mitarbeiterModel->holeAlleAktiven();
         } catch (\Throwable $e) {
             $alleMitarbeiterGenehmiger = [];
-            if (class_exists('Logger')) {
-                Logger::error('Mitarbeiterliste für Genehmiger-Auswahl konnte nicht geladen werden', [
-                    'mitarbeiter_id' => $id > 0 ? $id : null,
-                    'exception'      => $e->getMessage(),
-                ], $id > 0 ? $id : null, null, 'genehmiger');
-            }
+            Logger::error('Mitarbeiterliste für Genehmiger-Auswahl konnte nicht geladen werden', [
+                'mitarbeiter_id' => $id > 0 ? $id : null,
+                'exception'      => $e->getMessage(),
+            ], $id > 0 ? $id : null, null, 'genehmiger');
         }
 
         // Sicherstellen, dass vorhandene Genehmiger auch dann im Dropdown sichtbar sind,
@@ -768,13 +742,11 @@ class MitarbeiterAdminController
                         return $na <=> $nb;
                     });
                 } catch (\Throwable $e) {
-                    if (class_exists('Logger')) {
-                        Logger::error('Genehmiger: Nachladen inaktiver Mitarbeiter für Dropdown fehlgeschlagen', [
-                            'mitarbeiter_id' => $id > 0 ? $id : null,
-                            'fehlende_ids'   => $fehlende,
-                            'exception'      => $e->getMessage(),
-                        ], $id > 0 ? $id : null, null, 'genehmiger');
-                    }
+                    Logger::error('Genehmiger: Nachladen inaktiver Mitarbeiter für Dropdown fehlgeschlagen', [
+                        'mitarbeiter_id' => $id > 0 ? $id : null,
+                        'fehlende_ids'   => $fehlende,
+                        'exception'      => $e->getMessage(),
+                    ], $id > 0 ? $id : null, null, 'genehmiger');
                 }
             }
         }
@@ -1287,13 +1259,11 @@ class MitarbeiterAdminController
                 );
             } catch (\Throwable $e) {
                 $row = null;
-                if (class_exists('Logger')) {
-                    Logger::error('Personalnummer-Duplikatcheck fehlgeschlagen', [
-                        'mitarbeiter_id'  => $id > 0 ? $id : null,
-                        'personalnummer'  => $personalnummerDb,
-                        'exception'       => $e->getMessage(),
-                    ], $id > 0 ? $id : null, null, 'mitarbeiter');
-                }
+                Logger::error('Personalnummer-Duplikatcheck fehlgeschlagen', [
+                    'mitarbeiter_id'  => $id > 0 ? $id : null,
+                    'personalnummer'  => $personalnummerDb,
+                    'exception'       => $e->getMessage(),
+                ], $id > 0 ? $id : null, null, 'mitarbeiter');
             }
 
             if ($row !== null) {
@@ -1387,12 +1357,10 @@ class MitarbeiterAdminController
                     $alleRollen  = $rolleModel->holeAlleAktiven();
                 } catch (\Throwable $e) {
                     $alleRollen = [];
-                    if (class_exists('Logger')) {
-                        Logger::error('Rollen-Liste konnte nicht geladen werden (Fehler beim Aktualisieren)', [
-                            'mitarbeiter_id' => $id,
-                            'exception'      => $e->getMessage(),
-                        ], $id, null, 'rolle');
-                    }
+                    Logger::error('Rollen-Liste konnte nicht geladen werden (Fehler beim Aktualisieren)', [
+                        'mitarbeiter_id' => $id,
+                        'exception'      => $e->getMessage(),
+                    ], $id, null, 'rolle');
                 }
 
                 require __DIR__ . '/../views/mitarbeiter/formular.php';
@@ -1431,11 +1399,9 @@ class MitarbeiterAdminController
                     $alleRollen  = $rolleModel->holeAlleAktiven();
                 } catch (\Throwable $e) {
                     $alleRollen = [];
-                    if (class_exists('Logger')) {
-                        Logger::error('Rollen-Liste konnte nicht geladen werden (Fehler beim Anlegen)', [
-                            'exception' => $e->getMessage(),
-                        ], null, null, 'rolle');
-                    }
+                    Logger::error('Rollen-Liste konnte nicht geladen werden (Fehler beim Anlegen)', [
+                        'exception' => $e->getMessage(),
+                    ], null, null, 'rolle');
                 }
 
                 require __DIR__ . '/../views/mitarbeiter/formular.php';
@@ -1455,13 +1421,11 @@ class MitarbeiterAdminController
                     ['pn' => $personalnummerDb, 'id' => $mitarbeiterIdNachSave]
                 );
             } catch (\Throwable $e) {
-                if (class_exists('Logger')) {
-                    Logger::error('Fehler beim Speichern der Personalnummer eines Mitarbeiters (Controller)', [
-                        'mitarbeiter_id' => $mitarbeiterIdNachSave,
-                        'personalnummer' => $personalnummerDb,
-                        'exception'      => $e->getMessage(),
-                    ], $mitarbeiterIdNachSave, null, 'mitarbeiter');
-                }
+                Logger::error('Fehler beim Speichern der Personalnummer eines Mitarbeiters (Controller)', [
+                    'mitarbeiter_id' => $mitarbeiterIdNachSave,
+                    'personalnummer' => $personalnummerDb,
+                    'exception'      => $e->getMessage(),
+                ], $mitarbeiterIdNachSave, null, 'mitarbeiter');
 
                 $_SESSION['mitarbeiter_admin_flash_error'] = 'Personalnummer konnte nicht gespeichert werden. Bitte Admin informieren.';
                 header('Location: ?seite=mitarbeiter_admin_bearbeiten&id=' . (int)$mitarbeiterIdNachSave);
@@ -1478,13 +1442,11 @@ class MitarbeiterAdminController
                 );
             } catch (\Throwable $e) {
                 // Soft-Fail: Wenn Migration noch nicht gelaufen ist (Spalte fehlt), soll der Save nicht abbrechen.
-                if (class_exists('Logger')) {
-                    Logger::error('Fehler beim Speichern des Eintrittsdatums eines Mitarbeiters (Controller)', [
-                        'mitarbeiter_id' => $mitarbeiterIdNachSave,
-                        'eintrittsdatum' => $eintrittsdatum,
-                        'exception'      => $e->getMessage(),
-                    ], $mitarbeiterIdNachSave, null, 'mitarbeiter');
-                }
+                Logger::error('Fehler beim Speichern des Eintrittsdatums eines Mitarbeiters (Controller)', [
+                    'mitarbeiter_id' => $mitarbeiterIdNachSave,
+                    'eintrittsdatum' => $eintrittsdatum,
+                    'exception'      => $e->getMessage(),
+                ], $mitarbeiterIdNachSave, null, 'mitarbeiter');
             }
 
             // Abteilungen speichern (Mitgliedschaften + optionale Stammabteilung)
@@ -1528,14 +1490,12 @@ class MitarbeiterAdminController
                     // ignore
                 }
 
-                if (class_exists('Logger')) {
-                    Logger::error('Fehler beim Speichern der Abteilungs-Mitgliedschaften eines Mitarbeiters (Controller)', [
-                        'mitarbeiter_id'       => $mitarbeiterIdNachSave,
-                        'stammabteilung_id'    => $stammabteilungIdPost,
-                        'abteilungen_ids'      => $abteilungenIdsPost,
-                        'exception'            => $e->getMessage(),
-                    ], $mitarbeiterIdNachSave, null, 'abteilung');
-                }
+                Logger::error('Fehler beim Speichern der Abteilungs-Mitgliedschaften eines Mitarbeiters (Controller)', [
+                    'mitarbeiter_id'       => $mitarbeiterIdNachSave,
+                    'stammabteilung_id'    => $stammabteilungIdPost,
+                    'abteilungen_ids'      => $abteilungenIdsPost,
+                    'exception'            => $e->getMessage(),
+                ], $mitarbeiterIdNachSave, null, 'abteilung');
                 $_SESSION['mitarbeiter_admin_flash_error'] = 'Abteilungen konnten nicht gespeichert werden. Bitte Admin informieren.';
             }
 
@@ -1547,13 +1507,11 @@ class MitarbeiterAdminController
                 $rollenZuordnungModel = new MitarbeiterHatRolleModel();
                 $rollenZuordnungModel->speichereRollenFuerMitarbeiter($mitarbeiterIdNachSave, $rollenIdsPost);
             } catch (\Throwable $e) {
-                if (class_exists('Logger')) {
-                    Logger::error('Fehler beim Speichern der Rollen eines Mitarbeiters (Controller)', [
-                        'mitarbeiter_id' => $mitarbeiterIdNachSave,
-                        'rollen_ids'     => $rollenIdsPost,
-                        'exception'      => $e->getMessage(),
-                    ], $mitarbeiterIdNachSave, null, 'rolle');
-                }
+                Logger::error('Fehler beim Speichern der Rollen eines Mitarbeiters (Controller)', [
+                    'mitarbeiter_id' => $mitarbeiterIdNachSave,
+                    'rollen_ids'     => $rollenIdsPost,
+                    'exception'      => $e->getMessage(),
+                ], $mitarbeiterIdNachSave, null, 'rolle');
             }
 
 
@@ -1627,13 +1585,11 @@ class MitarbeiterAdminController
                     // ignorieren
                 }
 
-                if (class_exists('Logger')) {
-                    Logger::error('Fehler beim Spiegeln der globalen Rollen in mitarbeiter_hat_rolle_scope', [
-                        'mitarbeiter_id' => $mitarbeiterIdNachSave,
-                        'rollen_ids'     => $rollenIdsPost,
-                        'exception'      => $e->getMessage(),
-                    ], $mitarbeiterIdNachSave, null, 'rolle');
-                }
+                Logger::error('Fehler beim Spiegeln der globalen Rollen in mitarbeiter_hat_rolle_scope', [
+                    'mitarbeiter_id' => $mitarbeiterIdNachSave,
+                    'rollen_ids'     => $rollenIdsPost,
+                    'exception'      => $e->getMessage(),
+                ], $mitarbeiterIdNachSave, null, 'rolle');
             }
             
             // Scoped Rollen (abteilung) speichern (Phase 1)
@@ -1734,15 +1690,13 @@ class MitarbeiterAdminController
                     }
 
                     if (!$tableMissing) {
-                        if (class_exists('Logger')) {
-                            Logger::error('Fehler beim Speichern der Abteilungs-Rollen eines Mitarbeiters (Controller)', [
-                                'mitarbeiter_id' => $mitarbeiterIdNachSave,
-                                'add_rolle_id'   => $scopeAbtAddRolleId,
-                                'add_scope_id'   => $scopeAbtAddAbteilungId,
-                                'delete_ids'     => $scopeAbtDelIds,
-                                'exception'      => $e->getMessage(),
-                            ], $mitarbeiterIdNachSave, null, 'rolle');
-                        }
+                        Logger::error('Fehler beim Speichern der Abteilungs-Rollen eines Mitarbeiters (Controller)', [
+                            'mitarbeiter_id' => $mitarbeiterIdNachSave,
+                            'add_rolle_id'   => $scopeAbtAddRolleId,
+                            'add_scope_id'   => $scopeAbtAddAbteilungId,
+                            'delete_ids'     => $scopeAbtDelIds,
+                            'exception'      => $e->getMessage(),
+                        ], $mitarbeiterIdNachSave, null, 'rolle');
 
                         if (session_status() !== PHP_SESSION_ACTIVE) {
                             session_start();
@@ -1798,13 +1752,11 @@ class MitarbeiterAdminController
                     exit;
                 }
             } catch (\Throwable $e) {
-                if (class_exists('Logger')) {
-                    Logger::error('Fehler beim Speichern der Genehmiger eines Mitarbeiters (Controller)', [
-                        'mitarbeiter_id' => $mitarbeiterIdNachSave,
-                        'genehmiger'     => $genehmigerDaten,
-                        'exception'      => $e->getMessage(),
-                    ], $mitarbeiterIdNachSave, null, 'genehmiger');
-                }
+                Logger::error('Fehler beim Speichern der Genehmiger eines Mitarbeiters (Controller)', [
+                    'mitarbeiter_id' => $mitarbeiterIdNachSave,
+                    'genehmiger'     => $genehmigerDaten,
+                    'exception'      => $e->getMessage(),
+                ], $mitarbeiterIdNachSave, null, 'genehmiger');
 
                 $_SESSION['mitarbeiter_admin_flash_error'] = 'Genehmiger konnten nicht gespeichert werden. Bitte Admin informieren.';
                 header('Location: ' . $rechteRuecksprungUrl);
@@ -1864,13 +1816,11 @@ class MitarbeiterAdminController
                     // ignorieren
                 }
 
-                if (class_exists('Logger')) {
-                    Logger::error('Fehler beim Speichern der Rechte-Overrides eines Mitarbeiters (Controller)', [
-                        'mitarbeiter_id' => $mitarbeiterIdNachSave,
-                        'overrides'      => $rechtOverridesToSave,
-                        'exception'      => $e->getMessage(),
-                    ], $mitarbeiterIdNachSave, null, 'recht');
-                }
+                Logger::error('Fehler beim Speichern der Rechte-Overrides eines Mitarbeiters (Controller)', [
+                    'mitarbeiter_id' => $mitarbeiterIdNachSave,
+                    'overrides'      => $rechtOverridesToSave,
+                    'exception'      => $e->getMessage(),
+                ], $mitarbeiterIdNachSave, null, 'recht');
 
                 $_SESSION['mitarbeiter_admin_flash_error'] = 'Rechte-Overrides konnten nicht gespeichert werden. Bitte Admin informieren.';
                 header('Location: ' . $rechteRuecksprungUrl);
@@ -1977,39 +1927,35 @@ class MitarbeiterAdminController
                 ]
             );
 
-            if (class_exists('Logger')) {
+            $korrekturId = 0;
+            try {
+                $korrekturId = (int)$db->letzteInsertId();
+            } catch (\Throwable) {
                 $korrekturId = 0;
-                try {
-                    $korrekturId = (int)$db->letzteInsertId();
-                } catch (\Throwable) {
-                    $korrekturId = 0;
-                }
-
-                Logger::info('Stundenkonto-Korrektur gebucht', [
-                    'korrektur_id'   => $korrekturId,
-                    'mitarbeiter_id' => $mid,
-                    'wirksam_datum'  => $wirksam,
-                    'delta_minuten'  => $deltaMinuten,
-                    'begruendung'    => $begruendung,
-                    'erstellt_von'   => $erstelltVon,
-                    'typ'            => 'manuell',
-                    'stealth'        => $stealth ? 1 : 0,
-                ], $mid, null, 'stundenkonto');
             }
+
+            Logger::info('Stundenkonto-Korrektur gebucht', [
+                'korrektur_id'   => $korrekturId,
+                'mitarbeiter_id' => $mid,
+                'wirksam_datum'  => $wirksam,
+                'delta_minuten'  => $deltaMinuten,
+                'begruendung'    => $begruendung,
+                'erstellt_von'   => $erstelltVon,
+                'typ'            => 'manuell',
+                'stealth'        => $stealth ? 1 : 0,
+            ], $mid, null, 'stundenkonto');
 
             $_SESSION['mitarbeiter_admin_flash_success'] = 'Stundenkonto-Korrektur gespeichert.';
             header('Location: ' . $this->stundenkontoRuecksprungUrl($mid));
             exit;
         } catch (\Throwable $e) {
-            if (class_exists('Logger')) {
-                Logger::error('Fehler beim Speichern der Stundenkonto-Korrektur', [
-                    'mitarbeiter_id' => $mid,
-                    'wirksam'        => $wirksam,
-                    'delta_minuten'  => $deltaMinuten,
-                    'begruendung'    => $begruendung,
-                    'exception'      => $e->getMessage(),
-                ], $mid, null, 'stundenkonto');
-            }
+            Logger::error('Fehler beim Speichern der Stundenkonto-Korrektur', [
+                'mitarbeiter_id' => $mid,
+                'wirksam'        => $wirksam,
+                'delta_minuten'  => $deltaMinuten,
+                'begruendung'    => $begruendung,
+                'exception'      => $e->getMessage(),
+            ], $mid, null, 'stundenkonto');
 
             $_SESSION['mitarbeiter_admin_flash_error'] = 'Stundenkonto-Korrektur konnte nicht gespeichert werden. Bitte Admin informieren.';
             header('Location: ' . $this->stundenkontoRuecksprungUrl($mid));
@@ -2230,24 +2176,22 @@ class MitarbeiterAdminController
             $m = $abs % 60;
             $sumTxt = sprintf('%s%d:%02d', $sign, $h, $m);
 
-            if (class_exists('Logger')) {
-                Logger::info('Stundenkonto-Verteilbuchung gebucht', [
-                    'batch_id'        => $batchId,
-                    'mitarbeiter_id'  => $mid,
-                    'modus'           => $modus,
-                    'von_datum'       => $von,
-                    'bis_datum'       => $bis,
-                    'nur_arbeitstage' => $nurArbeitstage,
-                    'tage_anzahl'     => count($tage),
-                    'gesamt_minuten'  => (int)$gesamtMinuten,
-                    'minuten_pro_tag' => $minutenProTag,
-                    'summe_text'      => $sumTxt,
-                    'begruendung'     => $begruendung,
-                    'erstellt_von'    => $erstelltVon,
-                    'typ'             => 'verteilung',
-                    'stealth'         => $stealth ? 1 : 0,
-                ], $mid, null, 'stundenkonto');
-            }
+            Logger::info('Stundenkonto-Verteilbuchung gebucht', [
+                'batch_id'        => $batchId,
+                'mitarbeiter_id'  => $mid,
+                'modus'           => $modus,
+                'von_datum'       => $von,
+                'bis_datum'       => $bis,
+                'nur_arbeitstage' => $nurArbeitstage,
+                'tage_anzahl'     => count($tage),
+                'gesamt_minuten'  => (int)$gesamtMinuten,
+                'minuten_pro_tag' => $minutenProTag,
+                'summe_text'      => $sumTxt,
+                'begruendung'     => $begruendung,
+                'erstellt_von'    => $erstelltVon,
+                'typ'             => 'verteilung',
+                'stealth'         => $stealth ? 1 : 0,
+            ], $mid, null, 'stundenkonto');
 
             $_SESSION['mitarbeiter_admin_flash_success'] = 'Verteilbuchung gespeichert (Batch #' . $batchId . '): ' . count($tage) . ' Tage, Summe ' . $sumTxt . '.';
             header('Location: ' . $this->stundenkontoRuecksprungUrl($mid));
@@ -2263,18 +2207,16 @@ class MitarbeiterAdminController
                 // ignore
             }
 
-            if (class_exists('Logger')) {
-                Logger::error('Fehler beim Speichern der Stundenkonto-Verteilbuchung (Batch)', [
-                    'mitarbeiter_id' => $mid,
-                    'modus'          => $modus,
-                    'von_datum'      => $von,
-                    'bis_datum'      => $bis,
-                    'delta_minuten'  => $deltaMinuten,
-                    'nur_arbeitstage'=> $nurArbeitstage,
-                    'begruendung'    => $begruendung,
-                    'exception'      => $e->getMessage(),
-                ], $mid, null, 'stundenkonto');
-            }
+            Logger::error('Fehler beim Speichern der Stundenkonto-Verteilbuchung (Batch)', [
+                'mitarbeiter_id' => $mid,
+                'modus'          => $modus,
+                'von_datum'      => $von,
+                'bis_datum'      => $bis,
+                'delta_minuten'  => $deltaMinuten,
+                'nur_arbeitstage'=> $nurArbeitstage,
+                'begruendung'    => $begruendung,
+                'exception'      => $e->getMessage(),
+            ], $mid, null, 'stundenkonto');
 
             $_SESSION['mitarbeiter_admin_flash_error'] = 'Verteilbuchung konnte nicht gespeichert werden. Bitte Admin informieren.';
             header('Location: ' . $this->stundenkontoRuecksprungUrl($mid));
@@ -2536,19 +2478,17 @@ class MitarbeiterAdminController
             $m = $gesamtMinuten % 60;
             $sumTxt = sprintf('+%d:%02d', $h, $m);
 
-            if (class_exists('Logger')) {
-                Logger::info('Stundenkonto-Sammelumbuchung gebucht', [
-                    'batch_id'        => $batchId,
-                    'mitarbeiter_id'  => $mid,
-                    'quell_daten'     => $quellDaten,
-                    'ziel_datum'      => $zielDatum,
-                    'gesamt_minuten'  => $gesamtMinuten,
-                    'summe_text'      => $sumTxt,
-                    'begruendung'     => $begruendung,
-                    'erstellt_von'    => $erstelltVon,
-                    'stealth'         => $stealth ? 1 : 0,
-                ], $mid, null, 'stundenkonto');
-            }
+            Logger::info('Stundenkonto-Sammelumbuchung gebucht', [
+                'batch_id'        => $batchId,
+                'mitarbeiter_id'  => $mid,
+                'quell_daten'     => $quellDaten,
+                'ziel_datum'      => $zielDatum,
+                'gesamt_minuten'  => $gesamtMinuten,
+                'summe_text'      => $sumTxt,
+                'begruendung'     => $begruendung,
+                'erstellt_von'    => $erstelltVon,
+                'stealth'         => $stealth ? 1 : 0,
+            ], $mid, null, 'stundenkonto');
 
             $_SESSION['mitarbeiter_admin_flash_success'] = 'Sammelumbuchung gespeichert (Batch #' . $batchId . '): ' . $sumTxt . ' auf ' . $zielDatum . ' verschoben.';
             header('Location: ' . $this->stundenkontoRuecksprungUrl($mid));
@@ -2564,16 +2504,14 @@ class MitarbeiterAdminController
                 // ignore
             }
 
-            if (class_exists('Logger')) {
-                Logger::error('Fehler beim Speichern der Stundenkonto-Sammelumbuchung', [
-                    'mitarbeiter_id' => $mid,
-                    'quell_daten'    => $quellDaten ?? [],
-                    'ziel_datum'     => $zielDatum,
-                    'gesamt_minuten' => $gesamtMinuten ?? 0,
-                    'begruendung'    => $begruendung,
-                    'exception'      => $e->getMessage(),
-                ], $mid, null, 'stundenkonto');
-            }
+            Logger::error('Fehler beim Speichern der Stundenkonto-Sammelumbuchung', [
+                'mitarbeiter_id' => $mid,
+                'quell_daten'    => $quellDaten ?? [],
+                'ziel_datum'     => $zielDatum,
+                'gesamt_minuten' => $gesamtMinuten ?? 0,
+                'begruendung'    => $begruendung,
+                'exception'      => $e->getMessage(),
+            ], $mid, null, 'stundenkonto');
 
             $_SESSION['mitarbeiter_admin_flash_error'] = 'Sammelumbuchung konnte nicht gespeichert werden. Bitte Admin informieren.';
             header('Location: ' . $this->stundenkontoRuecksprungUrl($mid));

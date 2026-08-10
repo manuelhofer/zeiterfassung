@@ -71,15 +71,13 @@ class OfflineQueueManager
             $pdo = $this->holeQueueVerbindung();
             $this->ensureQueueSchema($pdo);
         } catch (\Throwable $e) {
-            if (class_exists('Logger')) {
-                Logger::error(
-                    'OfflineQueueManager: Keine DB-Verbindung zum Speichern in db_injektionsqueue',
-                    ['exception' => $e->getMessage()],
-                    $mitarbeiterId,
-                    $terminalId,
-                    'offline_queue'
-                );
-            }
+            Logger::error(
+                'OfflineQueueManager: Keine DB-Verbindung zum Speichern in db_injektionsqueue',
+                ['exception' => $e->getMessage()],
+                $mitarbeiterId,
+                $terminalId,
+                'offline_queue'
+            );
 
             return false;
         }
@@ -167,15 +165,13 @@ class OfflineQueueManager
 
                 $this->markiereAlsFehler($queuePdo, $id, $e->getMessage());
 
-                if (class_exists('Logger')) {
-                    Logger::error(
-                        'Fehler bei Abarbeitung von db_injektionsqueue',
-                        ['id' => $id, 'sql_befehl' => $sqlBefehl, 'exception' => $e->getMessage()],
-                        null,
-                        null,
-                        'offline_queue'
-                    );
-                }
+                Logger::error(
+                    'Fehler bei Abarbeitung von db_injektionsqueue',
+                    ['id' => $id, 'sql_befehl' => $sqlBefehl, 'exception' => $e->getMessage()],
+                    null,
+                    null,
+                    'offline_queue'
+                );
 
                 // Beim ersten Fehler abbrechen.
                 break;

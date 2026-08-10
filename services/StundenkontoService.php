@@ -61,13 +61,11 @@ class StundenkontoService
             ]);
         } catch (\Throwable $e) {
             // Wenn Migration noch nicht eingespielt ist, existiert die Tabelle nicht.
-            if (class_exists('Logger')) {
-                Logger::warn('StundenkontoService: Summe nicht lesbar (Tabelle fehlt?)', [
-                    'mitarbeiter_id' => $mitarbeiterId,
-                    'bis'            => $bisDatumExklusivIso,
-                    'exception'      => $e->getMessage(),
-                ], $mitarbeiterId, null, 'stundenkonto');
-            }
+            Logger::warn('StundenkontoService: Summe nicht lesbar (Tabelle fehlt?)', [
+                'mitarbeiter_id' => $mitarbeiterId,
+                'bis'            => $bisDatumExklusivIso,
+                'exception'      => $e->getMessage(),
+            ], $mitarbeiterId, null, 'stundenkonto');
             return 0;
         }
 

@@ -101,11 +101,9 @@ class AuditLogController
                  ORDER BY aktiv DESC, nachname ASC, vorname ASC, id ASC'
             );
         } catch (Throwable $e) {
-            if (class_exists('Logger')) {
-                Logger::error('Audit-Logs: Mitarbeiterliste konnte nicht geladen werden', [
-                    'exception' => $e->getMessage(),
-                ], $this->authService->holeAngemeldeteMitarbeiterId(), null, 'audit_logs');
-            }
+            Logger::error('Audit-Logs: Mitarbeiterliste konnte nicht geladen werden', [
+                'exception' => $e->getMessage(),
+            ], $this->authService->holeAngemeldeteMitarbeiterId(), null, 'audit_logs');
             return [];
         }
     }
@@ -574,12 +572,10 @@ class AuditLogController
             } catch (Throwable $e) {
                 $eintraege = [];
                 $fehlermeldung = 'Die Logs konnten nicht geladen werden.';
-                if (class_exists('Logger')) {
-                    Logger::error('Audit-Logs: Laden fehlgeschlagen', [
-                        'typ' => $filterTyp,
-                        'exception' => $e->getMessage(),
-                    ], $this->authService->holeAngemeldeteMitarbeiterId(), null, 'audit_logs');
-                }
+                Logger::error('Audit-Logs: Laden fehlgeschlagen', [
+                    'typ' => $filterTyp,
+                    'exception' => $e->getMessage(),
+                ], $this->authService->holeAngemeldeteMitarbeiterId(), null, 'audit_logs');
             }
         }
 

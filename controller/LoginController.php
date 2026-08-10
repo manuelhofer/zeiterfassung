@@ -35,11 +35,9 @@ class LoginController
         try {
             return !$this->mitarbeiterModel->existiertLoginberechtigterMitarbeiter();
         } catch (\Throwable $e) {
-            if (class_exists('Logger')) {
-                Logger::error('Fehler bei der Prüfung auf Erstinstallation', [
-                    'exception' => $e->getMessage(),
-                ], null, null, 'auth');
-            }
+            Logger::error('Fehler bei der Prüfung auf Erstinstallation', [
+                'exception' => $e->getMessage(),
+            ], null, null, 'auth');
 
             // Im Zweifel lieber normales Login anzeigen, nicht den Installer.
             return false;
@@ -185,12 +183,10 @@ class LoginController
             $mitarbeiterId = $this->mitarbeiterModel->erstelleMitarbeiter($daten);
         } catch (\Throwable $e) {
             $mitarbeiterId = null;
-            if (class_exists('Logger')) {
-                Logger::error('Fehler beim Anlegen des Initial-Admin-Benutzers', [
-                    'daten'     => $daten,
-                    'exception' => $e->getMessage(),
-                ], null, null, 'mitarbeiter');
-            }
+            Logger::error('Fehler beim Anlegen des Initial-Admin-Benutzers', [
+                'daten'     => $daten,
+                'exception' => $e->getMessage(),
+            ], null, null, 'mitarbeiter');
         }
 
         if ($mitarbeiterId === null) {
@@ -240,12 +236,10 @@ class LoginController
                 $zuordnungModel->speichereRollenFuerMitarbeiter($mitarbeiterId, $rollenIds);
             }
         } catch (\Throwable $e) {
-            if (class_exists('Logger')) {
-                Logger::warn('Initial-Admin wurde angelegt, aber Rollen konnten nicht vollständig zugeordnet werden', [
-                    'mitarbeiter_id' => $mitarbeiterId,
-                    'exception'      => $e->getMessage(),
-                ], $mitarbeiterId, null, 'rolle');
-            }
+            Logger::warn('Initial-Admin wurde angelegt, aber Rollen konnten nicht vollständig zugeordnet werden', [
+                'mitarbeiter_id' => $mitarbeiterId,
+                'exception'      => $e->getMessage(),
+            ], $mitarbeiterId, null, 'rolle');
             // Kein harter Abbruch – der Benutzer existiert, kann sich einloggen und Rollen später nachziehen.
         }
 

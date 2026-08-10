@@ -133,13 +133,11 @@ class MitarbeiterGenehmigerModel
 
             return true;
         } catch (\Throwable $e) {
-            if (class_exists('Logger')) {
-                Logger::error('Fehler beim Speichern der Genehmiger eines Mitarbeiters', [
-                    'mitarbeiter_id' => $mitarbeiterId,
-                    'eintraege'      => $bereinigt,
-                    'exception'      => $e->getMessage(),
-                ], $mitarbeiterId, null, 'genehmiger');
-            }
+            Logger::error('Fehler beim Speichern der Genehmiger eines Mitarbeiters', [
+                'mitarbeiter_id' => $mitarbeiterId,
+                'eintraege'      => $bereinigt,
+                'exception'      => $e->getMessage(),
+            ], $mitarbeiterId, null, 'genehmiger');
 
             return false;
         }
