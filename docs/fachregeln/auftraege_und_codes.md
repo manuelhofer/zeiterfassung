@@ -75,6 +75,14 @@ Liste (Recht `AUFTRAEGE_VERWALTEN`). Eine Auftragsnummer, die nur aus Buchungen
 stammt, bekommt dabei ihren Stammdatensatz – sonst liesse sich genau die Zeile
 nicht ausblenden, die stört.
 
+**Gelöscht wird nur, was noch nichts erlebt hat.** Ein Auftrag lässt sich in der
+Detailansicht endgültig löschen (samt seiner Arbeitsschritte, mit Rückfrage,
+Recht `AUFTRAEGE_VERWALTEN`) – aber **nur solange keine Buchung daran hängt**.
+Sobald Zeit gebucht wurde, gibt es nur noch „inaktiv". Die Prüfung sitzt im
+Controller, nicht nur im Formular: Zwischen Seitenaufbau und Klick kann in der
+Halle ein Scan dazwischenkommen. Jede Löschung geht mit Mitarbeiter-ID nach
+`system_log`.
+
 **Gesucht wird im ganzen Bestand.** Das Ausblenden gilt für das *Blättern*, nicht
 für das *Suchen*: Wer eine Nummer eintippt, will sie finden, auch wenn der
 Auftrag längst abgelegt ist. Inaktive Treffer stehen grau in der Liste und sind

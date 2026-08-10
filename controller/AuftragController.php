@@ -655,6 +655,117 @@ class AuftragController
     }
 
     /**
+     * Loescht einen Auftrag samt seiner Arbeitsschritte.
+     * Route: ?seite=auftrag_loeschen (POST)
+     *
+     * Nur solange **keine** Buchung daran haengt. Sonst waeren gebuchte Stunden
+     * plötzlich einer Nummer zugeordnet, zu der es nichts mehr gibt - und genau
+     * dafuer ist "inaktiv setzen" da.
+     */
+    public function loeschen(): void
+    {
+        if (!$this->pruefeZugriff()) {
+            return;
+        }
+
+        if (!$this->darfAuftraegeVerwalten()) {
+            $this->zeigeKeinRecht();
+            return;
+        }
+
+        if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST') {
+            header('Location: ?seite=auftrag');
+            return;
+        }
+
+        $auftragsnummer = trim((string)($_POST['auftragsnummer'] ?? ''));
+        $detailUrl = '?seite=auftrag_detail&code=' . urlencode($auftragsnummer);
+
+        if (!Csrf::istGueltig(self::CSRF_BEREICH_STAMM)) {
+            $_SESSION['auftrag_detail_flash_fehler'] = 'Die Sitzung ist abgelaufen. Bitte erneut versuchen.';
+            header('Location: ' . ($auftragsnummer !== '' ? $detailUrl : '?seite=auftrag'));
+            return;
+        }
+
+        if ($auftragsnummer === '') {
+            $_SESSION['auftrag_flash_fehler'] = 'Es war kein Auftrag ausgewaehlt.';
+            header('Location: ?seite=auftrag');
+            return;
+        }
+
+        try {
+            $auftrag = $this->db->fetchEine(
+                'SELECT id FROM auftrag WHERE auftragsnummer = :nr LIMIT 1',
+                ['nr' => $auftragsnummer]
+            );
+
+            if (!is_array($auftrag)) {
+                $_SESSION['auftrag_flash_fehler'] = 'Der Auftrag wurde nicht gefunden.';
+                header('Location: ?seite=auftrag');
+                return;
+            }
+
+            $auftragId = (int)($auftrag['id'] ?? 0);
+
+            // Die Pruefung gehoert hierher und nicht nur ins Formular: Ein
+            // zweiter Tab, ein zwischenzeitlicher Scan in der Halle - und die
+            // Buchung waere da, obwohl der Knopf sie nicht kannte.
+            $anzahl = $this->zaehleBuchungen($auftragsnummer, $auftragId);
+
+            if ($anzahl > 0) {
+                $_SESSION['auftrag_detail_flash_fehler'] = $anzahl === 1
+                    ? 'Der Auftrag hat eine Buchung und wird deshalb nicht geloescht. Setzen Sie ihn auf inaktiv - dann verschwindet er aus der Liste, die gebuchte Zeit bleibt erhalten.'
+                    : 'Der Auftrag hat ' . $anzahl . ' Buchungen und wird deshalb nicht geloescht. Setzen Sie ihn auf inaktiv - dann verschwindet er aus der Liste, die gebuchten Zeiten bleiben erhalten.';
+                header('Location: ' . $detailUrl);
+                return;
+            }
+
+            $this->db->ausfuehren('DELETE FROM auftrag_arbeitsschritt WHERE auftrag_id = :aid', ['aid' => $auftragId]);
+            $this->db->ausfuehren('DELETE FROM auftrag WHERE id = :id', ['id' => $auftragId]);
+        } catch (\Throwable $e) {
+            $this->protokolliere('Auftrag konnte nicht geloescht werden', [
+                'auftragsnummer' => $auftragsnummer,
+                'exception'      => $e->getMessage(),
+            ]);
+            $_SESSION['auftrag_detail_flash_fehler'] = 'Der Auftrag konnte nicht geloescht werden.';
+            header('Location: ' . $detailUrl);
+            return;
+        }
+
+        // Wer loescht, soll nachvollziehbar sein - hier steht der einzige Weg,
+        // auf dem Auftragsstammdaten aus der Datenbank verschwinden.
+        Logger::info(
+            'Auftrag geloescht',
+            ['auftragsnummer' => $auftragsnummer],
+            $this->authService->holeAngemeldeteMitarbeiterId(),
+            null,
+            'auftrag'
+        );
+
+        $_SESSION['auftrag_flash_ok'] = 'Der Auftrag "' . $auftragsnummer . '" wurde geloescht.';
+        header('Location: ?seite=auftrag');
+    }
+
+    /**
+     * Zaehlt die Buchungen eines Auftrags - ueber die Nummer und ueber die ID.
+     *
+     * Beide Wege sind noetig: Das Terminal schreibt den gescannten Code nach
+     * `auftragscode`, das Backend verknuepft ueber `auftrag_id`.
+     */
+    private function zaehleBuchungen(string $auftragsnummer, int $auftragId): int
+    {
+        $zeile = $this->db->fetchEine(
+            'SELECT COUNT(*) AS anzahl
+               FROM auftragszeit
+              WHERE auftragscode = :code
+                 OR (:aid > 0 AND auftrag_id = :aid2)',
+            ['code' => $auftragsnummer, 'aid' => $auftragId, 'aid2' => $auftragId]
+        );
+
+        return is_array($zeile) ? (int)($zeile['anzahl'] ?? 0) : 0;
+    }
+
+    /**
      * Wie viele Auftraege sind auf inaktiv gesetzt?
      *
      * Nur fuer die Beschriftung des Links. Faellt die Abfrage aus, steht dort
@@ -1169,6 +1280,38 @@ class AuftragController
                             </form>
                         </div>
                     <?php endif; ?>
+
+                    <div style="margin-top:1.5rem;padding:0.75rem;border:1px solid #e0a0a0;border-radius:6px;max-width:640px;">
+                        <strong>Auftrag loeschen</strong>
+                        <?php if (count($buchungen) > 0): ?>
+                            <p style="margin:0.4rem 0;">
+                                Nicht moeglich: An diesem Auftrag
+                                <?php echo count($buchungen) === 1
+                                    ? 'haengt eine Buchung'
+                                    : 'haengen ' . count($buchungen) . ' Buchungen'; ?>.
+                                Gebuchte Zeit wird nicht weggeworfen.
+                            </p>
+                            <p style="margin:0.4rem 0;"><small>
+                                Wenn der Auftrag nur aus der Liste verschwinden soll: in der
+                                <a href="?seite=auftrag">Auftragsliste</a> auf &bdquo;Inaktiv setzen&ldquo;.
+                                Buchungen, Stunden und Laufkarte bleiben dabei erhalten.
+                            </small></p>
+                        <?php else: ?>
+                            <p style="margin:0.4rem 0;"><small>
+                                Loescht den Auftrag samt seiner Arbeitsschritte. Das ist nur moeglich,
+                                solange keine Buchung daran haengt &ndash; danach nicht mehr. Gedruckte
+                                Laufkarten werden dadurch ungueltig.
+                            </small></p>
+                            <form method="post" action="?seite=auftrag_loeschen"
+                                  onsubmit="return confirm('Auftrag <?php echo $escD($code); ?> wirklich loeschen? Das laesst sich nicht rueckgaengig machen.');">
+                                <input type="hidden" name="csrf_token" value="<?php echo $escD($stammCsrf); ?>">
+                                <input type="hidden" name="auftragsnummer" value="<?php echo $escD($code); ?>">
+                                <button type="submit" style="border:1px solid #b03a3a;border-radius:4px;background:#b03a3a;color:#fff;padding:6px 12px;cursor:pointer;">
+                                    Auftrag endgueltig loeschen
+                                </button>
+                            </form>
+                        <?php endif; ?>
+                    </div>
                 <?php endif; ?>
             <?php endif; ?>
         </section>

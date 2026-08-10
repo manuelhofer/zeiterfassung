@@ -70,6 +70,78 @@ in den Statusbericht.
   D-002 entfallen; die Regel selbst gilt weiter.)
 
 
+## P-2026-08-10-38 auftrag-loeschen-ohne-buchungen
+
+### EINGELESEN
+- `controller/AuftragController.php`, Detailansicht und `aktivSetzen()`.
+- `public/index.php`, Routen `auftrag_*`.
+- `core/Logger.php`, Signatur von `info()`; `services/AuthService.php`,
+  `holeAngemeldeteMitarbeiterId()`.
+- `sql/01_initial_schema.sql`: `auftragszeit` hat **keine** Fremdschlüssel auf
+  `auftrag` – die Datenbank haelt hier nichts auf.
+
+### DATEIEN
+- `controller/AuftragController.php`
+- `public/index.php`
+- `docs/fachregeln/auftraege_und_codes.md`
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Ein Auftrag ohne Buchungen verschwindet über „Auftrag endgueltig loeschen" samt
+seiner Arbeitsschritte; bei `123123123123` (eine Buchung) erscheint stattdessen
+der Hinweis, ihn auf inaktiv zu setzen.
+
+### DONE
+Löschen gibt es jetzt – aber nur dort, wo es niemandem etwas wegnimmt.
+
+Ein Auftrag mit Buchungen wird **nicht** gelöscht. Die gebuchten Stunden waeren
+sonst einer Nummer zugeordnet, zu der es nichts mehr gibt; die Auswertung zeigte
+Zeit ohne Auftrag. Fuer diesen Fall gibt es „inaktiv" (P-2026-08-10-35), und
+genau darauf verweist der Hinweis in der Detailansicht.
+
+Der Knopf steht in der Detailansicht, nicht in der Liste: Eine unumkehrbare
+Aktion gehört nicht neben „Details" in eine Zeile, die man beim Blättern
+streift. Rückfrage über `confirm()`, roter Knopf, Erklärung darüber.
+
+Die Zählung der Buchungen läuft über **beide** Wege (`auftragscode` und
+`auftrag_id`), weil das Terminal den gescannten Code schreibt und das Backend
+über die ID verknüpft.
+
+Jede Löschung geht mit Mitarbeiter-ID nach `system_log` – es ist der einzige Weg,
+auf dem Auftragsstammdaten aus der Datenbank verschwinden.
+
+### TEST
+- `123123123123` (1 Buchung): Detailansicht zeigt „Nicht moeglich: An diesem
+  Auftrag haengt eine Buchung", kein Knopf im HTML. Der POST von Hand wird
+  ebenfalls abgewiesen, Bestand bleibt bei 3 Aufträgen.
+- Testauftrag `TEST-LOESCHEN` mit zwei Arbeitsschritten angelegt und gelöscht:
+  Auftrag weg, keine verwaisten Arbeitsschritte, Bestand wieder 3.
+- POST ohne gültiges Token: „Die Sitzung ist abgelaufen", nichts gelöscht.
+- `system_log`: `info | Auftrag geloescht | mitarbeiter_id=15`.
+- `php -l` auf beiden geänderten Dateien sauber.
+
+### Gefundene Fehler im eigenen Entwurf
+Der erste Entwurf prüfte die Buchungen nur beim Aufbau der Seite – der Knopf
+waere also aus einer Momentaufnahme entstanden. Zwischen Seitenaufbau und Klick
+kann in der Halle aber ein Scan dazwischenkommen. Die Prüfung sitzt jetzt im
+Controller und die Anzeige ist nur noch die Höflichkeit davor.
+
+Ausserdem stand in der Meldung „An diesem Auftrag haengen eine Buchung" –
+Singular und Plural jetzt getrennt formuliert.
+
+### Was bewusst nicht erreicht wurde
+Die erzeugten Strichcode-PNG bleiben liegen. Sie tragen die Auftrags-ID im
+Dateinamen, sind reine Zwischendateien und werden bei Bedarf neu erzeugt; sie
+mitzulöschen waere ein zweites Thema (Aufräumen des Bildcaches).
+
+Kein Massenlöschen und kein Papierkorb. Wer viel wegräumen will, setzt auf
+inaktiv – das ist der reversible Weg und deshalb der richtige.
+
+### NEXT
+Knöpfe und Farbgebung der Auftragsliste vereinheitlichen (Details,
+Aktiv/Inaktiv, Reset).
+
+
 ## P-2026-08-10-37 suche-findet-auch-inaktive
 
 ### EINGELESEN

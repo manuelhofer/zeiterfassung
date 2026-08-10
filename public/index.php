@@ -293,6 +293,11 @@ try {
             $controller->aktivSetzen();
             break;
 
+        case 'auftrag_loeschen':
+            $controller = new AuftragController();
+            $controller->loeschen();
+            break;
+
         case 'arbeitsschritt_katalog':
             $controller = new ArbeitsschrittKatalogController();
             $controller->index();
