@@ -1031,6 +1031,10 @@ class UrlaubService
         $korrektur = 0.0;
         $anspruchOverride = null;
 
+        // Steht der Übertrag für dieses Jahr bereits fest? Dann wird er weiter
+        // unten **nicht** neu berechnet.
+        $uebertragFestgeschrieben = false;
+
         $kRow = null;
         try {
             $kRow = $db->fetchEine(
@@ -1402,7 +1406,11 @@ class UrlaubService
         // anschliessend festgeschrieben. Die Rekursion endet von selbst: am
         // Eintrittsjahr, sobald ein Jahr festgeschrieben ist, oder spätestens
         // bei der Tiefenbremse unten.
-        if ($autoUebertrag && $jahr > 2000 && $jahr > $this->uebertragBodenJahr($mitarbeiterId)) {
+        if (!$uebertragFestgeschrieben
+            && $autoUebertrag
+            && $jahr > 2000
+            && $jahr > $this->uebertragBodenJahr($mitarbeiterId)
+        ) {
             try {
                 $vorjahrSaldo = $this->berechneUrlaubssaldoFuerJahr($mitarbeiterId, $jahr - 1, true);
                 $restVorjahr = 0.0;

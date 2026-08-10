@@ -274,6 +274,13 @@ class UrlaubKontingentAdminController
         $korrektur = $kontingent['korrektur_tage'] ?? '0.00';
         $notiz     = $kontingent['notiz'] ?? '';
 
+        // Festgeschriebener Übertrag (B-080): Ist er gesetzt, gewinnt er gegen
+        // die Neuberechnung. Deshalb gehört er sichtbar in die Maske – sonst
+        // steht dort eine Zahl, deren Herkunft niemand nachvollziehen kann.
+        $uebertragTage = $kontingent['uebertrag_tage'] ?? '0.00';
+        $uebertragFestAm = $kontingent['uebertrag_festgeschrieben_am'] ?? null;
+        $uebertragIstFest = is_string($uebertragFestAm) && $uebertragFestAm !== '';
+
         $csrfToken = Csrf::token(self::CSRF_BEREICH);
         $aktuellesJahr = (int)date('Y');
         $vorjahr = $aktuellesJahr - 1;
@@ -377,6 +384,30 @@ class UrlaubKontingentAdminController
                             </tr>
 
                             <tr>
+                                <th>Übertrag (festgeschrieben)</th>
+                                <td>
+                                    <input type="text" name="uebertrag_tage" value="<?php echo htmlspecialchars($this->formatDecimal((float)$uebertragTage), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>" style="width: 10rem;"> Tage
+                                    <label style="margin-left:1rem;">
+                                        <input type="checkbox" name="uebertrag_neu_berechnen" value="1">
+                                        neu berechnen lassen
+                                    </label>
+                                    <br>
+                                    <small>
+                                        <?php if ($uebertragIstFest): ?>
+                                            Festgeschrieben am
+                                            <strong><?php echo htmlspecialchars((string)$uebertragFestAm, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></strong>
+                                            – dieser Wert gilt und wird <strong>nicht</strong> überschrieben.
+                                        <?php else: ?>
+                                            Noch nicht festgeschrieben – der Übertrag wird beim nächsten Aufruf aus dem
+                                            Vorjahr berechnet und dann hier eingetragen.
+                                        <?php endif; ?>
+                                        Wer den Wert ändert, schreibt ihn damit fest. „Neu berechnen lassen" gibt ihn
+                                        wieder frei; die Eingabe wird dann verworfen.
+                                    </small>
+                                </td>
+                            </tr>
+
+                            <tr>
                                 <th>Manuell (+/- Tage)</th>
                                 <td>
                                     <input type="text" name="korrektur_tage" value="<?php echo htmlspecialchars($this->formatDecimal((float)$korrektur), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>" style="width: 10rem;"> Tage
@@ -433,6 +464,8 @@ class UrlaubKontingentAdminController
         $formularAktion = isset($_POST['formular_aktion']) ? (string)$_POST['formular_aktion'] : 'speichern';
 
         $anspruchOverrideRaw = (string)($_POST['anspruch_override_tage'] ?? '');
+        $uebertragRaw        = (string)($_POST['uebertrag_tage'] ?? '0');
+        $uebertragFreigeben  = isset($_POST['uebertrag_neu_berechnen']);
         $korrekturRaw        = (string)($_POST['korrektur_tage'] ?? '0');
         $notizRaw            = trim((string)($_POST['notiz'] ?? ''));
 
@@ -477,6 +510,8 @@ class UrlaubKontingentAdminController
         $fehlermeldung = null;
 
         $anspruchOverride = $this->parseDecimalNullable($anspruchOverrideRaw, $fehlermeldung);
+        // Beim Freigeben ist die Eingabe egal - sie wird ohnehin verworfen.
+        $uebertrag        = $uebertragFreigeben ? '0.00' : $this->parseDecimalRequired($uebertragRaw, $fehlermeldung);
         $korrektur        = $this->parseDecimalRequired($korrekturRaw, $fehlermeldung);
         $notiz            = $notizRaw !== '' ? $notizRaw : null;
 
@@ -493,12 +528,21 @@ class UrlaubKontingentAdminController
         }
 
         try {
+            // „Neu berechnen lassen" gibt den Übertrag wieder frei: Zeitstempel
+            // auf NULL, Wert auf 0. Beim nächsten Aufruf rechnet
+            // `UrlaubService` ihn aus dem Vorjahr und schreibt ihn erneut fest.
+            $uebertragWert  = $uebertragFreigeben ? '0.00' : $uebertrag;
+            $uebertragFestAm = $uebertragFreigeben ? null : date('Y-m-d H:i:s');
+
             $sql = 'INSERT INTO urlaub_kontingent_jahr
-                        (mitarbeiter_id, jahr, anspruch_override_tage, korrektur_tage, notiz)
+                        (mitarbeiter_id, jahr, anspruch_override_tage, uebertrag_tage,
+                         uebertrag_festgeschrieben_am, korrektur_tage, notiz)
                     VALUES
-                        (:mid, :jahr, :aot, :kor, :notiz)
+                        (:mid, :jahr, :aot, :ueb, :ufa, :kor, :notiz)
                     ON DUPLICATE KEY UPDATE
                         anspruch_override_tage = VALUES(anspruch_override_tage),
+                        uebertrag_tage = VALUES(uebertrag_tage),
+                        uebertrag_festgeschrieben_am = VALUES(uebertrag_festgeschrieben_am),
                         korrektur_tage = VALUES(korrektur_tage),
                         notiz = VALUES(notiz)';
 
@@ -506,6 +550,8 @@ class UrlaubKontingentAdminController
                 'mid'  => $mitarbeiterId,
                 'jahr' => $jahr,
                 'aot'  => $anspruchOverride,
+                'ueb'  => $uebertragWert,
+                'ufa'  => $uebertragFestAm,
                 'kor'  => $korrektur,
                 'notiz'=> $notiz,
             ]);

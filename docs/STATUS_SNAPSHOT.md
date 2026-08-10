@@ -44,9 +44,6 @@ den Stufenplan (Abschnitt 11).
   `KonfigurationController` (201), `AuftragController` (137).
 - **T-105** `SmokeTestController::index()` ist eine Methode mit ~3.700 Zeilen.
   Diagnosewerkzeug, keine Fachlogik – aber praktisch nicht mehr änderbar.
-- **T-109** Der Urlaubsübertrag ist in der Kontingent-Maske weder sichtbar
-  noch korrigierbar; die Maske kennt nur Anspruch-Override, Korrektur und
-  Notiz. Korrigieren geht heute nur direkt in der Datenbank.
 - **T-108** Drei Zugriffswege auf `db_injektionsqueue`: `OfflineQueueManager`,
   `QueueService`, `DbInjektionsqueueModel`. Zusammenführen – berührt den
   Offline-Pfad, deshalb nur mit Offline-Test.

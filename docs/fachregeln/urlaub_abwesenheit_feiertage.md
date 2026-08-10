@@ -61,6 +61,12 @@ Verschieben lässt sich der Schnitt über `urlaub_uebertrag_ab_jahr` in der
 Tabelle `config` – etwa um beim Einführen einmalig weiter zurückzurechnen. Ohne
 Eintrag gilt das Vorjahr. Zusätzlicher Boden ist immer das Eintrittsjahr.
 
+**Korrigieren:** In der Kontingentverwaltung (Backend) steht der Übertrag als
+eigenes Feld, zusammen mit dem Zeitpunkt der Festschreibung. Wer den Wert
+ändert und speichert, schreibt ihn damit fest; das Kästchen „neu berechnen
+lassen" gibt ihn wieder frei, und beim nächsten Aufruf entsteht er neu aus dem
+Vorjahr.
+
 Dass Anzeige und Übernahme früher **verschiedene** Regeln benutzten, war
 B-080: Die Maske für 2025 zeigte 25,00 Tage Rest, die Maske für 2026 übernahm
 daraus −5,00. Behoben in P-2026-08-10-28.

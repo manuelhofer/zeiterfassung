@@ -70,6 +70,81 @@ in den Statusbericht.
   D-002 entfallen; die Regel selbst gilt weiter.)
 
 
+## P-2026-08-10-29 uebertrag-in-der-kontingentmaske
+
+### EINGELESEN
+- `controller/UrlaubKontingentAdminController.php` vollständig
+  (Laden, Formular, Speichern, Validierung).
+- `services/UrlaubService.php` nach P-2026-08-10-28.
+
+### DATEIEN
+- `controller/UrlaubKontingentAdminController.php`
+- `services/UrlaubService.php`
+- `docs/fachregeln/urlaub_abwesenheit_feiertage.md`
+- `docs/STATUS_SNAPSHOT.md`
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Ein in der Kontingentmaske eingetragener Übertrag gilt für den Urlaubssaldo,
+und „neu berechnen lassen" gibt ihn wieder frei.
+
+### DONE
+T-109. Der Übertrag entscheidet über Urlaubstage, war aber nur über einen
+direkten Datenbankzugriff zu korrigieren – die Maske kannte nur
+Anspruch-Override, Korrektur und Notiz. „Von Hand korrigierbar" war damit eine
+Behauptung, keine Eigenschaft.
+
+Neu in der Maske: ein Feld **Übertrag (festgeschrieben)** mit dem Zeitpunkt der
+Festschreibung, dazu ein Kästchen **neu berechnen lassen**. Wer den Wert ändert
+und speichert, schreibt ihn fest; das Kästchen setzt den Zeitstempel zurück,
+und beim nächsten Aufruf entsteht der Wert neu aus dem Vorjahr. Die Eingabe
+wird wie die Korrektur geprüft (Komma oder Punkt, nur Zahlen).
+
+### Gefundene Fehler im eigenen Entwurf
+**Der Kern des Vorpatches funktionierte nicht.** Der Test zeigte:
+festgeschrieben `12,50`, aber der Saldo rechnete weiter mit `25,00`.
+
+Ursache: Ich hatte in P-2026-08-10-28 die Leseseite richtig gebaut – ein
+festgeschriebener Wert wird übernommen – aber der Auto-Block weiter unten
+überschrieb ihn anschliessend wieder. Zwei Stellen, die dieselbe Variable
+setzen, und die zweite gewann. „Festgeschrieben gewinnt immer" stand im
+Kommentar und stimmte nicht.
+
+Aufgefallen ist es nur, weil dieser Patch den Wert **von Hand** setzen kann und
+ich das durchgespielt habe. Der Vorpatch für sich war nicht widerlegbar: Solange
+der festgeschriebene Wert immer aus derselben Rechnung stammt, fällt ein
+Überschreiben mit demselben Ergebnis nicht auf. Erst ein abweichender Wert
+macht den Fehler sichtbar.
+
+Behoben: Der Auto-Block läuft nur noch, wenn nichts festgeschrieben ist.
+
+### TEST
+Vollständiger Zyklus gegen die Datenbank, Mitarbeiter 17:
+
+| Schritt | `uebertrag_tage` | festgeschrieben | Saldo nutzt |
+| --- | --- | --- | --- |
+| automatisch berechnet | 25,00 | ja | 25,00 |
+| von Hand auf 12,5 | 12,50 | ja | **12,50** |
+| „neu berechnen lassen" | 0,00 | nein | 25,00 |
+| nächster Aufruf | 25,00 | ja | 25,00 |
+
+Dazu:
+
+- Ungültige Eingabe (`abc`) wird abgewiesen, der gespeicherte Wert bleibt.
+- Maske gerendert: Feld, Kästchen und Zeitstempel vorhanden.
+- B-080-Probe erneut: **0 Brüche von 13**, Summenprobe stimmig.
+- `php -l` sauber, 18 Masken unverändert, Monats-PDF gültig, Webserver
+  dreimal HTTP 200.
+
+### Was bewusst nicht erreicht wurde
+Die Übersichtsliste der Kontingentverwaltung zeigt den Übertrag weiterhin
+nicht – nur die Einzelmaske. Für die Liste müsste die Abfrage erweitert werden;
+das ist Anzeige, kein Fehler.
+
+### NEXT
+Praxis-Test; der erste echte Jahreswechsel steht noch aus.
+
+
 ## P-2026-08-10-28 b-080-uebertrag-festgeschrieben
 
 ### EINGELESEN
