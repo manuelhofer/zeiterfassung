@@ -438,6 +438,36 @@ if ($hatKonfigurationAdminRecht) {
             background: #821818;
         }
 
+        /* Zurueckhaltende Variante: gleiche Form, weniger Gewicht. Fuer alles,
+           was in einer Tabellenzeile oder einer Blaetterleiste mehrfach
+           vorkommt - eine Reihe kraeftig blauer Knoepfe waere nur noch Farbe. */
+        button.quiet,
+        .button-link.quiet {
+            border-color: var(--backend-line);
+            background: #ffffff;
+            color: var(--backend-primary);
+        }
+
+        button.quiet:hover,
+        button.quiet:focus,
+        .button-link.quiet:hover,
+        .button-link.quiet:focus {
+            border-color: #9eb8c6;
+            background: #f2f7fa;
+            color: var(--backend-primary-dark);
+        }
+
+        /* Ausgegraut statt versteckt: Ein Pfeil, der am Rand verschwindet,
+           laesst die Leiste springen. */
+        button:disabled,
+        .button-link.disabled {
+            border-color: var(--backend-line-soft);
+            background: #f2f4f5;
+            color: #9aa5ab;
+            cursor: default;
+            pointer-events: none;
+        }
+
         table {
             border: 1px solid var(--backend-line);
             font-size: 0.93rem;
@@ -548,6 +578,21 @@ if ($hatKonfigurationAdminRecht) {
             flex-wrap: wrap;
             gap: 0.4rem;
             align-items: center;
+        }
+
+        /* In einer Tabellenzeile sollen die Knoepfe nebeneinander bleiben und
+           nicht die Zeilenhoehe verdoppeln. Wird die Tabelle dadurch breiter als
+           der Bildschirm, scrollt `.table-wrap` waagerecht. */
+        td .table-actions {
+            flex-wrap: nowrap;
+        }
+
+        td .table-actions button,
+        td .table-actions .button-link {
+            padding: 0.24rem 0.55rem;
+            min-height: 1.75rem;
+            font-size: 0.9rem;
+            white-space: nowrap;
         }
 
         .inline-form {
@@ -712,6 +757,34 @@ if ($hatKonfigurationAdminRecht) {
 
         .warning-panel > strong {
             color: var(--backend-danger);
+        }
+
+        /* Blaetterleiste unter einer Liste: Trefferzahl, Seitenzahlen, Pfeile.
+           `nav` ist hier semantisch richtig, erbt aber die dunkle Hauptnavigation
+           von oben - deshalb die drei Ruecksetzungen. */
+        .pager {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 0.35rem;
+            margin-top: 0.75rem;
+            background-color: transparent;
+            color: var(--backend-text);
+            padding: 0;
+        }
+
+        .pager .pager-info {
+            margin-right: 0.5rem;
+        }
+
+        .pager .button-link {
+            min-width: 2.1rem;
+            padding: 0.25rem 0.5rem;
+            min-height: 1.9rem;
+        }
+
+        .pager .button-link.aktuell {
+            font-weight: 700;
         }
 
         .status-pill {

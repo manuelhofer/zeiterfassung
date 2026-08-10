@@ -293,68 +293,65 @@ class AuftragController
                 unset($_SESSION['auftrag_flash_fehler'], $_SESSION['auftrag_flash_ok']);
             ?>
             <?php if ($flashOkListe !== ''): ?>
-                <p style="padding:8px;border:1px solid #9ad29a;background:#e9f7e9;">
-                    <?php echo htmlspecialchars($flashOkListe, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>
-                </p>
+                <p class="success"><?php echo htmlspecialchars($flashOkListe, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></p>
             <?php endif; ?>
             <?php if ($flashFehlerListe !== ''): ?>
-                <p style="padding:8px;border:1px solid #e0a0a0;background:#fbeaea;">
-                    <?php echo htmlspecialchars($flashFehlerListe, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>
-                </p>
+                <p class="error"><?php echo htmlspecialchars($flashFehlerListe, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></p>
             <?php endif; ?>
 
-            <p style="display:flex;gap:1rem;align-items:center;flex-wrap:wrap;">
+            <div class="table-actions">
                 <?php if (!$nurInaktive): ?>
                     <?php if ($darfVerwaltenListe): ?>
-                        <a href="?seite=auftrag_neu" style="display:inline-block;padding:6px 12px;border:1px solid #2b6cb0;border-radius:4px;background:#2b6cb0;color:#fff;text-decoration:none;">
-                            + Auftrag hinzufuegen
-                        </a>
+                        <a class="button-link" href="?seite=auftrag_neu">+ Auftrag hinzufuegen</a>
                     <?php endif; ?>
-                    <a href="?seite=auftrag&amp;ansicht=inaktiv">
+                    <a class="button-link quiet" href="?seite=auftrag&amp;ansicht=inaktiv">
                         Inaktive Auftraege<?php echo $anzahlInaktive > 0 ? ' (' . $anzahlInaktive . ')' : ''; ?>
                     </a>
                 <?php else: ?>
-                    <a href="?seite=auftrag">&laquo; Zurueck zu den aktiven Auftraegen</a>
+                    <a class="button-link quiet" href="?seite=auftrag">&laquo; Zurueck zu den aktiven Auftraegen</a>
                 <?php endif; ?>
-            </p>
+            </div>
 
             <?php if ($nurInaktive): ?>
-                <p><small>
+                <p class="muted"><small>
                     Inaktive Auftraege erscheinen nicht in der normalen Liste. Sie sind
                     nicht geloescht: Buchungen, Stunden und Laufkarte bleiben erhalten.
                 </small></p>
             <?php endif; ?>
 
-            <form method="get" action="" style="margin-bottom: 1rem;">
+            <form method="get" action="">
                 <input type="hidden" name="seite" value="auftrag">
                 <?php if ($nurInaktive): ?>
                     <input type="hidden" name="ansicht" value="inaktiv">
                 <?php endif; ?>
-                <label>
-                    Suche:
-                    <input type="text" name="q" value="<?php echo htmlspecialchars($q, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>" style="min-width: 240px;"
-                           placeholder="Auftragsnummer, Kunde, Zeichnung, Beschreibung">
-                </label>
-                <button type="submit">Suchen</button>
-                <?php if ($q !== ''): ?>
-                    <a href="<?php echo $nurInaktive ? '?seite=auftrag&amp;ansicht=inaktiv' : '?seite=auftrag'; ?>" style="margin-left: 0.5rem;">Reset</a>
-                <?php endif; ?>
 
-                <?php if (!$nurInaktive): ?>
-                    <?php /* Verstecktes Feld voran: So kommt der Wert auch dann mit, wenn das Haekchen weg ist. */ ?>
-                    <input type="hidden" name="mit_inaktiven" value="0">
-                    <label style="margin-left:0.75rem;">
-                        <input type="checkbox" name="mit_inaktiven" value="1" <?php echo $mitInaktiven ? 'checked' : ''; ?>>
-                        Auch inaktive Auftraege durchsuchen
+                <div class="toolbar">
+                    <label>
+                        Suche
+                        <input type="search" name="q" value="<?php echo htmlspecialchars($q, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>" style="min-width:260px;"
+                               placeholder="Auftragsnummer, Kunde, Zeichnung, Beschreibung">
                     </label>
-                <?php endif; ?>
+                    <button type="submit">Suchen</button>
+                    <?php if ($q !== ''): ?>
+                        <a class="button-link quiet" href="<?php echo $nurInaktive ? '?seite=auftrag&amp;ansicht=inaktiv' : '?seite=auftrag'; ?>">Zuruecksetzen</a>
+                    <?php endif; ?>
 
-                <br><small>
+                    <?php if (!$nurInaktive): ?>
+                        <?php /* Verstecktes Feld voran: So kommt der Wert auch dann mit, wenn das Haekchen weg ist. */ ?>
+                        <input type="hidden" name="mit_inaktiven" value="0">
+                        <label style="flex-direction:row;align-items:center;gap:0.35rem;font-weight:400;">
+                            <input type="checkbox" name="mit_inaktiven" value="1" <?php echo $mitInaktiven ? 'checked' : ''; ?>>
+                            Auch inaktive Auftraege durchsuchen
+                        </label>
+                    <?php endif; ?>
+                </div>
+
+                <p class="muted"><small>
                     Durchsucht Auftragsnummer, Kunde, Zeichnungsnummer und Kurzbeschreibung<?php echo $nurInaktive ? ' – nur unter den inaktiven Auftraegen' : ''; ?>.
                     <?php if (!$nurInaktive): ?>
                         Ohne Suchbegriff zeigt die Liste nur die aktiven Auftraege.
                     <?php endif; ?>
-                </small>
+                </small></p>
             </form>
 
 
@@ -375,6 +372,7 @@ class AuftragController
                     <p><small>Hier erscheinen angelegte Auftraege und alle Auftragsnummern, zu denen es Buchungen gibt.</small></p>
                 <?php endif; ?>
             <?php else: ?>
+                <div class="table-wrap">
                 <table>
                     <thead>
                         <tr>
@@ -420,7 +418,7 @@ class AuftragController
                                 // In einer Suche ueber alles stehen beide Sorten nebeneinander.
                                 $zeileAktiv = ($aktivRaw === null) || ((int)$aktivRaw === 1);
                             ?>
-                            <tr<?php echo $zeileAktiv ? '' : ' style="color:#8a8a8a;"'; ?>>
+                            <tr<?php echo $zeileAktiv ? '' : ' class="muted"'; ?>>
                                 <td><?php echo $nrEsc; ?></td>
                                 <td><?php echo $kunde !== '' ? htmlspecialchars($kunde, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') : '-'; ?></td>
                                 <td><?php echo $zeichnungsnummer !== '' ? htmlspecialchars($zeichnungsnummer, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') : '-'; ?></td>
@@ -433,25 +431,26 @@ class AuftragController
                                 <td><?php echo htmlspecialchars($letzte, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></td>
                                 <td><?php echo $aktivText; ?></td>
                                 <td><?php echo htmlspecialchars($zuletztBearbeitet, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></td>
-                                <td style="white-space:nowrap;">
+                                <td>
                                     <?php if ($nr !== ''): ?>
-                                        <a href="?seite=auftrag_detail&amp;code=<?php echo urlencode($nr); ?>">Details</a>
-                                        <?php if ($darfVerwaltenListe): ?>
-                                            <?php /* Umschalten direkt in der Zeile - dafuer erst die Details zu oeffnen waere ein Umweg. */ ?>
-                                            &middot;
-                                            <form method="post" action="?seite=auftrag_aktiv_setzen" style="display:inline;">
-                                                <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($listenCsrf, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>">
-                                                <input type="hidden" name="auftragsnummer" value="<?php echo $nrEsc; ?>">
-                                                <input type="hidden" name="aktiv" value="<?php echo $zeileAktiv ? '0' : '1'; ?>">
-                                                <input type="hidden" name="q" value="<?php echo htmlspecialchars($q, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>">
-                                                <input type="hidden" name="ansicht" value="<?php echo $nurInaktive ? 'inaktiv' : ''; ?>">
-                                                <input type="hidden" name="mit_inaktiven" value="<?php echo $mitInaktiven ? '1' : '0'; ?>">
-                                                <input type="hidden" name="s" value="<?php echo $seiteNr; ?>">
-                                                <button type="submit" style="border:none;background:none;padding:0;color:#2b6cb0;text-decoration:underline;cursor:pointer;font:inherit;">
-                                                    <?php echo $zeileAktiv ? 'Inaktiv setzen' : 'Aktiv setzen'; ?>
-                                                </button>
-                                            </form>
-                                        <?php endif; ?>
+                                        <div class="table-actions">
+                                            <a class="button-link" href="?seite=auftrag_detail&amp;code=<?php echo urlencode($nr); ?>">Details</a>
+                                            <?php if ($darfVerwaltenListe): ?>
+                                                <?php /* Umschalten direkt in der Zeile - dafuer erst die Details zu oeffnen waere ein Umweg. */ ?>
+                                                <form method="post" action="?seite=auftrag_aktiv_setzen">
+                                                    <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($listenCsrf, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>">
+                                                    <input type="hidden" name="auftragsnummer" value="<?php echo $nrEsc; ?>">
+                                                    <input type="hidden" name="aktiv" value="<?php echo $zeileAktiv ? '0' : '1'; ?>">
+                                                    <input type="hidden" name="q" value="<?php echo htmlspecialchars($q, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>">
+                                                    <input type="hidden" name="ansicht" value="<?php echo $nurInaktive ? 'inaktiv' : ''; ?>">
+                                                    <input type="hidden" name="mit_inaktiven" value="<?php echo $mitInaktiven ? '1' : '0'; ?>">
+                                                    <input type="hidden" name="s" value="<?php echo $seiteNr; ?>">
+                                                    <button type="submit" class="quiet">
+                                                        <?php echo $zeileAktiv ? 'Inaktiv setzen' : 'Aktiv setzen'; ?>
+                                                    </button>
+                                                </form>
+                                            <?php endif; ?>
+                                        </div>
                                     <?php else: ?>
                                         -
                                     <?php endif; ?>
@@ -460,10 +459,11 @@ class AuftragController
                         <?php endforeach; ?>
                     </tbody>
                 </table>
+                </div>
 
                 <?php $this->zeigeBlaetternavigation($seiteNr, $seitenGesamt, $treffer, $q, $nurInaktive, $mitInaktiven); ?>
 
-                <p style="margin-top: 0.75rem;">
+                <p class="muted">
                     <small>
                         Arbeitsschritt-Code wird in der Detailansicht angezeigt, sofern beim Auftrag-Start erfasst (Scan/Manuell).
                     </small>
@@ -592,16 +592,9 @@ class AuftragController
         $letzteZahl = min($seitenGesamt, $seiteNr + $fenster);
 
         $mitPfeilen = $seitenGesamt >= self::PFEILE_AB_SEITEN;
-
-        $knopf = 'display:inline-block;padding:4px 9px;border:1px solid #cfd8dc;border-radius:4px;'
-               . 'background:#fff;color:#2b6cb0;text-decoration:none;min-width:1.6rem;text-align:center;';
-        $knopfAktiv = 'display:inline-block;padding:4px 9px;border:1px solid #2b6cb0;border-radius:4px;'
-                    . 'background:#2b6cb0;color:#fff;min-width:1.6rem;text-align:center;font-weight:600;';
-        $knopfAus = 'display:inline-block;padding:4px 9px;border:1px solid #e0e0e0;border-radius:4px;'
-                  . 'background:#f5f5f5;color:#9e9e9e;min-width:1.6rem;text-align:center;';
         ?>
-        <nav style="margin-top:0.75rem;display:flex;gap:0.35rem;align-items:center;flex-wrap:wrap;">
-            <span style="margin-right:0.5rem;">
+        <nav class="pager">
+            <span class="pager-info">
                 <?php echo $treffer === 1
                     ? '1 Auftrag'
                     : $von . '&ndash;' . $bis . ' von ' . $treffer . ' Auftraegen'; ?>
@@ -610,45 +603,43 @@ class AuftragController
             <?php if ($seitenGesamt > 1): ?>
                 <?php if ($mitPfeilen): ?>
                     <?php if ($seiteNr > 1): ?>
-                        <a href="<?php echo $url(1); ?>" style="<?php echo $knopf; ?>" title="Erste Seite">&laquo;</a>
-                        <a href="<?php echo $url($seiteNr - 1); ?>" style="<?php echo $knopf; ?>" title="Eine Seite zurueck">&lsaquo;</a>
+                        <a class="button-link quiet" href="<?php echo $url(1); ?>" title="Erste Seite">&laquo;</a>
+                        <a class="button-link quiet" href="<?php echo $url($seiteNr - 1); ?>" title="Eine Seite zurueck">&lsaquo;</a>
                     <?php else: ?>
-                        <span style="<?php echo $knopfAus; ?>">&laquo;</span>
-                        <span style="<?php echo $knopfAus; ?>">&lsaquo;</span>
+                        <span class="button-link disabled">&laquo;</span>
+                        <span class="button-link disabled">&lsaquo;</span>
                     <?php endif; ?>
                 <?php endif; ?>
 
                 <?php if ($ersteZahl > 1): ?>
-                    <a href="<?php echo $url(1); ?>" style="<?php echo $knopf; ?>">1</a>
-                    <?php if ($ersteZahl > 2): ?><span>&hellip;</span><?php endif; ?>
+                    <a class="button-link quiet" href="<?php echo $url(1); ?>">1</a>
+                    <?php if ($ersteZahl > 2): ?><span class="muted">&hellip;</span><?php endif; ?>
                 <?php endif; ?>
 
                 <?php for ($i = $ersteZahl; $i <= $letzteZahl; $i++): ?>
                     <?php if ($i === $seiteNr): ?>
-                        <span style="<?php echo $knopfAktiv; ?>"><?php echo $i; ?></span>
+                        <span class="button-link aktuell" aria-current="page"><?php echo $i; ?></span>
                     <?php else: ?>
-                        <a href="<?php echo $url($i); ?>" style="<?php echo $knopf; ?>"><?php echo $i; ?></a>
+                        <a class="button-link quiet" href="<?php echo $url($i); ?>"><?php echo $i; ?></a>
                     <?php endif; ?>
                 <?php endfor; ?>
 
                 <?php if ($letzteZahl < $seitenGesamt): ?>
-                    <?php if ($letzteZahl < $seitenGesamt - 1): ?><span>&hellip;</span><?php endif; ?>
-                    <a href="<?php echo $url($seitenGesamt); ?>" style="<?php echo $knopf; ?>"><?php echo $seitenGesamt; ?></a>
+                    <?php if ($letzteZahl < $seitenGesamt - 1): ?><span class="muted">&hellip;</span><?php endif; ?>
+                    <a class="button-link quiet" href="<?php echo $url($seitenGesamt); ?>"><?php echo $seitenGesamt; ?></a>
                 <?php endif; ?>
 
                 <?php if ($mitPfeilen): ?>
                     <?php if ($seiteNr < $seitenGesamt): ?>
-                        <a href="<?php echo $url($seiteNr + 1); ?>" style="<?php echo $knopf; ?>" title="Eine Seite vor">&rsaquo;</a>
-                        <a href="<?php echo $url($seitenGesamt); ?>" style="<?php echo $knopf; ?>" title="Letzte Seite">&raquo;</a>
+                        <a class="button-link quiet" href="<?php echo $url($seiteNr + 1); ?>" title="Eine Seite vor">&rsaquo;</a>
+                        <a class="button-link quiet" href="<?php echo $url($seitenGesamt); ?>" title="Letzte Seite">&raquo;</a>
                     <?php else: ?>
-                        <span style="<?php echo $knopfAus; ?>">&rsaquo;</span>
-                        <span style="<?php echo $knopfAus; ?>">&raquo;</span>
+                        <span class="button-link disabled">&rsaquo;</span>
+                        <span class="button-link disabled">&raquo;</span>
                     <?php endif; ?>
                 <?php endif; ?>
 
-                <span style="margin-left:0.5rem;color:#666;">
-                    <small>Seite <?php echo $seiteNr; ?> von <?php echo $seitenGesamt; ?></small>
-                </span>
+                <span class="muted"><small>Seite <?php echo $seiteNr; ?> von <?php echo $seitenGesamt; ?></small></span>
             <?php endif; ?>
         </nav>
         <?php
@@ -1004,19 +995,15 @@ class AuftragController
             <h2>Auftrag: <?php echo htmlspecialchars($code, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></h2>
 
             <p>
-                <a href="?seite=auftrag">&laquo; Zurueck zur Liste</a>
+                <a class="button-link quiet" href="?seite=auftrag">&laquo; Zurueck zur Liste</a>
             </p>
 
             <?php if (is_string($flashOk) && $flashOk !== ''): ?>
-                <p style="padding:8px;border:1px solid #9ad29a;background:#e9f7e9;">
-                    <?php echo htmlspecialchars($flashOk, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>
-                </p>
+                <p class="success"><?php echo htmlspecialchars($flashOk, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></p>
             <?php endif; ?>
 
             <?php if (is_string($flashFehler) && $flashFehler !== ''): ?>
-                <p style="padding:8px;border:1px solid #d29a9a;background:#f7e9e9;">
-                    <?php echo htmlspecialchars($flashFehler, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>
-                </p>
+                <p class="error"><?php echo htmlspecialchars($flashFehler, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></p>
             <?php endif; ?>
 
             <?php if (!empty($fehlermeldung)): ?>
@@ -1082,7 +1069,7 @@ class AuftragController
                                 <td><?php echo htmlspecialchars($status, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></td>
                                 <td>
                                     <?php if ($id > 0): ?>
-                                        <a href="?seite=auftragszeit_bearbeiten&amp;id=<?php echo $id; ?>">Editieren</a>
+                                        <a class="button-link quiet" href="?seite=auftragszeit_bearbeiten&amp;id=<?php echo $id; ?>">Editieren</a>
                                     <?php else: ?>
                                         -
                                     <?php endif; ?>
@@ -1158,12 +1145,12 @@ class AuftragController
                                 <tr><th style="text-align:left;">Aktiv</th><td><?php echo ((int)($auftragStamm['aktiv'] ?? 0) === 1) ? 'Ja' : 'Nein'; ?></td></tr>
                             </tbody>
                         </table>
-                        <p style="margin-top:0.75rem;">
+                        <div class="table-actions" style="margin-top:0.75rem;">
                             <?php if ($darfVerwalten): ?>
-                                <a href="?seite=auftrag_bearbeiten&amp;id=<?php echo (int)$auftragStamm['id']; ?>">Auftrag bearbeiten</a> &middot;
+                                <a class="button-link" href="?seite=auftrag_bearbeiten&amp;id=<?php echo (int)$auftragStamm['id']; ?>">Auftrag bearbeiten</a>
                             <?php endif; ?>
-                            <a href="?seite=auftrag_laufkarte&amp;code=<?php echo urlencode($code); ?>" target="_blank">Laufkarte als PDF drucken</a>
-                        </p>
+                            <a class="button-link quiet" href="?seite=auftrag_laufkarte&amp;code=<?php echo urlencode($code); ?>" target="_blank">Laufkarte als PDF drucken</a>
+                        </div>
                     </div>
 
                     <?php if ($auftragCodeUrl !== ''): ?>
@@ -1200,13 +1187,13 @@ class AuftragController
                                     $schrittCodeBild   = (string)($schritt['code_url'] ?? '');
                                     $schrittAktiv = (int)($schritt['aktiv'] ?? 0) === 1;
                                 ?>
-                                <tr<?php echo $schrittAktiv ? '' : ' style="color:#888;"'; ?>>
+                                <tr<?php echo $schrittAktiv ? '' : ' class="muted"'; ?>>
                                     <td><?php echo $nr + 1; ?></td>
                                     <td><code><?php echo $escD($schrittCode); ?></code></td>
                                     <td>
                                         <?php echo $bezeichnung !== '' ? $escD($bezeichnung) : '-'; ?>
                                         <?php if (!empty($schritt['bezeichnung_aus_katalog'])): ?>
-                                            <small style="color:#666;">(aus Katalog)</small>
+                                            <small class="muted">(aus Katalog)</small>
                                         <?php endif; ?>
                                     </td>
                                     <td>
@@ -1218,7 +1205,7 @@ class AuftragController
                                     </td>
                                     <td><?php echo $schrittAktiv ? 'Ja' : 'Nein'; ?></td>
                                     <?php if ($darfVerwalten): ?>
-                                        <td><a href="?seite=auftrag_schritt_bearbeiten&amp;id=<?php echo $schrittId; ?>">Bearbeiten</a></td>
+                                        <td><a class="button-link quiet" href="?seite=auftrag_schritt_bearbeiten&amp;id=<?php echo $schrittId; ?>">Bearbeiten</a></td>
                                     <?php endif; ?>
                                 </tr>
                             <?php endforeach; ?>
@@ -1227,7 +1214,7 @@ class AuftragController
                 <?php endif; ?>
 
                 <?php if ($darfVerwalten): ?>
-                    <div style="margin-top:1rem;padding:0.75rem;border:1px solid #ddd;border-radius:6px;max-width:640px;">
+                    <div class="admin-card" style="margin-top:1rem;max-width:640px;">
                         <strong>Arbeitsschritt hinzufuegen</strong>
                         <form method="post" action="?seite=auftrag_schritt_speichern" style="margin-top:0.5rem;">
                             <input type="hidden" name="csrf_token" value="<?php echo $escD($stammCsrf); ?>">
@@ -1252,7 +1239,7 @@ class AuftragController
                     </div>
 
                     <?php if (count($katalogVerfuegbar) > 0): ?>
-                        <div style="margin-top:1rem;padding:0.75rem;border:1px solid #ddd;border-radius:6px;max-width:640px;">
+                        <div class="admin-card" style="margin-top:1rem;max-width:640px;">
                             <strong>Aus dem Arbeitsschritt-Katalog uebernehmen</strong>
                             <p style="margin:0.4rem 0;"><small>
                                 Standardschritte, die es bei diesem Auftrag noch nicht gibt. Uebernommene
@@ -1281,7 +1268,7 @@ class AuftragController
                         </div>
                     <?php endif; ?>
 
-                    <div style="margin-top:1.5rem;padding:0.75rem;border:1px solid #e0a0a0;border-radius:6px;max-width:640px;">
+                    <div class="warning-panel" style="margin-top:1.5rem;max-width:640px;">
                         <strong>Auftrag loeschen</strong>
                         <?php if (count($buchungen) > 0): ?>
                             <p style="margin:0.4rem 0;">
@@ -1306,9 +1293,7 @@ class AuftragController
                                   onsubmit="return confirm('Auftrag <?php echo $escD($code); ?> wirklich loeschen? Das laesst sich nicht rueckgaengig machen.');">
                                 <input type="hidden" name="csrf_token" value="<?php echo $escD($stammCsrf); ?>">
                                 <input type="hidden" name="auftragsnummer" value="<?php echo $escD($code); ?>">
-                                <button type="submit" style="border:1px solid #b03a3a;border-radius:4px;background:#b03a3a;color:#fff;padding:6px 12px;cursor:pointer;">
-                                    Auftrag endgueltig loeschen
-                                </button>
+                                <button type="submit" class="danger">Auftrag endgueltig loeschen</button>
                             </form>
                         <?php endif; ?>
                     </div>
@@ -1685,12 +1670,10 @@ class AuftragController
         <section>
             <h2><?php echo $id > 0 ? 'Auftrag bearbeiten' : 'Auftrag anlegen'; ?></h2>
 
-            <p><a href="?seite=auftrag">&laquo; Zurueck zur Liste</a></p>
+            <p><a class="button-link quiet" href="?seite=auftrag">&laquo; Zurueck zur Liste</a></p>
 
             <?php if (is_string($fehlermeldung) && $fehlermeldung !== ''): ?>
-                <div style="margin-bottom:1rem;padding:8px;border:1px solid #e0a0a0;background:#fbeaea;">
-                    <?php echo $esc($fehlermeldung); ?>
-                </div>
+                <div class="error"><?php echo $esc($fehlermeldung); ?></div>
             <?php endif; ?>
 
             <form method="post" action="?seite=auftrag_speichern">
@@ -1747,8 +1730,10 @@ class AuftragController
                     </label>
                 </div>
 
-                <button type="submit">Speichern</button>
-                <a href="?seite=auftrag" style="margin-left:1rem;">Abbrechen</a>
+                <div class="form-actions">
+                    <button type="submit">Speichern</button>
+                    <a class="button-link quiet" href="?seite=auftrag">Abbrechen</a>
+                </div>
             </form>
         </section>
         <?php
@@ -2040,12 +2025,10 @@ class AuftragController
         <section>
             <h2>Arbeitsschritt bearbeiten</h2>
 
-            <p><a href="?seite=auftrag_detail&amp;code=<?php echo urlencode($auftragsnummer); ?>">&laquo; Zurueck zum Auftrag <?php echo $esc($auftragsnummer); ?></a></p>
+            <p><a class="button-link quiet" href="?seite=auftrag_detail&amp;code=<?php echo urlencode($auftragsnummer); ?>">&laquo; Zurueck zum Auftrag <?php echo $esc($auftragsnummer); ?></a></p>
 
             <?php if (is_string($fehlermeldung) && $fehlermeldung !== ''): ?>
-                <div style="margin-bottom:1rem;padding:8px;border:1px solid #e0a0a0;background:#fbeaea;">
-                    <?php echo $esc($fehlermeldung); ?>
-                </div>
+                <div class="error"><?php echo $esc($fehlermeldung); ?></div>
             <?php endif; ?>
 
             <form method="post" action="?seite=auftrag_schritt_speichern">
@@ -2074,8 +2057,10 @@ class AuftragController
                     <br><small>Inaktive Schritte erscheinen nicht auf der Laufkarte. Geloescht wird nicht, damit vorhandene Buchungen zuordenbar bleiben.</small>
                 </div>
 
-                <button type="submit">Speichern</button>
-                <a href="?seite=auftrag_detail&amp;code=<?php echo urlencode($auftragsnummer); ?>" style="margin-left:1rem;">Abbrechen</a>
+                <div class="form-actions">
+                    <button type="submit">Speichern</button>
+                    <a class="button-link quiet" href="?seite=auftrag_detail&amp;code=<?php echo urlencode($auftragsnummer); ?>">Abbrechen</a>
+                </div>
             </form>
         </section>
         <?php
@@ -2281,7 +2266,7 @@ class AuftragController
         <section>
             <h2>Keine Berechtigung</h2>
             <p>Zum Anlegen und Bearbeiten von Auftraegen wird das Recht <code>AUFTRAEGE_VERWALTEN</code> benoetigt.</p>
-            <p><a href="?seite=auftrag">&laquo; Zurueck zur Auftragsliste</a></p>
+            <p><a class="button-link quiet" href="?seite=auftrag">&laquo; Zurueck zur Auftragsliste</a></p>
         </section>
         <?php
         require __DIR__ . '/../views/layout/footer.php';

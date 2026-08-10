@@ -70,6 +70,110 @@ in den Statusbericht.
   D-002 entfallen; die Regel selbst gilt weiter.)
 
 
+## P-2026-08-10-39 auftragsmasken-nutzen-die-vorhandenen-knopfklassen
+
+### EINGELESEN
+- `views/layout/header.php`, der komplette `<style>`-Block – dort steht das
+  Gestaltungsraster des Backends.
+- `controller/AuftragController.php`, alle vier Masken.
+- Bestandsaufnahme über alle Masken:
+  `grep -rc 'style="[^"]*background:#\|style="[^"]*border:1px solid #'`.
+
+### DATEIEN
+- `views/layout/header.php`
+- `controller/AuftragController.php`
+- `docs/STATUS_SNAPSHOT.md`
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+In der Auftragsliste sind „Details" und „Inaktiv setzen" Knöpfe in derselben
+Farbgebung wie „+ Auftrag hinzufuegen", und „Zuruecksetzen" ist ein Knopf statt
+eines Links.
+
+### DONE
+Rückmeldung aus dem Praxis-Test: Die Auftragsliste sah anders aus als der Rest
+des Backends. Der Grund war nicht ein fehlendes Gestaltungsraster, sondern ein
+**ungenutztes**: `views/layout/header.php` bringt seit Längerem `button`,
+`.button-link`, `.danger`, `.table-actions`, `.toolbar`, `.form-actions`,
+`.table-wrap`, `.muted` und `p.error`/`p.success` mit – die Auftragsmasken haben
+stattdessen elf Mal eigene Farben und Rahmen per `style="…"` gesetzt.
+
+Also nichts Neues erfunden, sondern das Vorhandene benutzt. Ergänzt wurden nur
+drei Bausteine, die noch fehlten:
+
+- **`.quiet`** – gleiche Knopfform, weniger Gewicht (weiss mit blauer Schrift).
+  Eine Tabellenzeile mit zwei kräftig blauen Knöpfen ist nur noch Farbe; der
+  Haupthebel bleibt blau, der zweite tritt zurück.
+- **`:disabled` / `.disabled`** – ausgegraut statt versteckt, damit die
+  Blätterleiste am Rand nicht springt.
+- **`.pager`** – die Blätterleiste. Sie ist ein `<nav>`, weil sie das
+  semantisch ist, und musste deshalb Hintergrund, Farbe und Innenabstand der
+  dunklen Hauptnavigation ausdrücklich zurücksetzen.
+
+Umgestellt in allen vier Auftragsmasken: Flash-Meldungen auf `p.success`/
+`p.error`, Kopfzeile und Zeilenaktionen auf `.table-actions`, Suchzeile auf
+`.toolbar`, Formularknöpfe auf `.form-actions`, Löschen auf `.warning-panel` mit
+`button.danger`, graue Zeilen auf `.muted`, Tabelle in `.table-wrap` (scrollt
+waagerecht, statt die Seite zu sprengen). „Reset" heisst jetzt „Zuruecksetzen"
+und ist ein Knopf.
+
+Übrig bleiben in dieser Datei nur noch Breiten- und Abstandsangaben – keine
+Farbe, kein Rahmen, kein Knopf.
+
+### TEST
+Masken im kopflosen Firefox gerendert und angesehen:
+
+- Liste: blauer Hauptknopf, zurückhaltender Nebenknopf, „Details" und
+  „Inaktiv setzen" nebeneinander in einer Zeile, inaktive Zeile grau.
+- Blätterleiste bei 162 Aufträgen auf Seite 4: „76–100 von 162 Auftraegen",
+  `« ‹ 1 2 3 [4] 5 6 7 › »`, aktuelle Seite gefüllt, „Seite 4 von 7".
+- Detailansicht: Kopfaktionen als Knöpfe, Karten für Arbeitsschritte, rot
+  umrandeter Löschbereich mit rotem Knopf.
+- `php -l` auf beiden geänderten Dateien sauber, Seitenaufbau ohne Meldungen.
+- Testdaten (160 Aufträge) danach entfernt, Bestand wieder 3.
+
+### Gefundene Fehler im eigenen Entwurf
+Zwei, beide erst im gerenderten Bild sichtbar – im HTML sahen sie richtig aus:
+
+**Die Blätterleiste war ein dunkler Balken.** `<nav>` erbt die Gestaltung der
+Hauptnavigation (`nav { background-color: #37474f; color: #fff; }`). Wer eine
+Klasse vergibt, hat damit noch nicht den Elementselektor überschrieben.
+
+**Die Zeilenknöpfe standen übereinander.** `.table-actions` bricht um; in einer
+schmalen Tabellenspalte heisst das sofort zwei Zeilen und doppelte Zeilenhöhe.
+In Tabellenzellen gilt jetzt `flex-wrap: nowrap` – wird die Tabelle dadurch zu
+breit, scrollt `.table-wrap`.
+
+Das ist die eigentliche Lehre dieses Patches: Gestaltung lässt sich nicht am
+Quelltext prüfen.
+
+### Was bewusst nicht erreicht wurde
+**Nur die Auftragsmasken.** Der Wunsch war, „mal alles" durchzusehen; das sind
+nach Zählung 14 weitere Masken und wäre ein Patch, der alles anfasst und nichts
+belegt. Die Auftragsmasken sind jetzt die Vorlage, der Rest steht als **T-109**
+im Snapshot. Die Reihenfolge nach Anzahl der Stellen, damit sie einzeln
+abgearbeitet werden kann (Stand dieses Patches):
+
+`views/report/monatsuebersicht.php` (7), `views/zeit/tagesansicht.php` (5),
+`ArbeitsschrittKatalogController` (4), dann je ein bis zwei Stellen in
+`views/zeit_rundungsregel/liste.php`, `views/urlaub/meine_antraege.php`,
+`UrlaubKontingentAdminController`, `views/urlaub/genehmigung_liste.php`,
+`views/rolle/formular.php`, `views/mitarbeiter/formular.php`,
+`views/dashboard/index.php`, `views/auftragszeit/bearbeiten.php`,
+`TerminalAdminController`, `KurzarbeitAdminController`,
+`KonfigurationController`.
+
+`SmokeTestController` bleibt bewusst aussen vor (61 Stellen, T-105): ein
+Diagnosewerkzeug, das ohnehin niemand im Alltag sieht.
+
+`public/css/app.css` ist tote Datei – sie wird von keiner Maske eingebunden, das
+Backend gestaltet sich komplett aus `views/layout/header.php`. Nicht in diesem
+Patch angefasst, aber hiermit aktenkundig.
+
+### NEXT
+T-109 Maske für Maske, beginnend bei `views/report/monatsuebersicht.php`.
+
+
 ## P-2026-08-10-38 auftrag-loeschen-ohne-buchungen
 
 ### EINGELESEN
