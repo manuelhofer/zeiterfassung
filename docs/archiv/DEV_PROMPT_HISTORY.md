@@ -70,6 +70,80 @@ in den Statusbericht.
   D-002 entfallen; die Regel selbst gilt weiter.)
 
 
+## P-2026-08-10-08 doku-nennt-was-es-nicht-gibt
+
+### EINGELESEN
+- `docs/rechte_prompt.md`, `docs/fachregeln/rollen_rechte_genehmiger.md`,
+  `docs/wartungscheckliste.md`.
+- `sql/01_initial_schema.sql` – Tabellen `mitarbeiter_*`, Tabelle `recht`.
+- `services/AuthService.php`, `ladeRechteCodesAusDb()`.
+- Maschineller Abgleich: alle in `docs/` genannten Repo-Pfade gegen das
+  Dateisystem.
+
+### DATEIEN
+- `docs/rechte_prompt.md`
+- `docs/fachregeln/rollen_rechte_genehmiger.md`
+- `docs/wartungscheckliste.md`
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Keine Datei ausserhalb von `docs/archiv/` nennt eine Tabelle oder eine
+SQL-Datei, die es nicht gibt.
+
+### DONE
+Drei sachliche Fehler:
+
+**1. Ein Tabellenname, den es nicht gibt.** `rechte_prompt.md` (2×) und
+`fachregeln/rollen_rechte_genehmiger.md` (1×) sprachen von
+`mitarbeiter_rechte_override`, `rollen_rechte_genehmiger.md` zusaetzlich von
+`mitarbeiter_hat_recht_scope`. **Beide existieren nicht** – weder im Schema noch
+im Code. Die Tabelle heisst `mitarbeiter_hat_recht`, und die Unterscheidung
+Allow/Deny laeuft ueber die Spalte `erlaubt`. Das wiegt schwerer als ein
+Tippfehler: `rollen_rechte_genehmiger.md` ist laut Lesekarte **immer** zu lesen,
+wenn Rechte beruehrt werden. Wer danach im Schema sucht, findet nichts.
+
+**2. Drei SQL-Dateien, die es nicht gibt.** `rechte_prompt.md` verwies auf
+`sql/19_migration_rechte_legacy_merge.sql`,
+`sql/20_migration_recht_code_unique.sql` und `sql/zeiterfassung_aktuell.sql`.
+In `sql/` liegen `01` bis `06`. Geprueft, ob die beschriebenen Wirkungen
+verlorengingen – **nein**: `UNIQUE KEY uniq_recht_code`, `KEY idx_recht_aktiv`
+und die Spalte `recht.aktiv` stehen alle im Initialschema an der Tabelle
+`recht`. Es war also nur die Formulierung falsch, kein Bug. Die Eintraege sagen
+jetzt, dass es die Dateien nicht mehr gibt und wo ihr Ergebnis steht.
+
+**3. Der XAMPP-Abschnitt der Wartungscheckliste** beschrieb einen Rechner, den
+es nicht mehr gibt (`D:\xampp1\php\php.exe`). Die Entwicklungsumgebung ist
+nativ auf Arch/CachyOS, produktiv laeuft Debian. Rund 700 B, die nie jemand
+braucht – und die einzige englische Ausgabe der Datei stand darin
+(`'OK: all PHP files lint clean'`). Entfernt; die verbliebene Ueberschrift
+„Linux / lokale Entwicklungsumgebung" ist damit ueberfluessig und ebenfalls
+weg. Dazu der Tippfehler „Ablaufe" → „Ablaeufe".
+
+### TEST
+- `grep -rn mitarbeiter_rechte_override docs/` – ausserhalb von `docs/archiv/`
+  kein Treffer mehr; dasselbe fuer `mitarbeiter_hat_recht_scope`.
+- Pfad-Abgleich aller in `docs/` genannten Repo-Pfade: es bleiben nur die zwei
+  erwarteten Ausnahmen (`config/geraet.local.php`,
+  `scripts/terminal/terminal.conf`), die zur Laufzeit entstehen.
+- Alle acht Verweise auf `wartungscheckliste.md` in anderen Dokumenten
+  gegengeprueft – keiner zeigte auf den entfernten Abschnitt.
+- `docs/wartungscheckliste.md` 3.729 → 3.085 B.
+
+### Gefundene Fehler im eigenen Entwurf
+Der Aufraeumplan hatte fuer die drei SQL-Verweise vorgesehen, notfalls eine
+B-ID anzulegen, falls die Wirkungen fehlen. Diese Pruefung waere fast
+ausgefallen – „steht bestimmt im Initialschema" ist eine Vermutung, kein
+Befund. Nachgesehen: Sie stehen tatsaechlich drin, belegt mit Zeilennummern.
+
+### Was bewusst nicht erreicht wurde
+`docs/rechte_prompt.md` heisst weiterhin „Prompt", obwohl es eine
+Spezifikation ist. Umbenennen beruehrt sieben Verweise in anderen Dokumenten
+und lohnt nur, wenn ohnehin an der Datei gearbeitet wird.
+
+### NEXT
+P-2026-08-10-09: toter Code – Stub-Dateien.
+
+
 ## P-2026-08-10-07 kaltstart-entdoppelt
 
 ### EINGELESEN

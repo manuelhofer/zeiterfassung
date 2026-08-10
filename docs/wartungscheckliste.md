@@ -14,8 +14,6 @@ zu schuetzen.
 
 ## Technischer Schnellcheck
 
-### Linux / lokale Entwicklungsumgebung
-
 Aus dem Projektverzeichnis (siehe `docs/lokale_entwicklungsumgebung.md`):
 
 ```bash
@@ -43,35 +41,6 @@ Deprecations auf, die im Browser unsichtbar bleiben:
 
 ```bash
 sudo tail -50 /var/log/httpd/error_log
-```
-
-### Windows / XAMPP (aeltere Arbeitsumgebung)
-
-PowerShell aus dem Projektverzeichnis:
-
-```powershell
-git status --short
-D:\xampp1\php\php.exe -v
-```
-
-Alle PHP-Dateien auf Syntaxfehler pruefen:
-
-```powershell
-$errors = @()
-Get-ChildItem -Recurse -Filter *.php | ForEach-Object {
-    $out = & D:\xampp1\php\php.exe -l $_.FullName 2>&1
-    if ($LASTEXITCODE -ne 0) {
-        $errors += [PSCustomObject]@{
-            Path = $_.FullName
-            Output = ($out -join ' ')
-        }
-    }
-}
-if ($errors.Count -eq 0) {
-    'OK: all PHP files lint clean'
-} else {
-    $errors | Format-Table -AutoSize
-}
 ```
 
 ## Manuelle Kernablaeufe
@@ -130,5 +99,5 @@ Nach Aenderungen an Offline-Queue oder Datenbankverbindung:
 - `views/layout/header.php`
 - Monatsreport/PDF-Services
 
-Diese Bereiche funktionieren aktuell, sind aber zentral fuer viele Ablaufe.
+Diese Bereiche funktionieren aktuell, sind aber zentral fuer viele Ablaeufe.
 Hier nur kleine, gut pruefbare Schritte machen.

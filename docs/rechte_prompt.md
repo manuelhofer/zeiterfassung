@@ -4,7 +4,7 @@ Stand: 2026-01-17
 
 ## 1. Überblick
 - Rechte-Codes liegen in der Haupt-DB in `recht.code`.
-- Zuweisungen: `rolle_hat_recht` (Rollenrechte) + `mitarbeiter_rechte_override` (Allow/Deny pro Mitarbeiter).
+- Zuweisungen: `rolle_hat_recht` (Rollenrechte) + `mitarbeiter_hat_recht` (Allow/Deny pro Mitarbeiter über die Spalte `erlaubt`).
 - Prüfung im Code: `AuthService::hatRecht($code)` (teilweise Legacy-Fallback: Rollen „Chef“/„Personalbüro“ als Admin).
 - Ziel dieses Dokuments: **eine** Stelle, an der steht, **welches Recht wofür** gebraucht wird – und welche alten Rechte wir zusammenführen können.
 
@@ -23,7 +23,7 @@ Kurz: In der DB existieren **Legacy-Rechte** und **kanonische Nachfolger** paral
 - Roadmap dazu steht unten in **Kapitel 5** (Phase 1: mergen/ausblenden).
 
 ## 1b. Inventar aller Rechte (DB) + Status
-Quelle: `sql/01_initial_schema.sql` (INSERT INTO `recht`). Aeltere Verlaufs-/Patch-Eintraege koennen noch `sql/zeiterfassung_aktuell.sql` als historischen DB-Dump nennen.
+Quelle: `sql/01_initial_schema.sql` (INSERT INTO `recht`). Ältere Verlaufs-/Patch-Einträge nennen teilweise noch `sql/zeiterfassung_aktuell.sql` – diesen historischen DB-Dump gibt es im Repository nicht mehr.
 
 „Im Code geprüft“ bedeutet: der Code kommt in PHP-Dateien (außerhalb `sql/` und `docs/`) vor und wird aktuell per `AuthService::hatRecht()` / Menü-Checks verwendet.
 
@@ -316,19 +316,24 @@ Diese Rechte-Codes existieren in `recht`, werden aber aktuell **nirgendwo** per 
 
 ### Phase 1 – Legacy-Codes mergen (ohne Funktionsänderung)
 - Ziel: Rollen-UI zeigt jeden Zweck **nur einmal**.
-- **Phase 1a DONE (SQL):** `sql/19_migration_rechte_legacy_merge.sql`
+- **Phase 1a DONE (SQL):** damals `sql/19_migration_rechte_legacy_merge.sql`
   - Mapped Legacy → Kanonisch (Rollenrechte + Mitarbeiter-Overrides),
   - entfernt Legacy-Zuweisungen,
   - setzt Legacy-Rechte auf `recht.aktiv=0` (Soft-Delete).
+  - **Die Datei gibt es nicht mehr:** Ihr Ergebnis steckt seither in
+    `sql/01_initial_schema.sql` (Spalte `recht.aktiv`). Neuinstallationen
+    brauchen sie nicht, bestehende Installationen haben sie längst.
 - **Phase 1b DONE (UI):**
   - Rollenverwaltung + Mitarbeiter-Rechte-Overrides laden nur noch **aktive** Rechte (`recht.aktiv=1`).
 
 ### Phase 2 – Datenbank-Seite hart machen (Verhindert neue Duplikate)
-- **Phase 2 DONE (SQL):** `sql/20_migration_recht_code_unique.sql`
+- **Phase 2 DONE (SQL):** damals `sql/20_migration_recht_code_unique.sql`
   - Normalisiert `recht.code` (TRIM),
-  - konsolidiert Dubletten (mappen in `rolle_hat_recht` und `mitarbeiter_rechte_override`),
+  - konsolidiert Dubletten (mappen in `rolle_hat_recht` und `mitarbeiter_hat_recht`),
   - stellt Unique-Index `uniq_recht_code` sicher,
   - legt Index `idx_recht_aktiv` an (Performance für Filter `aktiv=1`).
+  - **Die Datei gibt es nicht mehr:** Beide Indizes stehen heute direkt in
+    `sql/01_initial_schema.sql` an der Tabelle `recht`.
 
 ### Phase 3 – Optional: Rechte gruppieren/umbenennen (nur UI)
 - **Phase 3a DONE (Rollen-UI):** Rechte werden in Gruppen (Details/Summary) angezeigt.

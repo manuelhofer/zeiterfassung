@@ -25,8 +25,8 @@ Tabellen:
 - `mitarbeiter_hat_rolle` – Legacy, wird intern wie `scope_typ = 'global'`
   behandelt.
 - `mitarbeiter_hat_rolle_scope` – scoped Rollenzuweisung (siehe 3).
-- `mitarbeiter_hat_recht_scope` bzw. `mitarbeiter_rechte_override` – gezielte
-  Ausnahmen je Mitarbeiter.
+- `mitarbeiter_hat_recht` – gezielte Ausnahmen je Mitarbeiter. Die Spalte
+  `erlaubt` entscheidet: `1` gewaehrt zusaetzlich, `0` entzieht trotz Rolle.
 - `mitarbeiter_genehmiger` – siehe 5.
 
 ## 2. Chef darf immer alles (Superuser-Pflicht)
