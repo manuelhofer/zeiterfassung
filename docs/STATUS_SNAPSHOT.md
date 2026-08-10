@@ -47,12 +47,14 @@ den Stufenplan (Abschnitt 11).
 - **T-108** Drei Zugriffswege auf `db_injektionsqueue`: `OfflineQueueManager`,
   `QueueService`, `DbInjektionsqueueModel`. Zusammenführen – berührt den
   Offline-Pfad, deshalb nur mit Offline-Test.
-- **T-109** Knöpfe und Farben: 14 Masken setzen Rahmen, Hintergründe oder
-  Knopffarben per `style="…"` selbst, statt die Klassen aus
-  `views/layout/header.php` zu benutzen. Die Auftragsmasken sind seit
-  P-2026-08-10-39 umgestellt und sind die Vorlage; dort steht auch die nach
-  Aufwand sortierte Liste der übrigen. Aktuellen Stand holen mit
-  `grep -rc 'style="[^"]*background:#' --include='*.php' controller views`.
+- **T-109** Knöpfe und Farben: Masken setzen Rahmen, Hintergründe oder Farben
+  per `style="…"` selbst, statt die Klassen aus `views/layout/header.php` zu
+  benutzen. Umgestellt sind die Auftragsmasken (P-2026-08-10-39) sowie
+  Monatsübersicht, Tagesansicht und Layout-Fusszeile (P-2026-08-10-40) – sie
+  sind die Vorlage. Offen sind noch elf, die grössten: `views/dashboard/index.php`,
+  `KonfigurationController`, `views/urlaub/meine_antraege.php`.
+  `SmokeTestController` bleibt aussen vor (siehe T-105). Stand messen mit:
+  `grep -rc 'style="[^"]*\(background:#\|border:1px solid #\|color:#\)' --include='*.php' controller views`
 - Praxis-Test: Bugs und Anomalien sammeln, als Micro-Patches beheben.
 - Offen aus P-2026-08-08-02: Terminal-Buchungsflows sind unter PHP 8.5 noch
   nicht **im Browser** mit angemeldetem Mitarbeiter durchgeklickt. Die

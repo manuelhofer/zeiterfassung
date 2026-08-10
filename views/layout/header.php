@@ -755,8 +755,33 @@ if ($hatKonfigurationAdminRecht) {
             background: #fff7f7;
         }
 
-        .warning-panel > strong {
+        .warning-panel > strong,
+        .warning-panel > h3 {
             color: var(--backend-danger);
+        }
+
+        .warning-panel > h3 {
+            margin: 0 0 0.5rem 0;
+        }
+
+        .warning-panel > :last-child {
+            margin-bottom: 0;
+        }
+
+        /* Fusszeile: stand bis P-2026-08-10-40 als style-Attribut im Markup. */
+        footer {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            gap: 0.5rem;
+            background-color: #eceff1;
+            color: #455a64;
+            padding: 0.75rem 1.25rem;
+            font-size: 0.8rem;
+        }
+
+        footer .footer-rechts {
+            opacity: 0.85;
         }
 
         /* Blaetterleiste unter einer Liste: Trefferzahl, Seitenzahlen, Pfeile.
@@ -785,6 +810,36 @@ if ($hatKonfigurationAdminRecht) {
 
         .pager .button-link.aktuell {
             font-weight: 700;
+        }
+
+        /* Auswertungstabellen: Farben, die eine Bedeutung tragen.
+           Sie stehen hier und nicht in der Maske, damit dieselbe Aussage überall
+           dieselbe Farbe hat - und sich an einer Stelle ändern lässt.
+
+           Die Selektoren sind absichtlich so lang: `tbody tr:nth-child(even) td`
+           und `tbody tr:hover td` weiter oben sind spezifischer als ein blosses
+           `td.zelle-manuell` - die Bedeutungsfarbe waere sonst auf jeder zweiten
+           Zeile verschwunden. Und `.zelle-manuell` steht nach
+           `.zeile-betriebsferien`, weil bei gleichem Gewicht die spaetere Regel
+           gewinnt: Eine von Hand korrigierte Zelle bleibt auch in einer
+           Betriebsferienzeile als solche erkennbar. */
+        tbody tr.zeile-betriebsferien td {
+            background: #fffde7;
+        }
+
+        tbody tr td.zelle-manuell {
+            background: #ffcdd2;
+        }
+
+        .wert-fehlt {
+            color: #b71c1c;
+            font-weight: 700;
+        }
+
+        p.hinweis-fehlt {
+            color: #b71c1c;
+            font-weight: 700;
+            margin: 0.5rem 0;
         }
 
         .status-pill {

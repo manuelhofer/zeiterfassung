@@ -193,11 +193,11 @@ foreach ($buchungen as $b) {
     <?php endif; ?>
 
     <?php if (is_string($flashOk) && trim($flashOk) !== ''): ?>
-        <p style="padding:8px;border:1px solid #9ad29a;background:#e9f7e9;"><?php echo htmlspecialchars($flashOk, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></p>
+        <p class="success"><?php echo htmlspecialchars($flashOk, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></p>
     <?php endif; ?>
 
     <?php if (is_string($flashFehler) && trim($flashFehler) !== ''): ?>
-        <p style="padding:8px;border:1px solid #d29a9a;background:#f7e9e9;"><?php echo htmlspecialchars($flashFehler, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></p>
+        <p class="error"><?php echo htmlspecialchars($flashFehler, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></p>
     <?php endif; ?>
 
     <?php
@@ -210,12 +210,12 @@ foreach ($buchungen as $b) {
     ?>
 
     <?php if (!$zeigeMicroBuchungen && $microBuchungenAusgeblendetAnzahl > 0): ?>
-        <p style="padding:8px;border:1px solid #d0d0d0;background:#f7f7f7;">
+        <p class="notice">
             Hinweis: <?php echo (int)$microBuchungenAusgeblendetAnzahl; ?> Mikro-Buchung(en) (≤ <?php echo (int)$microBuchungGrenzeSekunden; ?> Sekunden) wurden ausgeblendet.
             <a href="<?php echo htmlspecialchars($toggleUrl, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>" style="margin-left:8px;">Mikro-Buchungen anzeigen</a>
         </p>
     <?php elseif ($zeigeMicroBuchungen): ?>
-        <p style="padding:8px;border:1px solid #d0d0d0;background:#f7f7f7;">
+        <p class="notice">
             Mikro-Buchungen werden angezeigt.
             <a href="<?php echo htmlspecialchars($toggleUrl, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>" style="margin-left:8px;">Mikro-Buchungen ausblenden</a>
         </p>
@@ -282,9 +282,9 @@ foreach ($buchungen as $b) {
                     <?php if ($istAdmin): ?>
                         <td><?php echo ($manuell === 1 ? 'ja' : 'nein'); ?></td>
                         <td>
-                            <a href="<?php echo htmlspecialchars($editUrl, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>">Bearbeiten</a>
-                            &nbsp;|
-                            <form method="post" style="display:inline;" onsubmit="return confirm('Buchung wirklich löschen?');">
+                            <div class="table-actions">
+                            <a class="button-link" href="<?php echo htmlspecialchars($editUrl, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>">Bearbeiten</a>
+                            <form method="post" class="table-actions" onsubmit="return confirm('Buchung wirklich löschen?');">
                                 <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($csrfToken, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>">
                                 <input type="hidden" name="aktion" value="delete">
                                 <input type="hidden" name="id" value="<?php echo $id; ?>">
@@ -292,8 +292,9 @@ foreach ($buchungen as $b) {
                                     <input type="hidden" name="show_micro" value="1">
                                 <?php endif; ?>
                                 <input type="text" name="begruendung" maxlength="255" required placeholder="Begründung" style="width: 180px;">
-                                <button type="submit">Löschen</button>
+                                <button type="submit" class="danger">Löschen</button>
                             </form>
+                            </div>
                         </td>
                     <?php endif; ?>
                 </tr>
@@ -310,8 +311,8 @@ foreach ($buchungen as $b) {
     // HTML time input akzeptiert Sekunden (step=1), daher volle Uhrzeit übernehmen.
     $editZeitInput = $editZeit;
 ?>
-    <div id="buchung-bearbeiten" style="border:1px solid #b00020; border-radius: 8px; padding: 10px 12px; background:#fff5f5; margin: 12px 0;">
-        <h3 style="margin: 0 0 8px 0; color:#b00020;">Buchung bearbeiten (ID <?php echo $editId; ?>)</h3>
+    <div id="buchung-bearbeiten" class="warning-panel" style="margin: 12px 0;">
+        <h3>Buchung bearbeiten (ID <?php echo $editId; ?>)</h3>
         <form method="post" style="margin: 0;">
             <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($csrfToken, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>">
             <input type="hidden" name="aktion" value="update">
@@ -341,7 +342,7 @@ foreach ($buchungen as $b) {
             </label>
 
             <button type="submit" style="margin-left: 8px;">Speichern</button>
-            <a href="?seite=zeit_heute&amp;datum=<?php echo urlencode($datum); ?>&amp;mitarbeiter_id=<?php echo urlencode((string)$zielMitarbeiterId); ?><?php echo $zeigeMicroBuchungen ? '&amp;show_micro=1' : ''; ?>" style="margin-left:8px;">Abbrechen</a>
+            <a class="button-link quiet" href="?seite=zeit_heute&amp;datum=<?php echo urlencode($datum); ?>&amp;mitarbeiter_id=<?php echo urlencode((string)$zielMitarbeiterId); ?><?php echo $zeigeMicroBuchungen ? '&amp;show_micro=1' : ''; ?>" style="margin-left:8px;">Abbrechen</a>
         </form>
     </div>
 <?php endif; ?>
@@ -385,7 +386,7 @@ foreach ($buchungen as $b) {
                     <button type="submit" style="margin-left: 8px;">Hinzufügen</button>
                 </form>
 
-                <p style="margin-top:10px;color:#666;">
+                <p class="muted" style="margin-top:10px;">
                     <?php if ($neueBuchungHinweis !== ''): ?>
                         <span><strong><?php echo htmlspecialchars($neueBuchungHinweis, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></strong></span><br>
                     <?php endif; ?>
@@ -441,16 +442,16 @@ foreach ($buchungen as $b) {
                 $pauseOverrideAm = $pauseOverrideGesetztAmAnzeige !== '' ? $pauseOverrideGesetztAmAnzeige : 'unbekannt';
                 $pauseOverrideTextBegruendung = trim((string)$pauseOverrideBegruendung) !== '' ? $pauseOverrideBegruendung : 'keine Angabe';
             ?>
-            <div style="border: 2px solid #b00020; border-radius: 10px; padding: 0.6rem 0.8rem; background: #fff5f5; margin: 8px 0 10px 0;">
-                <strong style="color:#b00020;">Pause-Override aktiv:</strong>
+            <div class="warning-panel" style="margin: 8px 0 10px 0;">
+                <strong>Pause-Override aktiv:</strong>
                 <span><?php echo htmlspecialchars(str_replace('.', ',', (string)$pauseOverrideStunden), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?> Stunden</span>
-                <span style="color:#666; font-size: 0.95rem;">– gesetzt von <?php echo htmlspecialchars($pauseOverrideVon, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?> am <?php echo htmlspecialchars($pauseOverrideAm, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?> – Begründung: <em><?php echo htmlspecialchars($pauseOverrideTextBegruendung, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></em></span>
+                <span class="muted" style="font-size: 0.95rem;">– gesetzt von <?php echo htmlspecialchars($pauseOverrideVon, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?> am <?php echo htmlspecialchars($pauseOverrideAm, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?> – Begründung: <em><?php echo htmlspecialchars($pauseOverrideTextBegruendung, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></em></span>
                 <a href="?seite=dashboard" style="margin-left: 10px;">Zurück zum Dashboard</a>
             </div>
         <?php endif; ?>
 
         <?php if (!$pauseOverrideAktiv && $pauseAutoStunden !== ''): ?>
-            <div style="margin: 0 0 10px 0; color:#666;">
+            <div class="muted" style="margin: 0 0 10px 0;">
                 Automatische Pause nach Regeln: <strong><?php echo htmlspecialchars(str_replace('.', ',', (string)$pauseAutoStunden), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?> Stunden</strong>
                 <?php if ($pauseAutoEntscheidungNoetig && $pauseAutoVorschlagMin > 0): ?>
                     <span style="margin-left: 8px;">(Pausenentscheidung nötig; Auto-Vorschlag: <?php echo htmlspecialchars(str_replace('.', ',', number_format($pauseAutoVorschlagMin / 60.0, 2, '.', '')), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?> Stunden)</span>
@@ -467,7 +468,7 @@ foreach ($buchungen as $b) {
                 Pause Override
             </label>
 
-            <span style="color:#666; font-size: 0.95rem;">
+            <span class="muted" style="font-size: 0.95rem;">
                 Hinweis: Override setzt betriebliche Pausenfenster außer Kraft.
             </span>
 

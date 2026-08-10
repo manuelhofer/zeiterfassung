@@ -1141,7 +1141,7 @@ if (is_array($tageswerte) && $tageswerte !== []) {
     ?>
 
     <?php if ($monatHatZeitUnstimmigkeit): ?>
-        <p style="margin:0.5rem 0; color:#b71c1c; font-weight:bold;">
+        <p class="hinweis-fehlt">
             ⚠ Hinweis: Dieser Monat enthält Tage mit <strong>unvollständigen</strong> Kommen/Gehen-Stempeln.
             Betroffene Tage sind in der Tabelle mit <strong>FEHLT</strong> markiert.
         </p>
@@ -1307,7 +1307,7 @@ if (is_array($tageswerte) && $tageswerte !== []) {
                     // Betriebsferien = gelb (manuelle Markierung erfolgt pro Zelle).
                     $trStyle = '';
                     if ($istBetriebsferien) {
-                        $trStyle = ' style="background:#fffde7;"';
+                        $trStyle = ' class="zeile-betriebsferien"';
                     }
 
                     $istMicroIgnoriert = ((int)($t['micro_arbeitszeit_ignoriert'] ?? 0) === 1);
@@ -1366,8 +1366,8 @@ if (is_array($tageswerte) && $tageswerte !== []) {
                         $kommenRohExtra = ($kommenRohAnzeige !== '' && $kommenMain !== $kommenRohAnzeige) ? $kommenRohAnzeige : '';
                         $gehenRohExtra  = ($gehenRohAnzeige !== '' && $gehenMain !== $gehenRohAnzeige) ? $gehenRohAnzeige : '';
 
-                        $tdKommenStyle = ($istKommenManuell && $kommenMain !== '') ? ' style="background:#ffcdd2;"' : '';
-                        $tdGehenStyle = ($istGehenManuell && $gehenMain !== '') ? ' style="background:#ffcdd2;"' : '';
+                        $tdKommenStyle = ($istKommenManuell && $kommenMain !== '') ? ' class="zelle-manuell"' : '';
+                        $tdGehenStyle = ($istGehenManuell && $gehenMain !== '') ? ' class="zelle-manuell"' : '';
 
                         $hatStempel = ($kommenRoh !== '' || $gehenRoh !== '' || $kommenKorr !== '' || $gehenKorr !== '');
 
@@ -1436,22 +1436,22 @@ if (is_array($tageswerte) && $tageswerte !== []) {
                         <td<?php echo $istErsteZeile ? ' title="' . htmlspecialchars($datumIso, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') . '"' : ''; ?>>
                             <?php echo $istErsteZeile ? htmlspecialchars(report_format_datum($datumIso), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') : ''; ?>
                             <?php if ($istErsteZeile && $tagHatZeitUnstimmigkeit): ?>
-                                <span style="color:#b71c1c; font-weight:bold;">&nbsp;⚠</span>
+                                <span class="wert-fehlt">&nbsp;⚠</span>
                             <?php endif; ?>
                         </td>
 
                         <td<?php echo $tdKommenStyle; ?>>
                             <?php if ($kommenFehlt): ?>
-                                <span style="color:#b71c1c; font-weight:bold;">FEHLT</span>
+                                <span class="wert-fehlt">FEHLT</span>
                             <?php else: ?>
                                 <?php echo htmlspecialchars($kommenMain !== '' ? $kommenMain : '-', ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>
                                 <?php if ($kommenRohExtra !== ''): ?><br><small>roh: <?php echo htmlspecialchars($kommenRohExtra, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></small><?php endif; ?>
-                                <?php if ($istMicroIgnoriert && $showMicro): ?><br><small style="color:#777;">micro</small><?php endif; ?>
+                                <?php if ($istMicroIgnoriert && $showMicro): ?><br><small class="muted">micro</small><?php endif; ?>
                             <?php endif; ?>
                         </td>
                         <td<?php echo $tdGehenStyle; ?>>
                             <?php if ($gehenFehlt): ?>
-                                <span style="color:#b71c1c; font-weight:bold;">FEHLT</span>
+                                <span class="wert-fehlt">FEHLT</span>
                             <?php else: ?>
                                 <?php echo htmlspecialchars($gehenMain !== '' ? $gehenMain : '-', ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>
                                 <?php if ($gehenRohExtra !== ''): ?><br><small>roh: <?php echo htmlspecialchars($gehenRohExtra, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></small><?php endif; ?>
@@ -1479,7 +1479,7 @@ if (is_array($tageswerte) && $tageswerte !== []) {
                                     $pauseShow = $pauseBlock;
                                 }
                             }
-                            $tdPauseStyle = $pauseManuell ? ' style="background:#ffcdd2;"' : '';
+                            $tdPauseStyle = $pauseManuell ? ' class="zelle-manuell"' : '';
                         ?>
                         <td<?php echo $tdPauseStyle; ?>>
                             <?php echo htmlspecialchars($pauseShow, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>
@@ -1495,7 +1495,7 @@ if (is_array($tageswerte) && $tageswerte !== []) {
                                 }
                                 $kaManuell = $felderManuell && $kaShow !== '-';
                             }
-                            $tdKurzStyle = $kaManuell ? ' style="background:#ffcdd2;"' : '';
+                            $tdKurzStyle = $kaManuell ? ' class="zelle-manuell"' : '';
                         ?>
                         <td<?php echo $tdKurzStyle; ?>>
                             <?php if ($istMetaZeile): ?>
@@ -1518,7 +1518,7 @@ if (is_array($tageswerte) && $tageswerte !== []) {
                                 }
                                 $ftManuell = $felderManuell && $ftShow !== '-';
                             }
-                            $tdFeiertagStyle = $ftManuell ? ' style="background:#ffcdd2;"' : '';
+                            $tdFeiertagStyle = $ftManuell ? ' class="zelle-manuell"' : '';
                         ?>
                         <td<?php echo $tdFeiertagStyle; ?>>
                             <?php if ($istMetaZeile): ?>
@@ -1541,7 +1541,7 @@ if (is_array($tageswerte) && $tageswerte !== []) {
                                 }
                                 $uManuell = $felderManuell && $uShow !== '-';
                             }
-                            $tdUrlaubStyle = $uManuell ? ' style="background:#ffcdd2;"' : '';
+                            $tdUrlaubStyle = $uManuell ? ' class="zelle-manuell"' : '';
                         ?>
                         <td<?php echo $tdUrlaubStyle; ?>>
                             <?php if ($istMetaZeile): ?>

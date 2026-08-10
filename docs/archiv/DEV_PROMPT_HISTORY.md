@@ -70,6 +70,86 @@ in den Statusbericht.
   D-002 entfallen; die Regel selbst gilt weiter.)
 
 
+## P-2026-08-10-40 zeit-und-reportmasken-nutzen-die-klassen
+
+### EINGELESEN
+- `views/layout/header.php` (Gestaltungsraster), `views/layout/footer.php`.
+- `views/report/monatsuebersicht.php`, `views/zeit/tagesansicht.php`,
+  `views/auftragszeit/bearbeiten.php`.
+- Zählung aus T-109, diesmal mit `color:#` im Muster – die Liste in
+  P-2026-08-10-39 stammte aus einem engeren Suchmuster und war deshalb anders
+  sortiert.
+
+### DATEIEN
+- `views/layout/header.php`
+- `views/layout/footer.php`
+- `views/report/monatsuebersicht.php`
+- `views/zeit/tagesansicht.php`
+- `views/auftragszeit/bearbeiten.php`
+- `docs/STATUS_SNAPSHOT.md`
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+In der Monatsübersicht Juli 2026 sind von Hand korrigierte Zellen weiterhin rot
+und Betriebsferienzeilen gelb – die Farben stehen aber in
+`views/layout/header.php` statt zwölfmal im Markup.
+
+### DONE
+Fortsetzung von T-109, zweite Gruppe. Hier lagen zwei verschiedene Fälle
+nebeneinander, und sie brauchen verschiedene Antworten:
+
+**Gestaltung ohne Aussage** – Flash-Meldungen, Hinweiskästen, graue
+Randnotizen, der rote Kasten „Buchung bearbeiten", die Fusszeile. Die
+verschwinden ersatzlos in die vorhandenen Klassen: `p.success`, `p.error`,
+`p.notice`, `.muted`, `.warning-panel`, `footer`.
+
+**Farbe, die etwas bedeutet** – in der Monatsübersicht heisst Rot „von Hand
+korrigiert", Gelb „Betriebsferien", rot-fett „FEHLT". Die darf nicht
+verschwinden, sie soll nur an **einer** Stelle definiert sein: neue Klassen
+`.zelle-manuell`, `.zeile-betriebsferien`, `.wert-fehlt`, `.hinweis-fehlt`.
+Gleiche Farbwerte wie vorher – dieser Patch ändert das Bild nicht, nur den Ort.
+
+Ausserdem: Zeilenaktionen der Tagesansicht als Knöpfe (`Bearbeiten` blau,
+`Löschen` rot) statt Link-Strich-Formular, „Abbrechen" als zurückhaltender
+Knopf, und `views/auftragszeit/bearbeiten.php` bekommt eine `.form-actions`-
+Zeile samt Abbrechen-Knopf, die vorher fehlte.
+
+### TEST
+- Kaskaden-Probe als eigene Seite gebaut (Layout-CSS plus erfundene Tabelle,
+  keine echten Daten) und im Bild geprüft: rote Zelle auf gerader **und**
+  ungerader Zeile, gelbe Betriebsferienzeile, rote Zelle in gelber Zeile, FEHLT
+  rot-fett.
+- Monatsübersicht Juli 2026 gerendert: `zelle-manuell` 4x,
+  `zeile-betriebsferien` 2x, `wert-fehlt` 1x, `hinweis-fehlt` 1x – und **keine**
+  Eigenfarbe mehr im ausgelieferten HTML.
+- Tagesansicht und Auftragsliste gerendert, keine Meldungen.
+- `php -l` auf allen fünf geänderten PHP-Dateien sauber.
+
+### Gefundene Fehler im eigenen Entwurf
+**Die Zebrastreifen hätten die Bedeutungsfarben geschluckt.** Erst standen die
+neuen Regeln als `td.zelle-manuell` da. Weiter oben im selben Stylesheet steht
+aber `tbody tr:nth-child(even) td` – spezifischer, also hätte jede zweite Zeile
+ihre rote Markierung verloren. Als Inline-Style konnte das nicht passieren, das
+gewinnt immer. Jetzt `tbody tr td.zelle-manuell`, und `.zelle-manuell` steht
+**nach** `.zeile-betriebsferien`, damit bei gleichem Gewicht Rot vor Gelb
+gewinnt – so war es vorher auch, weil ein `td`-Inline-Style den der `tr`
+überdeckte.
+
+Gefunden hat das nicht der Blick in den Quelltext, sondern die Kaskaden-Probe
+als Bild. Zweite Bestätigung derselben Lehre wie in P-2026-08-10-39.
+
+### Was bewusst nicht erreicht wurde
+Die Farbwerte selbst (`#ffcdd2`, `#fffde7`, `#b71c1c`) sind unverändert und noch
+keine CSS-Variablen. Sie gehören fachlich zur Auswertung, nicht zur
+Grundpalette; das zu entscheiden ist ein eigenes Thema.
+
+Elf Masken sind noch offen (T-109), darunter `views/dashboard/index.php` und
+`KonfigurationController`.
+
+### NEXT
+T-109 weiter: Dashboard und Konfiguration.
+
+
 ## P-2026-08-10-39 auftragsmasken-nutzen-die-vorhandenen-knopfklassen
 
 ### EINGELESEN

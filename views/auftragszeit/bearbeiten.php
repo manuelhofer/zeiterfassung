@@ -18,13 +18,11 @@ $zielCode = $auftragscode !== '' ? $auftragscode : '';
     <h2>Auftragszeit bearbeiten</h2>
 
     <p>
-        <a href="?seite=auftrag_detail&amp;code=<?php echo urlencode($zielCode); ?>">&laquo; Zurück zur Auftragsdetailseite</a>
+        <a class="button-link quiet" href="?seite=auftrag_detail&amp;code=<?php echo urlencode($zielCode); ?>">&laquo; Zurück zur Auftragsdetailseite</a>
     </p>
 
     <?php if (is_string($fehlermeldung) && $fehlermeldung !== ''): ?>
-        <p style="padding:8px;border:1px solid #d29a9a;background:#f7e9e9;">
-            <?php echo htmlspecialchars($fehlermeldung, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>
-        </p>
+        <p class="error"><?php echo htmlspecialchars($fehlermeldung, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></p>
     <?php endif; ?>
 
     <form method="post" action="?seite=auftragszeit_bearbeiten&amp;id=<?php echo $auftragszeitId; ?>" style="max-width: 720px;">
@@ -81,8 +79,9 @@ $zielCode = $auftragscode !== '' ? $auftragscode : '';
             </label>
         </fieldset>
 
-        <p style="margin-top: 1rem;">
+        <div class="form-actions">
             <button type="submit">Speichern</button>
-        </p>
+            <a class="button-link quiet" href="?seite=auftrag_detail&amp;code=<?php echo urlencode($zielCode); ?>">Abbrechen</a>
+        </div>
     </form>
 </section>
