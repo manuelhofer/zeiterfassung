@@ -1159,9 +1159,10 @@ class TerminalController
         // Beim Replay wird die Mitarbeiter-ID über die RFID aufgelöst.
         $zeitStr = $zeitpunkt->format('Y-m-d H:i:s');
 
-        // SQL-Literal Escaping (minimal, aber ausreichend für Reader-Input)
+        // SQL-Literal-Maskierung zentral aus Helper – wichtig, weil
+        // ermittleOfflineHintFuerRfid() denselben Text wiederfinden muss.
         $q = static function (string $s): string {
-            return "'" . str_replace("'", "''", $s) . "'";
+            return Helper::sqlLiteral($s);
         };
 
         // WICHTIG: Wir bauen die Mitarbeiter-Auflösung so, dass ein fehlender RFID
@@ -1228,8 +1229,10 @@ class TerminalController
             return null;
         }
 
-        // Wir suchen nach dem exakten Literal im SQL-Text, das wir in bucheZeitOfflinePerRfid() erzeugen.
-        $escaped = str_replace("'", "''", $rfidCode);
+        // Wir suchen nach dem exakten Literal im SQL-Text, das wir in
+        // bucheZeitOfflinePerRfid() erzeugen. Deshalb **dieselbe** Maskierung
+        // benutzen – sonst findet die Suche den eigenen Eintrag nicht wieder.
+        $escaped = Helper::sqlEscape($rfidCode);
         $like = "%rfid_code = '" . $escaped . "'%";
 
         try {
@@ -3620,7 +3623,9 @@ class TerminalController
 
     private function sqlString(string $val): string
     {
-        return "'" . str_replace("'", "''", $val) . "'";
+        // Maskierung liegt zentral in Helper::sqlLiteral() – auch der Backslash,
+        // den MySQL als Fluchtzeichen behandelt.
+        return Helper::sqlLiteral($val);
     }
 
     private function sqlInt(int $val): string

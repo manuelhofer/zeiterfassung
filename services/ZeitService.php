@@ -47,8 +47,9 @@ class ZeitService
 
     private function sqlQuote(string $value): string
     {
-        // Standard-SQL-Quoting (''), MySQL-kompatibel
-        return "'" . str_replace("'", "''", $value) . "'";
+        // Maskierung liegt zentral in Helper::sqlLiteral() – auch der Backslash,
+        // den MySQL als Fluchtzeichen behandelt.
+        return Helper::sqlLiteral($value);
     }
 
     private function sqlNullableString(?string $value): string

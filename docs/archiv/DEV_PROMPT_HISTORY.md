@@ -70,6 +70,76 @@ in den Statusbericht.
   D-002 entfallen; die Regel selbst gilt weiter.)
 
 
+## P-2026-08-10-01 sql-maskierung-offline-queue
+
+### EINGELESEN
+- `controller/TerminalController.php` (drei Maskierungsstellen),
+  `services/ZeitService.php`, `services/AuftragszeitService.php`, `core/Helper.php`.
+- `docs/fachregeln/terminal_und_offline.md`, Abschnitt Offline-Queue.
+- Duplicate-Check: `git log -S"sqlLiteral"` und `git log -S"NO_BACKSLASH"` – leer.
+
+### DATEIEN
+- `core/Helper.php`
+- `controller/TerminalController.php`
+- `services/ZeitService.php`
+- `services/AuftragszeitService.php`
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Ein Auftragscode `A1\` erzeugt ein SQL-Literal, das sich unveraendert und ohne
+Syntaxfehler ausfuehren laesst, und der Wert kommt aus der Datenbank genauso
+zurueck, wie er hineingegangen ist.
+
+### DONE
+Die Offline-Queue speichert fertigen SQL-Text, der spaeter gegen die
+Hauptdatenbank laeuft; Prepared Statements sind dort nicht moeglich. Maskiert
+wurde an fuenf Stellen mit `str_replace("'", "''", $wert)` – das verdoppelt
+Anfuehrungszeichen, laesst den **Backslash** aber unangetastet. MySQL/MariaDB
+behandeln `\` in der Standardeinstellung als Fluchtzeichen. Ein Wert, der auf
+`\` endet, maskiert damit das schliessende Anfuehrungszeichen: Das Literal
+bleibt offen, und alles Nachfolgende wird SQL.
+
+Die Werte stammen aus Terminal-Eingaben (`$auftragscode`,
+`$arbeitsschrittCode`, RFID-Code), der erzeugte Befehl laeuft spaeter gegen die
+Hauptdatenbank. Das ist der denkbar schlechteste Ort fuer eine solche Luecke.
+
+Neu: `Helper::sqlEscape()` und `Helper::sqlLiteral()` – erst Backslashes
+verdoppeln, dann Anfuehrungszeichen. Die Reihenfolge ist wesentlich; umgekehrt
+wuerden die frisch erzeugten Backslashes gleich wieder verdoppelt. Die fuenf
+Kopien rufen jetzt dorthin.
+
+### TEST
+Gegen die lokale MariaDB, vier Werte je zweimal (alt/neu):
+
+| Wert | alte Maskierung | neu |
+| --- | --- | --- |
+| `A1\` | SQL-Syntaxfehler 1064 | Roundtrip identisch |
+| `O'Brien` | ok | Roundtrip identisch |
+| `x\'; SELECT 1; --` | SQL-Syntaxfehler 1064 | Roundtrip identisch |
+| `normal-123` | ok | Roundtrip identisch |
+
+`php -l` ueber alle vier geaenderten Dateien sauber.
+
+### Gefundene Fehler im eigenen Entwurf
+Beim ersten Durchgang haette ich nur die drei `sqlQuote`/`sqlString`-Funktionen
+umgestellt. `ermittleOfflineHintFuerRfid()` (TerminalController, Zeile ~1232)
+maskiert aber ebenfalls von Hand – nicht um SQL zu bauen, sondern um den in
+`bucheZeitOfflinePerRfid()` erzeugten Text per LIKE **wiederzufinden**. Waere
+die eine Seite umgestellt worden und die andere nicht, haette die Suche ihren
+eigenen Eintrag bei jedem Code mit Backslash nicht mehr gefunden – ein stiller
+Folgefehler. Beide Seiten benutzen jetzt dieselbe Funktion; genau dafuer gibt
+es `sqlEscape()` zusaetzlich zu `sqlLiteral()`.
+
+### Was bewusst nicht erreicht wurde
+`sqlInt()`/`sqlNullableInt()` bleiben, wie sie sind – harte Typumwandlung, dort
+ist nichts zu maskieren. Der Umbau der Offline-Queue auf ein Format ohne rohes
+SQL (z. B. Aktion + Parameter als JSON) waere die grundsaetzliche Loesung, ist
+aber ein eigenes Vorhaben und beruehrt das Queue-Schema.
+
+### NEXT
+P-2026-08-10-02: toter Logging-Zweig im Urlaubssaldo (`LoggerService`).
+
+
 ## P-2026-08-09-21 doku-durchgang-stufe-5-und-6
 
 ### EINGELESEN

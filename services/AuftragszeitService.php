@@ -44,7 +44,9 @@ class AuftragszeitService
 
     private function sqlQuote(string $value): string
     {
-        return "'" . str_replace("'", "''", $value) . "'";
+        // Maskierung liegt zentral in Helper::sqlLiteral() – auch der Backslash,
+        // den MySQL als Fluchtzeichen behandelt.
+        return Helper::sqlLiteral($value);
     }
 
     private function sqlNullableString(?string $value, int $maxLen = 255): string

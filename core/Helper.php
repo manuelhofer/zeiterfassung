@@ -149,6 +149,37 @@ class Helper
     }
 
     /**
+     * Maskiert einen Wert fuer die Verwendung in einem SQL-Stringliteral –
+     * **ohne** die umschliessenden Anfuehrungszeichen.
+     *
+     * Warum es diese Funktion ueberhaupt gibt: Die Offline-Queue speichert
+     * fertigen SQL-Text, der spaeter ausgefuehrt wird. Dort sind Prepared
+     * Statements nicht moeglich, also muss von Hand maskiert werden – und dann
+     * bitte an genau einer Stelle.
+     *
+     * Warum der Backslash zuerst kommt: MySQL und MariaDB behandeln `\` in der
+     * Standardeinstellung als Fluchtzeichen (`NO_BACKSLASH_ESCAPES` ist aus).
+     * Ein Wert, der auf `\` endet, wuerde sonst das schliessende
+     * Anfuehrungszeichen maskieren, das Literal offen lassen und alles
+     * Nachfolgende zu SQL machen. Die Reihenfolge ist wesentlich: erst
+     * Backslashes verdoppeln, dann Anfuehrungszeichen – umgekehrt wuerden die
+     * frisch erzeugten Backslashes gleich wieder verdoppelt.
+     */
+    public static function sqlEscape(string $wert): string
+    {
+        return str_replace(['\\', "'"], ['\\\\', "''"], $wert);
+    }
+
+    /**
+     * Liefert einen Wert als vollstaendiges SQL-Stringliteral, inklusive
+     * Anfuehrungszeichen. Siehe `sqlEscape()` fuer die Begruendung.
+     */
+    public static function sqlLiteral(string $wert): string
+    {
+        return "'" . self::sqlEscape($wert) . "'";
+    }
+
+    /**
      * Ermittelt den Web-Basispfad der laufenden Installation.
      *
      * Wird gebraucht, um aus einem Pfad unterhalb von `public/` eine URL zu
