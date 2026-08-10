@@ -1,3 +1,0 @@
-<?php
-// Monatsübersicht eines Mitarbeiters
-?>

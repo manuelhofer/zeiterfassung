@@ -1,3 +1,0 @@
-<?php
-// Urlaubsantrag erstellen/bearbeiten
-?>

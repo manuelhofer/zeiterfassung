@@ -70,6 +70,66 @@ in den Statusbericht.
   D-002 entfallen; die Regel selbst gilt weiter.)
 
 
+## P-2026-08-10-10 leere-platzhalterdateien-entfernt
+
+### EINGELESEN
+- Alle 14 betroffenen Dateien vollstaendig (je drei Zeilen).
+- `public/index.php` (Router) – keine der acht Controller-Klassen wird
+  instanziiert.
+- Duplicate-Check ueber `grep` auf jeden Klassen- bzw. Dateinamen.
+
+### DATEIEN
+Geloescht:
+- `controller/AbteilungController.php`, `AuthController.php`,
+  `BackendController.php`, `MaschineController.php`,
+  `MitarbeiterController.php`, `PDFController.php`, `RollenController.php`,
+  `TerminalVerwaltungController.php`
+- `views/auth/login.php`, `views/config/index.php`,
+  `views/urlaub/antrag_formular.php`, `views/urlaub/antrag_genehmigung.php`,
+  `views/urlaub/antrag_liste.php`, `views/zeit/monatsansicht.php`
+- dazu `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Backend und Terminal starten unveraendert, und keine Klassendatei endet mehr
+auf `?>`.
+
+### DONE
+Vierzehn Dateien mit je drei Zeilen: ein `<?php`, ein Kommentar, ein `?>`.
+Keine Klasse, keine Funktion, kein Aufrufer. Sie stammen aus der
+Anfangsgeruestung des Projekts; die tatsaechliche Arbeit machen laengst
+`MitarbeiterAdminController`, `LoginController`, `PDFService` und so weiter.
+
+Der Schaden ist nicht der Platz, sondern die Irrefuehrung: Wer nach dem
+Login-Code sucht, findet `controller/AuthController.php` mit dem Kommentar
+„Login/Logout & Benutzerwechsel" – und dahinter nichts.
+
+Sie waren zugleich die **einzigen** Klassendateien des Projekts mit
+schliessendem `?>`. Das ist ein eigener Grund: Leerzeichen nach `?>` landen in
+der Ausgabe und brechen `header()`-Aufrufe.
+
+Die dadurch leeren Verzeichnisse `views/auth/` und `views/config/` sind mit
+entfernt.
+
+### TEST
+- `index.php`, `terminal.php` und `terminal.php?aktion=health` ueber den
+  lokalen Webserver: dreimal HTTP 200.
+- Keine Datei in `controller/`, `core/`, `modelle/`, `services/` endet mehr auf
+  `?>`.
+
+### Gefundene Fehler im eigenen Entwurf
+Die erste Fassung der Pruefung war `grep -rln '?>'` – die schlaegt bei jeder
+View an, die zwischen PHP und HTML wechselt, und meldete neun Controller mit
+Inline-HTML als Treffer. Gemeint war „endet auf `?>`", und das prueft man mit
+`tail -c`, nicht mit `grep`. Danach: sauber.
+
+In `views/` enden weiterhin 35 Dateien auf `?>`. Das sind Templates, dort ist
+es ueblich und ungefaehrlich, solange nichts dahinter steht – bewusst nicht
+angefasst.
+
+### NEXT
+P-2026-08-10-11: `core/Auth.php` und `core/SessionManager.php`.
+
+
 ## P-2026-08-10-09 rechtepruefung-doku-gegen-code
 
 ### EINGELESEN
