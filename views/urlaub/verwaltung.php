@@ -182,8 +182,13 @@ $statusLabel = static function (string $status): string {
                         <?php foreach ($mitarbeiterListe as $m): ?>
                             <?php $mid = (int)($m['id'] ?? 0); ?>
                             <?php if ($mid > 0): ?>
+                                <?php $uebrigM = $m['urlaub_uebrig'] ?? null; ?>
                                 <option value="<?php echo (int)$mid; ?>"<?php echo $filterMitarbeiterId === $mid ? ' selected' : ''; ?>>
-                                    <?php echo htmlspecialchars($mitarbeiterName($m), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>
+                                    <?php echo htmlspecialchars($mitarbeiterName($m), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?><?php
+                                        if ($uebrigM !== null) {
+                                            echo ' — ' . htmlspecialchars($uebrigM, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') . ' Tage übrig';
+                                        }
+                                    ?>
                                 </option>
                             <?php endif; ?>
                         <?php endforeach; ?>
@@ -224,6 +229,7 @@ $statusLabel = static function (string $status): string {
                 <thead>
                 <tr>
                     <th>Mitarbeiter</th>
+                    <th title="Resturlaub im gewählten Jahr, Betriebsferien sind bereits abgezogen">Übrig</th>
                     <th>Von</th>
                     <th>Bis</th>
                     <th>Tage</th>
@@ -244,9 +250,36 @@ $statusLabel = static function (string $status): string {
                     $kommentarGenehmiger = trim((string)($a['kommentar_genehmiger'] ?? ''));
                     $entscheidungsDatum = trim((string)($a['entscheidungs_datum'] ?? ''));
                     $entscheidungsName = trim((string)($a['entscheidungs_mitarbeiter_name'] ?? ''));
+
+                    $saldo = is_array($a['saldo'] ?? null) ? $a['saldo'] : null;
+                    $uebrig = $saldo !== null ? (string)($saldo['verbleibend'] ?? '') : '';
+                    $offen = $saldo !== null ? (string)($saldo['beantragt'] ?? '0.00') : '';
+                    $anspruchG = $saldo !== null ? (string)($saldo['anspruch'] ?? '') : '';
+                    $uebertragG = $saldo !== null ? (string)($saldo['uebertrag'] ?? '') : '';
+                    $genommenG = $saldo !== null ? (string)($saldo['genommen'] ?? '') : '';
                     ?>
                     <tr>
                         <td><?php echo htmlspecialchars((string)($a['mitarbeiter_name'] ?? ''), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></td>
+                        <td style="white-space:nowrap;">
+                            <?php if ($uebrig === ''): ?>
+                                <small>–</small>
+                            <?php else: ?>
+                                <strong<?php echo ((float)$uebrig < 0) ? ' class="error"' : ''; ?>>
+                                    <?php echo htmlspecialchars($uebrig, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>
+                                </strong> Tage
+                                <br>
+                                <small title="Anspruch + Übertrag − Verbraucht (inkl. Betriebsferien)">
+                                    <?php echo htmlspecialchars($anspruchG, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>
+                                    <?php if ($uebertragG !== '' && (float)$uebertragG != 0.0): ?>
+                                        <?php echo ((float)$uebertragG > 0 ? '+' : '−'); ?><?php echo htmlspecialchars(ltrim($uebertragG, '-'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>
+                                    <?php endif; ?>
+                                    &minus;<?php echo htmlspecialchars($genommenG, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>
+                                </small>
+                                <?php if ($offen !== '' && (float)$offen > 0): ?>
+                                    <br><small><?php echo htmlspecialchars($offen, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?> offen</small>
+                                <?php endif; ?>
+                            <?php endif; ?>
+                        </td>
                         <td><?php echo htmlspecialchars($fmtDatum((string)($a['von_datum'] ?? '')), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></td>
                         <td><?php echo htmlspecialchars($fmtDatum((string)($a['bis_datum'] ?? '')), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></td>
                         <td><?php echo htmlspecialchars($fmtTage($a['tage_gesamt'] ?? ''), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></td>

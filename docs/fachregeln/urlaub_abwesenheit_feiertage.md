@@ -61,6 +61,19 @@ Verschieben lässt sich der Schnitt über `urlaub_uebertrag_ab_jahr` in der
 Tabelle `config` – etwa um beim Einführen einmalig weiter zurückzurechnen. Ohne
 Eintrag gilt das Vorjahr. Zusätzlicher Boden ist immer das Eintrittsjahr.
 
+**Wo der Resturlaub sichtbar ist** (überall dieselbe Zahl aus
+`berechneUrlaubssaldoFuerJahr()`):
+
+| Maske | was sie zeigt |
+| --- | --- |
+| Meine Urlaubsanträge | eigener Saldo, aufgeschlüsselt nach Übertrag und Jahr |
+| Urlaub-Genehmigungsliste | je Antrag `verfügbar vor → nach Genehmigung`, mit Warnung bei negativ |
+| Urlaubsverwaltung | Spalte *Übrig* je Zeile, und der Resturlaub hinter jedem Namen in der Auswahlliste für „Urlaub direkt eintragen" |
+| Urlaubskontingent pro Jahr | Übertrag, Verbraucht und Übrig für alle Mitarbeiter auf einen Blick |
+
+In **Verbraucht** stecken die Betriebsferien bereits drin – „Übrig" ist also
+das, was der Mitarbeiter tatsächlich noch nehmen kann.
+
 **Korrigieren:** In der Kontingentverwaltung (Backend) steht der Übertrag als
 eigenes Feld, zusammen mit dem Zeitpunkt der Festschreibung. Wer den Wert
 ändert und speichert, schreibt ihn damit fest; das Kästchen „neu berechnen

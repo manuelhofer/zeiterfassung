@@ -70,6 +70,72 @@ in den Statusbericht.
   D-002 entfallen; die Regel selbst gilt weiter.)
 
 
+## P-2026-08-10-30 resturlaub-dort-wo-entschieden-wird
+
+### EINGELESEN
+- `views/urlaub/genehmigung_liste.php` – dort gab es die Anzeige bereits.
+- `views/urlaub/verwaltung.php`, `controller/UrlaubController.php::verwaltung()`.
+- `controller/UrlaubKontingentAdminController.php::index()`.
+
+### DATEIEN
+- `controller/UrlaubController.php`
+- `views/urlaub/verwaltung.php`
+- `controller/UrlaubKontingentAdminController.php`
+- `docs/fachregeln/urlaub_abwesenheit_feiertage.md`
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Wer Urlaub genehmigt, storniert oder direkt einträgt, sieht dabei den
+Resturlaub des betroffenen Mitarbeiters.
+
+### DONE
+Nutzerwunsch: „Ein Chef muss sehen können, wie viel Urlaub der Mitarbeiter noch
+hat – vor allem beim Genehmigen."
+
+Nachgesehen, was es schon gab: Die **Genehmigungsliste** zeigt seit jeher je
+Antrag `verfügbar vor → nach Genehmigung (−Tage)` samt Warnung bei negativem
+Ergebnis. Genau an der Stelle, wo entschieden wird, war die Zahl also da. Zwei
+andere Masken hatten sie nicht:
+
+**1. Urlaubskontingent pro Jahr.** Die Spalte „Übertrag (auto)" druckte
+buchstäblich das Wort `auto` – kein Wert. Jetzt stehen dort echte Zahlen, und
+zwei Spalten sind dazugekommen: **Verbraucht** (mit Hinweis auf offene Anträge)
+und **Übrig**, negativ hervorgehoben. Damit ist diese Liste die Übersicht
+„wer hat noch wie viel", die vorher fehlte.
+
+**2. Urlaubsverwaltung.** Neue Spalte **Übrig** je Zeile, mit der Rechnung
+darunter (`Anspruch ±Übertrag −Verbraucht`) und den offenen Tagen. Und dort,
+wo es am meisten zählt: In der Auswahlliste von „Urlaub direkt eintragen" steht
+der Resturlaub **hinter jedem Namen** – „Crispens, Marc — 32.00 Tage übrig".
+Wer dort einträgt, entscheidet in dem Moment, in dem er den Namen auswählt.
+
+Die Betriebsferien sind in „Verbraucht" bereits enthalten, „Übrig" ist also
+das, was tatsächlich noch genommen werden kann. Das steht jetzt als Hinweis
+unter beiden Tabellen und im Spalten-Tooltip.
+
+### TEST
+- Kontingentliste gerendert: 13 Zeilen mit Zahlen statt `auto`, 22 ms.
+- Urlaubsverwaltung gerendert: Spalte vorhanden, Zeile zeigt
+  `32.00 Tage / 30.00 +25.00 −23.00`, 24 ms.
+- Auswahlliste: „Crispens, Marc — 32.00 Tage übrig" usw.
+- **Konsistenz geprüft:** Für Mitarbeiter 15 zeigen „Meine Urlaubsanträge",
+  Verwaltung und Kontingentliste dieselbe Zahl (12,00 übrig; 30,00 Anspruch,
+  −5,00 Übertrag, 13,00 verbraucht) – alle drei rufen dieselbe Methode.
+- Je Mitarbeiter wird der Saldo nur **einmal** gerechnet, auch wenn mehrere
+  Anträge derselben Person in der Liste stehen.
+- `php -l` sauber, 18 Masken ohne Ausnahme, B-080-Probe weiterhin 0 Brüche,
+  Webserver dreimal HTTP 200.
+
+### Was bewusst nicht erreicht wurde
+Die Zahl in der Auswahlliste steht fest, sobald die Seite geladen ist – wer im
+selben Formular das Jahr wechselt, sieht sie erst nach dem Neuladen. Für eine
+Aktualisierung ohne Neuladen bräuchte es einen kleinen Endpunkt und etwas
+JavaScript; das ist ein eigener Patch, falls es im Betrieb stört.
+
+### NEXT
+Praxis-Test.
+
+
 ## P-2026-08-10-29 uebertrag-in-der-kontingentmaske
 
 ### EINGELESEN

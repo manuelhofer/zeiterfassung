@@ -1180,6 +1180,28 @@ class UrlaubController
 
         try {
             $mitarbeiterListe = (new MitarbeiterModel())->holeAlleAktiven();
+
+            // Resturlaub gleich mit in die Auswahlliste: Wer hier Urlaub
+            // direkt einträgt, entscheidet in dem Moment, in dem er den Namen
+            // auswählt – dann muss die Zahl dort stehen und nicht drei
+            // Klicks entfernt.
+            foreach ($mitarbeiterListe as &$eintrag) {
+                $eintrag['urlaub_uebrig'] = null;
+                $mid = (int)($eintrag['id'] ?? 0);
+                if ($mid <= 0) {
+                    continue;
+                }
+
+                try {
+                    $s = $this->urlaubService->berechneUrlaubssaldoFuerJahr($mid, $filterJahr);
+                    if (is_array($s) && isset($s['verbleibend'])) {
+                        $eintrag['urlaub_uebrig'] = (string)$s['verbleibend'];
+                    }
+                } catch (\Throwable $e) {
+                    // Ohne Zahl bleibt der Name allein stehen.
+                }
+            }
+            unset($eintrag);
         } catch (\Throwable $e) {
             $mitarbeiterListe = [];
             Logger::error('Urlaubsverwaltung: Mitarbeiterliste konnte nicht geladen werden', [
@@ -1263,6 +1285,32 @@ class UrlaubController
 
         try {
             $antraege = $db->fetchAlle($sql, $params);
+
+            // Resturlaub je Mitarbeiter für das gewählte Jahr dazuholen. Wer
+            // hier storniert oder Urlaub direkt einträgt, muss sehen, wie viel
+            // der Betreffende überhaupt noch hat – sonst ist die Entscheidung
+            // eine Vermutung. Je Mitarbeiter nur einmal rechnen: Die Liste
+            // enthält oft mehrere Anträge derselben Person.
+            $saldoCache = [];
+            $urlaubService = $this->urlaubService;
+            foreach ($antraege as &$antrag) {
+                $mid = (int)($antrag['mitarbeiter_id'] ?? 0);
+                if ($mid <= 0) {
+                    $antrag['saldo'] = null;
+                    continue;
+                }
+
+                if (!array_key_exists($mid, $saldoCache)) {
+                    try {
+                        $saldoCache[$mid] = $urlaubService->berechneUrlaubssaldoFuerJahr($mid, $filterJahr);
+                    } catch (\Throwable $e) {
+                        $saldoCache[$mid] = null;
+                    }
+                }
+
+                $antrag['saldo'] = $saldoCache[$mid];
+            }
+            unset($antrag);
         } catch (\Throwable $e) {
             $antraege = [];
             Logger::error('Urlaubsverwaltung: Anträge konnten nicht geladen werden', [

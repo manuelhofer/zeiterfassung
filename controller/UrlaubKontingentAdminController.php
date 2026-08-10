@@ -105,6 +105,23 @@ class UrlaubKontingentAdminController
                     ORDER BY m.aktiv DESC, m.nachname ASC, m.vorname ASC, m.id ASC';
 
             $zeilen = $this->datenbank->fetchAlle($sql, ['jahr' => $jahr]);
+
+            // Resturlaub je Mitarbeiter dazuholen. Ohne diese Zahl ist die
+            // Liste nur eine Stammdatenpflege – gebraucht wird sie aber vor
+            // allem, um zu sehen, wer noch wie viel Urlaub hat.
+            $urlaubService = UrlaubService::getInstanz();
+            foreach ($zeilen as &$zeile) {
+                $zeile['saldo'] = null;
+                try {
+                    $zeile['saldo'] = $urlaubService->berechneUrlaubssaldoFuerJahr(
+                        (int)($zeile['id'] ?? 0),
+                        $jahr
+                    );
+                } catch (Throwable $e) {
+                    // Eine Zeile ohne Saldo ist kein Grund, die Liste zu verlieren.
+                }
+            }
+            unset($zeile);
         } catch (Throwable $e) {
             $fehlermeldung = 'Die Urlaubskontingente konnten nicht geladen werden.';
             Logger::error('Fehler beim Laden der Urlaubskontingente (Admin)', [
@@ -153,8 +170,10 @@ class UrlaubKontingentAdminController
                             <th>Aktiv</th>
                             <th>Anspruch (Standard)</th>
                             <th>Anspruch (Override)</th>
-                            <th>Übertrag (auto)</th>
+                            <th>Übertrag</th>
                             <th>Manuell (+/- Tage)</th>
+                            <th title="Genommen inklusive Betriebsferien">Verbraucht</th>
+                            <th title="Anspruch + Übertrag + Manuell − Verbraucht − Offen">Übrig</th>
                             <th>Notiz</th>
                             <th>Aktionen</th>
                         </tr>
@@ -174,6 +193,13 @@ class UrlaubKontingentAdminController
 
                                 $korrektur = $row['korrektur_tage'] ?? 0;
                                 $notiz = trim((string)($row['notiz'] ?? ''));
+
+                                $saldo = is_array($row['saldo'] ?? null) ? $row['saldo'] : null;
+                                $uebertragText  = $saldo !== null ? (string)($saldo['uebertrag'] ?? '') : '';
+                                $verbrauchtText = $saldo !== null ? (string)($saldo['genommen'] ?? '') : '';
+                                $offenText      = $saldo !== null ? (string)($saldo['beantragt'] ?? '0.00') : '';
+                                $uebrigText     = $saldo !== null ? (string)($saldo['verbleibend'] ?? '') : '';
+                                $uebrigNegativ  = $uebrigText !== '' && (float)$uebrigText < 0;
                             ?>
                             <tr>
                                 <td><?php echo $id; ?></td>
@@ -181,8 +207,17 @@ class UrlaubKontingentAdminController
                                 <td><?php echo $aktiv ? 'Ja' : 'Nein'; ?></td>
                                 <td><?php echo htmlspecialchars($standardAnspruch, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></td>
                                 <td><?php echo htmlspecialchars($overrideText, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></td>
-                                <td><small>auto</small></td>
+                                <td><?php echo $uebertragText !== '' ? htmlspecialchars($uebertragText, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') : '<small>–</small>'; ?></td>
                                 <td><?php echo htmlspecialchars($this->formatDecimal((float)$korrektur), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></td>
+                                <td>
+                                    <?php echo $verbrauchtText !== '' ? htmlspecialchars($verbrauchtText, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') : '<small>–</small>'; ?>
+                                    <?php if ($offenText !== '' && (float)$offenText > 0): ?>
+                                        <br><small>+ <?php echo htmlspecialchars($offenText, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?> offen</small>
+                                    <?php endif; ?>
+                                </td>
+                                <td<?php echo $uebrigNegativ ? ' class="fehlermeldung"' : ''; ?>>
+                                    <strong><?php echo $uebrigText !== '' ? htmlspecialchars($uebrigText, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') : '–'; ?></strong>
+                                </td>
                                 <td><?php echo htmlspecialchars($notiz, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></td>
                                 <td>
                                     <a href="?seite=urlaub_kontingent_admin_bearbeiten&amp;mitarbeiter_id=<?php echo $id; ?>&amp;jahr=<?php echo (int)$jahr; ?>">Bearbeiten</a>
@@ -194,7 +229,11 @@ class UrlaubKontingentAdminController
 
                 <p style="margin-top: 1rem;">
                     <small>
-                        Hinweis: Anspruch(Standard) = <code>urlaub_monatsanspruch * 12</code>. Wenn ein Override gesetzt ist, wird er für den Urlaubssaldo verwendet. Übertrag wird automatisch aus dem Resturlaub des Vorjahres berechnet. <br><strong>Manuell (+/- Tage)</strong> ist eine direkte Korrektur (z. B. zusätzliche Urlaubstage gutschreiben oder Urlaubstage abziehen).
+                        Anspruch(Standard) = <code>urlaub_monatsanspruch * 12</code>; ein gesetzter Override ersetzt ihn.
+                        Der <strong>Übertrag</strong> kommt aus dem Resturlaub des Vorjahres und wird festgeschrieben, sobald er einmal berechnet ist.
+                        <strong>Manuell (+/- Tage)</strong> ist eine direkte Korrektur (z. B. Tage gutschreiben oder abziehen).
+                        <br><strong>Verbraucht</strong> enthält bereits die <strong>Betriebsferien</strong> dieses Jahres; „offen" sind beantragte, noch nicht entschiedene Tage.
+                        <strong>Übrig</strong> ist das, was der Mitarbeiter noch nehmen kann: Anspruch + Übertrag + Manuell − Verbraucht − Offen.
                     </small>
                 </p>
             <?php endif; ?>
