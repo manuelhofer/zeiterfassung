@@ -70,6 +70,78 @@ in den Statusbericht.
   D-002 entfallen; die Regel selbst gilt weiter.)
 
 
+## P-2026-08-10-32 kopplung-nachgeprueft
+
+### EINGELESEN
+- `controller/TerminalKopplungController.php`, `services/TerminalKopplungService.php`,
+  `services/TerminalDbBenutzerService.php` – alle nach den Umbauten dieses Tages.
+- `sql/01_initial_schema.sql`, Tabellen `terminal` und `terminal_kopplung`.
+- `docs/spezifikation_terminal_installation.md`, Abschnitt 2a.
+
+### DATEIEN
+- `docs/lokale_entwicklungsumgebung.md`
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+(kein Code geändert)
+
+### AKZEPTANZKRITERIUM
+Ein Kopplungscode lässt sich über den echten HTTP-Endpunkt einlösen, das
+Backend legt dabei einen Datenbankbenutzer mit den vorgesehenen Rechten an.
+
+### DONE
+Nachfrage des Nutzers: „Terminal-Kopplung geht?" Berechtigt – an diesem Pfad
+wurde heute viel angefasst: CSRF-Umstellung (P-03, P-14), Wechsel von
+`ConfigService` auf `KonfigurationService` (P-15), umgedrehte Zugangsprüfung im
+Router (P-23), gemeinsamer Programmstart (P-17) und das Entfernen von rund 40
+`class_exists`-Hüllen in genau diesen Klassen (P-16).
+
+**Vollständig durchgespielt, nicht behauptet:**
+
+1. Testterminal angelegt, Kopplungscode über `TerminalKopplungService::erzeugeCode()`
+   erzeugt (8 Zeichen).
+2. Code über den **echten HTTP-Endpunkt** eingelöst:
+   `POST /index.php?seite=terminal_kopplung` → **HTTP 200**, `ok: true`,
+   Terminaldaten und Zugangsdaten in der Antwort, Passwort 32 Zeichen
+   alphanumerisch. Die Warnung „Kopplung lief unverschlüsselt über HTTP" kam
+   korrekt mit.
+3. Rechte des erzeugten Benutzers über `SHOW GRANTS` geprüft: **32 Tabellen** –
+   24 nur lesend, 8 mit `INSERT`/`UPDATE`. Kein `DELETE`, `DROP`, `ALTER`,
+   `CREATE`, `GRANT OPTION`, `ALL PRIVILEGES` oder `SUPER`.
+4. `mitarbeiter` ist **spaltenweise** vergeben, 15 Spalten – `passwort_hash`
+   ist nicht dabei (T-101), `UPDATE` nur auf `rfid_code`.
+5. Entkoppeln über `TerminalDbBenutzerService::entferne()` getestet: Benutzer
+   weg, keine Reste in `mysql.user`.
+
+Anschliessend aufgeräumt: Testterminal, Kopplungszeile, Probebuchung und die
+Antwortdatei mit den Zugangsdaten gelöscht.
+
+### Ein Stolperstein, der keiner ist
+Der Anmeldeversuch **mit** den gelieferten Zugangsdaten scheiterte lokal mit
+„Access denied" – auch über TCP. Ursache ist nicht die Kopplung: Diese MariaDB
+hat einen **anonymen Benutzer** `''@localhost`, und der ist spezifischer als
+der Terminal-Benutzer mit Host `%`. Eine Verbindung von genau diesem Rechner
+landet deshalb beim anonymen Eintrag.
+
+Ein Hallenterminal ist eine andere Maschine, dort greift `%`. Für den nächsten
+lokalen Test steht der Hinweis samt Prüfbefehl jetzt in
+`docs/lokale_entwicklungsumgebung.md`.
+
+### Gefundene Fehler im eigenen Entwurf
+Zweimal am Testaufbau gescheitert, nicht am Produkt: erst ein ungültiger
+`modus`-Wert (die Spalte ist `enum('terminal','backend')`, nicht `kiosk`), dann
+eine Auswertung der Grants mit einem Regex, der den **spaltenweisen** Grant auf
+`mitarbeiter` übersah und „0 spaltenweise" meldete – ausgerechnet den
+wichtigsten. Erst der gezielte zweite Blick zeigte ihn.
+
+### Was bewusst nicht erreicht wurde
+Die **Einrichtungsseite am Gerät** (`terminal.php` ohne `config.local.php`)
+ist nicht durchgespielt – dafür müsste die Konfiguration des Arbeitsrechners
+beiseitegeräumt werden. Sie gehört in den Gerätetest, wo sie ohnehin ansteht.
+
+### NEXT
+Gerätetest.
+
+
 ## P-2026-08-10-31 resturlaub-im-klartext
 
 ### EINGELESEN

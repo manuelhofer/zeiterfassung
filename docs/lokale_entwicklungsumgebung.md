@@ -95,6 +95,22 @@ Der Benutzer wird für `localhost` **und** `127.0.0.1` angelegt: MariaDB
 unterscheidet die beiden: `localhost` bedeutet Unix-Socket, `127.0.0.1`
 bedeutet TCP. Die App verbindet per TCP, phpMyAdmin per Socket.
 
+**Stolperstein beim Kopplungstest auf demselben Rechner.** Die Kopplung legt
+den Datenbankbenutzer eines Terminals mit Host `%` an – ein Hallengerät ist ja
+eine andere Maschine. Eine frische MariaDB bringt aber einen **anonymen
+Benutzer** `''@localhost` mit, und der ist spezifischer als `%`. Eine
+Verbindung von genau diesem Rechner läuft deshalb gegen den anonymen Eintrag
+und scheitert mit „Access denied" – obwohl Benutzer, Passwort und Rechte
+stimmen. Prüfen mit:
+
+```bash
+mariadb -u root -N -B -e "SELECT User, Host FROM mysql.user WHERE User = ''"
+```
+
+Wer lokal wirklich als Terminal-Benutzer verbinden will, entfernt den anonymen
+Eintrag (`DROP USER ''@'localhost';`) oder prüft die Rechte stattdessen über
+`SHOW GRANTS` – das beantwortet dieselbe Frage ohne Anmeldung.
+
 ### 4.4 Konfiguration der App
 
 `config/config.local.php` (nicht versioniert) mit:
