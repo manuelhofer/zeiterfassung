@@ -1,14 +1,17 @@
 -- Initiales Datenbankschema für Zeiterfassung / Mitarbeiter- und Auftragsmanagement
--- Quelle: sql/zeiterfassung_aktuell.sql
+--
+-- Einspielen in eine **leere, bereits angelegte** Datenbank:
+--
+--   mysql -u <USER> -p <DATENBANK> < sql/01_initial_schema.sql
+--
+-- Die Zieldatenbank bestimmt ausschliesslich der Aufruf. Frueher standen hier
+-- `CREATE DATABASE zeiterfassung` und `USE zeiterfassung` - damit landete das
+-- Schema **immer** in `zeiterfassung`, egal welche Datenbank man angab. Wer
+-- unter anderem Namen installieren oder gegen eine Wegwerf-Datenbank pruefen
+-- wollte, schrieb unbemerkt in die produktive. Entfernt in P-2026-08-10-27.
 
 SET NAMES utf8mb4;
 SET time_zone = "+00:00";
-
-CREATE DATABASE IF NOT EXISTS `zeiterfassung`
-  DEFAULT CHARACTER SET utf8mb4
-  COLLATE utf8mb4_unicode_ci;
-
-USE `zeiterfassung`;
 
 SET FOREIGN_KEY_CHECKS = 0;
 
@@ -727,6 +730,7 @@ CREATE TABLE `urlaub_kontingent_jahr` (
   `jahr` smallint(5) UNSIGNED NOT NULL,
   `anspruch_override_tage` decimal(6,2) DEFAULT NULL,
   `uebertrag_tage` decimal(6,2) NOT NULL DEFAULT 0.00,
+  `uebertrag_festgeschrieben_am` datetime DEFAULT NULL COMMENT 'Wann der Uebertrag festgeschrieben wurde; NULL = noch nicht',
   `korrektur_tage` decimal(6,2) NOT NULL DEFAULT 0.00,
   `notiz` varchar(255) DEFAULT NULL,
   `erstellt_am` datetime NOT NULL DEFAULT current_timestamp(),

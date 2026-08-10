@@ -198,8 +198,7 @@ Befund, kein Detail. Vergleich ohne Risiko für die Arbeits-Datenbank:
 mariadb -h 127.0.0.1 -u zeiterfassung -pzeiterfassung -e \
   "CREATE DATABASE zf_check_prod; CREATE DATABASE zf_check_repo;"
 mariadb -h 127.0.0.1 -u zeiterfassung -pzeiterfassung zf_check_prod < dump.sql
-sed -e '/^CREATE DATABASE/,+2d' -e '/^USE `zeiterfassung`;/d' sql/01_initial_schema.sql \
-  | mariadb -h 127.0.0.1 -u zeiterfassung -pzeiterfassung zf_check_repo
+mariadb -h 127.0.0.1 -u zeiterfassung -pzeiterfassung zf_check_repo < sql/01_initial_schema.sql
 
 mariadb -h 127.0.0.1 -u zeiterfassung -pzeiterfassung -N -B -e "
   SELECT CONCAT(p.table_name,'.',p.column_name,' nur in PROD')

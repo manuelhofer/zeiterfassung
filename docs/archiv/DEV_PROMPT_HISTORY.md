@@ -70,6 +70,91 @@ in den Statusbericht.
   D-002 entfallen; die Regel selbst gilt weiter.)
 
 
+## P-2026-08-10-27 initialschema-waehlt-keine-datenbank-mehr
+
+### EINGELESEN
+- `sql/01_initial_schema.sql`, Kopf.
+- `docs/installationsanleitung.md` Abschnitt 2,
+  `docs/lokale_entwicklungsumgebung.md` (Schema-Vergleich),
+  `scripts/dev/setup_lokale_umgebung_arch.sh`.
+
+### DATEIEN
+- `sql/01_initial_schema.sql`
+- `scripts/dev/setup_lokale_umgebung_arch.sh`
+- `docs/lokale_entwicklungsumgebung.md`
+- `sql/07_migration_urlaub_uebertrag_festschreiben.sql` (neu, siehe unten)
+- `sql/README.md`
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+`mysql -u <USER> -p <DATENBANK> < sql/01_initial_schema.sql` legt das Schema in
+**der angegebenen** Datenbank an, nicht in `zeiterfassung`.
+
+### DONE
+Der Kopf des Initialschemas enthielt:
+
+```sql
+CREATE DATABASE IF NOT EXISTS `zeiterfassung` …;
+USE `zeiterfassung`;
+```
+
+Damit war das Datenbank-Argument des Aufrufs **wirkungslos**. Die
+Installationsanleitung sagt „`mysql -u <USER> -p zeiterfassung < …`" – das sah
+richtig aus, aber es hätte genauso `mysql … irgendwas` heissen können: Das
+Schema landete immer in `zeiterfassung`.
+
+Zwei Folgen, beide unangenehm:
+
+- **Man kann eine Neuinstallation nicht gefahrlos prüfen.** Genau das verlangt
+  aber `docs/arbeitsregeln.md` §5 nach jeder DB-Änderung. Wer es gegen eine
+  Wegwerf-Datenbank versucht, schreibt in die produktive.
+- Das Projekt wusste davon: `docs/lokale_entwicklungsumgebung.md` umging es mit
+  `sed -e '/^CREATE DATABASE/,+2d' -e '/^USE `zeiterfassung`;/d'`. Der
+  Workaround war dokumentiert, die Ursache nie behoben.
+
+`CREATE DATABASE` und `USE` sind entfernt; die Zieldatenbank bestimmt jetzt
+ausschliesslich der Aufruf. Der Kopf des Schemas sagt das und nennt den Grund.
+Das Entwicklungsskript legt die Datenbank ohnehin selbst an und gibt sie jetzt
+beim Import ausdrücklich mit. Der `sed`-Workaround in der Doku entfällt.
+
+Ebenfalls in diesem Commit: `sql/07_migration_urlaub_uebertrag_festschreiben.sql`
+und die zugehörige Spalte im Initialschema – die Vorarbeit für B-080
+(P-2026-08-10-28). Sie steht hier, weil erst dieser Fix es erlaubt, eine
+Migration gegen eine Wegwerf-Datenbank zu prüfen.
+
+### TEST
+- Neuinstallation in eine frische Datenbank `zeiterfassung_schemaprobe`:
+  **35 Tabellen**, die neue Spalte `uebertrag_festgeschrieben_am` vorhanden,
+  Migration 07 läuft anschliessend fehlerfrei darauf. Probedatenbank wieder
+  entfernt.
+- Migration 07 zweimal hintereinander gegen die Arbeitsdatenbank: beim zweiten
+  Lauf keine Änderung, kein Fehler (Idempotenz nach §5).
+- `bash -n` über das Entwicklungsskript.
+- Arbeitsdatenbank danach geprüft: 35 Tabellen, 13 Mitarbeiter, 10.032
+  Zeitbuchungen – unverändert.
+
+### Gefundene Fehler im eigenen Entwurf
+**Ich bin selbst in die Falle gelaufen.** Mein erster Versuch, die
+Neuinstallation zu prüfen, lautete
+`mysql … zeiterfassung_schemaprobe < sql/01_initial_schema.sql` – und lief
+wegen des `USE` gegen die **produktive** Datenbank. Gerettet hat mich nur, dass
+`CREATE TABLE` ohne `IF NOT EXISTS` beim ersten vorhandenen Tabellennamen
+abbricht und der Client standardmässig stoppt. Mit `--force` wäre es anders
+ausgegangen.
+
+Genau deshalb ist dieser Patch mehr als Kosmetik: Die Prüfung, die die
+Arbeitsregeln nach jeder DB-Änderung verlangen, war bisher **selbst
+gefährlich**.
+
+### Was bewusst nicht erreicht wurde
+`CREATE TABLE` bleibt ohne `IF NOT EXISTS`. Das ist richtig so: Das
+Initialschema gehört in eine leere Datenbank, und ein Abbruch bei belegtem
+Namen ist die gewollte Bremse.
+
+### NEXT
+P-2026-08-10-28: B-080 – Übertrag festschreiben.
+
+
 ## P-2026-08-10-26 umlaute-nachgezogen
 
 ### EINGELESEN

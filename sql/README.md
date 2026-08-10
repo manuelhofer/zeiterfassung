@@ -20,6 +20,10 @@ gebraucht - Neuinstallationen bekommen alles über `01_initial_schema.sql`.
   `auftrag_qr_rel_pfad` in `auftrag_code_rel_pfad` um, nachdem die Codes von QR
   auf Strichcode umgestellt wurden (Patch P-2026-08-08-24). Rein kosmetisch -
   ohne die Migration liest die Anwendung ersatzweise den alten Schlüssel.
+- `07_migration_urlaub_uebertrag_festschreiben.sql`: ergänzt
+  `urlaub_kontingent_jahr` um `uebertrag_festgeschrieben_am` und markiert
+  vorhandene, von Hand gepflegte Überträge als festgeschrieben (B-080,
+  Patch P-2026-08-10-27).
 - `06_migration_terminal_db_benutzer.sql`: ergänzt `terminal` um die Spalten zum
   Datenbankbenutzer der Kopplung (Patch P-2026-08-08-35). **Enthält zusätzlich
   die GRANT-Anweisungen, die ein Administrator einmal von Hand ausführen muss**,

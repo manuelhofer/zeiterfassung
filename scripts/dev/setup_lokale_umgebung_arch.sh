@@ -252,7 +252,9 @@ echo "Tabellen in '$DB_NAME': $TABELLEN"
 
 if [ "$TABELLEN" = "0" ]; then
     echo "Importiere sql/01_initial_schema.sql ..."
-    mariadb -u root < "$PROJEKT/sql/01_initial_schema.sql"
+    # Zieldatenbank ausdruecklich angeben - das Schema waehlt seit
+    # P-2026-08-10-27 keine mehr selbst aus.
+    mariadb -u root "$DB_NAME" < "$PROJEKT/sql/01_initial_schema.sql"
     echo "Import fertig. Tabellen jetzt: $(mariadb -u root -N -B -e \
       "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='$DB_NAME';")"
 else
