@@ -1,6 +1,6 @@
 # Fachregeln: Rollen, Rechte, Bereiche, Genehmiger
 
-*Gilt fuer:* `services/AuthService.php`, `core/Auth.php`, Rollen- und
+*Gilt fuer:* `services/AuthService.php`, Rollen- und
 Rechteverwaltung im Backend.
 *Source of Truth fuer die einzelnen Rechte-Codes:* `docs/rechte_prompt.md` –
 dort steht, welches Recht wofuer gebraucht wird und wo es im Code geprueft wird.

@@ -1,7 +1,7 @@
 # Fachregeln: Urlaub, Betriebsferien, Feiertage
 
 *Gilt fuer:* `services/UrlaubService.php`, `services/FeiertagService.php`,
-`core/FeiertagGenerator.php`, Urlaubsmasken in Backend und Terminal.
+Urlaubsmasken in Backend und Terminal.
 *Herkunft:* Master-Prompt v13, Abschnitte 12, 13, 14 sowie v4-Abschnitt B.
 
 ---

@@ -70,7 +70,7 @@ Für den **Produktivserver** (Debian/Apache) gilt stattdessen
 | Verzeichnis | Inhalt |
 | --- | --- |
 | `public/` | Einstiegspunkte (`index.php`, `terminal.php`), CSS, JS, Bilder |
-| `core/` | Basis: Datenbank, Autoloader, Session, Logging, Offline-Queue, Feiertage |
+| `core/` | Basis: Datenbank, Autoloader, CSRF, Logging, Offline-Queue, Helfer |
 | `modelle/` | reine DB-Modelle (Mitarbeiter, Zeitbuchungen, Urlaubsanträge, …) |
 | `services/` | Fachlogik (ZeitService, UrlaubService, RundungsService, PDFService, …) |
 | `controller/` | Request-Verarbeitung, Übergabe an Views |

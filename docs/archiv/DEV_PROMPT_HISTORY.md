@@ -70,6 +70,90 @@ in den Statusbericht.
   D-002 entfallen; die Regel selbst gilt weiter.)
 
 
+## P-2026-08-10-11 tote-klassen-entfernt
+
+### EINGELESEN
+- `core/Auth.php`, `core/SessionManager.php`, `core/FeiertagGenerator.php`,
+  `modelle/ConfigModel.php`, `modelle/SystemLogModel.php`,
+  `modelle/AuftragArbeitsschrittModel.php`, `services/OfflineQueueService.php`
+  – jeweils vollstaendig, um zu sehen, ob Wissen darin steckt, das anderswo
+  fehlt.
+- `services/AuthService.php`, `services/FeiertagService.php`,
+  `core/OfflineQueueManager.php` als die tatsaechlich benutzten Gegenstuecke.
+- `docs/fachregeln/rollen_rechte_genehmiger.md`,
+  `docs/fachregeln/urlaub_abwesenheit_feiertage.md`, `README.md`.
+
+### DATEIEN
+Geloescht:
+- `core/Auth.php` (258 Zeilen), `core/SessionManager.php` (291),
+  `core/FeiertagGenerator.php` (197)
+- `modelle/ConfigModel.php` (73), `modelle/SystemLogModel.php` (70),
+  `modelle/AuftragArbeitsschrittModel.php` (88)
+- `services/OfflineQueueService.php` (106)
+
+Angepasst:
+- `docs/fachregeln/rollen_rechte_genehmiger.md`,
+  `docs/fachregeln/urlaub_abwesenheit_feiertage.md`, `README.md`,
+  `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Anmeldung, Rechtepruefung, Feiertage, Urlaub und die Offline-Queue
+funktionieren unveraendert, und keine der sieben Klassen wird noch
+referenziert.
+
+### DONE
+1.083 Zeilen, die nie ausgefuehrt wurden. Gefaehrlich war nicht der Platz,
+sondern dass sie echt aussehen:
+
+- **`core/Auth.php`** liest sich wie die Anmeldung des Projekts – mit
+  `loginMitBenutzername()`, `loginMitRfid()`, `hatRolle()`. Benutzt wird seit
+  Langem ausschliesslich `services/AuthService.php` (26 Aufrufstellen);
+  `Auth::` kam **null** Mal vor. Und die Fachregel schickte einen sogar
+  ausdruecklich dorthin („*Gilt fuer:* `services/AuthService.php`,
+  `core/Auth.php`"). Wer dort einen Anmeldefehler gesucht oder behoben haette,
+  haette ins Leere gearbeitet.
+- **`core/SessionManager.php`** wurde nur von `core/Auth.php` benutzt und faellt
+  mit ihm. `AuthService` verwaltet `$_SESSION` selbst.
+- **`core/FeiertagGenerator.php`** – null Treffer; die Feiertagslogik liegt in
+  `services/FeiertagService.php`. Auch hier zeigte die Fachregel auf die tote
+  Datei.
+- **`services/OfflineQueueService.php`** war die dritte Klasse fuer dieselbe
+  Tabelle `db_injektionsqueue`, neben `core/OfflineQueueManager.php` (41
+  Aufrufstellen) und `services/QueueService.php` (7). Null Treffer.
+- **`modelle/ConfigModel.php`, `SystemLogModel.php`,
+  `AuftragArbeitsschrittModel.php`** – null Treffer. Logging laeuft direkt
+  ueber `core/Logger.php`, Konfiguration ueber `KonfigurationService`.
+
+Doku im selben Commit nachgezogen: beide Fachregel-Kopfzeilen und die
+`core/`-Beschreibung in `README.md`, die noch „Session" und „Feiertage"
+auffuehrte.
+
+### TEST
+- `grep` je Klasse ueber `controller core modelle services views public`:
+  null Treffer ausserhalb der eigenen Datei, vor dem Loeschen einzeln geprueft.
+- `php -l` ueber **alle** PHP-Dateien des Projekts: sauber.
+- `index.php`, `terminal.php`, `terminal.php?aktion=health`: dreimal HTTP 200.
+- Health-Antwort inhaltlich geprueft: `hauptdb_verfuegbar: true`,
+  `queue_verfuegbar: true`, `queue_speicherort: "offline"` – die Offline-Queue
+  arbeitet also weiterhin, obwohl eine ihrer drei Klassen weg ist.
+
+### Gefundene Fehler im eigenen Entwurf
+Der Aufraeumplan hatte das auf zwei Patches aufgeteilt (`core/` und
+`modelle/`+`services/`). Beim Umsetzen zeigte sich, dass beide dieselbe
+`core/`-Zeile in `README.md` anfassen muessen – die Trennung haette denselben
+Satz zweimal geaendert. Zusammengelegt, weil es ohnehin ein Thema ist: tote
+Klassen.
+
+### Was bewusst nicht erreicht wurde
+`modelle/DbInjektionsqueueModel.php` bleibt, obwohl es nur zwei Aufrufstellen
+hat – es wird benutzt. Damit gibt es fuer `db_injektionsqueue` immer noch drei
+Zugriffswege (Manager, Service, Model). Das zu ordnen ist Fachlogik am
+Offline-Pfad und braucht einen eigenen Patch mit Offline-Test.
+
+### NEXT
+P-2026-08-10-12: tote Views mit benutztem Zwilling.
+
+
 ## P-2026-08-10-10 leere-platzhalterdateien-entfernt
 
 ### EINGELESEN
