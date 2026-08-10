@@ -6,18 +6,7 @@ declare(strict_types=1);
 
 require __DIR__ . '/../core/Autoloader.php';
 
-$konfig = require __DIR__ . '/../config/config.php';
-
-// Zeitzone setzen
-if (isset($konfig['timezone']) && is_string($konfig['timezone']) && $konfig['timezone'] !== '') {
-    date_default_timezone_set($konfig['timezone']);
-} else {
-    date_default_timezone_set('Europe/Berlin');
-}
-
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
+Start::los();
 
 /** @var AuthService $auth */
 $auth = AuthService::getInstanz();

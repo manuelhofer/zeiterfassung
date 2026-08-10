@@ -7,7 +7,7 @@ declare(strict_types=1);
  * Dieser Screen wird angezeigt, sobald ein Eintrag in der lokalen Offline-Queue
  * (db_injektionsqueue) den Status "fehler" hat.
  *
- * Master-Prompt:
+ * Regel (`docs/fachregeln/terminal_und_offline.md`):
  * - Queue-Abarbeitung wird beim ersten Fehler gestoppt.
  * - Terminal muss dann Aktionen blockieren und den fehlerhaften SQL-Befehl anzeigen.
  * - Erst nachdem ein Admin den Eintrag im Backend löscht/ignoriert, darf die Queue weiterlaufen.
@@ -54,8 +54,8 @@ if (is_array($queueStatus)) {
         $hauptdbOk = $queueStatus['hauptdb_verfuegbar'];
     }
 
-    if (array_key_exists('offline_queue_verfuegbar', $queueStatus)) {
-        $offlineQueueOk = $queueStatus['offline_queue_verfuegbar'];
+    if (array_key_exists('queue_verfuegbar', $queueStatus)) {
+        $offlineQueueOk = $queueStatus['queue_verfuegbar'];
     }
     if (array_key_exists('offen', $queueStatus) && $queueStatus['offen'] !== null) {
         $queueOffen = (int)$queueStatus['offen'];

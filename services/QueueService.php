@@ -161,7 +161,7 @@ class QueueService
  *   - letzte_erstellung (?string)
  *   - letzte_ausfuehrung (?string)
  */
-public function holeStatusSummary(): array
+    public function holeStatusSummary(): array
 {
     $offline = $this->datenbank->getOfflineVerbindung();
     $pdo = $offline instanceof \PDO ? $offline : $this->datenbank->getVerbindung();
@@ -228,5 +228,88 @@ public function holeStatusSummary(): array
         }
 
         return $this->datenbank->getVerbindung();
+    }
+
+    /**
+     * Ermittelt den Zustand der Offline-Queue in **einer** Form fuer alle
+     * Anzeigen.
+     *
+     * Warum es diese Methode gibt: Der Zustand wurde in `public/terminal.php`
+     * zweimal fast gleich ermittelt – einmal fuer den Health-Endpunkt, einmal
+     * fuer den Bildschirm. Zwei Fassungen derselben Wahrheit driften
+     * auseinander, und dann meldet die Ueberwachung etwas anderes als das
+     * Geraet in der Halle anzeigt.
+     *
+     * `null` bedeutet durchweg **unbekannt**, nicht `false`: Wenn sich die
+     * Datenbank gar nicht ansprechen laesst, ist „nicht verfuegbar" eine
+     * staerkere Aussage, als gerechtfertigt waere.
+     *
+     * @return array{hauptdb_verfuegbar:?bool, queue_verfuegbar:?bool,
+     *               queue_speicherort:?string, offen:?int, fehler:?int,
+     *               letzter_fehler:?array<string,mixed>}
+     */
+    public function holeZustand(bool $mitLetztemFehler = true): array
+    {
+        $zustand = [
+            'hauptdb_verfuegbar' => null,
+            'queue_verfuegbar'   => null,
+            'queue_speicherort'  => null,
+            'offen'              => null,
+            'fehler'             => null,
+            'letzter_fehler'     => null,
+        ];
+
+        try {
+            $zustand['hauptdb_verfuegbar'] = $this->datenbank->istHauptdatenbankVerfuegbar();
+        } catch (\Throwable $e) {
+            $zustand['hauptdb_verfuegbar'] = null;
+        }
+
+        $offlinePdo = null;
+        try {
+            $offlinePdo = $this->datenbank->getOfflineVerbindung();
+        } catch (\Throwable $e) {
+            $offlinePdo = null;
+        }
+
+        // Eine erreichbare Offline-Datenbank ist immer der primaere
+        // Speicherort – gleiche Regel wie im OfflineQueueManager.
+        if ($offlinePdo instanceof \PDO) {
+            $zustand['queue_verfuegbar'] = true;
+            $zustand['queue_speicherort'] = 'offline';
+        } elseif ($zustand['hauptdb_verfuegbar'] === true) {
+            $zustand['queue_verfuegbar'] = true;
+            $zustand['queue_speicherort'] = 'haupt';
+        } elseif ($zustand['hauptdb_verfuegbar'] === false) {
+            $zustand['queue_verfuegbar'] = false;
+        }
+
+        $pdo = $offlinePdo;
+        if (!($pdo instanceof \PDO)) {
+            try {
+                $pdo = $this->datenbank->getVerbindung();
+            } catch (\Throwable $e) {
+                $pdo = null;
+            }
+        }
+
+        if ($pdo instanceof \PDO) {
+            try {
+                $zustand['offen']  = (int)$pdo->query("SELECT COUNT(*) FROM db_injektionsqueue WHERE status = 'offen'")->fetchColumn();
+                $zustand['fehler'] = (int)$pdo->query("SELECT COUNT(*) FROM db_injektionsqueue WHERE status = 'fehler'")->fetchColumn();
+            } catch (\Throwable $e) {
+                // Zaehler sind fuer die Anzeige, nicht fuer den Betrieb.
+            }
+        }
+
+        if ($mitLetztemFehler) {
+            try {
+                $zustand['letzter_fehler'] = OfflineQueueManager::getInstanz()->holeLetztenFehlerEintrag();
+            } catch (\Throwable $e) {
+                $zustand['letzter_fehler'] = null;
+            }
+        }
+
+        return $zustand;
     }
 }

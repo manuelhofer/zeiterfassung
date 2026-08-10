@@ -235,18 +235,18 @@ if ($hauptdbOk !== true) {
     }
 }
 
-	// Layout-Variante: Beim Login soll der Anmelde-Button den restlichen Platz nach unten fuellen.
-	$bodyKlasse = 'terminal-wide';
-	if (empty($mitarbeiter)) {
-		$bodyKlasse .= ' terminal-login';
-	}
+    // Layout-Variante: Beim Login soll der Anmelde-Button den restlichen Platz nach unten fuellen.
+    $bodyKlasse = 'terminal-wide';
+    if (empty($mitarbeiter)) {
+        $bodyKlasse .= ' terminal-login';
+    }
 
 if ($zeigeArbeitszeitUebersichtSeite) {
-	$seitenTitel = 'Arbeitszeit-Übersicht – Terminal';
-	$seitenUeberschrift = 'Arbeitszeit-Übersicht';
+    $seitenTitel = 'Arbeitszeit-Übersicht – Terminal';
+    $seitenUeberschrift = 'Arbeitszeit-Übersicht';
 } else {
-	$seitenTitel = 'Terminal – Zeiterfassung';
-	$seitenUeberschrift = 'Terminal – Zeiterfassung';
+    $seitenTitel = 'Terminal – Zeiterfassung';
+    $seitenUeberschrift = 'Terminal – Zeiterfassung';
 }
 require __DIR__ . '/_layout_top.php';
 ?>
@@ -366,8 +366,6 @@ require __DIR__ . '/_layout_top.php';
                 $qv = null;
                 if (array_key_exists('queue_verfuegbar', $qs)) {
                     $qv = $qs['queue_verfuegbar'];
-                } elseif (array_key_exists('offline_queue_verfuegbar', $qs)) {
-                    $qv = $qs['offline_queue_verfuegbar'];
                 }
 
                 if ($qv === true) {
@@ -502,28 +500,28 @@ require __DIR__ . '/_layout_top.php';
         </div>
     <?php endif; ?>
 
-	<?php if (!empty($mitarbeiter) && $hauptdbOk === true && is_array($zeitWarnungen) && count($zeitWarnungen) > 0): ?>
-		<div class="status-box error">
-			<div class="status-title"><span>Achtung: Unvollständige Zeitstempel</span></div>
-			<div class="status-small">
-				Es gibt offene/unklare Kommen/Gehen-Buchungen. Bitte Personalbüro/Vorgesetzten informieren.
-				<div class="status-small mt">
-					<?php foreach ($zeitWarnungen as $w):
-						$wDatum = $fmtDatumDE((string)($w['datum'] ?? ''));
-						$wK = (int)($w['anzahl_kommen'] ?? 0);
-						$wG = (int)($w['anzahl_gehen'] ?? 0);
-					?>
-						<div><strong><?php echo htmlspecialchars($wDatum, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></strong>: kommen=<?php echo (int)$wK; ?>, gehen=<?php echo (int)$wG; ?></div>
-					<?php endforeach; ?>
-				</div>
-			</div>
-		</div>
-	<?php endif; ?>
+    <?php if (!empty($mitarbeiter) && $hauptdbOk === true && is_array($zeitWarnungen) && count($zeitWarnungen) > 0): ?>
+        <div class="status-box error">
+            <div class="status-title"><span>Achtung: Unvollständige Zeitstempel</span></div>
+            <div class="status-small">
+                Es gibt offene/unklare Kommen/Gehen-Buchungen. Bitte Personalbüro/Vorgesetzten informieren.
+                <div class="status-small mt">
+                    <?php foreach ($zeitWarnungen as $w):
+                        $wDatum = $fmtDatumDE((string)($w['datum'] ?? ''));
+                        $wK = (int)($w['anzahl_kommen'] ?? 0);
+                        $wG = (int)($w['anzahl_gehen'] ?? 0);
+                    ?>
+                        <div><strong><?php echo htmlspecialchars($wDatum, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></strong>: kommen=<?php echo (int)$wK; ?>, gehen=<?php echo (int)$wG; ?></div>
+                    <?php endforeach; ?>
+                </div>
+            </div>
+        </div>
+    <?php endif; ?>
 
     <?php if (empty($mitarbeiter)): ?>
         <?php if ($hauptdbOk === false): ?>
             <?php
-                // Offline-Mode (Master-Prompt v9):
+                // Offline-Modus (`docs/fachregeln/terminal_und_offline.md`):
                 // Ohne Hauptdatenbank kein Login, aber Kommen/Gehen per RFID darf weiterhin angenommen werden.
                 $offlineRfid = '';
                 if (isset($_SESSION['terminal_offline_rfid_code']) && is_string($_SESSION['terminal_offline_rfid_code'])) {
@@ -680,16 +678,16 @@ require __DIR__ . '/_layout_top.php';
             </script>
         <?php else: ?>
             <p class="hinweis">
-				Bitte RFID-Chip an das Lesegerät halten.<br>
+                Bitte RFID-Chip an das Lesegerät halten.<br>
             </p>
 
-				<form method="post" action="terminal.php?aktion=start" class="login-form terminal-login-form">
-				<label for="rfid_code">RFID</label>
+                <form method="post" action="terminal.php?aktion=start" class="login-form terminal-login-form">
+                <label for="rfid_code">RFID</label>
                 <input type="text" id="rfid_code" name="rfid_code" autocomplete="off" autofocus>
 
                 <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($csrfToken, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>">
 
-					<div class="button-row terminal-login-buttonrow">
+                    <div class="button-row terminal-login-buttonrow">
                     <button type="submit">Anmelden</button>
                 </div>
             </form>
@@ -842,17 +840,17 @@ require __DIR__ . '/_layout_top.php';
                         &nbsp;|&nbsp; Offen: <strong><?php echo htmlspecialchars($fmtTage($urlaubSaldo['beantragt'] ?? 0), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></strong>
                     </div>
                     <div class="status-small mt-025">
-						<?php
-							$anspruchBasis = (float)($urlaubSaldo['anspruch'] ?? 0);
-							$korrekturTage = (float)($urlaubSaldo['korrektur'] ?? 0);
-							$anspruchEffektiv = $anspruchBasis + $korrekturTage;
-						?>
-						Jahresanspruch (<?php echo (int)$urlaubJahr; ?>): <strong><?php echo htmlspecialchars($fmtTage($anspruchBasis), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></strong>
-						&nbsp;|&nbsp; Übertrag (<?php echo (int)($urlaubJahr - 1); ?>): <strong><?php echo htmlspecialchars($fmtTage($urlaubSaldo['uebertrag'] ?? 0), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></strong>
-						<?php if (abs($korrekturTage) > 0.0001): ?>
-							&nbsp;|&nbsp; Korrektur: <strong><?php echo htmlspecialchars($fmtTage($korrekturTage), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></strong>
-							&nbsp;|&nbsp; Effektiv: <strong><?php echo htmlspecialchars($fmtTage($anspruchEffektiv), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></strong>
-						<?php endif; ?>
+                        <?php
+                            $anspruchBasis = (float)($urlaubSaldo['anspruch'] ?? 0);
+                            $korrekturTage = (float)($urlaubSaldo['korrektur'] ?? 0);
+                            $anspruchEffektiv = $anspruchBasis + $korrekturTage;
+                        ?>
+                        Jahresanspruch (<?php echo (int)$urlaubJahr; ?>): <strong><?php echo htmlspecialchars($fmtTage($anspruchBasis), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></strong>
+                        &nbsp;|&nbsp; Übertrag (<?php echo (int)($urlaubJahr - 1); ?>): <strong><?php echo htmlspecialchars($fmtTage($urlaubSaldo['uebertrag'] ?? 0), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></strong>
+                        <?php if (abs($korrekturTage) > 0.0001): ?>
+                            &nbsp;|&nbsp; Korrektur: <strong><?php echo htmlspecialchars($fmtTage($korrekturTage), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></strong>
+                            &nbsp;|&nbsp; Effektiv: <strong><?php echo htmlspecialchars($fmtTage($anspruchEffektiv), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></strong>
+                        <?php endif; ?>
                     </div>
                     <?php if (!empty($urlaubSaldo['hinweis'])): ?>
                         <div class="status-small mt-025">
@@ -1779,7 +1777,7 @@ require __DIR__ . '/_layout_top.php';
                     <br>(Urlaub kann auch ohne Kommen beantragt werden.)
                 </p>
 
-				<div class="button-row primary-action">
+                <div class="button-row primary-action">
                     <form method="post" action="terminal.php?aktion=kommen">
                         <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($csrfToken, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>">
                         <?php
@@ -1797,11 +1795,11 @@ require __DIR__ . '/_layout_top.php';
                                 Nachtschicht (Kommen nach 18:00)
                             </label>
                         <?php endif; ?>
-						<button type="submit" class="terminal-primary-action">Kommen</button>
+                        <button type="submit" class="terminal-primary-action">Kommen</button>
                     </form>
-				</div>
+                </div>
 
-				<div class="button-row">
+                <div class="button-row">
                     <?php if ($hauptdbOk === true): ?>
                         <a href="terminal.php?aktion=urlaub_beantragen" class="button-link">Urlaub Übersicht</a>
                     <?php else: ?>
@@ -1810,7 +1808,7 @@ require __DIR__ . '/_layout_top.php';
                 </div>
 
                 <?php if ($darfRfidZuweisen): ?>
-				<div class="button-row">
+                <div class="button-row">
                     <?php if ($hauptdbOk === true): ?>
                         <a href="terminal.php?aktion=rfid_zuweisen" class="button-link secondary">RFID-Chip zu Mitarbeiter zuweisen</a>
                     <?php else: ?>
@@ -1824,25 +1822,25 @@ require __DIR__ . '/_layout_top.php';
                     Bitte gewünschte Aktion wählen. Kommen/Gehen bucht unmittelbar eine Zeit, die Auftragsfunktionen arbeiten mit laufenden Aufträgen.
                 </p>
 
-				<div class="button-row primary-action">
+                <div class="button-row primary-action">
                     <form method="post" action="terminal.php?aktion=gehen">
                         <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($csrfToken, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>">
-						<button type="submit" class="secondary terminal-primary-action">Gehen</button>
+                        <button type="submit" class="secondary terminal-primary-action">Gehen</button>
                     </form>
                 </div>
 
-	                <?php if (!$hatLaufenderHauptauftrag): ?>
-	                    <div class="button-row primary-action">
-	                        <a href="terminal.php?aktion=auftrag_starten" class="button-link terminal-primary-action">Auftrag starten</a>
-	                    </div>
-	                <?php else: ?>
-	                    <div class="button-row primary-action">
+                    <?php if (!$hatLaufenderHauptauftrag): ?>
+                        <div class="button-row primary-action">
+                            <a href="terminal.php?aktion=auftrag_starten" class="button-link terminal-primary-action">Auftrag starten</a>
+                        </div>
+                    <?php else: ?>
+                        <div class="button-row primary-action">
                         <form method="post" action="terminal.php?aktion=auftrag_stoppen_quick">
                             <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($csrfToken, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>">
                             <button type="submit" class="secondary terminal-primary-action">Auftrag stoppen</button>
                         </form>
-	                    </div>
-	                <?php endif; ?>
+                        </div>
+                    <?php endif; ?>
 
                 <?php if ($hatLaufenderHauptauftrag || $hatLaufenderNebenauftrag): ?>
                     <div class="button-row">
@@ -1915,9 +1913,9 @@ require __DIR__ . '/_layout_top.php';
 
             <?php if (isset($monatsStatus) && is_array($monatsStatus) && (($monatsStatus['daten_ok'] ?? true) === true) && isset($monatsStatus['ist_bisher'])): ?>
                 <div class="status-small mt-05"><strong>Monatsstatus (<?php echo htmlspecialchars(sprintf('%02d/%04d', (int)$monatsStatus['monat'], (int)$monatsStatus['jahr']), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>)</strong></div>
-		        <?php if (isset($monatsStatus['rest_bis_monatsende'])): ?>
-		            <div class="status-small">Noch zu arbeiten bis Monatsende: <strong><?php echo htmlspecialchars((string)$monatsStatus['rest_bis_monatsende'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?> h</strong></div>
-		        <?php endif; ?>
+                <?php if (isset($monatsStatus['rest_bis_monatsende'])): ?>
+                    <div class="status-small">Noch zu arbeiten bis Monatsende: <strong><?php echo htmlspecialchars((string)$monatsStatus['rest_bis_monatsende'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?> h</strong></div>
+                <?php endif; ?>
                 <?php if (isset($monatsStatus['soll_bis_heute'])): ?>
                     <div class="status-small">Arbeitsstunden in diesem Monat bis heute: <strong><?php echo htmlspecialchars((string)$monatsStatus['soll_bis_heute'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?> h</strong></div>
                 <?php endif; ?>

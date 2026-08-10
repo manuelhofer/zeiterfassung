@@ -3,24 +3,13 @@ declare(strict_types=1);
 
 // Einstiegspunkt für das Terminal-Frontend (RFID-/Barcode-Station).
 //
-// WICHTIG (Master-Prompt / Offline-Queue):
+// WICHTIG (Offline-Queue, siehe `docs/fachregeln/terminal_und_offline.md`):
 // - Bei jedem Request versuchen wir, offene Queue-Einträge abzuarbeiten.
 // - Der Status wird in der Session gespeichert, damit die Terminal-Views ihn anzeigen können.
 
 require __DIR__ . '/../core/Autoloader.php';
 
-$konfig = require __DIR__ . '/../config/config.php';
-
-// Zeitzone setzen
-if (isset($konfig['timezone']) && is_string($konfig['timezone']) && $konfig['timezone'] !== '') {
-    date_default_timezone_set($konfig['timezone']);
-} else {
-    date_default_timezone_set('Europe/Berlin');
-}
-
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
+$konfig = Start::los();
 
 $aktion = isset($_GET['aktion']) ? (string)$_GET['aktion'] : 'start';
 
@@ -80,89 +69,24 @@ if ($aktion === 'health') {
         }
     }
 
-    $db = null;
-    try {
-        /** @var Database $db */
-        $db = Database::getInstanz();
-    } catch (Throwable $e) {
-        $db = null;
-    }
+    // Zustand der Queue kommt aus einer Hand – dieselbe Quelle, aus der auch
+    // der Bildschirm gespeist wird (siehe unten). Zwei Fassungen driften.
+    $zustand = QueueService::getInstanz()->holeZustand();
 
-    // Haupt-DB Status
-    if ($db !== null) {
-        try {
-            $health['hauptdb_verfuegbar'] = $db->istHauptdatenbankVerfuegbar();
-        } catch (Throwable $e) {
-            $health['hauptdb_verfuegbar'] = null;
+    $health['hauptdb_verfuegbar'] = $zustand['hauptdb_verfuegbar'];
+    $health['queue_verfuegbar']   = $zustand['queue_verfuegbar'];
+    $health['queue_speicherort']  = $zustand['queue_speicherort'];
+    $health['queue_offen']        = $zustand['offen'];
+    $health['queue_fehler']       = $zustand['fehler'];
+
+    // Nur Metadaten des letzten Fehlers – kein SQL-Text im Health-Endpunkt.
+    $letzterFehler = $zustand['letzter_fehler'];
+    if (is_array($letzterFehler) && isset($letzterFehler['id'])) {
+        $health['queue_letzter_fehler_id'] = (int)$letzterFehler['id'];
+        if (isset($letzterFehler['letzte_ausfuehrung']) && $letzterFehler['letzte_ausfuehrung'] !== null) {
+            $health['queue_letzter_fehler_zeit'] = (string)$letzterFehler['letzte_ausfuehrung'];
         }
     }
-
-    // Queue-Verfügbarkeit bestimmen
-    $queueOfflinePdo = null;
-    if ($db !== null) {
-        try {
-            $queueOfflinePdo = $db->getOfflineVerbindung();
-        } catch (Throwable $e) {
-            $queueOfflinePdo = null;
-        }
-    }
-
-    // Konsistente Logik mit OfflineQueueManager:
-    // Wenn eine Offline-DB verfügbar ist, ist sie der primäre Queue-Speicherort.
-    if ($queueOfflinePdo instanceof PDO) {
-        $health['queue_verfuegbar'] = true;
-        $health['queue_speicherort'] = 'offline';
-    } elseif ($health['hauptdb_verfuegbar'] === true) {
-        $health['queue_verfuegbar'] = true;
-        $health['queue_speicherort'] = 'haupt';
-    } elseif ($health['hauptdb_verfuegbar'] === false) {
-        $health['queue_verfuegbar'] = false;
-        $health['queue_speicherort'] = null;
-    } else {
-        $health['queue_verfuegbar'] = null;
-        $health['queue_speicherort'] = null;
-    }
-
-    // Queue-Zähler (best effort)
-    $queuePdo = null;
-    if ($queueOfflinePdo instanceof PDO) {
-        $queuePdo = $queueOfflinePdo;
-    } elseif ($db !== null) {
-        try {
-                $queuePdo = $db->getVerbindung();
-        } catch (Throwable $e) {
-            $queuePdo = null;
-        }
-    }
-
-    if ($queuePdo instanceof PDO) {
-        try {
-            $health['queue_offen'] = (int)$queuePdo->query("SELECT COUNT(*) FROM db_injektionsqueue WHERE status = 'offen'")->fetchColumn();
-            $health['queue_fehler'] = (int)$queuePdo->query("SELECT COUNT(*) FROM db_injektionsqueue WHERE status = 'fehler'")->fetchColumn();
-        } catch (Throwable $e) {
-            // optional
-        }
-    }
-
-
-    // Letzten Fehler-Eintrag (nur Metadaten; kein SQL-Text im Health-Endpoint)
-    if ($queuePdo instanceof PDO) {
-        try {
-            $stmt = $queuePdo->query("SELECT id, letzte_ausfuehrung FROM db_injektionsqueue WHERE status = 'fehler' ORDER BY letzte_ausfuehrung DESC, id DESC LIMIT 1");
-            if ($stmt !== false) {
-                $row = $stmt->fetch(\PDO::FETCH_ASSOC);
-                if (is_array($row) && isset($row['id'])) {
-                    $health['queue_letzter_fehler_id'] = (int)$row['id'];
-                    if (array_key_exists('letzte_ausfuehrung', $row) && $row['letzte_ausfuehrung'] !== null) {
-                        $health['queue_letzter_fehler_zeit'] = (string)$row['letzte_ausfuehrung'];
-                    }
-                }
-            }
-        } catch (Throwable $e) {
-            // optional
-        }
-    }
-
 
     // Wenn weder Haupt-DB noch Offline-Queue verfügbar ist, ist das Terminal faktisch blockiert.
     if ($health['hauptdb_verfuegbar'] === false && $health['queue_verfuegbar'] === false) {
@@ -264,107 +188,27 @@ try {
     // Offline-Queue: pro Request versuchen, offene Einträge zu injizieren
     // ------------------------------------------------------------
 
-    $queueStatus = [
-        'zeit'               => date('Y-m-d H:i:s'),
-        'hauptdb_verfuegbar' => null,
-        'offen'              => null,
-        'fehler'             => null,
-        'letzter_fehler'     => null,
-        'queue_verfuegbar'   => null,
-        // Legacy-/View-Key: in einigen Views wird explizit dieser Key erwartet.
-        // Wir halten beide Keys synchron, damit das Terminal nicht „stumm“ bleibt,
-        // wenn eine View noch den alten Namen verwendet.
-        'offline_queue_verfuegbar' => null,
-        'queue_speicherort'   => null,
-    ];
-
-    $db = null;
-    /** @var Database $db */
-    $db = Database::getInstanz();
-
-    // Haupt-DB Healthcheck (falls verfügbar)
+    // Offene Eintraege zuerst abarbeiten, dann den Zustand ermitteln – sonst
+    // zeigt der Bildschirm Zaehler von vor der Verarbeitung.
     try {
-        $queueStatus['hauptdb_verfuegbar'] = $db->istHauptdatenbankVerfuegbar();
-    } catch (Throwable $e) {
-        $queueStatus['hauptdb_verfuegbar'] = null;
-    }
-
-    // Queue-Verfuegbarkeit bestimmen (wichtig, wenn die Haupt-DB offline ist)
-    $queueOfflinePdo = null;
-    if ($db !== null) {
-        try {
-            $queueOfflinePdo = $db->getOfflineVerbindung();
-        } catch (Throwable $e) {
-            $queueOfflinePdo = null;
-        }
-    }
-
-    // Konsistente Logik mit OfflineQueueManager:
-    // Wenn eine Offline-DB verfügbar ist, ist sie der primäre Queue-Speicherort.
-    if ($queueOfflinePdo instanceof PDO) {
-        $queueStatus['queue_verfuegbar'] = true;
-        $queueStatus['queue_speicherort'] = 'offline';
-    } elseif ($queueStatus['hauptdb_verfuegbar'] === true) {
-        $queueStatus['queue_verfuegbar'] = true;
-        $queueStatus['queue_speicherort'] = 'haupt';
-    } elseif ($queueStatus['hauptdb_verfuegbar'] === false) {
-        $queueStatus['queue_verfuegbar'] = false;
-        $queueStatus['queue_speicherort'] = null;
-    } else {
-        // unbekannter Status (weder Haupt-DB noch Offline-DB sicher ermittelbar)
-        $queueStatus['queue_verfuegbar'] = null;
-        $queueStatus['queue_speicherort'] = null;
-    }
-
-    // Legacy-/View-Key immer spiegeln.
-    $queueStatus['offline_queue_verfuegbar'] = $queueStatus['queue_verfuegbar'];
-
-    $queueManager = null;
-    /** @var OfflineQueueManager $queueManager */
-    $queueManager = OfflineQueueManager::getInstanz();
-
-    // Abarbeitung nur versuchen – Fehler dürfen das Terminal nicht hard-crashen.
-    try {
-        $queueManager->verarbeiteOffeneEintraege();
+        OfflineQueueManager::getInstanz()->verarbeiteOffeneEintraege();
     } catch (Throwable $e) {
         Logger::error('Terminal: Fehler beim Abarbeiten der Offline-Queue', [
             'exception' => $e->getMessage(),
         ], null, null, 'terminal_offline_queue');
     }
 
-    // Letzten Fehler-Eintrag laden (für Statusanzeige)
-    try {
-        $queueStatus['letzter_fehler'] = $queueManager->holeLetztenFehlerEintrag();
-    } catch (Throwable $e) {
-        $queueStatus['letzter_fehler'] = null;
-    }
+    $zustand = QueueService::getInstanz()->holeZustand();
 
-    // Queue-Zähler bestimmen (auf Queue-DB bzw. Fallback Haupt-DB)
-    $queuePdo = null;
-    if ($db !== null) {
-        try {
-            $queuePdo = $db->getOfflineVerbindung();
-        } catch (Throwable $e) {
-            $queuePdo = null;
-        }
-
-        if (!($queuePdo instanceof PDO)) {
-            try {
-                    $queuePdo = $db->getVerbindung();
-            } catch (Throwable $e) {
-                $queuePdo = null;
-            }
-        }
-    }
-
-    if ($queuePdo instanceof PDO) {
-        try {
-            $queueStatus['offen'] = (int)$queuePdo->query("SELECT COUNT(*) FROM db_injektionsqueue WHERE status = 'offen'")->fetchColumn();
-            $queueStatus['fehler'] = (int)$queuePdo->query("SELECT COUNT(*) FROM db_injektionsqueue WHERE status = 'fehler'")->fetchColumn();
-        } catch (Throwable $e) {
-            // Statusanzeige ist optional, Terminal darf trotzdem laufen.
-        }
-    }
+    $queueStatus = [
+        'zeit'               => date('Y-m-d H:i:s'),
+        'hauptdb_verfuegbar' => $zustand['hauptdb_verfuegbar'],
+        'offen'              => $zustand['offen'],
+        'fehler'             => $zustand['fehler'],
+        'letzter_fehler'     => $zustand['letzter_fehler'],
+        'queue_verfuegbar'   => $zustand['queue_verfuegbar'],
+        'queue_speicherort'  => $zustand['queue_speicherort'],
+    ];
 
     $_SESSION['terminal_queue_status'] = $queueStatus;
 
@@ -372,7 +216,7 @@ try {
     // Fatal: Haupt-DB down UND keine Offline-Queue verfügbar
     // ------------------------------------------------------------
     // In diesem Zustand kann das Terminal keine Buchungen speichern.
-    // Wir wechseln in einen blockierenden Screen (Master-Prompt: „Admin anfordern“).
+    // Wir wechseln in einen blockierenden Screen („Admin anfordern“).
     if ($queueStatus['hauptdb_verfuegbar'] === false && $queueStatus['queue_verfuegbar'] === false) {
         $stoerungEintrag = null;
         require __DIR__ . '/../views/terminal/stoerung.php';
@@ -380,7 +224,7 @@ try {
     }
 
     // ------------------------------------------------------------
-    // Störungsmodus (Master-Prompt):
+    // Stoerungsmodus (siehe `docs/fachregeln/terminal_und_offline.md`):
     // Wenn ein Fehler-Eintrag in der Queue existiert, muss das Terminal
     // in einen blockierenden Störungsmodus wechseln, bis ein Admin den
     // problematischen Queue-Eintrag löscht/ignoriert.

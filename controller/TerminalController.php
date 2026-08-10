@@ -249,7 +249,7 @@ class TerminalController
     }
 
     /**
-     * Terminal-Timeouts laut Master-Prompt (Auto-Logout). Werte kommen aus `config`.
+     * Terminal-Timeouts fuer den Auto-Logout (`docs/fachregeln/terminal_und_offline.md`). Werte kommen aus `config`.
      *
      * Erwartete Keys:
      * - terminal_timeout_standard (Sekunden, Default 60)
@@ -1083,7 +1083,7 @@ class TerminalController
     /**
      * Offline-Buchung per RFID (ohne vorherige Mitarbeiter-Identifikation).
      *
-     * Vorgabe (Master-Prompt v9):
+     * Vorgabe (siehe `docs/fachregeln/terminal_und_offline.md`):
      * - Wenn die Hauptdatenbank offline ist, darf das Terminal weiterhin Kommen/Gehen annehmen.
      * - Es wird **nur** RFID + Zeitpunkt + Aktion gespeichert (in db_injektionsqueue).
      * - Die Auflösung des Mitarbeiters erfolgt erst beim späteren Einspielen in die Hauptdatenbank.
@@ -1243,7 +1243,7 @@ class TerminalController
     }
 
     /**
-     * Störungsmodus (Master-Prompt):
+     * Stoerungsmodus (siehe `docs/fachregeln/terminal_und_offline.md`):
      *
      * Sobald ein Queue-Eintrag auf Status "fehler" steht, müssen alle Aktionen
      * am Terminal blockiert werden. Die Seite zeigt den konkreten SQL-Befehl,
@@ -1299,9 +1299,7 @@ class TerminalController
             $hauptOk = $queueStatus['hauptdb_verfuegbar'] ?? null;
             $queueOk = null;
 
-            if (array_key_exists('offline_queue_verfuegbar', $queueStatus)) {
-                $queueOk = $queueStatus['offline_queue_verfuegbar'];
-            } elseif (array_key_exists('queue_verfuegbar', $queueStatus)) {
+            if (array_key_exists('queue_verfuegbar', $queueStatus)) {
                 $queueOk = $queueStatus['queue_verfuegbar'];
             }
 
@@ -1424,7 +1422,7 @@ class TerminalController
             return null;
         }
 
-        // OFFLINE-FALL (Master-Prompt):
+        // OFFLINE-FALL (`docs/fachregeln/terminal_und_offline.md`):
         // Wenn die Hauptdatenbank nicht erreichbar ist, dürfen Kommen/Gehen dennoch
         // funktionieren (über Offline-Queue). Dafür verwenden wir die in der Session
         // gecachten Mitarbeiterdaten und vermeiden DB-Queries.
@@ -1555,7 +1553,7 @@ class TerminalController
             }
         }
 
-        // Auto-Logout/Timeout (Master-Prompt) – wird in der View als JS umgesetzt.
+        // Auto-Logout/Timeout (`docs/fachregeln/terminal_und_offline.md`) – wird in der View als JS umgesetzt.
         // Default: 60s (Kontext: "standard")
         $terminalTimeoutSekunden = $this->holeTerminalTimeoutSekunden('standard');
 
@@ -1937,7 +1935,7 @@ class TerminalController
                     exit;
                 }
 
-                // OFFLINE-FALL (Master-Prompt v9):
+                // OFFLINE-FALL (`docs/fachregeln/terminal_und_offline.md`):
                 // Wenn die Hauptdatenbank offline ist, darf das Terminal trotzdem Kommen/Gehen
                 // annehmen – aber ohne Mitarbeiter-Login. Wir merken uns nur den RFID-Code
                 // (Session) und lassen die eigentliche Buchung als Queue-Eintrag erfolgen.
@@ -2277,7 +2275,7 @@ class TerminalController
                 $zeitWarnungen = null;
             }
         } elseif (is_array($mitarbeiter) && isset($mitarbeiter['id']) && !$hauptdbAktiv) {
-            // Offline-Fall (Master-Prompt): Komplexe Übersichten sind gesperrt.
+            // Offline-Fall: Komplexe Uebersichten sind gesperrt (`docs/fachregeln/terminal_und_offline.md`).
             $heuteDatum = (new DateTimeImmutable('today'))->format('Y-m-d');
             $heuteFehler = 'Hauptdatenbank offline – Übersicht ist nur online verfügbar.';
         }
@@ -4229,7 +4227,7 @@ $urlaubSaldo = null;
 
         $mitarbeiter = $this->holeAngemeldetenTerminalMitarbeiter();
         if ($mitarbeiter === null) {
-            // Offline-Mode (Master-Prompt v9):
+            // Offline-Modus (`docs/fachregeln/terminal_und_offline.md`):
             // Wenn die Hauptdatenbank offline ist, buchen wir Kommen/Gehen per RFID in die Queue,
             // ohne Mitarbeiter-Login.
             if (!$this->istHauptdatenbankAktiv()) {
@@ -4413,7 +4411,7 @@ $urlaubSaldo = null;
 
         $mitarbeiter = $this->holeAngemeldetenTerminalMitarbeiter();
         if ($mitarbeiter === null) {
-            // Offline-Mode (Master-Prompt v9):
+            // Offline-Modus (`docs/fachregeln/terminal_und_offline.md`):
             // Wenn die Hauptdatenbank offline ist, buchen wir Kommen/Gehen per RFID in die Queue,
             // ohne Mitarbeiter-Login.
             if (!$this->istHauptdatenbankAktiv()) {

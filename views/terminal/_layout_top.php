@@ -50,7 +50,7 @@ $topbarPillLink = 'terminal.php?aktion=offline_info';
 
 if (is_array($qs)) {
     $hauptdb = $qs['hauptdb_verfuegbar'] ?? null;
-    $queue = $qs['queue_verfuegbar'] ?? ($qs['offline_queue_verfuegbar'] ?? null);
+    $queue = $qs['queue_verfuegbar'] ?? null;
 
     if ($hauptdb === false && $queue === true) {
         $topbarPillText = 'OFFLINE';

@@ -23,8 +23,6 @@ if (is_array($qs)) {
     }
     if (array_key_exists('queue_verfuegbar', $qs)) {
         $queue = $qs['queue_verfuegbar'];
-    } elseif (array_key_exists('offline_queue_verfuegbar', $qs)) {
-        $queue = $qs['offline_queue_verfuegbar'];
     }
 
     if (isset($qs['queue_speicherort']) && is_string($qs['queue_speicherort']) && $qs['queue_speicherort'] !== '') {

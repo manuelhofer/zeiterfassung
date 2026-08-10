@@ -5,7 +5,7 @@ declare(strict_types=1);
 
 require __DIR__ . '/../core/Autoloader.php';
 
-$konfig = require __DIR__ . '/../config/config.php';
+$konfig = Start::los();
 
 // ---------------------------------------------------------------------------
 // Auf einem Terminal gibt es hier nichts zu holen (T-103)
@@ -55,28 +55,23 @@ if ($istTerminal) {
     exit;
 }
 
-// Zeitzone setzen
-if (isset($konfig['timezone']) && is_string($konfig['timezone']) && $konfig['timezone'] !== '') {
-    date_default_timezone_set($konfig['timezone']);
-} else {
-    date_default_timezone_set('Europe/Berlin');
-}
-
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
-
 /**
- * Normalisiert Jahr/Monat aus GET-Parametern.
+ * Liest Jahr und Monat aus dem Request, wendet die Stepper an und begrenzt sie.
  *
- * Hintergrund (T-069 Teil 2a/2b):
- * Manchmal entstehen (z. B. durch Browser-Back/Forward, Copy&Paste oder Tippfehler)
- * ungueltige Werte wie monat=0 oder monat=13. Das fuehrt in den Reports/PDFs zu
- * DateTime-Fehlern und kann je nach PHP-Einstellungen Warnungen/Notices ausloesen.
+ * Fasst zusammen, was fuer Monatsuebersicht, Monats-PDF und Sammelexport
+ * dreimal zeichengleich dastand.
  *
- * Wir clampen defensiv, statt einen Hard-Fehler zu riskieren.
+ * @return array{0:int,1:int}
  */
+function holeJahrMonatAusRequest(): array
+{
+    $jahr  = isset($_GET['jahr']) ? (int)$_GET['jahr'] : (int)date('Y');
+    $monat = isset($_GET['monat']) ? (int)$_GET['monat'] : (int)date('n');
 
+    [$jahr, $monat] = verarbeite_jahr_monat_aktion($jahr, $monat);
+
+    return normalize_jahr_monat($jahr, $monat);
+}
 
 /**
  * Verarbeitet optionale Stepper-Aktionen für Jahr/Monat.
@@ -124,6 +119,15 @@ function verarbeite_jahr_monat_aktion(int $jahr, int $monat): array
 
     return [$jahr, $monat];
 }
+
+/**
+ * Begrenzt Jahr und Monat auf sinnvolle Werte.
+ *
+ * Hintergrund (T-069 Teil 2a/2b): Durch Browser-Back/Forward, Copy&Paste oder
+ * Tippfehler entstehen Werte wie `monat=0` oder `monat=13`. Die fuehren in
+ * Reports und PDFs zu DateTime-Fehlern und je nach PHP-Einstellung zu
+ * Warnungen im Log. Deshalb wird defensiv begrenzt statt hart abgebrochen.
+ */
 function normalize_jahr_monat(int $jahr, int $monat): array
 {
     $jetztJahr = (int)date('Y');
@@ -283,39 +287,28 @@ try {
             break;
 
         case 'urlaub_jahresuebersicht':
+        // Alt-Link: nirgends mehr verlinkt, bleibt fuer Lesezeichen aus dem Betrieb.
         case 'urlaubsplanung':
             $controller = new UrlaubJahresuebersichtController();
             $controller->index();
             break;
 
         case 'report_monat':
-            $jahr  = isset($_GET['jahr']) ? (int)$_GET['jahr'] : (int)date('Y');
-            $monat = isset($_GET['monat']) ? (int)$_GET['monat'] : (int)date('n');
-
-            [$jahr, $monat] = verarbeite_jahr_monat_aktion($jahr, $monat);
-            [$jahr, $monat] = normalize_jahr_monat($jahr, $monat);
+            [$jahr, $monat] = holeJahrMonatAusRequest();
 
             $controller = new ReportController();
             $controller->monatsuebersicht($jahr, $monat);
             break;
 
         case 'report_monat_pdf':
-            $jahr  = isset($_GET['jahr']) ? (int)$_GET['jahr'] : (int)date('Y');
-            $monat = isset($_GET['monat']) ? (int)$_GET['monat'] : (int)date('n');
-
-            [$jahr, $monat] = verarbeite_jahr_monat_aktion($jahr, $monat);
-            [$jahr, $monat] = normalize_jahr_monat($jahr, $monat);
+            [$jahr, $monat] = holeJahrMonatAusRequest();
 
             $controller = new ReportController();
             $controller->monatsPdf($jahr, $monat);
             break;
 
         case 'report_monat_export_all':
-            $jahr  = isset($_GET['jahr']) ? (int)$_GET['jahr'] : (int)date('Y');
-            $monat = isset($_GET['monat']) ? (int)$_GET['monat'] : (int)date('n');
-
-            [$jahr, $monat] = verarbeite_jahr_monat_aktion($jahr, $monat);
-            [$jahr, $monat] = normalize_jahr_monat($jahr, $monat);
+            [$jahr, $monat] = holeJahrMonatAusRequest();
 
             $controller = new ReportController();
             $controller->monatsPdfExportAll($jahr, $monat);

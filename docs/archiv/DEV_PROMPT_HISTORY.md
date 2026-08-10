@@ -70,6 +70,85 @@ in den Statusbericht.
   D-002 entfallen; die Regel selbst gilt weiter.)
 
 
+## P-2026-08-10-17 queue-zustand-und-programmstart-aus-einer-hand
+
+### EINGELESEN
+- `public/terminal.php` vollstaendig – beide Bloecke, die den Queue-Zustand
+  ermitteln.
+- `services/QueueService.php`, `core/OfflineQueueManager.php`.
+- Alle fuenf Views/Controller, die `offline_queue_verfuegbar` lesen.
+- `public/index.php`, `public/maschine_code.php` (Vorspann).
+
+### DATEIEN
+`core/Start.php` (neu), `services/QueueService.php`, `public/terminal.php`,
+`public/index.php`, `public/maschine_code.php`,
+`controller/TerminalController.php`, `views/terminal/_statusbox.php`,
+`_layout_top.php`, `stoerung.php`, `start.php`.
+
+### AKZEPTANZKRITERIUM
+Health-Endpunkt und Terminal-Bildschirm melden denselben Zustand aus **einer**
+Quelle, und alle drei Einstiegspunkte starten unveraendert.
+
+### DONE
+**1. Der Queue-Zustand stand zweimal in `terminal.php`.** Einmal fuer den
+Health-Endpunkt (Zeilen 83–170), einmal fuer den Bildschirm (298–398) – fast
+derselbe Code, bis hin zum wortgleichen Kommentar „Konsistente Logik mit
+OfflineQueueManager". Zwei Fassungen derselben Wahrheit: Wird eine gepflegt und
+die andere nicht, meldet die Ueberwachung etwas anderes, als in der Halle auf
+dem Bildschirm steht.
+
+Neu: `QueueService::holeZustand()`. Beide Stellen fragen dort. `null` bedeutet
+durchgaengig **unbekannt**, nicht `false` – wenn sich die Datenbank gar nicht
+ansprechen laesst, ist „nicht verfuegbar" eine staerkere Aussage als
+gerechtfertigt.
+
+**2. Der Legacy-Schluessel `offline_queue_verfuegbar`** wurde bei jedem Request
+mit `queue_verfuegbar` synchron gehalten, „damit das Terminal nicht stumm
+bleibt, wenn eine View noch den alten Namen verwendet". Fuenf Stellen lasen ihn
+tatsaechlich noch. Alle umgestellt, der Schluessel ist weg.
+
+**3. Der Programmstart stand dreimal da.** `index.php`, `terminal.php` und
+`maschine_code.php` luden identisch Konfiguration, Zeitzone und Session –
+inklusive desselben `if/else` mit demselben Rueckfall `Europe/Berlin`. Jetzt
+`Start::los()`. In `index.php` stand der Block sogar **zweimal**: einmal oben
+und einmal nach der Terminal-Weiche.
+
+### TEST
+- Health-Antwort vor und nach dem Umbau verglichen: **identisch** bis auf den
+  Zeitstempel (`hauptdb_verfuegbar: true`, `queue_verfuegbar: true`,
+  `queue_speicherort: "offline"`, Zaehler 0/0).
+- `holeZustand()` gegen eine direkte Abfrage derselben Werte gegengeprueft:
+  vier von vier gleich.
+- 18 Backend-Masken: 16 POST-Formulare, keines ohne Token, 0 Ausnahmen.
+- `index.php`, `terminal.php`, Health je HTTP 200, `maschine_code.php` 403 ohne
+  Anmeldung.
+- `php -l` ueber alle Dateien sauber.
+
+### Gefundene Fehler im eigenen Entwurf
+Beim Entfernen von `offline_queue_verfuegbar` bin ich davon ausgegangen, alle
+fuenf Lesestellen seien Rueckfaelle **nach** `queue_verfuegbar`. Vier waren es.
+Die fuenfte – `views/terminal/stoerung.php` – liest den alten Schluessel
+**allein**, ohne Alternative. Haette ich sie so gelassen, waere
+`$offlineQueueOk` dort auf `null` stehengeblieben, und der Stoerungsbildschirm
+haette „Offline-Queue: unbekannt" gezeigt statt „OK"/„NICHT VERFUEGBAR" – und
+`$fatalOhneQueue` waere nie wahr geworden, also der Hinweis „Administrator
+anfordern" ausgeblieben. Ausgerechnet auf dem Bildschirm, der im Ernstfall
+angezeigt wird.
+
+Aufgefallen beim zeilenweisen Nachsehen jeder einzelnen Fundstelle, nicht durch
+einen Test – der Stoerungsfall laesst sich lokal nur mit abgeschalteter
+Datenbank erzeugen.
+
+### Was bewusst nicht erreicht wurde
+Der Stoerungsfall selbst (Haupt-DB aus **und** Offline-Queue aus) ist nicht
+durchgespielt. Das gehoert in den Geraetetest, wo die Datenbank ohnehin
+kontrolliert abgeschaltet wird – als Punkt in der Wartungscheckliste bereits
+vorgesehen.
+
+### NEXT
+P-2026-08-10-18: Kleinigkeiten (Einrueckung, Verweise, Bezeichner).
+
+
 ## P-2026-08-10-16 class-exists-ballast-entfernt
 
 ### EINGELESEN
