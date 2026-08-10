@@ -62,11 +62,11 @@ $dashboardDatumDeutsch = static function (string $wert): string {
 <?php if (!empty($zeitUnstimmigkeitenFehler)): ?>
     <section>
         <div class="warning-panel">
-            <strong style="color:#b00020;">Zeitwarnungen konnten nicht geladen werden.</strong>
-            <div style="margin-top: 0.45rem; color:#333;">Bitte error_log prüfen (DashboardController).</div>
+            <strong>Zeitwarnungen konnten nicht geladen werden.</strong>
+            <div style="margin-top: 0.45rem;">Bitte error_log prüfen (DashboardController).</div>
 
             <?php if (!empty($zeitUnstimmigkeitenFehler) && ($legacyAdmin ?? false)): ?>
-                <div style="margin-top: 0.35rem; color:#333;"><small><strong>Debug:</strong> <?= htmlspecialchars($zeitUnstimmigkeitenFehler) ?></small></div>
+                <div style="margin-top: 0.35rem;"><small><strong>Debug:</strong> <?= htmlspecialchars($zeitUnstimmigkeitenFehler) ?></small></div>
             <?php endif; ?>
         </div>
     </section>
@@ -77,10 +77,10 @@ $dashboardDatumDeutsch = static function (string $wert): string {
     <section>
         <div class="warning-panel">
             <div style="display:flex; justify-content: space-between; align-items: baseline; gap: 1rem; flex-wrap: wrap;">
-                <strong style="color:#b00020;">Achtung: Unvollständige Zeitbuchungen</strong>
-                <span style="color:#666; font-size: 0.95rem;">(<?php echo htmlspecialchars($zeitUnstimmigkeitenZeitraumLabel, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>)</span>
+                <strong class="panel-titel">Achtung: Unvollständige Zeitbuchungen</strong>
+                <span class="muted" style="font-size: 0.95rem;">(<?php echo htmlspecialchars($zeitUnstimmigkeitenZeitraumLabel, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>)</span>
             </div>
-            <div style="margin-top: 0.45rem; color:#333;">
+            <div style="margin-top: 0.45rem;">
                 Mindestens ein Mitarbeiter hat eine <strong>ungleiche Anzahl</strong> von Kommen/Gehen-Stempeln (z. B. „Kommen“ ohne „Gehen“, „Gehen“ ohne „Kommen“ oder doppelte Stempel).
                 Bitte prüfen und ggf. korrigieren.
             </div>
@@ -158,7 +158,7 @@ $dashboardDatumDeutsch = static function (string $wert): string {
                                         echo '<a href="' . htmlspecialchars($linkTag, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') . '">Tag öffnen</a>';
                                     }
                                     if (!$hasAction) {
-                                        echo '<span style="color:#999;">-</span>';
+                                        echo '<span class="muted">-</span>';
                                     }
                                 ?>
                             </td>
@@ -175,10 +175,10 @@ $dashboardDatumDeutsch = static function (string $wert): string {
     <section>
         <div class="warning-panel">
             <div style="display:flex; justify-content: space-between; align-items: baseline; gap: 1rem; flex-wrap: wrap;">
-                <strong style="color:#b00020;">Achtung: Pausen-Entscheidung nötig</strong>
-                <span style="color:#666; font-size: 0.95rem;">(<?php echo (int)($pausenEntscheidungenOffenAnzahl ?? count($pausenEntscheidungenOffen)); ?> Fälle)</span>
+                <strong class="panel-titel">Achtung: Pausen-Entscheidung nötig</strong>
+                <span class="muted" style="font-size: 0.95rem;">(<?php echo (int)($pausenEntscheidungenOffenAnzahl ?? count($pausenEntscheidungenOffen)); ?> Fälle)</span>
             </div>
-            <div style="margin-top: 0.45rem; color:#333;">
+            <div style="margin-top: 0.45rem;">
                 In diesen Fällen wird aktuell <strong>keine Pause</strong> abgezogen, bis entschieden wurde.
             </div>
 
@@ -211,10 +211,7 @@ $dashboardDatumDeutsch = static function (string $wert): string {
                                 <?php
                                 $tagUrl = '?seite=zeit_heute&datum=' . urlencode($dt) . '&mitarbeiter_id=' . urlencode((string)$mid);
                                 ?>
-                                <a href="<?php echo htmlspecialchars($tagUrl, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>"
-                                   style="display:inline-block; padding: 0.25rem 0.55rem; border: 1px solid #666; border-radius: 6px; background:#fff; text-decoration:none; color:#111;">
-                                    Tag öffnen
-                                </a>
+                                <a class="button-link quiet" href="<?php echo htmlspecialchars($tagUrl, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>">Tag öffnen</a>
                             </td>
                             <td style="border-bottom: 1px solid #eee; padding: 0.45rem 0.5rem;"><?php echo htmlspecialchars($ko, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></td>
                             <td style="border-bottom: 1px solid #eee; padding: 0.45rem 0.5rem;"><?php echo htmlspecialchars($ge, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></td>
@@ -366,7 +363,7 @@ $hatSystemStatus = (isset($systemStatus) && is_array($systemStatus)) || (isset($
                 <?php if (!(isset($smokeTest) && is_array($smokeTest))): ?>
                     <div style="display:flex; gap: 0.6rem; flex-wrap: wrap; align-items: baseline;">
                         <a href="?seite=dashboard&amp;smoke=1" style="font-size: 0.95rem;" onclick="return confirm('Smoke-Test ausführen? (read-only Checks; kann je nach System einige Sekunden dauern)');">ausführen</a>
-                        <span style="color:#999;">|</span>
+                        <span class="muted">|</span>
                         <a href="?seite=dashboard&amp;smoke=2" style="font-size: 0.95rem;" onclick="return confirm('FULL Smoke-Test ausführen? (enthält Schreibtests in DB-Transaktion + Rollback)');">voll (Rollback)</a>
                     </div>
                 <?php endif; ?>

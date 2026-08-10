@@ -755,8 +755,13 @@ if ($hatKonfigurationAdminRecht) {
             background: #fff7f7;
         }
 
+        /* Nur die Ueberschrift des Kastens ist rot, nicht jedes fette Wort im
+           Text darunter. `.panel-titel` gibt es fuer die Faelle, in denen die
+           Ueberschrift zwecks Layout in einem Zwischen-div steckt und deshalb
+           kein direktes Kind mehr ist. */
         .warning-panel > strong,
-        .warning-panel > h3 {
+        .warning-panel > h3,
+        .warning-panel .panel-titel {
             color: var(--backend-danger);
         }
 

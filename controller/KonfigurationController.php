@@ -296,7 +296,7 @@ class KonfigurationController
                 </table>
             <?php endif; ?>
 
-            <p style="margin-top:0.75rem; color:#555;">
+            <p class="muted" style="margin-top:0.75rem;">
                 Hinweis: Änderungen wirken sofort. Defaults werden automatisch über <code>DefaultsSeeder</code> angelegt, falls Einträge fehlen.
             </p>
         </section>
@@ -388,7 +388,7 @@ class KonfigurationController
                 | <a href="?seite=konfiguration_admin&amp;tab=systemlog">System-Log</a>
             </p>
 
-            <p style="color:#555;max-width:60rem;">
+            <p class="muted" style="max-width:60rem;">
                 Angezeigt werden die letzten <?php echo (int)$limit; ?> Einträge (Warnung, Fehler).
             </p>
 
@@ -953,7 +953,7 @@ class KonfigurationController
                 | <a href="?seite=konfiguration_admin&amp;tab=systemlog">System-Log</a>
             </p>
 
-            <p style="color:#555;max-width:60rem;">
+            <p class="muted" style="max-width:60rem;">
                 Hier werden Krankzeiträume gepflegt, damit später im Report/PDF automatisch in die Spalten
                 <strong>Krank LF</strong> (Lohnfortzahlung) und <strong>Krank KK</strong> (Krankenkasse) verteilt werden kann.
                 Wechsel LFZ → KK wird als zweiter Zeitraum gepflegt.
@@ -1014,7 +1014,7 @@ class KonfigurationController
                 <p>
                     <label for="bis_datum">Bis (optional)</label><br>
                     <input type="date" id="bis_datum" name="bis_datum" value="<?php echo htmlspecialchars((string)($form['bis_datum'] ?? ''), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>">
-                    <br><small style="color:#666;">Leer lassen = laufender Zeitraum</small>
+                    <br><small class="muted">Leer lassen = laufender Zeitraum</small>
                 </p>
 
                 <?php
@@ -1038,16 +1038,16 @@ class KonfigurationController
                     $v6wKkVonAnzeige = $formatKrankDatumAnzeige($v6wKkVon);
                 ?>
 
-                <div id="lfz6w_hinweis" style="margin:-0.5rem 0 1rem 0; padding:0.6rem 0.75rem; background:#f7f7f7; border:1px solid #ddd; border-radius:6px; max-width:48rem;">
+                <div id="lfz6w_hinweis" class="notice" style="margin:-0.5rem 0 1rem 0; max-width:48rem;">
                     <strong>Vorschlag „Wechsel nach 6 Wochen“</strong><br>
-                    <span style="color:#555;">
+                    <span class="muted">
                         Start am <span id="lfz6w_von"><?php echo htmlspecialchars($v6wVonAnzeige, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></span> →
                         Krank LF bis <span id="lfz6w_bis"><?php echo htmlspecialchars($v6wBisAnzeige, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></span>,
                         Krank KK ab <span id="lfz6w_kk"><?php echo htmlspecialchars($v6wKkVonAnzeige, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></span>.
                     </span>
                     <div style="margin-top:0.45rem;">
                         <button type="button" id="lfz6w_apply">Bis automatisch setzen</button>
-                        <small style="margin-left:0.5rem; color:#666;">(setzt das Feld „Bis“ auf LFZ-Ende)</small>
+                        <small class="muted" style="margin-left:0.5rem;">(setzt das Feld „Bis“ auf LFZ-Ende)</small>
                     </div>
                 </div>
 
@@ -1464,7 +1464,7 @@ class KonfigurationController
                 | <a href="?seite=konfiguration_admin&amp;tab=systemlog">System-Log</a>
             </p>
 
-            <p style="color:#555;max-width:60rem;">
+            <p class="muted" style="max-width:60rem;">
                 Hier werden die betrieblichen Pausenfenster (Uhrzeitfenster) und die gesetzlichen Mindestpausenwerte gepflegt.
                 Die Abzüge werden später pro Arbeitsblock berechnet (Mehrfach-Kommen/Gehen wird unterstützt).
             </p>
@@ -1503,7 +1503,7 @@ class KonfigurationController
                     <button type="submit">Gesetzliche Werte speichern</button>
                 </p>
 
-                <p style="color:#555;max-width:60rem;">
+                <p class="muted" style="max-width:60rem;">
                     Empfehlung/Default (Deutschland): &gt;<?php echo (int)$cfgSchwelle1; ?>h → <?php echo (int)$cfgMinuten1; ?>min, &gt;<?php echo (int)$cfgSchwelle2; ?>h → <?php echo (int)$cfgMinuten2; ?>min.
                     (Die Schwellen/Minuten sind hier bewusst konfigurierbar.)
                 </p>
@@ -1851,7 +1851,7 @@ class KonfigurationController
                 | <a href="?seite=konfiguration_admin&amp;tab=systemlog">System-Log</a>
             </p>
 
-            <p style="color:#555;max-width:60rem;">
+            <p class="muted" style="max-width:60rem;">
                 Diese Liste definiert die auswählbaren Gründe für <strong>Sonstiges</strong> (z. B. Sonderurlaub).
                 In der Tagesansicht kann später ein Grund gewählt werden, der dann Default-Stunden und ggf. Begründungspflicht vorgibt.
             </p>
@@ -2155,7 +2155,7 @@ class KonfigurationController
                     </label>
 
                     <?php if (!empty($datensatz['erstellt_am']) || !empty($datensatz['geaendert_am'])): ?>
-                        <div style="color:#555; font-size:0.9rem;">
+                        <div class="muted" style="font-size:0.9rem;">
                             <?php if (!empty($datensatz['erstellt_am'])): ?>
                                 Erstellt: <?php echo htmlspecialchars((string)$datensatz['erstellt_am'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>
                             <?php endif; ?>

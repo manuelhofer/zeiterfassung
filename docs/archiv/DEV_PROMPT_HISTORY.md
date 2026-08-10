@@ -70,6 +70,68 @@ in den Statusbericht.
   D-002 entfallen; die Regel selbst gilt weiter.)
 
 
+## P-2026-08-10-41 dashboard-und-konfiguration-nutzen-die-klassen
+
+### EINGELESEN
+- `views/dashboard/index.php`, `controller/KonfigurationController.php`.
+- `views/layout/header.php`, Abschnitt `.warning-panel`.
+
+### DATEIEN
+- `views/dashboard/index.php`
+- `controller/KonfigurationController.php`
+- `views/layout/header.php`
+- `docs/STATUS_SNAPSHOT.md`
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Die Warnkästen des Dashboards („Achtung: Unvollständige Zeitbuchungen") haben
+weiterhin eine rote Überschrift, ohne dass die Farbe im Markup steht.
+
+### DONE
+Dritte Gruppe aus T-109. Beide Masken benutzten die Klassen schon halb: Das
+Dashboard hatte `.warning-panel` und `.table-wrap`, überschrieb die Farben aber
+zusätzlich per `style`. Elf beziehungsweise zwölf solcher Stellen sind
+verschwunden:
+
+- `<strong style="color:#b00020;">` – doppelt gemoppelt, `.warning-panel` färbt
+  seine Überschrift bereits.
+- `color:#333` auf Fliesstext – das ist die Grundfarbe, nur dunkler geraten.
+- `color:#666`/`#999`/`#555` auf Randangaben und Trennzeichen → `.muted`.
+- Der Hinweiskasten der Lohnfortzahlung → `p.notice`.
+- „Tag öffnen" war ein Link, der einen Knopf nachbaute → `.button-link quiet`.
+
+### TEST
+- Probe-Seite mit beiden Verschachtelungen gebaut und im Bild geprüft:
+  Überschrift als direktes Kind rot, Überschrift als Enkel mit `.panel-titel`
+  rot, fette Wörter im Fliesstext darunter schwarz.
+- Dashboard, Konfigurationsübersicht und Konfigurations-Bearbeitenmaske
+  gerendert: keine Meldungen, **keine** Eigenfarbe mehr im ausgelieferten HTML.
+- Dashboard zusätzlich als Bild angesehen (Schnellzugriff, Systemstatus).
+- `php -l` auf allen drei geänderten Dateien sauber.
+
+### Gefundene Fehler im eigenen Entwurf
+**Zwei der drei Überschriften waren gar keine direkten Kinder.** Die Regel heisst
+`.warning-panel > strong`; im Dashboard steckt die Überschrift aber in einem
+Zwischen-`div`, das sie neben die Randangabe stellt. Nach dem Entfernen des
+`style`-Attributs waeren diese beiden Überschriften schwarz geworden.
+
+Der naheliegende Ausweg – aus `>` ein Leerzeichen machen – waere schlimmer
+gewesen: Dann faerbt die Regel **jedes** fette Wort im Kasten rot, auch mitten
+im Fliesstext („ungleiche Anzahl"). Stattdessen `.panel-titel` als
+ausdrückliche Auszeichnung der Überschrift.
+
+### Was bewusst nicht erreicht wurde
+Die Tabellen im Dashboard tragen weiterhin eigene `border-bottom`- und
+`padding`-Angaben je Zelle. Das ist Layout, keine Farbe, und gehört in einen
+Durchgang über die Tabellenformate – nicht in diesen.
+
+Zwölf Masken sind noch offen (T-109).
+
+### NEXT
+T-109 weiter: `views/urlaub/meine_antraege.php` und
+`ArbeitsschrittKatalogController`.
+
+
 ## P-2026-08-10-40 zeit-und-reportmasken-nutzen-die-klassen
 
 ### EINGELESEN
