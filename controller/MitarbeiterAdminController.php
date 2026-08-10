@@ -11,6 +11,21 @@ declare(strict_types=1);
  */
 class MitarbeiterAdminController
 {
+    /**
+     * Dürfen abteilungsbezogene Rollen zugewiesen werden? **Nein, siehe B-093.**
+     *
+     * `AuthService::ladeRechteCodesAusDb()` liest aus
+     * `mitarbeiter_hat_rolle_scope` nur Zeilen mit `scope_typ = 'global'`. Eine
+     * abteilungsbezogene Zuweisung gewährt damit gar nichts – die Maske sähe
+     * aber so aus, als hätte sie gewirkt, und jemand vergibt Rechte im Glauben,
+     * sie würden greifen.
+     *
+     * Sobald `hatRecht()` den Scope auswertet, genügt hier ein `true`. Bis
+     * dahin sind die Formularfelder deaktiviert und das Anlegen unterbunden;
+     * bestehende Zeilen bleiben lesbar und löschbar.
+     */
+    private const SCOPE_ABTEILUNG_AKTIV = false;
+
     private AuthService $authService;
     private MitarbeiterModel $mitarbeiterModel;
 
@@ -1657,7 +1672,18 @@ class MitarbeiterAdminController
                     }
 
                     // Hinzufügen (ein Eintrag pro Speichern)
-                    if ($scopeAbtAddRolleId > 0 && $scopeAbtAddAbteilungId > 0) {
+                    //
+                    // **Gesperrt, siehe B-093.** `AuthService::ladeRechteCodesAusDb()`
+                    // liest aus dieser Tabelle nur Zeilen mit `scope_typ = 'global'`.
+                    // Eine abteilungsbezogene Zuweisung gewährt also gar nichts – die
+                    // Maske sähe aber so aus, als hätte sie gewirkt. Neue Einträge
+                    // werden deshalb nicht mehr angelegt, bis die Scope-Auswertung
+                    // gebaut ist. Bestehende Zeilen bleiben unangetastet.
+                    //
+                    // Die Formularfelder sind bereits deaktiviert; diese Prüfung ist
+                    // die zweite Sperre – ein von Hand zusammengebauter POST soll
+                    // keine Zeilen anlegen können, die nichts bewirken.
+                    if (self::SCOPE_ABTEILUNG_AKTIV && $scopeAbtAddRolleId > 0 && $scopeAbtAddAbteilungId > 0) {
                         $stmtInsAbt = $pdoScope->prepare(
                             "INSERT INTO mitarbeiter_hat_rolle_scope
                                 (mitarbeiter_id, rolle_id, scope_typ, scope_id, gilt_unterbereiche)

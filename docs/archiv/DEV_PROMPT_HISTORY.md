@@ -70,6 +70,74 @@ in den Statusbericht.
   D-002 entfallen; die Regel selbst gilt weiter.)
 
 
+## P-2026-08-10-25 abteilungsrollen-gesperrt
+
+### EINGELESEN
+- `services/AuthService.php`, `ladeRechteCodesAusDb()`.
+- `controller/MitarbeiterAdminController.php`, Scope-Verarbeitung.
+- `views/mitarbeiter/formular.php`, Abschnitt „Rollen in Abteilungen".
+- `docs/fachregeln/rollen_rechte_genehmiger.md`, Abschnitte 3 und 4.
+
+### DATEIEN
+- `controller/MitarbeiterAdminController.php`
+- `views/mitarbeiter/formular.php`
+- `docs/STATUS_SNAPSHOT.md`
+- `docs/fachregeln/rollen_rechte_genehmiger.md`
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Die Maske sagt deutlich, dass abteilungsbezogene Rollen keine Rechte gewähren,
+und es lässt sich keine neue solche Zuweisung mehr anlegen.
+
+### DONE
+B-093 entschärft – nicht behoben. Der gefährliche Teil war nicht der fehlende
+Scope, sondern dass die Maske **so aussah, als hätte sie gewirkt**: Man wählt
+Rolle und Abteilung, speichert, die Zeile erscheint in der Liste – und der
+Mitarbeiter hat kein einziges Recht dazubekommen.
+
+Drei Sperren:
+
+1. **Die Auswahlfelder sind deaktiviert** (Rolle, Abteilung, „gilt für
+   Unterbereiche"), ebenso die Unterbereiche-Ankreuzfelder bestehender Zeilen.
+2. **Eine Warnung steht oben im Abschnitt**, nicht als Kleingedrucktes am Ende.
+   Vorher stand dort „Die Rechte-Auswertung wird im nächsten Schritt
+   schrittweise umgesetzt" – das liest sich wie „funktioniert teilweise", nicht
+   wie „gewährt nichts".
+3. **Serverseitig gesperrt** über
+   `MitarbeiterAdminController::SCOPE_ABTEILUNG_AKTIV = false`. Deaktivierte
+   Felder werden nicht mitgeschickt, aber ein von Hand gebauter POST könnte
+   sonst weiter Zeilen anlegen, die nichts bewirken.
+
+Bestehende Zeilen bleiben **lesbar und löschbar** – nichts wird
+stillschweigend entfernt.
+
+Zum Wiedereinschalten genügt später ein `true` an der Konstante; sie ist
+greppbar und trägt die Begründung im Docblock.
+
+### TEST
+- Maske mit angemeldeter Superuser-Session gerendert: Warnung sichtbar,
+  `scope_abteilung_add_rolle_id` und `…_abteilung_id` tragen `disabled`.
+- `grep` bestätigt die serverseitige Sperre an der Einfügestelle.
+- `php -l` über beide Dateien sauber.
+
+### Gefundene Fehler im eigenen Entwurf
+Erste Fassung schrieb die Sperre als `if (false && …)`. Das funktioniert, sagt
+aber niemandem warum, und statische Analyse meldet es als toten Code. Ersetzt
+durch eine benannte Konstante mit Begründung – damit ist auch klar, was zu tun
+ist, wenn die Scope-Auswertung kommt.
+
+### Was bewusst nicht erreicht wurde
+Die Scope-Auswertung selbst. Sie berührt jede Rechteprüfung im Projekt und
+braucht laut Arbeitsregeln §1 erst eine Spezifikation.
+
+**In der lokalen Datenbank steht bereits eine wirkungslose Zuweisung**
+(`scope_typ = 'abteilung'`). Sie wurde nicht angefasst – ob im Produktivbestand
+weitere existieren und ob dort jemand auf sie zählt, muss nachgesehen werden.
+
+### NEXT
+B-080: Übertrag festschreiben.
+
+
 ## P-2026-08-10-24 b-080-reproduziert
 
 ### EINGELESEN

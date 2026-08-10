@@ -452,8 +452,15 @@ $zeigeAbteilungsrollenBereich = $hatAbteilungen || count($rollenScopesAbteilung)
 
                 <?php if ($zeigeAbteilungsrollenBereich): ?>
                     <div class="permission-card">
-                        <h3>Rollen in Abteilungen</h3>
-                        <p class="muted">Diese Rollen gelten nur f&uuml;r eine bestimmte Abteilung, optional inklusive Unterbereiche.</p>
+                        <h3>Rollen in Abteilungen <span class="hinweis">&ndash; noch nicht wirksam</span></h3>
+                        <div class="fehlermeldung">
+                            <strong>Diese Zuweisung gew&auml;hrt derzeit keine Rechte.</strong>
+                            Die Rechtepr&uuml;fung wertet ausschlie&szlig;lich <em>globale</em> Rollen aus;
+                            abteilungsbezogene Zuweisungen werden gespeichert, aber nicht ber&uuml;cksichtigt
+                            (B-093). Die Auswahl ist deshalb gesperrt, damit niemand Rechte vergibt,
+                            die nicht greifen. Bereits vorhandene Eintr&auml;ge stehen unten und lassen
+                            sich weiterhin l&ouml;schen.
+                        </div>
 
                 <?php
                     $rolleNameById = [];
@@ -501,7 +508,7 @@ $zeigeAbteilungsrollenBereich = $hatAbteilungen || count($rollenScopesAbteilung)
                                     <td>
                                         <input type="hidden" name="scope_abteilung_row_ids[]" value="<?php echo (int)$eid; ?>">
                                         <label>
-                                            <input type="checkbox" name="scope_abteilung_unterbereiche[<?php echo (int)$eid; ?>]" value="1" <?php echo $gilt; ?>>
+                                            <input type="checkbox" name="scope_abteilung_unterbereiche[<?php echo (int)$eid; ?>]" value="1" <?php echo $gilt; ?> disabled>
                                             gilt
                                         </label>
                                     </td>
@@ -523,7 +530,7 @@ $zeigeAbteilungsrollenBereich = $hatAbteilungen || count($rollenScopesAbteilung)
                 <div class="compact-form-grid">
                     <label>
                         Rolle
-                        <select name="scope_abteilung_add_rolle_id">
+                        <select name="scope_abteilung_add_rolle_id" disabled>
                             <option value="0">—</option>
                             <?php foreach ($alleRollen as $rolle): ?>
                                 <?php $rid = (int)($rolle['id'] ?? 0); $rName = (string)($rolle['name'] ?? ''); ?>
@@ -535,7 +542,7 @@ $zeigeAbteilungsrollenBereich = $hatAbteilungen || count($rollenScopesAbteilung)
                     </label>
                     <label>
                         Abteilung
-                        <select name="scope_abteilung_add_abteilung_id">
+                        <select name="scope_abteilung_add_abteilung_id" disabled>
                             <option value="0">—</option>
                             <?php foreach ($alleAbteilungen as $abt): ?>
                                 <?php $aid = (int)($abt['id'] ?? 0); $aName = (string)($abt['name'] ?? ''); ?>
@@ -546,11 +553,11 @@ $zeigeAbteilungsrollenBereich = $hatAbteilungen || count($rollenScopesAbteilung)
                         </select>
                     </label>
                     <label>
-                        <input type="checkbox" name="scope_abteilung_add_unterbereiche" value="1" <?php echo $addUnterChecked; ?>>
+                        <input type="checkbox" name="scope_abteilung_add_unterbereiche" value="1" <?php echo $addUnterChecked; ?> disabled>
                         gilt für Unterbereiche
                     </label>
                 </div>
-                <p><small>Hinweis: Unterbereiche beziehen sich auf die Abteilungs-Hierarchie (parent_id). Die Rechte-Auswertung wird im nächsten Schritt schrittweise umgesetzt.</small></p>
+                <p><small>Gesperrt bis die Scope-Auswertung in <code>AuthService::hatRecht()</code> gebaut ist &ndash; siehe B-093 im Status-Snapshot.</small></p>
                 <?php endif; ?>
                     </div>
                 <?php endif; ?>
