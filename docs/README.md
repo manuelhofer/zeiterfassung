@@ -53,6 +53,20 @@ Hand gepflegt.
   keine gültige Arbeitsanweisung. Der abgelöste Master-Prompt v13 liegt dort;
   sein Inhalt steckt heute in `arbeitsregeln.md` und `fachregeln/`.
 
+## Warum die Doku so aufgeteilt ist
+
+Früher stand alles in einem einzigen Master-Prompt (~36.000 Token). Wer nur
+einen Tippfehler im Terminal beheben wollte, las zwangsläufig auch Pausenregeln,
+PDF-Spalten und Genehmigerlogik – teuer und unübersichtlich.
+
+Jetzt ist nach **Lesehäufigkeit** getrennt: Arbeitsregeln und Status immer,
+Fachregeln nach Bedarf, Historie nur auf Nachfrage. Doppelt gepflegte Listen
+wurden gestrichen, weil sie auseinanderdriften – und dann weiß niemand mehr,
+welche Fassung gilt.
+
+Deshalb gilt: **Wenn du eine Regel änderst, ändere sie an genau einer Stelle.**
+Findest du dieselbe Aussage zweimal, ist das ein Fehler – melde ihn.
+
 ## Konfiguration (Zugangsdaten)
 
 `config/config.php` enthält **keine** echten Zugangsdaten. Produktive Werte

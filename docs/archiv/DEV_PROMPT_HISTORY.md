@@ -70,6 +70,106 @@ in den Statusbericht.
   D-002 entfallen; die Regel selbst gilt weiter.)
 
 
+## P-2026-08-10-07 kaltstart-entdoppelt
+
+### EINGELESEN
+- `CLAUDE.md`, `CHATSTART.md`, `docs/arbeitsregeln.md`,
+  `docs/STATUS_SNAPSHOT.md` – vollstaendig, Abschnitt fuer Abschnitt vermessen.
+- `docs/README.md`, `README.md`, `docs/fachregeln/README.md`,
+  `docs/spezifikation_terminal_installation.md` (Abschnitte 6, 7, 8, 11).
+
+### DATEIEN
+- `CLAUDE.md`
+- `CHATSTART.md`
+- `docs/arbeitsregeln.md`
+- `docs/STATUS_SNAPSHOT.md`
+- `docs/README.md`
+- `docs/spezifikation_terminal_installation.md`
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Das Kaltstart-Set ist deutlich kleiner, und jede entfernte Aussage ist per
+`grep` in einer anderen Datei nachweisbar.
+
+### DONE
+Ausgangslage 18.818 B, jetzt **14.976 B (−20 %)**. Der Gewinn kommt fast
+vollstaendig aus Wiederholung, nicht aus Kuerzung. Belegt vor dem Umbau:
+
+- „Statt gepflegter Liste `git log` lesen" stand an **zehn** Stellen.
+- „Fertig, im Praxis-Test, nur bei Bugs" an vier.
+- „Gepusht wird nur auf Ansage" an drei, „Patch-ID" an drei,
+  „History im selben Commit" an vier.
+
+Im Einzelnen:
+
+- **`CLAUDE.md` 1.018 → 575 B.** Behalten wurden „nicht pushen" (harte
+  Nie-Regel, darf redundant sein) und der Hinweis auf echte Personendaten in
+  der lokalen Datenbank – der steht sonst nirgends, und dies ist die einzige
+  Datei, die garantiert vor allem anderen gelesen wird. Pre-Flight-Gate und
+  die localhost-Adresse sind gestrichen; sie stehen in `arbeitsregeln.md` §2
+  bzw. in `lokale_entwicklungsumgebung.md` und `README.md`.
+- **`CHATSTART.md` 5.705 → 4.271 B.** Abschnitt 5 („Warum die Doku so
+  aufgeteilt ist") ist nach `docs/README.md` gezogen – Begruendung, keine
+  Arbeitsanweisung. Abschnitt 2 ist von neun Stichpunkten auf die vier
+  reduziert, bei denen ein Verstoss nicht mehr zu reparieren ist; der Rest
+  steht vollstaendig in `arbeitsregeln.md`, worauf der Abschnitt jetzt
+  ausdruecklich verweist. Die Lesekarte bleibt **vollstaendig** – sie ist der
+  Teil, der Lesearbeit spart.
+- **`docs/arbeitsregeln.md` 8.338 → 7.349 B.** Gestrichen: der
+  Herkunftsvermerk auf Master-Prompt v13 (steht in `fachregeln/README.md` und
+  `archiv/ALTE_PROMPTS.md`), der Projektstatus (gehoert in den Snapshot), die
+  Struktur-Tabelle (steht in `README.md` und ist an einem `ls` ablesbar), der
+  Absatz „Keine handgepflegten Listen" (vierte Fassung derselben Aussage) und
+  die Dateiliste im Pre-Flight-Gate (steht als Lesekarte in `CHATSTART.md`).
+  Ergaenzt: die Umlaut-Regel, der Verweis auf `Helper::sqlLiteral()` und
+  `core/Csrf.php`.
+- **`docs/STATUS_SNAPSHOT.md` 3.757 → 2.781 B**, obwohl vier neue T-IDs
+  hinzugekommen sind (T-104 bis T-107, rund 900 B). Der Kopf ist von drei
+  Absaetzen auf einen geschrumpft, „Was zuletzt passiert ist" ist weg (dritte
+  Fassung von „lies `git log`" im selben Kaltstart-Set), und die sieben
+  Pruefpunkte des Geraetetests sind als Abschnitt 12 in die
+  Terminal-Spezifikation gezogen – dorthin, wohin der Snapshot ohnehin schon
+  verwies.
+
+Ausserdem umgesetzt: **Umlaute statt `ae/oe/ue`** in allen vier Dateien. Das
+ist normalerweise ein eigener Patch, hier aber Teil desselben Vorgangs, weil
+alle vier Dateien zeilenweise neu geschrieben wurden – ein zweiter Durchgang
+haette denselben Text noch einmal angefasst. Die Regel dazu steht jetzt in
+§7 „Stil".
+
+### TEST
+- Alle 14 Ziele der Lesekarte vorher/nachher verglichen: keines verloren
+  (`grep -oP '\]\(\K[^)]+' | sort | comm`).
+- Alle in `CHATSTART.md` genannten Dateien existieren.
+- Die sieben Pruefpunkte in der Spezifikation `diff`-identisch mit der alten
+  Fassung im Snapshot.
+- Jede gestrichene Aussage einzeln per `grep` in ihrer neuen Heimat
+  nachgewiesen.
+- `wc -c` ueber das Set: 18.818 → 14.976 B.
+
+### Gefundene Fehler im eigenen Entwurf
+Der Plan hatte **unter 12 KB** angekuendigt. Das war zu optimistisch: Die
+Schaetzung beruhte auf Abschnittsgroessen, ohne zu beruecksichtigen, dass der
+Snapshot durch die neuen T-IDs waechst und `arbeitsregeln.md` um die
+Umlaut-Regel und zwei neue Verweise ergaenzt wird. 12 KB waeren nur durch
+Loeschen echter Regeln erreichbar gewesen. Die Grenze in §9 steht deshalb jetzt
+auf **15 KB** – dem gemessenen Wert mit etwas Luft – statt auf einer Zahl, die
+niemand einhalten kann. Dazu der Einzeiler zum Nachmessen.
+
+### Was bewusst nicht erreicht wurde
+Zwei Punkte aus dem alten Abschnitt 8 („klar strukturierte Rollen- und
+Genehmigerlogik", „uebersichtliche Backend-Oberflaechen") sind ersatzlos weg.
+Sie waren Absichtserklaerungen ohne pruefbaren Inhalt; das Konkrete dazu steht
+in `docs/fachregeln/rollen_rechte_genehmiger.md`, worauf die Lesekarte zeigt.
+
+`README.md` ist unangetastet – die richtet sich an Menschen, die frisch klonen,
+und wird nicht bei jedem Chat gelesen. Ihre Wiederholungen sind dort erwuenscht.
+
+### NEXT
+P-2026-08-10-08: falsche Angaben in der Rechte-Doku (Tabellenname, tote
+SQL-Verweise).
+
+
 ## P-2026-08-10-06 qr-bibliothek-entfernt
 
 ### EINGELESEN

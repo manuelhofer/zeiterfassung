@@ -1,64 +1,51 @@
-# Einstieg fuer KI-Assistenten
+# Einstieg für KI-Assistenten
 
-Diese Datei ist der **Startpunkt fuer jede KI und jedes Werkzeug**, das an
-diesem Projekt arbeitet – Claude Code, Cursor, Copilot, Aider oder ein
-beliebiger Chat. Sie ist bewusst kurz und werkzeugneutral.
+Startpunkt für **jede KI und jedes Werkzeug** an diesem Projekt – Claude Code,
+Cursor, Copilot, Aider oder ein beliebiger Chat.
 
-**Lies diese Datei ganz. Danach lies nur das, was zu deiner Aufgabe passt –
-nicht alles.**
+**Lies diese Datei ganz. Danach nur das, was zu deiner Aufgabe passt – nicht
+alles.**
 
 ---
 
 ## 1. Was das Projekt ist
 
-Webbasierte **Zeiterfassung** fuer einen Handwerks-/Fertigungsbetrieb:
-Mitarbeiter-, Rollen- und Genehmigerverwaltung, Urlaubsverwaltung,
-Auftragszeiten per Barcode-Scan, Auswertungen als Monats-PDF – dazu eine
-**Terminal-Oberflaeche (Kiosk)** fuer die Werkstatt mit RFID-Login und
-Offline-Queue.
-
-Reines PHP ohne grosses Framework, MariaDB/MySQL, Apache. Produktiv auf Debian;
-Terminals laufen auch auf einem Raspberry Pi.
-
-**Status: fertig, im Praxis-Test.** Gearbeitet wird nur bei Bugs oder auf
-ausdrueckliche Beauftragung.
+Webbasierte **Zeiterfassung** für einen Handwerks-/Fertigungsbetrieb, dazu eine
+**Terminal-Oberfläche (Kiosk)** für die Werkstatt mit RFID-Login und
+Offline-Queue. Reines PHP ohne großes Framework, MariaDB/MySQL, Apache.
+Produktiv auf Debian; Terminals laufen auch auf einem Raspberry Pi.
 
 **Einstiegspunkte:**
 
-- Backend: `public/index.php` (Routing ueber `?seite=…`)
-- Terminal: `public/terminal.php` (Routing ueber `?aktion=…`)
+- Backend: `public/index.php` (Routing über `?seite=…`)
+- Terminal: `public/terminal.php` (Routing über `?aktion=…`)
 
-**Zwei Installationstypen**, unterschieden ueber `app.installation_typ` in
+**Zwei Installationstypen**, unterschieden über `app.installation_typ` in
 `config/config.local.php`: `backend` (der Server) und `terminal` (Kiosk in der
 Halle). Ein Terminal ohne Konfiguration zeigt automatisch seine
 Einrichtungsseite und koppelt sich per Code am Backend an.
 
-## 2. Die wichtigsten Regeln in Kurzform
+## 2. Die vier Regeln, die immer gelten
 
-Vollstaendig in **[docs/arbeitsregeln.md](docs/arbeitsregeln.md)** – lies die,
-bevor du etwas aenderst.
+**Verbindlich und vollständig ist [docs/arbeitsregeln.md](docs/arbeitsregeln.md)**
+– lies die, bevor du etwas änderst. Hier stehen nur die vier, bei denen ein
+Verstoß nicht mehr zu reparieren ist:
 
 - **1 Patch = 1 Thema** mit **einem** Akzeptanzkriterium in einem Satz.
-- **Patch-ID im Commit-Betreff:** `P-YYYY-MM-DD-XX kurzbeschreibung-in-kebab-case`
-- **`docs/archiv/DEV_PROMPT_HISTORY.md` im selben Commit pflegen.**
-- **Vorher pruefen, ob es schon erledigt ist** – History und `git log`.
-- **Nachher:** `php -l` ueber alle geaenderten Dateien, betroffene Abläufe aus
-  `docs/wartungscheckliste.md` durchklicken.
-- **Deutsch** in Oberflaeche, Variablennamen und Kommentaren.
-- **PHP-Baseline:** mindestens 8.2, muss auf aktuellem PHP (8.5) warnungsfrei
-  laufen.
-- **Keine Refactors nebenbei.** Was auffaellt, wird notiert, nicht mitgemacht.
-- **Gepusht wird nur auf ausdrueckliche Ansage.**
+- **Patch-ID im Commit-Betreff** (`P-YYYY-MM-DD-XX kurzbeschreibung`), dazu ein
+  Eintrag in `docs/archiv/DEV_PROMPT_HISTORY.md` im **selben** Commit.
+- **Keine Refactors nebenbei.** Was auffällt, wird notiert, nicht mitgemacht.
+- **Gepusht wird nur auf ausdrückliche Ansage.**
 
 ## 3. Lesekarte – was liest du wann?
 
-**Immer, vor jeder Aenderung – diese drei Zeilen, mehr nicht:**
+**Immer, vor jeder Änderung – diese drei Zeilen, mehr nicht:**
 
-| Datei | Wofuer |
+| Datei | Wofür |
 | --- | --- |
 | [docs/arbeitsregeln.md](docs/arbeitsregeln.md) | Wie gearbeitet wird |
-| [docs/STATUS_SNAPSHOT.md](docs/STATUS_SNAPSHOT.md) | Der ganze Stand: naechster Schritt, offene Bugs, offene Tasks |
-| `git log --oneline -20` | Was zuletzt passiert ist – **statt** einer gepflegten Liste |
+| [docs/STATUS_SNAPSHOT.md](docs/STATUS_SNAPSHOT.md) | Der ganze Stand: nächster Schritt, offene Bugs, offene Tasks |
+| `git log --oneline -20` | Was zuletzt passiert ist |
 
 **Je nach Thema – nur das Passende:**
 
@@ -68,22 +55,20 @@ bevor du etwas aenderst.
 | Urlaub, Betriebsferien, Feiertage | [docs/fachregeln/urlaub_abwesenheit_feiertage.md](docs/fachregeln/urlaub_abwesenheit_feiertage.md) |
 | Rollen, Rechte, Bereiche, Genehmiger | [docs/fachregeln/rollen_rechte_genehmiger.md](docs/fachregeln/rollen_rechte_genehmiger.md) + [docs/rechte_prompt.md](docs/rechte_prompt.md) |
 | Terminal, Kiosk-UI, Offline-Queue, Kopplung | [docs/fachregeln/terminal_und_offline.md](docs/fachregeln/terminal_und_offline.md) |
-| Auftraege, Arbeitsschritte, Barcodes, Laufkarte | [docs/fachregeln/auftraege_und_codes.md](docs/fachregeln/auftraege_und_codes.md) |
-| Monatsuebersicht, Reports, PDF, Stundenkonto | [docs/fachregeln/auswertung_und_pdf.md](docs/fachregeln/auswertung_und_pdf.md) |
+| Aufträge, Arbeitsschritte, Barcodes, Laufkarte | [docs/fachregeln/auftraege_und_codes.md](docs/fachregeln/auftraege_und_codes.md) |
+| Monatsübersicht, Reports, PDF, Stundenkonto | [docs/fachregeln/auswertung_und_pdf.md](docs/fachregeln/auswertung_und_pdf.md) |
 | Mitarbeiter, Abteilungen, Maschinen, Schema | [docs/fachregeln/stammdaten_und_datenbank.md](docs/fachregeln/stammdaten_und_datenbank.md) |
 | Datenbankstruktur (Spalten, Indizes) | `sql/01_initial_schema.sql` – **Source of Truth** |
 | Terminal aufsetzen / installieren | [docs/spezifikation_terminal_installation.md](docs/spezifikation_terminal_installation.md) |
 | Lokal ausprobieren | [docs/lokale_entwicklungsumgebung.md](docs/lokale_entwicklungsumgebung.md) |
 | Produktivinstallation | [docs/installationsanleitung.md](docs/installationsanleitung.md) |
 
-**Nur bei Bedarf:** Der volle Projektverlauf steht in
-`docs/archiv/DEV_PROMPT_HISTORY.md` – ueber 12.000 Zeilen. Diese Datei wird
-beim Einstieg **nicht** gebraucht: Der Stand steht im Status-Snapshot, welche
-Patches es gab in `git log`. Oeffne sie erst, wenn zu einem bestimmten Patch
-die Begruendung oder der Test gesucht wird, und dann gezielt (`grep -n
-"P-2026-08-09-04"`), nie am Stueck. Der abgeloeste Master-Prompt v13 liegt
-ebenfalls in `docs/archiv/` und wird nur noch fuer historische Fragen
-gebraucht.
+`docs/archiv/DEV_PROMPT_HISTORY.md` ist **keine Startlektüre** (über 13.000
+Zeilen). Nur gezielt aufschlagen, wenn zu einem bestimmten Patch die Begründung
+oder der Test gesucht wird (`grep -n "P-2026-08-09-04"`), nie am Stück.
+
+**Eine Regel gehört an genau eine Stelle.** Findest du dieselbe Aussage
+zweimal, ist das ein Fehler – melde ihn.
 
 ## 4. Was du nicht lesen musst
 
@@ -93,18 +78,4 @@ Repository als eine Dokumentation:
 - **Welche Patches es gab** → `git log --oneline`
 - **Welche Tabellen und Spalten es gibt** → `sql/01_initial_schema.sql`
 - **Welche Routen es gibt** → `public/index.php`, `public/terminal.php`
-- **Wo ein Recht geprueft wird** → `grep -rn "RECHTE_CODE" controller views`
-
-## 5. Warum die Doku so aufgeteilt ist
-
-Frueher stand alles in einem einzigen Master-Prompt (~36.000 Token). Wer nur
-einen Tippfehler im Terminal beheben wollte, las zwangslaeufig auch
-Pausenregeln, PDF-Spalten und Genehmigerlogik – teuer und unuebersichtlich.
-
-Jetzt ist nach **Lesehaeufigkeit** getrennt: Arbeitsregeln und Status immer,
-Fachregeln nach Bedarf, Historie nur auf Nachfrage. Doppelt gepflegte Listen
-wurden gestrichen, weil sie auseinanderdriften – und dann weiss niemand mehr,
-welche Fassung gilt.
-
-**Wenn du eine Regel aenderst, aendere sie an genau einer Stelle.** Findest du
-dieselbe Aussage zweimal, ist das ein Fehler – melde ihn.
+- **Wo ein Recht geprüft wird** → `grep -rn "RECHTE_CODE" controller views`

@@ -834,3 +834,29 @@ sich **komplett ohne ein einziges Geraet** bauen und pruefen.
 
 Stufe 1 und 2 lassen sich also absichern, bevor ein echtes Geraet angefasst
 wird.
+
+## 12. Der Geraetetest – Pruefprotokoll
+
+Was ein Container prinzipiell nicht zeigen kann, braucht einen Bildschirm.
+Ablauf: Debian in einer VM mit Grafik (`qemu`/`virsh` sind auf dem
+Entwicklungsrechner vorhanden) oder echte Hardware, dann die vier Skripte der
+Reihe nach, danach diese Punkte:
+
+1. Kommt der Browser nach dem Einschalten im Vollbild hoch, ohne Adresszeile?
+2. Startet er nach `pkill chromium` von selbst neu (`Restart=always`)?
+3. Bleibt der Bildschirm nach zehn Minuten hell?
+4. Ist der Mauszeiger weg, wenn eine Maus angeschlossen ist?
+5. Greift der X11-Rueckfall, wenn man `KIOSK_ANZEIGE="x11"` setzt?
+6. Dreht sich mit `BILDSCHIRM_DREHUNG="rechts"` unter X11 **beides** – Bild und
+   Beruehrung? (Nur Bild gedreht ist schlimmer als gar nicht: Es sieht richtig
+   aus, aber der Finger trifft daneben.)
+7. Liefert ein angeschlossener RFID-Leser Zeichen, und stimmt ein gescannter
+   Barcode mit dem Etikett ueberein? Beides fragt `selbsttest.sh` ab.
+
+Grundlage fuer die Punkte 1 bis 6 sind die Abschnitte 6 und 7, fuer Punkt 7
+Abschnitt 8.
+
+**Unabhaengig davon offen:** Auf `pacman`, `dnf` und `zypper` ist keines der
+vier Skripte gelaufen. Der Container deckt nur `apt` ab, und openSUSE bleibt
+die unsicherste Familie (versionsgebundene Paketnamen, php-fpm auf TCP statt
+Socket, `cage` je nach Version gar nicht vorhanden).
