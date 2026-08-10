@@ -87,24 +87,22 @@ class ArbeitsschrittKatalogController
             </p>
 
             <?php if ($flashOk !== ''): ?>
-                <p style="padding:8px;border:1px solid #9ad29a;background:#e9f7e9;"><?php echo $esc($flashOk); ?></p>
+                <p class="success"><?php echo $esc($flashOk); ?></p>
             <?php endif; ?>
             <?php if ($flashFehler !== ''): ?>
-                <p style="padding:8px;border:1px solid #e0a0a0;background:#fbeaea;"><?php echo $esc($flashFehler); ?></p>
+                <p class="error"><?php echo $esc($flashFehler); ?></p>
             <?php endif; ?>
             <?php if ($fehlermeldung !== null): ?>
                 <div class="fehlermeldung"><?php echo $esc($fehlermeldung); ?></div>
             <?php endif; ?>
 
             <?php if ($darfVerwalten): ?>
-                <p>
-                    <a href="?seite=arbeitsschritt_katalog_neu" style="display:inline-block;padding:6px 12px;border:1px solid #2b6cb0;border-radius:4px;background:#2b6cb0;color:#fff;text-decoration:none;">
-                        + Arbeitsschritt hinzufuegen
-                    </a>
+                <div class="table-actions">
+                    <a class="button-link" href="?seite=arbeitsschritt_katalog_neu">+ Arbeitsschritt hinzufuegen</a>
                     <?php if (count($eintraege) > 0): ?>
-                        <a href="?seite=arbeitsschritt_katalog_blatt" target="_blank" style="margin-left:1rem;">Alle Strichcodes als Druckblatt (PDF)</a>
+                        <a class="button-link quiet" href="?seite=arbeitsschritt_katalog_blatt" target="_blank">Alle Strichcodes als Druckblatt (PDF)</a>
                     <?php endif; ?>
-                </p>
+                </div>
             <?php endif; ?>
 
             <?php if (count($eintraege) === 0): ?>
@@ -131,7 +129,7 @@ class ArbeitsschrittKatalogController
                                 $codeUrl = (string)($eintrag['code_url'] ?? '');
                                 $aktiv = (int)($eintrag['aktiv'] ?? 0) === 1;
                             ?>
-                            <tr<?php echo $aktiv ? '' : ' style="color:#888;"'; ?>>
+                            <tr<?php echo $aktiv ? '' : ' class="muted"'; ?>>
                                 <td><code><?php echo $esc($code); ?></code></td>
                                 <td><?php echo $bez !== '' ? $esc($bez) : '-'; ?></td>
                                 <td>
@@ -152,7 +150,7 @@ class ArbeitsschrittKatalogController
                                     </form>
                                 </td>
                                 <?php if ($darfVerwalten): ?>
-                                    <td><a href="?seite=arbeitsschritt_katalog_bearbeiten&amp;id=<?php echo $id; ?>">Bearbeiten</a></td>
+                                    <td><a class="button-link quiet" href="?seite=arbeitsschritt_katalog_bearbeiten&amp;id=<?php echo $id; ?>">Bearbeiten</a></td>
                                 <?php endif; ?>
                             </tr>
                         <?php endforeach; ?>
@@ -451,10 +449,10 @@ class ArbeitsschrittKatalogController
         <section>
             <h2><?php echo $id > 0 ? 'Arbeitsschritt bearbeiten' : 'Arbeitsschritt anlegen'; ?></h2>
 
-            <p><a href="?seite=arbeitsschritt_katalog">&laquo; Zurueck zum Katalog</a></p>
+            <p><a class="button-link quiet" href="?seite=arbeitsschritt_katalog">&laquo; Zurueck zum Katalog</a></p>
 
             <?php if (is_string($fehlermeldung) && $fehlermeldung !== ''): ?>
-                <div style="margin-bottom:1rem;padding:8px;border:1px solid #e0a0a0;background:#fbeaea;">
+                <div class="error">
                     <?php echo $esc($fehlermeldung); ?>
                 </div>
             <?php endif; ?>
@@ -498,8 +496,10 @@ class ArbeitsschrittKatalogController
                     <br><small>Inaktive Schritte stehen nicht mehr zur Auswahl und nicht auf dem Druckblatt. Bereits erfasste Buchungen bleiben unberuehrt.</small>
                 </div>
 
-                <button type="submit">Speichern</button>
-                <a href="?seite=arbeitsschritt_katalog" style="margin-left:1rem;">Abbrechen</a>
+                <div class="form-actions">
+                    <button type="submit">Speichern</button>
+                    <a class="button-link quiet" href="?seite=arbeitsschritt_katalog">Abbrechen</a>
+                </div>
             </form>
         </section>
         <?php
@@ -557,7 +557,7 @@ class ArbeitsschrittKatalogController
         <section>
             <h2>Keine Berechtigung</h2>
             <p>Zum Pflegen des Arbeitsschritt-Katalogs wird das Recht <code>AUFTRAEGE_VERWALTEN</code> benoetigt.</p>
-            <p><a href="?seite=arbeitsschritt_katalog">&laquo; Zurueck zum Katalog</a></p>
+            <p><a class="button-link quiet" href="?seite=arbeitsschritt_katalog">&laquo; Zurueck zum Katalog</a></p>
         </section>
         <?php
         require __DIR__ . '/../views/layout/footer.php';

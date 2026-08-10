@@ -1024,7 +1024,7 @@ if (is_array($tageswerte) && $tageswerte !== []) {
     <?php endif; ?>
 
     <?php if ($monatsabschlussBlockZeigen): ?>
-        <div style="margin: 8px 0; padding: 10px; border: 1px dashed #ccc; background: #fafafa;">
+        <div class="admin-card" style="margin: 8px 0; border-style: dashed;">
             <strong>Monatsabschluss (Stundenkonto)</strong><br>
             Berechnete Differenz (Soll/Ist): <strong><?php echo htmlspecialchars($monatsabschlussBerechnetText !== '' ? $monatsabschlussBerechnetText : (string)$monatsabschlussBerechnetDeltaMinuten, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></strong>
             <?php if (!empty($monatsabschlussGebucht)): ?>
@@ -1575,7 +1575,7 @@ if (is_array($tageswerte) && $tageswerte !== []) {
             </tbody>
         </table>
         <?php if (is_array($monatszusammenfassung)): ?>
-            <div style="margin-top: 12px; padding: 10px; border: 1px solid #ccc; background: #fafafa; max-width: 520px;">
+            <div class="admin-card" style="margin-top: 12px; max-width: 520px;">
                 <strong>Monatszusammenfassung (wie PDF)</strong>
                 <table style="width: 100%; margin-top: 6px;">
                     <tbody>

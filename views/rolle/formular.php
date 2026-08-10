@@ -142,7 +142,7 @@ $aktiv        = array_key_exists('aktiv', (array)$rolle) ? ((int)$rolle['aktiv']
 
                 <?php foreach ($gruppen as $gruppenName => $rechteInGruppe): ?>
                     <?php if (count($rechteInGruppe) === 0): continue; endif; ?>
-                    <details open style="border:1px solid #ddd; padding:0.5rem; margin:0.6rem 0;">
+                    <details open class="admin-card" style="margin:0.6rem 0;">
                         <summary style="cursor:pointer;">
                             <strong><?php echo htmlspecialchars($gruppenName, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></strong>
                             <small>(<?php echo (int)count($rechteInGruppe); ?>)</small>

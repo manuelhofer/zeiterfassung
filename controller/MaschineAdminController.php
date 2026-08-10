@@ -487,7 +487,7 @@ class MaschineAdminController
                 </div>
 
                 <?php if ($id > 0): ?>
-                    <div style="margin: 1rem 0; padding: 0.75rem; border: 1px solid #ddd; border-radius: 6px; max-width: 520px;">
+                    <div class="admin-card" style="margin: 1rem 0; border-radius: 6px; max-width: 520px;">
                         <div><strong>Maschinen-Barcode</strong></div>
                         <?php if ($codeBildUrl !== ''): ?>
                             <div style="margin-top: 0.5rem;">
@@ -497,7 +497,7 @@ class MaschineAdminController
                                 <a href="<?php echo htmlspecialchars($codeBildUrl, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>" target="_blank">Download PNG</a>
                             </div>
                         <?php else: ?>
-                            <div style="margin-top: 0.5rem; color: #444;">
+                            <div class="muted" style="margin-top: 0.5rem;">
                                 Noch kein Barcode gespeichert. Bitte die Maschine speichern.
                             </div>
                         <?php endif; ?>
@@ -506,7 +506,7 @@ class MaschineAdminController
                                 <button type="submit">Barcode neu generieren</button>
                             </form>
                         </div>
-                        <div style="margin-top: 0.5rem; font-size: 0.9rem; color: #444;">
+                        <div class="muted" style="margin-top: 0.5rem; font-size: 0.9rem;">
                             Scan-Code: <code><?php echo htmlspecialchars($scanDaten, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></code>
                         </div>
                     </div>

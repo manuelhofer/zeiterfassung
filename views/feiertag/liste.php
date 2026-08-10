@@ -34,7 +34,7 @@ $fmtDatum = static function (string $datum): string {
         <button type="submit">Anzeigen</button>
     </form>
 
-    <p style="font-size: 0.9rem; color: #555;">
+    <p class="muted" style="font-size: 0.9rem;">
         Die gesetzlichen bundeseinheitlichen Feiertage werden automatisch erzeugt, falls für das gewählte Jahr
         noch keine Einträge vorhanden sind.
     </p>

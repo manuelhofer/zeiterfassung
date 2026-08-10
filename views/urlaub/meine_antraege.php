@@ -257,21 +257,21 @@ $fmtDatumZeitDe = static function (string $wert): string {
             </div>
 
             <?php if ($saldoHinweis !== ''): ?>
-                <div style="margin-top:0.35rem;color:#555;"><small><?php echo htmlspecialchars($saldoHinweis, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></small></div>
+                <div class="muted" style="margin-top:0.35rem;"><small><?php echo htmlspecialchars($saldoHinweis, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></small></div>
             <?php else: ?>
-                <div style="margin-top:0.35rem;color:#555;"><small>Berechnung: Verbrauchsreihenfolge Übertrag (Vorjahr) → Jahr <?php echo (int)$saldoJahr; ?>. Wochenenden und Feiertage zählen nicht als Urlaubstage. Betriebsferien werden automatisch als Urlaub berücksichtigt (und sind in „Genehmigt (inkl. BF)“ enthalten).</small></div>
+                <div class="muted" style="margin-top:0.35rem;"><small>Berechnung: Verbrauchsreihenfolge Übertrag (Vorjahr) → Jahr <?php echo (int)$saldoJahr; ?>. Wochenenden und Feiertage zählen nicht als Urlaubstage. Betriebsferien werden automatisch als Urlaub berücksichtigt (und sind in „Genehmigt (inkl. BF)“ enthalten).</small></div>
             <?php endif; ?>
         </div>
     <?php endif; ?>
 
     <?php if (!empty($meldung)): ?>
-        <div style="background:#e8f5e9;border:1px solid #c8e6c9;padding:0.5rem 0.75rem;margin-bottom:0.75rem;">
+        <div class="success">
             <?php echo htmlspecialchars((string)$meldung, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>
         </div>
     <?php endif; ?>
 
     <?php if (!empty($fehlermeldung)): ?>
-        <div style="background:#ffebee;border:1px solid #ffcdd2;padding:0.5rem 0.75rem;margin-bottom:0.75rem;">
+        <div class="error">
             <?php echo htmlspecialchars((string)$fehlermeldung, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>
         </div>
     <?php endif; ?>
@@ -297,7 +297,7 @@ $fmtDatumZeitDe = static function (string $wert): string {
                     <?php if ($pvHat): ?>
                         &nbsp;| Dieser Antrag: <strong><?php echo htmlspecialchars($pvTage, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></strong>
                         &nbsp;| Nach diesem Antrag:
-                        <strong<?php echo ($pvNachNum < 0 ? ' style="color:#b71c1c;"' : ''); ?>><?php echo htmlspecialchars($pvNach, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></strong>
+                        <strong<?php echo ($pvNachNum < 0 ? ' class="wert-fehlt"' : ''); ?>><?php echo htmlspecialchars($pvNach, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></strong>
                     <?php else: ?>
                         &nbsp;| Zeitraum wählen für Vorschau.
                     <?php endif; ?>
@@ -334,7 +334,7 @@ $fmtDatumZeitDe = static function (string $wert): string {
                     <textarea id="kommentar_mitarbeiter" name="kommentar_mitarbeiter" rows="3" style="width:100%;max-width:900px;"><?php echo htmlspecialchars((string)($formular['kommentar_mitarbeiter'] ?? ''), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></textarea>
                 </div>
 
-                <p style="margin:0.5rem 0 0.75rem 0;color:#555;">
+                <p class="muted" style="margin:0.5rem 0 0.75rem 0;">
                     Hinweis: <strong>Tage gesamt</strong> wird als <strong>Arbeitstage</strong> berechnet (Mo–Fr).
                     Wochenenden und betriebsfreie Feiertage werden nicht gezählt. Betriebsferien werden im Antrag nicht gezählt (werden automatisch als Urlaub berücksichtigt).
                 </p>
@@ -463,7 +463,7 @@ $fmtDatumZeitDe = static function (string $wert): string {
 
                             if ($kommentarG !== '') {
                                 if ($kommentarM !== '') {
-                                    echo '<hr style="border:none;border-top:1px solid #eee;margin:0.5rem 0;">';
+                                    echo '<hr class="trenner" style="margin:0.5rem 0;">';
                                 }
                                 echo '<small><strong>Genehmiger:</strong> ' . nl2br(htmlspecialchars($kommentarG, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8')) . '</small>';
                             }

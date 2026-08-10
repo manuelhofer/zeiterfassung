@@ -70,6 +70,106 @@ in den Statusbericht.
   D-002 entfallen; die Regel selbst gilt weiter.)
 
 
+## P-2026-08-10-42 restliche-masken-nutzen-die-klassen
+
+### EINGELESEN
+- Alle in T-109 verbliebenen Masken (Urlaub, Rundungsregeln, Terminals,
+  Kontingente, Kurzarbeit, Rollen, Mitarbeiter, Stundenkonto, Queue, Katalog,
+  Maschinen, Feiertage) sowie die Reste in Dashboard, Tagesansicht und
+  Monatsuebersicht.
+- `views/layout/header.php`, gesamter Klassenbestand.
+
+### DATEIEN
+- `views/urlaub/meine_antraege.php`, `views/urlaub/verwaltung.php`,
+  `views/urlaub/genehmigung_liste.php`
+- `views/zeit_rundungsregel/liste.php`, `views/zeit_rundungsregel/formular.php`
+- `views/mitarbeiter/formular.php`, `views/mitarbeiter/stundenkonto.php`
+- `views/rolle/formular.php`, `views/queue/liste.php`,
+  `views/feiertag/liste.php`
+- `views/dashboard/index.php`, `views/zeit/tagesansicht.php`,
+  `views/report/monatsuebersicht.php`
+- `controller/ArbeitsschrittKatalogController.php`,
+  `controller/TerminalAdminController.php`,
+  `controller/UrlaubKontingentAdminController.php`,
+  `controller/KurzarbeitAdminController.php`,
+  `controller/MaschineAdminController.php`
+- `views/layout/header.php`
+- `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Eine Suche nach `style="…background/color/border…"` ueber `controller` und
+`views` findet ausser `SmokeTestController` keine Maske mehr, und 19
+gerenderte Seiten liefern null Eigenfarben im HTML aus.
+
+### DONE
+Abschluss von T-109. Dieselben Muster tauchten in fast jeder Maske wieder auf,
+jedes Mal leicht anders geschrieben:
+
+- gruener Erfolgs- und roter Fehlerkasten (`#e8f5e9` / `#ffebee`) →
+  `div.success`, `div.error`
+- graue Randnotiz in sieben Grautoenen (`#444`, `#555`, `#666`, `#777`, `#888`,
+  `#999`, `#5d6b73`) → `.muted`
+- Link oder Knopf, der einen Knopf nachbaute → `.button-link` bzw. `.quiet`
+
+Sieben Bausteine kamen dazu, weil es sie wirklich brauchte:
+
+- **`.info-panel`** – Gegenstueck zu `.warning-panel` fuer den einmalig
+  angezeigten Kopplungscode eines Terminals: auffaellig, aber keine Warnung.
+- **`.zeile-markiert`** – die orange hervorgehobene Zeile in der
+  Genehmigungsliste, auf die aus einer Meldung heraus verwiesen wird.
+- **`.zeile-wochenende`** – Samstag und Sonntag im Stundenkonto.
+- **`.admin-card.zustand-ok` / `.zustand-fehler`** und **`.wert-ok` /
+  `.wert-fehler`** – die Statuskacheln des Dashboards. Vorher rechnete die
+  Maske sich Hintergrund und Schriftfarbe in Variablen (`$dbBg`, `$dbFarbe`)
+  aus; jetzt entscheidet sie nur noch ueber den **Zustand**, nicht ueber die
+  Farbe.
+- **`pre.code-block`** – SQL- und Fehlerausgabe in der Offline-Queue.
+- **`.stealth-rahmen`** – der auffaellige Rahmen um das Stundenkonto im
+  Stealth-Modus.
+- **`hr.trenner`** – feine Trennlinie in Karten und Zellen.
+
+### TEST
+- 19 Masken ueber den Router gerendert: Dashboard, Tagesansicht,
+  Monatsuebersicht, Auftragsliste, Urlaub (eigene/Genehmigung/Verwaltung),
+  Katalog, Rundungsregeln, Terminals, Kontingente, Kurzarbeit, Queue,
+  Rollenformular, Mitarbeiterformular, Stundenkonto, Maschinen, Feiertage,
+  Konfiguration – alle ohne Meldung und mit **null** Eigenfarben im HTML.
+- Rundungsregeln, Katalog und Dashboard zusaetzlich als Bild geprueft.
+- `php -l` auf allen geaenderten Dateien sauber.
+
+### Gefundene Fehler im eigenen Entwurf
+Zwei, beide erst im Bild sichtbar:
+
+**Halbe Umstellung sieht schlechter aus als gar keine.** In den Rundungsregeln
+stand „Neue Regel anlegen" als Link, daneben „Standardregeln anlegen" – und nur
+Letzteres wurde zum Knopf. Im Bild standen dann ein nackter Link, ein
+uebriggebliebener Strich `|` und ein Knopf nebeneinander. Dasselbe im Katalog
+mit dem Druckblatt-Link. Beide Zeilen jetzt vollstaendig als `.table-actions`
+mit Haupt- und Nebenknopf. Wer Bedienelemente vereinheitlicht, muss die
+**ganze** Zeile ansehen, nicht die Stelle, die der `grep` gefunden hat.
+
+**`.admin-card strong` zerriss die Statuskacheln.** Die Regel machte *jedes*
+`strong` in einer Karte zum Block – gedacht war die Ueberschrift. Als die
+Dashboard-Kacheln auf `.admin-card` umgestellt wurden, stand danach „Aktiv:"
+und „0" auf zwei Zeilen. Jetzt `.admin-card > strong`. Eine Klasse zu benutzen
+heisst eben auch, alles zu erben, was sie sonst noch tut.
+
+### Was bewusst nicht erreicht wurde
+`SmokeTestController` (61 Stellen) bleibt wie angekuendigt aussen vor – siehe
+T-105: praktisch nicht mehr aenderbar, und ein Diagnosewerkzeug, das im Alltag
+niemand sieht.
+
+Reine Layoutangaben (Breiten, Abstaende, `border-bottom` in
+Dashboard-Tabellen) sind geblieben. Sie sind keine Farbe und gehoeren in einen
+eigenen Durchgang, falls er je gebraucht wird.
+
+Die Terminal-Oberflaeche (`terminal.css`) ist nicht betroffen: Sie ist bewusst
+eine eigene Gestaltung fuer den Touchbetrieb in der Halle.
+
+### NEXT
+Praxis-Test. Neue Masken bauen sich ab jetzt aus `views/layout/header.php`.
+
+
 ## P-2026-08-10-41 dashboard-und-konfiguration-nutzen-die-klassen
 
 ### EINGELESEN

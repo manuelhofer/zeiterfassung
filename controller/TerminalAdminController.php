@@ -123,7 +123,7 @@ class TerminalAdminController
             <h2>Terminalverwaltung</h2>
 
             <?php if ($neuerCode !== ''): ?>
-                <div style="margin:0.75rem 0;padding:0.9rem;border:2px solid #2b6cb0;border-radius:6px;background:#eef5fc;max-width:560px;">
+                <div class="info-panel" style="margin:0.75rem 0;max-width:560px;">
                     <div><strong>Kopplungscode fuer <?php echo htmlspecialchars($neuerCodeTerminal, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></strong></div>
                     <div style="font-size:2rem;font-family:monospace;letter-spacing:0.25rem;margin:0.5rem 0;">
                         <?php echo htmlspecialchars($neuerCode, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>
@@ -230,7 +230,7 @@ class TerminalAdminController
                                     <?php if ($dbBenutzer !== ''): ?>
                                         <span title="Datenbankbenutzer dieses Geraets"><?php echo htmlspecialchars($dbBenutzer, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></span>
                                         <?php if ($gekoppeltAm !== ''): ?>
-                                            <br><small style="color:#666;">seit <?php echo htmlspecialchars($gekoppeltAm, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></small>
+                                            <br><small class="muted">seit <?php echo htmlspecialchars($gekoppeltAm, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></small>
                                         <?php endif; ?>
                                         <?php /* Rückfrage bewusst ohne Gerätenamen: Der steht in derselben Zeile,
                                                  und ein Name im JavaScript-Text wäre nur eine weitere Stelle zum
@@ -242,7 +242,7 @@ class TerminalAdminController
                                             <button type="submit" style="padding: 0.15rem 0.5rem;">Entkoppeln</button>
                                         </form>
                                     <?php else: ?>
-                                        <span style="color:#666;">nicht gekoppelt</span>
+                                        <span class="muted">nicht gekoppelt</span>
                                     <?php endif; ?>
                                 </td>
                                 <td>
@@ -256,7 +256,7 @@ class TerminalAdminController
                                         $offeneKopplung = $kopplungService !== null ? $kopplungService->holeOffeneKopplung($id) : null;
                                         if (is_array($offeneKopplung)):
                                     ?>
-                                        <br><small style="color:#666;">Code offen bis
+                                        <br><small class="muted">Code offen bis
                                             <?php echo htmlspecialchars((string)($offeneKopplung['gueltig_bis'] ?? ''), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>
                                         </small>
                                     <?php endif; ?>

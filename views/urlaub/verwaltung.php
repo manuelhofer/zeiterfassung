@@ -342,7 +342,7 @@ $statusLabel = static function (string $status): string {
                                 <?php endif; ?>
                                 <?php if ($kommentarGenehmiger !== ''): ?>
                                     <?php if ($kommentarMitarbeiter !== ''): ?>
-                                        <hr style="border:none;border-top:1px solid #eee;margin:0.45rem 0;">
+                                        <hr class="trenner" style="margin:0.45rem 0;">
                                     <?php endif; ?>
                                     <small><strong>Genehmigung/Storno:</strong></small><br>
                                     <?php echo nl2br(htmlspecialchars($kommentarGenehmiger, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8')); ?>
@@ -442,7 +442,7 @@ $statusLabel = static function (string $status): string {
                 <button type="submit" onclick="return confirm('Urlaub direkt als genehmigt eintragen?');">Genehmigten Urlaub eintragen</button>
             </div>
 
-            <p style="margin-bottom:0;color:#5d6b73;">
+            <p class="muted" style="margin-bottom:0;">
                 Der Eintrag wird sofort als genehmigter Urlaub gespeichert und erscheint danach normal in Saldo, Jahresübersicht und Verwaltung.
             </p>
         </form>

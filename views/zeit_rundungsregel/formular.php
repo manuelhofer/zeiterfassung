@@ -46,7 +46,7 @@ $giltFuerOptionen = [
 <section>
     <h2><?php echo $id > 0 ? 'Rundungsregel bearbeiten' : 'Neue Rundungsregel anlegen'; ?></h2>
 
-    <p style="margin-top:0.25rem;color:#555;">
+    <p class="muted" style="margin-top:0.25rem;">
         Zeitbereich gilt <strong>inklusive Start</strong> und <strong>exklusiv Ende</strong>.
         Regeln werden nach <strong>Priorität</strong> (kleinste zuerst) geprüft; die <strong>erste passende</strong> Regel wird angewendet.
     </p>

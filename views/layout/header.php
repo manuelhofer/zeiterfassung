@@ -633,6 +633,35 @@ if ($hatKonfigurationAdminRecht) {
             color: var(--backend-muted);
         }
 
+        /* Feine Trennlinie innerhalb einer Zelle oder Karte. */
+        hr.trenner {
+            border: none;
+            border-top: 1px solid var(--backend-line-soft);
+        }
+
+        /* Umrandung fuer einen Bereich, der in einem besonderen Betriebszustand
+           laeuft - derzeit der Stealth-Modus des Stundenkontos. Soll auffallen. */
+        .stealth-rahmen {
+            border: 3px solid var(--backend-danger);
+            padding: 12px;
+        }
+
+        /* Vorformatierte Ausgabe (SQL, Fehlertexte) in Diagnoselisten. */
+        pre.code-block {
+            white-space: pre-wrap;
+            overflow: auto;
+            background: var(--backend-line-soft);
+            border: 1px solid var(--backend-line);
+            border-radius: 6px;
+            padding: 0.5rem;
+            margin: 0;
+        }
+
+        pre.code-block.fehler {
+            background: var(--backend-danger-bg);
+            border-color: #e2a5a5;
+        }
+
         .numeric {
             text-align: right;
             font-variant-numeric: tabular-nums;
@@ -685,7 +714,11 @@ if ($hatKonfigurationAdminRecht) {
             padding: 0.85rem 0.95rem;
         }
 
-        .admin-card strong {
+        /* Nur die Ueberschrift der Karte steht auf eigener Zeile. Galt frueher
+           fuer jedes `strong` in der Karte - seit die Statuskacheln des
+           Dashboards `.admin-card` benutzen, zerriss das dort jeden Wert
+           ("Aktiv: 0" auf zwei Zeilen). */
+        .admin-card > strong {
             display: block;
             margin-bottom: 0.35rem;
         }
@@ -836,6 +869,11 @@ if ($hatKonfigurationAdminRecht) {
             background: #ffcdd2;
         }
 
+        /* Wochenende in Tageslisten: nur ein leiser Hinweis, keine Wertung. */
+        tbody tr.zeile-wochenende td {
+            background: #f4f6f7;
+        }
+
         .wert-fehlt {
             color: #b71c1c;
             font-weight: 700;
@@ -845,6 +883,27 @@ if ($hatKonfigurationAdminRecht) {
             color: #b71c1c;
             font-weight: 700;
             margin: 0.5rem 0;
+        }
+
+        /* Gegenstueck zu `.warning-panel` fuer Kaesten, die keine Warnung sind,
+           aber trotzdem auffallen sollen - etwa der einmalig angezeigte
+           Kopplungscode eines Terminals. */
+        .info-panel {
+            border: 2px solid var(--backend-primary);
+            border-radius: 6px;
+            padding: 0.9rem 1rem;
+            background: var(--backend-info-bg);
+        }
+
+        .info-panel > :last-child {
+            margin-bottom: 0;
+        }
+
+        /* Eine Zeile, auf die verwiesen wurde (z. B. „zu Antrag 42 springen").
+           Wie die Auswertungsfarben spezifisch genug fuer die Zebrastreifen. */
+        tbody tr.zeile-markiert td {
+            background: #fff3e0;
+            box-shadow: inset 0 0 0 2px #ff9800;
         }
 
         .status-pill {
@@ -869,6 +928,28 @@ if ($hatKonfigurationAdminRecht) {
             color: var(--backend-danger);
             border-color: #e2a5a5;
             background: var(--backend-danger-bg);
+        }
+
+        /* Statuskachel: eine `.admin-card`, deren Hintergrund die Lage anzeigt.
+           Fuer Uebersichten wie den Systemstatus im Dashboard. */
+        .admin-card.zustand-ok {
+            background: var(--backend-success-bg);
+            border-color: #9ac8aa;
+        }
+
+        .admin-card.zustand-fehler {
+            background: var(--backend-danger-bg);
+            border-color: #e2a5a5;
+        }
+
+        .wert-ok {
+            color: var(--backend-success);
+            font-weight: 700;
+        }
+
+        .wert-fehler {
+            color: var(--backend-danger);
+            font-weight: 700;
         }
 
         @media (max-width: 760px) {

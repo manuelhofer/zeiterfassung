@@ -148,7 +148,7 @@ class UrlaubKontingentAdminController
             </form>
 
             <?php if (!empty($flashOk)): ?>
-                <div style="background:#e8f5e9;border:1px solid #c8e6c9;padding:0.6rem 0.8rem;margin-bottom:1rem;">
+                <div class="success">
                     <?php echo htmlspecialchars((string)$flashOk, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>
                 </div>
             <?php endif; ?>
@@ -356,7 +356,7 @@ class UrlaubKontingentAdminController
             </p>
 
             <?php if (!empty($flashOk)): ?>
-                <div style="background:#e8f5e9;border:1px solid #c8e6c9;padding:0.6rem 0.8rem;margin-bottom:1rem;">
+                <div class="success">
                     <?php echo htmlspecialchars((string)$flashOk, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>
                 </div>
             <?php endif; ?>
@@ -411,7 +411,7 @@ class UrlaubKontingentAdminController
                                 <td>
                                     <strong><?php echo htmlspecialchars($autoUebertragText, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?> Tage</strong>
                                     <?php if ($autoUebertragHinweis !== ''): ?>
-                                        <small style="color:#900;">(<?php echo htmlspecialchars($autoUebertragHinweis, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>)</small>
+                                        <small class="wert-fehlt">(<?php echo htmlspecialchars($autoUebertragHinweis, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>)</small>
                                     <?php endif; ?>
                                     <br>
                                     <small>

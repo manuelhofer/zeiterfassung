@@ -33,7 +33,7 @@ $stundenkontoLetzteKorrekturen = isset($stundenkontoLetzteKorrekturen) && is_arr
 $stundenkontoLetzteBatches = isset($stundenkontoLetzteBatches) && is_array($stundenkontoLetzteBatches) ? $stundenkontoLetzteBatches : [];
 $stundenkontoStealthMode = !empty($stundenkontoStealthMode);
 $stundenkontoAnsicht = (isset($stundenkontoAnsicht) && (string)$stundenkontoAnsicht === 'sammelumbuchung') ? 'sammelumbuchung' : 'konto';
-$stealthStyle = $stundenkontoStealthMode ? ' style="border: 3px solid #c00; padding: 12px;"' : '';
+$stealthStyle = $stundenkontoStealthMode ? ' class="stealth-rahmen"' : '';
 $stundenkontoUmbuchungJahr = isset($stundenkontoUmbuchungJahr) ? (int)$stundenkontoUmbuchungJahr : (int)date('Y');
 $stundenkontoUmbuchungMonat = isset($stundenkontoUmbuchungMonat) ? (int)$stundenkontoUmbuchungMonat : (int)date('n');
 $stundenkontoUmbuchungPrevJahr = isset($stundenkontoUmbuchungPrevJahr) ? (int)$stundenkontoUmbuchungPrevJahr : $stundenkontoUmbuchungJahr;
@@ -306,7 +306,7 @@ $umbuchungLink = static function (int $mid, int $monat, int $jahr, bool $stealth
                                     if ($kommentar !== '') {
                                         $typText .= ' / ' . $kommentar;
                                     }
-                                    $rowStyle = $wochentagNummer >= 6 ? ' style="background: #fafafa;"' : '';
+                                    $rowStyle = $wochentagNummer >= 6 ? ' class="zeile-wochenende"' : '';
                                 ?>
                                 <tr<?php echo $rowStyle; ?>>
                                     <td><?php echo htmlspecialchars($fmtDatum($datumIso), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></td>

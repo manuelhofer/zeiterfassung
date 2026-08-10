@@ -224,12 +224,12 @@ $dashboardDatumDeutsch = static function (string $wert): string {
                                     <input type="hidden" name="datum" value="<?php echo htmlspecialchars($dt, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>">
 
                                     <button type="submit" name="entscheidung" value="ABZIEHEN"
-                                            style="padding: 0.35rem 0.6rem; border: 1px solid #666; border-radius: 6px; background: #fff; cursor: pointer;">
+                                            class="quiet">
                                         Pause abziehen
                                     </button>
 
                                     <button type="submit" name="entscheidung" value="NICHT_ABZIEHEN"
-                                            style="padding: 0.35rem 0.6rem; border: 1px solid #666; border-radius: 6px; background: #fff; cursor: pointer;">
+                                            class="quiet">
                                         Keine Pause
                                     </button>
                                 </form>
@@ -357,7 +357,7 @@ $hatSystemStatus = (isset($systemStatus) && is_array($systemStatus)) || (isset($
     <section>
         <h2>Systemstatus</h2>
 
-        <div style="margin: 0.5rem 0 1rem 0; border: 1px dashed #bbb; border-radius: 8px; padding: 0.75rem 1rem; background: #fcfcfc;">
+        <div class="admin-card" style="margin: 0.5rem 0 1rem 0; border-style: dashed;">
             <div style="display:flex; justify-content: space-between; align-items: baseline; gap: 1rem; flex-wrap: wrap;">
                 <strong>Smoke-Test (Diagnose)</strong>
                 <?php if (!(isset($smokeTest) && is_array($smokeTest))): ?>
@@ -370,7 +370,7 @@ $hatSystemStatus = (isset($systemStatus) && is_array($systemStatus)) || (isset($
             </div>
 
             <?php if (isset($smokeTest) && is_array($smokeTest) && isset($smokeTest['checks']) && is_array($smokeTest['checks'])): ?>
-                <div style="margin-top: 0.6rem; font-size: 0.95rem; color: #444;">
+                <div class="muted" style="margin-top: 0.6rem; font-size: 0.95rem;">
                     Gesamt: <strong><?php echo number_format((float)($smokeTest['total_ms'] ?? 0), 1, ',', '.'); ?> ms</strong>
                 </div>
 
@@ -409,7 +409,7 @@ $hatSystemStatus = (isset($systemStatus) && is_array($systemStatus)) || (isset($
                     </table>
                 </div>
             <?php else: ?>
-                <div style="margin-top: 0.45rem; font-size: 0.95rem; color: #666;">
+                <div class="muted" style="margin-top: 0.45rem; font-size: 0.95rem;">
                     Führt einen kleinen Testlauf über DB/ZIP/Report/PDF aus. Nur auf Klick – nicht bei jedem Dashboard-Load.
                 </div>
             <?php endif; ?>
@@ -423,8 +423,7 @@ $hatSystemStatus = (isset($systemStatus) && is_array($systemStatus)) || (isset($
                 $offlineStatus = (string)($systemStatus['offline_db_status'] ?? 'deaktiviert');
                 $term = $systemStatus['terminals'] ?? null;
 
-                $dbFarbe = $hauptDbOk ? '#1b5e20' : '#b00020';
-                $dbBg = $hauptDbOk ? '#f3fff3' : '#fff4f4';
+                $dbZustand = $hauptDbOk ? 'zustand-ok' : 'zustand-fehler';
 
                 $offlineText = 'Deaktiviert';
                 if ($offlineStatus === 'ok') {
@@ -434,18 +433,18 @@ $hatSystemStatus = (isset($systemStatus) && is_array($systemStatus)) || (isset($
                 }
                 ?>
 
-                <div style="border: 1px solid #ccc; border-radius: 8px; padding: 0.9rem 1rem; background: <?php echo $dbBg; ?>; min-width: 260px; flex: 1 1 260px; max-width: 520px;">
+                <div class="admin-card <?php echo $dbZustand; ?>" style="min-width: 260px; flex: 1 1 260px; max-width: 520px;">
                     <strong>Hauptdatenbank</strong>
                     <div style="margin-top: 0.35rem;">
-                        Status: <strong style="color: <?php echo $dbFarbe; ?>;"><?php echo $hauptDbOk ? 'OK' : 'NICHT ERREICHBAR'; ?></strong>
+                        Status: <strong class="<?php echo $hauptDbOk ? 'wert-ok' : 'wert-fehler'; ?>"><?php echo $hauptDbOk ? 'OK' : 'NICHT ERREICHBAR'; ?></strong>
                     </div>
-                    <div style="margin-top: 0.35rem; font-size: 0.9rem; color: #555;">
+                    <div class="muted" style="margin-top: 0.35rem; font-size: 0.9rem;">
                         Offline-DB: <strong><?php echo htmlspecialchars($offlineText, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></strong>
                     </div>
                 </div>
 
 
-                <div style="border: 1px solid #ccc; border-radius: 8px; padding: 0.9rem 1rem; background: #fafafa; min-width: 260px; flex: 1 1 260px; max-width: 520px;">
+                <div class="admin-card" style="min-width: 260px; flex: 1 1 260px; max-width: 520px;">
                     <div style="display:flex; justify-content: space-between; align-items: baseline; gap: 1rem;">
                         <strong>Terminals</strong>
                         <a href="?seite=terminal_admin" style="font-size: 0.95rem;">öffnen</a>
@@ -454,7 +453,7 @@ $hatSystemStatus = (isset($systemStatus) && is_array($systemStatus)) || (isset($
                     <?php if (!is_array($term)):
                         // Wenn die Haupt-DB down ist, gibt es keine Terminal-Summary.
                         ?>
-                        <div style="margin-top: 0.5rem; font-size: 0.95rem; color: #666;">
+                        <div class="muted" style="margin-top: 0.5rem; font-size: 0.95rem;">
                             Status konnte nicht geladen werden.
                         </div>
                     <?php else: ?>
@@ -475,7 +474,7 @@ $hatSystemStatus = (isset($systemStatus) && is_array($systemStatus)) || (isset($
                             <div>Modus: <strong><?php echo $aktivTerminal; ?></strong> Terminal, <strong><?php echo $aktivBackend; ?></strong> Backend</div>
                         </div>
 
-                        <div style="margin-top: 0.55rem; font-size: 0.95rem; color: #444;">
+                        <div class="muted" style="margin-top: 0.55rem; font-size: 0.95rem;">
                             Offline Kommen/Gehen: <strong><?php echo $kgJa; ?></strong> ja, <strong><?php echo $kgNein; ?></strong> nein<br>
                             Offline Aufträge: <strong><?php echo $aufJa; ?></strong> ja, <strong><?php echo $aufNein; ?></strong> nein
                         </div>
@@ -492,32 +491,31 @@ $hatSystemStatus = (isset($systemStatus) && is_array($systemStatus)) || (isset($
                 $quelle = (string)($queueKachel['quelle'] ?? '');
                 $letzteAusf = (string)($queueKachel['letzte_ausfuehrung'] ?? '');
 
-                $fehlerFarbe = $fehler > 0 ? '#b00020' : '#1b5e20';
-                $boxBg = $fehler > 0 ? '#fff4f4' : '#f3fff3';
+                $queueZustand = $fehler > 0 ? 'zustand-fehler' : 'zustand-ok';
                 ?>
 
-                <div style="border: 1px solid #ccc; border-radius: 8px; padding: 0.9rem 1rem; background: <?php echo $boxBg; ?>; min-width: 260px; flex: 1 1 260px; max-width: 520px;">
+                <div class="admin-card <?php echo $queueZustand; ?>" style="min-width: 260px; flex: 1 1 260px; max-width: 520px;">
                     <div style="display:flex; justify-content: space-between; align-items: baseline; gap: 1rem;">
                         <strong>Offline-Queue</strong>
                         <a href="?seite=queue_admin" style="font-size: 0.95rem;">öffnen</a>
                     </div>
 
                     <?php if (!$verfuegbar): ?>
-                        <div style="margin-top: 0.5rem; font-size: 0.95rem; color: #666;">Status konnte nicht geladen werden.</div>
+                        <div class="muted" style="margin-top: 0.5rem; font-size: 0.95rem;">Status konnte nicht geladen werden.</div>
                     <?php else: ?>
                         <div style="margin-top: 0.5rem; display:flex; gap: 1.2rem; flex-wrap: wrap;">
                             <div>Offen: <strong><?php echo $offen; ?></strong></div>
-                            <div>Fehler: <strong style="color: <?php echo $fehlerFarbe; ?>;"><?php echo $fehler; ?></strong></div>
+                            <div>Fehler: <strong class="<?php echo $fehler > 0 ? 'wert-fehler' : 'wert-ok'; ?>"><?php echo $fehler; ?></strong></div>
                         </div>
 
                         <?php if ($letzteAusf !== ''): ?>
-                            <div style="margin-top: 0.5rem; font-size: 0.9rem; color: #555;">
+                            <div class="muted" style="margin-top: 0.5rem; font-size: 0.9rem;">
                                 Letzte Ausführung: <?php echo htmlspecialchars($letzteAusf, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>
                             </div>
                         <?php endif; ?>
 
                         <?php if ($quelle !== ''): ?>
-                            <div style="margin-top: 0.25rem; font-size: 0.85rem; color: #777;">
+                            <div class="muted" style="margin-top: 0.25rem; font-size: 0.85rem;">
                                 Quelle: <?php echo $quelle === 'offline' ? 'Offline-DB' : ($quelle === 'haupt' ? 'Haupt-DB' : htmlspecialchars($quelle, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8')); ?>
                             </div>
                         <?php endif; ?>

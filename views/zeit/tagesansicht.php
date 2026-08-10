@@ -485,7 +485,7 @@ foreach ($buchungen as $b) {
                 <button type="submit" style="margin-left: 8px;">Speichern</button>
             </div>
 
-            <p style="margin: 8px 0 0 0; color: #666;">
+            <p class="muted" style="margin: 8px 0 0 0;">
                 Hinweis: Haken aus = Override löschen (normale Pausenregeln aktiv). Beispiel: <code>0,00</code> = keine Pause; <code>0,25</code> = 15 Minuten.
             </p>
         </form>
@@ -531,7 +531,7 @@ foreach ($buchungen as $b) {
             </label>
 
             <?php if ($planKurzarbeitStunden !== null): ?>
-                <span style="margin-left: 10px; color: #666;">
+                <span class="muted" style="margin-left: 10px;">
                     (Plan: <?php echo htmlspecialchars(number_format((float)$planKurzarbeitStunden, 2, ',', '.'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?> h)
                 </span>
             <?php endif; ?>
@@ -544,7 +544,7 @@ foreach ($buchungen as $b) {
                 <button type="submit" style="margin-left: 8px;">Speichern</button>
             </div>
 
-            <p style="margin: 8px 0 0 0; color: #666;">
+            <p class="muted" style="margin: 8px 0 0 0;">
                 Hinweis: Tages-Override überschreibt den Kurzarbeit-Plan (für Report/PDF). Deaktivieren = Override entfernen, Plan greift wieder.
             </p>
         </form>
@@ -641,7 +641,7 @@ foreach ($buchungen as $b) {
                 <button type="submit" style="margin-left: 8px;">Speichern</button>
             </div>
 
-            <p style="margin: 8px 0 0 0; color: #666;">
+            <p class="muted" style="margin: 8px 0 0 0;">
                 Hinweis: Tages-Override hat Vorrang vor der Zeitraum-Ableitung (Report/PDF). Deaktivieren = Override entfernen, Zeitraum greift wieder.
             </p>
         </form>
@@ -651,7 +651,7 @@ foreach ($buchungen as $b) {
         <h4>Sonstiges</h4>
 
         <?php if (!is_array($sonstigesGruende) || $sonstigesGruende === []): ?>
-            <p style="margin: 0 0 16px 0; color: #666;">
+            <p class="muted" style="margin: 0 0 16px 0;">
                 Keine aktiven Sonstiges-Gründe konfiguriert. (Konfiguration → Sonstiges-Gründe)
             </p>
         <?php else: ?>
@@ -706,7 +706,7 @@ foreach ($buchungen as $b) {
                     <button type="submit" style="margin-left: 8px;">Speichern</button>
                 </div>
 
-                <p style="margin: 8px 0 0 0; color: #666;">
+                <p class="muted" style="margin: 8px 0 0 0;">
                     Hinweis: Wenn keine Stunden angegeben sind, werden die Default-Stunden des Grundes übernommen. Gründe mit <strong>*</strong> verlangen zusätzlich eine Notiz.
                 </p>
             </form>

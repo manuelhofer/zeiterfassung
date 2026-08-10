@@ -29,7 +29,7 @@ declare(strict_types=1);
     </form>
 
     <?php if (!empty($meldung)): ?>
-        <div style="padding: 0.6rem 0.8rem; background: #eef6ff; border: 1px solid #cfe6ff; border-radius: 6px; margin-bottom: 1rem;">
+        <div class="notice" style="margin-bottom: 1rem;">
             <?php if ($meldung === 'eintrag_geloescht'): ?>
                 <strong>OK:</strong> Queue-Eintrag wurde ignoriert/gelöscht.
             <?php elseif ($meldung === 'queue_verarbeitet'): ?>
@@ -58,7 +58,7 @@ declare(strict_types=1);
                         Fehler <?php echo $neuFehler; ?>,
                         offen verbleibend <?php echo $offenNachher; ?>.
                         <?php if ($dauerMs > 0): ?>
-                            <span style="color:#666;">(<?php echo $dauerMs; ?> ms)</span>
+                            <span class="muted">(<?php echo $dauerMs; ?> ms)</span>
                         <?php endif; ?>
 
                         <?php if ($neuFehler > 0 && $fehlerId > 0): ?>
@@ -95,10 +95,10 @@ declare(strict_types=1);
         <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($csrfToken, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>">
         <input type="hidden" name="aktion" value="queue_verarbeiten">
         <button type="submit">Queue verarbeiten</button>
-        <span style="margin-left: 0.6rem; font-size: 0.9rem; color: #555;">(offene Einträge jetzt gegen die Hauptdatenbank ausführen)</span>
+        <span class="muted" style="margin-left: 0.6rem; font-size: 0.9rem;">(offene Einträge jetzt gegen die Hauptdatenbank ausführen)</span>
     </form>
 
-    <p style="font-size: 0.9rem; color: #555;">
+    <p class="muted" style="font-size: 0.9rem;">
         Hinweis: Einträge mit Status <strong>fehler</strong> blockieren das Terminal im Störungsmodus.
         Nach manueller Prüfung kann ein Admin den fehlerhaften Eintrag <strong>ignorieren/löschen</strong>, damit die Queue weiterlaufen kann.
     </p>
@@ -166,12 +166,12 @@ declare(strict_types=1);
                             </div>
                             <div style="margin-top: 0.6rem;">
                                 <div style="font-weight: bold; margin-bottom: 0.2rem;">SQL (voll)</div>
-                                <pre style="white-space: pre-wrap; max-height: 14rem; overflow: auto; background: #f7f7f7; padding: 0.5rem; border-radius: 6px; border: 1px solid #ddd;"><?php echo htmlspecialchars($vollSql, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></pre>
+                                <pre class="code-block" style="max-height: 14rem;"><?php echo htmlspecialchars($vollSql, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></pre>
                             </div>
                             <?php if ($vollFehler !== ''): ?>
                                 <div style="margin-top: 0.6rem;">
                                     <div style="font-weight: bold; margin-bottom: 0.2rem;">Fehler (voll)</div>
-                                    <pre style="white-space: pre-wrap; max-height: 10rem; overflow: auto; background: #fff4f4; padding: 0.5rem; border-radius: 6px; border: 1px solid #f0caca;"><?php echo htmlspecialchars($vollFehler, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></pre>
+                                    <pre class="code-block fehler" style="max-height: 10rem;"><?php echo htmlspecialchars($vollFehler, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></pre>
                                 </div>
                             <?php endif; ?>
                         </details>

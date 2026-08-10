@@ -47,15 +47,11 @@ den Stufenplan (Abschnitt 11).
 - **T-108** Drei Zugriffswege auf `db_injektionsqueue`: `OfflineQueueManager`,
   `QueueService`, `DbInjektionsqueueModel`. Zusammenführen – berührt den
   Offline-Pfad, deshalb nur mit Offline-Test.
-- **T-109** Knöpfe und Farben: Masken setzen Rahmen, Hintergründe oder Farben
-  per `style="…"` selbst, statt die Klassen aus `views/layout/header.php` zu
-  benutzen. Umgestellt sind Auftragsmasken (P-2026-08-10-39), Monatsübersicht,
-  Tagesansicht und Fusszeile (-40) sowie Dashboard und Konfiguration (-41) –
-  sie sind die Vorlage. Offen sind noch zwölf, die grössten:
-  `views/urlaub/meine_antraege.php`, `ArbeitsschrittKatalogController`,
-  `views/zeit_rundungsregel/liste.php`, `TerminalAdminController`.
-  `SmokeTestController` bleibt aussen vor (siehe T-105). Stand messen mit:
-  `grep -rc 'style="[^"]*\(background:#\|border:1px solid #\|color:#\)' --include='*.php' controller views`
+- **T-109 erledigt** (P-2026-08-10-39 bis -42): Alle Backend-Masken gestalten
+  sich aus `views/layout/header.php`, keine Farbe mehr per `style="…"`. Einzige
+  Ausnahme bleibt `SmokeTestController` (siehe T-105). Beim Bauen neuer Masken
+  gilt: erst dort nachsehen, was es schon gibt. Nachprüfen mit
+  `grep -rc 'style="[^"]*\(background:#\|border:.*solid #\|color:#\)' --include='*.php' controller views`
 - Praxis-Test: Bugs und Anomalien sammeln, als Micro-Patches beheben.
 - Offen aus P-2026-08-08-02: Terminal-Buchungsflows sind unter PHP 8.5 noch
   nicht **im Browser** mit angemeldetem Mitarbeiter durchgeklickt. Die

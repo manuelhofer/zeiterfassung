@@ -84,7 +84,7 @@ if ($istRechteModus) {
 }
 $abbrechenUrl = $istRechteModus ? '?seite=mitarbeiter_rechte' : '?seite=mitarbeiter_admin';
 $stundenkontoStealthMode = $stundenkontoStealthMode ?? false;
-$stealthStyle = $stundenkontoStealthMode ? ' style="border: 3px solid #c00; padding: 12px;"' : '';
+$stealthStyle = $stundenkontoStealthMode ? ' class="stealth-rahmen"' : '';
 $hatAbteilungen = count($alleAbteilungen) > 0;
 $zeigeAbteilungsrollenBereich = $hatAbteilungen || count($rollenScopesAbteilung) > 0;
 ?>
@@ -93,7 +93,7 @@ $zeigeAbteilungsrollenBereich = $hatAbteilungen || count($rollenScopesAbteilung)
     <h2><?php echo htmlspecialchars($ueberschrift, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></h2>
 
     <?php if ($stundenkontoStealthMode): ?>
-        <p style="color: #c00; font-weight: bold;">
+        <p class="wert-fehler">
             Stealth-Modus aktiv: Stundenkonto-Buchungen werden nicht in den Listen angezeigt.
         </p>
     <?php endif; ?>
@@ -747,7 +747,7 @@ $zeigeAbteilungsrollenBereich = $hatAbteilungen || count($rollenScopesAbteilung)
 
                 <?php foreach ($gruppen as $gruppenName => $rechteInGruppe): ?>
                     <?php if (count($rechteInGruppe) === 0): continue; endif; ?>
-                    <details open style="border:1px solid #ddd; padding:0.5rem; margin:0.6rem 0;">
+                    <details open class="admin-card" style="margin:0.6rem 0;">
                         <summary style="cursor:pointer;">
                             <strong><?php echo htmlspecialchars($gruppenName, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></strong>
                             <small>(<?php echo (int)count($rechteInGruppe); ?>)</small>

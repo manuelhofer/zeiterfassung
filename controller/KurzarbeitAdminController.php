@@ -290,7 +290,7 @@ class KurzarbeitAdminController
                 </tbody>
             </table>
 
-            <p style="margin-top:0.75rem;color:#555;">
+            <p class="muted" style="margin-top:0.75rem;">
                 Hinweis: Tages-Overrides (Kurzarbeit pro Tag in der Korrekturmaske) folgen im nächsten Patch.
             </p>
         </section>
@@ -397,7 +397,7 @@ class KurzarbeitAdminController
                     <input type="date" id="bis_datum" name="bis_datum" value="<?php echo htmlspecialchars((string)($plan['bis_datum'] ?? ''), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>" required>
                 </p>
 
-                <fieldset style="border:1px solid #ddd;padding:0.5rem 0.75rem;max-width:32rem;">
+                <fieldset style="max-width:32rem;">
                     <legend>Wochentage</legend>
                     <?php
                     $tage = [
@@ -418,7 +418,7 @@ class KurzarbeitAdminController
                             <?php echo htmlspecialchars($label, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>
                         </label>
                     <?php endforeach; ?>
-                    <div style="margin-top:0.35rem;color:#666;font-size:0.9em;">Default: Mo-Fr</div>
+                    <div class="muted" style="margin-top:0.35rem;font-size:0.9em;">Default: Mo-Fr</div>
                 </fieldset>
 
                 <p>
