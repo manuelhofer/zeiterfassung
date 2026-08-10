@@ -132,6 +132,13 @@ class AuftragController
         // dabei nichts, die Buchungen bleiben zuordenbar.
         $nurInaktive = ((string)($_GET['ansicht'] ?? '')) === 'inaktiv';
 
+        // Beim Suchen zaehlt der Bestand, nicht die Ablage: Wer eine Nummer
+        // eintippt, will sie finden - auch wenn der Auftrag laengst inaktiv ist.
+        // Deshalb ist das Haekchen gesetzt, solange es niemand abwaehlt. Ohne
+        // Suchbegriff bleibt es wirkungslos, sonst waere die Ablage wieder in
+        // der Liste.
+        $mitInaktiven = !isset($_GET['mit_inaktiven']) || (string)$_GET['mit_inaktiven'] === '1';
+
         $like = null;
         if ($q !== '') {
             // LIKE-Pattern defensiv escapen
@@ -157,9 +164,16 @@ class AuftragController
             // Eine Auftragsnummer ohne Stammdatensatz (`a.aktiv IS NULL`) stammt
             // allein aus Buchungen. Sie gilt als aktiv, sonst waere sie nirgends
             // zu sehen.
-            $bedingungen[] = $nurInaktive
-                ? 'a.aktiv = 0'
-                : '(a.aktiv IS NULL OR a.aktiv = 1)';
+            //
+            // Der dritte Fall - Suche mit gesetztem Haekchen - kennt gar keine
+            // Bedingung auf `aktiv`: Dann wird der ganze Bestand durchsucht.
+            $sucheUeberAlles = ($like !== null && $mitInaktiven && !$nurInaktive);
+
+            if ($nurInaktive) {
+                $bedingungen[] = 'a.aktiv = 0';
+            } elseif (!$sucheUeberAlles) {
+                $bedingungen[] = '(a.aktiv IS NULL OR a.aktiv = 1)';
+            }
 
             if ($like !== null) {
                 // Gefiltert wird auf der Grundmenge der Auftragsnummern und den
@@ -183,7 +197,7 @@ class AuftragController
                 $params['q4'] = $like;
             }
 
-            $where = 'WHERE ' . implode(' AND ', $bedingungen);
+            $where = $bedingungen === [] ? '' : ('WHERE ' . implode(' AND ', $bedingungen));
 
             // Grundmenge sind alle bekannten Auftragsnummern - aus den Stammdaten
             // (`auftrag`) UND aus den Buchungen (`auftragszeit`).
@@ -325,7 +339,22 @@ class AuftragController
                 <?php if ($q !== ''): ?>
                     <a href="<?php echo $nurInaktive ? '?seite=auftrag&amp;ansicht=inaktiv' : '?seite=auftrag'; ?>" style="margin-left: 0.5rem;">Reset</a>
                 <?php endif; ?>
-                <br><small>Durchsucht Auftragsnummer, Kunde, Zeichnungsnummer und Kurzbeschreibung<?php echo $nurInaktive ? ' – nur unter den inaktiven Auftraegen' : ''; ?>.</small>
+
+                <?php if (!$nurInaktive): ?>
+                    <?php /* Verstecktes Feld voran: So kommt der Wert auch dann mit, wenn das Haekchen weg ist. */ ?>
+                    <input type="hidden" name="mit_inaktiven" value="0">
+                    <label style="margin-left:0.75rem;">
+                        <input type="checkbox" name="mit_inaktiven" value="1" <?php echo $mitInaktiven ? 'checked' : ''; ?>>
+                        Auch inaktive Auftraege durchsuchen
+                    </label>
+                <?php endif; ?>
+
+                <br><small>
+                    Durchsucht Auftragsnummer, Kunde, Zeichnungsnummer und Kurzbeschreibung<?php echo $nurInaktive ? ' – nur unter den inaktiven Auftraegen' : ''; ?>.
+                    <?php if (!$nurInaktive): ?>
+                        Ohne Suchbegriff zeigt die Liste nur die aktiven Auftraege.
+                    <?php endif; ?>
+                </small>
             </form>
 
 
@@ -385,8 +414,13 @@ class AuftragController
                                 $nrEsc = htmlspecialchars($nr, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
                                 $aktivText = $aktivRaw === null ? '-' : (((int)$aktivRaw === 1) ? 'Ja' : 'Nein');
                                 $statusText = $status !== '' ? $status : '-';
+
+                                // Ohne Stammdatensatz gilt der Auftrag als aktiv (siehe Abfrage).
+                                // Der Knopf richtet sich nach der Zeile, nicht nach der Ansicht:
+                                // In einer Suche ueber alles stehen beide Sorten nebeneinander.
+                                $zeileAktiv = ($aktivRaw === null) || ((int)$aktivRaw === 1);
                             ?>
-                            <tr>
+                            <tr<?php echo $zeileAktiv ? '' : ' style="color:#8a8a8a;"'; ?>>
                                 <td><?php echo $nrEsc; ?></td>
                                 <td><?php echo $kunde !== '' ? htmlspecialchars($kunde, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') : '-'; ?></td>
                                 <td><?php echo $zeichnungsnummer !== '' ? htmlspecialchars($zeichnungsnummer, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') : '-'; ?></td>
@@ -408,12 +442,13 @@ class AuftragController
                                             <form method="post" action="?seite=auftrag_aktiv_setzen" style="display:inline;">
                                                 <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($listenCsrf, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>">
                                                 <input type="hidden" name="auftragsnummer" value="<?php echo $nrEsc; ?>">
-                                                <input type="hidden" name="aktiv" value="<?php echo $nurInaktive ? '1' : '0'; ?>">
+                                                <input type="hidden" name="aktiv" value="<?php echo $zeileAktiv ? '0' : '1'; ?>">
                                                 <input type="hidden" name="q" value="<?php echo htmlspecialchars($q, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>">
                                                 <input type="hidden" name="ansicht" value="<?php echo $nurInaktive ? 'inaktiv' : ''; ?>">
+                                                <input type="hidden" name="mit_inaktiven" value="<?php echo $mitInaktiven ? '1' : '0'; ?>">
                                                 <input type="hidden" name="s" value="<?php echo $seiteNr; ?>">
                                                 <button type="submit" style="border:none;background:none;padding:0;color:#2b6cb0;text-decoration:underline;cursor:pointer;font:inherit;">
-                                                    <?php echo $nurInaktive ? 'Aktiv setzen' : 'Inaktiv setzen'; ?>
+                                                    <?php echo $zeileAktiv ? 'Inaktiv setzen' : 'Aktiv setzen'; ?>
                                                 </button>
                                             </form>
                                         <?php endif; ?>
@@ -426,7 +461,7 @@ class AuftragController
                     </tbody>
                 </table>
 
-                <?php $this->zeigeBlaetternavigation($seiteNr, $seitenGesamt, $treffer, $q, $nurInaktive); ?>
+                <?php $this->zeigeBlaetternavigation($seiteNr, $seitenGesamt, $treffer, $q, $nurInaktive, $mitInaktiven); ?>
 
                 <p style="margin-top: 0.75rem;">
                     <small>
@@ -466,7 +501,8 @@ class AuftragController
         $zielUrl = $this->baueListenUrl(
             trim((string)($_POST['q'] ?? '')),
             ((string)($_POST['ansicht'] ?? '')) === 'inaktiv',
-            max(1, (int)($_POST['s'] ?? 1))
+            max(1, (int)($_POST['s'] ?? 1)),
+            !isset($_POST['mit_inaktiven']) || (string)$_POST['mit_inaktiven'] === '1'
         );
 
         if (!Csrf::istGueltig(self::CSRF_BEREICH_STAMM)) {
@@ -537,7 +573,8 @@ class AuftragController
         int $seitenGesamt,
         int $treffer,
         string $q,
-        bool $nurInaktive
+        bool $nurInaktive,
+        bool $mitInaktiven
     ): void {
         $esc = static function ($wert): string {
             return htmlspecialchars((string)$wert, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
@@ -546,7 +583,7 @@ class AuftragController
         $von = (($seiteNr - 1) * self::TREFFER_JE_SEITE) + 1;
         $bis = min($seiteNr * self::TREFFER_JE_SEITE, $treffer);
 
-        $url = fn (int $ziel): string => $esc($this->baueListenUrl($q, $nurInaktive, $ziel));
+        $url = fn (int $ziel): string => $esc($this->baueListenUrl($q, $nurInaktive, $ziel, $mitInaktiven));
 
         // Wieviele Zahlen um die aktuelle Seite herum stehen. Bei sehr vielen
         // Seiten wuerde die Zeile sonst umbrechen und unlesbar werden.
@@ -641,8 +678,12 @@ class AuftragController
      * Rueckleitungsziel, das aus dem Formular kommt, waere eine offene
      * Weiterleitung.
      */
-    private function baueListenUrl(string $q, bool $nurInaktive, int $seiteNr = 1): string
-    {
+    private function baueListenUrl(
+        string $q,
+        bool $nurInaktive,
+        int $seiteNr = 1,
+        bool $mitInaktiven = true
+    ): string {
         $parameter = ['seite' => 'auftrag'];
 
         if ($nurInaktive) {
@@ -651,6 +692,12 @@ class AuftragController
 
         if ($q !== '') {
             $parameter['q'] = $q;
+        }
+
+        // Nur die Abweichung vom Standard steht in der URL - sonst haengt an
+        // jedem Link ein Parameter, der nichts aendert.
+        if (!$mitInaktiven) {
+            $parameter['mit_inaktiven'] = '0';
         }
 
         if ($seiteNr > 1) {

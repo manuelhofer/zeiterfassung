@@ -70,6 +70,73 @@ in den Statusbericht.
   D-002 entfallen; die Regel selbst gilt weiter.)
 
 
+## P-2026-08-10-37 suche-findet-auch-inaktive
+
+### EINGELESEN
+- `controller/AuftragController.php::index()` nach P-2026-08-10-36.
+- `docs/fachregeln/auftraege_und_codes.md`, Abschnitt 4.
+
+### DATEIEN
+- `controller/AuftragController.php`
+- `docs/fachregeln/auftraege_und_codes.md`
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Die Suche nach `A-2026` findet auch den inaktiven Auftrag `A-2026-0999` – grau
+dargestellt und mit dem Knopf „Aktiv setzen" in derselben Zeile.
+
+### DONE
+Rückmeldung aus dem Praxis-Test zu P-2026-08-10-35: Das Ausblenden hatte auch
+das Suchen mit ausgeblendet. Wer eine Nummer eintippt, will sie aber finden –
+gerade dann, wenn der Auftrag längst abgelegt ist.
+
+Die Regel lautet jetzt: **Ausblenden gilt fürs Blättern, nicht fürs Suchen.**
+
+- Ohne Suchbegriff zeigt die Liste unverändert nur die aktiven Aufträge.
+- Sobald gesucht wird, geht die Suche über den ganzen Bestand. Das Häkchen
+  „Auch inaktive Auftraege durchsuchen" ist gesetzt und lässt sich abwählen.
+- Inaktive Treffer stehen grau in der Liste; die Spalte „Aktiv" sagt es
+  ausserdem im Klartext.
+- Der Umschaltknopf richtet sich jetzt nach der **Zeile** statt nach der
+  Ansicht – in einer gemischten Trefferliste steht neben dem einen „Inaktiv
+  setzen" und neben dem anderen „Aktiv setzen".
+
+Zur Wortwahl: Es bleibt bei „inaktiv" statt „fertig" oder „erledigt". Die Liste
+hat bereits eine Status-Spalte, die aus den Buchungen berechnet wird und dort
+„abgeschlossen" anzeigt. Zwei Wörter für zweierlei Bedeutung in derselben
+Tabelle waeren die schlechtere Lösung; ausserdem heisst es bei den
+Arbeitsschritten schon so.
+
+### TEST
+- `A-2026` → 2 Treffer: `A-2026-0815` normal, `A-2026-0999` grau.
+- Dieselbe Suche mit `mit_inaktiven=0` → nur `A-2026-0815`.
+- Ohne Suchbegriff → 2 aktive Aufträge, der inaktive bleibt aussen vor.
+- Knöpfe in der gemischten Liste: `A-2026-0815` sendet `aktiv=0` („Inaktiv
+  setzen"), `A-2026-0999` sendet `aktiv=1` („Aktiv setzen").
+- Häkchen-Zustand überlebt Blättern und Umschalten (`mit_inaktiven` steht in
+  den Links und im Formular).
+- `php -l` sauber, keine Meldungen im Seitenaufbau.
+
+### Gefundene Fehler im eigenen Entwurf
+Ein abgewähltes Häkchen sendet **gar nichts** – „nicht gesetzt" und „noch nie
+angezeigt" waeren damit derselbe Zustand gewesen, und das Häkchen liesse sich
+nie abwählen. Gelöst mit einem versteckten Feld gleichen Namens **vor** der
+Checkbox: Der Wert kommt so immer mit, der spätere gewinnt.
+
+Ausserdem hing die Beschriftung des Umschaltknopfs zuerst an der Ansicht
+(`$nurInaktive`). In einer Suche über alles stehen aber beide Sorten
+nebeneinander – dann haette der Knopf bei der Hälfte der Zeilen das Falsche
+getan.
+
+### Was bewusst nicht erreicht wurde
+Inaktive Treffer werden nicht ans Ende sortiert. Die Reihenfolge bleibt „zuletzt
+gebucht zuerst", damit sie in beiden Ansichten dieselbe ist.
+
+### NEXT
+Löschen von Aufträgen ohne Buchungen; danach ein Durchgang über Knöpfe und
+Farbgebung der Liste.
+
+
 ## P-2026-08-10-36 auftragsliste-blaettern
 
 ### EINGELESEN

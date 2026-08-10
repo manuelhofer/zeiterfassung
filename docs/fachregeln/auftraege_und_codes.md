@@ -75,6 +75,13 @@ Liste (Recht `AUFTRAEGE_VERWALTEN`). Eine Auftragsnummer, die nur aus Buchungen
 stammt, bekommt dabei ihren Stammdatensatz – sonst liesse sich genau die Zeile
 nicht ausblenden, die stört.
 
+**Gesucht wird im ganzen Bestand.** Das Ausblenden gilt für das *Blättern*, nicht
+für das *Suchen*: Wer eine Nummer eintippt, will sie finden, auch wenn der
+Auftrag längst abgelegt ist. Inaktive Treffer stehen grau in der Liste und sind
+von dort direkt wieder zu aktivieren. Das Häkchen „Auch inaktive Auftraege
+durchsuchen" ist gesetzt und lässt sich abwählen; ohne Suchbegriff hat es keine
+Wirkung.
+
 **`auftragszeit`:** `mitarbeiter_id`, `auftrag_id` bzw. `auftragscode`,
 `arbeitsschritt_code`, `maschine_id`, `terminal_id`, `typ` (`haupt`/`neben`),
 `startzeit`, `endzeit`, `status`, `kommentar`, Timestamps.
