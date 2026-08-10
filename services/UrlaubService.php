@@ -777,6 +777,125 @@ class UrlaubService
      *
      * @return array<string,string|int>
      */
+    /**
+     * Ab welchem Jahr die Übertragskette rechnet.
+     *
+     * **Regel: laufendes Jahr und Vorjahr.** Der Übertrag ins laufende Jahr
+     * kommt aus dem Vorjahr – und dort hört es auf. Weiter zurück wird nicht
+     * gerechnet: Resturlaub verfällt, und vor der Einführung dieses Systems
+     * wurde Urlaub ohnehin woanders geführt. Eine unbegrenzte Kette summierte
+     * für jedes Jahr ohne erfassten Urlaub den vollen Jahresanspruch auf – bei
+     * einem Eintritt im Jahr 2000 wären das rund 780 Tage.
+     *
+     * **Warum das Fenster wandern darf, ohne dass etwas verlorengeht:** Sobald
+     * ein Jahr berechnet ist, wird sein Übertrag festgeschrieben
+     * (`schreibeUebertragFest()`). Fällt es im nächsten Jahr aus dem Fenster,
+     * steht seine Zahl bereits in der Datenbank und gilt weiter. Das Fenster
+     * bestimmt also nur, was **neu gerechnet** wird, nicht was gilt.
+     *
+     * Über `urlaub_uebertrag_ab_jahr` in der Tabelle `config` lässt sich der
+     * Schnitt verschieben – etwa um beim Einführen einmalig weiter
+     * zurückzurechnen. Ohne Eintrag gilt das Vorjahr.
+     */
+    private function uebertragBodenJahr(int $mitarbeiterId): int
+    {
+        static $cache = [];
+
+        if (array_key_exists($mitarbeiterId, $cache)) {
+            return $cache[$mitarbeiterId];
+        }
+
+        $boden = (int)date('Y') - 1;
+
+        try {
+            $stichjahr = KonfigurationService::getInstanz()->getInt('urlaub_uebertrag_ab_jahr', null);
+            if ($stichjahr !== null && $stichjahr >= 2000 && $stichjahr <= 2100) {
+                $boden = $stichjahr;
+            }
+        } catch (\Throwable $e) {
+            // Ohne Konfiguration bleibt es beim Vorjahr.
+        }
+
+        // Vor dem Eintritt gibt es keinen Urlaub, also auch keinen Übertrag.
+        try {
+            $row = Database::getInstanz()->fetchEine(
+                'SELECT eintrittsdatum, erstellt_am FROM mitarbeiter WHERE id = :mid LIMIT 1',
+                ['mid' => $mitarbeiterId]
+            );
+
+            $basis = null;
+            if (is_array($row)) {
+                foreach (['eintrittsdatum', 'erstellt_am'] as $feld) {
+                    $wert = $row[$feld] ?? null;
+                    if (is_string($wert) && trim($wert) !== '' && !str_starts_with($wert, '0000')) {
+                        $basis = trim($wert);
+                        break;
+                    }
+                }
+            }
+
+            if ($basis !== null) {
+                $eintritt = (int)(new \DateTimeImmutable($basis))->format('Y');
+                if ($eintritt > $boden) {
+                    $boden = $eintritt;
+                }
+            }
+        } catch (\Throwable $e) {
+            // Boden bleibt das Vorjahr bzw. das konfigurierte Stichjahr.
+        }
+
+        $cache[$mitarbeiterId] = $boden;
+
+        return $boden;
+    }
+
+    /**
+     * Hält den errechneten Übertrag in `urlaub_kontingent_jahr` fest.
+     *
+     * Warum überhaupt schreiben: Ein Übertrag, der bei jeder Anzeige neu
+     * hergeleitet wird, ändert sich, sobald sich irgendetwas im Vorjahr ändert
+     * – und niemand kann später sagen, welche Zahl damals galt. Festgeschrieben
+     * steht sie in der Datenbank, ist im Backend sichtbar und von Hand
+     * korrigierbar.
+     *
+     * **Darf niemals stören.** Der Datenbankbenutzer eines Terminals hat auf
+     * dieser Tabelle nur `SELECT` (siehe `TerminalDbBenutzerService`), und im
+     * Offline-Betrieb ist die Hauptdatenbank gar nicht erreichbar. Schlägt das
+     * Schreiben fehl, bleibt der errechnete Wert trotzdem richtig – er ist dann
+     * eben nur nicht festgehalten. Deshalb: stiller Rückzug, ein Versuch je
+     * Anfrage und Mitarbeiterjahr.
+     */
+    private function schreibeUebertragFest(int $mitarbeiterId, int $jahr, float $uebertrag): void
+    {
+        static $versucht = [];
+
+        $schluessel = $mitarbeiterId . '/' . $jahr;
+        if (isset($versucht[$schluessel])) {
+            return;
+        }
+        $versucht[$schluessel] = true;
+
+        try {
+            Database::getInstanz()->ausfuehren(
+                'INSERT INTO urlaub_kontingent_jahr
+                        (mitarbeiter_id, jahr, uebertrag_tage, uebertrag_festgeschrieben_am)
+                 VALUES (:mid, :jahr, :uebertrag, NOW())
+                 ON DUPLICATE KEY UPDATE
+                        uebertrag_tage = VALUES(uebertrag_tage),
+                        uebertrag_festgeschrieben_am = NOW()',
+                [
+                    'mid'       => $mitarbeiterId,
+                    'jahr'      => $jahr,
+                    'uebertrag' => number_format($uebertrag, 2, '.', ''),
+                ]
+            );
+        } catch (\Throwable $e) {
+            // Kein Logger::warn: Am Terminal schlägt das bei **jedem** Aufruf
+            // fehl (nur SELECT-Recht), das Protokoll liefe voll. Der
+            // errechnete Wert stimmt auch ohne Festschreiben.
+        }
+    }
+
     public function berechneUrlaubssaldoFuerJahr(int $mitarbeiterId, int $jahr, bool $autoUebertrag = true): array
     {
         $mitarbeiterId = (int)$mitarbeiterId;
@@ -915,7 +1034,8 @@ class UrlaubService
         $kRow = null;
         try {
             $kRow = $db->fetchEine(
-                'SELECT anspruch_override_tage, uebertrag_tage, korrektur_tage
+                'SELECT anspruch_override_tage, uebertrag_tage,
+                        uebertrag_festgeschrieben_am, korrektur_tage
                  FROM urlaub_kontingent_jahr
                  WHERE mitarbeiter_id = :mid AND jahr = :jahr
                  LIMIT 1',
@@ -952,8 +1072,19 @@ class UrlaubService
                 $anspruchOverride = (float)$kRow['anspruch_override_tage'];
             }
 
-            // `übertrag_tage` wird nur genutzt, wenn Auto-Übertrag bewusst deaktiviert ist (z. B. Vorjahr-Berechnung ohne Rekursion).
-            if (!$autoUebertrag && array_key_exists('uebertrag_tage', $kRow) && $kRow['uebertrag_tage'] !== null) {
+            // Ein **festgeschriebener** Übertrag gewinnt immer – egal ob er
+            // automatisch entstanden ist oder von Hand gepflegt wurde. Genau
+            // dafür gibt es `uebertrag_festgeschrieben_am`: `uebertrag_tage`
+            // allein kann „noch nicht gesetzt" nicht von „auf 0,00 gesetzt"
+            // unterscheiden, weil die Spalte NOT NULL DEFAULT 0.00 ist.
+            $uebertragFestgeschrieben = array_key_exists('uebertrag_festgeschrieben_am', $kRow)
+                && $kRow['uebertrag_festgeschrieben_am'] !== null
+                && (string)$kRow['uebertrag_festgeschrieben_am'] !== '';
+
+            if ($uebertragFestgeschrieben && array_key_exists('uebertrag_tage', $kRow) && $kRow['uebertrag_tage'] !== null) {
+                $uebertrag = (float)$kRow['uebertrag_tage'];
+            } elseif (!$autoUebertrag && array_key_exists('uebertrag_tage', $kRow) && $kRow['uebertrag_tage'] !== null) {
+                // Ohne Auto-Übertrag bleibt der Rohwert die einzige Quelle.
                 $uebertrag = (float)$kRow['uebertrag_tage'];
             }
 
@@ -1259,10 +1390,21 @@ class UrlaubService
         if ($betriebsferienUrlaubTage > 0.00001) {
             $genommen += $betriebsferienUrlaubTage;
         }
-        // v8: Übertrag automatisch aus dem Resturlaub des Vorjahres ableiten (ohne manuelle Pflege).
-        if ($autoUebertrag && $jahr > 2000) {
+        // Übertrag automatisch aus dem Resturlaub des Vorjahres ableiten.
+        //
+        // **B-080:** Hier stand `berechneUrlaubssaldoFuerJahr($mid, $jahr - 1, false)`.
+        // Das `false` unterdrückte den Übertrag des Vorjahres – gedacht als
+        // Rekursionsbremse, aber es zerriss die Kette: Die Maske für 2025 zeigte
+        // 25,00 Tage Rest, die Maske für 2026 übernahm daraus −5,00. Die
+        // Differenz waren genau die 30 Tage aus 2024.
+        //
+        // Jetzt wird die **ganze Kette** gerechnet (`true`) und das Ergebnis
+        // anschliessend festgeschrieben. Die Rekursion endet von selbst: am
+        // Eintrittsjahr, sobald ein Jahr festgeschrieben ist, oder spätestens
+        // bei der Tiefenbremse unten.
+        if ($autoUebertrag && $jahr > 2000 && $jahr > $this->uebertragBodenJahr($mitarbeiterId)) {
             try {
-                $vorjahrSaldo = $this->berechneUrlaubssaldoFuerJahr($mitarbeiterId, $jahr - 1, false);
+                $vorjahrSaldo = $this->berechneUrlaubssaldoFuerJahr($mitarbeiterId, $jahr - 1, true);
                 $restVorjahr = 0.0;
                 if (is_array($vorjahrSaldo) && isset($vorjahrSaldo['verbleibend'])) {
                     $v = $vorjahrSaldo['verbleibend'];
@@ -1276,6 +1418,11 @@ class UrlaubService
                 }
                 // Negativer Resturlaub soll ins Folgejahr mitgenommen werden (z. B. Eintritt im Dez + Betriebsferien).
                 $uebertrag = $restVorjahr;
+
+                // Festschreiben, damit die Zahl ab jetzt feststeht und im
+                // Backend sichtbar und korrigierbar ist. Darf nie stören:
+                // Ein Terminal hat auf dieser Tabelle nur SELECT.
+                $this->schreibeUebertragFest($mitarbeiterId, $jahr, $uebertrag);
             } catch (\Throwable $e) {
                 // defensiv: nie hart crashen
                 if ($hinweis !== '') {

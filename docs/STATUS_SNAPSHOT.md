@@ -30,15 +30,11 @@ den Stufenplan (Abschnitt 11).
   `MitarbeiterAdminController::SCOPE_ABTEILUNG_AKTIV = true`, sobald sie steht.
   **In der lokalen Datenbank existiert eine solche wirkungslose Zuweisung** –
   im Produktivbestand nachsehen.
-- **B-080: Der Übertrag bricht die Kette – Resturlaub aus dem Vorvorjahr geht
-  verloren.** Am 10.08.2026 reproduziert, damit ist die alte Meldung
-  „Urlaubsberechnung stimmt nicht" konkret: Die Maske für 2025 zeigt 25,00 Tage
-  Rest, die Maske für 2026 übernimmt daraus **−5,00** – 30 Tage weg. Ursache:
-  `berechneUrlaubssaldoFuerJahr()` rechnet das Vorjahr mit
-  `autoUebertrag = false`, alle neun Aufrufstellen der Oberfläche aber mit
-  `true`. Betrifft jeden, der zwei Jahre hintereinander Resturlaub hatte.
-  **Ungelöst, weil es um echte Urlaubstage geht – drei Wege stehen zur Wahl,
-  vollständige Analyse in P-2026-08-10-24.**
+- **B-080 behoben in P-2026-08-10-28.** Bleibt als Beobachtungspunkt: Die
+  Übertragskette rechnet jetzt über **laufendes Jahr und Vorjahr** und schreibt
+  das Ergebnis in `urlaub_kontingent_jahr` fest. Im Praxis-Test darauf achten,
+  ob die Salden zum Jahreswechsel plausibel bleiben – der erste echte Wechsel
+  steht noch aus.
 
 ## Offene Tasks
 - **T-102** Buchungen tragen keine `terminal_id`, obwohl sie seit
@@ -48,6 +44,9 @@ den Stufenplan (Abschnitt 11).
   `KonfigurationController` (201), `AuftragController` (137).
 - **T-105** `SmokeTestController::index()` ist eine Methode mit ~3.700 Zeilen.
   Diagnosewerkzeug, keine Fachlogik – aber praktisch nicht mehr änderbar.
+- **T-109** Der Urlaubsübertrag ist in der Kontingent-Maske weder sichtbar
+  noch korrigierbar; die Maske kennt nur Anspruch-Override, Korrektur und
+  Notiz. Korrigieren geht heute nur direkt in der Datenbank.
 - **T-108** Drei Zugriffswege auf `db_injektionsqueue`: `OfflineQueueManager`,
   `QueueService`, `DbInjektionsqueueModel`. Zusammenführen – berührt den
   Offline-Pfad, deshalb nur mit Offline-Test.

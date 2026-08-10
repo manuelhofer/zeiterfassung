@@ -37,14 +37,33 @@ Grundlage: Rohdaten + Rundungsregeln, `tageswerte_mitarbeiter`,
 
 ## 3. Urlaubssaldo, Übertrag und Verbrauchsreihenfolge
 
-**Übertrag Vorjahr:** Der Rest aus dem Vorjahr (YYYY-1) wird automatisch als
-„Übertrag" ins aktuelle Jahr übernommen – auch ein **negativer** Rest, siehe
-unten. Das ist keine separate manuelle Pflege, sondern ergibt sich aus der
-Saldo-Berechnung.
+**Übertrag Vorjahr:** Der Rest aus dem Vorjahr (YYYY-1) wird als „Übertrag" ins
+aktuelle Jahr übernommen – auch ein **negativer** Rest, siehe unten.
 
-**Achtung, offener Fehler:** Das Vorjahr wird dabei **ohne** eigenen Übertrag
-gerechnet. Resturlaub aus YYYY-2 fällt beim Jahreswechsel deshalb weg – siehe
-B-080 im Status-Snapshot. Wer hier etwas ändert, liest den Eintrag zuerst.
+**Gerechnet wird nur über zwei Jahre: laufendes Jahr und Vorjahr.** Weiter
+zurück nicht. Resturlaub verfällt, und vor Einführung dieses Systems wurde
+Urlaub anderswo geführt; eine unbegrenzte Kette summierte für jedes Jahr ohne
+erfassten Urlaub den vollen Jahresanspruch auf.
+
+**Der Übertrag wird festgeschrieben.** Sobald er für ein Jahr berechnet ist,
+steht er in `urlaub_kontingent_jahr.uebertrag_tage`, und
+`uebertrag_festgeschrieben_am` hält fest, wann. Ein festgeschriebener Wert
+gewinnt danach immer – auch gegen die Neuberechnung. Zwei Gründe:
+
+1. **Die Zahl steht fest.** Ein Übertrag, der bei jeder Anzeige neu hergeleitet
+   wird, ändert sich, sobald sich irgendetwas im Vorjahr ändert – und niemand
+   kann später sagen, welche Zahl damals galt.
+2. **Das Fenster darf wandern.** Fällt ein Jahr aus den zwei gerechneten
+   Jahren heraus, gilt sein festgeschriebener Wert weiter. Das Fenster bestimmt
+   nur, was **neu gerechnet** wird.
+
+Verschieben lässt sich der Schnitt über `urlaub_uebertrag_ab_jahr` in der
+Tabelle `config` – etwa um beim Einführen einmalig weiter zurückzurechnen. Ohne
+Eintrag gilt das Vorjahr. Zusätzlicher Boden ist immer das Eintrittsjahr.
+
+Dass Anzeige und Übernahme früher **verschiedene** Regeln benutzten, war
+B-080: Die Maske für 2025 zeigte 25,00 Tage Rest, die Maske für 2026 übernahm
+daraus −5,00. Behoben in P-2026-08-10-28.
 
 **Verbrauchsreihenfolge (Pflicht):**
 

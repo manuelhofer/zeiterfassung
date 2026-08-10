@@ -70,6 +70,105 @@ in den Statusbericht.
   D-002 entfallen; die Regel selbst gilt weiter.)
 
 
+## P-2026-08-10-28 b-080-uebertrag-festgeschrieben
+
+### EINGELESEN
+- `services/UrlaubService.php`, `berechneUrlaubssaldoFuerJahr()` vollständig.
+- `sql/01_initial_schema.sql`, `urlaub_kontingent_jahr`.
+- `services/TerminalDbBenutzerService.php` – Rechte des Terminals auf der
+  Tabelle (`SELECT`).
+- `controller/UrlaubKontingentAdminController.php` – was die Maske pflegt.
+- P-2026-08-10-24 (Reproduktion) und P-2026-08-10-27 (Migration).
+
+### DATEIEN
+- `services/UrlaubService.php`
+- `docs/fachregeln/urlaub_abwesenheit_feiertage.md`
+- `docs/STATUS_SNAPSHOT.md`
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Der Übertrag, den die Maske für 2026 übernimmt, ist derselbe Wert, den die
+Maske für 2025 als Rest anzeigt – für alle Mitarbeiter.
+
+### DONE
+B-080 behoben. Zwei Änderungen, die zusammengehören:
+
+**1. Anzeige und Übernahme benutzen dieselbe Regel.** Vorher holte
+`berechneUrlaubssaldoFuerJahr()` das Vorjahr mit `autoUebertrag = false`,
+während jede Maske mit `true` aufrief. Jetzt gilt einheitlich: **laufendes Jahr
+und Vorjahr**, weiter zurück wird nicht gerechnet.
+
+**2. Das Ergebnis wird festgeschrieben** – in `uebertrag_tage`, mit Zeitstempel
+in `uebertrag_festgeschrieben_am` (Spalte aus P-2026-08-10-27). Ein
+festgeschriebener Wert gewinnt danach immer.
+
+Beides zusammen macht das wandernde Fenster unschädlich: Fällt ein Jahr aus den
+zwei gerechneten Jahren heraus, steht seine Zahl bereits fest. Das Fenster
+bestimmt nur, was **neu gerechnet** wird, nicht was gilt.
+
+Über `urlaub_uebertrag_ab_jahr` in `config` lässt sich der Schnitt verschieben.
+Zusätzlicher Boden bleibt das Eintrittsjahr.
+
+### Der Umweg, den ich genommen habe
+Der erste Entwurf rechnete die Kette **unbegrenzt** zurück – mathematisch
+sauber, praktisch Unsinn: Für jedes Jahr ohne erfassten Urlaub summierte sie
+den vollen Jahresanspruch. Mitarbeiter 15 kam auf **295 Tage** Übertrag, und
+bei einem Eintritt im Jahr 2000 wären es rund 780 gewesen. Der lokale
+Datenbestand hat genau vier Urlaubsanträge, alle aus 2026, aber Eintrittsdaten
+bis 2000 – die Kette füllte die Lücke mit Anspruch.
+
+Schlimmer: Dieser Entwurf hat dabei **32 Zeilen in die Arbeitsdatenbank
+geschrieben**, bevor mir die Zahlen auffielen. Zurückgesetzt auf den
+Ausgangsstand (zwei Zeilen), nachgewiesen per Abfrage.
+
+Die Vorgabe kam dann vom Nutzer und ist die naheliegende: *„immer Vorjahr …
+also laufendes Jahr und Vorjahr."* Das ist zugleich die übliche Praxis –
+Resturlaub verfällt.
+
+### TEST
+Vergleich „Rest 2025" gegen „Übertrag 2026" über alle 13 aktiven Mitarbeiter:
+
+| | vorher | jetzt |
+| --- | --- | --- |
+| Brüche | 2 von 13 | **0 von 13** |
+| Mitarbeiter 15 | 25,00 → −5,00 | −5,00 → −5,00 |
+| Mitarbeiter 16 | 55,00 → 25,00 | 25,00 → 25,00 |
+
+Dazu:
+
+- **Summenprobe** für alle 13 Mitarbeiter und beide Jahre:
+  `anspruch + übertrag + korrektur − genommen − beantragt = verbleibend`,
+  keine Abweichung.
+- **Stabilität:** drei weitere Durchläufe ändern weder Werte noch Zeilenzahl
+  (14 Zeilen). Festgeschrieben wird genau einmal je Mitarbeiterjahr.
+- **Fehlertoleranz:** Nach dem Löschen der festgeschriebenen Zeile liefert die
+  Neuberechnung denselben Wert (25,00). Der Übertrag ist also nicht *von* der
+  Zeile abhängig – sie hält ihn nur fest.
+- Alternativen durchgerechnet und verworfen: Stichjahr 2024 hätte 25,00/55,00
+  ergeben, 2023 schon 55,00/85,00, unbegrenzt 295,00.
+- `php -l` sauber, 18 Masken unverändert, Webserver dreimal HTTP 200.
+
+### Gefundene Fehler im eigenen Entwurf
+Neben der unbegrenzten Kette: Ich hatte zuerst „kein Stichjahr = Kette aus" als
+sicheren Standard eingebaut. Sicher war das nur gegen erfundene Zahlen – für
+die Nutzer hätte es bedeutet, dass der Übertrag auf **0,00** fällt und die Tage
+ganz verschwinden. Das ist schlechter als der Fehler, den es zu beheben galt.
+Der Standard ist jetzt das Vorjahr, also die Regel selbst; die Konfiguration
+verschiebt sie nur.
+
+### Was bewusst nicht erreicht wurde
+Die Kontingent-Maske im Backend zeigt den Übertrag **nicht** an und lässt ihn
+nicht bearbeiten – sie kennt nur Anspruch-Override, Korrektur und Notiz. Zum
+Korrigieren bräuchte es heute einen direkten Datenbankzugriff. Als T-109
+notiert.
+
+Der erste echte Jahreswechsel mit diesem Code steht noch aus. B-080 bleibt
+deshalb als Beobachtungspunkt im Snapshot.
+
+### NEXT
+T-109: Übertrag in der Kontingent-Maske sichtbar und korrigierbar machen.
+
+
 ## P-2026-08-10-27 initialschema-waehlt-keine-datenbank-mehr
 
 ### EINGELESEN
