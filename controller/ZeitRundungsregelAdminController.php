@@ -12,7 +12,8 @@ declare(strict_types=1);
  */
 class ZeitRundungsregelAdminController
 {
-    private const CSRF_KEY = 'zeit_rundungsregel_admin_csrf_token';
+    /** Bereichsname fuer `Csrf` – siehe `core/Csrf.php`. */
+    private const CSRF_BEREICH = 'zeit_rundungsregel_admin';
     private AuthService $authService;
     private Database $db;
 
@@ -55,28 +56,6 @@ class ZeitRundungsregelAdminController
     }
 
     /**
-     * Holt oder erzeugt ein CSRF-Token für Rundungsregel-POST-Formulare.
-     */
-    private function holeOderErzeugeCsrfToken(): string
-    {
-        if (session_status() === PHP_SESSION_NONE) {
-            session_start();
-        }
-
-        $token = $_SESSION[self::CSRF_KEY] ?? null;
-        if (!is_string($token) || $token === '') {
-            try {
-                $token = bin2hex(random_bytes(32));
-            } catch (\Throwable) {
-                $token = bin2hex((string)mt_rand());
-            }
-            $_SESSION[self::CSRF_KEY] = $token;
-        }
-
-        return (string)$token;
-    }
-
-    /**
      * Ersetzt das erste Vorkommen von $search in $subject.
      */
     private function replaceFirst(string $search, string $replace, string $subject): string
@@ -98,7 +77,7 @@ class ZeitRundungsregelAdminController
             return;
         }
 
-        $csrfToken = $this->holeOderErzeugeCsrfToken();
+        $csrfToken = Csrf::token(self::CSRF_BEREICH);
 
         // Explizites Anlegen der Standardregeln (UI-Button).
         // Hinweis: RundungsService seedet bereits automatisch, wenn die Tabelle leer ist.
@@ -109,8 +88,7 @@ class ZeitRundungsregelAdminController
         if ($method === 'POST') {
             $aktionPost = isset($_POST['aktion']) ? trim((string)$_POST['aktion']) : '';
             if ($aktionPost === 'seed_defaults') {
-                $postToken = isset($_POST['csrf_token']) ? (string)$_POST['csrf_token'] : '';
-                if (!hash_equals($csrfToken, $postToken)) {
+                if (!Csrf::istGueltig(self::CSRF_BEREICH)) {
                     header('Location: ?seite=zeit_rundungsregel_admin&seed_csrf=1');
                     return;
                 }
@@ -140,8 +118,7 @@ class ZeitRundungsregelAdminController
             }
 
             if ($aktionPost === 'toggle_aktiv') {
-                $postToken = isset($_POST['csrf_token']) ? (string)$_POST['csrf_token'] : '';
-                if (!hash_equals($csrfToken, $postToken)) {
+                if (!Csrf::istGueltig(self::CSRF_BEREICH)) {
                     header('Location: ?seite=zeit_rundungsregel_admin&toggle_csrf=1');
                     return;
                 }
@@ -335,7 +312,7 @@ class ZeitRundungsregelAdminController
 
         $fehlermeldung = null;
 
-        $csrfToken = $this->holeOderErzeugeCsrfToken();
+        $csrfToken = Csrf::token(self::CSRF_BEREICH);
 
         $idRaw = $_GET['id'] ?? ($_POST['id'] ?? '');
         $id    = is_numeric($idRaw) ? (int)$idRaw : 0;
@@ -356,8 +333,7 @@ class ZeitRundungsregelAdminController
             $einheit = is_numeric($einheitRaw) ? (int)$einheitRaw : 0;
             $prio    = is_numeric($prioRaw) ? (int)$prioRaw : 1;
 
-            $postToken = isset($_POST['csrf_token']) ? (string)$_POST['csrf_token'] : '';
-            if (!hash_equals($csrfToken, $postToken)) {
+            if (!Csrf::istGueltig(self::CSRF_BEREICH)) {
                 $fehlermeldung = 'CSRF-Check fehlgeschlagen. Bitte Seite neu laden.';
             }
 

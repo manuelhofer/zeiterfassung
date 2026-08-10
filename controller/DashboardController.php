@@ -10,32 +10,14 @@ class DashboardController
 {
     private AuthService $authService;
 
-    private const CSRF_KEY = 'csrf_token_dashboard_pausenentscheidung';
+    /** Bereichsname fuer `Csrf` – siehe `core/Csrf.php`. */
+    private const CSRF_BEREICH = 'dashboard_pausenentscheidung';
 
     public function __construct()
     {
         $this->authService = AuthService::getInstanz();
     }
 
-
-    private function holeOderErzeugeCsrfToken(): string
-    {
-        if (session_status() === PHP_SESSION_NONE) {
-            session_start();
-        }
-
-        $token = $_SESSION[self::CSRF_KEY] ?? null;
-        if (!is_string($token) || $token === '') {
-            try {
-                $token = bin2hex(random_bytes(32));
-            } catch (Throwable) {
-                $token = bin2hex((string)mt_rand());
-            }
-            $_SESSION[self::CSRF_KEY] = $token;
-        }
-
-        return (string)$token;
-    }
 
     /**
      * Zeigt das Dashboard.
@@ -69,7 +51,7 @@ class DashboardController
             || $this->authService->hatRolle('Personalbuero')
         );
 
-        $csrfToken = $this->holeOderErzeugeCsrfToken();
+        $csrfToken = Csrf::token(self::CSRF_BEREICH);
         $pausenentscheidungFlash = null;
 
         // Pausenentscheidung speichern (T-081 Teil 2) – Default ohne Entscheidung: keine Pause
@@ -88,8 +70,7 @@ class DashboardController
                     'text' => 'Keine Berechtigung für Pausen-Entscheidungen.',
                 ];
             } else {
-                $postToken = isset($_POST['csrf_token']) ? (string)$_POST['csrf_token'] : '';
-                if (!hash_equals($csrfToken, $postToken)) {
+                if (!Csrf::istGueltig(self::CSRF_BEREICH)) {
                     http_response_code(400);
                     $pausenentscheidungFlash = [
                         'typ' => 'err',

@@ -18,7 +18,8 @@ declare(strict_types=1);
  */
 class ArbeitsschrittKatalogController
 {
-    private const CSRF_KEY = 'arbeitsschritt_katalog_csrf_token';
+    /** Bereichsname fuer `Csrf` – siehe `core/Csrf.php`. */
+    private const CSRF_BEREICH = 'arbeitsschritt_katalog';
 
     private AuthService $authService;
     private Database $db;
@@ -63,7 +64,7 @@ class ArbeitsschrittKatalogController
         }
 
         $darfVerwalten = $this->darfVerwalten();
-        $csrf = $this->holeOderErzeugeCsrfToken();
+        $csrf = Csrf::token(self::CSRF_BEREICH);
 
         $flashOk = isset($_SESSION['katalog_flash_ok']) ? (string)$_SESSION['katalog_flash_ok'] : '';
         $flashFehler = isset($_SESSION['katalog_flash_fehler']) ? (string)$_SESSION['katalog_flash_fehler'] : '';
@@ -248,8 +249,7 @@ class ArbeitsschrittKatalogController
             return;
         }
 
-        $csrf = $this->holeOderErzeugeCsrfToken();
-        if ($csrf === '' || !hash_equals($csrf, (string)($_POST['csrf_token'] ?? ''))) {
+        if (!Csrf::istGueltig(self::CSRF_BEREICH)) {
             $_SESSION['katalog_flash_fehler'] = 'Die Sitzung ist abgelaufen. Bitte erneut versuchen.';
             header('Location: ?seite=arbeitsschritt_katalog');
             return;
@@ -440,7 +440,7 @@ class ArbeitsschrittKatalogController
         $bezeichnung = (string)($eintrag['bezeichnung'] ?? '');
         $sortOrder   = (int)($eintrag['sort_order'] ?? 0);
         $aktiv       = (int)($eintrag['aktiv'] ?? 1) === 1;
-        $csrf        = $this->holeOderErzeugeCsrfToken();
+        $csrf        = Csrf::token(self::CSRF_BEREICH);
 
         $esc = static function ($wert): string {
             return htmlspecialchars((string)$wert, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
@@ -534,21 +534,6 @@ class ArbeitsschrittKatalogController
         );
 
         return $this->authService->hatRecht('AUFTRAEGE_VERWALTEN') || $legacyAdmin;
-    }
-
-    private function holeOderErzeugeCsrfToken(): string
-    {
-        $token = $_SESSION[self::CSRF_KEY] ?? null;
-        if (!is_string($token) || $token === '') {
-            try {
-                $token = bin2hex(random_bytes(32));
-            } catch (\Throwable $e) {
-                $token = bin2hex((string)mt_rand());
-            }
-            $_SESSION[self::CSRF_KEY] = $token;
-        }
-
-        return (string)$token;
     }
 
     private function naechsteSortierung(): int

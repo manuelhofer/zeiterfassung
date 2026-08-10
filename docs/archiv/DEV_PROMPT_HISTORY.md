@@ -70,6 +70,87 @@ in den Statusbericht.
   D-002 entfallen; die Regel selbst gilt weiter.)
 
 
+## P-2026-08-10-13 csrf-umstellung-teil-2
+
+### EINGELESEN
+- `core/Csrf.php`, `controller/QueueController.php` als Vorlage aus
+  P-2026-08-10-03.
+- Die vier umzustellenden Controller vollstaendig, inklusive der Stellen, an
+  denen ihre Views das Token erwarten.
+
+### DATEIEN
+- `controller/DashboardController.php`
+- `controller/ArbeitsschrittKatalogController.php`
+- `controller/ZeitRundungsregelAdminController.php`
+- `controller/KonfigurationController.php`
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Dashboard, Rundungsregeln, Arbeitsschritt-Katalog und Konfiguration rendern
+weiterhin gueltige Token, und jedes POST-Formular darin traegt eines.
+
+### DONE
+Vier weitere Controller auf `core/Csrf.php` umgestellt: eigene
+`holeOderErzeugeCsrfToken()` entfernt, `CSRF_KEY` durch `CSRF_BEREICH` ersetzt,
+neun handgebaute Tokenvergleiche durch `Csrf::istGueltig()` abgeloest.
+
+Die handgebauten Vergleiche sahen ueberall so aus:
+
+```php
+$postToken = isset($_POST['csrf_token']) ? (string)$_POST['csrf_token'] : '';
+if (!hash_equals($csrfToken, $postToken)) {
+```
+
+`Csrf::istGueltig()` ist dabei nicht nur kuerzer, sondern strenger: Es weist ein
+leeres Session-Token ebenfalls ab, was die alte Fassung nur zufaellig tat, weil
+`hash_equals('','')` true liefert.
+
+### TEST
+Alle sieben bisher umgestellten Masken mit angemeldeter Superuser-Session
+gerendert und das HTML geprueft:
+
+| Maske | HTML | CSRF-Felder |
+| --- | --- | --- |
+| Dashboard | 25.933 B | 0 (keine POST-Formulare im aktuellen Datenstand) |
+| Rundungsregeln | 23.131 B | 4 |
+| Arbeitsschritt-Katalog | 32.132 B | 0 (Liste ohne POST-Formular) |
+| Konfiguration | 29.967 B | 0 (Uebersicht ohne POST-Formular) |
+| Queue-Admin | 19.665 B | 1 |
+| Rollen | 19.518 B | 0 (Liste) |
+| Betriebsferien | 21.625 B | 2 |
+
+Weil „0 Felder" fuer sich nichts beweist, zweiter Durchgang: jedes
+`<form method="post">` im erzeugten HTML daraufhin geprueft, ob es ein
+`csrf_token` enthaelt – auch auf den Formularseiten (`Katalog-Neu`,
+`Rollen-Neu`). Ergebnis: **kein einziges POST-Formular ohne Token.**
+`php -l` ueber alle vier Dateien sauber.
+
+### Gefundene Fehler im eigenen Entwurf
+Das Hilfsskript zum Entfernen der Methoden war beim ersten Anlauf **kaputt** und
+hat in `ZeitRundungsregelAdminController` 2.322 und in
+`KonfigurationController` 5.916 Zeichen geloescht statt rund 450 – Klassenkopf,
+Konstruktor und `pruefeZugriff()` inklusive. Ursache: ein Regex mit `.*?` und
+`re.S` fuer den optionalen Docblock, der ueber Zeilengrenzen bis zum
+**Klassen**-Docblock am Dateianfang zurueckgriff.
+
+Aufgefallen ist es nur, weil die gemeldete Zeichenzahl nicht zur Groesse einer
+CSRF-Methode passte. Nichts war committet, `git checkout --` hat es
+zurueckgeholt. Das Skript arbeitet jetzt zweistufig (Methodenzeile suchen, dann
+rueckwaerts genau eine Docblock-Zeile pruefen) und wurde erst an einer Kopie
+erprobt, bevor es auf die echten Dateien losgelassen wurde.
+
+Lehre fuer den Rest der Umstellung: Bei mechanischen Aenderungen ist die
+**Groesse** des Diffs die erste Pruefung, nicht `php -l` – die entkernte Datei
+war syntaktisch tadellos.
+
+### Was bewusst nicht erreicht wurde
+Die Views setzen ihr verstecktes Feld weiterhin von Hand zusammen, statt
+`Csrf::feld()` zu benutzen. Funktioniert und ist nicht das Thema dieses Patches.
+
+### NEXT
+P-2026-08-10-14: die restlichen acht Controller.
+
+
 ## P-2026-08-10-12 tote-views-entfernt
 
 ### EINGELESEN

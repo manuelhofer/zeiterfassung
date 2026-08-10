@@ -8,7 +8,8 @@ declare(strict_types=1);
  */
 class KonfigurationController
 {
-    private const CSRF_KEY = 'konfiguration_admin_csrf_token';
+    /** Bereichsname fuer `Csrf` – siehe `core/Csrf.php`. */
+    private const CSRF_BEREICH = 'konfiguration_admin';
     private AuthService $authService;
     private Database $datenbank;
     private KonfigurationService $konfigurationService;
@@ -168,29 +169,6 @@ class KonfigurationController
 
 
 
-    /**
-     * Holt oder erzeugt ein CSRF-Token für Konfigurations-POST-Formulare.
-     */
-    private function holeOderErzeugeCsrfToken(): string
-    {
-        if (session_status() === PHP_SESSION_NONE) {
-            session_start();
-        }
-
-        $token = $_SESSION[self::CSRF_KEY] ?? null;
-        if (!is_string($token) || $token === '') {
-            try {
-                $token = bin2hex(random_bytes(32));
-            } catch (Throwable) {
-                // Fallback (sollte nur in sehr eingeschränkten Umgebungen passieren)
-                $token = bin2hex((string)mt_rand());
-            }
-            $_SESSION[self::CSRF_KEY] = $token;
-        }
-
-        return (string)$token;
-    }
-
 
     /**
      * Übersicht aller Config-Einträge.
@@ -341,14 +319,13 @@ class KonfigurationController
         $limit = max(10, min(500, $limit));
 
         $ok = isset($_GET['ok']) ? (int)$_GET['ok'] : 0;
-        $csrfToken = $this->holeOderErzeugeCsrfToken();
+        $csrfToken = Csrf::token(self::CSRF_BEREICH);
         $fehlermeldung = null;
         $eintraege = [];
 
         $istPost = (isset($_SERVER['REQUEST_METHOD']) && strtoupper((string)$_SERVER['REQUEST_METHOD']) === 'POST');
         if ($istPost) {
-            $postToken = isset($_POST['csrf_token']) ? (string)$_POST['csrf_token'] : '';
-            if (!hash_equals($csrfToken, $postToken)) {
+            if (!Csrf::istGueltig(self::CSRF_BEREICH)) {
                 $fehlermeldung = 'CSRF-Check fehlgeschlagen. Bitte Seite neu laden.';
             } else {
                 $aktion = isset($_POST['log_action']) ? trim((string)$_POST['log_action']) : '';
@@ -551,7 +528,7 @@ class KonfigurationController
     {
         $ok = isset($_GET['ok']) ? (int)$_GET['ok'] : 0;
 
-        $csrfToken = $this->holeOderErzeugeCsrfToken();
+        $csrfToken = Csrf::token(self::CSRF_BEREICH);
         $fehlermeldung = null;
         $hinweismeldung = null;
 
@@ -690,8 +667,7 @@ class KonfigurationController
 
         // POST-Aktionen
         if ($istPost) {
-            $postToken = isset($_POST['csrf_token']) ? (string)$_POST['csrf_token'] : '';
-            if (!hash_equals($csrfToken, $postToken)) {
+            if (!Csrf::istGueltig(self::CSRF_BEREICH)) {
                 $fehlermeldung = 'CSRF-Check fehlgeschlagen. Bitte Seite neu laden.';
             } else {
                 $aktion = isset($_POST['krank_action']) ? trim((string)$_POST['krank_action']) : '';
@@ -1281,7 +1257,7 @@ class KonfigurationController
     {
         $ok = isset($_GET['ok']) ? (int)$_GET['ok'] : 0;
 
-        $csrfToken = $this->holeOderErzeugeCsrfToken();
+        $csrfToken = Csrf::token(self::CSRF_BEREICH);
         $fehlermeldung = null;
 
         $editId = isset($_GET['id']) ? (int)$_GET['id'] : 0;
@@ -1307,8 +1283,7 @@ class KonfigurationController
 
         // POST-Aktionen
         if ($istPost) {
-            $postToken = isset($_POST['csrf_token']) ? (string)$_POST['csrf_token'] : '';
-            if (!hash_equals($csrfToken, $postToken)) {
+            if (!Csrf::istGueltig(self::CSRF_BEREICH)) {
                 $fehlermeldung = 'CSRF-Check fehlgeschlagen. Bitte Seite neu laden.';
             } else {
                 $aktion = isset($_POST['pause_action']) ? trim((string)$_POST['pause_action']) : '';
@@ -1670,7 +1645,7 @@ class KonfigurationController
     {
         $ok = isset($_GET['ok']) ? (int)$_GET['ok'] : 0;
 
-        $csrfToken = $this->holeOderErzeugeCsrfToken();
+        $csrfToken = Csrf::token(self::CSRF_BEREICH);
         $fehlermeldung = null;
 
         $editId = isset($_GET['id']) ? (int)$_GET['id'] : 0;
@@ -1692,8 +1667,7 @@ class KonfigurationController
 
         // POST-Aktionen
         if ($istPost) {
-            $postToken = isset($_POST['csrf_token']) ? (string)$_POST['csrf_token'] : '';
-            if (!hash_equals($csrfToken, $postToken)) {
+            if (!Csrf::istGueltig(self::CSRF_BEREICH)) {
                 $fehlermeldung = 'CSRF-Check fehlgeschlagen. Bitte Seite neu laden.';
             } else {
                 $aktion = isset($_POST['sonstiges_action']) ? trim((string)$_POST['sonstiges_action']) : '';
@@ -2043,7 +2017,7 @@ class KonfigurationController
 
         $istPost = (isset($_SERVER['REQUEST_METHOD']) && strtoupper((string)$_SERVER['REQUEST_METHOD']) === 'POST');
 
-        $csrfToken = $this->holeOderErzeugeCsrfToken();
+        $csrfToken = Csrf::token(self::CSRF_BEREICH);
 
         $schluesselGet = isset($_GET['schluessel']) ? trim((string)$_GET['schluessel']) : '';
         $schluesselPost = isset($_POST['schluessel']) ? trim((string)$_POST['schluessel']) : '';
@@ -2094,8 +2068,7 @@ class KonfigurationController
 
         // Speichern
         if ($istPost) {
-            $postToken = isset($_POST['csrf_token']) ? (string)$_POST['csrf_token'] : '';
-            if (!hash_equals($csrfToken, $postToken)) {
+            if (!Csrf::istGueltig(self::CSRF_BEREICH)) {
                 $fehlermeldung = 'CSRF-Check fehlgeschlagen. Bitte Seite neu laden.';
             }
 
