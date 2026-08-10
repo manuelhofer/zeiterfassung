@@ -70,6 +70,80 @@ in den Statusbericht.
   D-002 entfallen; die Regel selbst gilt weiter.)
 
 
+## P-2026-08-10-31 resturlaub-im-klartext
+
+### EINGELESEN
+- `views/urlaub/genehmigung_liste.php`, `views/urlaub/verwaltung.php`,
+  `views/mitarbeiter/liste.php`.
+- `controller/UrlaubController.php`, `controller/MitarbeiterAdminController.php`.
+
+### DATEIEN
+- `views/urlaub/genehmigung_liste.php`
+- `views/urlaub/verwaltung.php`
+- `views/mitarbeiter/liste.php`
+- `controller/MitarbeiterAdminController.php`
+- `docs/fachregeln/urlaub_abwesenheit_feiertage.md`
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+An jeder Stelle, an der über den Urlaub eines Mitarbeiters entschieden wird,
+steht die Restzahl als Satz – nicht als Zahl in einer Spalte, die man erst
+suchen muss.
+
+### DONE
+Nachtrag zu P-2026-08-10-30. Die Zahlen waren da, aber als Tabellenwerte:
+„30,00 +25,00 −23,00 → 32,00". Der Nutzerwunsch war eine **Aussage**:
+*„Marc hat 32 Tage übrig."*
+
+Drei Stellen umgestellt beziehungsweise ergänzt:
+
+**Genehmigungsliste.** Statt `2026: 45,00 → 35,00 (−10,00)` jetzt:
+
+> Marc hat 2026 noch **32 Tage** übrig.
+> Nach dieser Genehmigung: **27 Tage** (−5)
+
+Die Spaltenüberschrift heisst entsprechend nicht mehr „Urlaubssaldo", sondern
+„Resturlaub". Bei negativem Ergebnis steht darunter „Achtung: damit im Minus".
+
+**Urlaubsverwaltung.** Sobald im Filter ein einzelner Mitarbeiter gewählt ist,
+steht über der Tabelle ein hervorgehobener Satz: *„Marc hat 2026 noch 32 Tage
+Urlaub übrig."* Die Spalte *Übrig* je Zeile bleibt für den Überblick über
+mehrere Personen.
+
+**Mitarbeiterverwaltung.** Neue Spalte *Urlaub übrig* für das laufende Jahr –
+weil man dort ohnehin nach der Person sucht.
+
+Nachkommastellen werden gekürzt: „32 Tage" statt „32,00 Tage", aber „32,5"
+bleibt. Unter jeder Angabe steht, dass Betriebsferien bereits abgezogen sind.
+
+### TEST
+- Genehmigungsliste mit einem Probeantrag (5 Tage, Mitarbeiter 17):
+  „Marc hat 2026 noch 32 Tage übrig. Nach dieser Genehmigung: 27 Tage (−5)".
+  Probeantrag danach entfernt, Bestand wieder 4 Anträge.
+- Urlaubsverwaltung mit Filter auf Mitarbeiter 17: „Marc hat 2026 noch 32 Tage
+  Urlaub übrig."
+- Mitarbeiterliste: Spalte gefüllt (32 / 12 / 42 / 42 Tage), 23 ms für 13
+  Mitarbeiter.
+- Alle Angaben stammen aus derselben Methode wie „Meine Urlaubsanträge" –
+  Mitarbeiter 15 zeigt überall 12,00.
+- `php -l` sauber, 18 Masken ohne Ausnahme, B-080-Probe 0 Brüche,
+  Webserver dreimal HTTP 200.
+
+### Gefundene Fehler im eigenen Entwurf
+Die erste Ersetzung in `genehmigung_liste.php` schlug fehl, weil ich im
+Suchtext HTML-Entities (`&minus;`, `&ndash;`) erwartet hatte – die Datei
+enthält die Zeichen `−` und `–` direkt. Statt den Suchtext zu raten, habe ich
+den Block über Zeilennummern ersetzt und die Grenzen vorher ausgegeben.
+
+### Was bewusst nicht erreicht wurde
+Der Satz in der Urlaubsverwaltung erscheint erst, wenn im Filter ein einzelner
+Mitarbeiter gewählt **und** „Anzeigen" gedrückt wurde. Ohne Neuladen ginge es
+nur mit JavaScript und einem eigenen Endpunkt.
+
+### NEXT
+Praxis-Test.
+
+
 ## P-2026-08-10-30 resturlaub-dort-wo-entschieden-wird
 
 ### EINGELESEN

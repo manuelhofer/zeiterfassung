@@ -49,7 +49,7 @@ $markierterAntragId = isset($_GET['antrag_id']) ? (int)$_GET['antrag_id'] : 0;
                 <th>Von</th>
                 <th>Bis</th>
                 <th>Tage gesamt</th>
-                    <th>Urlaubssaldo</th>
+                    <th>Resturlaub</th>
                 <th>Kommentar Mitarbeiter</th>
                 <th>Aktion</th>
             </tr>
@@ -71,8 +71,19 @@ $markierterAntragId = isset($_GET['antrag_id']) ? (int)$_GET['antrag_id'] : 0;
                     <td><?php echo htmlspecialchars($von, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></td>
                     <td><?php echo htmlspecialchars($bis, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></td>
                     <td><?php echo htmlspecialchars($tage, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></td>
-                    <td style="min-width: 230px;">
+                    <td style="min-width: 260px;">
                         <?php if (is_array($saldoVorschau) && $saldoVorschau !== []): ?>
+                            <?php
+                                // Vorname allein: „Marc hat noch 32 Tage" liest sich
+                                // schneller als eine Zeile aus Pfeilen und Klammern.
+                                $vorname = trim(explode(' ', trim($mitarbeiterName))[0] ?? '');
+                                if ($vorname === '') { $vorname = $mitarbeiterName; }
+                                $kurz = static function (string $wert): string {
+                                    if ($wert === '') { return $wert; }
+                                    $zahl = (float)str_replace(',', '.', $wert);
+                                    return rtrim(rtrim(number_format($zahl, 2, ',', '.'), '0'), ',');
+                                };
+                            ?>
                             <?php foreach ($saldoVorschau as $sv): ?>
                                 <?php
                                     $sjahr = (int)($sv['jahr'] ?? 0);
@@ -81,17 +92,23 @@ $markierterAntragId = isset($_GET['antrag_id']) ? (int)$_GET['antrag_id'] : 0;
                                     $stage = (string)($sv['tage_antrag'] ?? '');
                                     $swarn = !empty($sv['warnung']);
                                 ?>
-                                <div style="white-space: nowrap;">
-                                    <strong><?php echo (int)$sjahr; ?>:</strong>
-                                    <?php echo htmlspecialchars($svor, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>
-                                    &rarr;
-                                    <?php echo htmlspecialchars($snach, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>
-                                    <span style="opacity:0.75;">(−<?php echo htmlspecialchars($stage, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>)</span>
-                                    <?php if ($saldoWarnungAktiv && $swarn): ?>
-                                        <span class="error" style="margin-left:0.5rem;">Achtung: negativ</span>
-                                    <?php endif; ?>
+                                <div style="margin-bottom:0.35rem;">
+                                    <?php echo htmlspecialchars($vorname, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>
+                                    hat <?php echo (int)$sjahr; ?> noch
+                                    <strong><?php echo htmlspecialchars($kurz($svor), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?> Tage</strong>
+                                    übrig.
+                                    <br>
+                                    <small>
+                                        Nach dieser Genehmigung:
+                                        <strong<?php echo ($saldoWarnungAktiv && $swarn) ? ' class="error"' : ''; ?>><?php echo htmlspecialchars($kurz($snach), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?> Tage</strong>
+                                        (−<?php echo htmlspecialchars($kurz($stage), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>)
+                                        <?php if ($saldoWarnungAktiv && $swarn): ?>
+                                            <br><span class="error">Achtung: damit im Minus</span>
+                                        <?php endif; ?>
+                                    </small>
                                 </div>
                             <?php endforeach; ?>
+                            <small style="opacity:0.75;">Betriebsferien sind bereits abgezogen.</small>
                         <?php else: ?>
                             <span style="opacity:0.75;">–</span>
                         <?php endif; ?>

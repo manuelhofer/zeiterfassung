@@ -67,8 +67,9 @@ Eintrag gilt das Vorjahr. Zusätzlicher Boden ist immer das Eintrittsjahr.
 | Maske | was sie zeigt |
 | --- | --- |
 | Meine Urlaubsanträge | eigener Saldo, aufgeschlüsselt nach Übertrag und Jahr |
-| Urlaub-Genehmigungsliste | je Antrag `verfügbar vor → nach Genehmigung`, mit Warnung bei negativ |
-| Urlaubsverwaltung | Spalte *Übrig* je Zeile, und der Resturlaub hinter jedem Namen in der Auswahlliste für „Urlaub direkt eintragen" |
+| Urlaub-Genehmigungsliste | je Antrag im Klartext: „Marc hat 2026 noch 32 Tage übrig", darunter der Stand nach dieser Genehmigung, rot bei negativ |
+| Urlaubsverwaltung | ein Satz oben, sobald ein einzelner Mitarbeiter gewählt ist; Spalte *Übrig* je Zeile; Resturlaub hinter jedem Namen in der Auswahlliste für „Urlaub direkt eintragen" |
+| Mitarbeiterverwaltung | Spalte *Urlaub übrig* für das laufende Jahr |
 | Urlaubskontingent pro Jahr | Übertrag, Verbraucht und Übrig für alle Mitarbeiter auf einen Blick |
 
 In **Verbraucht** stecken die Betriebsferien bereits drin – „Übrig" ist also

@@ -266,12 +266,36 @@ class MitarbeiterAdminController
             $mitarbeiterListe = $listenStatus === 'inaktiv'
                 ? $this->mitarbeiterModel->holeAlleInaktiven()
                 : $this->mitarbeiterModel->holeAlleAktiven();
+            // Resturlaub des laufenden Jahres dazu. Die Frage „wie viel hat der
+            // noch?" wird oft hier gestellt, wo man ohnehin nach der Person
+            // sucht – und nicht erst in der Urlaubsverwaltung.
+            $urlaubJahr = (int)date('Y');
+            $urlaubService = UrlaubService::getInstanz();
+            foreach ($mitarbeiterListe as &$eintrag) {
+                $eintrag['urlaub_uebrig'] = null;
+                $mid = (int)($eintrag['id'] ?? 0);
+                if ($mid <= 0) {
+                    continue;
+                }
+
+                try {
+                    $s = $urlaubService->berechneUrlaubssaldoFuerJahr($mid, $urlaubJahr);
+                    if (is_array($s) && isset($s['verbleibend'])) {
+                        $eintrag['urlaub_uebrig'] = (string)$s['verbleibend'];
+                    }
+                } catch (\Throwable $e) {
+                    // Ohne Zahl bleibt die Spalte leer.
+                }
+            }
+            unset($eintrag);
         } catch (\Throwable $e) {
             $fehlermeldung = 'Die Mitarbeiterliste konnte nicht geladen werden.';
             Logger::error('Fehler beim Laden der Mitarbeiterliste im Admin', [
                 'exception' => $e->getMessage(),
             ], null, null, 'mitarbeiter');
         }
+
+        $urlaubJahr = $urlaubJahr ?? (int)date('Y');
 
         require __DIR__ . '/../views/mitarbeiter/liste.php';
     }

@@ -221,6 +221,39 @@ $statusLabel = static function (string $status): string {
         </p>
     </div>
 
+    <?php
+    // Klare Aussage in einem Satz, sobald ein einzelner Mitarbeiter gewählt ist.
+    // Eine Tabellenspalte beantwortet die Frage „wie viel hat der noch?" zwar
+    // auch, aber man muss sie erst suchen und zusammenrechnen.
+    $gewaehlterName = '';
+    $gewaehlterRest = null;
+    if ($filterMitarbeiterId > 0) {
+        foreach ($mitarbeiterListe as $m) {
+            if ((int)($m['id'] ?? 0) === $filterMitarbeiterId) {
+                $gewaehlterName = $mitarbeiterName($m);
+                $gewaehlterRest = $m['urlaub_uebrig'] ?? null;
+                break;
+            }
+        }
+    }
+    ?>
+    <?php if ($gewaehlterName !== '' && $gewaehlterRest !== null): ?>
+        <?php
+            $restZahl = (float)$gewaehlterRest;
+            $restText = rtrim(rtrim(number_format($restZahl, 2, ',', '.'), '0'), ',');
+            $vorname  = trim(explode(',', $gewaehlterName)[1] ?? $gewaehlterName);
+        ?>
+        <div class="status-box<?php echo $restZahl < 0 ? ' error' : ''; ?>"
+             style="font-size:1.15rem; padding:0.9rem 1.1rem; margin-bottom:1rem;">
+            <strong><?php echo htmlspecialchars($vorname !== '' ? $vorname : $gewaehlterName, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></strong>
+            hat <?php echo (int)$filterJahr; ?> noch
+            <strong><?php echo htmlspecialchars($restText, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?> Tage</strong>
+            Urlaub übrig.
+            <br>
+            <small>Betriebsferien und bereits genommener Urlaub sind abgezogen, offene Anträge ebenfalls.</small>
+        </div>
+    <?php endif; ?>
+
     <?php if ($antraege === []): ?>
         <p>Keine Urlaubsanträge für die aktuelle Auswahl gefunden.</p>
     <?php else: ?>

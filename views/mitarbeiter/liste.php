@@ -50,6 +50,7 @@ $zeigtInaktive    = $listenStatus === 'inaktiv';
                     <th>RFID-Code</th>
                     <th>Login erlaubt</th>
                     <th>Aktiv</th>
+                    <th title="Resturlaub im laufenden Jahr; Betriebsferien und offene Anträge sind abgezogen">Urlaub übrig</th>
                     <th>Aktionen</th>
                 </tr>
             </thead>
@@ -66,6 +67,13 @@ $zeigtInaktive    = $listenStatus === 'inaktiv';
                         $aktiv     = (int)($mit['aktiv'] ?? 0) === 1;
 
                         $nameVoll  = trim($vorname . ' ' . $nachname);
+
+                        $urlaubUebrig = $mit['urlaub_uebrig'] ?? null;
+                        $urlaubText = '';
+                        if ($urlaubUebrig !== null) {
+                            $urlaubZahl = (float)$urlaubUebrig;
+                            $urlaubText = rtrim(rtrim(number_format($urlaubZahl, 2, ',', '.'), '0'), ',');
+                        }
                     ?>
                     <tr>
                         <td class="numeric"><?php echo $id; ?></td>
@@ -75,6 +83,13 @@ $zeigtInaktive    = $listenStatus === 'inaktiv';
                         <td><?php echo htmlspecialchars($rfid, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></td>
                         <td><span class="status-pill <?php echo $loginOk ? 'ok' : 'error'; ?>"><?php echo $loginOk ? 'Ja' : 'Nein'; ?></span></td>
                         <td><span class="status-pill <?php echo $aktiv ? 'ok' : 'error'; ?>"><?php echo $aktiv ? 'Ja' : 'Nein'; ?></span></td>
+                        <td style="white-space:nowrap;">
+                            <?php if ($urlaubText === ''): ?>
+                                <small>–</small>
+                            <?php else: ?>
+                                <strong<?php echo ((float)$urlaubUebrig < 0) ? ' class="error"' : ''; ?>><?php echo htmlspecialchars($urlaubText, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></strong> Tage
+                            <?php endif; ?>
+                        </td>
                         <td>
                             <div class="table-actions">
                                 <a href="?seite=mitarbeiter_admin_bearbeiten&amp;id=<?php echo (int)$id; ?>">Bearbeiten</a>
