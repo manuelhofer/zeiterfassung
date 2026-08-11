@@ -70,6 +70,90 @@ in den Statusbericht.
   D-002 entfallen; die Regel selbst gilt weiter.)
 
 
+## P-2026-08-11-10 maschinen-maske-in-views
+
+### EINGELESEN
+- `controller/MaschineAdminController.php` vollstaendig.
+- `services/MaschineQrCodeService.php` (nur `baueBildUrl()`), um zu sehen, was
+  von der Bild-URL im Controller bleiben muss.
+- P-2026-08-11-09 als Muster (gleicher Schnitt, gleicher Pruefweg).
+
+### DATEIEN
+- `views/maschine/liste.php` (neu), `views/maschine/formular.php` (neu)
+- `controller/MaschineAdminController.php`
+- `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Maschinenliste und Maschinenformular erzeugen dasselbe HTML wie vorher – bis
+auf die Einrueckung –, obwohl das Markup jetzt in `views/maschine/` liegt.
+
+### DONE
+Zweiter von neun Controllern aus T-104. 545 → 377 Zeilen Controller plus zwei
+Views.
+
+**Die Bild-URL bleibt im Controller.** `renderFormular()` normalisiert den
+gespeicherten Pfad ueber `normalisiereCodeBildPfad()` – eine private Methode
+dieses Controllers – und laesst sich daraus von `MaschineQrCodeService` die URL
+bauen; die View bekommt nur noch `$codeBildUrl`. Technisch koennte eine per
+`require` eingebundene View auch `$this->…` aufrufen, weil der eingebundene
+Code im Klassenkontext laeuft. Genau das will man aber nicht: Eine View, die
+private Methoden ihres Aufrufers benutzt, ist nur noch mit diesem einen
+Controller verwendbar, und man sieht es ihr nicht an.
+
+Alles Uebrige leitet die View wie bisher aus `$maschine` ab (ID, Name,
+Abteilung, Beschreibung, Aktiv-Flag, Scan-Code) – dieselben Zeilen, nur
+verschoben.
+
+### TEST
+Wegwerf-Instanz wie in P-2026-08-11-09 (eigene Datenbank `zeit_probe_t104`,
+erfundene Daten: „Probefraese <5 & "gross">" mit Barcode-Pfad und Abteilung,
+„Probesaege ohne Barcode" ohne beides). Neun Renderpfade, je einmal mit dem
+Code aus HEAD und einmal mit dem Arbeitsstand, Server je Lauf frisch:
+
+| Pfad | HEAD | neu |
+| --- | --- | --- |
+| Liste, leer | 26.090 B | 26.003 B |
+| Liste, zwei Maschinen | 27.507 B | 27.140 B |
+| Formular neu | 27.598 B | 27.295 B |
+| Formular mit Barcode | 28.984 B | 28.521 B |
+| Formular ohne Barcode | 28.601 B | 28.162 B |
+| Formular, ID unbekannt | 28.723 B | 28.252 B |
+| Barcode neu erzeugen | 29.120 B | 28.625 B |
+| POST ohne Namen (Fehler) | 28.718 B | 28.247 B |
+| POST gespeichert (Erfolg) | 29.076 B | 28.581 B |
+
+Alle neun mit vereinheitlichtem Leerraum zeichengleich. Damit sind beide
+Meldungszweige (`fehlermeldung`, `erfolgsmeldung`) und beide Barcode-Zweige
+(Bild vorhanden / „Noch kein Barcode") tatsaechlich gelaufen, nicht nur
+vorhanden.
+
+Zehn Backend-Masken (Dashboard, Mitarbeiter, Rollen, Monatsreport, Urlaub,
+Maschinen, Betriebsferien, Abteilungen, Feiertage, Auftraege) im selben
+Vergleich: alle zehn HTTP 200 und gleich, **null** Warnungen oder Deprecations
+im Serverlog. `php -l` ueber die drei geaenderten Dateien sauber.
+
+### Gefundene Fehler im eigenen Entwurf
+**Der erste Vergleich meldete einen Unterschied, der keiner war.** In der
+Prueffolge stand „Barcode neu erzeugen" am Ende – dieser Aufruf **schreibt**
+`maschine.code_bild_pfad`. Der Lauf gegen HEAD hat den Wert also veraendert,
+und der zweite Lauf startete mit einem anderen Zustand: Im Formular stand
+einmal `probe_barcode.png` und einmal `maschine_5_barcode.png`. Der Code war
+identisch, die Datenbank nicht.
+
+Lehre fuer die restlichen sieben: Schreibende Aufrufe gehoeren nicht in eine
+Vergleichsliste, die zweimal laeuft – oder der Zustand wird vor jedem Lauf
+zurueckgesetzt. Fuer die beiden POST-Pfade ist genau das gemacht.
+
+### Was bewusst nicht erreicht wurde
+- **Sieben Controller aus T-104 bleiben offen**, darunter die drei grossen.
+- **B-095 bleibt offen.** `maschine_admin_speichern` ist eine der vier Routen
+  ohne CSRF-Pruefung; dieser Patch verschiebt nur Markup.
+- **Der Barcode wurde nicht angesehen**, nur die erzeugte URL im HTML.
+
+### NEXT
+T-104, naechster Controller: `ArbeitsschrittKatalogController`.
+
+
 ## P-2026-08-11-09 betriebsferien-maske-in-views
 
 ### EINGELESEN

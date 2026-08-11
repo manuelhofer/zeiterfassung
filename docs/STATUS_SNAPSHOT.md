@@ -47,7 +47,7 @@ den Stufenplan (Abschnitt 11).
   steht noch aus.
 
 ## Offene Tasks
-- **T-104** Acht Controller erzeugen HTML selbst, statt `views/` zu benutzen –
+- **T-104** Sieben Controller erzeugen HTML selbst, statt `views/` zu benutzen –
   größter Brocken `SmokeTestController`, dann `KonfigurationController` und
   `AuftragController`. Ein Controller je Patch; Muster und Prüfweg:
   P-2026-08-11-09.
