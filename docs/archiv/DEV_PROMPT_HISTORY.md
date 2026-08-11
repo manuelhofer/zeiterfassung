@@ -70,6 +70,72 @@ in den Statusbericht.
   D-002 entfallen; die Regel selbst gilt weiter.)
 
 
+## P-2026-08-11-05 spezifikation-abteilungsrechte
+
+### EINGELESEN
+- `docs/fachregeln/rollen_rechte_genehmiger.md`, Abschnitte 3 und 4.
+- `services/AuthService.php` (`hatRecht()`, `ladeRechteCodesAusDb()`).
+- `controller/UrlaubController.php` (Genehmigungsliste, POST-Pruefung),
+  `controller/UrlaubJahresuebersichtController.php`.
+- `controller/MitarbeiterAdminController.php` (Sperre aus P-2026-08-10-25).
+- Schema von `mitarbeiter_hat_rolle_scope`, `mitarbeiter_hat_abteilung`,
+  `mitarbeiter_genehmiger` und `abteilung`.
+
+### DATEIEN
+- `docs/spezifikation_abteilungsrechte.md` (neu)
+- `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Die Spezifikation nennt sieben pruefbare Akzeptanzkriterien fuer B-093 und
+grenzt ausdruecklich ab, was nicht dazugehoert.
+
+### DONE
+Arbeitsregeln §1 verlangt fuer einen neuen Funktionsbereich zuerst eine
+Spezifikation; P-2026-08-10-25 hatte das ausdruecklich offen gelassen. Diese
+liegt jetzt vor.
+
+Die Entscheidung dahinter (Manuel, 11.08.2026): **nicht** das allgemeine
+Bereichsmodell aus der Fachregel, sondern nur der Fall, der im Betrieb
+wirklich vorkommt – ein Schichtleiter genehmigt Urlaub seiner Abteilung, ohne
+dass jeder Mitarbeiter einzeln als sein Genehmigter eingetragen werden muss.
+
+Ausschlaggebend war die Messung der Reichweite: `hatRecht()` wird an **84**
+Stellen in 24 Dateien gerufen. Das allgemeine Modell hiesse, jede davon
+entscheiden zu lassen, worauf sie sich bezieht – mitten im Praxis-Test. Der
+Code `URLAUB_GENEHMIGEN` dagegen wird an genau **vier** Stellen geprueft, und
+alle vier beantworten dieselbe Frage („fuer wen bin ich zustaendig") heute mit
+je eigener SQL. Die bekommen eine gemeinsame Auskunft.
+
+Kernentscheidung der Spezifikation: Begrenzt wird nicht das **Recht**, sondern
+die **Menge der Mitarbeiter**, auf die es sich anwenden laesst. `hatRecht()`
+behaelt damit seine Signatur, und es entsteht keine zweite Fassung der
+Rechtepruefung. Preis dafuer: Alle uebrigen Rechte einer abteilungsbezogen
+zugewiesenen Rolle gelten weiterhin betriebsweit – deshalb verlangt die
+Spezifikation einen Satz in der Maske, der das sagt.
+
+### TEST
+Nicht anwendbar – der Patch aendert kein Verhalten. Geprueft wurde die
+Faktenlage, auf der die Spezifikation steht: die vier Pruefstellen von
+`URLAUB_GENEHMIGEN` (`grep`), die 84 Aufrufe von `hatRecht()`, das Vorhandensein
+von `abteilung.parent_id` und `mitarbeiter_hat_abteilung`, sowie dass in der
+lokalen Datenbank genau eine Zeile mit `scope_typ = 'abteilung'` steht.
+
+### Gefundene Fehler im eigenen Entwurf
+Der erste Entwurf wollte den Abteilungsbezug in `AuthService` als
+`holeAbteilungenFuerRecht()` verankern – klingt allgemein und waere der Anfang
+genau des Modells, das nicht gebaut werden soll. Zweite Fassung legt die
+Auskunft in einen `UrlaubGenehmigungService`: Der Name sagt, wie weit sie
+reicht, und niemand baut versehentlich darauf auf.
+
+### Was bewusst nicht erreicht wurde
+Die Umsetzung. Sie folgt im naechsten Patch und richtet sich nach den sieben
+Akzeptanzkriterien.
+
+### NEXT
+B-093 umsetzen: `UrlaubGenehmigungService`, vier Aufrufstellen, Sperre in der
+Mitarbeitermaske loesen.
+
+
 ## P-2026-08-11-04 eine-regel-fuer-den-queue-speicherort
 
 ### EINGELESEN

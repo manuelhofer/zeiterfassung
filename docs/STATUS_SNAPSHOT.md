@@ -26,8 +26,10 @@ den Stufenplan (Abschnitt 11).
   P-2026-08-10-25 ist die Auswahl in der Mitarbeiterverwaltung **gesperrt** und
   als „noch nicht wirksam" beschriftet – der gefährliche Zustand (Rechte
   vergeben, die nicht greifen) ist damit weg. Der Fehler selbst bleibt offen:
-  Die Scope-Auswertung in `hatRecht()` ist nicht gebaut. Zum Einschalten genügt
-  `MitarbeiterAdminController::SCOPE_ABTEILUNG_AKTIV = true`, sobald sie steht.
+  Die Scope-Auswertung ist nicht gebaut. **Entschieden am 11.08.2026:** Gebaut
+  wird nur die Urlaubsgenehmigung je Abteilung, nicht das allgemeine
+  Bereichsmodell – Zielbild und Akzeptanzkriterien in
+  [`spezifikation_abteilungsrechte.md`](spezifikation_abteilungsrechte.md).
   **In der lokalen Datenbank existiert eine solche wirkungslose Zuweisung** –
   im Produktivbestand nachsehen.
 - **B-080 behoben in P-2026-08-10-28.** Bleibt als Beobachtungspunkt: Die
