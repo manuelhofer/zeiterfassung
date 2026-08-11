@@ -70,6 +70,50 @@ in den Statusbericht.
   D-002 entfallen; die Regel selbst gilt weiter.)
 
 
+## P-2026-08-11-13 zeilenzahlen-nachgemessen
+
+### EINGELESEN
+- Die eigenen Eintraege P-2026-08-11-09 bis -12, Abschnitt DONE.
+- `wc -l` ueber die vier betroffenen Controller.
+
+### DATEIEN
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Die in den Eintraegen -09 bis -12 genannten Zeilenzahlen stimmen mit `wc -l`
+ueberein.
+
+### DONE
+Drei Zahlen korrigiert: Betriebsferien 336 → **338**, Maschinen 377 → **398**,
+Katalog 402 → **406**.
+
+Der Fehler ist immer derselbe: gemessen wurde direkt nach dem Herausschneiden
+des Markups, geschrieben wurde der Eintrag danach – und dazwischen sind noch
+Kommentarzeilen dazugekommen. Bei -10 war die Abweichung mit 21 Zeilen so
+gross, dass die Zahl offensichtlich aus einem Zwischenstand stammte.
+
+Warum das eine Korrektur wert ist: Zahlen in diesem Verlauf sind das, woran
+spaetere Chats den Umfang eines Vorhabens abschaetzen. Eine Zahl, die niemand
+nachrechnet, wird geglaubt – deshalb muss sie stimmen oder fehlen.
+
+### TEST
+`wc -l` ueber die vier Controller gegen die vier Eintraege gestellt: vier von
+vier stimmen jetzt. Kein Code beruehrt.
+
+### Gefundene Fehler im eigenen Entwurf
+Der Anlass ist der Fehler. Auffaellig ist, dass er dreimal hintereinander
+passiert ist, ohne dass er auffiel – Zahlen aus dem Gedaechtnis in einen Text
+zu schreiben, den man selbst gerade nicht mehr prueft, ist genau die Stelle,
+an der so etwas entsteht.
+
+### Was bewusst nicht erreicht wurde
+Aeltere Eintraege sind nicht nachgemessen. Der Verlauf wird nicht auf Verdacht
+durchgerechnet; korrigiert wird, was auffaellt.
+
+### NEXT
+T-104, naechster Controller: `UrlaubKontingentAdminController`.
+
+
 ## P-2026-08-11-12 kurzarbeit-maske-in-views
 
 ### EINGELESEN
@@ -169,7 +213,7 @@ erzeugen dasselbe HTML wie vorher – bis auf die Einrueckung –, obwohl das
 Markup jetzt in `views/arbeitsschritt_katalog/` liegt.
 
 ### DONE
-Dritter von neun Controllern aus T-104, 573 → 402 Zeilen Controller plus drei
+Dritter von neun Controllern aus T-104, 573 → 406 Zeilen Controller plus drei
 Views. Drei Markup-Bloecke, nicht zwei: Der Controller hatte fuer „kein Recht"
 eine eigene kleine Seite, und die ist genauso eine Maske wie die anderen.
 
@@ -253,7 +297,7 @@ Maschinenliste und Maschinenformular erzeugen dasselbe HTML wie vorher – bis
 auf die Einrueckung –, obwohl das Markup jetzt in `views/maschine/` liegt.
 
 ### DONE
-Zweiter von neun Controllern aus T-104. 545 → 377 Zeilen Controller plus zwei
+Zweiter von neun Controllern aus T-104. 545 → 398 Zeilen Controller plus zwei
 Views.
 
 **Die Bild-URL bleibt im Controller.** `renderFormular()` normalisiert den
@@ -349,7 +393,7 @@ Verschoben wurde **nur** Markup. `index()` laedt weiterhin dieselbe Abfrage und
 bindet danach `views/betriebsferien/liste.php` ein; `renderFormular()` ist auf
 ein `require` der Formular-View zusammengeschrumpft und behaelt seine drei
 Aufrufer (Bearbeiten, Validierungsfehler, Speicherfehler). Aus 475 Zeilen
-Controller werden 336 Zeilen Controller plus zwei Views.
+Controller werden 338 Zeilen Controller plus zwei Views.
 
 **Das Token kommt als Bereichsname in die View**, nicht als fertiges Feld: Der
 Controller setzt `$csrfBereich = self::CSRF_BEREICH`, die View ruft damit
