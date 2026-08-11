@@ -28,6 +28,9 @@ Abschnitt 12 – dort und bewusst nicht hier ein zweites Mal. Dasselbe gilt für
 den Stufenplan (Abschnitt 11).
 
 ## Offene Bugs
+- **B-095 offen:** `abteilung_admin_speichern`, `maschine_admin_speichern`,
+  `feiertag_admin_speichern` und `betriebsferien_admin_speichern` schreiben
+  ohne CSRF-Prüfung; geprüft wird nur beim Umschalten (P-2026-08-11-09).
 - **B-093 behoben** (P-2026-08-11-05 bis -07): Eine Rolle mit
   `scope_typ = 'abteilung'` wirkt jetzt – aber **nur** auf die
   Urlaubsgenehmigung, ausgewertet in `UrlaubGenehmigungService`, nicht in
@@ -44,9 +47,10 @@ den Stufenplan (Abschnitt 11).
   steht noch aus.
 
 ## Offene Tasks
-- **T-104** Neun Controller erzeugen HTML selbst, statt `views/` zu benutzen –
-  größter Brocken `SmokeTestController` (283 Zeilen), dann
-  `KonfigurationController` (201), `AuftragController` (137).
+- **T-104** Acht Controller erzeugen HTML selbst, statt `views/` zu benutzen –
+  größter Brocken `SmokeTestController`, dann `KonfigurationController` und
+  `AuftragController`. Ein Controller je Patch; Muster und Prüfweg:
+  P-2026-08-11-09.
 - **T-105** `SmokeTestController::index()` ist eine Methode mit ~3.700 Zeilen.
   Diagnosewerkzeug, keine Fachlogik – aber praktisch nicht mehr änderbar.
 - **T-108 erledigt** (P-2026-08-11-03 und -04): `DbInjektionsqueueModel` war

@@ -70,6 +70,132 @@ in den Statusbericht.
   D-002 entfallen; die Regel selbst gilt weiter.)
 
 
+## P-2026-08-11-09 betriebsferien-maske-in-views
+
+### EINGELESEN
+- `docs/STATUS_SNAPSHOT.md` (T-104), `docs/arbeitsregeln.md`, `CHATSTART.md`.
+- `controller/BetriebsferienAdminController.php` vollstaendig.
+- `views/abteilung/liste.php` und `views/abteilung/formular.php` als Vorbild
+  fuer den Aufbau einer Backend-View.
+- `core/Csrf.php`, dazu `views/queue/liste.php` und `views/terminal/start.php`,
+  um zu sehen, wie Views bisher an ihr Token kommen.
+
+### DATEIEN
+- `views/betriebsferien/liste.php` (neu)
+- `views/betriebsferien/formular.php` (neu)
+- `controller/BetriebsferienAdminController.php`
+- `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Die Betriebsferien-Liste und das Formular erzeugen dasselbe HTML wie vorher –
+bis auf die Einrueckung –, obwohl das Markup jetzt in `views/betriebsferien/`
+liegt.
+
+### DONE
+Erster von neun Controllern aus T-104. Der Zuschnitt ist bewusst „ein
+Controller je Patch": Betriebsferien ist der kleinste der neun und taugt damit
+als Muster fuer die uebrigen.
+
+Verschoben wurde **nur** Markup. `index()` laedt weiterhin dieselbe Abfrage und
+bindet danach `views/betriebsferien/liste.php` ein; `renderFormular()` ist auf
+ein `require` der Formular-View zusammengeschrumpft und behaelt seine drei
+Aufrufer (Bearbeiten, Validierungsfehler, Speicherfehler). Aus 475 Zeilen
+Controller werden 336 Zeilen Controller plus zwei Views.
+
+**Das Token kommt als Bereichsname in die View**, nicht als fertiges Feld: Der
+Controller setzt `$csrfBereich = self::CSRF_BEREICH`, die View ruft damit
+`Csrf::feld()`. So bleibt der Bereichsname an genau einer Stelle, die Konstante
+bleibt `private`, und das Feld selbst wird weiterhin nicht von Hand
+geschrieben – genau dafuer gibt es `Csrf::feld()`. Die aelteren Views
+(`queue/liste.php`, `urlaub/*`) bekommen einen fertigen `$csrfToken` und
+schreiben das `<input>` selbst; dieser Weg ist bewusst nicht kopiert, weil er
+den Feldnamen `csrf_token` ein weiteres Mal in eine Datei traegt.
+
+Die beiden `echo '<p>…</p>'` fuer „keine Berechtigung" und „Ungueltiger Aufruf"
+bleiben im Controller. Sie sind keine Maske, sondern Abbruchmeldungen, und sie
+stehen in fast jedem Controller gleich – auch in denen, die T-104 schon
+erfuellen.
+
+### TEST
+Wegwerf-Umgebung: Kopie des Repos unter `/tmp`, eigene
+`config.local.php`, frische Datenbank `zeit_probe_t104` aus
+`sql/01_initial_schema.sql`, **erfundene** Daten (Abteilung „Probeabteilung",
+drei Betriebsferien-Zeilen: global/aktiv, abteilungsbezogen/inaktiv, eine ohne
+Beschreibung; eine Zeile mit `<`, `&` und Anfuehrungszeichen im Text, um das
+Maskieren zu sehen). Die Entwicklungsdatenbank wurde nicht angefasst.
+
+Beide Staende gerendert – einmal der Code aus HEAD, einmal der Arbeitsstand,
+jeweils mit frisch gestartetem Server – und sechs Ausgaben verglichen:
+
+| Maske | HEAD | neu |
+| --- | --- | --- |
+| Liste | 30.360 B | 29.657 B |
+| Liste mit Meldung `csrf_ungueltig` | 30.521 B | 29.786 B |
+| Formular neu | 27.795 B | 27.476 B |
+| Formular bearbeiten | 27.836 B | 27.517 B |
+| Formular, ID unbekannt | 27.935 B | 27.584 B |
+| Formular nach Validierungsfehler (POST) | 27.984 B | 27.633 B |
+
+Alle sechs sind mit vereinheitlichtem Leerraum **zeichengleich**; die Differenz
+ist ausschliesslich die weggefallene Einrueckung (das Markup stand im
+Controller acht Spalten weiter rechts).
+
+Dazu: Umschalten aktiv/inaktiv ueber den echten POST-Weg mit dem Token **aus
+der neuen View** – `betriebsferien.aktiv` 0 → 1, Weiterleitung auf die Liste.
+Derselbe POST ohne Token: Weiterleitung mit `meldung=csrf_ungueltig`, Wert
+unveraendert.
+
+Backend-Kernablaeufe aus `docs/wartungscheckliste.md` auf derselben Instanz:
+Dashboard, Mitarbeiterliste, Rollen/Rechte, Monatsreport HTML, Urlaub,
+Betriebsferien, Abteilungen, Feiertage – achtmal HTTP 200, **null** Warnungen,
+Notices oder Deprecations im Serverlog. `php -l` ueber die drei geaenderten
+Dateien sauber. Wegwerf-Datenbank und Kopie danach entfernt.
+
+### Gefundene Fehler im eigenen Entwurf
+**Der erste Vergleich meldete „byte-identisch" – und mass den alten Code.**
+Der eingebaute Webserver (`php -S`) laeuft unter der SAPI `cli-server`, und
+dort greift `opcache.enable`, nicht `opcache.enable_cli`. Mit
+`opcache.revalidate_freq = 180` lieferte der Server bis zu drei Minuten lang
+die zuvor kompilierte Fassung. Der Beleg war eindeutig und trotzdem falsch:
+identische Byte-Zahlen, obwohl acht Spalten Einrueckung entfallen waren – genau
+das haette auffallen muessen. Aufgefallen ist es erst, als ein Gegentest mit
+dem **alten** Controller dieselbe neue Ausgabe lieferte, und danach ein zweiter
+Fehler dazukam: Ein noch laufender Server hielt den Port besetzt, der neu
+gestartete brach mit „Address already in use" ab, und die Anfragen liefen
+weiter gegen den alten Prozess.
+
+Merksatz fuer die restlichen sieben Controller: Vergleich nur mit
+`-d opcache.enable=0`, Server je Lauf frisch starten und vorher pruefen, dass
+der Port frei ist. Ein Ergebnis, das zu gut ist, um wahr zu sein, ist es meist
+auch nicht.
+
+**B-095 gefunden:** `BetriebsferienAdminController::speichern()` prueft kein
+CSRF-Token – und dieselbe Luecke haben `abteilung_admin_speichern`,
+`maschine_admin_speichern` und `feiertag_admin_speichern`. Geprueft wird nur
+beim Umschalten. Aufgefallen beim Testen, weil der Validierungsfehler-POST
+ohne Token durchlief. Nicht in diesem Patch behoben: eine Rechtepruefung
+nachzuruesten ist ein eigenes Thema und betrifft vier Masken, nicht eine.
+
+### Was bewusst nicht erreicht wurde
+- **Die uebrigen acht Controller aus T-104** bleiben unveraendert.
+- **Am Markup selbst wurde nichts verbessert.** Die `style="…"`-Angaben fuer
+  Abstaende und Breiten sind mitgewandert, wie sie waren. Sie umzubauen waere
+  ein zweites Thema und wuerde den Vergleich „gleiche Ausgabe" zerstoeren, der
+  dieses Verschieben ueberhaupt absichert.
+- **Im Browser angesehen wurde die Maske nicht**, nur ihr HTML. Fuer eine
+  reine Verschiebung mit zeichengleicher Ausgabe reicht das.
+- **Das Kaltstart-Set liegt bei 16.247 B** (Grenze 16 KB = 16.384 B), also nur
+  noch 137 B darunter. Aufgeraeumt habe ich es nicht, weil das ein eigenes
+  Thema ist: Im Snapshot stehen T-108 und T-109 als „erledigt" mitsamt
+  Begruendung, obwohl `arbeitsregeln.md` §6 sagt, Erledigtes wird dort
+  **entfernt**. Ihr Merkwissen gehoert in die Fachregeln, nicht in den Stand.
+
+### NEXT
+T-104, naechster Controller: `MaschineAdminController` – der zweitkleinste der
+verbliebenen acht, und wie Betriebsferien einer, dessen View beim Aufraeumen
+geloescht wurde.
+
+
 ## P-2026-08-11-08 kein-produktivbetrieb-festgehalten
 
 ### EINGELESEN
