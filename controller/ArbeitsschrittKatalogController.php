@@ -70,100 +70,7 @@ class ArbeitsschrittKatalogController
         $flashFehler = isset($_SESSION['katalog_flash_fehler']) ? (string)$_SESSION['katalog_flash_fehler'] : '';
         unset($_SESSION['katalog_flash_ok'], $_SESSION['katalog_flash_fehler']);
 
-        $esc = static function ($wert): string {
-            return htmlspecialchars((string)$wert, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
-        };
-
-        require __DIR__ . '/../views/layout/header.php';
-        ?>
-        <section>
-            <h2>Arbeitsschritt-Katalog</h2>
-
-            <p>
-                Hier stehen die immer wiederkehrenden Arbeitsschritte – einmal gepflegt,
-                fuer jeden Auftrag nutzbar. Der Strichcode gehoert an die Maschine:
-                Wer mehrere Fraesmaschinen hat, druckt <code>fraesen</code> mehrfach aus
-                und haengt den Code an jede davon.
-            </p>
-
-            <?php if ($flashOk !== ''): ?>
-                <p class="success"><?php echo $esc($flashOk); ?></p>
-            <?php endif; ?>
-            <?php if ($flashFehler !== ''): ?>
-                <p class="error"><?php echo $esc($flashFehler); ?></p>
-            <?php endif; ?>
-            <?php if ($fehlermeldung !== null): ?>
-                <div class="fehlermeldung"><?php echo $esc($fehlermeldung); ?></div>
-            <?php endif; ?>
-
-            <?php if ($darfVerwalten): ?>
-                <div class="table-actions">
-                    <a class="button-link" href="?seite=arbeitsschritt_katalog_neu">+ Arbeitsschritt hinzufuegen</a>
-                    <?php if (count($eintraege) > 0): ?>
-                        <a class="button-link quiet" href="?seite=arbeitsschritt_katalog_blatt" target="_blank">Alle Strichcodes als Druckblatt (PDF)</a>
-                    <?php endif; ?>
-                </div>
-            <?php endif; ?>
-
-            <?php if (count($eintraege) === 0): ?>
-                <p>Noch keine Arbeitsschritte im Katalog.</p>
-            <?php else: ?>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Code</th>
-                            <th>Bezeichnung</th>
-                            <th>Strichcode</th>
-                            <th>Sortierung</th>
-                            <th>Aktiv</th>
-                            <th>Drucken</th>
-                            <?php if ($darfVerwalten): ?><th>Aktion</th><?php endif; ?>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php foreach ($eintraege as $eintrag): ?>
-                            <?php
-                                $id    = (int)($eintrag['id'] ?? 0);
-                                $code  = (string)($eintrag['code'] ?? '');
-                                $bez   = trim((string)($eintrag['bezeichnung'] ?? ''));
-                                $codeUrl = (string)($eintrag['code_url'] ?? '');
-                                $aktiv = (int)($eintrag['aktiv'] ?? 0) === 1;
-                            ?>
-                            <tr<?php echo $aktiv ? '' : ' class="muted"'; ?>>
-                                <td><code><?php echo $esc($code); ?></code></td>
-                                <td><?php echo $bez !== '' ? $esc($bez) : '-'; ?></td>
-                                <td>
-                                    <?php if ($codeUrl !== ''): ?>
-                                        <img src="<?php echo $esc($codeUrl); ?>" alt="Strichcode <?php echo $esc($code); ?>" style="height:44px;width:auto;image-rendering:pixelated;">
-                                    <?php else: ?>
-                                        -
-                                    <?php endif; ?>
-                                </td>
-                                <td><?php echo (int)($eintrag['sort_order'] ?? 0); ?></td>
-                                <td><?php echo $aktiv ? 'Ja' : 'Nein'; ?></td>
-                                <td>
-                                    <form method="get" action="" target="_blank" style="white-space:nowrap;">
-                                        <input type="hidden" name="seite" value="arbeitsschritt_katalog_blatt">
-                                        <input type="hidden" name="id" value="<?php echo $id; ?>">
-                                        <input type="number" name="anzahl" value="1" min="1" max="200" style="width:64px;" title="Wie viele Karten dieses Codes?">
-                                        <button type="submit">x drucken</button>
-                                    </form>
-                                </td>
-                                <?php if ($darfVerwalten): ?>
-                                    <td><a class="button-link quiet" href="?seite=arbeitsschritt_katalog_bearbeiten&amp;id=<?php echo $id; ?>">Bearbeiten</a></td>
-                                <?php endif; ?>
-                            </tr>
-                        <?php endforeach; ?>
-                    </tbody>
-                </table>
-                <p><small>
-                    Der Katalog schreibt nichts vor: Ein am Terminal gescannter Code, der hier
-                    nicht steht, wird weiterhin angenommen und gezaehlt.
-                </small></p>
-            <?php endif; ?>
-        </section>
-        <?php
-        require __DIR__ . '/../views/layout/footer.php';
+        require __DIR__ . '/../views/arbeitsschritt_katalog/liste.php';
     }
 
     /**
@@ -433,77 +340,11 @@ class ArbeitsschrittKatalogController
      */
     private function renderFormular(array $eintrag, ?string $fehlermeldung): void
     {
-        $id          = (int)($eintrag['id'] ?? 0);
-        $code        = (string)($eintrag['code'] ?? '');
-        $bezeichnung = (string)($eintrag['bezeichnung'] ?? '');
-        $sortOrder   = (int)($eintrag['sort_order'] ?? 0);
-        $aktiv       = (int)($eintrag['aktiv'] ?? 1) === 1;
-        $csrf        = Csrf::token(self::CSRF_BEREICH);
+        // Die Einzelwerte leitet die View selbst aus `$eintrag` ab; das Token
+        // kommt von hier, weil der Bereichsname dem Controller gehört.
+        $csrf = Csrf::token(self::CSRF_BEREICH);
 
-        $esc = static function ($wert): string {
-            return htmlspecialchars((string)$wert, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
-        };
-
-        require __DIR__ . '/../views/layout/header.php';
-        ?>
-        <section>
-            <h2><?php echo $id > 0 ? 'Arbeitsschritt bearbeiten' : 'Arbeitsschritt anlegen'; ?></h2>
-
-            <p><a class="button-link quiet" href="?seite=arbeitsschritt_katalog">&laquo; Zurueck zum Katalog</a></p>
-
-            <?php if (is_string($fehlermeldung) && $fehlermeldung !== ''): ?>
-                <div class="error">
-                    <?php echo $esc($fehlermeldung); ?>
-                </div>
-            <?php endif; ?>
-
-            <form method="post" action="?seite=arbeitsschritt_katalog_speichern">
-                <input type="hidden" name="csrf_token" value="<?php echo $esc($csrf); ?>">
-                <input type="hidden" name="id" value="<?php echo $id; ?>">
-
-                <div style="margin-bottom:0.75rem;">
-                    <label for="code"><strong>Code</strong></label><br>
-                    <input type="text" id="code" name="code" required maxlength="100"
-                           value="<?php echo $esc($code); ?>" style="width:100%;max-width:260px;">
-                    <br><small>
-                        Steht im Strichcode und wird am Terminal gescannt, z. B. <code>fraesen</code>.
-                        Kurz und eindeutig halten – der Code taucht in allen Auswertungen auf.
-                        <?php if ($id > 0): ?>
-                            <br><strong>Achtung:</strong> Eine Aenderung erzeugt einen neuen Strichcode.
-                            Bereits an Maschinen haengende Ausdrucke werden dadurch ungueltig.
-                        <?php endif; ?>
-                    </small>
-                </div>
-
-                <div style="margin-bottom:0.75rem;">
-                    <label for="bezeichnung"><strong>Bezeichnung</strong></label><br>
-                    <input type="text" id="bezeichnung" name="bezeichnung" maxlength="255"
-                           value="<?php echo $esc($bezeichnung); ?>" style="width:100%;max-width:480px;">
-                    <br><small>Klartext fuer Ausdruck und Auswertung, z. B. „Fraesen“.</small>
-                </div>
-
-                <div style="margin-bottom:0.75rem;">
-                    <label for="sort_order"><strong>Sortierung</strong></label><br>
-                    <input type="number" id="sort_order" name="sort_order" value="<?php echo $sortOrder; ?>" style="width:100px;">
-                    <br><small>Kleinere Zahl steht weiter oben.</small>
-                </div>
-
-                <div style="margin-bottom:1rem;">
-                    <label>
-                        <input type="checkbox" name="aktiv" value="1" <?php echo $aktiv ? 'checked' : ''; ?>>
-                        Aktiv
-                    </label>
-                    <br><small>Inaktive Schritte stehen nicht mehr zur Auswahl und nicht auf dem Druckblatt. Bereits erfasste Buchungen bleiben unberuehrt.</small>
-                </div>
-
-                <div class="form-actions">
-                    <button type="submit">Speichern</button>
-                    <a class="button-link quiet" href="?seite=arbeitsschritt_katalog">Abbrechen</a>
-                </div>
-            </form>
-        </section>
-        <?php
-        require __DIR__ . '/../views/layout/footer.php';
+        require __DIR__ . '/../views/arbeitsschritt_katalog/formular.php';
     }
 
     private function pruefeZugriff(): bool
@@ -552,15 +393,7 @@ class ArbeitsschrittKatalogController
 
     private function zeigeKeinRecht(): void
     {
-        require __DIR__ . '/../views/layout/header.php';
-        ?>
-        <section>
-            <h2>Keine Berechtigung</h2>
-            <p>Zum Pflegen des Arbeitsschritt-Katalogs wird das Recht <code>AUFTRAEGE_VERWALTEN</code> benoetigt.</p>
-            <p><a class="button-link quiet" href="?seite=arbeitsschritt_katalog">&laquo; Zurueck zum Katalog</a></p>
-        </section>
-        <?php
-        require __DIR__ . '/../views/layout/footer.php';
+        require __DIR__ . '/../views/arbeitsschritt_katalog/kein_recht.php';
     }
 
     /**

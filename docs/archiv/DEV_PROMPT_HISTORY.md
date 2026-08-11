@@ -70,6 +70,92 @@ in den Statusbericht.
   D-002 entfallen; die Regel selbst gilt weiter.)
 
 
+## P-2026-08-11-11 arbeitsschritt-katalog-in-views
+
+### EINGELESEN
+- `controller/ArbeitsschrittKatalogController.php` vollstaendig.
+- `services/AuthService.php`, Abschnitt Rechte-Cache – erst dadurch war der
+  Test der Hinweisseite ueberhaupt richtig zu bauen (siehe unten).
+- P-2026-08-11-09 und -10 als Muster.
+
+### DATEIEN
+- `views/arbeitsschritt_katalog/liste.php`, `.../formular.php`,
+  `.../kein_recht.php` (alle neu)
+- `controller/ArbeitsschrittKatalogController.php`
+- `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Katalogliste, Katalogformular und die Hinweisseite „Keine Berechtigung"
+erzeugen dasselbe HTML wie vorher – bis auf die Einrueckung –, obwohl das
+Markup jetzt in `views/arbeitsschritt_katalog/` liegt.
+
+### DONE
+Dritter von neun Controllern aus T-104, 573 → 402 Zeilen Controller plus drei
+Views. Drei Markup-Bloecke, nicht zwei: Der Controller hatte fuer „kein Recht"
+eine eigene kleine Seite, und die ist genauso eine Maske wie die anderen.
+
+**Der `$esc`-Helfer wandert mit.** Der Controller definierte in zwei Methoden
+dieselbe Escaping-Closure fuer sein Markup; sie steht jetzt in den beiden
+Views, die sie benutzen. Im Controller ist sie damit weg – nicht als Aufraeumen
+nebenbei, sondern weil sie ohne das Markup keinen Zweck mehr hat.
+
+**Das Token bleibt, wie es war.** Diese Maske schreibt ihr `<input
+type="hidden" name="csrf_token" …>` selbst und bekommt dafuer `$csrf` aus dem
+Controller – anders als die Betriebsferien-Liste aus P-2026-08-11-09, die
+`Csrf::feld()` ruft. Beide Male ist genau das verschoben worden, was da war;
+die Masken zu vereinheitlichen waere ein eigenes Thema.
+
+### TEST
+Wegwerf-Instanz wie zuvor, erfundene Katalogeintraege (`probe-fraesen` mit
+Sonderzeichen in der Bezeichnung, `probe-inaktiv` ohne Bezeichnung und
+inaktiv). Neun Renderpfade, je gegen HEAD und gegen den Arbeitsstand:
+
+| Pfad | HEAD | neu |
+| --- | --- | --- |
+| Liste, leer | 26.582 B | 26.407 B |
+| Liste mit zwei Eintraegen | 30.590 B | 29.863 B |
+| Formular neu | 28.293 B | 27.958 B |
+| Formular bearbeiten (aktiv) | 28.586 B | 28.227 B |
+| Formular bearbeiten (inaktiv) | 28.526 B | 28.167 B |
+| Unbekannte ID (302 + Flash) | 0 B | 0 B |
+| Liste mit Flash-Meldung | 30.680 B | 29.937 B |
+| POST ohne Code (Fehler im Formular) | 28.408 B | 28.041 B |
+| Hinweisseite ohne Recht | 23.391 B | 23.344 B |
+
+Alle neun mit vereinheitlichtem Leerraum zeichengleich. Der POST ohne Code lief
+mit gueltigem Token und hat nichts geschrieben (Katalog vorher wie nachher
+zwei Zeilen). Neun Backend-Masken im Vergleich unveraendert, **null** PHP-
+Meldungen im Serverlog, `php -l` ueber alle vier geaenderten Dateien sauber.
+
+### Gefundene Fehler im eigenen Entwurf
+**Der erste Test der Hinweisseite hat die Hinweisseite nie gesehen.** Um „kein
+Recht" zu erzeugen, habe ich dem Probeadmin die Rollen in der Datenbank
+geloescht und die Seite abgerufen – beide Laeufe lieferten dasselbe, der
+Vergleich meldete „gleich", und ich haette es fast so notiert. Gerendert wurde
+aber weiterhin das **Formular**: `AuthService` legt die Rechte beim Anmelden in
+der Session ab (`auth_rechte_codes`), ein `DELETE` in der Datenbank aendert an
+der laufenden Sitzung nichts. Erst mit Abmelden und erneutem Anmelden erschien
+die Seite mit „Keine Berechtigung".
+
+Zwei Lehren: Ein Vergleich, der nur „gleich" sagt, beweist nicht, dass der
+gemeinte Pfad gelaufen ist – deshalb steht in der Pruefung jetzt zusaetzlich
+eine inhaltliche Kontrolle (`<h2>` der Seite). Und: Rechte sind in dieser
+Anwendung ein Sitzungszustand, kein Datenbankzustand.
+
+### Was bewusst nicht erreicht wurde
+- **`$csrf` in `index()` bleibt stehen, obwohl die Liste es nicht braucht.**
+  Der Aufruf hat eine Nebenwirkung – `Csrf::token()` legt das Token an, wenn es
+  fehlt –, und ihn zu entfernen waere eine Verhaltensaenderung in einem Patch,
+  der nur Markup verschiebt. Notiert, nicht mitgemacht.
+- **Das Druckblatt (`blatt()`) ist nicht angefasst.** Es erzeugt ein PDF, kein
+  HTML, und faellt damit nicht unter T-104.
+- **B-095 bleibt offen**; diese Maske ist ohnehin nicht betroffen, sie prueft
+  ihr Token beim Speichern.
+
+### NEXT
+T-104, naechster Controller: `KurzarbeitAdminController`.
+
+
 ## P-2026-08-11-10 maschinen-maske-in-views
 
 ### EINGELESEN
