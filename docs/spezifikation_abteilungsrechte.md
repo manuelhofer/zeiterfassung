@@ -24,9 +24,9 @@ Rechtesystem eines Systems, das im Praxis-Test läuft.
 
 Der Bedarf dahinter ist dagegen schmal und konkret: **Ein Schichtleiter soll
 den Urlaub seiner Abteilung genehmigen, ohne dass jeder Mitarbeiter einzeln als
-sein „Genehmigter" eingetragen werden muss.** Genau das wird gebaut. Alle
-anderen Rechte bleiben global – auch dann, wenn die Rolle mit Abteilungsbezug
-zugewiesen ist.
+sein „Genehmigter" eingetragen werden muss.** Genau das wird gebaut – und
+sonst nichts: Eine abteilungsbezogen zugewiesene Rolle gewährt ausschliesslich
+dieses eine Recht (siehe Abschnitt 3).
 
 ## 2. Zielbild
 
@@ -46,13 +46,20 @@ Wer einer Abteilung zugeordnet ist, gehört für die Genehmigung dazu.
 
 ## 3. Was sich nicht ändert
 
-- **`hatRecht($code)` behält seine Signatur.** Kein Ziel, kein zweiter
-  Parameter. Wer die Rolle mit Abteilungsbezug hat, **hat** das Recht
-  `URLAUB_GENEHMIGEN` – begrenzt wird nicht das Recht, sondern die Menge der
-  Mitarbeiter, auf die es sich anwenden lässt.
-- **Alle übrigen Rechte einer abteilungsbezogen zugewiesenen Rolle gelten
-  global.** Das ist eine bewusste Vereinfachung und der Grund, warum Abschnitt 5
-  eine Warnung in der Maske verlangt.
+- **`hatRecht($code)` behält seine Signatur** und wertet weiterhin
+  **ausschliesslich betriebsweite** Zuweisungen aus. Begrenzt wird nicht das
+  Recht, sondern die Menge der Mitarbeiter, auf die es sich anwenden lässt.
+- **Eine abteilungsbezogen zugewiesene Rolle gewährt genau ein Recht:
+  `URLAUB_GENEHMIGEN`, und nur für ihre Abteilung.** Alle übrigen Rechte
+  derselben Rolle greifen **nicht** – so wie heute auch nicht.
+
+  > **Korrigiert am 11.08.2026 während der Umsetzung.** Die erste Fassung
+  > sagte hier das Gegenteil: übrige Rechte gelten global. Das wäre bei jedem
+  > Einschalten ein stiller Rechtezuwachs für jeden, der irgendwo eine solche
+  > Zeile stehen hat – und der Satz „die Änderung fügt kein Recht hinzu"
+  > (Kriterium 7) widerspräche sich selbst, denn heute gewährt eine solche
+  > Zeile nichts. Deshalb die enge Lesart: Wer betriebsweite Rechte will,
+  > nimmt die betriebsweite Zuweisung.
 - **`mitarbeiter_genehmiger` bleibt.** Die namentliche Zuordnung ist der
   Sonderfall (Vertretung, abteilungsübergreifend), der Abteilungsbezug der
   Regelfall. Beide Wege gelten **additiv**: Wer über einen von beiden
@@ -60,9 +67,9 @@ Wer einer Abteilung zugeordnet ist, gehört für die Genehmigung dazu.
 - **`URLAUB_GENEHMIGEN_ALLE` und `_SELF` bleiben unberührt.** `ALLE` sticht
   jede Eingrenzung.
 
-## 4. Eine Stelle, nicht vier
+## 4. Eine Stelle, nicht fünf
 
-Heute beantworten vier Stellen die Frage „für wen bin ich zuständig", jede mit
+Heute beantworten fünf Stellen die Frage „für wen bin ich zuständig", jede mit
 eigener SQL:
 
 | Stelle | heute |
@@ -71,8 +78,14 @@ eigener SQL:
 | `UrlaubController::genehmigungListe()`, Zugangsprüfung | dieselbe Abfrage ohne Zielmitarbeiter |
 | `UrlaubController::genehmigungListe()`, Listenabfrage | `JOIN mitarbeiter_genehmiger`, zwei Varianten |
 | `UrlaubJahresuebersichtController::ladeMitarbeiterFuerRechte()` | `MitarbeiterGenehmigerModel` |
+| `UrlaubController::verarbeiteUrlaubGenehmigungPost()` | noch eine eigene Abfrage – **beim Umsetzen gefunden**, in der ersten Fassung dieser Tabelle vergessen |
 
-Diese vier bekommen **eine** gemeinsame Auskunft:
+Es sind also **fünf**, nicht vier. Die fünfte ist ausgerechnet die, die den
+POST absichert: Sie rief `darfUrlaubsantragBearbeiten()` nicht auf, sondern
+fragte selbst nach. Wäre sie übersehen worden, hätte die Liste den Knopf
+angeboten und der Klick darauf „Keine Berechtigung" gemeldet.
+
+Sie alle bekommen **eine** gemeinsame Auskunft:
 
 ```php
 UrlaubGenehmigungService::holeZustaendigeMitarbeiterIds(int $genehmigerId): array
@@ -96,8 +109,9 @@ fällt. Der Abschnitt „Rollen in Abteilungen" erklärt dann klar, was er bewir
 und was nicht:
 
 > Wirkt heute nur auf die **Urlaubsgenehmigung**: Der Mitarbeiter darf Urlaub
-> für diese Abteilung entscheiden. Alle anderen Rechte der Rolle gelten
-> weiterhin **betriebsweit**.
+> für diese Abteilung entscheiden. **Alle anderen Rechte der Rolle gelten
+> dadurch nicht.** Wer betriebsweite Rechte vergeben will, nimmt die
+> Rollenzuweisung darüber.
 
 Ohne diesen Satz entsteht wieder der Zustand, den P-2026-08-10-25 beseitigt hat:
 eine Maske, die mehr verspricht, als sie hält.
@@ -123,8 +137,9 @@ P-2026-08-11-02 beschrieben.
 6. **Global sticht.** `URLAUB_GENEHMIGEN_ALLE` zeigt weiterhin alle Anträge,
    unabhängig von jeder Abteilung.
 7. **Kein Rechtezuwachs anderswo.** Eine Rolle mit Abteilungsbezug, die
-   ausserdem `MITARBEITER_VERWALTEN` enthält, gewährt dieses Recht wie bisher
-   betriebsweit – die Änderung fügt kein Recht hinzu und nimmt keines weg.
+   ausserdem `MITARBEITER_VERWALTEN` enthält, gewährt dieses Recht **nicht** –
+   `hatRecht('MITARBEITER_VERWALTEN')` bleibt `false`. Dieselbe Rolle
+   betriebsweit zugewiesen gewährt es wie bisher.
 
 ## 7. Was ausdrücklich nicht dazugehört
 

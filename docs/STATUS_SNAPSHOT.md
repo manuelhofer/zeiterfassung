@@ -20,18 +20,14 @@ Abschnitt 12 – dort und bewusst nicht hier ein zweites Mal. Dasselbe gilt für
 den Stufenplan (Abschnitt 11).
 
 ## Offene Bugs
-- **B-093: Abteilungsbezogene Rollenzuweisungen wirken nicht.**
-  `AuthService::ladeRechteCodesAusDb()` liest aus
-  `mitarbeiter_hat_rolle_scope` nur `scope_typ = 'global'`. Seit
-  P-2026-08-10-25 ist die Auswahl in der Mitarbeiterverwaltung **gesperrt** und
-  als „noch nicht wirksam" beschriftet – der gefährliche Zustand (Rechte
-  vergeben, die nicht greifen) ist damit weg. Der Fehler selbst bleibt offen:
-  Die Scope-Auswertung ist nicht gebaut. **Entschieden am 11.08.2026:** Gebaut
-  wird nur die Urlaubsgenehmigung je Abteilung, nicht das allgemeine
-  Bereichsmodell – Zielbild und Akzeptanzkriterien in
+- **B-093 behoben** (P-2026-08-11-05 bis -07): Eine Rolle mit
+  `scope_typ = 'abteilung'` wirkt jetzt – aber **nur** auf die
+  Urlaubsgenehmigung, ausgewertet in `UrlaubGenehmigungService`, nicht in
+  `hatRecht()`. Zielbild, Grenzen und die sieben Akzeptanzkriterien:
   [`spezifikation_abteilungsrechte.md`](spezifikation_abteilungsrechte.md).
-  **In der lokalen Datenbank existiert eine solche wirkungslose Zuweisung** –
-  im Produktivbestand nachsehen.
+  **Im Produktivbestand nachsehen**, ob dort Zeilen mit
+  `scope_typ = 'abteilung'` stehen: Sie wirken ab jetzt, sofern die Rolle
+  `URLAUB_GENEHMIGEN` enthält.
 - **B-080 behoben in P-2026-08-10-28.** Bleibt als Beobachtungspunkt: Die
   Übertragskette rechnet jetzt über **laufendes Jahr und Vorjahr** und schreibt
   das Ergebnis in `urlaub_kontingent_jahr` fest. Im Praxis-Test darauf achten,

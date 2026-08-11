@@ -70,6 +70,136 @@ in den Statusbericht.
   D-002 entfallen; die Regel selbst gilt weiter.)
 
 
+## P-2026-08-11-07 urlaubsgenehmigung-je-abteilung
+
+### EINGELESEN
+- `docs/spezifikation_abteilungsrechte.md` (P-2026-08-11-05), alle sieben
+  Akzeptanzkriterien.
+- `controller/UrlaubController.php` vollstaendig, `UrlaubJahresuebersichtController`,
+  `views/layout/header.php` (Navigation), `views/mitarbeiter/formular.php`
+  (Abschnitt „Rollen in Abteilungen"), `controller/MitarbeiterAdminController.php`.
+- Schema von `mitarbeiter_hat_rolle_scope`, `mitarbeiter_hat_abteilung`,
+  `mitarbeiter_genehmiger`, `abteilung`.
+
+### DATEIEN
+- `services/UrlaubGenehmigungService.php` (neu)
+- `controller/UrlaubController.php`, `controller/UrlaubJahresuebersichtController.php`
+- `controller/MitarbeiterAdminController.php`, `views/mitarbeiter/formular.php`
+- `views/layout/header.php`
+- `docs/spezifikation_abteilungsrechte.md` (zwei Korrekturen, siehe unten)
+- `docs/fachregeln/rollen_rechte_genehmiger.md`
+- `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Genehmiger G, dessen Rolle `URLAUB_GENEHMIGEN` enthaelt und der Abteilung CNC
+zugewiesen ist, sieht den offenen Antrag von Mitarbeiterin A aus CNC und kann
+ihn genehmigen – ohne Eintrag in `mitarbeiter_genehmiger`.
+
+### DONE
+B-093 behoben, im Zuschnitt der Spezifikation.
+
+Neu ist `services/UrlaubGenehmigungService.php` als **einzige** Auskunft
+darueber, fuer wen ein Genehmiger zustaendig ist. Die Menge ist die
+Vereinigung aus namentlicher Zuordnung (`mitarbeiter_genehmiger`) und den
+Mitarbeitern der Abteilungen, in denen der Genehmiger eine Rolle mit
+`URLAUB_GENEHMIGEN` und `scope_typ = 'abteilung'` hat – bei
+`gilt_unterbereiche = 1` einschliesslich Unterbaum. Der Genehmiger selbst ist
+nie enthalten.
+
+Umgestellt sind alle fuenf Stellen, die diese Frage bisher selbst beantwortet
+haben (die Spezifikation kannte nur vier, siehe unten). Dazu kommt die
+Navigation in `header.php`, die bisher ebenfalls eigene SQL hatte.
+
+`AuthService::hatRecht()` ist **unveraendert** und wertet weiterhin nur
+betriebsweite Zuweisungen aus. Der Abteilungsbezug wird ausschliesslich fuer
+`URLAUB_GENEHMIGEN` ausgewertet, und zwar im neuen Dienst. Damit gewaehrt eine
+abteilungsbezogen zugewiesene Rolle **kein** weiteres Recht – auch dann nicht,
+wenn sie welche enthaelt. Das ist der Unterschied zwischen „das Recht
+begrenzen" und „die Menge der Mitarbeiter begrenzen, auf die es sich anwenden
+laesst", und nur Letzteres ist gebaut.
+
+Der Unterbaum wird iterativ mit Besuchsliste durchlaufen, nicht rekursiv:
+`abteilung.parent_id` zeigt auf dieselbe Tabelle, und eine Schleife darin ist
+zwar Unsinn, aber eintragbar.
+
+Die Sperre aus P-2026-08-10-25 faellt: `SCOPE_ABTEILUNG_AKTIV` steht auf
+`true`, die Formularfelder sind wieder bedienbar. Der rote Kasten „gewaehrt
+derzeit keine Rechte" ist einem `warning-panel` gewichen, das sagt, was
+wirklich passiert – Urlaubsgenehmigung ja, alles andere nein.
+
+### TEST
+Wegwerf-Datenbank `zeit_probe_b093`, frisch aus `sql/01_initial_schema.sql`,
+mit **erfundenen** Daten: Abteilungen CNC, Montage und CNC Nachtschicht (Kind
+von CNC); Gerd (Genehmiger, CNC), Anna (CNC), Bert (Montage), Carla
+(Nachtschicht); Rolle „Schichtleiter" mit `URLAUB_GENEHMIGEN` **und**
+`MITARBEITER_VERWALTEN`; je ein offener Antrag.
+
+Alle sieben Kriterien einzeln:
+
+| # | Kriterium | Ergebnis |
+| --- | --- | --- |
+| 1 | zustaendig ueber CNC | Liste zeigt Anna; POST setzt ihren Antrag auf `genehmigt` |
+| 2 | nicht zustaendig ausserhalb | Bert fehlt in der Liste; POST auf seinen Antrag: „Keine Berechtigung", Status bleibt `offen` |
+| 3 | `gilt_unterbereiche = 1` | zusaetzlich Carla; mit `0` nicht |
+| 4 | additiv | Bert namentlich eingetragen → Anna, Bert **und** Carla |
+| 5 | kein Selbsteintritt | Gerds eigener Antrag erscheint nie |
+| 6 | `URLAUB_GENEHMIGEN_ALLE` | alle drei fremden Antraege, der eigene weiterhin nicht |
+| 7 | kein Rechtezuwachs | `hatRecht('MITARBEITER_VERWALTEN')` bleibt `false`; dieselbe Rolle betriebsweit zugewiesen liefert `true` |
+
+Dazu: Wer das Recht hat, aber fuer niemanden zustaendig ist, bekommt die
+Genehmigungsliste weiterhin mit 403 („Sie sind fuer niemanden als Genehmiger
+eingetragen").
+
+Aufgeraeumt: Wegwerf-Datenbank geloescht, Projektkopien entfernt. In der
+echten Datenbank unveraendert **eine** Zeile mit `scope_typ = 'abteilung'` und
+**null** heute entschiedene Urlaubsantraege. `php -l` ueber alle sechs
+geaenderten Dateien sauber, `index.php` und `terminal.php?aktion=health` je
+HTTP 200.
+
+### Gefundene Fehler im eigenen Entwurf
+Drei, und alle drei haetten geschadet:
+
+**1. Eine fuenfte Aufrufstelle uebersehen.** Die Spezifikation zaehlte vier
+Stellen auf, die „fuer wen bin ich zustaendig" selbst beantworten. Es sind
+fuenf: `verarbeiteUrlaubGenehmigungPost()` fragte noch einmal eigenstaendig
+nach, statt `darfUrlaubsantragBearbeiten()` zu rufen. Ausgerechnet die Stelle,
+die den POST absichert. Gefunden wurde sie nicht beim Lesen, sondern erst, als
+der Test einen Antrag genehmigen wollte und „Keine Berechtigung" zurueckkam.
+Tabelle in der Spezifikation korrigiert.
+
+**2. Die Spezifikation widersprach sich selbst.** Abschnitt 3 sagte, uebrige
+Rechte einer abteilungsbezogenen Rolle gaelten global – Kriterium 7 sagte, die
+Aenderung fuege kein Recht hinzu. Beides zusammen geht nicht: Heute gewaehrt so
+eine Zeile *nichts*, „global" waere also sehr wohl ein Zuwachs, und zwar ein
+stiller, bei jedem der im Produktivbestand vielleicht vorhandenen Eintraege.
+Umgesetzt ist die enge Lesart; die Korrektur steht als Kasten in der
+Spezifikation, damit nachvollziehbar bleibt, warum sie sich geaendert hat.
+
+**3. In der Navigation die Rechtepruefung verloren.** Der erste Entwurf
+ersetzte in `header.php` die Bedingung
+`hatRecht('URLAUB_GENEHMIGEN') && (Eintrag vorhanden)` durch ein blosses
+`istGenehmigerFuerIrgendwen()`. Damit haette jeder den Menuepunkt gesehen, der
+irgendwo in `mitarbeiter_genehmiger` steht – ganz ohne Recht. Die Maske selbst
+haette ihn dann mit 403 abgewiesen, aber ein Menuepunkt, der ins Nichts fuehrt,
+ist ein Versprechen, das das System nicht halten kann. Beide Bedingungen
+stehen wieder da.
+
+### Was bewusst nicht erreicht wurde
+- **Das allgemeine Bereichsmodell.** `hatRecht()` bekommt kein Ziel, die
+  uebrigen rund 84 Pruefstellen bleiben unberuehrt. So entschieden und
+  begruendet in der Spezifikation.
+- **Auswertungen und PDF filtern nicht nach Abteilung.** Wer Monatsuebersicht
+  oder Stundenkonto sehen darf, sieht sie weiterhin ganz.
+- **Kein Zyklenschutz beim Speichern einer Abteilung.** Das Traversieren
+  vertraegt eine Schleife (Besuchsliste), verhindert wird sie nicht.
+- **Ungeprueft geblieben: die Jahresuebersicht im Browser.** Ihre
+  Zustaendigkeitsliste kommt aus demselben Dienst und ist damit mitgetestet,
+  die Maske selbst wurde aber nicht gerendert.
+
+### NEXT
+T-104: neun Controller erzeugen HTML selbst – ein Controller je Patch.
+
+
 ## P-2026-08-11-06 platzhalter-nur-einmal-je-abfrage
 
 ### EINGELESEN

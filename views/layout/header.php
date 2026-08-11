@@ -76,29 +76,30 @@ if ($auth->istAngemeldet()) {
     $hatKrankzeitraumAdminRecht   = $auth->hatRecht('KRANKZEITRAUM_VERWALTEN') || $hatKonfigurationAdminRecht || $hatLegacyAdminRolle;
 }
 
-    // Recht: Urlaub genehmigen (Rechte-basiert; Bereich optional via mitarbeiter_genehmiger)
+    // Recht: Urlaub genehmigen. Der Menuepunkt erscheint auch dann, wenn die
+    // Zustaendigkeit nur fuer einen begrenzten Kreis gilt - wer fuer niemanden
+    // zustaendig ist, sieht ihn nicht.
  $hatUrlaubGenehmigungRecht = (
      $auth->hatRecht('URLAUB_GENEHMIGEN_ALLE')
      || $auth->hatRecht('URLAUB_GENEHMIGEN_SELF')
  );
 
- if (
-     !$hatUrlaubGenehmigungRecht
-     && $auth->hatRecht('URLAUB_GENEHMIGEN')
-    
-     && $angemeldeterMitarbeiterId > 0
- ) {
+ if (!$hatUrlaubGenehmigungRecht && $angemeldeterMitarbeiterId > 0) {
      try {
-         $db = Database::getInstanz();
-         $row = $db->fetchEine(
-             'SELECT 1 FROM mitarbeiter_genehmiger WHERE genehmiger_mitarbeiter_id = :gid LIMIT 1',
-             ['gid' => $angemeldeterMitarbeiterId]
-         );
-         if ($row !== null) {
-             $hatUrlaubGenehmigungRecht = true;
-         }
+         $genehmigungsdienst = UrlaubGenehmigungService::getInstanz();
+
+         // Beides muss zutreffen, wie bisher: das Recht **und** eine
+         // Zustaendigkeit. Neu ist nur, dass beides auch ueber eine
+         // abteilungsbezogene Rolle kommen kann
+         // (`docs/spezifikation_abteilungsrechte.md`).
+         $darfBereichGenehmigen = $auth->hatRecht('URLAUB_GENEHMIGEN')
+             || $genehmigungsdienst->hatGenehmigungsrechtUeberAbteilung($angemeldeterMitarbeiterId);
+
+         $hatUrlaubGenehmigungRecht = $darfBereichGenehmigen
+             && $genehmigungsdienst->istGenehmigerFuerIrgendwen($angemeldeterMitarbeiterId);
      } catch (\Throwable $e) {
-         // Ignorieren
+         // Ignorieren – ein fehlender Menuepunkt ist besser als eine
+         // Navigation, die wegen der Datenbank gar nicht erscheint.
      }
  }
 

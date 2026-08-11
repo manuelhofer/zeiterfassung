@@ -86,7 +86,11 @@ class UrlaubJahresuebersichtController
 
         return [
             'darf_alle' => $legacyAdmin || $this->authService->hatRecht('URLAUB_GENEHMIGEN_ALLE'),
-            'darf_bereich' => $this->authService->hatRecht('URLAUB_GENEHMIGEN'),
+            // Auch eine abteilungsbezogen zugewiesene Rolle traegt dieses
+            // Recht - siehe `docs/spezifikation_abteilungsrechte.md`.
+            'darf_bereich' => $this->authService->hatRecht('URLAUB_GENEHMIGEN')
+                || ($angemeldeterId > 0
+                    && UrlaubGenehmigungService::getInstanz()->hatGenehmigungsrechtUeberAbteilung($angemeldeterId)),
             'darf_self' => $this->authService->hatRecht('URLAUB_GENEHMIGEN_SELF'),
         ];
     }
@@ -115,19 +119,10 @@ class UrlaubJahresuebersichtController
         $ids = [];
 
         if ($rechte['darf_bereich']) {
-            try {
-                $genehmigerModel = new MitarbeiterGenehmigerModel();
-                foreach ($genehmigerModel->holeMitarbeiterFuerGenehmiger($angemeldeterId) as $row) {
-                    $mid = (int)($row['mitarbeiter_id'] ?? 0);
-                    if ($mid > 0) {
-                        $ids[$mid] = true;
-                    }
-                }
-            } catch (\Throwable $e) {
-                Logger::warn('Urlaub-Jahresuebersicht: Genehmiger-Scope konnte nicht geladen werden', [
-                    'genehmiger_id' => $angemeldeterId,
-                    'exception' => $e->getMessage(),
-                ], $angemeldeterId, null, 'urlaub_jahresuebersicht');
+            // Dieselbe Zustaendigkeitsliste wie in der Genehmigungsliste:
+            // namentlich eingetragen oder ueber die Abteilung (B-093).
+            foreach (UrlaubGenehmigungService::getInstanz()->holeZustaendigeMitarbeiterIds($angemeldeterId) as $mid) {
+                $ids[$mid] = true;
             }
         }
 

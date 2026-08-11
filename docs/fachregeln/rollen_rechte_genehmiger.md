@@ -61,14 +61,21 @@ Bereichen.
 mit `parent_id` als Hierarchie. Mitarbeiter sind über
 `mitarbeiter_hat_abteilung` M:N zugeordnet (inkl. `ist_stammabteilung`).
 
-Scope-Prüfung – **so ist es gedacht, so ist es noch nicht gebaut**
-(siehe Abschnitt 4 und B-093):
+Scope-Prüfung – **umgesetzt seit P-2026-08-11-07, aber nur für ein einziges
+Recht** (`URLAUB_GENEHMIGEN`, siehe
+[`spezifikation_abteilungsrechte.md`](../spezifikation_abteilungsrechte.md)):
 
-- `scope = global` passt immer. *(umgesetzt)*
-- `scope = abteilung` passt, wenn die Ziel-Abteilung **gleich** ist.
-  *(nicht umgesetzt)*
-- Mit `gilt_unterbereiche = 1` passt auch alles im Unterbaum.
-  *(nicht umgesetzt – die Spalte wird gespeichert, aber nie gelesen)*
+- `scope = global` passt immer, für **jedes** Recht.
+- `scope = abteilung` wird ausschliesslich für `URLAUB_GENEHMIGEN`
+  ausgewertet, und zwar in `UrlaubGenehmigungService` – nicht in
+  `hatRecht()`. Alle übrigen Rechte einer so zugewiesenen Rolle greifen
+  **nicht**.
+- `gilt_unterbereiche = 1` schliesst den Unterbaum von `abteilung.parent_id`
+  ein – ebenfalls nur für dieses eine Recht.
+
+Für ein allgemeines Bereichsmodell (jedes Recht, jede Maske) müsste
+`hatRecht()` ein Ziel bekommen und jede der rund 84 Prüfstellen entscheiden,
+worauf sie sich bezieht. Das ist bewusst **nicht** gebaut.
 
 Für sehr grosse Baeume könnte später eine Materialized-Path-Spalte oder eine
 Closure-Tabelle ergänzt werden; für den aktuellen Umfang reicht rekursives

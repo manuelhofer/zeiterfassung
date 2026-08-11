@@ -131,31 +131,18 @@ class UrlaubController
             return;
         }
 
-        // Rechte für genau diesen Antrag nochmals serverseitig prüfen
-        $hatRechtFuerAntrag = false;
-
-        if ($darfAlle) {
-            $hatRechtFuerAntrag = true;
-        } elseif ($mitarbeiterIdAntrag === $genehmigerId) {
-            $hatRechtFuerAntrag = $darfSelf;
-        } elseif ($darfBereich) {
-            try {
-                $ok = $db->fetchEine(
-                    'SELECT 1 AS ok
-                     FROM mitarbeiter_genehmiger
-                     WHERE mitarbeiter_id = :mid
-                       AND genehmiger_mitarbeiter_id = :gid
-                     LIMIT 1',
-                    ['mid' => $mitarbeiterIdAntrag, 'gid' => $genehmigerId]
-                );
-            } catch (Throwable $e) {
-                $ok = null;
-            }
-
-            if ($ok !== null) {
-                $hatRechtFuerAntrag = true;
-            }
-        }
+        // Rechte für genau diesen Antrag nochmals serverseitig prüfen –
+        // ueber dieselbe Methode, die auch die Urlaubsverwaltung benutzt.
+        // Vorher stand hier eine eigene Abfrage auf `mitarbeiter_genehmiger`;
+        // sie kannte den Abteilungsbezug aus B-093 nicht und haette den
+        // Knopf in der Liste angeboten, die Buchung aber abgewiesen.
+        $hatRechtFuerAntrag = $this->darfUrlaubsantragBearbeiten(
+            $genehmigerId,
+            $mitarbeiterIdAntrag,
+            $darfAlle,
+            $darfBereich,
+            $darfSelf
+        );
 
         if (!$hatRechtFuerAntrag) {
             $_SESSION['urlaub_genehmigung_flash_error'] = 'Keine Berechtigung für diesen Urlaubsantrag.';
@@ -243,7 +230,7 @@ class UrlaubController
                 // Eigener Platzhalter, obwohl derselbe Wert gemeint ist: Die
                 // Verbindung arbeitet ohne `ATTR_EMULATE_PREPARES`, und ein
                 // zweimal verwendeter benannter Platzhalter ist dann kein
-                // Komfort, sondern ein Fehler („Invalid parameter number“).
+                // Komfort, sondern ein Fehler („Invalid parameter number").
                 if (!$darfSelf) {
                     $sqlUpdate .= "\n  AND ua.mitarbeiter_id <> :gid_nicht_selbst";
                 }
@@ -694,13 +681,46 @@ class UrlaubController
 
         return [
             'darf_alle' => $legacyAdmin || $this->authService->hatRecht('URLAUB_GENEHMIGEN_ALLE'),
-            'darf_bereich' => $this->authService->hatRecht('URLAUB_GENEHMIGEN'),
+            'darf_bereich' => $this->darfBereichGenehmigen(),
             'darf_self' => $this->authService->hatRecht('URLAUB_GENEHMIGEN_SELF'),
         ];
     }
 
+    /**
+     * Darf der Angemeldete Urlaub für einen begrenzten Kreis entscheiden?
+     *
+     * Zwei Wege führen dorthin: das betriebsweit zugewiesene Recht
+     * `URLAUB_GENEHMIGEN` – oder eine Rolle, die dieses Recht enthält und
+     * **einer Abteilung** zugewiesen ist (B-093).
+     *
+     * Der zweite Weg steht bewusst nicht in `AuthService::hatRecht()`: Dort
+     * würde eine abteilungsbezogene Rolle unbemerkt auch alle ihre übrigen
+     * Rechte betriebsweit gewähren. Ausgewertet wird der Abteilungsbezug
+     * ausschliesslich für dieses eine Recht
+     * (`docs/spezifikation_abteilungsrechte.md`, Abschnitt 3).
+     */
+    private function darfBereichGenehmigen(): bool
+    {
+        if ($this->authService->hatRecht('URLAUB_GENEHMIGEN')) {
+            return true;
+        }
+
+        $mitarbeiterId = (int)($this->authService->holeAngemeldeteMitarbeiterId() ?? 0);
+        if ($mitarbeiterId <= 0) {
+            return false;
+        }
+
+        return UrlaubGenehmigungService::getInstanz()->hatGenehmigungsrechtUeberAbteilung($mitarbeiterId);
+    }
+
+    /**
+     * Darf dieser Benutzer über den Antrag dieses Mitarbeiters entscheiden?
+     *
+     * Ohne `Database`-Parameter, seit die Zuständigkeit aus dem
+     * `UrlaubGenehmigungService` kommt: Ein durchgereichtes Objekt, das
+     * niemand mehr benutzt, sieht aus wie eine Abhängigkeit und ist keine.
+     */
     private function darfUrlaubsantragBearbeiten(
-        Database $db,
         int $actorId,
         int $mitarbeiterIdAntrag,
         bool $darfAlle,
@@ -723,20 +743,9 @@ class UrlaubController
             return false;
         }
 
-        try {
-            $row = $db->fetchEine(
-                'SELECT 1 AS ok
-                 FROM mitarbeiter_genehmiger
-                 WHERE mitarbeiter_id = :mid
-                   AND genehmiger_mitarbeiter_id = :gid
-                 LIMIT 1',
-                ['mid' => $mitarbeiterIdAntrag, 'gid' => $actorId]
-            );
-        } catch (\Throwable $e) {
-            return false;
-        }
-
-        return $row !== null;
+        // Zustaendigkeit kommt aus einer Hand: namentlich eingetragen oder
+        // ueber die Abteilung (B-093).
+        return UrlaubGenehmigungService::getInstanz()->istZustaendigFuer($actorId, $mitarbeiterIdAntrag);
     }
 
     private function baueUrlaubVerwaltungQueryAusPost(): string
@@ -839,7 +848,7 @@ class UrlaubController
             return;
         }
 
-        if (!$this->darfUrlaubsantragBearbeiten($db, $actorId, $mitarbeiterId, $darfAlle, $darfBereich, $darfSelf)) {
+        if (!$this->darfUrlaubsantragBearbeiten($actorId, $mitarbeiterId, $darfAlle, $darfBereich, $darfSelf)) {
             $_SESSION['urlaub_verwaltung_flash_error'] = 'Keine Berechtigung für diesen Mitarbeiter.';
             $this->redirectZurUrlaubsverwaltung($returnQuery);
             return;
@@ -1058,7 +1067,7 @@ class UrlaubController
             return;
         }
 
-        if (!$this->darfUrlaubsantragBearbeiten($db, $actorId, $mitarbeiterIdAntrag, $darfAlle, $darfBereich, $darfSelf)) {
+        if (!$this->darfUrlaubsantragBearbeiten($actorId, $mitarbeiterIdAntrag, $darfAlle, $darfBereich, $darfSelf)) {
             $_SESSION['urlaub_verwaltung_flash_error'] = 'Keine Berechtigung für diesen Urlaubsantrag.';
             $this->redirectZurUrlaubsverwaltung($returnQuery);
             return;
@@ -1376,7 +1385,7 @@ class UrlaubController
         }
 
         $darfAlle    = $this->authService->hatRecht('URLAUB_GENEHMIGEN_ALLE');
-        $darfBereich = $this->authService->hatRecht('URLAUB_GENEHMIGEN');
+        $darfBereich = $this->darfBereichGenehmigen();
         $darfSelf    = $this->authService->hatRecht('URLAUB_GENEHMIGEN_SELF');
 
         $db = Database::getInstanz();
@@ -1390,27 +1399,15 @@ class UrlaubController
             return;
         }
 
-        // Wenn nur "Bereich" (ohne SELF/ALLE) vergeben ist, muss der Benutzer auch als Genehmiger eingetragen sein.
+        // Wenn nur "Bereich" (ohne SELF/ALLE) vergeben ist, muss der Benutzer
+        // auch tatsaechlich fuer jemanden zustaendig sein - namentlich oder
+        // ueber eine Abteilung.
         if ($darfBereich && !$darfAlle && !$darfSelf) {
-            try {
-                $row = $db->fetchEine(
-                    'SELECT 1 AS ok
-                     FROM mitarbeiter_genehmiger
-                     WHERE genehmiger_mitarbeiter_id = :gid
-                     LIMIT 1',
-                    ['gid' => $genehmigerId]
-                );
-
-                if ($row === null) {
-                    http_response_code(403);
-                    require __DIR__ . '/../views/layout/header.php';
-                    echo '<section><h2>Keine Berechtigung</h2><p>Sie sind nicht als Genehmiger eingetragen.</p></section>';
-                    require __DIR__ . '/../views/layout/footer.php';
-                    return;
-                }
-            } catch (Throwable $e) {
-                http_response_code(500);
-                echo '<p>Fehler: Berechtigungsprüfung fehlgeschlagen.</p>';
+            if (!UrlaubGenehmigungService::getInstanz()->istGenehmigerFuerIrgendwen($genehmigerId)) {
+                http_response_code(403);
+                require __DIR__ . '/../views/layout/header.php';
+                echo '<section><h2>Keine Berechtigung</h2><p>Sie sind für niemanden als Genehmiger eingetragen.</p></section>';
+                require __DIR__ . '/../views/layout/footer.php';
                 return;
             }
         }
@@ -1470,20 +1467,29 @@ class UrlaubController
         } elseif ($darfBereich) {
             $params['gid'] = $genehmigerId;
 
+            // Dieselbe Zustaendigkeitsliste, die auch die POST-Pruefung
+            // benutzt - sonst zeigt die Liste Antraege, die sich nicht
+            // entscheiden lassen, oder verschweigt welche, die es koennte.
+            $zustaendige = UrlaubGenehmigungService::getInstanz()->holeZustaendigeMitarbeiterIds($genehmigerId);
+
+            $platzhalter = [];
+            foreach ($zustaendige as $i => $id) {
+                $platzhalter[]       = ':z' . $i;
+                $params['z' . $i]    = $id;
+            }
+
+            // Leere Zustaendigkeit heisst „keine Treffer" - `IN ()` waere
+            // ungueltiges SQL.
+            $bereichBedingung = $platzhalter === []
+                ? '1 = 0'
+                : 'ua.mitarbeiter_id IN (' . implode(', ', $platzhalter) . ')';
+
             if ($darfSelf) {
-                // Bereich + SELF: Mitarbeiter aus dem eigenen Genehmiger-Bereich + eigene Anträge
-                $sql .=
-                    ' LEFT JOIN mitarbeiter_genehmiger mg
-                        ON mg.mitarbeiter_id = ua.mitarbeiter_id
-                       AND mg.genehmiger_mitarbeiter_id = :gid';
-                $sql .= " WHERE ua.status = 'offen' AND (ua.mitarbeiter_id = :gid OR mg.genehmiger_mitarbeiter_id IS NOT NULL)";
+                // Bereich + SELF: Zustaendigkeitsliste plus eigene Anträge
+                $sql .= " WHERE ua.status = 'offen' AND (ua.mitarbeiter_id = :gid OR " . $bereichBedingung . ')';
             } else {
-                // Nur Bereich: ausschließlich Mitarbeiter aus dem eigenen Genehmiger-Bereich (ohne eigene)
-                $sql .=
-                    ' INNER JOIN mitarbeiter_genehmiger mg
-                        ON mg.mitarbeiter_id = ua.mitarbeiter_id
-                       AND mg.genehmiger_mitarbeiter_id = :gid';
-                $sql .= " WHERE ua.status = 'offen' AND ua.mitarbeiter_id <> :gid";
+                // Nur Bereich: ausschließlich die Zustaendigkeitsliste (ohne eigene)
+                $sql .= " WHERE ua.status = 'offen' AND ua.mitarbeiter_id <> :gid AND " . $bereichBedingung;
             }
         } else {
             // Nur SELF

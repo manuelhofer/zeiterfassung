@@ -452,14 +452,16 @@ $zeigeAbteilungsrollenBereich = $hatAbteilungen || count($rollenScopesAbteilung)
 
                 <?php if ($zeigeAbteilungsrollenBereich): ?>
                     <div class="permission-card">
-                        <h3>Rollen in Abteilungen <span class="hinweis">&ndash; noch nicht wirksam</span></h3>
-                        <div class="fehlermeldung">
-                            <strong>Diese Zuweisung gew&auml;hrt derzeit keine Rechte.</strong>
-                            Die Rechtepr&uuml;fung wertet ausschlie&szlig;lich <em>globale</em> Rollen aus;
-                            abteilungsbezogene Zuweisungen werden gespeichert, aber nicht ber&uuml;cksichtigt
-                            (B-093). Die Auswahl ist deshalb gesperrt, damit niemand Rechte vergibt,
-                            die nicht greifen. Bereits vorhandene Eintr&auml;ge stehen unten und lassen
-                            sich weiterhin l&ouml;schen.
+                        <h3>Rollen in Abteilungen <span class="hinweis">&ndash; wirkt nur auf die Urlaubsgenehmigung</span></h3>
+                        <div class="warning-panel">
+                            <span class="panel-titel">Wirkt heute nur auf die Urlaubsgenehmigung.</span>
+                            Enth&auml;lt die Rolle das Recht <code>URLAUB_GENEHMIGEN</code>, darf der
+                            Mitarbeiter Urlaub f&uuml;r diese Abteilung entscheiden &ndash; mit
+                            &bdquo;gilt f&uuml;r Unterbereiche&ldquo; auch f&uuml;r alle darunter.
+                            <strong>Alle anderen Rechte der Rolle gelten dadurch nicht.</strong>
+                            Wer betriebsweite Rechte vergeben will, nimmt die Rollenzuweisung
+                            dar&uuml;ber. Hintergrund:
+                            <code>docs/spezifikation_abteilungsrechte.md</code>.
                         </div>
 
                 <?php
@@ -508,7 +510,7 @@ $zeigeAbteilungsrollenBereich = $hatAbteilungen || count($rollenScopesAbteilung)
                                     <td>
                                         <input type="hidden" name="scope_abteilung_row_ids[]" value="<?php echo (int)$eid; ?>">
                                         <label>
-                                            <input type="checkbox" name="scope_abteilung_unterbereiche[<?php echo (int)$eid; ?>]" value="1" <?php echo $gilt; ?> disabled>
+                                            <input type="checkbox" name="scope_abteilung_unterbereiche[<?php echo (int)$eid; ?>]" value="1" <?php echo $gilt; ?>>
                                             gilt
                                         </label>
                                     </td>
@@ -530,7 +532,7 @@ $zeigeAbteilungsrollenBereich = $hatAbteilungen || count($rollenScopesAbteilung)
                 <div class="compact-form-grid">
                     <label>
                         Rolle
-                        <select name="scope_abteilung_add_rolle_id" disabled>
+                        <select name="scope_abteilung_add_rolle_id">
                             <option value="0">—</option>
                             <?php foreach ($alleRollen as $rolle): ?>
                                 <?php $rid = (int)($rolle['id'] ?? 0); $rName = (string)($rolle['name'] ?? ''); ?>
@@ -542,7 +544,7 @@ $zeigeAbteilungsrollenBereich = $hatAbteilungen || count($rollenScopesAbteilung)
                     </label>
                     <label>
                         Abteilung
-                        <select name="scope_abteilung_add_abteilung_id" disabled>
+                        <select name="scope_abteilung_add_abteilung_id">
                             <option value="0">—</option>
                             <?php foreach ($alleAbteilungen as $abt): ?>
                                 <?php $aid = (int)($abt['id'] ?? 0); $aName = (string)($abt['name'] ?? ''); ?>
@@ -553,11 +555,11 @@ $zeigeAbteilungsrollenBereich = $hatAbteilungen || count($rollenScopesAbteilung)
                         </select>
                     </label>
                     <label>
-                        <input type="checkbox" name="scope_abteilung_add_unterbereiche" value="1" <?php echo $addUnterChecked; ?> disabled>
+                        <input type="checkbox" name="scope_abteilung_add_unterbereiche" value="1" <?php echo $addUnterChecked; ?>>
                         gilt für Unterbereiche
                     </label>
                 </div>
-                <p><small>Gesperrt bis die Scope-Auswertung in <code>AuthService::hatRecht()</code> gebaut ist &ndash; siehe B-093 im Status-Snapshot.</small></p>
+                <p><small>Wirkt auf die Urlaubsgenehmigung. Ohne das Recht <code>URLAUB_GENEHMIGEN</code> in der Rolle bewirkt der Eintrag nichts.</small></p>
                 <?php endif; ?>
                     </div>
                 <?php endif; ?>
