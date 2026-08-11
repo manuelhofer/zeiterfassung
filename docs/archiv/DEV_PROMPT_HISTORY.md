@@ -70,6 +70,85 @@ in den Statusbericht.
   D-002 entfallen; die Regel selbst gilt weiter.)
 
 
+## P-2026-08-11-12 kurzarbeit-maske-in-views
+
+### EINGELESEN
+- `controller/KurzarbeitAdminController.php` vollstaendig.
+- P-2026-08-11-09 bis -11 als Muster.
+
+### DATEIEN
+- `views/kurzarbeit/liste.php`, `views/kurzarbeit/formular.php` (beide neu)
+- `controller/KurzarbeitAdminController.php`
+- `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Kurzarbeit-Liste und Kurzarbeit-Formular erzeugen dasselbe HTML wie vorher –
+bis auf die Einrueckung –, obwohl das Markup jetzt in `views/kurzarbeit/`
+liegt.
+
+### DONE
+Vierter von neun Controllern aus T-104, 675 → 477 Zeilen Controller plus zwei
+Views.
+
+**Die Wochentage werden im Controller ausgeschrieben.** Die Liste rief mitten
+im Markup `$this->formatWochentageMask($mask)` auf – eine private Methode.
+Statt die View auf `$this` zugreifen zu lassen, haengt `index()` jeder Zeile
+ein Feld `wochentage_text` an, so wie die Katalogliste ihre `code_url`
+mitbringt. Aus „Bitmaske 31" wird damit an genau einer Stelle „Mo-Fr", und die
+View zeigt nur noch an.
+
+Das Formular bekommt die Maske dagegen als Zahl (`$mask`), weil es sie in
+sieben Kaestchen aufloest – das ist Darstellung und gehoert damit in die View.
+
+Das kleine `<script>`, das bei Scope „Firma" die Mitarbeiterauswahl
+ausblendet, ist unveraendert mitgewandert. Es gehoert zur Maske, nicht zum
+Controller.
+
+### TEST
+Wegwerf-Instanz wie zuvor, erfundene Plaene: ein firmenweiter Plan (Mo-Fr,
+Stunden, Sonderzeichen im Kommentar, aktiv) und ein Mitarbeiterplan (Sa+So
+ueber Maske 96, Prozent, ohne Kommentar, inaktiv). Acht Renderpfade:
+
+| Pfad | HEAD | neu |
+| --- | --- | --- |
+| Liste, leer | 26.864 B | 26.593 B |
+| Liste mit zwei Plaenen | 29.294 B | 28.671 B |
+| Formular neu | 31.278 B | 30.343 B |
+| Formular firmenweiter Plan | 31.353 B | 30.418 B |
+| Formular Mitarbeiterplan | 31.282 B | 30.347 B |
+| Unbekannte ID (302 + Flash) | 0 B | 0 B |
+| Liste mit Flash-Meldung | 29.379 B | 28.740 B |
+| Liste nach Umschalten (POST) | 29.370 B | 28.731 B |
+
+Alle acht mit vereinheitlichtem Leerraum zeichengleich. Inhaltlich
+nachgesehen, damit der Vergleich nicht nur „gleich" sagt: In der Spalte
+Wochentage steht „Mo-Fr" bzw. „Sa,So", im Formular des Mitarbeiterplans sind
+genau die Kaestchen 6 und 7 angehakt. Das Umschalten lief ueber den echten
+POST mit dem Token **aus der neuen View**: `kurzarbeit_plan.aktiv` 1 → 0 in
+beiden Laeufen, Zustand vor jedem Lauf zurueckgesetzt.
+
+`php -l` ueber die drei geaenderten Dateien sauber, keine PHP-Meldungen im
+Serverlog.
+
+### Gefundene Fehler im eigenen Entwurf
+Keine, die im Ergebnis geblieben waeren. Die beiden Fallen der Vorgaenger –
+OPcache im eingebauten Server und schreibende Aufrufe in einer Vergleichsliste
+– waren diesmal von vornherein eingeplant: Der Toggle-Test setzt `aktiv` vor
+jedem Lauf zurueck.
+
+### Was bewusst nicht erreicht wurde
+- **Der Hinweis „Tages-Overrides folgen im naechsten Patch"** steht seit
+  Langem unter der Liste und ist mitgewandert. Ob er noch stimmt, ist eine
+  fachliche Frage und kein Thema dieses Patches.
+- **`speichern()` ist nicht durchgespielt.** Der Weg schreibt und haette einen
+  Zustandsabgleich je Lauf gebraucht; das Formular selbst ist ueber drei
+  Varianten geprueft.
+
+### NEXT
+T-104, naechster Controller: `UrlaubKontingentAdminController` oder
+`TerminalAdminController` – beide rund 185 Zeilen Markup.
+
+
 ## P-2026-08-11-11 arbeitsschritt-katalog-in-views
 
 ### EINGELESEN
