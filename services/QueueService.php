@@ -154,7 +154,9 @@ class QueueService
  *
  * @return array<string,mixed>
  *   - verfügbar (bool)
- *   - quelle (string) 'offline' oder 'haupt'
+ *   - quelle (?string) 'offline', 'haupt' oder `null`, wenn keine der beiden
+ *     Datenbanken erreichbar ist. Vorher stand hier auch dann 'haupt', wenn
+ *     die Hauptdatenbank gar nicht antwortete.
  *   - offen (int)
  *   - fehler (int)
  *   - verarbeitet (int)
@@ -163,18 +165,27 @@ class QueueService
  */
     public function holeStatusSummary(): array
 {
-    $offline = $this->datenbank->getOfflineVerbindung();
-    $pdo = $offline instanceof \PDO ? $offline : $this->datenbank->getVerbindung();
+    // Speicherort und Verbindung kommen aus derselben Regel wie beim
+    // Schreiben (`OfflineQueueManager`) - sonst zaehlt die Kachel in einer
+    // anderen Datenbank, als das Terminal befuellt.
+    $pdo = $this->offlineQueueManager->holeQueueVerbindungOderNull();
 
     $out = [
         'verfuegbar'        => false,
-        'quelle'            => $offline instanceof \PDO ? 'offline' : 'haupt',
+        'quelle'            => $this->offlineQueueManager->holeQueueSpeicherort(),
         'offen'             => 0,
         'fehler'            => 0,
         'verarbeitet'       => 0,
         'letzte_erstellung' => null,
         'letzte_ausfuehrung'=> null,
     ];
+
+    // Vorher holte diese Methode die Verbindung ausserhalb des try-Blocks und
+    // ohne Pruefung der Hauptdatenbank: Faellt beides aus, flog die Ausnahme
+    // aus der Methode heraus statt in den Rueckgabewert.
+    if (!($pdo instanceof \PDO)) {
+        return $out;
+    }
 
     $sql = "SELECT
                 SUM(CASE WHEN status = 'offen' THEN 1 ELSE 0 END) AS offen,
@@ -222,12 +233,12 @@ class QueueService
      */
     private function holeQueueVerbindung(): \PDO
     {
-        $offline = $this->datenbank->getOfflineVerbindung();
-        if ($offline instanceof \PDO) {
-            return $offline;
+        $pdo = $this->offlineQueueManager->holeQueueVerbindungOderNull();
+        if ($pdo === null) {
+            throw new \RuntimeException('Keine Queue-DB verfügbar (Offline-DB nicht aktiv/erreichbar und Haupt-DB offline).');
         }
 
-        return $this->datenbank->getVerbindung();
+        return $pdo;
     }
 
     /**
@@ -265,32 +276,19 @@ class QueueService
             $zustand['hauptdb_verfuegbar'] = null;
         }
 
-        $offlinePdo = null;
-        try {
-            $offlinePdo = $this->datenbank->getOfflineVerbindung();
-        } catch (\Throwable $e) {
-            $offlinePdo = null;
-        }
+        // Speicherort und Verbindung kommen aus derselben Regel wie beim
+        // Schreiben (`OfflineQueueManager`): erreichbare Offline-Datenbank
+        // zuerst, sonst die Hauptdatenbank, sonst nichts.
+        $zustand['queue_speicherort'] = $this->offlineQueueManager->holeQueueSpeicherort();
+        $pdo = $this->offlineQueueManager->holeQueueVerbindungOderNull();
 
-        // Eine erreichbare Offline-Datenbank ist immer der primaere
-        // Speicherort – gleiche Regel wie im OfflineQueueManager.
-        if ($offlinePdo instanceof \PDO) {
+        if ($pdo instanceof \PDO) {
             $zustand['queue_verfuegbar'] = true;
-            $zustand['queue_speicherort'] = 'offline';
-        } elseif ($zustand['hauptdb_verfuegbar'] === true) {
-            $zustand['queue_verfuegbar'] = true;
-            $zustand['queue_speicherort'] = 'haupt';
         } elseif ($zustand['hauptdb_verfuegbar'] === false) {
+            // Beide Wege geprueft, keiner trug - das ist ein echtes Nein.
+            // Liess sich die Hauptdatenbank dagegen gar nicht befragen, bleibt
+            // es bei `null`: unbekannt, nicht "nicht verfuegbar".
             $zustand['queue_verfuegbar'] = false;
-        }
-
-        $pdo = $offlinePdo;
-        if (!($pdo instanceof \PDO)) {
-            try {
-                $pdo = $this->datenbank->getVerbindung();
-            } catch (\Throwable $e) {
-                $pdo = null;
-            }
         }
 
         if ($pdo instanceof \PDO) {

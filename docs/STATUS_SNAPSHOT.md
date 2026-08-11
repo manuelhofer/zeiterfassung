@@ -42,11 +42,11 @@ den Stufenplan (Abschnitt 11).
   `KonfigurationController` (201), `AuftragController` (137).
 - **T-105** `SmokeTestController::index()` ist eine Methode mit ~3.700 Zeilen.
   Diagnosewerkzeug, keine Fachlogik – aber praktisch nicht mehr änderbar.
-- **T-108** Zugriffswege auf `db_injektionsqueue` zusammenführen.
-  `DbInjektionsqueueModel` ist seit P-2026-08-11-03 weg (war tot). Offen bleibt
-  die Regel „wo liegt die Queue" – sie steht in `OfflineQueueManager` und in
-  `QueueService` gleich dreimal nebeneinander. Berührt den Offline-Pfad,
-  deshalb nur mit Offline-Test; der Aufbau dafür steht in P-2026-08-11-02.
+- **T-108 erledigt** (P-2026-08-11-03 und -04): `DbInjektionsqueueModel` war
+  tot und ist weg; die Regel „wo liegt die Queue" steht nur noch im
+  `OfflineQueueManager` (`holeQueueVerbindungOderNull()`,
+  `holeQueueSpeicherort()`). Wer neu auf `db_injektionsqueue` zugreift, nimmt
+  diese beiden – nicht `Database` direkt.
 - **T-109 erledigt** (P-2026-08-10-39 bis -42, Nachbesserung P-2026-08-11-01):
   Alle Backend-Masken gestalten
   sich aus `views/layout/header.php`, keine Farbe mehr per `style="…"`. Einzige

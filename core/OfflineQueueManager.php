@@ -366,16 +366,66 @@ class OfflineQueueManager
      */
     private function holeQueueVerbindung(): \PDO
     {
-        $offline = $this->datenbank->getOfflineVerbindung();
+        $pdo = $this->holeQueueVerbindungOderNull();
+        if ($pdo === null) {
+            throw new \RuntimeException('Keine Queue-DB verfügbar (Offline-DB nicht aktiv/erreichbar und Haupt-DB offline).');
+        }
+
+        return $pdo;
+    }
+
+    /**
+     * Dieselbe Regel wie `holeQueueVerbindung()`, nur ohne Ausnahme: `null`
+     * heißt „im Moment liegt die Queue nirgends".
+     *
+     * Öffentlich, weil `QueueService` dieselbe Frage beantworten muss – wer
+     * anzeigt, muss in dieselbe Tabelle sehen, in die geschrieben wird. Diese
+     * Regel stand vorher viermal im Projekt, in vier leicht verschiedenen
+     * Fassungen; driften sie auseinander, liest die Oberfläche eine andere
+     * Datenbank, als das Terminal befüllt.
+     */
+    public function holeQueueVerbindungOderNull(): ?\PDO
+    {
+        try {
+            $offline = $this->datenbank->getOfflineVerbindung();
+        } catch (\Throwable $e) {
+            $offline = null;
+        }
+
         if ($offline instanceof \PDO) {
             return $offline;
         }
 
-        // Fallback auf Haupt-DB nur dann, wenn sie erreichbar ist.
-        if ($this->datenbank->istHauptdatenbankVerfuegbar()) {
-            return $this->datenbank->getVerbindung();
+        // Rückfall auf die Hauptdatenbank nur dann, wenn sie erreichbar ist.
+        try {
+            if ($this->datenbank->istHauptdatenbankVerfuegbar()) {
+                return $this->datenbank->getVerbindung();
+            }
+        } catch (\Throwable $e) {
+            return null;
         }
 
-        throw new \RuntimeException('Keine Queue-DB verfügbar (Offline-DB nicht aktiv/erreichbar und Haupt-DB offline).');
+        return null;
+    }
+
+    /**
+     * Wo die Queue gerade liegt: `'offline'`, `'haupt'` oder `null`, wenn
+     * keine der beiden Datenbanken erreichbar ist. Für Anzeigen gedacht.
+     */
+    public function holeQueueSpeicherort(): ?string
+    {
+        try {
+            if ($this->datenbank->getOfflineVerbindung() instanceof \PDO) {
+                return 'offline';
+            }
+        } catch (\Throwable $e) {
+            // Nicht erreichbar zählt wie nicht vorhanden.
+        }
+
+        try {
+            return $this->datenbank->istHauptdatenbankVerfuegbar() ? 'haupt' : null;
+        } catch (\Throwable $e) {
+            return null;
+        }
     }
 }

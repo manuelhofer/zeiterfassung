@@ -70,6 +70,101 @@ in den Statusbericht.
   D-002 entfallen; die Regel selbst gilt weiter.)
 
 
+## P-2026-08-11-04 eine-regel-fuer-den-queue-speicherort
+
+### EINGELESEN
+- `core/OfflineQueueManager.php` und `services/QueueService.php` vollstaendig.
+- `docs/fachregeln/terminal_und_offline.md`, Abschnitt 5 (Queue, Wiederanlauf,
+  Stoerungsmodus).
+- Alle Aufrufer von `holeZustand()`, `holeStatusSummary()` und
+  `queue_verfuegbar` – `public/terminal.php`, `DashboardController`,
+  `TerminalController` und vier Terminal-Views.
+
+### DATEIEN
+- `core/OfflineQueueManager.php`, `services/QueueService.php`
+- `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Fallen Haupt- und Offline-Datenbank gleichzeitig aus, liefert
+`QueueService::holeStatusSummary()` ein Array mit `verfuegbar = false` –
+vorher flog dort eine `PDOException` aus der Methode heraus.
+
+### DONE
+Zweite Haelfte von T-108. Die Frage „in welcher Datenbank liegt die Queue
+gerade" wurde an **vier** Stellen beantwortet, in vier verschiedenen
+Fassungen:
+
+| Stelle | Regel |
+| --- | --- |
+| `OfflineQueueManager::holeQueueVerbindung()` | offline, sonst Haupt-DB **wenn erreichbar**, sonst Ausnahme |
+| `QueueService::holeQueueVerbindung()` | offline, sonst Haupt-DB – ungeprueft |
+| `QueueService::holeStatusSummary()` | dasselbe noch einmal inline, ohne `try` |
+| `QueueService::holeZustand()` | dasselbe ein drittes Mal, mit `try` |
+
+Das ist keine Kosmetik: Wer anzeigt, muss in dieselbe Tabelle sehen, in die
+geschrieben wird. Driften die Fassungen auseinander, zaehlt die Kachel in der
+einen Datenbank, waehrend das Terminal in die andere schreibt – und niemand
+merkt es, weil beide Zahlen plausibel aussehen.
+
+Jetzt gibt es die Regel einmal, im `OfflineQueueManager`:
+`holeQueueVerbindungOderNull()` (Verbindung oder `null`) und
+`holeQueueSpeicherort()` (`'offline'`, `'haupt'` oder `null`). Die bisherige
+`holeQueueVerbindung()` ruft die erste auf und wirft weiter, wenn nichts da
+ist – die schreibenden Pfade sollen laut bleiben. `QueueService` nutzt beide
+und hat keine eigene Fassung mehr.
+
+Das `null` in `holeZustand()` bleibt bewusst erhalten: Dort heisst `null`
+laut Docblock „unbekannt", nicht „nicht verfuegbar". `queue_verfuegbar` wird
+deshalb nur dann `false`, wenn auch `hauptdb_verfuegbar` ein echtes `false`
+ist; liess sich die Hauptdatenbank gar nicht befragen, bleibt es bei `null`.
+
+### TEST
+Projektkopie mit zwei Wegwerf-Datenbanken (`zeit_probe_t108`,
+`…_offline`) und erfundenem Mitarbeiter, drei Zustaende – jeweils **vorher**
+(Stand HEAD) und **nachher** gemessen:
+
+| Zustand | `holeStatusSummary()` vorher | nachher |
+| --- | --- | --- |
+| A) beide DB da | `verfuegbar=true quelle='offline'` | gleich |
+| B) Haupt-DB weg | `verfuegbar=true quelle='offline'` | gleich |
+| C) beide weg | **PDOException** „Unknown database" | `verfuegbar=false quelle=NULL` |
+
+`holeZustand()` liefert in allen drei Zustaenden vorher wie nachher dasselbe
+(A: `queue_verfuegbar=true speicherort='offline'`, B: dito mit
+`hauptdb=false`, C: `queue_verfuegbar=false speicherort=NULL`).
+
+Regressionsprobe ueber den ganzen Weg: Haupt-DB weg → `bucheKommen()` = `0`,
+`holeZustand()` meldet `offen=1`, `holeOffeneEintraege()` liefert genau diesen
+Eintrag. Haupt-DB zurueck → `verarbeiteOffeneEintraege()` → `offen=0`,
+`fehler=0`, die Buchung steht mit `terminal_id=42` in `zeitbuchung`,
+`holeStatusSummary()` meldet `verarbeitet=1`.
+
+Danach beide Wegwerf-Datenbanken geloescht, Kopien entfernt.
+`php -l` sauber, `index.php` und `terminal.php?aktion=health` je HTTP 200,
+Health unveraendert `queue_verfuegbar: true`, `queue_speicherort: "offline"`.
+
+### Gefundene Fehler im eigenen Entwurf
+**Fast einen dokumentierten Vertrag gebrochen.** Der erste Entwurf setzte
+`queue_verfuegbar = $pdo instanceof \PDO` – kurz und falsch. Der Docblock von
+`holeZustand()` sagt ausdruecklich, `null` heisse „unbekannt" und sei etwas
+anderes als `false`; `public/terminal.php` schaltet den Stoerungsbildschirm
+genau an `=== false`. Aus „wir konnten die Datenbank nicht fragen" waere so
+„die Queue ist weg" geworden. Gefunden beim Lesen des Docblocks, nicht beim
+Testen – die Wegwerf-Datenbanken erreichen den Fall gar nicht, weil
+`istHauptdatenbankVerfuegbar()` dort sauber `false` liefert statt zu werfen.
+
+### Was bewusst nicht erreicht wurde
+- **`QueueService` bleibt eine eigene Klasse.** Lesen und Anzeigen dort,
+  Schreiben und Abarbeiten im Manager – die Trennung ist sinnvoll, doppelt war
+  nur die Speicherort-Regel. T-108 ist damit erledigt.
+- **`holeStatusSummary()` behaelt seine abweichende Einrueckung** (Rumpf auf
+  Spalte 0). Das ist Formatierung und gehoert nicht in einen Patch am
+  Offline-Pfad.
+
+### NEXT
+B-093 – braucht laut Arbeitsregeln §1 zuerst eine Spezifikation.
+
+
 ## P-2026-08-11-03 tote-queue-klasse-entfernt
 
 ### EINGELESEN
