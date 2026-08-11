@@ -70,6 +70,100 @@ in den Statusbericht.
   D-002 entfallen; die Regel selbst gilt weiter.)
 
 
+## P-2026-08-11-06 platzhalter-nur-einmal-je-abfrage
+
+### EINGELESEN
+- `core/Database.php`, `erstellePdoAusKonfig()` und `ausfuehren()`.
+- `controller/UrlaubController.php`, `verarbeiteUrlaubGenehmigungPost()`.
+- `services/AuftragszeitService.php`,
+  `stoppeAlleLaufendenAuftraegeFuerMitarbeiterBisZeitpunkt()`.
+- Alle SQL-Zeichenketten in `controller/`, `services/`, `modelle/`, `core/`
+  maschinell auf mehrfach verwendete Platzhalter geprueft.
+
+### DATEIEN
+- `controller/UrlaubController.php`, `services/AuftragszeitService.php`
+- `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Ein Genehmiger mit `URLAUB_GENEHMIGEN`, aber **ohne**
+`URLAUB_GENEHMIGEN_SELF`, kann einen fremden Urlaubsantrag genehmigen – der
+Antrag steht danach auf `genehmigt`.
+
+### DONE
+**B-094, gefunden beim Testen von B-093.** Die Verbindung arbeitet ohne
+`PDO::ATTR_EMULATE_PREPARES`; MySQL bereitet die Abfragen also selbst vor. Ein
+benannter Platzhalter darf dann **nur einmal** vorkommen – sonst wirft PDO
+`SQLSTATE[HY093]: Invalid parameter number`.
+
+Zwei Abfragen taten genau das:
+
+**1. Urlaub genehmigen** (`UrlaubController`). Der Genehmigungs-`UPDATE`
+benutzte `:gid` zweimal: einmal fuer `entscheidungs_mitarbeiter_id`, einmal
+fuer `AND ua.mitarbeiter_id <> :gid`. Die zweite Zeile wird **nur** angehaengt,
+wenn der Genehmiger *kein* `URLAUB_GENEHMIGEN_SELF` hat. Fuer genau diese Leute
+war das Genehmigen damit vollstaendig kaputt: Die Ausnahme wurde gefangen,
+`$rows` blieb 0, und die Maske meldete „Urlaubsantrag konnte nicht
+aktualisiert werden (evtl. bereits entschieden)". Ein Satz, der auf ein
+Zeitproblem zeigt – und deshalb genau dort suchen laesst, wo nichts ist.
+
+Warum das niemandem auffiel: Chef und Personalbuero haben `_SELF` und damit
+die kaputte Zeile nie im `UPDATE`. Betroffen war ausschliesslich der
+eingetragene Bereichsgenehmiger – also die Rolle, um die es in B-093 geht.
+
+**2. Auftraege bis Zeitpunkt stoppen** (`AuftragszeitService`). Derselbe
+Fehler mit `:endzeit`, einmal im `SET`, einmal in `startzeit <= :endzeit`.
+Diese Methode hat heute **keine Aufrufstelle** – `SmokeTestController` prueft
+sogar ausdruecklich, dass `ZeitController` sie *nicht* benutzt. Kaputt ist sie
+trotzdem; wer sie das naechste Mal anschliesst, haette den Fehler geerbt.
+
+Beide Male jetzt ein eigener Platzhalter mit eigenem Wert, dazu ein Kommentar,
+der den Grund nennt – die Versuchung, „denselben Wert doch einfach nochmal zu
+nehmen", kommt sonst beim naechsten Mal wieder.
+
+### TEST
+An einer Wegwerf-Datenbank mit erfundenen Mitarbeitern, **ohne** jede
+Beteiligung von B-093: Genehmiger Gerd hat `URLAUB_GENEHMIGEN` betriebsweit
+und ist namentlich fuer Anna eingetragen, `_SELF` hat er nicht. POST
+„genehmigen" auf Annas Antrag:
+
+| Stand | Ergebnis |
+| --- | --- |
+| HEAD, unveraendert | Status bleibt `offen`, Meldung „…evtl. bereits entschieden" |
+| mit dieser Korrektur | Status `genehmigt`, Meldung „Urlaubsantrag wurde genehmigt." |
+
+Der Ausnahmetext stammt nicht aus einer Vermutung: `system_log` enthielt zu
+beiden Versuchen `{"exception":"SQLSTATE[HY093]: Invalid parameter number"}`.
+
+Zweite Abfrage einzeln gegen dieselbe Datenbank gestellt: mit doppeltem
+`:endzeit` dieselbe Ausnahme, mit getrennten Platzhaltern sauberer Durchlauf.
+
+Gegenprobe ueber das ganze Projekt: Ein Skript hat alle SQL-Zeichenketten in
+`controller/`, `services/`, `modelle/` und `core/` eingesammelt und die
+Platzhalter gezaehlt – **genau diese zwei** Fundstellen, keine weitere.
+
+`php -l` auf beiden Dateien sauber.
+
+### Gefundene Fehler im eigenen Entwurf
+Der Fehler war schon einmal fast unter den Tisch gefallen: In der ersten
+Messung sah ich nur „Keine Berechtigung fuer diesen Urlaubsantrag" und hielt
+das fuer ein Rechteproblem meiner eigenen Aenderung. Erst der Blick in
+`system_log` – nicht in die Maske – zeigte die eigentliche Ausnahme. Eine
+gefangene Ausnahme mit freundlicher Ersatzmeldung ist genau deshalb teuer: Sie
+sieht aus wie ein Fachproblem.
+
+### Was bewusst nicht erreicht wurde
+- **`ATTR_EMULATE_PREPARES` bleibt aus.** Einschalten wuerde beide Abfragen
+  ebenfalls reparieren, aber die Vorbereitung zurueck in PHP holen. Der
+  Schutz durch echte Prepared Statements ist mehr wert als die Bequemlichkeit,
+  einen Platzhalter zweimal schreiben zu duerfen.
+- **Die Ersatzmeldung „evtl. bereits entschieden" bleibt stehen.** Sie ist
+  fuer den echten Fall (jemand war schneller) richtig. Dass sie auch bei einem
+  technischen Fehler erscheint, ist ein eigenes Thema.
+
+### NEXT
+B-093 umsetzen – jetzt, wo das Genehmigen ueberhaupt funktioniert.
+
+
 ## P-2026-08-11-05 spezifikation-abteilungsrechte
 
 ### EINGELESEN

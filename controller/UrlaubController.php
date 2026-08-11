@@ -239,8 +239,13 @@ class UrlaubController
                     . "  AND ua.mitarbeiter_id = :mid";
 
                 // Self-Approval nur, wenn das entsprechende Recht vorhanden ist.
+                //
+                // Eigener Platzhalter, obwohl derselbe Wert gemeint ist: Die
+                // Verbindung arbeitet ohne `ATTR_EMULATE_PREPARES`, und ein
+                // zweimal verwendeter benannter Platzhalter ist dann kein
+                // Komfort, sondern ein Fehler („Invalid parameter number“).
                 if (!$darfSelf) {
-                    $sqlUpdate .= "\n  AND ua.mitarbeiter_id <> :gid";
+                    $sqlUpdate .= "\n  AND ua.mitarbeiter_id <> :gid_nicht_selbst";
                 }
 
                 if ($statusNeu === 'genehmigt') {
@@ -255,13 +260,19 @@ class UrlaubController
                     . "  )";
             }
 
-            $rows = $db->ausfuehren($sqlUpdate, [
+            $parameterUpdate = [
                 'status'    => $statusNeu,
                 'gid'       => $genehmigerId,
                 'kommentar' => ($kommentar !== '' ? $kommentar : null),
                 'id'        => $antragId,
                 'mid'       => $mitarbeiterIdAntrag,
-            ]);
+            ];
+
+            if (!$darfSelf) {
+                $parameterUpdate['gid_nicht_selbst'] = $genehmigerId;
+            }
+
+            $rows = $db->ausfuehren($sqlUpdate, $parameterUpdate);
         } catch (Throwable $e) {
             $rows = 0;
             Logger::error('Urlaub-Genehmigung: Update fehlgeschlagen', [

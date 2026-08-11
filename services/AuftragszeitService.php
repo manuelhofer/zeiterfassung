@@ -679,6 +679,9 @@ class AuftragszeitService
 
         try {
             $dbOnline = Database::getInstanz();
+            // Zwei Platzhalter fuer denselben Wert: Die Verbindung arbeitet
+            // ohne `ATTR_EMULATE_PREPARES`, und ein zweimal verwendeter
+            // benannter Platzhalter ist dann ein Fehler, kein Komfort.
             $sql = 'UPDATE auftragszeit
                     SET endzeit = :endzeit,
                         status  = :status
@@ -686,10 +689,11 @@ class AuftragszeitService
                       AND typ IN (\'haupt\', \'neben\')
                       AND status = \'laufend\'
                       AND endzeit IS NULL
-                      AND startzeit <= :endzeit';
+                      AND startzeit <= :startzeit_bis';
 
             $dbOnline->ausfuehren($sql, [
                 'endzeit'        => $zeitpunkt->format('Y-m-d H:i:s'),
+                'startzeit_bis'  => $zeitpunkt->format('Y-m-d H:i:s'),
                 'status'         => $status,
                 'mitarbeiter_id' => $mitarbeiterId,
             ]);
