@@ -7,6 +7,14 @@ nichts.
 ## Projektstatus
 - **FERTIG** – System ist im **Praxis-Test**.
 - Weiterentwicklung nur bei **Bugs** oder **ausdrücklicher Beauftragung**.
+- **Es gibt keinen Produktivbetrieb.** Keine Installation im Einsatz, keine
+  Mitarbeiter, die damit stempeln, keine Daten, an denen etwas hängt.
+  Produktivbetrieb beginnt **erst**, wenn Manuel ausdrücklich sagt: „Jetzt
+  gehen wir in den Produktivbetrieb." Bis dahin gilt jede Formulierung wie
+  „im laufenden Betrieb", „im Produktivbestand nachsehen" oder „betrifft
+  Anwender" als **falsch** – sie erzeugt Dringlichkeit, die es nicht gibt,
+  und Arbeit, die niemand braucht. Ein behobener Fehler betrifft den Test,
+  sonst nichts.
 
 ## Nächster Schritt (konkret)
 
@@ -25,9 +33,10 @@ den Stufenplan (Abschnitt 11).
   Urlaubsgenehmigung, ausgewertet in `UrlaubGenehmigungService`, nicht in
   `hatRecht()`. Zielbild, Grenzen und die sieben Akzeptanzkriterien:
   [`spezifikation_abteilungsrechte.md`](spezifikation_abteilungsrechte.md).
-  **Im Produktivbestand nachsehen**, ob dort Zeilen mit
-  `scope_typ = 'abteilung'` stehen: Sie wirken ab jetzt, sofern die Rolle
-  `URLAUB_GENEHMIGEN` enthält.
+  Zu bedenken **beim späteren Aufsetzen einer echten Installation**: Zeilen mit
+  `scope_typ = 'abteilung'` wirken dort ab diesem Stand, sofern die Rolle
+  `URLAUB_GENEHMIGEN` enthält. In der Entwicklungsdatenbank steht eine solche
+  Zeile.
 - **B-080 behoben in P-2026-08-10-28.** Bleibt als Beobachtungspunkt: Die
   Übertragskette rechnet jetzt über **laufendes Jahr und Vorjahr** und schreibt
   das Ergebnis in `urlaub_kontingent_jahr` fest. Im Praxis-Test darauf achten,

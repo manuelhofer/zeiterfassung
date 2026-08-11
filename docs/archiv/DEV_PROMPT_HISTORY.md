@@ -70,6 +70,61 @@ in den Statusbericht.
   D-002 entfallen; die Regel selbst gilt weiter.)
 
 
+## P-2026-08-11-08 kein-produktivbetrieb-festgehalten
+
+### EINGELESEN
+- `docs/STATUS_SNAPSHOT.md`, Abschnitt „Projektstatus".
+- Die eigenen Formulierungen aus P-2026-08-11-02 bis -07 („im Produktivbestand
+  nachsehen", „betrifft den laufenden Betrieb").
+
+### DATEIEN
+- `docs/STATUS_SNAPSHOT.md`
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Der Projektstatus sagt in einem Satz, dass es keinen Produktivbetrieb gibt und
+wann er beginnt – ohne dass man dafuer eine zweite Datei aufschlagen muss.
+
+### DONE
+Korrektur einer falschen Annahme, nicht des Codes.
+
+Im Snapshot stand „FERTIG – System ist im **Praxis-Test**". Daraus habe ich
+„laeuft bei jemandem" gemacht und in mehreren Eintraegen entsprechend
+geschrieben: „im Produktivbestand nachsehen", „B-094 betrifft den laufenden
+Betrieb", „falls jemand deswegen Antraege liegen gelassen hat". Alles falsch.
+Es gibt **keine** Installation im Einsatz. Produktivbetrieb beginnt erst auf
+ausdrueckliche Ansage von Manuel.
+
+Der Unterschied ist nicht nur sprachlich: Aus „betrifft den Betrieb" folgt
+Dringlichkeit, ein Nachsehen in echten Daten und womoeglich eine
+Datenkorrektur – Arbeit, die es hier nicht gibt. Der Satz steht deshalb im
+Projektstatus, also in der Zeile, die jeder neue Chat ohnehin liest, und nennt
+gleich mit, welche Formulierungen bis dahin falsch sind.
+
+Bestehende Verlaufseintraege bleiben, wie sie sind – der Verlauf wird nicht
+umgeschrieben. Im Snapshot ist der Hinweis zu B-093 umformuliert: aus „im
+Produktivbestand nachsehen" wird „zu bedenken beim spaeteren Aufsetzen einer
+echten Installation".
+
+### TEST
+Nicht anwendbar, reine Dokumentation. Nachgemessen: Die vier Kaltstart-Dateien
+zusammen bleiben unter der Grenze aus `arbeitsregeln.md` §9.
+
+### Gefundene Fehler im eigenen Entwurf
+Der Fehler ist der Anlass des Patches. Bemerkenswert daran: „Praxis-Test" ist
+im Snapshot seit Langem der Projektstatus, und ich habe ihn gelesen, ohne zu
+fragen, was er heisst. Ein Zustandsname ist keine Beschreibung – wer daraus
+ableitet, was es in der Welt gibt, rate.
+
+### Was bewusst nicht erreicht wurde
+Die aelteren Verlaufseintraege behalten ihre falschen Nebensaetze. Sie zu
+korrigieren hiesse, den Verlauf zu faelschen; er haelt fest, was gedacht
+wurde, nicht was richtig war.
+
+### NEXT
+T-104: neun Controller erzeugen HTML selbst – ein Controller je Patch.
+
+
 ## P-2026-08-11-07 urlaubsgenehmigung-je-abteilung
 
 ### EINGELESEN
