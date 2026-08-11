@@ -70,6 +70,54 @@ in den Statusbericht.
   D-002 entfallen; die Regel selbst gilt weiter.)
 
 
+## P-2026-08-11-03 tote-queue-klasse-entfernt
+
+### EINGELESEN
+- `modelle/DbInjektionsqueueModel.php` vollstaendig (140 Zeilen).
+- Verlaufseintrag P-2026-08-10-11 – dort wurde die Klasse ausdruecklich
+  **behalten**, mit der Begruendung „es wird benutzt".
+- `core/OfflineQueueManager.php` und `services/QueueService.php`, um zu sehen,
+  ob eine der beiden noch etwas daraus braucht.
+
+### DATEIEN
+- `modelle/DbInjektionsqueueModel.php` (geloescht)
+- `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Nach dem Loeschen antwortet `terminal.php?aktion=health` weiterhin mit
+`queue_verfuegbar: true` – die Offline-Queue arbeitet ohne die Klasse.
+
+### DONE
+Erste Haelfte von T-108. Die Klasse hatte **null** Aufrufstellen.
+
+Interessant ist, wie sie tot wurde: P-2026-08-10-11 raeumte tote Klassen auf
+und entfernte dabei `core/OfflineQueueService.php` – und genau dort standen die
+beiden einzigen Verwendungen (`private DbInjektionsqueueModel $queueModel`).
+Im selben Commit steht unter „Was bewusst nicht erreicht wurde", das Model
+bleibe, „es wird benutzt". Das stimmte beim Lesen und war beim Schreiben des
+Satzes schon nicht mehr wahr. Wer eine Klasse entfernt, muss pruefen, was
+dadurch verwaist – die Aufrufstellen der geloeschten Klasse zaehlen mit.
+
+### TEST
+- `grep` ueber alle `*.php`, `*.md`, `*.sql`, `*.sh`: kein Treffer mehr ausser
+  in Snapshot und Verlauf. Keine dynamische Instanziierung im Projekt
+  (`grep 'new $'` ohne Treffer), der Autoloader laedt also nur, was namentlich
+  dasteht.
+- `php -l` ueber **alle** PHP-Dateien des Projekts ausser der mitgelieferten
+  Barcode-Bibliothek: sauber.
+- `index.php` und `terminal.php?aktion=health`: zweimal HTTP 200, Health meldet
+  `hauptdb_verfuegbar: true`, `queue_verfuegbar: true`,
+  `queue_speicherort: "offline"`, `queue_offen: 0`, `queue_fehler: 0`.
+
+### Was bewusst nicht erreicht wurde
+Die zweite Haelfte von T-108: `OfflineQueueManager` und `QueueService` fuehren
+die Regel „wo liegt die Queue" getrennt. Das ist Fachlogik am Offline-Pfad und
+bekommt einen eigenen Patch mit eigenem Test.
+
+### NEXT
+P-2026-08-11-04: eine Regel fuer den Queue-Speicherort.
+
+
 ## P-2026-08-11-02 buchungen-tragen-die-terminal-id
 
 ### EINGELESEN
