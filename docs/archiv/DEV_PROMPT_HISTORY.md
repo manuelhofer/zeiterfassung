@@ -70,6 +70,93 @@ in den Statusbericht.
   D-002 entfallen; die Regel selbst gilt weiter.)
 
 
+## P-2026-08-11-01 knopf-und-knopf-link-gleich-hoch
+
+### EINGELESEN
+- Bildschirmfoto der Auftragsliste aus dem Praxis-Test (Meldung: „die Buttons
+  schauen schlecht aus").
+- `views/layout/header.php`, Regelblock `button, .button-link` und die
+  Ableitungen `td .table-actions` und `.pager .button-link`.
+- `controller/AuftragController.php`, Auftragsliste (Kopfleiste, Suchleiste,
+  Aktionsspalte) als Beispiel fuer die Mischung aus beiden Knopfarten.
+
+### DATEIEN
+- `views/layout/header.php`
+- `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+In der Auftragsliste sind „Details" (ein `<a class="button-link">`) und
+„Inaktiv setzen" (ein `<button>`) gleich hoch und stehen mit derselben Ober-
+und Unterkante nebeneinander.
+
+### DONE
+Eine Zeile: `box-sizing: border-box` im gemeinsamen Regelblock von `button`
+und `.button-link`.
+
+Der Grund war nicht zu sehen, sondern nur zu messen. Beide Knopfarten bekommen
+seit jeher dieselben Angaben – `padding: 0.38rem 0.68rem`, `min-height: 2rem`.
+Nur rechnet der Browser sie verschieden: Einem `<button>` gibt er von sich aus
+`border-box`, einem `<a>` nicht. Bei `content-box` gilt `min-height` allein fuer
+den Inhalt, Innenabstand und Rahmen kommen obendrauf. Aus derselben Regel wurden
+so zwei Hoehen:
+
+| Ort | `<button>` | `<a class="button-link">` |
+| --- | --- | --- |
+| Suchleiste („Suchen" / „Zuruecksetzen") | 32,16 px | 46,16 px |
+| Tabellenzeile („Inaktiv setzen" / „Details") | 28,00 px | 37,66 px |
+| Formularfuss („Speichern" / „Abbrechen") | 32,16 px | 46,16 px |
+
+Danach sind es in jeder Zeile zwei gleiche Werte, und weil `.table-actions`
+mittig ausrichtet, deckt sich auch die Oberkante (Tabellenzeile vorher: Link ab
+326,9 px, Knopf ab 331,7 px – nachher beide ab 312,9 px).
+
+Zwei Nebenwirkungen, beide gewollt:
+
+- Die **Blaetterleiste** wird kompakter. `.pager .button-link` setzt
+  `min-width: 2.1rem`; unter `content-box` kamen Innenabstand und Rahmen noch
+  dazu, die Ziffernknoepfe waren 51,6 px breit statt der gemeinten 33,6 px.
+- Die **Zeilenhoehe** der Tabellen sinkt um rund 10 px, weil der zu hohe Link
+  die Zelle nicht mehr aufblaeht.
+
+### TEST
+- Probeseite mit dem Stylesheet aus `header.php` und **erfundenen** Daten
+  gebaut (Auftragsliste mit Kopfleiste, Suchleiste, zwei Zeilen,
+  Blaetterleiste, Formularfuss) und im Browser gerendert. Bewusst nicht die
+  echte Maske: Die lokale Datenbank enthaelt echte Personendaten.
+- Auf derselben Seite alle zehn Knoepfe per `getBoundingClientRect()` gemessen,
+  vorher und nachher – die Zahlen oben stammen daraus. Vorher zehn Elemente mit
+  zwei verschiedenen `box-sizing`-Werten, nachher zehnmal `border-box` und in
+  jedem Paar dieselbe Hoehe.
+- `php -l views/layout/header.php` sauber.
+- Gegengesucht, ob eine Maske eine eigene Groesse auf einen Knopf schreibt und
+  von `content-box` abhaengen koennte: nur `views/terminal/start.php`, und das
+  Terminal bindet `views/layout/header.php` nicht ein.
+
+### Gefundene Fehler im eigenen Entwurf
+Keine – aber der Fehler selbst gehoert hierher, denn er stammt aus T-109. Beim
+Zusammenlegen der Knopfstile ist genau die Angabe untergegangen, die zwei
+verschiedene HTML-Elemente ueberhaupt erst gleich rechnen laesst. Der Quelltext
+sah danach richtig aus: eine Regel, ein Satz Werte, beide Selektoren. Sichtbar
+wurde es erst im Bild, und begreifbar erst in Zahlen.
+
+Daraus die Regel fuer den naechsten Knopf: Wer `min-height`, `min-width` oder
+`height` an etwas schreibt, das mal `<a>` und mal `<button>` ist, muss
+`box-sizing` dazuschreiben – sonst meint dieselbe Zahl zwei Groessen.
+
+### Was bewusst nicht erreicht wurde
+- **Suchfeld und Knopf sind weiterhin 1,7 px verschieden hoch** (33,88 zu
+  32,16). Beide stehen unten buendig, der Unterschied faellt nicht auf. Ihn
+  wegzubekommen hiesse, am Innenabstand der Eingabefelder zu drehen – das
+  betrifft jedes Formular im System und ist ein eigenes Thema.
+- **Am Aussehen selbst wurde nichts geaendert** – keine andere Farbe, kein
+  anderer Radius, kein anderer Abstand. Ob „Details" in jeder Zeile ein voller
+  blauer Knopf sein soll oder besser ein `.quiet` (der Kommentar bei `.quiet`
+  argumentiert dafuer), ist eine Gestaltungsfrage und kein Fehler.
+
+### NEXT
+Weiter im Praxis-Test. Naechster Schritt bleibt der Geraetetest.
+
+
 ## P-2026-08-10-42 restliche-masken-nutzen-die-klassen
 
 ### EINGELESEN

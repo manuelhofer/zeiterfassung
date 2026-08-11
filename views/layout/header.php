@@ -396,8 +396,14 @@ if ($hatKonfigurationAdminRecht) {
             max-width: 100%;
         }
 
+        /* `box-sizing` muss hier stehen, sonst sind Knopf und Knopf-Link nicht
+           gleich hoch: Einem <button> gibt der Browser von sich aus border-box,
+           einem <a> nicht. Bei content-box zählt `min-height` nur den Inhalt,
+           Innenabstand und Rahmen kommen obendrauf – ein „Details"-Link war so
+           14 Pixel höher als der „Inaktiv setzen"-Knopf direkt daneben. */
         button,
         .button-link {
+            box-sizing: border-box;
             display: inline-flex;
             align-items: center;
             justify-content: center;

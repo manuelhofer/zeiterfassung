@@ -47,10 +47,13 @@ den Stufenplan (Abschnitt 11).
 - **T-108** Drei Zugriffswege auf `db_injektionsqueue`: `OfflineQueueManager`,
   `QueueService`, `DbInjektionsqueueModel`. Zusammenführen – berührt den
   Offline-Pfad, deshalb nur mit Offline-Test.
-- **T-109 erledigt** (P-2026-08-10-39 bis -42): Alle Backend-Masken gestalten
+- **T-109 erledigt** (P-2026-08-10-39 bis -42, Nachbesserung P-2026-08-11-01):
+  Alle Backend-Masken gestalten
   sich aus `views/layout/header.php`, keine Farbe mehr per `style="…"`. Einzige
   Ausnahme bleibt `SmokeTestController` (siehe T-105). Beim Bauen neuer Masken
-  gilt: erst dort nachsehen, was es schon gibt. Nachprüfen mit
+  gilt: erst dort nachsehen, was es schon gibt, und **keine eigenen Grössen auf
+  Knöpfe schreiben** – `button` und `.button-link` sind nur deshalb gleich hoch,
+  weil sie sich `box-sizing: border-box` teilen. Nachprüfen mit
   `grep -rc 'style="[^"]*\(background:#\|border:.*solid #\|color:#\)' --include='*.php' controller views`
 - Praxis-Test: Bugs und Anomalien sammeln, als Micro-Patches beheben.
 - Offen aus P-2026-08-08-02: Terminal-Buchungsflows sind unter PHP 8.5 noch
