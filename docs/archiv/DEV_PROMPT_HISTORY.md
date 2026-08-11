@@ -70,6 +70,130 @@ in den Statusbericht.
   D-002 entfallen; die Regel selbst gilt weiter.)
 
 
+## P-2026-08-11-02 buchungen-tragen-die-terminal-id
+
+### EINGELESEN
+- `docs/STATUS_SNAPSHOT.md` (T-102), `docs/fachregeln/terminal_und_offline.md`.
+- Verlaufseintrag P-2026-08-10-22 – dort wurde T-102 empirisch bestaetigt und
+  der Weg beschrieben, den Offline-Pfad ohne Geraet zu pruefen.
+- `services/ZeitService.php` und `services/AuftragszeitService.php`
+  (Online- und Offline-Zweig), `controller/TerminalController.php`
+  (Buchungsstellen), `core/OfflineQueueManager.php`, `core/Helper.php`,
+  `config/config.php` und der Konfigurationsschreiber in
+  `TerminalEinrichtungController::baueKonfiguration()`.
+
+### DATEIEN
+- `core/Helper.php`, `core/OfflineQueueManager.php`
+- `services/AuftragszeitService.php`, `controller/TerminalController.php`
+- `docs/fachregeln/terminal_und_offline.md`
+- `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Eine Kommen-Buchung an Terminal 42 steht mit `terminal_id = 42` in
+`zeitbuchung` – online sofort, offline nach dem Einspielen der Queue.
+
+### DONE
+T-102. Die Spalten gab es laengst, den Parameter auch – nur reichte sie
+niemand durch. `terminal_id` war an **sechs** Stellen als `NULL`
+festverdrahtet:
+
+| Datei | Stelle |
+| --- | --- |
+| `TerminalController` | `bucheKommen()`, `bucheGehen()` |
+| `TerminalController` | Offline-SQL fuer die RFID-Buchung |
+| `TerminalController` | Nebenauftrag, online und offline |
+| `AuftragszeitService` | `starteAuftrag()`, online und offline |
+
+Neu ist `Helper::terminalId()` als **einzige** Auskunft darueber, welches
+Geraet gerade laeuft. Sie liest `terminal.id` aus der Konfiguration, die die
+Kopplung geschrieben hat, und ist bewusst an `app.installation_typ` gebunden:
+Steht dort nicht `terminal`, liefert sie `null` – auch wenn ein
+`terminal`-Block aus einer frueheren Kopplung noch in der Datei steht. Sonst
+truege jede im Buero nachgetragene Buchung die ID eines Geraets, an dem sie nie
+war.
+
+Pausieren und Fortsetzen brauchten nichts: Diese Pfade uebernehmen die ID aus
+der pausierten Zeile (`$pause['terminal_id']`), erben also automatisch, sobald
+der Start sie setzt.
+
+**Eine Ausnahme von „explizit an der Aufrufstelle":** In
+`OfflineQueueManager::speichereInQueue()` faellt ein fehlendes `$terminalId`
+jetzt auf `Helper::terminalId()` zurueck. Grund: Das ist kein Buchungsfeld,
+sondern Herkunft. Die Queue existiert nur auf einem Terminal, ein Eintrag ohne
+ID ist dort nie „von irgendwo", sondern immer „von hier" – und die neunzehn
+Aufrufstellen reichen sie ganz ueberwiegend nicht durch. Bei den Buchungen
+selbst steht der Wert dagegen sichtbar an der Aufrufstelle.
+
+### TEST
+Vollstaendig durchgespielt, nach dem Muster aus P-2026-08-10-22: **Kopie** des
+Projekts im Scratchpad, zwei **Wegwerf-Datenbanken** (`zeit_probe_t102`,
+`zeit_probe_t102_offline`) frisch aus `sql/01_initial_schema.sql` und
+`sql/offline_db_schema.sql`, ein **erfundener** Mitarbeiter. Die echte
+Konfiguration wurde nicht in die Kopie uebernommen, die echte Datenbank nicht
+angefasst. Probeterminal: ID 42.
+
+1. **Hauptdatenbank erreichbar.** `Helper::terminalId()` → `42`.
+   `bucheKommen()` → `zeitbuchung #161 kommen/terminal terminal_id=42`,
+   `starteAuftrag()` → `auftragszeit #9 haupt terminal_id=42`.
+2. **Hauptdatenbank weg.** Beide Aufrufe liefern `0` (Queue). In der Queue
+   stehen vier Eintraege, alle mit `meta_terminal_id=42`; in den beiden
+   INSERT-Befehlen ist Spalte 7 (`terminal_id`) der Wert `42` – nachgemessen,
+   nicht ueberflogen.
+3. **Hauptdatenbank zurueck.** `verarbeiteOffeneEintraege()` → `offen=0`,
+   `fehler=0`; die nachgezogenen Zeilen `zeitbuchung #162` und
+   `auftragszeit #10` tragen ebenfalls `terminal_id=42`.
+4. **Gegenprobe Backend.** Dieselbe Konfiguration, nur
+   `installation_typ = backend`, `terminal.id = 42` absichtlich stehen
+   gelassen: `Helper::terminalId()` → `null`, und die Web-Buchung landet als
+   `zeitbuchung #163 kommen/web terminal_id=NULL`.
+
+Dazu `Helper::terminalId()` einzeln gegen sieben Konfigurationen geprueft
+(Zahl, Ziffernfolge als Text, `0`, fehlend, `'abc'`, Backend mit vorhandener
+ID, `installation_typ` gross geschrieben) – alle sieben wie erwartet.
+
+Aufgeraeumt: beide Wegwerf-Datenbanken geloescht, Projektkopie entfernt, in der
+echten Datenbank weiterhin **0** Zeilen mit `terminal_id`, `git status` zeigt
+nur die vier Quelldateien.
+
+`php -l` auf allen vier geaenderten PHP-Dateien sauber.
+
+### Gefundene Fehler im eigenen Entwurf
+**Beinahe den falschen Pfad gemessen.** Der Plan war, die Hauptdatenbank ueber
+einen toten Port unerreichbar zu machen, also `'port' => 59999` in die
+Konfiguration der Kopie. Diesen Schluessel gibt es aber nicht:
+`Database::erstellePdoAusKonfig()` baut den DSN aus `host`, `dbname` und
+`charset` – ein `port` daneben wird stillschweigend ignoriert, die Verbindung
+geht weiter auf 3306. Der Test haette dann den **Online**-Pfad gemessen und ihn
+fuer den Offline-Pfad gehalten, und zwar unauffaellig: Die Buchung waere
+erfolgreich gewesen, nur eben in der falschen Tabelle.
+
+Wer wirklich einen anderen Port braucht, setzt den vollstaendigen `dsn` – den
+wertet die Methode als Erstes aus. Fuer den Test war das unnoetig: Ein
+Datenbankname, den es nicht gibt, macht `istHauptdatenbankVerfuegbar()` sofort
+und ohne Wartezeit zu `false`.
+
+Beinahe-Fehler, vorher geprueft: Die Offline-SQL fuer die RFID-Buchung wird
+spaeter von `ermittleOfflineHintFuerRfid()` per `LIKE` im Text wiedergefunden.
+Das Suchmuster deckt nur `rfid_code = '…'` ab, die geaenderte letzte Spalte
+liegt ausserhalb – sonst haette die Buchung ihren eigenen Queue-Eintrag nicht
+mehr gefunden.
+
+### Was bewusst nicht erreicht wurde
+- **Alte Buchungen bleiben ohne ID.** Es gibt keine Nachtragsmigration, und es
+  soll auch keine geben: Woher eine Buchung von gestern kam, ist nicht mehr zu
+  ermitteln, und geraten wird nicht.
+- **`system_log.terminal_id` bleibt, wie es ist.** Der `Logger` bekommt die ID
+  weiterhin von der Aufrufstelle. Das ist dieselbe Luecke eine Etage tiefer,
+  aber ein eigenes Thema mit eigenem Akzeptanzkriterium.
+- **`Database` bekommt keinen `port`-Schluessel.** Waere bequemer als der
+  vollstaendige `dsn`, ist aber kein Fehler und kein offener Punkt – nur eine
+  Stolperstelle, die jetzt oben dokumentiert ist.
+
+### NEXT
+Naechster offener Punkt aus dem Snapshot: B-093 (abteilungsbezogene
+Rollenzuweisungen wirken nicht).
+
+
 ## P-2026-08-11-01 knopf-und-knopf-link-gleich-hoch
 
 ### EINGELESEN

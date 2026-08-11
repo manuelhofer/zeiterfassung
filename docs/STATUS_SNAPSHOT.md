@@ -37,8 +37,6 @@ den Stufenplan (Abschnitt 11).
   steht noch aus.
 
 ## Offene Tasks
-- **T-102** Buchungen tragen keine `terminal_id`, obwohl sie seit
-  P-2026-08-09-01 in `config.local.php` (`terminal.id`) steht.
 - **T-104** Neun Controller erzeugen HTML selbst, statt `views/` zu benutzen –
   größter Brocken `SmokeTestController` (283 Zeilen), dann
   `KonfigurationController` (201), `AuftragController` (137).

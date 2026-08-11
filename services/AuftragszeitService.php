@@ -246,7 +246,7 @@ class AuftragszeitService
                 . $this->sqlNullableString($auftragscode, 100) . ', '
                 . $this->sqlNullableString($arbeitsschrittCode, 100) . ', '
                 . $this->sqlNullableInt($maschineId) . ', '
-                . 'NULL, '
+                . $this->sqlNullableInt(Helper::terminalId()) . ', '
                 . "'haupt', "
                 . $this->sqlQuote($zeitStr) . ', '
                 . 'NULL'
@@ -324,7 +324,7 @@ class AuftragszeitService
                 $arbeitsschrittId,
                 $arbeitsschrittCode,
                 $maschineId,
-                null,          // terminal_id – wird später vom Terminal-Subsystem gesetzt
+                Helper::terminalId(),
                 'haupt',
                 $startzeit,
                 null           // Kommentar

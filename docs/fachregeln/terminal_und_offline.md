@@ -60,6 +60,23 @@ je Terminal konfiguriert.
 Je Terminal einstellbar: welche Funktionen im Offline-Modus erlaubt sind und
 welcher Timeout für den Auto-Logout gilt.
 
+### Jede Buchung weiß, an welchem Gerät sie entstanden ist
+
+`zeitbuchung.terminal_id` und `auftragszeit.terminal_id` tragen die ID des
+Terminals, an dem gestempelt wurde – auch dann, wenn die Buchung erst über die
+Offline-Queue in die Hauptdatenbank kommt. Auskunft gibt **eine** Stelle:
+`Helper::terminalId()`. Sie liest `terminal.id` aus `config/config.local.php`
+und liefert `null`, sobald `app.installation_typ` nicht `terminal` ist.
+
+Diese Bindung an den Installationstyp ist Absicht: Eine im Büro nachgetragene
+Buchung (`quelle = 'web'`) bleibt ohne Terminal-ID, selbst wenn in der
+Konfiguration des Backends noch ein `terminal`-Block aus einer früheren
+Kopplung steht. `NULL` heißt also „nicht an einem Terminal entstanden" – nicht
+„unbekannt".
+
+Beim Pausieren und Fortsetzen eines Auftrags erbt die neue Zeile die ID der
+pausierten – eine Auftragszeit sagt damit, wo sie **begonnen** hat.
+
 ## 4. Inbetriebnahme: Kopplung statt Zugangsdaten
 
 Ein neues Terminal bekommt seine Konfiguration **nicht** aus einer von Hand

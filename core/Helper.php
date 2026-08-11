@@ -235,4 +235,62 @@ class Helper
 
         return is_string($baseUrl) ? trim($baseUrl) : '';
     }
+
+    /**
+     * Liefert die ID des Terminals, auf dem dieser Code gerade läuft – oder
+     * `null`, wenn es keines ist.
+     *
+     * Die ID stammt aus der Kopplung und steht seither in
+     * `config/config.local.php` unter `terminal.id`
+     * (`docs/spezifikation_terminal_installation.md`). Eine Buchung soll sie
+     * mitschreiben, damit später nachvollziehbar ist, an welchem Gerät sie
+     * entstanden ist.
+     *
+     * Bewusst an `installation_typ` gebunden: Eine Backend-Installation gibt
+     * immer `null` zurück, selbst wenn in ihrer Konfiguration noch ein
+     * `terminal`-Block aus einer früheren Kopplung steht. Sonst trüge jede im
+     * Büro nachgetragene Buchung die ID eines Geräts, an dem sie nie war.
+     */
+    public static function terminalId(): ?int
+    {
+        // Innerhalb einer Anfrage ändert sich die Konfiguration nicht, die
+        // Buchungspfade fragen aber mehrfach – einmal ermitteln reicht.
+        static $ermittelt = false;
+        static $terminalId = null;
+
+        if ($ermittelt) {
+            return $terminalId;
+        }
+
+        $ermittelt = true;
+
+        $pfad = __DIR__ . '/../config/config.php';
+        if (!is_file($pfad)) {
+            return null;
+        }
+
+        try {
+            /** @var array<string,mixed> $konfig */
+            $konfig = require $pfad;
+        } catch (\Throwable $e) {
+            return null;
+        }
+
+        $typ = $konfig['app']['installation_typ'] ?? null;
+        if (!is_string($typ) || strtolower(trim($typ)) !== 'terminal') {
+            return null;
+        }
+
+        $id = $konfig['terminal']['id'] ?? null;
+        if (!is_int($id) && !(is_string($id) && ctype_digit(trim($id)))) {
+            return null;
+        }
+
+        $id = (int)$id;
+        if ($id > 0) {
+            $terminalId = $id;
+        }
+
+        return $terminalId;
+    }
 }

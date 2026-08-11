@@ -1120,6 +1120,8 @@ class TerminalController
         // WICHTIG: Wir bauen die Mitarbeiter-Auflösung so, dass ein fehlender RFID
         // zu einem SQL-Fehler führt (damit die Queue im Fehlerfall stoppt und nicht
         // stillschweigend "0 Rows" verarbeitet).
+        $terminalId = Helper::terminalId();
+
         $sql = 'INSERT INTO zeitbuchung (mitarbeiter_id, typ, zeitstempel, quelle, manuell_geaendert, kommentar, terminal_id) VALUES ('
             . '(SELECT id FROM mitarbeiter WHERE rfid_code = ' . $q($rfidCode) . ' AND aktiv = 1 LIMIT 1), '
             . $q($typ) . ', '
@@ -1127,7 +1129,7 @@ class TerminalController
             . $q('terminal') . ', '
             . '0, '
             . 'NULL, '
-            . 'NULL'
+            . ($terminalId === null ? 'NULL' : (string)$terminalId)
             . ')';
 
         try {
@@ -3313,7 +3315,7 @@ class TerminalController
                 . $this->sqlString($auftragscode) . ', '
                 . ($arbeitsschrittCode === null ? 'NULL' : $this->sqlString($arbeitsschrittCode)) . ', '
                 . $this->sqlNullableInt($maschineId) . ', '
-                . 'NULL, '
+                . $this->sqlNullableInt(Helper::terminalId()) . ', '
                 . $this->sqlString('neben') . ', '
                 . $this->sqlString($jetzt->format('Y-m-d H:i:s')) . ', '
                 . 'NULL'
@@ -3379,7 +3381,7 @@ class TerminalController
                 $arbeitsschrittId,
                 $arbeitsschrittCode,
                 $maschineId,
-                null,
+                Helper::terminalId(),
                 'neben',
                 $jetzt,
                 null
@@ -4298,7 +4300,7 @@ $urlaubSaldo = null;
         } else {
             // WICHTIG (Projektentscheidung): Rohzeit buchen.
             // Rundung erfolgt später nur in Auswertungen/Export/PDF.
-            $id = $this->zeitService->bucheKommen((int)$mitarbeiter['id'], $zeitpunkt, 'terminal', null, null, $nachtshift);
+            $id = $this->zeitService->bucheKommen((int)$mitarbeiter['id'], $zeitpunkt, 'terminal', Helper::terminalId(), null, $nachtshift);
 
             if ($id === null) {
                 $fehlerText = 'Kommen konnte nicht gebucht werden. Bitte erneut versuchen oder Vorgesetzten informieren.';
@@ -4483,7 +4485,7 @@ $urlaubSaldo = null;
         } else {
             // WICHTIG (Projektentscheidung): Rohzeit buchen.
             // Rundung erfolgt später nur in Auswertungen/Export/PDF.
-            $id = $this->zeitService->bucheGehen((int)$mitarbeiter['id'], $zeitpunkt, 'terminal', null, null);
+            $id = $this->zeitService->bucheGehen((int)$mitarbeiter['id'], $zeitpunkt, 'terminal', Helper::terminalId(), null);
 
             if ($id === null) {
                 $fehlerText = 'Gehen konnte nicht gebucht werden. Bitte erneut versuchen oder Vorgesetzten informieren.';

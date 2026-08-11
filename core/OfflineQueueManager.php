@@ -53,7 +53,8 @@ class OfflineQueueManager
      *
      * @param string      $sqlBefehl    Vollständiger SQL-Befehl, der später 1:1 gegen die Haupt-DB ausgeführt wird.
      * @param int|null    $mitarbeiterId Optionale Mitarbeiter-ID für Metadaten.
-     * @param int|null    $terminalId    Optionale Terminal-ID für Metadaten.
+     * @param int|null    $terminalId    Terminal-ID für Metadaten; `null` heißt
+     *                                   „dieses Gerät", nicht „unbekannt".
      * @param string|null $aktion        Optionale Beschreibung der Aktion (z. B. 'zeit_stempeln', 'auftrag_start').
      */
     public function speichereInQueue(
@@ -65,6 +66,14 @@ class OfflineQueueManager
         $sqlBefehl = trim($sqlBefehl);
         if ($sqlBefehl === '') {
             return false;
+        }
+
+        // Die Queue existiert nur auf einem Terminal – ein Eintrag ohne
+        // Terminal-ID ist deshalb nie „von irgendwo", sondern immer von hier.
+        // Die meisten Aufrufer reichen die ID nicht durch; statt sie an
+        // neunzehn Stellen nachzutragen, füllt sie die Queue selbst.
+        if ($terminalId === null) {
+            $terminalId = Helper::terminalId();
         }
 
         try {
