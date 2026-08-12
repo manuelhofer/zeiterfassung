@@ -70,6 +70,79 @@ in den Statusbericht.
   D-002 entfallen; die Regel selbst gilt weiter.)
 
 
+## P-2026-08-11-14 urlaubskontingent-maske-in-views
+
+### EINGELESEN
+- `controller/UrlaubKontingentAdminController.php` vollstaendig.
+- P-2026-08-11-09 bis -12 als Muster (gleicher Schnitt, gleicher Pruefweg).
+
+### DATEIEN
+- `views/urlaub/kontingent_liste.php`, `views/urlaub/kontingent_formular.php`
+  (beide neu)
+- `controller/UrlaubKontingentAdminController.php`
+- `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Uebersicht und Formular des Urlaubskontingents erzeugen dasselbe HTML wie
+vorher - bis auf die Einrueckung -, obwohl das Markup jetzt in `views/urlaub/`
+liegt.
+
+### DONE
+Fuenfter von neun Controllern aus T-104, 671 -> 454 Zeilen Controller plus zwei
+Views.
+
+**Formatiert wird im Controller, angezeigt in der View.** Das Markup rief an
+sechs Stellen `$this->formatDecimal()` - eine private Methode. Die Uebersicht
+bekommt die drei Werte jetzt je Zeile fertig (`standard_anspruch_text`,
+`override_text`, `korrektur_text`), das Formular als eigene Variablen. Damit
+greift keine View auf den Controller zu; dieselbe Regel wie beim
+Maschinen-Barcode (P-2026-08-11-10) und den Wochentagen (-12).
+
+Die Views liegen in `views/urlaub/` und heissen `kontingent_*`, weil dort
+schon die uebrigen Urlaubsmasken stehen - ein eigenes Verzeichnis fuer zwei
+Dateien waere Trennung ohne Gewinn.
+
+### TEST
+Wegwerf-Instanz wie zuvor (eigene Datenbank, erfundene Daten: Monatsanspruch
+2,50, Override 27,50, Manuell 2,00, festgeschriebener Uebertrag 3,25 mit Datum,
+Notiz mit `<`, `&` und Anfuehrungszeichen). Sechs Renderpfade je Stand:
+
+| Pfad | HEAD | neu |
+| --- | --- | --- |
+| Uebersicht | 29.333 B | 28.774 B |
+| Uebersicht Vorjahr | 29.287 B | 28.728 B |
+| Formular mit Kontingent | 32.053 B | 31.230 B |
+| Formular ohne Kontingentzeile | 31.646 B | 30.847 B |
+| Formular, Mitarbeiter unbekannt | 26.191 B | 26.080 B |
+| Formular, ungueltige Parameter (400) | 28 B | 28 B |
+
+Alle sechs mit vereinheitlichtem Leerraum zeichengleich. Inhaltlich
+nachgesehen: In der Liste stehen 30.00 / 27.50 / 3.25 / 2.00, im Formular
+tragen die drei Eingabefelder dieselben Werte - die Formatierung ist also
+tatsaechlich gelaufen und nicht nur vorhanden.
+
+Neun Backend-Masken im selben Vergleich unveraendert, **null** PHP-Meldungen
+im Serverlog, `php -l` ueber die drei geaenderten Dateien sauber.
+
+### Gefundene Fehler im eigenen Entwurf
+Keiner, der geblieben waere. Der Zwischenstand dieses Patches lag laenger
+unfertig im Arbeitsverzeichnis (nur die Listen-View geschrieben) - beim
+Weiterarbeiten war die Wegwerf-Umgebung geloescht und musste neu aufgesetzt
+werden. Das Skript dafuer steht deshalb nicht mehr nur im Chat, sondern im
+Verlauf: DB aus `sql/01_initial_schema.sql`, Kopie des Repos, eigene
+`config.local.php`, Server je Lauf frisch mit `-d opcache.enable=0`.
+
+### Was bewusst nicht erreicht wurde
+- **`speichern()` ist nicht durchgespielt.** Der Weg schreibt; das Formular
+  selbst ist ueber vier Varianten geprueft.
+- **Vier Controller aus T-104 bleiben offen**, darunter die drei grossen
+  (`SmokeTest`, `Konfiguration`, `Auftrag`) und `TerminalAdmin`.
+- **B-095 bleibt offen.**
+
+### NEXT
+T-104, naechster Controller: `TerminalAdminController`.
+
+
 ## P-2026-08-11-13 zeilenzahlen-nachgemessen
 
 ### EINGELESEN
