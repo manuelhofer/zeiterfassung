@@ -9,6 +9,9 @@ declare(strict_types=1);
  */
 class AbteilungAdminController
 {
+    /** Bereichsname für `Csrf` – siehe `core/Csrf.php`. */
+    private const CSRF_BEREICH = 'abteilung_admin';
+
     private AuthService $authService;
     private AbteilungModel $abteilungModel;
 
@@ -65,6 +68,11 @@ class AbteilungAdminController
         }
 
         $fehlermeldung = null;
+        if (isset($_SESSION['abteilung_admin_flash_error'])) {
+            $fehlermeldung = (string)$_SESSION['abteilung_admin_flash_error'];
+            unset($_SESSION['abteilung_admin_flash_error']);
+        }
+
         try {
             $abteilungen = $this->abteilungModel->holeAlleAktiven();
         } catch (\Throwable $e) {
@@ -113,6 +121,7 @@ class AbteilungAdminController
             ], $id, null, 'abteilung');
         }
 
+        $csrfBereich = self::CSRF_BEREICH;
         require __DIR__ . '/../views/abteilung/formular.php';
     }
 
@@ -122,6 +131,17 @@ class AbteilungAdminController
     public function speichern(): void
     {
         if (!$this->pruefeZugriff()) {
+            return;
+        }
+
+        if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST') {
+            header('Location: ?seite=abteilung_admin');
+            return;
+        }
+
+        if (!Csrf::istGueltig(self::CSRF_BEREICH)) {
+            $_SESSION['abteilung_admin_flash_error'] = 'Die Sitzung ist abgelaufen. Bitte die Seite neu laden und erneut speichern.';
+            header('Location: ?seite=abteilung_admin');
             return;
         }
 
@@ -173,6 +193,7 @@ class AbteilungAdminController
             $fehlermeldungLok = $fehlermeldung;
             $fehlermeldung    = $fehlermeldungLok;
 
+            $csrfBereich = self::CSRF_BEREICH;
             require __DIR__ . '/../views/abteilung/formular.php';
             return;
         }
@@ -224,6 +245,7 @@ class AbteilungAdminController
                 ], null, null, 'abteilung');
             }
 
+            $csrfBereich = self::CSRF_BEREICH;
             require __DIR__ . '/../views/abteilung/formular.php';
         }
     }

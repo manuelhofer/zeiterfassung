@@ -7,9 +7,11 @@ declare(strict_types=1);
  * - $abteilung (array<string,mixed>|null)
  * - $alleAbteilungen (array<int,array<string,mixed>>)
  * - optional: $fehlermeldung (string)
+ * - $csrfBereich (string) – Bereichsname für `Csrf`, kommt aus dem Controller
  */
 require __DIR__ . '/../layout/header.php';
 
+$csrfBereich     = (string)($csrfBereich ?? '');
 /** @var array<string,mixed>|null $abteilung */
 $abteilung       = $abteilung ?? null;
 /** @var array<int,array<string,mixed>> $alleAbteilungen */
@@ -31,6 +33,7 @@ $aktiv        = array_key_exists('aktiv', (array)$abteilung) ? ((int)$abteilung[
     <?php endif; ?>
 
     <form method="post" action="?seite=abteilung_admin_speichern">
+        <?php echo Csrf::feld($csrfBereich); ?>
         <input type="hidden" name="id" value="<?php echo htmlspecialchars((string)$id, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>">
 
         <div>

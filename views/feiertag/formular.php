@@ -7,7 +7,9 @@ declare(strict_types=1);
  * Erwartet:
  * - array $feiertag
  * - int   $jahr
+ * - string $csrfBereich – Bereichsname für `Csrf`, kommt aus dem Controller
  */
+$csrfBereich = (string)($csrfBereich ?? '');
 ?>
 <?php require __DIR__ . '/../layout/header.php'; ?>
 
@@ -24,6 +26,7 @@ declare(strict_types=1);
     ?>
 
     <form method="post" action="?seite=feiertag_admin_speichern">
+        <?php echo Csrf::feld($csrfBereich); ?>
         <input type="hidden" name="id" value="<?php echo $id; ?>">
         <input type="hidden" name="jahr" value="<?php echo (int)$jahr; ?>">
 

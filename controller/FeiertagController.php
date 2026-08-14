@@ -12,6 +12,9 @@ declare(strict_types=1);
  */
 class FeiertagController
 {
+    /** Bereichsname für `Csrf` – siehe `core/Csrf.php`. */
+    private const CSRF_BEREICH = 'feiertag_admin';
+
     private AuthService $authService;
     private FeiertagService $feiertagService;
     private FeiertagModel $feiertagModel;
@@ -129,6 +132,7 @@ class FeiertagController
         $datum = (string)($feiertag['datum'] ?? '');
         $jahr  = (int)substr($datum, 0, 4);
 
+        $csrfBereich = self::CSRF_BEREICH;
         require __DIR__ . '/../views/feiertag/formular.php';
     }
 
@@ -143,6 +147,11 @@ class FeiertagController
 
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             echo '<p>Ungültiger Aufruf.</p>';
+            return;
+        }
+
+        if (!Csrf::istGueltig(self::CSRF_BEREICH)) {
+            echo '<p>Die Sitzung ist abgelaufen. Bitte die Seite neu laden und erneut speichern.</p>';
             return;
         }
 

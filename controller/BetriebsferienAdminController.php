@@ -171,6 +171,11 @@ class BetriebsferienAdminController
             return;
         }
 
+        if (!Csrf::istGueltig(self::CSRF_BEREICH)) {
+            header('Location: ?seite=betriebsferien_admin&meldung=csrf_ungueltig');
+            return;
+        }
+
         $idRaw          = $_POST['id'] ?? '';
         $id             = is_numeric($idRaw) ? (int)$idRaw : 0;
         $von            = trim((string)($_POST['von_datum'] ?? ''));
@@ -268,6 +273,7 @@ class BetriebsferienAdminController
      */
     private function renderFormular(array $eintrag, array $abteilungen, ?string $fehlermeldung): void
     {
+        $csrfBereich = self::CSRF_BEREICH;
         require __DIR__ . '/../views/betriebsferien/formular.php';
     }
 

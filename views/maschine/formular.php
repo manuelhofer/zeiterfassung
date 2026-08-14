@@ -9,9 +9,11 @@ declare(strict_types=1);
  * - $codeBildUrl (string) – fertige URL des Barcode-Bildes; sie kommt aus
  *   `MaschineQrCodeService`, damit Erzeugung und Anzeige dieselbe Logik nutzen.
  * - optional: $fehlermeldung (string|null), $erfolgsmeldung (string|null)
+ * - $csrfBereich (string) – Bereichsname für `Csrf`, kommt aus dem Controller
  */
 require __DIR__ . '/../layout/header.php';
 
+$csrfBereich    = (string)($csrfBereich ?? '');
 /** @var array<string,mixed> $maschine */
 $maschine       = $maschine ?? [];
 /** @var array<int,array<string,mixed>> $abteilungen */
@@ -50,6 +52,7 @@ if ($abteilungId !== null) {
     <?php endif; ?>
 
     <form method="post" action="?seite=maschine_admin_speichern">
+        <?php echo Csrf::feld($csrfBereich); ?>
         <input type="hidden" name="id" value="<?php echo $id; ?>">
 
         <div style="margin-bottom: 0.75rem;">
@@ -101,6 +104,7 @@ if ($abteilungId !== null) {
                 <?php endif; ?>
                 <div style="margin-top: 0.5rem;">
                     <form method="post" action="?seite=maschine_admin_barcode_neu&amp;id=<?php echo $id; ?>">
+                        <?php echo Csrf::feld($csrfBereich); ?>
                         <button type="submit">Barcode neu generieren</button>
                     </form>
                 </div>

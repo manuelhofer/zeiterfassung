@@ -70,6 +70,77 @@ in den Statusbericht.
   D-002 entfallen; die Regel selbst gilt weiter.)
 
 
+## P-2026-08-14-05 b-095-geschlossen
+
+### EINGELESEN
+- `docs/STATUS_SNAPSHOT.md`, B-095.
+- `controller/AbteilungAdminController.php`, `MaschineAdminController.php`,
+  `FeiertagController.php`, `BetriebsferienAdminController.php`.
+- Die vier zugehoerigen `views/*/formular.php`.
+- `public/index.php`, Routenblock der vier Bereiche.
+
+### DATEIEN
+- `controller/AbteilungAdminController.php`
+- `controller/MaschineAdminController.php`
+- `controller/FeiertagController.php`
+- `controller/BetriebsferienAdminController.php`
+- `views/abteilung/formular.php`, `views/maschine/formular.php`,
+  `views/feiertag/formular.php`, `views/betriebsferien/formular.php`
+- `docs/STATUS_SNAPSHOT.md`
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Ein POST ohne gueltiges Token auf `abteilung_admin_speichern`,
+`maschine_admin_speichern`, `feiertag_admin_speichern`,
+`betriebsferien_admin_speichern` oder `maschine_admin_barcode_neu` schreibt
+nichts mehr.
+
+### DONE
+Vier Bereichskonstanten (`abteilung_admin`, `maschine_admin`, `feiertag_admin`;
+`betriebsferien_admin` gab es schon fuers Umschalten), fuenf Pruefungen, fuenf
+Formulare mit `Csrf::feld()`.
+
+**`maschine_admin_barcode_neu` war der stillste Fall.** Das Formular in
+`views/maschine/formular.php` schickte seit jeher per POST – nur *erzwungen*
+hat das niemand. Der Controller las die ID aus `$_GET` und schrieb los; ein
+`<img src="?seite=maschine_admin_barcode_neu&id=5">` auf einer beliebigen Seite
+haette gereicht. Jetzt POST-Zwang **und** Token. In B-095 stand diese Route
+gar nicht, sie kam erst beim Nachzaehlen in P-2026-08-14-04 dazu.
+
+`AbteilungAdminController` und `MaschineAdminController` melden den Fehlschlag
+ueber eine Flash-Meldung, die ihre Liste schon anzeigt; `FeiertagController`
+und `BetriebsferienAdminController` behalten ihren vorhandenen Weg
+(Direktausgabe bzw. `meldung=csrf_ungueltig`), damit dieser Patch nicht
+nebenbei vier Meldewege vereinheitlicht.
+
+### TEST
+- `php -l` ueber alle acht geaenderten Dateien: sauber.
+- Vor **jeder** der sechs Einbindungen der vier Formular-Views steht
+  `$csrfBereich = self::CSRF_BEREICH;` (nachgesehen mit `grep -n -B1`).
+- Gegenprobe, dass keine andere Datei diese Views einbindet: `grep -rn` findet
+  nur die vier Controller.
+- Sweep ueber alle 25 Controller (schreibende Statements bzw. Modellaufrufe
+  gegen `Csrf::istGueltig`). Danach bleiben drei ohne Pruefung, alle drei
+  zurecht:
+  - `AuditLogController` und `UrlaubJahresuebersichtController` haben nur
+    `index()` und schreiben nicht.
+  - `LoginController` schreibt nur im Erstinstallations-Zweig, und der haengt
+    an `istErstinstallation()` – sobald ein Admin existiert, ist der Weg tot.
+  - `TerminalKopplungController` ist der Maschinen-Endpunkt: bewusst ohne
+    Anmeldung, POST-only, durch den Kopplungscode ausgewiesen und
+    ratenbegrenzt. CSRF ist dort das falsche Mittel – es gibt keine
+    Sitzung, auf der jemand mitreiten koennte.
+
+### Was bewusst nicht erreicht wurde
+- **Nicht im Browser durchgeklickt.** Geprueft ist der Code.
+- **Die vier Meldewege bleiben verschieden.** Ein Thema pro Patch; das waere
+  Kosmetik an vier Dateien mehr.
+
+### NEXT
+P-2026-08-14-06: T-104 richtigstellen – die Zahl 19 passt nicht zum Befehl,
+der danebensteht.
+
+
 ## P-2026-08-14-04 csrf-fuer-die-mitarbeiterverwaltung
 
 ### EINGELESEN

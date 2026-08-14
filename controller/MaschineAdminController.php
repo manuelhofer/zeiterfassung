@@ -8,6 +8,9 @@ declare(strict_types=1);
  */
 class MaschineAdminController
 {
+    /** Bereichsname fuer `Csrf` - siehe `core/Csrf.php`. */
+    private const CSRF_BEREICH = 'maschine_admin';
+
     private AuthService $authService;
     private Database $datenbank;
     private MaschineModel $maschineModel;
@@ -63,6 +66,11 @@ class MaschineAdminController
         }
 
         $fehlermeldung = null;
+        if (isset($_SESSION['maschine_admin_flash_error'])) {
+            $fehlermeldung = (string)$_SESSION['maschine_admin_flash_error'];
+            unset($_SESSION['maschine_admin_flash_error']);
+        }
+
         $maschinen     = [];
 
         try {
@@ -141,6 +149,17 @@ class MaschineAdminController
     public function speichern(): void
     {
         if (!$this->pruefeZugriff()) {
+            return;
+        }
+
+        if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST') {
+            header('Location: ?seite=maschine_admin');
+            return;
+        }
+
+        if (!Csrf::istGueltig(self::CSRF_BEREICH)) {
+            $_SESSION['maschine_admin_flash_error'] = 'Die Sitzung ist abgelaufen. Bitte die Seite neu laden und erneut speichern.';
+            header('Location: ?seite=maschine_admin');
             return;
         }
 
@@ -276,6 +295,21 @@ class MaschineAdminController
             return;
         }
 
+        // Diese Aktion schreibt (`maschine.code_bild_pfad`) – sie gehört
+        // deshalb hinter POST und Token. Das Formular in
+        // `views/maschine/formular.php` schickt seit jeher per POST; erzwungen
+        // hat es hier nur niemand, ein `<img src>` hätte genügt.
+        if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST') {
+            header('Location: ?seite=maschine_admin');
+            return;
+        }
+
+        if (!Csrf::istGueltig(self::CSRF_BEREICH)) {
+            $_SESSION['maschine_admin_flash_error'] = 'Die Sitzung ist abgelaufen. Bitte die Seite neu laden und erneut versuchen.';
+            header('Location: ?seite=maschine_admin');
+            return;
+        }
+
         $idRaw = $_GET['id'] ?? '';
         $id    = is_numeric($idRaw) ? (int)$idRaw : 0;
 
@@ -373,6 +407,7 @@ class MaschineAdminController
         // Normalisierer dieses Controllers gebraucht wird.
         $codeBildUrl = (new MaschineQrCodeService())->baueBildUrl($normalisierterCodeBildPfad);
 
+        $csrfBereich = self::CSRF_BEREICH;
         require __DIR__ . '/../views/maschine/formular.php';
     }
 

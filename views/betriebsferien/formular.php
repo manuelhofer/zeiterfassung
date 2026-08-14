@@ -7,9 +7,11 @@ declare(strict_types=1);
  * - $eintrag (array<string,mixed>)
  * - $abteilungen (array<int,array<string,mixed>>)
  * - optional: $fehlermeldung (string|null)
+ * - $csrfBereich (string) – Bereichsname für `Csrf`, kommt aus dem Controller
  */
 require __DIR__ . '/../layout/header.php';
 
+$csrfBereich   = (string)($csrfBereich ?? '');
 /** @var array<string,mixed> $eintrag */
 $eintrag       = $eintrag ?? [];
 /** @var array<int,array<string,mixed>> $abteilungen */
@@ -40,6 +42,7 @@ if ($abteilungId !== null) {
     <?php endif; ?>
 
     <form method="post" action="?seite=betriebsferien_admin_speichern">
+        <?php echo Csrf::feld($csrfBereich); ?>
         <input type="hidden" name="id" value="<?php echo $id; ?>">
 
         <div style="margin-bottom: 0.75rem;">
