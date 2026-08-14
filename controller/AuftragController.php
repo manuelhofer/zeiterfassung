@@ -2156,9 +2156,14 @@ class AuftragController
         $uebernommen   = 0;
         $uebersprungen = 0;
 
+        // `aktiv = 1` auch hier, nicht nur beim Anbieten: Angeboten werden
+        // ausschliesslich aktive Schritte, aber ein Häkchen im Browser ist
+        // keine Zusicherung. Wird ein Schritt zwischen Seitenaufbau und
+        // Absenden stillgelegt, soll er nicht doch noch an den Auftrag kommen.
         $platzhalter = implode(',', array_fill(0, count($katalogIds), '?'));
         $eintraege = $this->db->fetchAlle(
-            'SELECT code, bezeichnung FROM arbeitsschritt_katalog WHERE id IN (' . $platzhalter . ')',
+            'SELECT code, bezeichnung FROM arbeitsschritt_katalog
+              WHERE aktiv = 1 AND id IN (' . $platzhalter . ')',
             array_values($katalogIds)
         );
 
@@ -2242,17 +2247,7 @@ class AuftragController
         }
 
         $auftragId = (int)($_POST['auftrag_id'] ?? 0);
-        $auswahl   = $_POST['katalog_ids'] ?? [];
-        $ids       = [];
-
-        if (is_array($auswahl)) {
-            foreach ($auswahl as $wert) {
-                $id = (int)$wert;
-                if ($id > 0) {
-                    $ids[$id] = $id;
-                }
-            }
-        }
+        $ids       = $this->leseKatalogAuswahlAusPost();
 
         $auftragsnummer = '';
         try {

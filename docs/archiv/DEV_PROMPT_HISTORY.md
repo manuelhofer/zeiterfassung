@@ -70,6 +70,70 @@ in den Statusbericht.
   D-002 entfallen; die Regel selbst gilt weiter.)
 
 
+## P-2026-08-14-10 katalog-uebernahme-eine-stelle-je-schritt
+
+### EINGELESEN
+- `controller/AuftragController.php`: `speichern()`, `schritteAusKatalog()`,
+  `uebernehmeKatalogSchritte()`, `leseKatalogAuswahlAusPost()`.
+- `docs/fachregeln/auftraege_und_codes.md`, Abschnitt 4.
+- `sql/01_initial_schema.sql`, `arbeitsschritt_katalog`.
+
+### DATEIEN
+- `controller/AuftragController.php`
+- `docs/fachregeln/auftraege_und_codes.md`
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+`$_POST['katalog_ids']` wird an genau **einer** Stelle im Projekt gelesen, und
+ein stillgelegter Katalogschritt landet auch dann nicht am Auftrag, wenn seine
+ID im POST steht.
+
+### DONE
+Zwei Funde aus der Pruefung des Auftragsmoduls:
+
+**1. Die Extraktion war auf halbem Weg stehengeblieben.** P-2026-08-14-01 hat
+`leseKatalogAuswahlAusPost()` herausgeloest und im neuen Weg (`speichern()`)
+benutzt – der alte Weg (`schritteAusKatalog()`) behielt seine eigene, Zeile
+fuer Zeile gleiche Schleife. Der Docblock von `uebernehmeKatalogSchritte()`
+behauptete „eine Stelle fuer zwei Wege"; das galt fuers Einfuegen, nicht fuers
+Lesen. Jetzt gilt es fuer beides: 13 Zeilen weg, ein Aufruf hin.
+
+**2. `aktiv = 1` fehlte beim Einfuegen.** Angeboten werden an beiden Stellen
+nur aktive Schritte (`WHERE aktiv = 1`), eingefuegt wurde aber alles, dessen ID
+im POST stand. Ein Haekchen im Browser ist keine Zusicherung, und zwischen
+Seitenaufbau und Absenden kann ein Schritt stillgelegt worden sein – dann kaeme
+er trotzdem an den Auftrag und auf die Laufkarte. Die Bedingung steht jetzt
+auch im `SELECT` von `uebernehmeKatalogSchritte()`.
+
+Die Fachregel nennt jetzt beide Methoden und beide Regeln (vorhandener Code
+gewinnt, inaktiver Schritt kommt nicht).
+
+### TEST
+- `php -l controller/AuftragController.php`: sauber.
+- `grep -n "katalog_ids" controller/ views/` – `$_POST['katalog_ids']` wird
+  genau einmal gelesen (Zeile 2206), die beiden Checkbox-Felder heissen
+  weiterhin so.
+- Beide Aufrufer von `uebernehmeKatalogSchritte()` gegengelesen: Der
+  Rueckgabewert `[uebernommen, uebersprungen]` bleibt gleich gebaut. Ein durch
+  `aktiv = 1` herausgefallener Schritt zaehlt in keiner der beiden Zahlen – die
+  Meldung nennt dann weniger Schritte als angehakt waren, was der Wahrheit
+  entspricht.
+- Schema gegengeprueft: `arbeitsschritt_katalog.aktiv` ist
+  `tinyint(1) NOT NULL DEFAULT 1`, es gibt den Index
+  `idx_arbeitsschritt_katalog_aktiv (aktiv, sort_order)`.
+
+### Was bewusst nicht erreicht wurde
+- **Keine Meldung, wenn etwas wegen `aktiv = 0` wegfaellt.** Der Fall ist ein
+  Rennen um Sekunden und die stillere Behandlung die richtige: Der Schritt
+  fehlt, das sieht man am Auftrag. Eine eigene Meldung waere mehr Text als
+  Nutzen.
+- **Nicht im Browser durchgeklickt.**
+
+### NEXT
+P-2026-08-14-11: README – die Kurzfassung der Regeln laesst ausgerechnet die
+Push-Regel weg.
+
+
 ## P-2026-08-14-09 umlaute-in-services-core-und-modellen
 
 ### EINGELESEN
