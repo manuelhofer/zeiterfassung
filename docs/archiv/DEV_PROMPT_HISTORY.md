@@ -99,6 +99,110 @@ in den Statusbericht.
   D-002 entfallen; die Regel selbst gilt weiter.)
 
 
+## P-2026-08-14-12 konfigurations-uebersicht-in-views
+
+### EINGELESEN
+- `CLAUDE.md`, `CHATSTART.md`, `docs/arbeitsregeln.md`,
+  `docs/STATUS_SNAPSHOT.md` (T-104), `git log --oneline -20`.
+- `controller/KonfigurationController.php`, Zeilen 1–320.
+- `views/betriebsferien/liste.php` und `views/betriebsferien/formular.php` als
+  Muster (P-2026-08-11-09), dazu der Eintrag zu -09 und -14 hier.
+- `views/layout/header.php` nur nach Knopf-Regeln durchsucht – diese Maske hat
+  keine Knoepfe, nur Links.
+
+### DATEIEN
+- `views/konfiguration/liste.php` (neu)
+- `controller/KonfigurationController.php`
+- `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Die Konfigurations-Uebersicht erzeugt dasselbe HTML wie vorher – bis auf die
+Einrueckung –, obwohl das Markup jetzt in `views/konfiguration/liste.php`
+liegt.
+
+### DONE
+Erste von sechs Masken des `KonfigurationController`. Bewusst die kleinste
+zuerst: kein Formular, kein JavaScript, keine Knoepfe – damit steht das
+Verzeichnis `views/konfiguration/`, in das die uebrigen fuenf nachziehen
+(Systemlog, Krankzeitraum, Pausenregeln, Sonstiges-Gruende, Bearbeiten).
+
+Verschoben wurde **nur** Markup. `index()` behaelt die Tab-Weichen und das
+Laden der Eintraege und bindet danach die View ein; 2.177 → 2.103 Zeilen
+Controller plus 90 Zeilen View.
+
+**Kein `$csrfBereich` noetig.** Anders als bei Betriebsferien und Maschinen
+enthaelt diese Maske kein Formular – sie verlinkt nur auf
+`konfiguration_admin_bearbeiten`. Die Konstante `CSRF_BEREICH` bleibt deshalb
+ungenutzt im Controller, statt vorsorglich in die View gereicht zu werden.
+
+Die Tab-Zeile („Konfiguration | Krank (LFZ/KK) | …") steht damit vorlaeufig
+doppelt: einmal in der neuen View, einmal in jeder der fuenf noch nicht
+migrierten Masken. Das ist Absicht – ein gemeinsames Teil-Template dafuer ist
+ein eigenes Thema und waere hier ein Refactor nebenbei. Beim Migrieren der
+letzten der sechs Masken lohnt der Blick darauf.
+
+### Gefundene Fehler im eigenen Entwurf
+Der Test sollte auch den Fehlerpfad zeigen. Zwei Anlaeufe waren wertlos, bevor
+das auffiel:
+
+1. Der Fehlerpfad ist gar nicht erreichbar. `KonfigurationService::getAlle()`
+   faengt selbst ab und liefert `[]` – der `catch` in `index()` kann nie
+   greifen, die Variable `$fehlermeldung` bleibt immer `null`. Der Weg wurde
+   deshalb erzwungen (Zuweisung von Hand in beiden Wegwerf-Kopien). Als
+   **T-110** notiert, nicht hier behoben.
+2. `opcache.enable_cli` ist auf diesem Rechner **an**, mit
+   `revalidate_freq = 180`. Der eingebaute PHP-Server lieferte deshalb minutenlang
+   den alten Bytecode: Die erzwungene Fehlermeldung stand in der Datei und
+   erschien trotzdem nicht im HTML. Alle Messungen der Tabelle unten stammen
+   aus einem Lauf mit `-d opcache.enable=0 -d opcache.enable_cli=0` und frisch
+   gestarteten Servern. Wer hier eine Datei zwischen zwei Aufrufen aendert und
+   das nicht beachtet, misst den Stand von vorhin.
+
+### TEST
+Wegwerf-Umgebung wie in P-2026-08-11-09: zwei Kopien des Repos unter `/tmp`
+(HEAD und Arbeitsstand), eigene `config.local.php`, frische Datenbank
+`zeit_probe_t104b` aus `sql/01_initial_schema.sql`, **erfundene** Daten
+(Pruefbenutzer „Probe Pruefer", sieben `probe.*`-Eintraege: einfacher Wert,
+Wert mit `<`, `&` und Anfuehrungszeichen, Wert mit 90 Zeichen fuer die
+Kuerzung auf 80, lange Beschreibung, Kuerzung mitten in Umlauten, `NULL`-Wert,
+Schluessel mit Leerzeichen und `&` fuer `urlencode()`). Die
+Entwicklungsdatenbank wurde nicht angefasst, die Probe-Datenbank am Ende
+geloescht.
+
+| Pfad | HEAD | neu |
+| --- | --- | --- |
+| Uebersicht | 39.605 B | 37.590 B |
+| Uebersicht mit `ok=1` | 39.680 B | 37.649 B |
+| Leere Liste | 26.836 B | 26.661 B |
+| Fehlermeldung (erzwungen) | 39.741 B | 37.694 B |
+
+Alle vier sind mit vereinheitlichtem Leerraum **zeichengleich**; die Differenz
+ist ausschliesslich die weggefallene Einrueckung (das Markup stand im
+Controller acht Spalten weiter rechts).
+
+Der Pfad „leere Liste" braucht einen Umweg, weil `DefaultsSeeder` bei jedem
+Aufruf nachlegt und die Tabelle nie leer bleibt: `config` wurde durch eine
+nicht aktualisierbare Sicht ersetzt (`CREATE VIEW config AS SELECT * FROM
+config_leer GROUP BY id`). Damit scheitert der Seeder – abgefangen, wie
+vorgesehen – und `getAlle()` liefert leer.
+
+Dazu auf dem neuen Stand geklickt: die vier Tabs (Krank, Pausen, Sonstiges,
+System-Log) und der Bearbeiten-Link je HTTP 200, dazu die Backend-Kernablaeufe
+aus `docs/wartungscheckliste.md` (Dashboard, Mitarbeiterliste, Rollen/Rechte,
+Monatsreport, Urlaub eigene Liste, Genehmigungsliste) – alle HTTP 200. Serverlog
+und `system_log` ohne Warnung oder Deprecation; die einzigen Eintraege sind die
+Logins und das erwartete Scheitern des Seeders aus dem Leer-Pfad. `php -l` ueber
+beide geaenderten Dateien.
+
+### Was bewusst nicht erreicht wurde
+Die fuenf uebrigen Masken des Controllers bleiben, wo sie sind – eine Maske je
+Patch. `SmokeTestController` (T-105) ebenso.
+
+### NEXT
+Naechste Maske aus T-104. Naheliegend `bearbeiten()` als zweitkleinste des
+`KonfigurationController` – erstes Formular in `views/konfiguration/`, also
+erstmals mit `$csrfBereich`.
+
 ## P-2026-08-14-11 push-regel-im-readme-und-luecke-benannt
 
 ### EINGELESEN

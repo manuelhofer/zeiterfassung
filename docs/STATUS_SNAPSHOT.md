@@ -33,12 +33,12 @@ Keine bekannten.
 
 ## Offene Tasks
 - **T-104** Vier Controller erzeugen HTML selbst, statt `views/` zu benutzen –
-  **13 Masken**: `KonfigurationController` (6), `AuftragController` (4),
+  **12 Masken**: `KonfigurationController` (5), `AuftragController` (4),
   `TerminalAdminController` (2), `SmokeTestController` (1). Eine Maske je
   Patch; Muster und Prüfweg: P-2026-08-11-09.
 
   `grep -rn "require __DIR__ . '/../views/layout/header.php'" controller/`
-  liefert **19**, nicht 13: 5 davon sind dreizeilige „Keine
+  liefert mehr Treffer als offene Masken: 5 davon sind dreizeilige „Keine
   Berechtigung"-Blöcke (Urlaub 3, AuditLog 1, Auftrag 1), eine ist eine fertig
   migrierte Maske (`views/auftragszeit/bearbeiten.php`). `UrlaubController` und
   `AuditLogController` sind deshalb **fertig** – zählen, ohne aufzuschlagen,
@@ -47,6 +47,9 @@ Keine bekannten.
   Beim Bauen einer Maske erst in `views/layout/header.php` nachsehen, was es
   schon gibt, und **keine eigenen Grössen auf Knöpfe schreiben** – warum, steht
   dort als Kommentar.
+- **T-110** `KonfigurationService::getAlle()` fängt selbst ab und gibt `[]`
+  zurück. Der `catch` in `KonfigurationController::index()` kann deshalb nie
+  greifen, seine Fehlermeldung ist unerreichbar (gefunden P-2026-08-14-12).
 - **T-105** `SmokeTestController::index()` ist eine Methode mit ~3.700 Zeilen.
   Diagnosewerkzeug, keine Fachlogik – aber praktisch nicht mehr änderbar. Es ist
   nur *eine* Maske aus T-104 und trotzdem der grösste Brocken darin.
