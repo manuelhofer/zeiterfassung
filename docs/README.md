@@ -44,7 +44,7 @@ Hand gepflegt.
 
 - [`archiv/DEV_PROMPT_HISTORY.md`](archiv/DEV_PROMPT_HISTORY.md) – der volle
   Projektverlauf, ein Eintrag je Patch, wird bei **jedem** Patch gepflegt.
-  **Keine Startlektüre:** Über 12.000 Zeilen, und der Stand steht im
+  **Keine Startlektüre:** Sie wächst mit jedem Patch, und der Stand steht im
   Status-Snapshot. Gezielt aufschlagen, wenn zu einem Patch die Begründung oder
   der Test gesucht wird.
 - [`archiv/ALTE_PROMPTS.md`](archiv/ALTE_PROMPTS.md) – **pro Datei begründet:**

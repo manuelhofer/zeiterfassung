@@ -70,6 +70,82 @@ in den Statusbericht.
   D-002 entfallen; die Regel selbst gilt weiter.)
 
 
+## P-2026-08-14-07 kaltstart-in-bytes-und-keine-zeilenzahlen
+
+### EINGELESEN
+- `docs/arbeitsregeln.md`, Abschnitt 9.
+- `CHATSTART.md`, Abschnitt 3 (Hinweis zur History).
+- `docs/README.md`, Abschnitt „Verlauf und Archiv".
+- `man wc` zur Ausgabereihenfolge.
+
+### DATEIEN
+- `docs/arbeitsregeln.md`
+- `CHATSTART.md`
+- `docs/README.md`
+- `docs/STATUS_SNAPSHOT.md` (T-104-Block gekuerzt, siehe unten)
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Die Kaltstart-Messung gibt genau **eine** Zahl aus, und in keiner der vier
+Kaltstart-Dateien steht mehr eine Zeilenzahl fuer
+`docs/archiv/DEV_PROMPT_HISTORY.md`.
+
+### DONE
+**Die Messung.** Abschnitt 9 nannte
+`… | wc -c -m` und daneben „Die Byte-Zahl ist die haertere Grenze". Das
+verleitet dazu, die erste ausgegebene Zahl fuer die Bytes zu halten – `wc`
+gibt aber **immer** Zeichen vor Bytes aus, unabhaengig von der Reihenfolge der
+Schalter. Genau so ist es in P-2026-08-14-03 passiert:
+
+| | gemeldet | tatsaechlich |
+| --- | --- | --- |
+| vorher | 15.999 Bytes | 16.247 Bytes (15.999 Zeichen) |
+| nachher | 14.845 Bytes | 15.083 Bytes (14.845 Zeichen) |
+| Luft zur Grenze | 385 Bytes | **137 Bytes** |
+
+Jetzt steht dort nur noch `wc -c`. Eine Zahl kann man nicht verwechseln. Dazu
+eine Warnschwelle bei 16.000 – die 16.384 sind sonst erst dann ein Thema, wenn
+es zu spaet ist – und ein Satz dazu, **warum** es die Grenze gibt: Diese vier
+Dateien werden bei jeder noch so kleinen Frage gelesen.
+
+**Die Zeilenzahlen.** Fuer dieselbe Datei standen zwei verschiedene Werte:
+`CHATSTART.md` sagte „ueber 13.000 Zeilen", `docs/README.md` „Ueber 12.000
+Zeilen", tatsaechlich sind es 18.447. Beide sind raus; die Aussage („keine
+Startlektuere, waechst mit jedem Patch") bleibt, sie brauchte die Zahl nie.
+Abschnitt 9 nennt Zeilenzahlen von Dateien jetzt ausdruecklich als Beispiel
+fuer eine ableitbare Zahl, die niemand pflegen soll.
+
+Nicht angefasst: der Satz im Kopf dieser Datei, der den entfernten
+SNAPSHOT-Block begruendet und dabei „ueber 12.000 Zeilen" nennt. Er beschreibt
+den Stand von damals im Praeteritum – das ist Verlauf, kein gepflegter Wert.
+
+### Gefundene Fehler im eigenen Entwurf
+Der erste Entwurf von Abschnitt 9 erklaerte die `wc`-Falle in einem Absatz von
+sechs Zeilen und setzte die Warnschwelle auf 15.000 Bytes. Nachgemessen: 15.661
+Bytes – die frisch geschriebene Regel war beim Schreiben schon verletzt, und
+zwar durch sich selbst. Die Erklaerung steht jetzt hier in der History (wird
+selten gelesen) statt im Kaltstart (wird immer gelesen), die Schwelle bei
+16.000. Im selben Zug den T-104-Block aus P-2026-08-14-06 von 23 auf 12 Zeilen
+gekuerzt – die Aufschluesselung stand ohnehin ausfuehrlich im Verlaufseintrag.
+
+### TEST
+- `cat … | wc -c` → **15.368 Bytes**. Unter der Grenze (16.384) und unter der
+  neuen Schwelle (16.000).
+- Gegenprobe zur `wc`-Reihenfolge: `wc -c -m` und `wc -m -c` ueber dieselben
+  vier Dateien liefern beide `15368` an zweiter Stelle – die Schalterreihenfolge
+  aendert nichts, die Falle ist real.
+- `grep -rn "[0-9]\{2,\}\.[0-9]\{3\} Zeilen"` ueber die vier
+  Kaltstart-Dateien: kein Treffer mehr.
+
+### Was bewusst nicht erreicht wurde
+- **Der Projektstatus-Block bleibt lang.** Die Absaetze zu „kein
+  Produktivbetrieb" sind ausdruecklich so gewollt und stehen genau einmal.
+
+### NEXT
+P-2026-08-14-08: Umlaute in der sichtbaren Oberflaeche – `<h2>Auftraege</h2>`
+und Verwandtes.
+
+
 ## P-2026-08-14-06 t-104-nachgezaehlt-und-klassifiziert
 
 ### EINGELESEN

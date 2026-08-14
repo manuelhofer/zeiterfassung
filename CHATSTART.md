@@ -59,9 +59,10 @@ Verstoß nicht mehr zu reparieren ist:
 | Lokal ausprobieren | [docs/lokale_entwicklungsumgebung.md](docs/lokale_entwicklungsumgebung.md) |
 | Produktivinstallation | [docs/installationsanleitung.md](docs/installationsanleitung.md) |
 
-`docs/archiv/DEV_PROMPT_HISTORY.md` ist **keine Startlektüre** (über 13.000
-Zeilen). Nur gezielt aufschlagen, wenn zu einem bestimmten Patch die Begründung
-oder der Test gesucht wird (`grep -n "P-2026-08-09-04"`), nie am Stück.
+`docs/archiv/DEV_PROMPT_HISTORY.md` ist **keine Startlektüre** – ein Eintrag je
+Patch, seit dem ersten Tag, entsprechend lang. Nur gezielt aufschlagen, wenn zu
+einem bestimmten Patch die Begründung oder der Test gesucht wird
+(`grep -n "P-2026-08-09-04"`), nie am Stück.
 
 ## 4. Was du nicht lesen musst
 

@@ -149,17 +149,19 @@ Hotfixes, Prüf-Queries). Strukturänderungen gehören trotzdem **immer** nach
 ## 9. Am Ende: Kaltstart klein halten
 
 Jeder neue Chat liest `CLAUDE.md`, `CHATSTART.md`, diese Datei und den Snapshot,
-bevor er etwas tun kann – zusammen unter **16 KB** halten. Neue Erklärungen
-gehören deshalb in die Dateien, die nur bei Bedarf gelesen werden (Fachregeln,
-Spezifikation, Handbuch). Nachmessen:
+**bevor** er irgendetwas tun kann – auch bei der kleinsten Frage. Was hier
+steht, kostet jedes Mal. Grenze **16.384 Bytes**, ab **16.000** wird beim
+nächsten Patch gekürzt statt angebaut. Neue Erklärungen gehören in die Dateien,
+die nur bei Bedarf gelesen werden (Fachregeln, Spezifikation, Handbuch).
 
 ```bash
-cat CLAUDE.md CHATSTART.md docs/arbeitsregeln.md docs/STATUS_SNAPSHOT.md | wc -c -m
+cat CLAUDE.md CHATSTART.md docs/arbeitsregeln.md docs/STATUS_SNAPSHOT.md | wc -c
 ```
 
-Die Byte-Zahl ist die härtere Grenze, aber die Zeichen-Zahl ist die
-ehrlichere: Jeder Umlaut zählt in UTF-8 doppelt, ohne mehr Text zu sein.
+**Eine Zahl, Bytes.** `wc -c -m` gibt zwei aus, Zeichen zuerst – das hat in
+P-2026-08-14-03 schon einmal 385 Bytes Luft gemeldet, wo 137 waren.
 
 Zum Abschluss einer Sitzung: Erledigtes aus dem Snapshot **entfernen**, keine
-ableitbare Zahl pflegen (Prozente, Patch-Listen, Verlaufsabrisse – sie driften),
-Links gegenprüfen, wenn Dateien verschoben wurden.
+ableitbare Zahl pflegen (Prozente, Patch-Listen, Verlaufsabrisse, Zeilenzahlen
+von Dateien – sie driften alle), Links gegenprüfen, wenn Dateien verschoben
+wurden.

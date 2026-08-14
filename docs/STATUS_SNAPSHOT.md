@@ -37,20 +37,12 @@ Keine bekannten.
   `TerminalAdminController` (2), `SmokeTestController` (1). Eine Maske je
   Patch; Muster und Prüfweg: P-2026-08-11-09.
 
-  Nachzählen liefert **19**, nicht 13 – der Unterschied ist Absicht und keine
-  Schlamperei:
-
-  ```bash
-  grep -rn "require __DIR__ . '/../views/layout/header.php'" controller/
-  ```
-
-  Von diesen 19 Einbindungen sind 5 dreizeilige „Keine Berechtigung"-Blöcke
-  (`UrlaubController` 3, `AuditLogController` 1, `AuftragController` 1) und
-  eine ist eine **fertig migrierte** Maske, die nur Kopf, View und Fuß
-  einbindet (`AuftragController` → `views/auftragszeit/bearbeiten.php`). Weder
-  das eine noch das andere ist Arbeit aus T-104. `UrlaubController` und
-  `AuditLogController` stehen deshalb **nicht** mehr in der Liste: Alle ihre
-  Masken liegen längst in `views/`.
+  `grep -rn "require __DIR__ . '/../views/layout/header.php'" controller/`
+  liefert **19**, nicht 13: 5 davon sind dreizeilige „Keine
+  Berechtigung"-Blöcke (Urlaub 3, AuditLog 1, Auftrag 1), eine ist eine fertig
+  migrierte Maske (`views/auftragszeit/bearbeiten.php`). `UrlaubController` und
+  `AuditLogController` sind deshalb **fertig** – zählen, ohne aufzuschlagen,
+  hat sie in P-2026-08-14-03 zu Unrecht auf die Liste gebracht.
 
   Beim Bauen einer Maske erst in `views/layout/header.php` nachsehen, was es
   schon gibt, und **keine eigenen Grössen auf Knöpfe schreiben** – warum, steht
