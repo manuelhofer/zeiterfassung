@@ -50,7 +50,7 @@ $stundenkontoUmbuchungFehler = isset($stundenkontoUmbuchungFehler) ? (string)$st
 $monatsnamen = [
     1 => 'Januar',
     2 => 'Februar',
-    3 => 'Maerz',
+    3 => 'März',
     4 => 'April',
     5 => 'Mai',
     6 => 'Juni',
@@ -185,7 +185,7 @@ $umbuchungLink = static function (int $mid, int $monat, int $jahr, bool $stealth
         <label>
             Mitarbeiter
             <select name="mitarbeiter_id">
-                <option value="">-- Mitarbeiter auswaehlen --</option>
+                <option value="">-- Mitarbeiter auswählen --</option>
                 <?php foreach ($mitarbeiterListe as $row): ?>
                     <?php
                         $mid = (int)($row['id'] ?? 0);
@@ -219,7 +219,7 @@ $umbuchungLink = static function (int $mid, int $monat, int $jahr, bool $stealth
     </form>
 
     <?php if ($id <= 0 || $mitarbeiter === null): ?>
-        <p>Bitte waehle einen Mitarbeiter aus.</p>
+        <p>Bitte wähle einen Mitarbeiter aus.</p>
     <?php else: ?>
         <h3><?php echo htmlspecialchars($mitarbeiterName($mitarbeiter), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></h3>
 
@@ -230,7 +230,7 @@ $umbuchungLink = static function (int $mid, int $monat, int $jahr, bool $stealth
 
         <?php if ($stundenkontoAnsicht === 'sammelumbuchung'): ?>
             <p>
-                <a href="<?php echo htmlspecialchars($kontoLink($id, $stundenkontoStealthMode), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>">&laquo; Zurueck zum Stundenkonto</a>
+                <a href="<?php echo htmlspecialchars($kontoLink($id, $stundenkontoStealthMode), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>">&laquo; Zurück zum Stundenkonto</a>
             </p>
 
             <h4>Sammelumbuchung auf Zieltag buchen</h4>
@@ -240,7 +240,7 @@ $umbuchungLink = static function (int $mid, int $monat, int $jahr, bool $stealth
                 |
                 <strong><?php echo htmlspecialchars(($monatsnamen[$stundenkontoUmbuchungMonat] ?? (string)$stundenkontoUmbuchungMonat) . ' ' . (string)$stundenkontoUmbuchungJahr, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></strong>
                 |
-                <a href="<?php echo htmlspecialchars($umbuchungLink($id, $stundenkontoUmbuchungNextMonat, $stundenkontoUmbuchungNextJahr, $stundenkontoStealthMode), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>">naechster Monat &raquo;</a>
+                <a href="<?php echo htmlspecialchars($umbuchungLink($id, $stundenkontoUmbuchungNextMonat, $stundenkontoUmbuchungNextJahr, $stundenkontoStealthMode), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>">nächster Monat &raquo;</a>
             </p>
 
             <form method="post" action="?seite=mitarbeiter_admin_speichern">
@@ -260,7 +260,7 @@ $umbuchungLink = static function (int $mid, int $monat, int $jahr, bool $stealth
                 <?php elseif ($stundenkontoUmbuchungFehler !== ''): ?>
                     <p class="error"><?php echo htmlspecialchars($stundenkontoUmbuchungFehler, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></p>
                 <?php elseif ($stundenkontoUmbuchungTageswerte === []): ?>
-                    <p><small>Fuer den angezeigten Monat liegen keine Tageswerte vor.</small></p>
+                    <p><small>Für den angezeigten Monat liegen keine Tageswerte vor.</small></p>
                 <?php else: ?>
                     <?php
                         $istMonatText = '';
@@ -361,7 +361,7 @@ $umbuchungLink = static function (int $mid, int $monat, int $jahr, bool $stealth
 
                     <div>
                         <label>
-                            Begruendung
+                            Begründung
                             <input type="text" name="stundenkonto_umbuchung_begruendung" required placeholder="z.B. Migration: Samstag aus Altsystem">
                         </label>
                     </div>
@@ -383,7 +383,7 @@ $umbuchungLink = static function (int $mid, int $monat, int $jahr, bool $stealth
                         <th>Wirksam</th>
                         <th>Delta</th>
                         <th>Typ</th>
-                        <th>Begruendung</th>
+                        <th>Begründung</th>
                         <th>Erstellt</th>
                         <th>Von</th>
                     </tr>
@@ -431,7 +431,7 @@ $umbuchungLink = static function (int $mid, int $monat, int $jahr, bool $stealth
                         <th>Summe</th>
                         <th>Pro Tag</th>
                         <th>Arbeitstage</th>
-                        <th>Begruendung</th>
+                        <th>Begründung</th>
                         <th>Erstellt</th>
                         <th>Von</th>
                     </tr>
@@ -456,7 +456,7 @@ $umbuchungLink = static function (int $mid, int $monat, int $jahr, bool $stealth
 
                             $modusLabel = $modus;
                             if ($modus === 'gesamt_gleichmaessig') {
-                                $modusLabel = 'Gesamt gleichmaessig';
+                                $modusLabel = 'Gesamt gleichmäßig';
                             } elseif ($modus === 'minuten_pro_tag') {
                                 $modusLabel = 'Pro Tag';
                             }
@@ -520,7 +520,7 @@ $umbuchungLink = static function (int $mid, int $monat, int $jahr, bool $stealth
 
                 <div>
                     <label>
-                        Begruendung
+                        Begründung
                         <input type="text" name="stundenkonto_begruendung" required placeholder="z.B. Korrektur wegen ...">
                     </label>
                 </div>
@@ -544,7 +544,7 @@ $umbuchungLink = static function (int $mid, int $monat, int $jahr, bool $stealth
                     <label>
                         Modus
                         <select name="stundenkonto_batch_modus" required>
-                            <option value="gesamt_gleichmaessig">Gesamtstunden gleichmaessig auf Tage verteilen</option>
+                            <option value="gesamt_gleichmaessig">Gesamtstunden gleichmäßig auf Tage verteilen</option>
                             <option value="minuten_pro_tag">Gutschrift/Abzug pro Tag (fix)</option>
                         </select>
                     </label>
@@ -578,8 +578,8 @@ $umbuchungLink = static function (int $mid, int $monat, int $jahr, bool $stealth
 
                 <div>
                     <label>
-                        Begruendung
-                        <input type="text" name="stundenkonto_batch_begruendung" required placeholder="z.B. Gesetzaenderung / Korrektur ...">
+                        Begründung
+                        <input type="text" name="stundenkonto_batch_begruendung" required placeholder="z.B. Gesetzänderung / Korrektur ...">
                     </label>
                 </div>
 

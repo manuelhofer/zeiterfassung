@@ -132,9 +132,9 @@ class UrlaubController
         }
 
         // Rechte für genau diesen Antrag nochmals serverseitig prüfen –
-        // ueber dieselbe Methode, die auch die Urlaubsverwaltung benutzt.
+        // über dieselbe Methode, die auch die Urlaubsverwaltung benutzt.
         // Vorher stand hier eine eigene Abfrage auf `mitarbeiter_genehmiger`;
-        // sie kannte den Abteilungsbezug aus B-093 nicht und haette den
+        // sie kannte den Abteilungsbezug aus B-093 nicht und hätte den
         // Knopf in der Liste angeboten, die Buchung aber abgewiesen.
         $hatRechtFuerAntrag = $this->darfUrlaubsantragBearbeiten(
             $genehmigerId,
@@ -696,7 +696,7 @@ class UrlaubController
      * Der zweite Weg steht bewusst nicht in `AuthService::hatRecht()`: Dort
      * würde eine abteilungsbezogene Rolle unbemerkt auch alle ihre übrigen
      * Rechte betriebsweit gewähren. Ausgewertet wird der Abteilungsbezug
-     * ausschliesslich für dieses eine Recht
+     * ausschließlich für dieses eine Recht
      * (`docs/spezifikation_abteilungsrechte.md`, Abschnitt 3).
      */
     private function darfBereichGenehmigen(): bool
@@ -743,8 +743,8 @@ class UrlaubController
             return false;
         }
 
-        // Zustaendigkeit kommt aus einer Hand: namentlich eingetragen oder
-        // ueber die Abteilung (B-093).
+        // Zuständigkeit kommt aus einer Hand: namentlich eingetragen oder
+        // über die Abteilung (B-093).
         return UrlaubGenehmigungService::getInstanz()->istZustaendigFuer($actorId, $mitarbeiterIdAntrag);
     }
 
@@ -894,7 +894,7 @@ class UrlaubController
             }
 
             if ($sonstigesGrund === null) {
-                $_SESSION['urlaub_verwaltung_flash_error'] = 'Der ausgewaehlte Sonstiges-Grund ist nicht mehr aktiv oder nicht vorhanden.';
+                $_SESSION['urlaub_verwaltung_flash_error'] = 'Der ausgewählte Sonstiges-Grund ist nicht mehr aktiv oder nicht vorhanden.';
                 $this->redirectZurUrlaubsverwaltung($returnQuery);
                 return;
             }
@@ -1344,7 +1344,7 @@ class UrlaubController
             $sonstigesGruende = $this->ladeAktiveSonstigesGruende($db);
         } catch (\Throwable $e) {
             $sonstigesGruende = [];
-            Logger::error('Urlaubsverwaltung: Sonstiges-Gruende konnten nicht geladen werden', [
+            Logger::error('Urlaubsverwaltung: Sonstiges-Gründe konnten nicht geladen werden', [
                 'actor_id' => $actorId,
                 'exception' => $e->getMessage(),
             ], $actorId, null, 'urlaub_verwaltung');
@@ -1400,8 +1400,8 @@ class UrlaubController
         }
 
         // Wenn nur "Bereich" (ohne SELF/ALLE) vergeben ist, muss der Benutzer
-        // auch tatsaechlich fuer jemanden zustaendig sein - namentlich oder
-        // ueber eine Abteilung.
+        // auch tatsächlich für jemanden zuständig sein - namentlich oder
+        // über eine Abteilung.
         if ($darfBereich && !$darfAlle && !$darfSelf) {
             if (!UrlaubGenehmigungService::getInstanz()->istGenehmigerFuerIrgendwen($genehmigerId)) {
                 http_response_code(403);
@@ -1467,9 +1467,9 @@ class UrlaubController
         } elseif ($darfBereich) {
             $params['gid'] = $genehmigerId;
 
-            // Dieselbe Zustaendigkeitsliste, die auch die POST-Pruefung
-            // benutzt - sonst zeigt die Liste Antraege, die sich nicht
-            // entscheiden lassen, oder verschweigt welche, die es koennte.
+            // Dieselbe Zuständigkeitsliste, die auch die POST-Prüfung
+            // benutzt - sonst zeigt die Liste Anträge, die sich nicht
+            // entscheiden lassen, oder verschweigt welche, die es könnte.
             $zustaendige = UrlaubGenehmigungService::getInstanz()->holeZustaendigeMitarbeiterIds($genehmigerId);
 
             $platzhalter = [];
@@ -1478,17 +1478,17 @@ class UrlaubController
                 $params['z' . $i]    = $id;
             }
 
-            // Leere Zustaendigkeit heisst „keine Treffer" - `IN ()` waere
-            // ungueltiges SQL.
+            // Leere Zuständigkeit heißt „keine Treffer" - `IN ()` wäre
+            // ungültiges SQL.
             $bereichBedingung = $platzhalter === []
                 ? '1 = 0'
                 : 'ua.mitarbeiter_id IN (' . implode(', ', $platzhalter) . ')';
 
             if ($darfSelf) {
-                // Bereich + SELF: Zustaendigkeitsliste plus eigene Anträge
+                // Bereich + SELF: Zuständigkeitsliste plus eigene Anträge
                 $sql .= " WHERE ua.status = 'offen' AND (ua.mitarbeiter_id = :gid OR " . $bereichBedingung . ')';
             } else {
-                // Nur Bereich: ausschließlich die Zustaendigkeitsliste (ohne eigene)
+                // Nur Bereich: ausschließlich die Zuständigkeitsliste (ohne eigene)
                 $sql .= " WHERE ua.status = 'offen' AND ua.mitarbeiter_id <> :gid AND " . $bereichBedingung;
             }
         } else {

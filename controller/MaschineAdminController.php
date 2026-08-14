@@ -8,7 +8,7 @@ declare(strict_types=1);
  */
 class MaschineAdminController
 {
-    /** Bereichsname fuer `Csrf` - siehe `core/Csrf.php`. */
+    /** Bereichsname für `Csrf` - siehe `core/Csrf.php`. */
     private const CSRF_BEREICH = 'maschine_admin';
 
     private AuthService $authService;
@@ -318,7 +318,7 @@ class MaschineAdminController
         $maschine = null;
 
         if ($id <= 0) {
-            $fehlermeldung = 'Ungueltige Maschinen-ID.';
+            $fehlermeldung = 'Ungültige Maschinen-ID.';
         } else {
             try {
                 $maschine = $this->maschineModel->holeNachId($id);

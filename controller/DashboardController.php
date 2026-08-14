@@ -150,7 +150,7 @@ class DashboardController
                 if ($db->istHauptdatenbankVerfuegbar()) {
                     // Wichtig: "Heute" muss in der PHP-Zeitzone (Europe/Berlin) definiert werden.
                     // CURDATE() kann je nach DB-Server/Session-Zeitzone (z. B. UTC) noch "gestern" liefern
-                    // und würde dann den Vortag faelschlich als "heute" behandeln.
+                    // und würde dann den Vortag fälschlich als "heute" behandeln.
                     $tz = new DateTimeZone('Europe/Berlin');
                     $now = new DateTimeImmutable('now', $tz);
                     $todayIso = (new DateTimeImmutable('today', $tz))->format('Y-m-d');

@@ -244,11 +244,11 @@ $fehlermeldung = $fehlermeldung ?? null;
             <span><i class="urlaub-jahresuebersicht-swatch plan-arzt"></i> A = Arzt</span>
             <span><i class="urlaub-jahresuebersicht-swatch plan-kurzarbeit"></i> KA = Kurzarbeit</span>
             <span><i class="urlaub-jahresuebersicht-swatch plan-sonstiges"></i> S = Sonstiges</span>
-            <span>UeStd/Url stehen auf "offen", solange fuer den Mitarbeiter kein Monatsabschluss vorhanden ist.</span>
+            <span>UeStd/Url stehen auf "offen", solange für den Mitarbeiter kein Monatsabschluss vorhanden ist.</span>
         </div>
 
         <?php if ($planung === []): ?>
-            <p>Keine Mitarbeiter fuer diese Jahresuebersicht gefunden.</p>
+            <p>Keine Mitarbeiter für diese Jahresübersicht gefunden.</p>
         <?php else: ?>
             <?php foreach ($planung as $monat): ?>
                 <?php

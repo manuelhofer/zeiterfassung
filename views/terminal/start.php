@@ -430,7 +430,7 @@ require __DIR__ . '/_layout_top.php';
             ?>
             <div class="status-small"><?php echo htmlspecialchars($line, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></div>
         <?php else: ?>
-            <div class="status-small">Noch kein manueller Replay ausgefuehrt.</div>
+            <div class="status-small">Noch kein manueller Replay ausgeführt.</div>
         <?php endif; ?>
 
         <form method="post" action="terminal.php?aktion=start&amp;debug=1" class="login-form mt-035">
@@ -635,7 +635,7 @@ require __DIR__ . '/_layout_top.php';
                     <button type="submit" class="secondary">RFID wechseln</button>
                 </form>
 
-                <form method="post" action="terminal.php?aktion=start" class="terminal-button-form terminal-offline-zurueck">
+                <form method="post" action="terminal.php?aktion=start" class="terminal-button-form terminal-offline-zurück">
                     <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($csrfToken, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>">
                     <input type="hidden" name="offline_rfid_reset" value="1">
                     <button type="submit" class="secondary">Zurück</button>
@@ -948,7 +948,7 @@ require __DIR__ . '/_layout_top.php';
                             </div>
                         </div>
                     </div>
-                    <p class="terminal-wizard-fehlermeldung" data-fehler-fuer="ab_wann" hidden></p>
+                    <p class="terminal-wizard-fehlermeldung" data-fehler-für="ab_wann" hidden></p>
                 </div>
 
                 <div class="terminal-wizard-schritt" data-schritt="bis_wann"<?php echo ($urlaubWizardSchritt === 2 ? '' : ' hidden'); ?>>
@@ -976,8 +976,8 @@ require __DIR__ . '/_layout_top.php';
                             </div>
                         </div>
                     </div>
-                    <p class="terminal-wizard-fehlermeldung" data-fehler-fuer="bis_wann" hidden></p>
-                    <p class="terminal-wizard-hinweis" data-hinweis-fuer="bis_wann" hidden></p>
+                    <p class="terminal-wizard-fehlermeldung" data-fehler-für="bis_wann" hidden></p>
+                    <p class="terminal-wizard-hinweis" data-hinweis-für="bis_wann" hidden></p>
                 </div>
 
                 <div class="terminal-wizard-schritt" data-schritt="kommentar"<?php echo ($urlaubWizardSchritt === 3 ? '' : ' hidden'); ?>>
@@ -995,7 +995,7 @@ require __DIR__ . '/_layout_top.php';
                 <div class="button-row terminal-wizard-aktionsleiste">
                     <div class="terminal-wizard-sekundaeraktionen">
                         <button type="submit" form="urlaub_wizard_exit_form" class="secondary terminal-primary-action"<?php echo ($urlaubWizardSchritt === 1 ? "" : " hidden"); ?>>Exit</button>
-                        <button type="button" class="secondary terminal-primary-action" data-nav="zurueck"<?php echo ($urlaubWizardSchritt > 1 ? '' : ' hidden'); ?>>Zurück</button>
+                        <button type="button" class="secondary terminal-primary-action" data-nav="zurück"<?php echo ($urlaubWizardSchritt > 1 ? '' : ' hidden'); ?>>Zurück</button>
                     </div>
                     <button type="submit" class="terminal-primary-action" data-nav="weiter" name="wizard_aktion" value="weiter"<?php echo ($urlaubWizardSchritt < 3 ? '' : ' hidden'); ?>>Weiter</button>
                     <button type="submit" class="terminal-primary-action" data-nav="speichern"<?php echo ($urlaubWizardSchritt >= 3 ? '' : ' hidden'); ?>>Speichern</button>
@@ -1032,16 +1032,16 @@ require __DIR__ . '/_layout_top.php';
                     };
 
                     const schrittElemente = Array.from(formular.querySelectorAll('[data-schritt]'));
-                    const knopfZurueck = formular.querySelector('[data-nav="zurueck"]');
+                    const knopfZurueck = formular.querySelector('[data-nav="zurück"]');
                     const knopfExit = formular.querySelector('[form="urlaub_wizard_exit_form"]');
                     const knopfWeiter = formular.querySelector('[data-nav="weiter"]');
                     const knopfSpeichern = formular.querySelector('[data-nav="speichern"]');
                     const kommentarZeichenzahl = document.getElementById('kommentar_zeichenzahl');
                     const tastaturUmschalter = document.getElementById('kommentar_tastatur_umschalter');
                     const tastaturContainer = document.getElementById('terminal_kommentar_tastatur');
-                    const fehlermeldungAbWann = formular.querySelector('[data-fehler-fuer="ab_wann"]');
-                    const fehlermeldungBisWann = formular.querySelector('[data-fehler-fuer="bis_wann"]');
-                    const hinweisBisWann = formular.querySelector('[data-hinweis-fuer="bis_wann"]');
+                    const fehlermeldungAbWann = formular.querySelector('[data-fehler-für="ab_wann"]');
+                    const fehlermeldungBisWann = formular.querySelector('[data-fehler-für="bis_wann"]');
+                    const hinweisBisWann = formular.querySelector('[data-hinweis-für="bis_wann"]');
                     const wizardValidierungsmeldung = formular.querySelector('[data-wizard-validierung]');
                     let tastaturSichtbar = true;
                     let sonderzeichenModus = false;
@@ -1324,7 +1324,7 @@ require __DIR__ . '/_layout_top.php';
                         steuerZeile.className = 'terminal-osk-zeile';
                         steuerZeile.appendChild(erstelleTaste(sonderzeichenModus ? 'ABC' : '#+=', 'modus', 'terminal-osk-taste-breit'));
                         steuerZeile.appendChild(erstelleTaste('Leerzeichen', 'leerzeichen', 'terminal-osk-taste-breit terminal-osk-taste-extra-breit'));
-                        steuerZeile.appendChild(erstelleTaste('Löschen', 'loeschen', 'terminal-osk-taste-breit'));
+                        steuerZeile.appendChild(erstelleTaste('Löschen', 'löschen', 'terminal-osk-taste-breit'));
                         tastaturContainer.appendChild(steuerZeile);
                     }
 
@@ -1451,7 +1451,7 @@ require __DIR__ . '/_layout_top.php';
                                 fuegeKommentarTextEin(' ');
                                 return;
                             }
-                            if (tastaturWert === 'loeschen') {
+                            if (tastaturWert === 'löschen') {
                                 loescheKommentarZeichen();
                                 return;
                             }
@@ -1546,7 +1546,7 @@ require __DIR__ . '/_layout_top.php';
                         return;
                     }
 
-                    var knopfZurueck = formular.querySelector('[data-nav="zurueck"]');
+                    var knopfZurueck = formular.querySelector('[data-nav="zurück"]');
                     var knopfExit = formular.querySelector('[form="urlaub_wizard_exit_form"]');
                     var knopfWeiter = formular.querySelector('[data-nav="weiter"]');
                     var knopfSpeichern = formular.querySelector('[data-nav="speichern"]');
@@ -1671,7 +1671,7 @@ require __DIR__ . '/_layout_top.php';
               const maschine = document.getElementById('neben_maschine_id');
 
               // Barcode-Scanner senden meistens ein "Enter" nach dem Scan.
-              // Wir springen dann bequem ins naechste Feld.
+              // Wir springen dann bequem ins nächste Feld.
               if (auftrag && schritt) {
                 auftrag.addEventListener('keydown', (ev) => {
                   if (ev.key === 'Enter') {

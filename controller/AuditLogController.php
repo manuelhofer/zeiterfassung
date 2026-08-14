@@ -18,11 +18,11 @@ class AuditLogController
     private array $filterOptionen = [
         'alle' => 'Alle sichtbaren Audit-Logs',
         'urlaub' => 'Urlaub: alle',
-        'urlaub_storno' => 'Urlaub: Storno/Ruecknahme',
+        'urlaub_storno' => 'Urlaub: Storno/Rücknahme',
         'urlaub_direkt' => 'Urlaub: direkt eingetragen',
         'urlaub_genehmigung' => 'Urlaub: Genehmigung/Ablehnung',
         'zeitbuchungen' => 'Zeitbuchungen: alle',
-        'zeitbuchung_loeschen' => 'Zeitbuchungen: geloescht',
+        'zeitbuchung_loeschen' => 'Zeitbuchungen: gelöscht',
         'tagesfelder' => 'Tagesfelder: Pause/Krank/Kurzarbeit/Sonstiges',
         'stundenkonto' => 'Stundenkonto',
         'offline_queue' => 'Offline-Queue',
@@ -432,7 +432,7 @@ class AuditLogController
                 return $this->text('Zeitbuchung gel&ouml;scht');
             }
             if ($aktion === 'add') {
-                return 'Zeitbuchung hinzugefuegt';
+                return 'Zeitbuchung hinzugefügt';
             }
             if ($aktion === 'update') {
                 return $this->text('Zeitbuchung ge&auml;ndert');
@@ -440,7 +440,7 @@ class AuditLogController
         }
 
         if ($nachricht === 'Urlaubsverwaltung: Antrag storniert') {
-            return 'Urlaub storniert/rueckgenommen';
+            return 'Urlaub storniert/rückgenommen';
         }
         if ($nachricht === 'Urlaubsverwaltung: Urlaub direkt eingetragen') {
             return 'Urlaub direkt eingetragen';

@@ -15,7 +15,7 @@ class MitarbeiterAdminController
      * Dürfen abteilungsbezogene Rollen zugewiesen werden? **Ja, seit
      * P-2026-08-11-06** – aber mit begrenzter Wirkung.
      *
-     * Ausgewertet wird der Abteilungsbezug ausschliesslich für das Recht
+     * Ausgewertet wird der Abteilungsbezug ausschließlich für das Recht
      * `URLAUB_GENEHMIGEN` (`UrlaubGenehmigungService`,
      * `docs/spezifikation_abteilungsrechte.md`). Alle übrigen Rechte einer so
      * zugewiesenen Rolle greifen **nicht** – deshalb sagt der Abschnitt in
@@ -314,7 +314,7 @@ class MitarbeiterAdminController
     }
 
     /**
-     * Laedt die bestehenden Stundenkonto-Anzeigedaten für einen Mitarbeiter.
+     * Lädt die bestehenden Stundenkonto-Anzeigedaten für einen Mitarbeiter.
      *
      * @return array{saldo_text:?string,korrekturen:array<int,array<string,mixed>>,batches:array<int,array<string,mixed>>}
      */
@@ -453,7 +453,7 @@ class MitarbeiterAdminController
         if ($id > 0) {
             $mitarbeiter = $this->mitarbeiterModel->holeNachId($id);
             if ($mitarbeiter === null) {
-                $fehlermeldung = $fehlermeldung ?? 'Der ausgewaehlte Mitarbeiter wurde nicht gefunden.';
+                $fehlermeldung = $fehlermeldung ?? 'Der ausgewählte Mitarbeiter wurde nicht gefunden.';
                 $id = 0;
             }
         }
@@ -521,8 +521,8 @@ class MitarbeiterAdminController
                     $stundenkontoUmbuchungTageswerte = [];
                     $stundenkontoUmbuchungMonatswerte = null;
                     $stundenkontoUmbuchungZusammenfassung = null;
-                    $stundenkontoUmbuchungFehler = 'Die Monatsdaten fuer die Sammelumbuchung konnten nicht geladen werden.';
-                    Logger::warn('Stundenkonto: Monatsdaten fuer Sammelumbuchung konnten nicht geladen werden', [
+                    $stundenkontoUmbuchungFehler = 'Die Monatsdaten für die Sammelumbuchung konnten nicht geladen werden.';
+                    Logger::warn('Stundenkonto: Monatsdaten für Sammelumbuchung konnten nicht geladen werden', [
                         'mitarbeiter_id' => $id,
                         'jahr'           => $stundenkontoUmbuchungJahr,
                         'monat'          => $stundenkontoUmbuchungMonat,
@@ -576,7 +576,7 @@ class MitarbeiterAdminController
                 $mitarbeiterListe = $this->mitarbeiterModel->holeAlleAktiven();
             } catch (\Throwable $e) {
                 $fehlermeldung = 'Die Mitarbeiterliste konnte nicht geladen werden.';
-                Logger::error('Fehler beim Laden der Mitarbeiterliste fuer Rollen/Rechte', [
+                Logger::error('Fehler beim Laden der Mitarbeiterliste für Rollen/Rechte', [
                     'exception' => $e->getMessage(),
                 ], null, null, 'mitarbeiter');
             }
@@ -1102,14 +1102,14 @@ class MitarbeiterAdminController
 
         if ($rechteAbschnittSpeichern) {
             if ($id <= 0) {
-                $_SESSION['mitarbeiter_admin_flash_error'] = 'Bitte zuerst einen Mitarbeiter fuer Rollen & Rechte auswaehlen.';
+                $_SESSION['mitarbeiter_admin_flash_error'] = 'Bitte zuerst einen Mitarbeiter für Rollen & Rechte auswählen.';
                 header('Location: ?seite=mitarbeiter_rechte');
                 return;
             }
 
             $bestehend = $this->mitarbeiterModel->holeNachId($id);
             if ($bestehend === null) {
-                $_SESSION['mitarbeiter_admin_flash_error'] = 'Der ausgewaehlte Mitarbeiter wurde nicht gefunden.';
+                $_SESSION['mitarbeiter_admin_flash_error'] = 'Der ausgewählte Mitarbeiter wurde nicht gefunden.';
                 header('Location: ?seite=mitarbeiter_rechte');
                 return;
             }
@@ -2315,7 +2315,7 @@ class MitarbeiterAdminController
 
         $mid = isset($_POST['id']) ? (int)$_POST['id'] : 0;
         if ($mid <= 0) {
-            $_SESSION['mitarbeiter_admin_flash_error'] = 'Ungueltiger Mitarbeiter (ID fehlt).';
+            $_SESSION['mitarbeiter_admin_flash_error'] = 'Ungültiger Mitarbeiter (ID fehlt).';
             header('Location: ?seite=mitarbeiter_admin');
             exit;
         }
@@ -2338,20 +2338,20 @@ class MitarbeiterAdminController
             $zielJahr = isset($_POST['stundenkonto_umbuchung_ziel_jahr']) ? (int)$_POST['stundenkonto_umbuchung_ziel_jahr'] : 0;
 
             if ($zielTag <= 0 || $zielMonat <= 0 || $zielJahr <= 0 || !checkdate($zielMonat, $zielTag, $zielJahr)) {
-                $abbrechen('Zieldatum ist ungueltig.');
+                $abbrechen('Zieldatum ist ungültig.');
             }
 
             $zielDatum = sprintf('%04d-%02d-%02d', $zielJahr, $zielMonat, $zielTag);
         }
 
         if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $zielDatum)) {
-            $abbrechen('Zieldatum ist ungueltig.');
+            $abbrechen('Zieldatum ist ungültig.');
         }
 
         try {
             $dtZiel = new \DateTimeImmutable($zielDatum);
         } catch (\Throwable) {
-            $abbrechen('Zieldatum ist ungueltig.');
+            $abbrechen('Zieldatum ist ungültig.');
         }
         $zielDatum = $dtZiel->format('Y-m-d');
 
@@ -2373,23 +2373,23 @@ class MitarbeiterAdminController
                     continue;
                 }
                 if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $datum)) {
-                    $abbrechen('Quelltag ist ungueltig: ' . $datum);
+                    $abbrechen('Quelltag ist ungültig: ' . $datum);
                 }
                 try {
                     $dtQuelle = new \DateTimeImmutable($datum);
                     $datumNorm = $dtQuelle->format('Y-m-d');
                 } catch (\Throwable) {
-                    $abbrechen('Quelltag ist ungueltig: ' . $datum);
+                    $abbrechen('Quelltag ist ungültig: ' . $datum);
                 }
 
                 $stundenNorm = str_replace(',', '.', $stundenWert);
                 if (!is_numeric($stundenNorm)) {
-                    $abbrechen('Abzugsstunden muessen eine Zahl sein: ' . $datumNorm);
+                    $abbrechen('Abzugsstunden müssen eine Zahl sein: ' . $datumNorm);
                 }
 
                 $abzugMinuten = (int)round(((float)$stundenNorm) * 60);
                 if ($abzugMinuten < 0) {
-                    $abbrechen('Abzugsstunden duerfen nicht negativ sein: ' . $datumNorm);
+                    $abbrechen('Abzugsstunden dürfen nicht negativ sein: ' . $datumNorm);
                 }
                 if ($abzugMinuten === 0) {
                     continue;
@@ -2420,13 +2420,13 @@ class MitarbeiterAdminController
                         continue;
                     }
                     if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $datum)) {
-                        $abbrechen('Quelltag ist ungueltig: ' . $datum);
+                        $abbrechen('Quelltag ist ungültig: ' . $datum);
                     }
                     try {
                         $dtQuelle = new \DateTimeImmutable($datum);
                         $datumNorm = $dtQuelle->format('Y-m-d');
                     } catch (\Throwable) {
-                        $abbrechen('Quelltag ist ungueltig: ' . $datum);
+                        $abbrechen('Quelltag ist ungültig: ' . $datum);
                     }
                     $quellDatumMap[$datumNorm] = true;
                 }
@@ -2446,12 +2446,12 @@ class MitarbeiterAdminController
 
             $stundenNorm = str_replace(',', '.', $stundenRaw);
             if (!is_numeric($stundenNorm)) {
-                $abbrechen('Gesamtstunden muessen eine Zahl sein.');
+                $abbrechen('Gesamtstunden müssen eine Zahl sein.');
             }
 
             $gesamtMinuten = (int)round(((float)$stundenNorm) * 60);
             if ($gesamtMinuten <= 0) {
-                $abbrechen('Gesamtstunden muessen groesser als 0 sein.');
+                $abbrechen('Gesamtstunden müssen größer als 0 sein.');
             }
 
             $anzahlQuellen = count($quellDaten);
@@ -2472,7 +2472,7 @@ class MitarbeiterAdminController
         }
 
         if ($begruendung === '') {
-            $abbrechen('Begruendung ist Pflicht.');
+            $abbrechen('Begründung ist Pflicht.');
         }
 
         $erstelltVon = $this->authService->holeAngemeldeteMitarbeiterId();

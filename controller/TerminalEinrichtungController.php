@@ -9,9 +9,9 @@ declare(strict_types=1);
  * Abschnitte 2 und 11).
  *
  * Ausgangslage: Das Installationsskript bringt ein Gerät bis zur laufenden
- * Weboberflaeche, kennt aber bewusst **keine** Zugangsdaten - dasselbe Abbild
+ * Weboberfläche, kennt aber bewusst **keine** Zugangsdaten - dasselbe Abbild
  * passt so auf beliebig viele Geräte. Fehlt deshalb `config/config.local.php`,
- * zeigt `public/terminal.php` nicht die Bedienoberflaeche, sondern diese Seite.
+ * zeigt `public/terminal.php` nicht die Bedienoberfläche, sondern diese Seite.
  * Das ist dieselbe Mechanik wie die Erstinstallation im Backend
  * (`views/login/initial_admin.php`), nur für den Touchscreen gebaut.
  *
@@ -57,7 +57,7 @@ class TerminalEinrichtungController
      * Bewusst **nur** die Existenz der Datei - nicht "ist die Datenbank
      * erreichbar". Ein Terminal ohne Netz ist kein unkonfiguriertes Terminal:
      * Der Offline-Betrieb mit Queue ist eine gewollte Betriebsart. Würde ein
-     * Netzausfall die Einrichtungsseite hervorholen, stuende ein Monteur bei
+     * Netzausfall die Einrichtungsseite hervorholen, stünde ein Monteur bei
      * jeder Störung vor einer Maske, die nach einem Kopplungscode fragt - und
      * die Buchungen der Halle wären weg.
      */
@@ -154,7 +154,7 @@ class TerminalEinrichtungController
 
         if ((string)($db['user'] ?? '') === '' || (string)($db['dbname'] ?? '') === '') {
             $this->zeigeFormular(
-                'Der Server hat geantwortet, aber ohne verwertbare Zugangsdaten. Bitte das Serverprotokoll pruefen.',
+                'Der Server hat geantwortet, aber ohne verwertbare Zugangsdaten. Bitte das Serverprotokoll prüfen.',
                 $werte
             );
             return;
@@ -169,14 +169,14 @@ class TerminalEinrichtungController
             // kann, statt eine erneute Kopplung zu erzwingen.
             $this->zeigeFormular(
                 'Die Kopplung hat funktioniert, aber die Datei config/config.local.php konnte nicht '
-                . 'geschrieben werden. Bitte den Inhalt unten uebernehmen - der Kopplungscode ist verbraucht.',
+                . 'geschrieben werden. Bitte den Inhalt unten übernehmen - der Kopplungscode ist verbraucht.',
                 $werte,
                 $inhalt
             );
             return;
         }
 
-        Logger::info('Terminal eingerichtet (Kopplung am Geraet)', [
+        Logger::info('Terminal eingerichtet (Kopplung am Gerät)', [
             'terminal_id' => (int)($terminal['id'] ?? 0),
             'endpunkt'    => (string)($ergebnis['url'] ?? ''),
         ], null, isset($terminal['id']) ? (int)$terminal['id'] : null, 'terminal_einrichtung');
@@ -226,7 +226,7 @@ class TerminalEinrichtungController
             $daten = json_decode($roh['body'], true);
             if (!is_array($daten) || !array_key_exists('ok', $daten)) {
                 $letzterFehler = 'Unter ' . $url . ' antwortet keine Zeiterfassung (HTTP '
-                    . (string)$roh['status'] . '). Bitte die Adresse pruefen.';
+                    . (string)$roh['status'] . '). Bitte die Adresse prüfen.';
                 continue;
             }
 
@@ -265,7 +265,7 @@ class TerminalEinrichtungController
                 $fehlertext = curl_error($ch);
 
                 // Kein `curl_close()`: seit PHP 8.0 wirkungslos und seit 8.5
-                // ausdrücklich veraltet. Die Verbindung raeumt der
+                // ausdrücklich veraltet. Die Verbindung räumt der
                 // Speicherverwalter auf, sobald `$ch` aus dem Gültigkeits-
                 // bereich fällt.
                 unset($ch);
@@ -408,7 +408,7 @@ class TerminalEinrichtungController
      *
      * Vorlage ist `config/config.php.example`; ausgefüllt wird alles, was die
      * Kopplung geliefert hat, plus die gerätelokalen Werte aus
-     * `config/geraet.local.php` (falls vorhanden).
+     * `config/gerät.local.php` (falls vorhanden).
      *
      * @param array<string,mixed> $terminal
      * @param array<string,mixed> $db
@@ -445,10 +445,10 @@ class TerminalEinrichtungController
         $zeilen[] = ' * Automatisch erzeugt bei der Kopplung am ' . date('d.m.Y H:i:s') . '.';
         $zeilen[] = ' * Endpunkt: ' . $this->kommentarText($endpunkt);
         $zeilen[] = ' *';
-        $zeilen[] = ' * Diese Datei enthaelt die Zugangsdaten **dieses einen** Terminals.';
-        $zeilen[] = ' * Sie gehoert nicht ins Repository und wird bei einer erneuten Kopplung';
-        $zeilen[] = ' * ersetzt. Geht das Geraet verloren, reicht es, im Backend den zugehoerigen';
-        $zeilen[] = ' * Datenbankbenutzer zu loeschen.';
+        $zeilen[] = ' * Diese Datei enthält die Zugangsdaten **dieses einen** Terminals.';
+        $zeilen[] = ' * Sie gehört nicht ins Repository und wird bei einer erneuten Kopplung';
+        $zeilen[] = ' * ersetzt. Geht das Gerät verloren, reicht es, im Backend den zugehörigen';
+        $zeilen[] = ' * Datenbankbenutzer zu löschen.';
         $zeilen[] = ' */';
         $zeilen[] = '';
         $zeilen[] = 'return [';
@@ -461,7 +461,7 @@ class TerminalEinrichtungController
         $zeilen[] = '';
         $zeilen[] = "    'timezone' => " . $w($zeitzone) . ',';
         $zeilen[] = '';
-        $zeilen[] = '    // Hauptdatenbank: eigener, eingeschraenkter Benutzer dieses Terminals.';
+        $zeilen[] = '    // Hauptdatenbank: eigener, eingeschränkter Benutzer dieses Terminals.';
         $zeilen[] = "    'db' => [";
         $zeilen[] = "        'host'    => " . $w((string)($db['host'] ?? 'localhost')) . ',';
         $zeilen[] = "        'dbname'  => " . $w((string)($db['dbname'] ?? 'zeiterfassung')) . ',';
@@ -474,7 +474,7 @@ class TerminalEinrichtungController
         if ($offline === null) {
             $zeilen[] = '    // Lokale Ausweichdatenbank: nicht eingerichtet.';
             $zeilen[] = '    // Das Installationsskript legt sie an und hinterlegt die Zugangsdaten';
-            $zeilen[] = '    // in config/geraet.local.php. Ohne sie laeuft das Terminal nur online.';
+            $zeilen[] = '    // in config/gerät.local.php. Ohne sie läuft das Terminal nur online.';
             $zeilen[] = "    'offline_db' => [";
             $zeilen[] = "        'enabled' => false,";
             $zeilen[] = "        'host'    => 'localhost',";
@@ -484,7 +484,7 @@ class TerminalEinrichtungController
             $zeilen[] = "        'pass'    => '',";
             $zeilen[] = '    ],';
         } else {
-            $zeilen[] = '    // Lokale Ausweichdatenbank (aus config/geraet.local.php).';
+            $zeilen[] = '    // Lokale Ausweichdatenbank (aus config/gerät.local.php).';
             $zeilen[] = "    'offline_db' => [";
             $zeilen[] = "        'enabled' => " . $w((bool)$offline['enabled']) . ',';
             $zeilen[] = "        'host'    => " . $w((string)$offline['host']) . ',';
@@ -496,7 +496,7 @@ class TerminalEinrichtungController
         }
 
         $zeilen[] = '';
-        $zeilen[] = '    // Wer dieses Terminal ist - aus der Kopplung uebernommen.';
+        $zeilen[] = '    // Wer dieses Terminal ist - aus der Kopplung übernommen.';
         $zeilen[] = "    'terminal' => [";
         $zeilen[] = "        'id'                           => " . $w((int)($terminal['id'] ?? 0)) . ',';
         $zeilen[] = "        'name'                         => " . $w((string)($terminal['name'] ?? '')) . ',';
@@ -544,7 +544,7 @@ class TerminalEinrichtungController
             /** @var mixed $daten */
             $daten = require $pfad;
         } catch (\Throwable $e) {
-            Logger::warn('config/geraet.local.php konnte nicht gelesen werden', [
+            Logger::warn('config/gerät.local.php konnte nicht gelesen werden', [
                 'exception' => $e->getMessage(),
             ], null, null, 'terminal_einrichtung');
 
@@ -674,7 +674,7 @@ class TerminalEinrichtungController
     }
 
     /**
-     * Text für einen PHP-Kommentar entschaerfen (kein Kommentarende einbauen).
+     * Text für einen PHP-Kommentar entschärfen (kein Kommentarende einbauen).
      */
     private function kommentarText(string $text): string
     {

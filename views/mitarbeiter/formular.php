@@ -838,9 +838,9 @@ $zeigeAbteilungsrollenBereich = $hatAbteilungen || count($rollenScopesAbteilung)
             <?php if ($istRechteModus): ?>
                 <a href="?seite=mitarbeiter_admin_bearbeiten&amp;id=<?php echo (int)$id; ?>">Stammdaten bearbeiten</a>
                 |
-                <a href="?seite=mitarbeiter_stundenkonto&amp;mitarbeiter_id=<?php echo (int)$id; ?>">Stundenkonto fuer diesen Mitarbeiter oeffnen</a>
+                <a href="?seite=mitarbeiter_stundenkonto&amp;mitarbeiter_id=<?php echo (int)$id; ?>">Stundenkonto für diesen Mitarbeiter öffnen</a>
             <?php else: ?>
-                <a href="?seite=mitarbeiter_stundenkonto&amp;mitarbeiter_id=<?php echo (int)$id; ?>">Stundenkonto fuer diesen Mitarbeiter oeffnen</a>
+                <a href="?seite=mitarbeiter_stundenkonto&amp;mitarbeiter_id=<?php echo (int)$id; ?>">Stundenkonto für diesen Mitarbeiter öffnen</a>
                 |
                 <a href="?seite=mitarbeiter_rechte&amp;id=<?php echo (int)$id; ?>">Rollen & Rechte bearbeiten</a>
             <?php endif; ?>

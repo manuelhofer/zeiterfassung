@@ -76,9 +76,9 @@ if ($auth->istAngemeldet()) {
     $hatKrankzeitraumAdminRecht   = $auth->hatRecht('KRANKZEITRAUM_VERWALTEN') || $hatKonfigurationAdminRecht || $hatLegacyAdminRolle;
 }
 
-    // Recht: Urlaub genehmigen. Der Menuepunkt erscheint auch dann, wenn die
-    // Zustaendigkeit nur fuer einen begrenzten Kreis gilt - wer fuer niemanden
-    // zustaendig ist, sieht ihn nicht.
+    // Recht: Urlaub genehmigen. Der Menüpunkt erscheint auch dann, wenn die
+    // Zuständigkeit nur für einen begrenzten Kreis gilt - wer für niemanden
+    // zuständig ist, sieht ihn nicht.
  $hatUrlaubGenehmigungRecht = (
      $auth->hatRecht('URLAUB_GENEHMIGEN_ALLE')
      || $auth->hatRecht('URLAUB_GENEHMIGEN_SELF')
@@ -89,7 +89,7 @@ if ($auth->istAngemeldet()) {
          $genehmigungsdienst = UrlaubGenehmigungService::getInstanz();
 
          // Beides muss zutreffen, wie bisher: das Recht **und** eine
-         // Zustaendigkeit. Neu ist nur, dass beides auch ueber eine
+         // Zuständigkeit. Neu ist nur, dass beides auch über eine
          // abteilungsbezogene Rolle kommen kann
          // (`docs/spezifikation_abteilungsrechte.md`).
          $darfBereichGenehmigen = $auth->hatRecht('URLAUB_GENEHMIGEN')
@@ -98,7 +98,7 @@ if ($auth->istAngemeldet()) {
          $hatUrlaubGenehmigungRecht = $darfBereichGenehmigen
              && $genehmigungsdienst->istGenehmigerFuerIrgendwen($angemeldeterMitarbeiterId);
      } catch (\Throwable $e) {
-         // Ignorieren – ein fehlender Menuepunkt ist besser als eine
+         // Ignorieren – ein fehlender Menüpunkt ist besser als eine
          // Navigation, die wegen der Datenbank gar nicht erscheint.
      }
  }
@@ -445,9 +445,9 @@ if ($hatKonfigurationAdminRecht) {
             background: #821818;
         }
 
-        /* Zurueckhaltende Variante: gleiche Form, weniger Gewicht. Fuer alles,
+        /* Zurückhaltende Variante: gleiche Form, weniger Gewicht. Für alles,
            was in einer Tabellenzeile oder einer Blaetterleiste mehrfach
-           vorkommt - eine Reihe kraeftig blauer Knoepfe waere nur noch Farbe. */
+           vorkommt - eine Reihe kräftig blauer Knöpfe wäre nur noch Farbe. */
         button.quiet,
         .button-link.quiet {
             border-color: var(--backend-line);
@@ -465,7 +465,7 @@ if ($hatKonfigurationAdminRecht) {
         }
 
         /* Ausgegraut statt versteckt: Ein Pfeil, der am Rand verschwindet,
-           laesst die Leiste springen. */
+           lässt die Leiste springen. */
         button:disabled,
         .button-link.disabled {
             border-color: var(--backend-line-soft);
@@ -587,8 +587,8 @@ if ($hatKonfigurationAdminRecht) {
             align-items: center;
         }
 
-        /* In einer Tabellenzeile sollen die Knoepfe nebeneinander bleiben und
-           nicht die Zeilenhoehe verdoppeln. Wird die Tabelle dadurch breiter als
+        /* In einer Tabellenzeile sollen die Knöpfe nebeneinander bleiben und
+           nicht die Zeilenhöhe verdoppeln. Wird die Tabelle dadurch breiter als
            der Bildschirm, scrollt `.table-wrap` waagerecht. */
         td .table-actions {
             flex-wrap: nowrap;
@@ -646,8 +646,8 @@ if ($hatKonfigurationAdminRecht) {
             border-top: 1px solid var(--backend-line-soft);
         }
 
-        /* Umrandung fuer einen Bereich, der in einem besonderen Betriebszustand
-           laeuft - derzeit der Stealth-Modus des Stundenkontos. Soll auffallen. */
+        /* Umrandung für einen Bereich, der in einem besonderen Betriebszustand
+           läuft - derzeit der Stealth-Modus des Stundenkontos. Soll auffallen. */
         .stealth-rahmen {
             border: 3px solid var(--backend-danger);
             padding: 12px;
@@ -721,8 +721,8 @@ if ($hatKonfigurationAdminRecht) {
             padding: 0.85rem 0.95rem;
         }
 
-        /* Nur die Ueberschrift der Karte steht auf eigener Zeile. Galt frueher
-           fuer jedes `strong` in der Karte - seit die Statuskacheln des
+        /* Nur die Ueberschrift der Karte steht auf eigener Zeile. Galt früher
+           für jedes `strong` in der Karte - seit die Statuskacheln des
            Dashboards `.admin-card` benutzen, zerriss das dort jeden Wert
            ("Aktiv: 0" auf zwei Zeilen). */
         .admin-card > strong {
@@ -796,7 +796,7 @@ if ($hatKonfigurationAdminRecht) {
         }
 
         /* Nur die Ueberschrift des Kastens ist rot, nicht jedes fette Wort im
-           Text darunter. `.panel-titel` gibt es fuer die Faelle, in denen die
+           Text darunter. `.panel-titel` gibt es für die Fälle, in denen die
            Ueberschrift zwecks Layout in einem Zwischen-div steckt und deshalb
            kein direktes Kind mehr ist. */
         .warning-panel > strong,
@@ -831,7 +831,7 @@ if ($hatKonfigurationAdminRecht) {
 
         /* Blaetterleiste unter einer Liste: Trefferzahl, Seitenzahlen, Pfeile.
            `nav` ist hier semantisch richtig, erbt aber die dunkle Hauptnavigation
-           von oben - deshalb die drei Ruecksetzungen. */
+           von oben - deshalb die drei Rücksetzungen. */
         .pager {
             display: flex;
             flex-wrap: wrap;
@@ -863,9 +863,9 @@ if ($hatKonfigurationAdminRecht) {
 
            Die Selektoren sind absichtlich so lang: `tbody tr:nth-child(even) td`
            und `tbody tr:hover td` weiter oben sind spezifischer als ein blosses
-           `td.zelle-manuell` - die Bedeutungsfarbe waere sonst auf jeder zweiten
+           `td.zelle-manuell` - die Bedeutungsfarbe wäre sonst auf jeder zweiten
            Zeile verschwunden. Und `.zelle-manuell` steht nach
-           `.zeile-betriebsferien`, weil bei gleichem Gewicht die spaetere Regel
+           `.zeile-betriebsferien`, weil bei gleichem Gewicht die spätere Regel
            gewinnt: Eine von Hand korrigierte Zelle bleibt auch in einer
            Betriebsferienzeile als solche erkennbar. */
         tbody tr.zeile-betriebsferien td {
@@ -892,7 +892,7 @@ if ($hatKonfigurationAdminRecht) {
             margin: 0.5rem 0;
         }
 
-        /* Gegenstueck zu `.warning-panel` fuer Kaesten, die keine Warnung sind,
+        /* Gegenstueck zu `.warning-panel` für Kästen, die keine Warnung sind,
            aber trotzdem auffallen sollen - etwa der einmalig angezeigte
            Kopplungscode eines Terminals. */
         .info-panel {
@@ -907,7 +907,7 @@ if ($hatKonfigurationAdminRecht) {
         }
 
         /* Eine Zeile, auf die verwiesen wurde (z. B. „zu Antrag 42 springen").
-           Wie die Auswertungsfarben spezifisch genug fuer die Zebrastreifen. */
+           Wie die Auswertungsfarben spezifisch genug für die Zebrastreifen. */
         tbody tr.zeile-markiert td {
             background: #fff3e0;
             box-shadow: inset 0 0 0 2px #ff9800;
@@ -938,7 +938,7 @@ if ($hatKonfigurationAdminRecht) {
         }
 
         /* Statuskachel: eine `.admin-card`, deren Hintergrund die Lage anzeigt.
-           Fuer Uebersichten wie den Systemstatus im Dashboard. */
+           Für Uebersichten wie den Systemstatus im Dashboard. */
         .admin-card.zustand-ok {
             background: var(--backend-success-bg);
             border-color: #9ac8aa;
@@ -1112,7 +1112,7 @@ if ($hatKonfigurationAdminRecht) {
         <span class="nav-menu <?php echo in_array($seite, ['mitarbeiter_admin','mitarbeiter_admin_bearbeiten','mitarbeiter_stundenkonto','mitarbeiter_rechte'], true) ? 'active' : ''; ?>">
             <a href="?seite=mitarbeiter_admin">Mitarbeiter</a>
             <span class="nav-menu-items">
-                <a href="?seite=mitarbeiter_admin">Mitarbeiteruebersicht</a>
+                <a href="?seite=mitarbeiter_admin">Mitarbeiterübersicht</a>
                 <a href="?seite=mitarbeiter_admin_bearbeiten">Mitarbeiter anlegen</a>
                 <a href="?seite=mitarbeiter_rechte">Rollen &amp; Rechte</a>
                 <a href="?seite=mitarbeiter_stundenkonto">Stundenkonto</a>

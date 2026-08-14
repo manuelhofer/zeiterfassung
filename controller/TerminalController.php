@@ -82,7 +82,7 @@ class TerminalController
         }
 
         // De-Bounce nur für dieselbe Person (online: Mitarbeiter-ID, offline: RFID-Code),
-        // damit mehrere Mitarbeiter kurz hintereinander nicht faelschlich blockiert werden.
+        // damit mehrere Mitarbeiter kurz hintereinander nicht fälschlich blockiert werden.
         if ($mitarbeiterId !== null) {
             if ($lastMitarbeiterId === null || $lastMitarbeiterId !== $mitarbeiterId) {
                 return null;
@@ -985,7 +985,7 @@ class TerminalController
             // Extras für Startscreen-Info.
             $restBisMonatsendeMinuten = $sollMonatGesamtMinuten - $istBisherMinuten;
             $saldoBisHeuteMinuten = $istBisherMinuten - $sollBisHeuteMinuten;
-            $saldoLabel = $saldoBisHeuteMinuten >= 0 ? 'im Plan' : 'Rueckstand';
+            $saldoLabel = $saldoBisHeuteMinuten >= 0 ? 'im Plan' : 'Rückstand';
             $saldoAmpel = $saldoBisHeuteMinuten >= 0 ? 'ok' : 'error';
 
             $sumAllMinuten = $sumIstMinuten
@@ -1253,7 +1253,7 @@ class TerminalController
      */
     public function stoerung(): void
     {
-        // Terminal ist funktional eingeschraenkt (503), solange ein Queue-Fehler existiert.
+        // Terminal ist funktional eingeschränkt (503), solange ein Queue-Fehler existiert.
 
         // Wenn ein Mitarbeiter noch eingeloggt ist, zeigen wir unten ein Mitarbeiterpanel.
         // (Nur read-only; Aktionen bleiben weiterhin gesperrt.)
@@ -1311,12 +1311,12 @@ class TerminalController
         }
 
         if ($stoerungEintrag === null && $fatalOhneQueue === false) {
-            $_SESSION['terminal_flash_nachricht'] = 'Stoerung behoben – Terminal ist wieder verfuegbar.';
+            $_SESSION['terminal_flash_nachricht'] = 'Störung behoben – Terminal ist wieder verfügbar.';
             header('Location: terminal.php?aktion=start');
             return;
         }
 
-        // Terminal ist funktional eingeschraenkt.
+        // Terminal ist funktional eingeschränkt.
         http_response_code(503);
         // Monatsstatus für das Mitarbeiterpanel (Soll Monat / Soll bis heute / IST bis heute) – nur online.
         $monatsStatus = null;
@@ -1774,7 +1774,7 @@ class TerminalController
 
 
                 // T-069 Helper: Offline-Queue manuell verarbeiten (nur Debug + Queue-Admin).
-                // Zweck: Feldtest – nach Netz-Rueckkehr gezielt "Replay jetzt" anstossen und Ergebnis sehen.
+                // Zweck: Feldtest – nach Netz-Rückkehr gezielt "Replay jetzt" anstossen und Ergebnis sehen.
                 if ($debugAktiv && isset($_POST['debug_queue_verarbeiten']) && (string)$_POST['debug_queue_verarbeiten'] === '1') {
                     $mid = null;
                     if (isset($_SESSION['terminal_mitarbeiter_id'])) {
@@ -1787,13 +1787,13 @@ class TerminalController
                     }
 
                     if ($mid === null || $mid <= 0) {
-                        $_SESSION['terminal_flash_fehler'] = 'Queue-Verarbeitung nur moeglich, wenn ein Mitarbeiter am Terminal angemeldet ist.';
+                        $_SESSION['terminal_flash_fehler'] = 'Queue-Verarbeitung nur möglich, wenn ein Mitarbeiter am Terminal angemeldet ist.';
                         header('Location: terminal.php?aktion=start&debug=1');
                         exit;
                     }
 
                     if (!$this->terminalMitarbeiterHatRecht((int)$mid, 'QUEUE_VERWALTEN')) {
-                        $_SESSION['terminal_flash_fehler'] = 'Keine Berechtigung fuer Queue-Verarbeitung.';
+                        $_SESSION['terminal_flash_fehler'] = 'Keine Berechtigung für Queue-Verarbeitung.';
                         header('Location: terminal.php?aktion=start&debug=1');
                         exit;
                     }
@@ -2911,7 +2911,7 @@ class TerminalController
 
         // Regel: Nebenauftrag nur, wenn ein Hauptauftrag läuft (serverseitig absichern)
         if (!$this->hatLaufendenHauptauftragFuerMitarbeiter((int)$mitarbeiter['id'])) {
-            $_SESSION['terminal_flash_fehler'] = 'Nebenauftrag ist nur moeglich, wenn ein Hauptauftrag laeuft.';
+            $_SESSION['terminal_flash_fehler'] = 'Nebenauftrag ist nur möglich, wenn ein Hauptauftrag läuft.';
             header('Location: terminal.php?aktion=start');
             exit;
         }
@@ -2991,7 +2991,7 @@ class TerminalController
 
                 // Regel: Nebenauftrag nur, wenn ein Hauptauftrag läuft (serverseitig absichern)
                 if (!$this->hatLaufendenHauptauftragFuerMitarbeiter((int)$mitarbeiter['id'])) {
-                    $_SESSION['terminal_flash_fehler'] = 'Nebenauftrag ist nur moeglich, wenn ein Hauptauftrag laeuft.';
+                    $_SESSION['terminal_flash_fehler'] = 'Nebenauftrag ist nur möglich, wenn ein Hauptauftrag läuft.';
                     header('Location: terminal.php?aktion=start');
                     exit;
                 }
@@ -3290,7 +3290,7 @@ class TerminalController
 
         // Offline: nur in Queue schreiben
         if (!$this->istHauptdatenbankAktiv()) {
-            // Auftrag (Minimaldatensatz) sicherstellen, damit die Buchung später aufloesbar ist
+            // Auftrag (Minimaldatensatz) sicherstellen, damit die Buchung später auflösbar ist
             // (analog Hauptauftrag-Start in AuftragszeitService).
             $sqlEnsureAuftrag = 'INSERT INTO auftrag (auftragsnummer, aktiv) VALUES ('
                 . $this->sqlString($auftragscode) . ', 1) '

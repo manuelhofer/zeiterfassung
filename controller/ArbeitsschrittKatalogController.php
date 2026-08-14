@@ -7,7 +7,7 @@ declare(strict_types=1);
  * Verwaltung der zentralen, auftragsunabhängigen Standard-Arbeitsschritte
  * (siehe `docs/spezifikation_auftrag_barcode_laufkarte.md`, Abschnitt 4a).
  *
- * Gedanke dahinter: `fraesen` ist bei jedem Auftrag dasselbe `fraesen`. Die
+ * Gedanke dahinter: `fräsen` ist bei jedem Auftrag dasselbe `fräsen`. Die
  * Arbeitsvorbereitung pflegt den Schritt einmal, druckt seinen Strichcode so oft
  * aus wie nötig und hängt ihn an die Maschinen. Gescannt wird dann
  * Auftrag (von der Laufkarte) + Arbeitsschritt (von der Maschine).
@@ -180,7 +180,7 @@ class ArbeitsschrittKatalogController
         }
 
         if (mb_strlen($code) > 100) {
-            $this->renderFormular($daten, 'Der Code darf hoechstens 100 Zeichen lang sein.');
+            $this->renderFormular($daten, 'Der Code darf höchstens 100 Zeichen lang sein.');
             return;
         }
 
@@ -197,7 +197,7 @@ class ArbeitsschrittKatalogController
                 return;
             }
         } catch (\Throwable $e) {
-            $this->protokolliere('Pruefung auf doppelten Katalog-Code fehlgeschlagen', ['exception' => $e->getMessage()]);
+            $this->protokolliere('Prüfung auf doppelten Katalog-Code fehlgeschlagen', ['exception' => $e->getMessage()]);
         }
 
         try {
@@ -246,7 +246,7 @@ class ArbeitsschrittKatalogController
      *
      * Ohne Parameter: alle aktiven Katalogschritte, eine Karte je Schritt.
      * Mit `id` und `anzahl`: derselbe Schritt mehrfach – der Fall
-     * „20-mal fraesen für 20 Fräsmaschinen“.
+     * „20-mal fräsen für 20 Fräsmaschinen“.
      *
      * Bewusst ohne Verwaltungsrecht: Einen Code nachdrucken, weil die Karte an
      * der Maschine unleserlich geworden ist, muss ohne Änderungsrecht gehen.

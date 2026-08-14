@@ -27,9 +27,9 @@ $esc = static function ($wert): string {
 
     <p>
         Hier stehen die immer wiederkehrenden Arbeitsschritte – einmal gepflegt,
-        fuer jeden Auftrag nutzbar. Der Strichcode gehoert an die Maschine:
-        Wer mehrere Fraesmaschinen hat, druckt <code>fraesen</code> mehrfach aus
-        und haengt den Code an jede davon.
+        für jeden Auftrag nutzbar. Der Strichcode gehört an die Maschine:
+        Wer mehrere Fräsmaschinen hat, druckt <code>fräsen</code> mehrfach aus
+        und hängt den Code an jede davon.
     </p>
 
     <?php if ($flashOk !== ''): ?>
@@ -44,7 +44,7 @@ $esc = static function ($wert): string {
 
     <?php if ($darfVerwalten): ?>
         <div class="table-actions">
-            <a class="button-link" href="?seite=arbeitsschritt_katalog_neu">+ Arbeitsschritt hinzufuegen</a>
+            <a class="button-link" href="?seite=arbeitsschritt_katalog_neu">+ Arbeitsschritt hinzufügen</a>
             <?php if (count($eintraege) > 0): ?>
                 <a class="button-link quiet" href="?seite=arbeitsschritt_katalog_blatt" target="_blank">Alle Strichcodes als Druckblatt (PDF)</a>
             <?php endif; ?>
@@ -104,7 +104,7 @@ $esc = static function ($wert): string {
         </table>
         <p><small>
             Der Katalog schreibt nichts vor: Ein am Terminal gescannter Code, der hier
-            nicht steht, wird weiterhin angenommen und gezaehlt.
+            nicht steht, wird weiterhin angenommen und gezählt.
         </small></p>
     <?php endif; ?>
 </section>

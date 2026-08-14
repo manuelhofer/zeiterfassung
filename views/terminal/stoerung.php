@@ -154,7 +154,7 @@ require __DIR__ . '/_layout_top.php';
     </p>
 
 <div class="button-row">
-    <a href="terminal.php?aktion=start" class="button-link">Neu pruefen / Start</a>
+    <a href="terminal.php?aktion=start" class="button-link">Neu prüfen / Start</a>
 </div>
 
 <?php

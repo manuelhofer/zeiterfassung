@@ -463,7 +463,7 @@ class KonfigurationController
                                     <button type="button" class="button-link" data-detail-toggle="<?php echo htmlspecialchars($detailId, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>">Details</button>
                                     <form method="post" action="?seite=konfiguration_admin&amp;tab=systemlog" style="display:inline;" onsubmit="return confirm('Diesen Log-Eintrag wirklich löschen?');">
                                         <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($csrfToken, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>">
-                                        <input type="hidden" name="log_action" value="loeschen">
+                                        <input type="hidden" name="log_action" value="löschen">
                                         <input type="hidden" name="id" value="<?php echo (int)$id; ?>">
                                         <button type="submit" class="button-link danger">Löschen</button>
                                     </form>

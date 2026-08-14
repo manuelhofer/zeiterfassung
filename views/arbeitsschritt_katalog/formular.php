@@ -28,7 +28,7 @@ $esc = static function ($wert): string {
 <section>
     <h2><?php echo $id > 0 ? 'Arbeitsschritt bearbeiten' : 'Arbeitsschritt anlegen'; ?></h2>
 
-    <p><a class="button-link quiet" href="?seite=arbeitsschritt_katalog">&laquo; Zurueck zum Katalog</a></p>
+    <p><a class="button-link quiet" href="?seite=arbeitsschritt_katalog">&laquo; Zurück zum Katalog</a></p>
 
     <?php if (is_string($fehlermeldung) && $fehlermeldung !== ''): ?>
         <div class="error">
@@ -45,11 +45,11 @@ $esc = static function ($wert): string {
             <input type="text" id="code" name="code" required maxlength="100"
                    value="<?php echo $esc($code); ?>" style="width:100%;max-width:260px;">
             <br><small>
-                Steht im Strichcode und wird am Terminal gescannt, z. B. <code>fraesen</code>.
+                Steht im Strichcode und wird am Terminal gescannt, z. B. <code>fräsen</code>.
                 Kurz und eindeutig halten – der Code taucht in allen Auswertungen auf.
                 <?php if ($id > 0): ?>
                     <br><strong>Achtung:</strong> Eine Aenderung erzeugt einen neuen Strichcode.
-                    Bereits an Maschinen haengende Ausdrucke werden dadurch ungueltig.
+                    Bereits an Maschinen hängende Ausdrucke werden dadurch ungültig.
                 <?php endif; ?>
             </small>
         </div>
@@ -58,7 +58,7 @@ $esc = static function ($wert): string {
             <label for="bezeichnung"><strong>Bezeichnung</strong></label><br>
             <input type="text" id="bezeichnung" name="bezeichnung" maxlength="255"
                    value="<?php echo $esc($bezeichnung); ?>" style="width:100%;max-width:480px;">
-            <br><small>Klartext fuer Ausdruck und Auswertung, z. B. „Fraesen“.</small>
+            <br><small>Klartext für Ausdruck und Auswertung, z. B. „Fräsen“.</small>
         </div>
 
         <div style="margin-bottom:0.75rem;">
@@ -72,7 +72,7 @@ $esc = static function ($wert): string {
                 <input type="checkbox" name="aktiv" value="1" <?php echo $aktiv ? 'checked' : ''; ?>>
                 Aktiv
             </label>
-            <br><small>Inaktive Schritte stehen nicht mehr zur Auswahl und nicht auf dem Druckblatt. Bereits erfasste Buchungen bleiben unberuehrt.</small>
+            <br><small>Inaktive Schritte stehen nicht mehr zur Auswahl und nicht auf dem Druckblatt. Bereits erfasste Buchungen bleiben unberührt.</small>
         </div>
 
         <div class="form-actions">

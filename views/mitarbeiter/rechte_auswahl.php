@@ -20,7 +20,7 @@ $successmeldung = $successmeldung ?? null;
     <div class="page-header">
         <div>
             <h2>Rollen &amp; Rechte</h2>
-            <p>Mitarbeiter auswaehlen und die Rollenverwaltung oeffnen.</p>
+            <p>Mitarbeiter auswählen und die Rollenverwaltung öffnen.</p>
         </div>
     </div>
 
@@ -37,7 +37,7 @@ $successmeldung = $successmeldung ?? null;
         <label for="rechte_mitarbeiter_id">
             Mitarbeiter
             <select name="id" id="rechte_mitarbeiter_id" required>
-                <option value="">-- bitte waehlen --</option>
+                <option value="">-- bitte wählen --</option>
                 <?php foreach ($mitarbeiterListe as $mit): ?>
                     <?php
                         $id = (int)($mit['id'] ?? 0);
@@ -58,7 +58,7 @@ $successmeldung = $successmeldung ?? null;
                 <?php endforeach; ?>
             </select>
         </label>
-        <button type="submit">Oeffnen</button>
+        <button type="submit">Öffnen</button>
     </form>
 
     <?php if (count($mitarbeiterListe) === 0): ?>

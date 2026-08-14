@@ -57,7 +57,7 @@ require __DIR__ . '/_layout_top.php';
       const maschine = document.getElementById('maschine_id');
 
       // Barcode-Scanner senden meistens ein "Enter" nach dem Scan.
-      // Wir springen dann bequem ins naechste Feld.
+      // Wir springen dann bequem ins nächste Feld.
       if (auftrag && schritt) {
         auftrag.addEventListener('keydown', (ev) => {
           if (ev.key === 'Enter') {
@@ -71,7 +71,7 @@ require __DIR__ . '/_layout_top.php';
       if (schritt && maschine) {
         schritt.addEventListener('keydown', (ev) => {
           if (ev.key === 'Enter') {
-            // Wenn direkt noch die Maschine gescannt wird: naechstes Feld
+            // Wenn direkt noch die Maschine gescannt wird: nächstes Feld
             ev.preventDefault();
             maschine.focus();
             maschine.select?.();

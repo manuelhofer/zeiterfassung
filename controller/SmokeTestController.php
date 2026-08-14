@@ -1190,7 +1190,7 @@ class SmokeTestController
         $monatsrasterTestErgebnis = null;
         $monatsrasterTestHinweis = null;
 
-        // T-069 (Fortsetzung): Monatsreport-Fallback-Check (lueckenhafte Tageswerte)
+        // T-069 (Fortsetzung): Monatsreport-Fallback-Check (lückenhafte Tageswerte)
         // - Prüft, ob es Tage mit Zeitbuchungen gibt, die noch keinen Datensatz in `tageswerte_mitarbeiter` haben,
         //   und ob der Monatsreport diese Tage trotzdem sinnvoll füllt (Fallback aus Zeitbuchungen).
         $monatsfallbackTestJahr = (int)date('Y');
@@ -2599,7 +2599,7 @@ class SmokeTestController
 
 
 
-        // Monatsreport-Fallback-Check (lueckenhafte Tageswerte):
+        // Monatsreport-Fallback-Check (lückenhafte Tageswerte):
         // - Sucht Tage mit Zeitbuchungen, aber ohne passenden Datensatz in `tageswerte_mitarbeiter`.
         // - Prüft anschließend, ob der Monatsreport diese Tage per Fallback (aus Zeitbuchungen) sinnvoll befüllt.
         if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['monatsfallback_test_run'])) {
@@ -3753,11 +3753,11 @@ class SmokeTestController
             <?php endif; ?>
 
 
-            <h3>Monatsreport-Fallback-Check (lueckenhafte Tageswerte)</h3>
+            <h3>Monatsreport-Fallback-Check (lückenhafte Tageswerte)</h3>
             <p>
-                Dieser Check sucht im ausgewaehlten Monat nach Tagen, an denen es <strong>Zeitbuchungen</strong> gibt,
+                Dieser Check sucht im ausgewählten Monat nach Tagen, an denen es <strong>Zeitbuchungen</strong> gibt,
                 aber <strong>kein</strong> entsprechender Datensatz in <code>tageswerte_mitarbeiter</code> vorhanden ist.
-                Anschliessend wird geprueft, ob der Monatsreport diese Tage per <strong>Fallback</strong> (aus Zeitbuchungen) sinnvoll befuellt.
+                Anschliessend wird geprüft, ob der Monatsreport diese Tage per <strong>Fallback</strong> (aus Zeitbuchungen) sinnvoll befüllt.
             </p>
 
             <form method="post" action="?seite=smoke_test" style="margin: 0 0 12px 0;">
@@ -3774,7 +3774,7 @@ class SmokeTestController
                 <input type="number" id="monatsfallback_test_monat" name="monatsfallback_test_monat"
                        value="<?php echo (int)$monatsfallbackTestMonat; ?>" style="width: 70px;">
                 &nbsp;
-                <button type="submit">Fallback pruefen</button>
+                <button type="submit">Fallback prüfen</button>
             </form>
 
             <?php if ($monatsfallbackTestHinweis !== null && $monatsfallbackTestHinweis !== ''): ?>
@@ -3798,7 +3798,7 @@ class SmokeTestController
                         <li>Tage mit Buchungen: <?php echo (int)($monatsfallbackTestErgebnis['booked_days_count'] ?? 0); ?></li>
                         <li>Tage mit Tageswerten (DB): <?php echo (int)($monatsfallbackTestErgebnis['tageswerte_days_count'] ?? 0); ?></li>
                         <li>Tage mit Buchungen aber ohne Tageswerte: <?php echo $missingCount; ?></li>
-                        <li>Davon im Report nicht sinnvoll befuellt: <?php echo $notCoveredCount; ?></li>
+                        <li>Davon im Report nicht sinnvoll befüllt: <?php echo $notCoveredCount; ?></li>
                     </ul>
 
                     <?php
@@ -3819,7 +3819,7 @@ class SmokeTestController
 
                     <?php if (is_array($nc) && $nc !== []): ?>
                         <hr>
-                        <p style="margin:0 0 6px 0;"><strong>Nicht befuellt (max. 10):</strong></p>
+                        <p style="margin:0 0 6px 0;"><strong>Nicht befüllt (max. 10):</strong></p>
                         <ul style="margin:0;">
                             <?php foreach ($nc as $d): ?>
                                 <li><?php echo htmlspecialchars((string)$d, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></li>
@@ -3839,7 +3839,7 @@ class SmokeTestController
                                 <th style="border:1px solid #ccc; padding:6px; text-align:left;">Gehen (roh)</th>
                                 <th style="border:1px solid #ccc; padding:6px; text-align:right;">AZ (h)</th>
                                 <th style="border:1px solid #ccc; padding:6px; text-align:right;">Pause (h)</th>
-                                <th style="border:1px solid #ccc; padding:6px; text-align:center;">Report gefuellt</th>
+                                <th style="border:1px solid #ccc; padding:6px; text-align:center;">Report gefüllt</th>
                             </tr>
                             </thead>
                             <tbody>
@@ -4039,7 +4039,7 @@ class SmokeTestController
             <h3>Kommen/Gehen-Sequenz-Check (Monat)</h3>
             <p>
                 Dieser Check analysiert die Reihenfolge der Zeitbuchungen (kommen/gehen) pro Tag.
-                Er findet auffaellige Tage wie z.B. <em>gehen ohne kommen</em>, <em>doppelte Typen</em> oder <em>offene Arbeitsbloecke</em>.
+                Er findet auffällige Tage wie z.B. <em>gehen ohne kommen</em>, <em>doppelte Typen</em> oder <em>offene Arbeitsblöcke</em>.
             </p>
 
             <form method="post" action="?seite=smoke_test" style="margin: 0 0 12px 0;">
@@ -4056,7 +4056,7 @@ class SmokeTestController
                 <input type="number" id="buchungssequenz_test_monat" name="buchungssequenz_test_monat"
                        value="<?php echo (int)$buchungssequenzTestMonat; ?>" style="width: 70px;">
                 &nbsp;
-                <button type="submit">Sequenz pruefen</button>
+                <button type="submit">Sequenz prüfen</button>
             </form>
 
             <?php if ($buchungssequenzTestHinweis !== null && $buchungssequenzTestHinweis !== ''): ?>
@@ -4078,13 +4078,13 @@ class SmokeTestController
                         <li>Mitarbeiter-ID: <?php echo (int)($buchungssequenzTestErgebnis['mitarbeiter_id'] ?? 0); ?></li>
                         <li>Monat: <?php echo sprintf('%04d-%02d', (int)($buchungssequenzTestErgebnis['jahr'] ?? 0), (int)($buchungssequenzTestErgebnis['monat'] ?? 0)); ?></li>
                         <li>Tage mit Buchungen: <?php echo (int)($buchungssequenzTestErgebnis['tage_mit_buchungen'] ?? 0); ?></li>
-                        <li>Auffaellige Tage: <?php echo (int)($buchungssequenzTestErgebnis['tage_auffaellig'] ?? 0); ?></li>
-                        <li>Tage mit mehreren Arbeitsbloecken: <?php echo (int)($buchungssequenzTestErgebnis['tage_mehrblock'] ?? 0); ?></li>
+                        <li>Auffällige Tage: <?php echo (int)($buchungssequenzTestErgebnis['tage_auffaellig'] ?? 0); ?></li>
+                        <li>Tage mit mehreren Arbeitsblöcken: <?php echo (int)($buchungssequenzTestErgebnis['tage_mehrblock'] ?? 0); ?></li>
                     </ul>
 
                     <?php if (is_array($auffaellig) && $auffaellig !== []): ?>
                         <hr>
-                        <p style="margin:0 0 6px 0;"><strong>Auffaellige Tage (max. 10):</strong></p>
+                        <p style="margin:0 0 6px 0;"><strong>Auffällige Tage (max. 10):</strong></p>
                         <table style="border-collapse:collapse; width:100%;">
                             <thead>
                             <tr>

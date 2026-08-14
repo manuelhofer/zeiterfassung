@@ -7,7 +7,7 @@ declare(strict_types=1);
  * Wird von `TerminalEinrichtungController` gerendert, solange auf diesem Gerät
  * keine `config/config.local.php` existiert. Entspricht der Erstinstallation im
  * Backend (`views/login/initial_admin.php`), ist aber für den Touchscreen
- * gebaut: grosse Felder, Bildschirmtastatur, keine Systemtastatur nötig.
+ * gebaut: große Felder, Bildschirmtastatur, keine Systemtastatur nötig.
  *
  * Erwartete Variablen:
  * - $csrfToken (string)
@@ -22,7 +22,7 @@ declare(strict_types=1);
  *
  * Diese Seite bindet bewusst **nicht** `_layout_top.php` ein: Dort hängen
  * Statusanzeige (ONLINE/OFFLINE), Uhr und Auto-Logout an einer Datenbank, die
- * es hier noch gar nicht gibt. Ein Auto-Logout wäre hier ausserdem schaedlich –
+ * es hier noch gar nicht gibt. Ein Auto-Logout wäre hier außerdem schädlich –
  * er würde die Seite während des Tippens neu laden.
  */
 
@@ -51,9 +51,9 @@ $cssRelPfad = 'css/terminal.css';
     <?php require __DIR__ . '/_style.php'; ?>
     <style>
         /*
-         * Nur das Noetigste zusaetzlich zum Terminal-Stylesheet: Diese Seite
-         * gibt es genau einmal im Leben eines Geraets, deshalb bleiben ihre
-         * Sonderfaelle hier und nicht im gemeinsamen CSS.
+         * Nur das Nötigste zusätzlich zum Terminal-Stylesheet: Diese Seite
+         * gibt es genau einmal im Leben eines Geräts, deshalb bleiben ihre
+         * Sonderfälle hier und nicht im gemeinsamen CSS.
          */
         body.terminal-einrichtung main {
             padding-bottom: 1.5rem;
@@ -144,7 +144,7 @@ $cssRelPfad = 'css/terminal.css';
     <?php endif; ?>
 
     <div class="status-box ok">
-        <div class="status-title"><span>Dieses Geraet</span></div>
+        <div class="status-title"><span>Dieses Gerät</span></div>
         <div class="einrichtung-daten">
             Name: <strong><?php echo $e($erfolg['name'] ?? ''); ?></strong><br>
             Terminal-Nummer: <strong><?php echo (int)($erfolg['id'] ?? 0); ?></strong>
@@ -159,8 +159,8 @@ $cssRelPfad = 'css/terminal.css';
         <div class="status-box warn">
             <div class="status-title"><span>Ohne lokale Ausweichdatenbank</span></div>
             <div class="status-small">
-                Auf diesem Geraet ist keine lokale Ausweichdatenbank hinterlegt
-                (<code>config/geraet.local.php</code> fehlt). Das Terminal arbeitet, solange der
+                Auf diesem Gerät ist keine lokale Ausweichdatenbank hinterlegt
+                (<code>config/gerät.local.php</code> fehlt). Das Terminal arbeitet, solange der
                 Server erreichbar ist – bei einem Netzausfall kann es aber <strong>nichts
                 zwischenspeichern</strong>. Das Installationsskript richtet sie ein.
             </div>
@@ -175,7 +175,7 @@ $cssRelPfad = 'css/terminal.css';
 
     <h1>Terminal einrichten</h1>
     <p class="hinweis">
-        Dieses Geraet ist noch nicht mit einem Server verbunden. Im Backend unter
+        Dieses Gerät ist noch nicht mit einem Server verbunden. Im Backend unter
         <em>Verwaltung &rarr; Terminals</em> zum passenden Terminal einen Kopplungscode erzeugen
         und hier eintragen. Der Code gilt 30 Minuten und nur ein einziges Mal.
     </p>
@@ -190,7 +190,7 @@ $cssRelPfad = 'css/terminal.css';
             <div class="status-small">
                 Der Kopplungscode ist verbraucht. Wird die Datei jetzt nicht mit diesem Inhalt
                 angelegt, muss im Backend ein neuer Code erzeugt werden. Die Zugangsdaten unten
-                gelten nur fuer dieses Terminal.
+                gelten nur für dieses Terminal.
             </div>
             <pre class="einrichtung-abtippen"><?php echo $e($abtippInhalt); ?></pre>
         </div>
@@ -201,7 +201,7 @@ $cssRelPfad = 'css/terminal.css';
             <div class="status-title"><span>Verzeichnis nicht beschreibbar</span></div>
             <div class="status-small">
                 Der Webserver darf in <code><?php echo $e(dirname($konfigPfad)); ?></code> nicht schreiben.
-                Die Kopplung laesst sich trotzdem durchfuehren – die Konfiguration wird dann zum
+                Die Kopplung lässt sich trotzdem durchführen – die Konfiguration wird dann zum
                 Abtippen angezeigt. Besser: vorher die Schreibrechte setzen.
             </div>
         </div>
@@ -228,7 +228,7 @@ $cssRelPfad = 'css/terminal.css';
                    maxlength="16" autocapitalize="characters" autocorrect="off" spellcheck="false"
                    data-tastatur="code">
             <div class="einrichtung-feldhinweis">
-                8 Zeichen aus dem Backend. Gross- und Kleinschreibung sowie Bindestriche sind egal.
+                8 Zeichen aus dem Backend. Groß- und Kleinschreibung sowie Bindestriche sind egal.
             </div>
         </div>
 
@@ -236,7 +236,7 @@ $cssRelPfad = 'css/terminal.css';
             <div class="einrichtung-tastaturtitel" id="einrichtung-tastaturtitel">Bildschirmtastatur</div>
             <div class="terminal-osk" id="einrichtung-tastatur" aria-label="Bildschirmtastatur"></div>
             <button type="button" class="secondary terminal-osk-umschalter" id="einrichtung-tastatur-umschalter"
-                    aria-expanded="true" aria-controls="einrichtung-tastatur">Tastatur schliessen</button>
+                    aria-expanded="true" aria-controls="einrichtung-tastatur">Tastatur schließen</button>
         </div>
 
         <div class="button-row primary-action">
@@ -245,7 +245,7 @@ $cssRelPfad = 'css/terminal.css';
     </form>
 
     <p class="hinweis center">
-        Nach der Kopplung startet dieses Geraet von selbst in die Bedienoberflaeche.
+        Nach der Kopplung startet dieses Gerät von selbst in die Bedienoberfläche.
     </p>
 
 <?php endif; ?>
@@ -258,8 +258,8 @@ $cssRelPfad = 'css/terminal.css';
     'use strict';
 
     // Bildschirmtastatur: Ein Hallenterminal hat keine Tastatur. Die Belegung
-    // haengt am Feld – fuer den Kopplungscode gibt es bewusst nur die Zeichen,
-    // die im Code vorkommen koennen (kein O/0, kein I/1/L). Damit sind Zahlen-
+    // hängt am Feld – für den Kopplungscode gibt es bewusst nur die Zeichen,
+    // die im Code vorkommen können (kein O/0, kein I/1/L). Damit sind Zahlen-
     // dreher und Verwechslungen beim Abtippen praktisch ausgeschlossen.
     var CODE_ZEICHEN = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789'.split('');
 
@@ -270,7 +270,7 @@ $cssRelPfad = 'css/terminal.css';
             ['a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', '-'],
             ['y', 'x', 'c', 'v', 'b', 'n', 'm', '.', ':', '/']
         ],
-        gross: [
+        groß: [
             ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0'],
             ['Q', 'W', 'E', 'R', 'T', 'Z', 'U', 'I', 'O', 'P'],
             ['A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L', '_'],
@@ -327,7 +327,7 @@ $cssRelPfad = 'css/terminal.css';
                 }
             });
         } else {
-            var layout = grossModus ? textLayout.gross : textLayout.klein;
+            var layout = grossModus ? textLayout.groß : textLayout.klein;
             layout.forEach(function (zeichen) {
                 behaelter.appendChild(zeileAus(zeichen));
             });
@@ -338,12 +338,12 @@ $cssRelPfad = 'css/terminal.css';
 
         if (aktivesFeld.getAttribute('data-tastatur') !== 'code') {
             steuerZeile.appendChild(
-                erstelleTaste(grossModus ? 'abc' : 'ABC', '#gross', 'terminal-osk-taste-breit')
+                erstelleTaste(grossModus ? 'abc' : 'ABC', '#groß', 'terminal-osk-taste-breit')
             );
         }
 
         steuerZeile.appendChild(
-            erstelleTaste('Loeschen', '#loeschen', 'terminal-osk-taste-breit terminal-osk-taste-extra-breit')
+            erstelleTaste('Löschen', '#löschen', 'terminal-osk-taste-breit terminal-osk-taste-extra-breit')
         );
         behaelter.appendChild(steuerZeile);
     }
@@ -351,7 +351,7 @@ $cssRelPfad = 'css/terminal.css';
     function aktualisiereUmschalter() {
         behaelter.hidden = !sichtbar;
         if (umschalter) {
-            umschalter.textContent = sichtbar ? 'Tastatur schliessen' : 'Tastatur oeffnen';
+            umschalter.textContent = sichtbar ? 'Tastatur schließen' : 'Tastatur öffnen';
             umschalter.setAttribute('aria-expanded', sichtbar ? 'true' : 'false');
         }
     }
@@ -383,7 +383,7 @@ $cssRelPfad = 'css/terminal.css';
         aktivesFeld.focus();
     }
 
-    function loesche() {
+    function lösche() {
         if (!aktivesFeld) {
             return;
         }
@@ -408,9 +408,9 @@ $cssRelPfad = 'css/terminal.css';
         }
 
         var wert = ziel.getAttribute('data-wert');
-        if (wert === '#loeschen') {
-            loesche();
-        } else if (wert === '#gross') {
+        if (wert === '#löschen') {
+            lösche();
+        } else if (wert === '#groß') {
             grossModus = !grossModus;
             zeichnen();
         } else {

@@ -124,13 +124,13 @@ class TerminalAdminController
 
             <?php if ($neuerCode !== ''): ?>
                 <div class="info-panel" style="margin:0.75rem 0;max-width:560px;">
-                    <div><strong>Kopplungscode fuer <?php echo htmlspecialchars($neuerCodeTerminal, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></strong></div>
+                    <div><strong>Kopplungscode für <?php echo htmlspecialchars($neuerCodeTerminal, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></strong></div>
                     <div style="font-size:2rem;font-family:monospace;letter-spacing:0.25rem;margin:0.5rem 0;">
                         <?php echo htmlspecialchars($neuerCode, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>
                     </div>
                     <div><small>
                         Am Terminal eingeben. <strong>Der Code wird nur dieses eine Mal angezeigt</strong> –
-                        er ist danach nicht mehr abrufbar. Er gilt 30 Minuten und laesst sich nur einmal einloesen;
+                        er ist danach nicht mehr abrufbar. Er gilt 30 Minuten und lässt sich nur einmal einlösen;
                         geht er verloren, einfach einen neuen erzeugen.
                     </small></div>
                 </div>
@@ -228,7 +228,7 @@ class TerminalAdminController
                                 </td>
                                 <td>
                                     <?php if ($dbBenutzer !== ''): ?>
-                                        <span title="Datenbankbenutzer dieses Geraets"><?php echo htmlspecialchars($dbBenutzer, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></span>
+                                        <span title="Datenbankbenutzer dieses Geräts"><?php echo htmlspecialchars($dbBenutzer, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></span>
                                         <?php if ($gekoppeltAm !== ''): ?>
                                             <br><small class="muted">seit <?php echo htmlspecialchars($gekoppeltAm, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></small>
                                         <?php endif; ?>
@@ -236,7 +236,7 @@ class TerminalAdminController
                                                  und ein Name im JavaScript-Text wäre nur eine weitere Stelle zum
                                                  Maskieren. */ ?>
                                         <form method="post" action="?seite=terminal_admin_entkoppeln" style="display:block; margin-top:0.35rem;"
-                                              onsubmit="return confirm('Dieses Terminal entkoppeln?\n\nDer Datenbankbenutzer wird geloescht. Das Geraet kann danach nicht mehr buchen, bis es mit einem neuen Kopplungscode erneut gekoppelt wird.');">
+                                              onsubmit="return confirm('Dieses Terminal entkoppeln?\n\nDer Datenbankbenutzer wird gelöscht. Das Gerät kann danach nicht mehr buchen, bis es mit einem neuen Kopplungscode erneut gekoppelt wird.');">
                                             <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($csrfToken, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>">
                                             <input type="hidden" name="id" value="<?php echo $id; ?>">
                                             <button type="submit" style="padding: 0.15rem 0.5rem;">Entkoppeln</button>
@@ -423,7 +423,7 @@ class TerminalAdminController
      * Warum es das geben muss: Ohne diese Aktion bleibt der Datenbankbenutzer
      * eines ausgemusterten Geräts gültig - für immer. Wer das Gerät aus der
      * Halle mitnimmt, liest die Zugangsdaten aus `config.local.php` und kommt
-     * weiter an alles, was dieses Terminal durfte. `aktiv = 0` genuegt dafür
+     * weiter an alles, was dieses Terminal durfte. `aktiv = 0` genügt dafür
      * nicht: Das verhindert nur eine **neue** Kopplung, nicht den bestehenden
      * Zugang.
      *
@@ -497,8 +497,8 @@ class TerminalAdminController
 
         if (!$entfernt) {
             // Vermerk bleibt bewusst stehen, damit der Zugang zuzuordnen bleibt.
-            $_SESSION[self::FLASH_ERR_KEY] = 'Der Datenbankbenutzer "' . $benutzer . '" konnte nicht geloescht werden. '
-                . 'Das Terminal bleibt gekoppelt - bitte das Serverprotokoll pruefen und erneut versuchen.';
+            $_SESSION[self::FLASH_ERR_KEY] = 'Der Datenbankbenutzer "' . $benutzer . '" konnte nicht gelöscht werden. '
+                . 'Das Terminal bleibt gekoppelt - bitte das Serverprotokoll prüfen und erneut versuchen.';
             header('Location: ?seite=terminal_admin');
             return;
         }
@@ -515,14 +515,14 @@ class TerminalAdminController
             );
         } catch (\Throwable $e) {
             // Der Zugang ist weg - das Gerät kommt nicht mehr an die Daten.
-            // Nur der Vermerk hängt nach; das ist die harmlose Haelfte.
+            // Nur der Vermerk hängt nach; das ist die harmlose Hälfte.
             Logger::error('Entkoppeln: Kopplungsvermerk konnte nicht geleert werden', [
                 'benutzer'  => $benutzer,
                 'exception' => $e->getMessage(),
             ], null, $id, 'terminal_kopplung');
 
-            $_SESSION[self::FLASH_ERR_KEY] = 'Der Datenbankbenutzer wurde geloescht, der Vermerk am Terminal '
-                . 'aber nicht geleert. Das Geraet kommt nicht mehr an die Daten - bitte das Serverprotokoll pruefen.';
+            $_SESSION[self::FLASH_ERR_KEY] = 'Der Datenbankbenutzer wurde gelöscht, der Vermerk am Terminal '
+                . 'aber nicht geleert. Das Gerät kommt nicht mehr an die Daten - bitte das Serverprotokoll prüfen.';
             header('Location: ?seite=terminal_admin');
             return;
         }
@@ -532,8 +532,8 @@ class TerminalAdminController
             'benutzer'    => $benutzer,
         ], null, $id, 'terminal_kopplung');
 
-        $_SESSION[self::FLASH_OK_KEY] = 'Terminal entkoppelt. Der Datenbankbenutzer "' . $benutzer . '" ist geloescht; '
-            . 'das Geraet braucht einen neuen Kopplungscode.';
+        $_SESSION[self::FLASH_OK_KEY] = 'Terminal entkoppelt. Der Datenbankbenutzer "' . $benutzer . '" ist gelöscht; '
+            . 'das Gerät braucht einen neuen Kopplungscode.';
 
         header('Location: ?seite=terminal_admin');
     }

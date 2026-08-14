@@ -12,7 +12,7 @@ declare(strict_types=1);
  *
  * Nicht in diesem Patch (kommt getrennt):
  * - Arbeitsschritt-Code wird in der Detailansicht angezeigt (falls vorhanden).
- * - Top-Menue-Link (Nav) – wird als eigener Mini-Patch geliefert (Datei-Budget).
+ * - Top-Menü-Link (Nav) – wird als eigener Mini-Patch geliefert (Datei-Budget).
  */
 class AuftragController
 {
@@ -32,7 +32,7 @@ class AuftragController
     /**
      * Ab wie vielen Seiten die Sprungpfeile erscheinen.
      *
-     * Bei vier Seiten sind alle Seitenzahlen ohnehin sichtbar; Pfeile waeren
+     * Bei vier Seiten sind alle Seitenzahlen ohnehin sichtbar; Pfeile wären
      * dann nur ein zweiter Weg zum selben Ziel.
      */
     private const PFEILE_AB_SEITEN = 5;
@@ -44,7 +44,7 @@ class AuftragController
      * Werte lassen sich nicht auswerten und gehen bei jedem Tippfehler
      * auseinander ("offen", "Offen", "offfen"). Der Status in der Auftragsliste
      * wird ohnehin aus den Buchungen berechnet - dieses Feld ist nur die
-     * zusätzliche Einschaetzung der Arbeitsvorbereitung.
+     * zusätzliche Einschätzung der Arbeitsvorbereitung.
      *
      * Altbestand mit abweichenden Werten bleibt erhalten und wählbar.
      */
@@ -127,15 +127,15 @@ class AuftragController
 
         $q = trim((string)($_GET['q'] ?? ''));
 
-        // Zwei Ansichten auf dieselbe Liste. Erledigte Auftraege werden auf
-        // inaktiv gesetzt und verschwinden damit aus dem Alltag - geloescht wird
+        // Zwei Ansichten auf dieselbe Liste. Erledigte Aufträge werden auf
+        // inaktiv gesetzt und verschwinden damit aus dem Alltag - gelöscht wird
         // dabei nichts, die Buchungen bleiben zuordenbar.
         $nurInaktive = ((string)($_GET['ansicht'] ?? '')) === 'inaktiv';
 
-        // Beim Suchen zaehlt der Bestand, nicht die Ablage: Wer eine Nummer
-        // eintippt, will sie finden - auch wenn der Auftrag laengst inaktiv ist.
-        // Deshalb ist das Haekchen gesetzt, solange es niemand abwaehlt. Ohne
-        // Suchbegriff bleibt es wirkungslos, sonst waere die Ablage wieder in
+        // Beim Suchen zählt der Bestand, nicht die Ablage: Wer eine Nummer
+        // eintippt, will sie finden - auch wenn der Auftrag längst inaktiv ist.
+        // Deshalb ist das Häkchen gesetzt, solange es niemand abwählt. Ohne
+        // Suchbegriff bleibt es wirkungslos, sonst wäre die Ablage wieder in
         // der Liste.
         $mitInaktiven = !isset($_GET['mit_inaktiven']) || (string)$_GET['mit_inaktiven'] === '1';
 
@@ -162,10 +162,10 @@ class AuftragController
             $params = [];
 
             // Eine Auftragsnummer ohne Stammdatensatz (`a.aktiv IS NULL`) stammt
-            // allein aus Buchungen. Sie gilt als aktiv, sonst waere sie nirgends
+            // allein aus Buchungen. Sie gilt als aktiv, sonst wäre sie nirgends
             // zu sehen.
             //
-            // Der dritte Fall - Suche mit gesetztem Haekchen - kennt gar keine
+            // Der dritte Fall - Suche mit gesetztem Häkchen - kennt gar keine
             // Bedingung auf `aktiv`: Dann wird der ganze Bestand durchsucht.
             $sucheUeberAlles = ($like !== null && $mitInaktiven && !$nurInaktive);
 
@@ -177,15 +177,15 @@ class AuftragController
 
             if ($like !== null) {
                 // Gefiltert wird auf der Grundmenge der Auftragsnummern und den
-                // Stammdaten, nicht auf den verbundenen Buchungen. Sonst faende
+                // Stammdaten, nicht auf den verbundenen Buchungen. Sonst fände
                 // die Suche einen Auftrag ohne Buchung nicht.
                 //
                 // Ein Suchfeld für alle Spalten statt vier einzelner Felder: Wer
                 // "Muster GmbH" im Kopf hat, tippt das - und soll nicht vorher
-                // entscheiden muessen, in welcher Spalte es steht.
+                // entscheiden müssen, in welcher Spalte es steht.
                 //
                 // Vier Platzhalter für denselben Wert, weil die Verbindung ohne
-                // Emulation praepariert (`ATTR_EMULATE_PREPARES = false`): Ein
+                // Emulation präpariert (`ATTR_EMULATE_PREPARES = false`): Ein
                 // benannter Platzhalter darf dort nur einmal vorkommen.
                 $bedingungen[] = '(nummern.auftragsnummer LIKE :q1 ESCAPE "\\\\"
                                OR a.kunde LIKE :q2 ESCAPE "\\\\"
@@ -220,8 +220,8 @@ class AuftragController
                        ON a.auftragsnummer = nummern.auftragsnummer
             ";
 
-            // Erst zaehlen, dann die eine Seite holen. Der Zaehler kommt ohne die
-            // Buchungen aus: Gefiltert wird nur ueber `nummern` und `a`, und je
+            // Erst zählen, dann die eine Seite holen. Der Zähler kommt ohne die
+            // Buchungen aus: Gefiltert wird nur über `nummern` und `a`, und je
             // Auftragsnummer gibt es dort genau eine Zeile.
             $anzahlZeile = $this->db->fetchEine("SELECT COUNT(*) AS anzahl FROM {$nummern} {$where}", $params);
             $treffer = is_array($anzahlZeile) ? (int)($anzahlZeile['anzahl'] ?? 0) : 0;
@@ -232,7 +232,7 @@ class AuftragController
             }
 
             // LIMIT/OFFSET stehen als Zahl in der Abfrage, nicht als Platzhalter:
-            // Ohne Emulation praeparierte Statements binden sie als Zeichenkette
+            // Ohne Emulation präparierte Statements binden sie als Zeichenkette
             // (`LIMIT '25'`), und das ist ein Syntaxfehler. Beide Werte sind hier
             // nachweislich ganzzahlig.
             $limit  = self::TREFFER_JE_SEITE;
@@ -272,7 +272,7 @@ class AuftragController
 
             $auftraege = $this->db->fetchAlle($sql, $params);
         } catch (\Throwable $e) {
-            $fehlermeldung = 'Die Auftraege konnten nicht geladen werden.';
+            $fehlermeldung = 'Die Aufträge konnten nicht geladen werden.';
             Logger::error('Fehler beim Laden der Auftragsliste', [
                 'exception' => $e->getMessage(),
                 'q' => $q,
@@ -285,7 +285,7 @@ class AuftragController
         require __DIR__ . '/../views/layout/header.php';
         ?>
         <section>
-            <h2><?php echo $nurInaktive ? 'Inaktive Auftraege' : 'Auftraege'; ?></h2>
+            <h2><?php echo $nurInaktive ? 'Inaktive Aufträge' : 'Aufträge'; ?></h2>
 
             <?php
                 $flashFehlerListe = isset($_SESSION['auftrag_flash_fehler']) ? (string)$_SESSION['auftrag_flash_fehler'] : '';
@@ -302,20 +302,20 @@ class AuftragController
             <div class="table-actions">
                 <?php if (!$nurInaktive): ?>
                     <?php if ($darfVerwaltenListe): ?>
-                        <a class="button-link" href="?seite=auftrag_neu">+ Auftrag hinzufuegen</a>
+                        <a class="button-link" href="?seite=auftrag_neu">+ Auftrag hinzufügen</a>
                     <?php endif; ?>
                     <a class="button-link quiet" href="?seite=auftrag&amp;ansicht=inaktiv">
-                        Inaktive Auftraege<?php echo $anzahlInaktive > 0 ? ' (' . $anzahlInaktive . ')' : ''; ?>
+                        Inaktive Aufträge<?php echo $anzahlInaktive > 0 ? ' (' . $anzahlInaktive . ')' : ''; ?>
                     </a>
                 <?php else: ?>
-                    <a class="button-link quiet" href="?seite=auftrag">&laquo; Zurueck zu den aktiven Auftraegen</a>
+                    <a class="button-link quiet" href="?seite=auftrag">&laquo; Zurück zu den aktiven Aufträgen</a>
                 <?php endif; ?>
             </div>
 
             <?php if ($nurInaktive): ?>
                 <p class="muted"><small>
-                    Inaktive Auftraege erscheinen nicht in der normalen Liste. Sie sind
-                    nicht geloescht: Buchungen, Stunden und Laufkarte bleiben erhalten.
+                    Inaktive Aufträge erscheinen nicht in der normalen Liste. Sie sind
+                    nicht gelöscht: Buchungen, Stunden und Laufkarte bleiben erhalten.
                 </small></p>
             <?php endif; ?>
 
@@ -333,23 +333,23 @@ class AuftragController
                     </label>
                     <button type="submit">Suchen</button>
                     <?php if ($q !== ''): ?>
-                        <a class="button-link quiet" href="<?php echo $nurInaktive ? '?seite=auftrag&amp;ansicht=inaktiv' : '?seite=auftrag'; ?>">Zuruecksetzen</a>
+                        <a class="button-link quiet" href="<?php echo $nurInaktive ? '?seite=auftrag&amp;ansicht=inaktiv' : '?seite=auftrag'; ?>">Zurücksetzen</a>
                     <?php endif; ?>
 
                     <?php if (!$nurInaktive): ?>
-                        <?php /* Verstecktes Feld voran: So kommt der Wert auch dann mit, wenn das Haekchen weg ist. */ ?>
+                        <?php /* Verstecktes Feld voran: So kommt der Wert auch dann mit, wenn das Häkchen weg ist. */ ?>
                         <input type="hidden" name="mit_inaktiven" value="0">
                         <label style="flex-direction:row;align-items:center;gap:0.35rem;font-weight:400;">
                             <input type="checkbox" name="mit_inaktiven" value="1" <?php echo $mitInaktiven ? 'checked' : ''; ?>>
-                            Auch inaktive Auftraege durchsuchen
+                            Auch inaktive Aufträge durchsuchen
                         </label>
                     <?php endif; ?>
                 </div>
 
                 <p class="muted"><small>
-                    Durchsucht Auftragsnummer, Kunde, Zeichnungsnummer und Kurzbeschreibung<?php echo $nurInaktive ? ' – nur unter den inaktiven Auftraegen' : ''; ?>.
+                    Durchsucht Auftragsnummer, Kunde, Zeichnungsnummer und Kurzbeschreibung<?php echo $nurInaktive ? ' – nur unter den inaktiven Aufträgen' : ''; ?>.
                     <?php if (!$nurInaktive): ?>
-                        Ohne Suchbegriff zeigt die Liste nur die aktiven Auftraege.
+                        Ohne Suchbegriff zeigt die Liste nur die aktiven Aufträge.
                     <?php endif; ?>
                 </small></p>
             </form>
@@ -363,13 +363,13 @@ class AuftragController
 
             <?php if (count($auftraege) === 0): ?>
                 <?php if ($q !== ''): ?>
-                    <p>Keine Auftraege zu &bdquo;<?php echo htmlspecialchars($q, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>&ldquo; gefunden.</p>
+                    <p>Keine Aufträge zu &bdquo;<?php echo htmlspecialchars($q, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>&ldquo; gefunden.</p>
                     <p><small>Gesucht wurde in Auftragsnummer, Kunde, Zeichnungsnummer und Kurzbeschreibung.</small></p>
                 <?php elseif ($nurInaktive): ?>
                     <p>Kein Auftrag ist auf inaktiv gesetzt.</p>
                 <?php else: ?>
-                    <p>Keine Auftraege vorhanden.</p>
-                    <p><small>Hier erscheinen angelegte Auftraege und alle Auftragsnummern, zu denen es Buchungen gibt.</small></p>
+                    <p>Keine Aufträge vorhanden.</p>
+                    <p><small>Hier erscheinen angelegte Aufträge und alle Auftragsnummern, zu denen es Buchungen gibt.</small></p>
                 <?php endif; ?>
             <?php else: ?>
                 <div class="table-wrap">
@@ -415,7 +415,7 @@ class AuftragController
 
                                 // Ohne Stammdatensatz gilt der Auftrag als aktiv (siehe Abfrage).
                                 // Der Knopf richtet sich nach der Zeile, nicht nach der Ansicht:
-                                // In einer Suche ueber alles stehen beide Sorten nebeneinander.
+                                // In einer Suche über alles stehen beide Sorten nebeneinander.
                                 $zeileAktiv = ($aktivRaw === null) || ((int)$aktivRaw === 1);
                             ?>
                             <tr<?php echo $zeileAktiv ? '' : ' class="muted"'; ?>>
@@ -436,7 +436,7 @@ class AuftragController
                                         <div class="table-actions">
                                             <a class="button-link" href="?seite=auftrag_detail&amp;code=<?php echo urlencode($nr); ?>">Details</a>
                                             <?php if ($darfVerwaltenListe): ?>
-                                                <?php /* Umschalten direkt in der Zeile - dafuer erst die Details zu oeffnen waere ein Umweg. */ ?>
+                                                <?php /* Umschalten direkt in der Zeile - dafür erst die Details zu öffnen wäre ein Umweg. */ ?>
                                                 <form method="post" action="?seite=auftrag_aktiv_setzen">
                                                     <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($listenCsrf, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>">
                                                     <input type="hidden" name="auftragsnummer" value="<?php echo $nrEsc; ?>">
@@ -478,9 +478,9 @@ class AuftragController
      * Setzt einen Auftrag aktiv oder inaktiv.
      * Route: ?seite=auftrag_aktiv_setzen (POST)
      *
-     * Inaktiv statt geloescht ist der Regelweg: Der Auftrag verschwindet aus der
+     * Inaktiv statt gelöscht ist der Regelweg: Der Auftrag verschwindet aus der
      * Liste, seine Buchungen und Stunden bleiben aber zuordenbar - und wenn die
-     * Halle den Code doch noch einmal scannt, faellt nichts um.
+     * Halle den Code doch noch einmal scannt, fällt nichts um.
      */
     public function aktivSetzen(): void
     {
@@ -515,16 +515,16 @@ class AuftragController
         $aktiv = ((int)($_POST['aktiv'] ?? 1) === 1) ? 1 : 0;
 
         if ($auftragsnummer === '') {
-            $_SESSION['auftrag_flash_fehler'] = 'Es war kein Auftrag ausgewaehlt.';
+            $_SESSION['auftrag_flash_fehler'] = 'Es war kein Auftrag ausgewählt.';
             header('Location: ' . $zielUrl);
             return;
         }
 
         try {
             // Zu einer Auftragsnummer, die nur aus Buchungen stammt, gibt es
-            // keinen Stammdatensatz - und damit nichts, woran "inaktiv" haengen
-            // koennte. Der Datensatz wird dann angelegt, sonst liesse sich genau
-            // die Zeile nicht ausblenden, die stoert.
+            // keinen Stammdatensatz - und damit nichts, woran "inaktiv" hängen
+            // könnte. Der Datensatz wird dann angelegt, sonst liesse sich genau
+            // die Zeile nicht ausblenden, die stört.
             $betroffen = $this->db->ausfuehren(
                 'UPDATE auftrag SET aktiv = :aktiv WHERE auftragsnummer = :nr',
                 ['aktiv' => $aktiv, 'nr' => $auftragsnummer]
@@ -564,7 +564,7 @@ class AuftragController
     /**
      * Blätternavigation unter der Auftragsliste.
      *
-     * Die Seitenzahlen stehen immer da. Die Sprungpfeile (Anfang, zurueck, vor,
+     * Die Seitenzahlen stehen immer da. Die Sprungpfeile (Anfang, zurück, vor,
      * Ende) kommen erst ab `PFEILE_AB_SEITEN` dazu - bei vier Seiten sind alle
      * Zahlen ohnehin sichtbar.
      */
@@ -586,7 +586,7 @@ class AuftragController
         $url = fn (int $ziel): string => $esc($this->baueListenUrl($q, $nurInaktive, $ziel, $mitInaktiven));
 
         // Wieviele Zahlen um die aktuelle Seite herum stehen. Bei sehr vielen
-        // Seiten wuerde die Zeile sonst umbrechen und unlesbar werden.
+        // Seiten würde die Zeile sonst umbrechen und unlesbar werden.
         $fenster = 3;
         $ersteZahl = max(1, $seiteNr - $fenster);
         $letzteZahl = min($seitenGesamt, $seiteNr + $fenster);
@@ -597,14 +597,14 @@ class AuftragController
             <span class="pager-info">
                 <?php echo $treffer === 1
                     ? '1 Auftrag'
-                    : $von . '&ndash;' . $bis . ' von ' . $treffer . ' Auftraegen'; ?>
+                    : $von . '&ndash;' . $bis . ' von ' . $treffer . ' Aufträgen'; ?>
             </span>
 
             <?php if ($seitenGesamt > 1): ?>
                 <?php if ($mitPfeilen): ?>
                     <?php if ($seiteNr > 1): ?>
                         <a class="button-link quiet" href="<?php echo $url(1); ?>" title="Erste Seite">&laquo;</a>
-                        <a class="button-link quiet" href="<?php echo $url($seiteNr - 1); ?>" title="Eine Seite zurueck">&lsaquo;</a>
+                        <a class="button-link quiet" href="<?php echo $url($seiteNr - 1); ?>" title="Eine Seite zurück">&lsaquo;</a>
                     <?php else: ?>
                         <span class="button-link disabled">&laquo;</span>
                         <span class="button-link disabled">&lsaquo;</span>
@@ -646,12 +646,12 @@ class AuftragController
     }
 
     /**
-     * Loescht einen Auftrag samt seiner Arbeitsschritte.
+     * Löscht einen Auftrag samt seiner Arbeitsschritte.
      * Route: ?seite=auftrag_loeschen (POST)
      *
-     * Nur solange **keine** Buchung daran haengt. Sonst waeren gebuchte Stunden
+     * Nur solange **keine** Buchung daran hängt. Sonst wären gebuchte Stunden
      * plötzlich einer Nummer zugeordnet, zu der es nichts mehr gibt - und genau
-     * dafuer ist "inaktiv setzen" da.
+     * dafür ist "inaktiv setzen" da.
      */
     public function loeschen(): void
     {
@@ -679,7 +679,7 @@ class AuftragController
         }
 
         if ($auftragsnummer === '') {
-            $_SESSION['auftrag_flash_fehler'] = 'Es war kein Auftrag ausgewaehlt.';
+            $_SESSION['auftrag_flash_fehler'] = 'Es war kein Auftrag ausgewählt.';
             header('Location: ?seite=auftrag');
             return;
         }
@@ -698,15 +698,15 @@ class AuftragController
 
             $auftragId = (int)($auftrag['id'] ?? 0);
 
-            // Die Pruefung gehoert hierher und nicht nur ins Formular: Ein
+            // Die Prüfung gehört hierher und nicht nur ins Formular: Ein
             // zweiter Tab, ein zwischenzeitlicher Scan in der Halle - und die
-            // Buchung waere da, obwohl der Knopf sie nicht kannte.
+            // Buchung wäre da, obwohl der Knopf sie nicht kannte.
             $anzahl = $this->zaehleBuchungen($auftragsnummer, $auftragId);
 
             if ($anzahl > 0) {
                 $_SESSION['auftrag_detail_flash_fehler'] = $anzahl === 1
-                    ? 'Der Auftrag hat eine Buchung und wird deshalb nicht geloescht. Setzen Sie ihn auf inaktiv - dann verschwindet er aus der Liste, die gebuchte Zeit bleibt erhalten.'
-                    : 'Der Auftrag hat ' . $anzahl . ' Buchungen und wird deshalb nicht geloescht. Setzen Sie ihn auf inaktiv - dann verschwindet er aus der Liste, die gebuchten Zeiten bleiben erhalten.';
+                    ? 'Der Auftrag hat eine Buchung und wird deshalb nicht gelöscht. Setzen Sie ihn auf inaktiv - dann verschwindet er aus der Liste, die gebuchte Zeit bleibt erhalten.'
+                    : 'Der Auftrag hat ' . $anzahl . ' Buchungen und wird deshalb nicht gelöscht. Setzen Sie ihn auf inaktiv - dann verschwindet er aus der Liste, die gebuchten Zeiten bleiben erhalten.';
                 header('Location: ' . $detailUrl);
                 return;
             }
@@ -714,34 +714,34 @@ class AuftragController
             $this->db->ausfuehren('DELETE FROM auftrag_arbeitsschritt WHERE auftrag_id = :aid', ['aid' => $auftragId]);
             $this->db->ausfuehren('DELETE FROM auftrag WHERE id = :id', ['id' => $auftragId]);
         } catch (\Throwable $e) {
-            $this->protokolliere('Auftrag konnte nicht geloescht werden', [
+            $this->protokolliere('Auftrag konnte nicht gelöscht werden', [
                 'auftragsnummer' => $auftragsnummer,
                 'exception'      => $e->getMessage(),
             ]);
-            $_SESSION['auftrag_detail_flash_fehler'] = 'Der Auftrag konnte nicht geloescht werden.';
+            $_SESSION['auftrag_detail_flash_fehler'] = 'Der Auftrag konnte nicht gelöscht werden.';
             header('Location: ' . $detailUrl);
             return;
         }
 
-        // Wer loescht, soll nachvollziehbar sein - hier steht der einzige Weg,
+        // Wer löscht, soll nachvollziehbar sein - hier steht der einzige Weg,
         // auf dem Auftragsstammdaten aus der Datenbank verschwinden.
         Logger::info(
-            'Auftrag geloescht',
+            'Auftrag gelöscht',
             ['auftragsnummer' => $auftragsnummer],
             $this->authService->holeAngemeldeteMitarbeiterId(),
             null,
             'auftrag'
         );
 
-        $_SESSION['auftrag_flash_ok'] = 'Der Auftrag "' . $auftragsnummer . '" wurde geloescht.';
+        $_SESSION['auftrag_flash_ok'] = 'Der Auftrag "' . $auftragsnummer . '" wurde gelöscht.';
         header('Location: ?seite=auftrag');
     }
 
     /**
-     * Zaehlt die Buchungen eines Auftrags - ueber die Nummer und ueber die ID.
+     * Zählt die Buchungen eines Auftrags - über die Nummer und über die ID.
      *
-     * Beide Wege sind noetig: Das Terminal schreibt den gescannten Code nach
-     * `auftragscode`, das Backend verknuepft ueber `auftrag_id`.
+     * Beide Wege sind nötig: Das Terminal schreibt den gescannten Code nach
+     * `auftragscode`, das Backend verknüpft über `auftrag_id`.
      */
     private function zaehleBuchungen(string $auftragsnummer, int $auftragId): int
     {
@@ -757,10 +757,10 @@ class AuftragController
     }
 
     /**
-     * Wie viele Auftraege sind auf inaktiv gesetzt?
+     * Wie viele Aufträge sind auf inaktiv gesetzt?
      *
-     * Nur fuer die Beschriftung des Links. Faellt die Abfrage aus, steht dort
-     * eben keine Zahl - die Liste selbst haengt nicht daran.
+     * Nur für die Beschriftung des Links. Fällt die Abfrage aus, steht dort
+     * eben keine Zahl - die Liste selbst hängt nicht daran.
      */
     private function zaehleInaktiveAuftraege(): int
     {
@@ -777,7 +777,7 @@ class AuftragController
      * Baut die URL der Auftragsliste aus den bekannten Parametern neu auf.
      *
      * Bewusst aus Einzelwerten statt aus einem mitgeschickten Ziel: Ein
-     * Rueckleitungsziel, das aus dem Formular kommt, waere eine offene
+     * Rückleitungsziel, das aus dem Formular kommt, wäre eine offene
      * Weiterleitung.
      */
     private function baueListenUrl(
@@ -796,8 +796,8 @@ class AuftragController
             $parameter['q'] = $q;
         }
 
-        // Nur die Abweichung vom Standard steht in der URL - sonst haengt an
-        // jedem Link ein Parameter, der nichts aendert.
+        // Nur die Abweichung vom Standard steht in der URL - sonst hängt an
+        // jedem Link ein Parameter, der nichts ändert.
         if (!$mitInaktiven) {
             $parameter['mit_inaktiven'] = '0';
         }
@@ -995,7 +995,7 @@ class AuftragController
             <h2>Auftrag: <?php echo htmlspecialchars($code, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></h2>
 
             <p>
-                <a class="button-link quiet" href="?seite=auftrag">&laquo; Zurueck zur Liste</a>
+                <a class="button-link quiet" href="?seite=auftrag">&laquo; Zurück zur Liste</a>
             </p>
 
             <?php if (is_string($flashOk) && $flashOk !== ''): ?>
@@ -1215,7 +1215,7 @@ class AuftragController
 
                 <?php if ($darfVerwalten): ?>
                     <div class="admin-card" style="margin-top:1rem;max-width:640px;">
-                        <strong>Arbeitsschritt hinzufuegen</strong>
+                        <strong>Arbeitsschritt hinzufügen</strong>
                         <form method="post" action="?seite=auftrag_schritt_speichern" style="margin-top:0.5rem;">
                             <input type="hidden" name="csrf_token" value="<?php echo $escD($stammCsrf); ?>">
                             <input type="hidden" name="schritt_id" value="0">
@@ -1224,23 +1224,23 @@ class AuftragController
                             <div style="margin-bottom:0.5rem;">
                                 <label for="neuer_code"><strong>Code</strong></label><br>
                                 <input type="text" id="neuer_code" name="arbeitsschritt_code" required maxlength="100" style="width:100%;max-width:260px;">
-                                <br><small>Steht im Strichcode und wird am Terminal gescannt, z. B. <code>drehen</code>, <code>fraesen</code>, <code>saegen</code>.</small>
+                                <br><small>Steht im Strichcode und wird am Terminal gescannt, z. B. <code>drehen</code>, <code>fräsen</code>, <code>sägen</code>.</small>
                             </div>
 
                             <div style="margin-bottom:0.5rem;">
                                 <label for="neue_bezeichnung"><strong>Bezeichnung</strong></label><br>
                                 <input type="text" id="neue_bezeichnung" name="bezeichnung" maxlength="255" style="width:100%;max-width:480px;">
-                                <br><small>Klartext fuer die Laufkarte, z. B. „Aussendurchmesser auf 40 mm drehen“.</small>
+                                <br><small>Klartext für die Laufkarte, z. B. „Aussendurchmesser auf 40 mm drehen“.</small>
                             </div>
 
                             <input type="hidden" name="aktiv" value="1">
-                            <button type="submit">Hinzufuegen</button>
+                            <button type="submit">Hinzufügen</button>
                         </form>
                     </div>
 
                     <?php if (count($katalogVerfuegbar) > 0): ?>
                         <div class="admin-card" style="margin-top:1rem;max-width:640px;">
-                            <strong>Aus dem Arbeitsschritt-Katalog uebernehmen</strong>
+                            <strong>Aus dem Arbeitsschritt-Katalog übernehmen</strong>
                             <p style="margin:0.4rem 0;"><small>
                                 Standardschritte, die es bei diesem Auftrag noch nicht gibt. Uebernommene
                                 Schritte erscheinen auf der Laufkarte.
@@ -1263,19 +1263,19 @@ class AuftragController
                                         <?php endif; ?>
                                     </label>
                                 <?php endforeach; ?>
-                                <button type="submit" style="margin-top:0.5rem;">Ausgewaehlte uebernehmen</button>
+                                <button type="submit" style="margin-top:0.5rem;">Ausgewählte übernehmen</button>
                             </form>
                         </div>
                     <?php endif; ?>
 
                     <div class="warning-panel" style="margin-top:1.5rem;max-width:640px;">
-                        <strong>Auftrag loeschen</strong>
+                        <strong>Auftrag löschen</strong>
                         <?php if (count($buchungen) > 0): ?>
                             <p style="margin:0.4rem 0;">
-                                Nicht moeglich: An diesem Auftrag
+                                Nicht möglich: An diesem Auftrag
                                 <?php echo count($buchungen) === 1
-                                    ? 'haengt eine Buchung'
-                                    : 'haengen ' . count($buchungen) . ' Buchungen'; ?>.
+                                    ? 'hängt eine Buchung'
+                                    : 'hängen ' . count($buchungen) . ' Buchungen'; ?>.
                                 Gebuchte Zeit wird nicht weggeworfen.
                             </p>
                             <p style="margin:0.4rem 0;"><small>
@@ -1285,15 +1285,15 @@ class AuftragController
                             </small></p>
                         <?php else: ?>
                             <p style="margin:0.4rem 0;"><small>
-                                Loescht den Auftrag samt seiner Arbeitsschritte. Das ist nur moeglich,
-                                solange keine Buchung daran haengt &ndash; danach nicht mehr. Gedruckte
-                                Laufkarten werden dadurch ungueltig.
+                                Löscht den Auftrag samt seiner Arbeitsschritte. Das ist nur möglich,
+                                solange keine Buchung daran hängt &ndash; danach nicht mehr. Gedruckte
+                                Laufkarten werden dadurch ungültig.
                             </small></p>
                             <form method="post" action="?seite=auftrag_loeschen"
-                                  onsubmit="return confirm('Auftrag <?php echo $escD($code); ?> wirklich loeschen? Das laesst sich nicht rueckgaengig machen.');">
+                                  onsubmit="return confirm('Auftrag <?php echo $escD($code); ?> wirklich löschen? Das lässt sich nicht rückgängig machen.');">
                                 <input type="hidden" name="csrf_token" value="<?php echo $escD($stammCsrf); ?>">
                                 <input type="hidden" name="auftragsnummer" value="<?php echo $escD($code); ?>">
-                                <button type="submit" class="danger">Auftrag endgueltig loeschen</button>
+                                <button type="submit" class="danger">Auftrag endgültig löschen</button>
                             </form>
                         <?php endif; ?>
                     </div>
@@ -1548,12 +1548,12 @@ class AuftragController
         }
 
         if (mb_strlen($auftragsnummer) > 100) {
-            $this->renderAuftragFormular($daten, 'Die Auftragsnummer darf hoechstens 100 Zeichen lang sein.');
+            $this->renderAuftragFormular($daten, 'Die Auftragsnummer darf höchstens 100 Zeichen lang sein.');
             return;
         }
 
         if (mb_strlen($zeichnungsnummer) > 100) {
-            $this->renderAuftragFormular($daten, 'Die Zeichnungsnummer darf hoechstens 100 Zeichen lang sein.');
+            $this->renderAuftragFormular($daten, 'Die Zeichnungsnummer darf höchstens 100 Zeichen lang sein.');
             return;
         }
 
@@ -1572,7 +1572,7 @@ class AuftragController
             }
 
             if ($status !== $altwert) {
-                $this->renderAuftragFormular($daten, 'Der gewaehlte Status ist nicht zulaessig.');
+                $this->renderAuftragFormular($daten, 'Der gewählte Status ist nicht zulässig.');
                 return;
             }
         }
@@ -1588,12 +1588,12 @@ class AuftragController
             if (is_array($vorhanden)) {
                 $this->renderAuftragFormular(
                     $daten,
-                    'Die Auftragsnummer "' . $auftragsnummer . '" gibt es bereits. Bitte eine andere waehlen oder den vorhandenen Auftrag oeffnen.'
+                    'Die Auftragsnummer "' . $auftragsnummer . '" gibt es bereits. Bitte eine andere wählen oder den vorhandenen Auftrag öffnen.'
                 );
                 return;
             }
         } catch (\Throwable $e) {
-            $this->protokolliere('Pruefung auf doppelte Auftragsnummer fehlgeschlagen', ['exception' => $e->getMessage()]);
+            $this->protokolliere('Prüfung auf doppelte Auftragsnummer fehlgeschlagen', ['exception' => $e->getMessage()]);
         }
 
         try {
@@ -1635,24 +1635,24 @@ class AuftragController
                 $meldung = 'Der Auftrag wurde angelegt.';
 
                 // Im Anlegen-Formular angehakte Standardschritte gleich
-                // uebernehmen - sonst muss man denselben Auftrag zweimal
-                // anfassen, um ihn arbeitsfaehig zu machen.
+                // übernehmen - sonst muss man denselben Auftrag zweimal
+                // anfassen, um ihn arbeitsfähig zu machen.
                 $katalogIds = $this->leseKatalogAuswahlAusPost();
                 if ($katalogIds !== [] && $neueAuftragId > 0) {
                     try {
                         [$uebernommen] = $this->uebernehmeKatalogSchritte($neueAuftragId, $katalogIds);
                         $meldung .= ' ' . ($uebernommen === 1
-                            ? 'Ein Arbeitsschritt wurde aus dem Katalog uebernommen.'
-                            : $uebernommen . ' Arbeitsschritte wurden aus dem Katalog uebernommen.');
+                            ? 'Ein Arbeitsschritt wurde aus dem Katalog übernommen.'
+                            : $uebernommen . ' Arbeitsschritte wurden aus dem Katalog übernommen.');
                     } catch (\Throwable $e) {
-                        $this->protokolliere('Katalogschritte beim Anlegen nicht uebernommen', [
+                        $this->protokolliere('Katalogschritte beim Anlegen nicht übernommen', [
                             'auftrag_id' => $neueAuftragId,
                             'exception'  => $e->getMessage(),
                         ]);
-                        $meldung .= ' Die ausgewaehlten Arbeitsschritte konnten nicht uebernommen werden.';
+                        $meldung .= ' Die ausgewählten Arbeitsschritte konnten nicht übernommen werden.';
                     }
                 } else {
-                    $meldung .= ' Jetzt koennen Arbeitsschritte ergaenzt werden.';
+                    $meldung .= ' Jetzt können Arbeitsschritte ergänzt werden.';
                 }
 
                 $_SESSION['auftrag_detail_flash_ok'] = $meldung;
@@ -1686,8 +1686,8 @@ class AuftragController
         $csrfToken        = Csrf::token(self::CSRF_BEREICH_STAMM);
 
         // Nur beim Anlegen: die aktiven Standardschritte zur Auswahl. Beim
-        // Bearbeiten steht dieselbe Auswahl in der Auftragsansicht und weiss
-        // dort zusaetzlich, was der Auftrag schon hat.
+        // Bearbeiten steht dieselbe Auswahl in der Auftragsansicht und weiß
+        // dort zusätzlich, was der Auftrag schon hat.
         $katalogAuswahl = [];
         $katalogAngehakt = $id > 0 ? [] : $this->leseKatalogAuswahlAusPost();
         if ($id === 0) {
@@ -1699,7 +1699,7 @@ class AuftragController
                 );
             } catch (\Throwable $e) {
                 $katalogAuswahl = [];
-                $this->protokolliere('Arbeitsschritt-Katalog fuer das Auftragsformular nicht ladbar', [
+                $this->protokolliere('Arbeitsschritt-Katalog für das Auftragsformular nicht ladbar', [
                     'exception' => $e->getMessage(),
                 ]);
             }
@@ -1714,7 +1714,7 @@ class AuftragController
         <section>
             <h2><?php echo $id > 0 ? 'Auftrag bearbeiten' : 'Auftrag anlegen'; ?></h2>
 
-            <p><a class="button-link quiet" href="?seite=auftrag">&laquo; Zurueck zur Liste</a></p>
+            <p><a class="button-link quiet" href="?seite=auftrag">&laquo; Zurück zur Liste</a></p>
 
             <?php if (is_string($fehlermeldung) && $fehlermeldung !== ''): ?>
                 <div class="error"><?php echo $esc($fehlermeldung); ?></div>
@@ -1728,7 +1728,7 @@ class AuftragController
                     <label for="auftragsnummer"><strong>Auftragsnummer</strong></label><br>
                     <input type="text" id="auftragsnummer" name="auftragsnummer" required maxlength="100"
                            value="<?php echo $esc($auftragsnummer); ?>" style="width:100%;max-width:420px;">
-                    <br><small>Dieser Wert steht spaeter im Strichcode und wird am Terminal gescannt.</small>
+                    <br><small>Dieser Wert steht später im Strichcode und wird am Terminal gescannt.</small>
                 </div>
 
                 <div style="margin-bottom:0.75rem;">
@@ -1778,8 +1778,8 @@ class AuftragController
                     <div class="admin-card" style="margin:0.75rem 0;max-width:640px;">
                         <strong>Arbeitsschritte aus dem Katalog</strong>
                         <p style="margin:0.4rem 0;"><small>
-                            Was hier angehakt ist, haengt beim Speichern gleich am Auftrag und
-                            steht auf der Laufkarte. Spaeter aendern geht in der Auftragsansicht.
+                            Was hier angehakt ist, hängt beim Speichern gleich am Auftrag und
+                            steht auf der Laufkarte. Später ändern geht in der Auftragsansicht.
                             <a href="?seite=arbeitsschritt_katalog">Katalog pflegen</a>
                         </small></p>
                         <?php foreach ($katalogAuswahl as $kat): ?>
@@ -1968,7 +1968,7 @@ class AuftragController
         $bezeichnung = trim((string)($_POST['bezeichnung'] ?? ''));
         $aktiv       = isset($_POST['aktiv']) ? 1 : 0;
 
-        // Auftragsnummer für die Rueckleitung ermitteln.
+        // Auftragsnummer für die Rückleitung ermitteln.
         $auftragsnummer = '';
         try {
             $auftrag = $this->db->fetchEine('SELECT auftragsnummer FROM auftrag WHERE id = :id LIMIT 1', ['id' => $auftragId]);
@@ -1983,7 +1983,7 @@ class AuftragController
         }
 
         if ($auftragsnummer === '') {
-            $_SESSION['auftrag_flash_fehler'] = 'Der zugehoerige Auftrag wurde nicht gefunden.';
+            $_SESSION['auftrag_flash_fehler'] = 'Der zugehörige Auftrag wurde nicht gefunden.';
             header('Location: ?seite=auftrag');
             return;
         }
@@ -1998,12 +1998,12 @@ class AuftragController
         ];
 
         if ($schrittCode === '') {
-            $this->renderSchrittFormular($daten, 'Bitte einen Code fuer den Arbeitsschritt angeben.');
+            $this->renderSchrittFormular($daten, 'Bitte einen Code für den Arbeitsschritt angeben.');
             return;
         }
 
         if (mb_strlen($schrittCode) > 100) {
-            $this->renderSchrittFormular($daten, 'Der Code darf hoechstens 100 Zeichen lang sein.');
+            $this->renderSchrittFormular($daten, 'Der Code darf höchstens 100 Zeichen lang sein.');
             return;
         }
 
@@ -2024,7 +2024,7 @@ class AuftragController
                 return;
             }
         } catch (\Throwable $e) {
-            $this->protokolliere('Pruefung auf doppelten Arbeitsschritt-Code fehlgeschlagen', [
+            $this->protokolliere('Prüfung auf doppelten Arbeitsschritt-Code fehlgeschlagen', [
                 'exception' => $e->getMessage(),
             ]);
         }
@@ -2094,7 +2094,7 @@ class AuftragController
         <section>
             <h2>Arbeitsschritt bearbeiten</h2>
 
-            <p><a class="button-link quiet" href="?seite=auftrag_detail&amp;code=<?php echo urlencode($auftragsnummer); ?>">&laquo; Zurueck zum Auftrag <?php echo $esc($auftragsnummer); ?></a></p>
+            <p><a class="button-link quiet" href="?seite=auftrag_detail&amp;code=<?php echo urlencode($auftragsnummer); ?>">&laquo; Zurück zum Auftrag <?php echo $esc($auftragsnummer); ?></a></p>
 
             <?php if (is_string($fehlermeldung) && $fehlermeldung !== ''): ?>
                 <div class="error"><?php echo $esc($fehlermeldung); ?></div>
@@ -2109,7 +2109,7 @@ class AuftragController
                     <label for="arbeitsschritt_code"><strong>Code</strong></label><br>
                     <input type="text" id="arbeitsschritt_code" name="arbeitsschritt_code" required maxlength="100"
                            value="<?php echo $esc($code); ?>" style="width:100%;max-width:260px;">
-                    <br><small>Aenderungen erzeugen automatisch einen neuen Strichcode. Bereits gedruckte Laufkarten werden dadurch ungueltig.</small>
+                    <br><small>Aenderungen erzeugen automatisch einen neuen Strichcode. Bereits gedruckte Laufkarten werden dadurch ungültig.</small>
                 </div>
 
                 <div style="margin-bottom:0.75rem;">
@@ -2123,7 +2123,7 @@ class AuftragController
                         <input type="checkbox" name="aktiv" value="1" <?php echo $aktiv ? 'checked' : ''; ?>>
                         Aktiv
                     </label>
-                    <br><small>Inaktive Schritte erscheinen nicht auf der Laufkarte. Geloescht wird nicht, damit vorhandene Buchungen zuordenbar bleiben.</small>
+                    <br><small>Inaktive Schritte erscheinen nicht auf der Laufkarte. Gelöscht wird nicht, damit vorhandene Buchungen zuordenbar bleiben.</small>
                 </div>
 
                 <div class="form-actions">
@@ -2137,15 +2137,15 @@ class AuftragController
     }
 
     /**
-     * Haengt Katalogschritte an einen Auftrag.
+     * Hängt Katalogschritte an einen Auftrag.
      *
-     * Eine Stelle fuer zwei Wege: die Uebernahme aus der Auftragsansicht
+     * Eine Stelle für zwei Wege: die Übernahme aus der Auftragsansicht
      * (`schritteAusKatalog()`) und die Auswahl direkt im Anlegen-Formular
-     * (`speichern()`). Vorhandene Codes bleiben unveraendert - eine am Auftrag
+     * (`speichern()`). Vorhandene Codes bleiben unverändert - eine am Auftrag
      * gepflegte Bezeichnung ist die speziellere und soll gewinnen.
      *
      * @param array<int,int> $katalogIds
-     * @return array{0:int,1:int} uebernommen, uebersprungen
+     * @return array{0:int,1:int} übernommen, übersprungen
      */
     private function uebernehmeKatalogSchritte(int $auftragId, array $katalogIds): array
     {
@@ -2179,7 +2179,7 @@ class AuftragController
                 ]
             );
 
-            // MySQL liefert 1 fuer INSERT, 0 wenn der Eintrag schon existierte.
+            // MySQL liefert 1 für INSERT, 0 wenn der Eintrag schon existierte.
             if ($betroffen > 0) {
                 $uebernommen++;
             } else {
@@ -2261,20 +2261,20 @@ class AuftragController
                 $auftragsnummer = (string)($auftrag['auftragsnummer'] ?? '');
             }
         } catch (\Throwable $e) {
-            $this->protokolliere('Auftrag fuer Katalog-Uebernahme nicht ermittelbar', [
+            $this->protokolliere('Auftrag für Katalog-Übernahme nicht ermittelbar', [
                 'auftrag_id' => $auftragId,
                 'exception'  => $e->getMessage(),
             ]);
         }
 
         if ($auftragsnummer === '') {
-            $_SESSION['auftrag_flash_fehler'] = 'Der zugehoerige Auftrag wurde nicht gefunden.';
+            $_SESSION['auftrag_flash_fehler'] = 'Der zugehörige Auftrag wurde nicht gefunden.';
             header('Location: ?seite=auftrag');
             return;
         }
 
         if ($ids === []) {
-            $_SESSION['auftrag_detail_flash_fehler'] = 'Es war kein Arbeitsschritt ausgewaehlt.';
+            $_SESSION['auftrag_detail_flash_fehler'] = 'Es war kein Arbeitsschritt ausgewählt.';
             header('Location: ?seite=auftrag_detail&code=' . urlencode($auftragsnummer));
             return;
         }
@@ -2284,21 +2284,21 @@ class AuftragController
         try {
             [$uebernommen, $uebersprungen] = $this->uebernehmeKatalogSchritte($auftragId, $ids);
         } catch (\Throwable $e) {
-            $this->protokolliere('Katalogschritte konnten nicht uebernommen werden', [
+            $this->protokolliere('Katalogschritte konnten nicht übernommen werden', [
                 'auftrag_id' => $auftragId,
                 'exception'  => $e->getMessage(),
             ]);
-            $_SESSION['auftrag_detail_flash_fehler'] = 'Die Arbeitsschritte konnten nicht uebernommen werden.';
+            $_SESSION['auftrag_detail_flash_fehler'] = 'Die Arbeitsschritte konnten nicht übernommen werden.';
             header('Location: ?seite=auftrag_detail&code=' . urlencode($auftragsnummer));
             return;
         }
 
         $meldung = $uebernommen === 1
-            ? 'Ein Arbeitsschritt wurde uebernommen.'
-            : $uebernommen . ' Arbeitsschritte wurden uebernommen.';
+            ? 'Ein Arbeitsschritt wurde übernommen.'
+            : $uebernommen . ' Arbeitsschritte wurden übernommen.';
 
         if ($uebersprungen > 0) {
-            $meldung .= ' ' . $uebersprungen . ' waren bereits vorhanden und blieben unveraendert.';
+            $meldung .= ' ' . $uebersprungen . ' waren bereits vorhanden und blieben unverändert.';
         }
 
         $_SESSION['auftrag_detail_flash_ok'] = $meldung;
@@ -2318,7 +2318,7 @@ class AuftragController
      * - Eine am Auftrag gepflegte Bezeichnung bleibt unberührt; sie ist die
      *   speziellere und gewinnt.
      *
-     * Faellt der Katalog aus (z. B. Tabelle fehlt, weil die Migration noch
+     * Fällt der Katalog aus (z. B. Tabelle fehlt, weil die Migration noch
      * nicht eingespielt ist), bleibt einfach alles wie vorher.
      *
      * @param array<int,array<string,mixed>> $schritte
@@ -2379,8 +2379,8 @@ class AuftragController
         ?>
         <section>
             <h2>Keine Berechtigung</h2>
-            <p>Zum Anlegen und Bearbeiten von Auftraegen wird das Recht <code>AUFTRAEGE_VERWALTEN</code> benoetigt.</p>
-            <p><a class="button-link quiet" href="?seite=auftrag">&laquo; Zurueck zur Auftragsliste</a></p>
+            <p>Zum Anlegen und Bearbeiten von Aufträgen wird das Recht <code>AUFTRAEGE_VERWALTEN</code> benötigt.</p>
+            <p><a class="button-link quiet" href="?seite=auftrag">&laquo; Zurück zur Auftragsliste</a></p>
         </section>
         <?php
         require __DIR__ . '/../views/layout/footer.php';

@@ -310,14 +310,14 @@ class UrlaubKontingentAdminController
                     ]
                 );
 
-                Logger::info('Urlaubsanspruch-Override geloescht', [
+                Logger::info('Urlaubsanspruch-Override gelöscht', [
                     'mitarbeiter_id' => $mitarbeiterId,
                     'jahr'           => $jahr,
                 ], $mitarbeiterId, null, 'urlaub');
 
                 $_SESSION['urlaub_kontingent_admin_flash_ok'] = 'Anspruch-Override gelöscht. Es gilt wieder der Standardanspruch.';
             } catch (Throwable $e) {
-                Logger::error('Fehler beim Loeschen des Urlaubsanspruch-Overrides', [
+                Logger::error('Fehler beim Löschen des Urlaubsanspruch-Overrides', [
                     'mitarbeiter_id' => $mitarbeiterId,
                     'jahr'           => $jahr,
                     'exception'      => $e->getMessage(),

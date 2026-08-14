@@ -53,7 +53,7 @@ class TerminalKopplungController
         $host = trim((string)($_POST['host'] ?? ''));
 
         if ($code === '') {
-            $this->antworte(400, ['ok' => false, 'fehler' => 'Es wurde kein Kopplungscode uebergeben.']);
+            $this->antworte(400, ['ok' => false, 'fehler' => 'Es wurde kein Kopplungscode übergeben.']);
             return;
         }
 
@@ -71,7 +71,7 @@ class TerminalKopplungController
         // sonst sucht er am falschen Ende.
         $benutzerDienst = TerminalDbBenutzerService::getInstanz();
         if (!$benutzerDienst->istVerfuegbar()) {
-            Logger::error('Kopplung nicht moeglich: Backend darf keine Datenbankbenutzer anlegen', [
+            Logger::error('Kopplung nicht möglich: Backend darf keine Datenbankbenutzer anlegen', [
                 'hinweis' => 'Siehe sql/06_migration_terminal_db_benutzer.sql (CREATE USER / GRANT OPTION).',
             ], null, null, 'terminal_kopplung');
 
@@ -94,7 +94,7 @@ class TerminalKopplungController
             // verbraucht war - das hilft nur beim Durchprobieren.
             $this->antworte(403, [
                 'ok'     => false,
-                'fehler' => 'Der Kopplungscode ist ungueltig. Bitte im Backend einen neuen erzeugen.',
+                'fehler' => 'Der Kopplungscode ist ungültig. Bitte im Backend einen neuen erzeugen.',
             ]);
             return;
         }
@@ -125,7 +125,7 @@ class TerminalKopplungController
             $this->antworte(500, [
                 'ok'     => false,
                 'fehler' => 'Der Datenbankbenutzer konnte nicht angelegt werden. '
-                          . 'Bitte einen neuen Kopplungscode erzeugen und das Serverprotokoll pruefen.',
+                          . 'Bitte einen neuen Kopplungscode erzeugen und das Serverprotokoll prüfen.',
             ]);
             return;
         }
@@ -189,14 +189,14 @@ class TerminalKopplungController
         ];
 
         // Bei der Kopplung gehen Zugangsdaten über das Netz. Ohne HTTPS liest
-        // sie jeder mit, der im Hallennetz mithoert - das Terminal soll das
+        // sie jeder mit, der im Hallennetz mithört - das Terminal soll das
         // anzeigen können, statt dass es niemandem auffällt.
         if (!$this->istVerschluesselt()) {
-            $antwort['warnung'] = 'Die Kopplung lief unverschluesselt ueber HTTP. '
+            $antwort['warnung'] = 'Die Kopplung lief unverschlüsselt über HTTP. '
                                 . 'Die Zugangsdaten waren im Netz mitlesbar - bitte HTTPS einrichten '
-                                . 'oder das Passwort ueber eine erneute Kopplung wechseln.';
+                                . 'oder das Passwort über eine erneute Kopplung wechseln.';
 
-            Logger::warn('Kopplung ohne HTTPS durchgefuehrt', [
+            Logger::warn('Kopplung ohne HTTPS durchgeführt', [
                 'terminal_id' => $terminalId,
             ], null, $terminalId > 0 ? $terminalId : null, 'terminal_kopplung');
         }
@@ -282,7 +282,7 @@ class TerminalKopplungController
      *
      * Der Code selbst ist mit 8 Zeichen aus 31 nicht zu erraten; die Bremse
      * sorgt vor allem dafür, dass ein Dauerbeschuss auffällt und den Server
-     * nicht beschaeftigt.
+     * nicht beschäftigt.
      */
     private function zuVieleFehlversuche(): bool
     {

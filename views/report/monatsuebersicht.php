@@ -131,7 +131,7 @@ if ($monatswerte !== null && $mitarbeiterId > 0) {
     }
 }
 // Heuristik: Unvollständige Kommen/Gehen-Stempel werden erst nach Tagesende markiert.
-// Daher ignorieren wir "heute" und zukuenftige Tage in der Monatsübersicht (Europe/Berlin).
+// Daher ignorieren wir "heute" und zukünftige Tage in der Monatsübersicht (Europe/Berlin).
 $heuteIso = (new \DateTimeImmutable('now', new \DateTimeZone('Europe/Berlin')))->format('Y-m-d');
 
 // ------------------------------------------------------------
@@ -296,7 +296,7 @@ if (!function_exists('report_is_micro_block')) {
      *    Null-/Negativdauer führt (gehen_korr <= kommen_korr), gilt der Block
      *    als „Rundung->0“ und wird wie Mikro behandelt (standardmäßig ausblenden).
      * 2) Sonst Mikro-Erkennung am Roh-Paar (kommen_roh/gehen_roh), damit Rundung
-     *    Mikro-Buchungen nicht aufblaeht.
+     *    Mikro-Buchungen nicht aufbläht.
      * 3) Fallback: Main-Paar (korr bevorzugt, sonst roh).
      */
     function report_is_micro_block($block, int $maxSeconds): bool
@@ -660,16 +660,16 @@ if (is_array($tageswerte) && $tageswerte !== []) {
      * Wichtig: Browser zeichnen die aufgeklappte Liste normalerweise mit dem
      * Systemthema und ignorieren dabei die Farben der einzelnen <option>. Erst
      * wenn das <select> selbst Vorder- und Hintergrundfarbe gesetzt bekommt,
-     * uebernimmt es die Darstellung selbst - dann greifen auch die
-     * Optionsfarben. Deshalb steht hier eine ausdrueckliche Grundfarbe.
+     * übernimmt es die Darstellung selbst - dann greifen auch die
+     * Optionsfarben. Deshalb steht hier eine ausdrückliche Grundfarbe.
      */
     .monatsabschluss-status-select {
         background-color: #ffffff;
         color: #1a1a1a;
         /*
-         * Ohne `appearance: none` zeichnet Firefox das aufgeklappte Menue als
+         * Ohne `appearance: none` zeichnet Firefox das aufgeklappte Menü als
          * natives Widget und ignoriert dabei die Farben der einzelnen Optionen.
-         * Erst wenn das Feld als selbst gestaltet gilt, werden sie uebernommen.
+         * Erst wenn das Feld als selbst gestaltet gilt, werden sie übernommen.
          * Der Pfeil wird deshalb hier selbst gezeichnet.
          */
         -webkit-appearance: none;
@@ -776,7 +776,7 @@ if (is_array($tageswerte) && $tageswerte !== []) {
                         </option>
                     <?php endfor; ?>
                 </select>
-                <button type="submit" name="monat_aktion" value="plus" aria-label="Naechster Monat">&gt;</button>
+                <button type="submit" name="monat_aktion" value="plus" aria-label="Nächster Monat">&gt;</button>
             </div>
         </div>
 
@@ -831,7 +831,7 @@ if (is_array($tageswerte) && $tageswerte !== []) {
                                 </option>
                             <?php endforeach; ?>
                         </select>
-                        <button type="button" data-mitarbeiter-step="1" aria-label="Naechster Mitarbeiter">&gt;</button>
+                        <button type="button" data-mitarbeiter-step="1" aria-label="Nächster Mitarbeiter">&gt;</button>
                     </div>
                 <?php else: ?>
                     <input type="number" name="mitarbeiter_id" value="<?php echo (int)$mitarbeiterId; ?>" min="1" style="width: 6.5rem;">
@@ -971,15 +971,15 @@ if (is_array($tageswerte) && $tageswerte !== []) {
                     $monatsabschlussMsgColor = 'red';
                     break;
                 case 'no_right':
-                    $monatsabschlussMsgText = 'Zugriff verweigert: Kein Recht fuer Stundenkonto.';
+                    $monatsabschlussMsgText = 'Zugriff verweigert: Kein Recht für Stundenkonto.';
                     $monatsabschlussMsgColor = 'red';
                     break;
                 case 'not_past':
-                    $monatsabschlussMsgText = 'Monatsabschluss ist nur fuer vergangene Monate moeglich.';
+                    $monatsabschlussMsgText = 'Monatsabschluss ist nur für vergangene Monate möglich.';
                     $monatsabschlussMsgColor = 'red';
                     break;
                 case 'csrf':
-                    $monatsabschlussMsgText = 'Sicherheits-Token ungueltig. Bitte Seite neu laden.';
+                    $monatsabschlussMsgText = 'Sicherheits-Token ungültig. Bitte Seite neu laden.';
                     $monatsabschlussMsgColor = 'red';
                     break;
                 case 'not_logged':
@@ -1054,7 +1054,7 @@ if (is_array($tageswerte) && $tageswerte !== []) {
                     continue;
                 }
 
-                // Heute (und zukuenftige Tage) sind noch nicht abgeschlossen: hier keine FEHLT-Markierung.
+                // Heute (und zukünftige Tage) sind noch nicht abgeschlossen: hier keine FEHLT-Markierung.
                 if ($datumIsoScan >= $heuteIso) {
                     continue;
                 }
@@ -1229,7 +1229,7 @@ if (is_array($tageswerte) && $tageswerte !== []) {
                         }
                         $bloecke = $tmpBlocks;
                     }
-                    // Primaer-Zeile für Meta-Felder (Pause/Kurzarbeit/Feiertag/Urlaub):
+                    // Primär-Zeile für Meta-Felder (Pause/Kurzarbeit/Feiertag/Urlaub):
                     // Erste sichtbare Blockzeile mit Dauer >= 60 Minuten, sonst die erste Blockzeile.
                     $reportMetaPrimaryMinSeconds = 3600;
                     $metaPrimaryIndex = 0;
@@ -1241,7 +1241,7 @@ if (is_array($tageswerte) && $tageswerte !== []) {
                     }
 
                     // Tages-Warnflag: mind. ein Block hat nur Kommen oder nur Gehen.
-                    // Wichtig: für "heute" (und zukuenftige Tage) markieren wir das nicht als Fehler.
+                    // Wichtig: für "heute" (und zukünftige Tage) markieren wir das nicht als Fehler.
                     $tagIstVergangen = ($datumIso !== '' && $datumIso < $heuteIso);
 
                     // Nachtschicht-Helper: (Kommen gestern, Gehen heute)

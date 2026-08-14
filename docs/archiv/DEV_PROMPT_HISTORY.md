@@ -70,6 +70,93 @@ in den Statusbericht.
   D-002 entfallen; die Regel selbst gilt weiter.)
 
 
+## P-2026-08-14-08 umlaute-in-oberflaeche-und-controllern
+
+### EINGELESEN
+- `docs/arbeitsregeln.md`, Abschnitt 7 („Umlaute schreiben, nicht
+  umschreiben") samt der Ausnahmeliste.
+- `sql/01_initial_schema.sql` – welche Spaltennamen Umschreibungen enthalten.
+- Alle Dateien in `controller/` und `views/`.
+
+### DATEIEN
+- 15 Dateien in `controller/`, 14 in `views/`
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Wo vorher `<h2>Auftraege</h2>` stand, steht `<h2>Aufträge</h2>` – und kein
+Bezeichner, Spaltenname, Rollenname, Rechte-Code oder Routenname hat dabei
+einen Umlaut bekommen.
+
+### DONE
+Die Regel stand seit v13 in den Arbeitsregeln und wurde flaechendeckend
+gebrochen, auch in sichtbarer Oberflaeche: `<h2>Auftraege</h2>`, „Zurueck zur
+Liste", „Es war kein Auftrag ausgewaehlt", „… wird das Recht
+AUFTRAEGE_VERWALTEN benoetigt". 290 Token in 29 Dateien geaendert,
+`AuftragController` allein 108.
+
+**Warum das nicht mit `sed` geht.** Die Ausnahmeliste der Regel ist keine
+Formalie: `begruendung`, `geaendert_am`, `gilt_fuer`, `gueltig_bis`,
+`ueberstunden`, `uebertrag_tage` und `schluessel` sind **Spaltennamen**;
+`naechstgelegen` ist ein **Spaltenwert** (`zeit_rundungsregel.richtung`);
+`stoerung` ist eine **Route**; `Personalbuero` ist der ASCII-Rueckfall eines
+**Rollennamens**. Eine Wortersetzung ueber die Datei haette SQL, Routen und
+den Rollenvergleich zerlegt – lautlos, denn PHP haette weiter kompiliert.
+
+Deshalb ein Werkzeug ueber `token_get_all()`, das nur anfasst:
+- `T_COMMENT` / `T_DOC_COMMENT`
+- `T_INLINE_HTML`
+- String-Literale, die **nicht** wie SQL, Bezeichner, Rechte-Code, Route oder
+  Dateiname aussehen (`^[a-z0-9_]+$`, `^[A-Z][A-Z0-9_]+$`, SQL-Schluesselwoerter,
+  `seite=`/`aktion=`, Dateiendungen).
+
+Dazu Wortgrenzen (`\b`): In `holeMonatsdatenFuerMitarbeiter` und `gilt_fuer`
+steht `Fuer`/`fuer` nicht an einer Wortgrenze – camelCase und Unterstriche
+schuetzen die Bezeichner von selbst.
+
+Ersetzt wird aus einer **festen Liste** von rund 300 Paaren, nicht per Regel
+`ae→ä`. Sonst waeren „Dauer", „bauen", „neue", „aktuell", „Quelle", „Klasse"
+und „manuell" mit verunglueckt – alles korrektes Deutsch ohne Umlaut.
+
+Drei sichtbare Reste von Hand nachgezogen, die durch den Tabu-Filter fielen:
+„Urlaub Jahresuebersicht", „diese Jahresuebersicht" und der Menuepunkt
+`Mitarbeiteruebersicht` in `views/layout/header.php`.
+
+### Gefundene Fehler im eigenen Entwurf
+Nicht von diesem Patch, aber dabei aufgefallen: Der Klassen-Docblock in
+`UrlaubJahresuebersichtController.php` nannte die Klasse seit jeher
+`UrlaubJahresübersichtController` – mit Umlaut, waehrend der echte Bezeichner
+ASCII ist. Ein Leser haette den Namen falsch abgeschrieben. Korrigiert, mit
+einem Satz dazu, warum der Bezeichner ASCII bleibt.
+
+### TEST
+- `php -l` ueber **alle 142** PHP-Dateien: sauber.
+- `iconv -f UTF-8 -t UTF-8` ueber alle 29 geaenderten Dateien: kein kaputtes
+  Zeichen.
+- Alle 72 Routen aus `public/index.php` gegen alle `?seite=`-Links: kein
+  verlinkter Name ohne Route (vorher wie nachher).
+- Rechte-Codes: alle 25 `hatRecht('…')` weiterhin reines Gross-ASCII.
+- Rollenvergleiche unveraendert: `'Chef'`, `'Personalbüro'`, `'Personalbuero'`,
+  `'Vorarbeiter'`.
+- Gegenprobe auf Umlaute in Array-Schluesseln und `[...]`-Zugriffen im Diff:
+  kein Treffer.
+- Nachgesehen, was stehen blieb: `behaelter` (JS-Variable),
+  `naechstgelegen` (Spaltenwert), `verfuegbar` (Array-Schluessel),
+  `sekundaeraktionen`/`uebersichtheute` (CSS-Klassen) – alle vier Gruppen
+  nennt die Regel ausdruecklich als Ausnahme.
+
+### Was bewusst nicht erreicht wurde
+- **`services/`, `core/`, `modelle/`, `public/` fehlen noch** – dort steht fast
+  nur Kommentartext. Eigener Patch, damit dieser Diff pruefbar bleibt.
+- **Nicht im Browser durchgeklickt.**
+- **`ss` → `ß` nur in eindeutigen Faellen** (`gross`, `heisst`, `weiss`,
+  `ausserdem`, `schliessen`, `gleichmaessig`). „dass", „muss", „lassen" sind
+  korrekt und bleiben.
+
+### NEXT
+P-2026-08-14-09: dieselbe Behandlung fuer `services/`, `core/`, `modelle/`
+und `public/`.
+
+
 ## P-2026-08-14-07 kaltstart-in-bytes-und-keine-zeilenzahlen
 
 ### EINGELESEN

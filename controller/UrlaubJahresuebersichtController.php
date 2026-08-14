@@ -2,9 +2,10 @@
 declare(strict_types=1);
 
 /**
- * UrlaubJahresübersichtController
+ * UrlaubJahresuebersichtController
  *
- * Read-only Jahresübersicht für Urlaub.
+ * Read-only Jahresübersicht für Urlaub. Der Klassenname bleibt ASCII – er ist
+ * ein Bezeichner, und die sind von der Umlautregel ausgenommen.
  */
 class UrlaubJahresuebersichtController
 {
@@ -36,7 +37,7 @@ class UrlaubJahresuebersichtController
         $rechte = $this->ermittleRechte($angemeldeterId);
         if (!$rechte['darf_alle'] && !$rechte['darf_bereich'] && !$rechte['darf_self']) {
             http_response_code(403);
-            $fehlermeldung = 'Sie haben keine Berechtigung fuer die Urlaub Jahresuebersicht.';
+            $fehlermeldung = 'Sie haben keine Berechtigung für die Urlaub Jahresübersicht.';
             require __DIR__ . '/../views/urlaub/jahresuebersicht.php';
             return;
         }
@@ -86,7 +87,7 @@ class UrlaubJahresuebersichtController
 
         return [
             'darf_alle' => $legacyAdmin || $this->authService->hatRecht('URLAUB_GENEHMIGEN_ALLE'),
-            // Auch eine abteilungsbezogen zugewiesene Rolle traegt dieses
+            // Auch eine abteilungsbezogen zugewiesene Rolle trägt dieses
             // Recht - siehe `docs/spezifikation_abteilungsrechte.md`.
             'darf_bereich' => $this->authService->hatRecht('URLAUB_GENEHMIGEN')
                 || ($angemeldeterId > 0
@@ -119,8 +120,8 @@ class UrlaubJahresuebersichtController
         $ids = [];
 
         if ($rechte['darf_bereich']) {
-            // Dieselbe Zustaendigkeitsliste wie in der Genehmigungsliste:
-            // namentlich eingetragen oder ueber die Abteilung (B-093).
+            // Dieselbe Zuständigkeitsliste wie in der Genehmigungsliste:
+            // namentlich eingetragen oder über die Abteilung (B-093).
             foreach (UrlaubGenehmigungService::getInstanz()->holeZustaendigeMitarbeiterIds($angemeldeterId) as $mid) {
                 $ids[$mid] = true;
             }
@@ -902,7 +903,7 @@ class UrlaubJahresuebersichtController
         $monatsnamen = [
             1 => 'Januar',
             2 => 'Februar',
-            3 => 'Maerz',
+            3 => 'März',
             4 => 'April',
             5 => 'Mai',
             6 => 'Juni',
