@@ -23,7 +23,8 @@ abgesichert – sie gehört nicht ins Internet.
 | Code / Git-Arbeitskopie | das geklonte Verzeichnis, z. B. `~/zeiterfassunglocal` |
 
 Der Webserver zeigt per `Alias` direkt in die Git-Arbeitskopie. Es wird nichts
-kopiert oder deployt: Datei speichern, Seite neu laden, fertig.
+kopiert oder deployt: Datei speichern, Seite neu laden, fertig – mit einer
+Einschränkung, die der OPcache macht (Abschnitt 5).
 
 ## 2. Komponenten
 
@@ -174,6 +175,30 @@ es gefahrlos entfernt werden; sonst stattdessen das Paket `mariadb` verwenden.
 **phpMyAdmin meldet ein fehlendes `blowfish_secret`.**
 Ohne gesetztes Secret verweigert phpMyAdmin den Cookie-Login. Das Skript
 erzeugt eines und traegt es in `/etc/webapps/phpmyadmin/config.inc.php` ein.
+
+**Eine geänderte PHP-Datei wirkt bis zu drei Minuten lang nicht.**
+Der OPcache prüft den Zeitstempel einer bereits übersetzten Datei nur alle
+`opcache.revalidate_freq` Sekunden – in `/etc/php/php.ini` steht dort **180**.
+Bis dahin liefern Apache/php-fpm und auch `php -S` den alten Stand, obwohl die
+Datei längst gespeichert ist. Das Tückische daran ist nicht die Verzögerung,
+sondern dass sie nicht immer auftritt: Dateien, die jünger als
+`opcache.file_update_protection` (**2** Sekunden) sind, landen gar nicht erst
+im Cache. Wer speichert und sofort neu lädt, sieht seine Änderung – wer
+speichert, kurz nachdenkt und dann neu lädt, sieht sie nicht. Nachstellen:
+
+```bash
+printf '<?php echo "STAND-A";\n' > public/probe.php
+sleep 4 && curl -s http://localhost/zeiterfassung/probe.php   # STAND-A
+printf '<?php echo "STAND-B";\n' > public/probe.php
+sleep 2 && curl -s http://localhost/zeiterfassung/probe.php   # weiterhin STAND-A
+rm public/probe.php
+```
+
+Abhilfe im Browser: `sudo systemctl reload php-fpm`. Auf der Kommandozeile –
+etwa wenn zwei Stände gegeneinander gerendert werden – gehört
+`-d opcache.enable=0 -d opcache.enable_cli=0` an den Aufruf, sonst misst man
+den Stand von vorhin. Gekostet hat das in P-2026-08-14-12 zwei komplette
+Messreihen.
 
 ## 6. Erste Anmeldung
 

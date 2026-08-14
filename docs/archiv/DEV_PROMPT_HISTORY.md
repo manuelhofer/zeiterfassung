@@ -99,6 +99,69 @@ in den Statusbericht.
   D-002 entfallen; die Regel selbst gilt weiter.)
 
 
+## P-2026-08-14-13 opcache-stolperstein-dokumentiert
+
+### EINGELESEN
+- `docs/lokale_entwicklungsumgebung.md`, Abschnitte 1, 5 und 7.
+- `/etc/php/php.ini`, Abschnitt `[opcache]`, und
+  `/etc/php/conf.d/99-zeiterfassung-dev.ini`.
+- Eigener Eintrag P-2026-08-14-12, „Gefundene Fehler im eigenen Entwurf".
+
+### DATEIEN
+- `docs/lokale_entwicklungsumgebung.md`
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Die vier Zeilen, die in Abschnitt 5 zum Nachstellen stehen, liefern beim
+zweiten Abruf `STAND-A` – also den alten Stand, obwohl die Datei geaendert
+wurde.
+
+### DONE
+Abschnitt 5 („Stolpersteine") bekommt den OPcache-Fall, Abschnitt 1 einen
+Verweis darauf. Der Satz dort – „Datei speichern, Seite neu laden, fertig" –
+stimmt naemlich nicht immer, und das ist der Satz, auf den sich jeder verlaesst.
+
+Gemessen auf diesem Rechner, nicht aus der Dokumentation abgeschrieben:
+`/etc/php/php.ini` setzt `opcache.enable=1`, `opcache.enable_cli=1` und
+`opcache.revalidate_freq=180`. Eine einmal uebersetzte Datei wird also bis zu
+drei Minuten lang nicht erneut geprueft – im Browser wie auf der
+Kommandozeile.
+
+**Warum das so schwer zu erkennen ist**, steht mit im Text: Der Effekt tritt
+nicht zuverlaessig auf. `opcache.file_update_protection` ist 2 Sekunden, und
+Dateien, die juenger sind, kommen gar nicht erst in den Cache. Speichern und
+sofort neu laden zeigt die Aenderung; speichern, kurz nachdenken, neu laden
+zeigt sie nicht. Genau diese Sprunghaftigkeit hat in P-2026-08-14-12 zwei
+Messreihen gekostet, weil der erste Versuch scheinbar funktionierte.
+
+Abschnitt 7 nennt `restart php-fpm` bereits, aber nur fuer Aenderungen an
+`config.local.php` und PHP-Einstellungen. Dass auch ganz normale
+Quelltextaenderungen betroffen sind, stand nirgends.
+
+### Gefundene Fehler im eigenen Entwurf
+Die erste Probe schien zu belegen, dass php-fpm die Aenderung sofort uebernimmt
+– zwei Abrufe, beide der neue Stand. Der Grund war
+`file_update_protection`: Beide Abrufe trafen eine Datei, die juenger als zwei
+Sekunden war, also nie im Cache landete. Erst eine Probe mit **frischem
+Dateinamen** und vier Sekunden Wartezeit vor dem ersten Abruf zeigte das
+Verhalten. Wer hier zu schnell misst, dokumentiert das Gegenteil.
+
+### TEST
+Die vier Zeilen aus Abschnitt 5 wortwoertlich ausgefuehrt:
+Abruf 1 `STAND-A`, Abruf 2 nach der Aenderung wieder `STAND-A`, auch 15
+Sekunden spaeter noch. Die Probedatei wurde danach geloescht, `git status` ist
+sauber.
+
+### Was bewusst nicht erreicht wurde
+`opcache.revalidate_freq=0` in `/etc/php/conf.d/99-zeiterfassung-dev.ini` wuerde
+den Stolperstein beseitigen, statt ihn zu beschreiben – das aendert aber
+`scripts/dev/setup_lokale_umgebung_arch.sh` und die Maschine, ist also ein
+eigenes Thema und eine eigene Entscheidung.
+
+### NEXT
+T-110 (toter Fehlerpfad der Konfigurations-Uebersicht), danach die naechste
+Maske aus T-104.
+
 ## P-2026-08-14-12 konfigurations-uebersicht-in-views
 
 ### EINGELESEN
