@@ -28,6 +28,16 @@ class MitarbeiterAdminController
      */
     private const SCOPE_ABTEILUNG_AKTIV = true;
 
+    /**
+     * Bereichsname für `Csrf` – siehe `core/Csrf.php`.
+     *
+     * Alle sechs Formulare dieses Bereichs schicken an dieselbe Route
+     * (`?seite=mitarbeiter_admin_speichern`), deshalb genügt **ein** Bereich.
+     * Die Views bauen ihr Feld selbst und bekommen dafür `$csrfBereich`, damit
+     * der Name nicht ein zweites Mal irgendwo steht.
+     */
+    private const CSRF_BEREICH = 'mitarbeiter_admin';
+
     private AuthService $authService;
     private MitarbeiterModel $mitarbeiterModel;
 
@@ -245,6 +255,7 @@ class MitarbeiterAdminController
         }
         $mitarbeiter['abteilungen_ids'] = array_keys($tmpAbt);
 
+        $csrfBereich = self::CSRF_BEREICH;
         require __DIR__ . '/../views/mitarbeiter/formular.php';
     }
 
@@ -521,6 +532,7 @@ class MitarbeiterAdminController
             }
         }
 
+        $csrfBereich = self::CSRF_BEREICH;
         require __DIR__ . '/../views/mitarbeiter/stundenkonto.php';
     }
 
@@ -928,6 +940,7 @@ class MitarbeiterAdminController
             }
         }
 
+        $csrfBereich = self::CSRF_BEREICH;
         require __DIR__ . '/../views/mitarbeiter/formular.php';
     }
 
@@ -1050,6 +1063,16 @@ class MitarbeiterAdminController
         }
 
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            header('Location: ?seite=mitarbeiter_admin');
+            return;
+        }
+
+        // Vor der Verzweigung prüfen, nicht danach: An dieser Route hängen
+        // sechs Formulare aus zwei Views, und über sie werden Rollen, Rechte
+        // und Abteilungen geschrieben. Eine Prüfung hier deckt alle Wege ab -
+        // eine je Zweig würde beim siebten Formular vergessen.
+        if (!Csrf::istGueltig(self::CSRF_BEREICH)) {
+            $_SESSION['mitarbeiter_admin_flash_error'] = 'Die Sitzung ist abgelaufen. Bitte die Seite neu laden und erneut speichern.';
             header('Location: ?seite=mitarbeiter_admin');
             return;
         }
@@ -1404,6 +1427,7 @@ class MitarbeiterAdminController
                     ], $id, null, 'rolle');
                 }
 
+                $csrfBereich = self::CSRF_BEREICH;
                 require __DIR__ . '/../views/mitarbeiter/formular.php';
                 return;
             }
@@ -1445,6 +1469,7 @@ class MitarbeiterAdminController
                     ], null, null, 'rolle');
                 }
 
+                $csrfBereich = self::CSRF_BEREICH;
                 require __DIR__ . '/../views/mitarbeiter/formular.php';
                 return;
             }

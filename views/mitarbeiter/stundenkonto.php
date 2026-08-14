@@ -18,10 +18,12 @@ declare(strict_types=1);
  * - $stundenkontoUmbuchungJahr (int)
  * - $stundenkontoUmbuchungMonat (int)
  * - $stundenkontoUmbuchungTageswerte (array<int,array<string,mixed>>)
+ * - $csrfBereich (string) – Bereichsname für `Csrf`, kommt aus dem Controller
  */
 
 require __DIR__ . '/../layout/header.php';
 
+$csrfBereich = (string)($csrfBereich ?? '');
 $mitarbeiterListe = isset($mitarbeiterListe) && is_array($mitarbeiterListe) ? $mitarbeiterListe : [];
 $mitarbeiter = isset($mitarbeiter) && is_array($mitarbeiter) ? $mitarbeiter : null;
 $id = isset($id) ? (int)$id : 0;
@@ -242,6 +244,7 @@ $umbuchungLink = static function (int $mid, int $monat, int $jahr, bool $stealth
             </p>
 
             <form method="post" action="?seite=mitarbeiter_admin_speichern">
+                <?php echo Csrf::feld($csrfBereich); ?>
                 <input type="hidden" name="stundenkonto_umbuchung_only" value="1">
                 <input type="hidden" name="return_to" value="stundenkonto">
                 <input type="hidden" name="return_ansicht" value="sammelumbuchung">
@@ -493,6 +496,7 @@ $umbuchungLink = static function (int $mid, int $monat, int $jahr, bool $stealth
         <?php if ($stundenkontoDarfVerwalten): ?>
             <h4>Manuelle Korrektur buchen</h4>
             <form method="post" action="?seite=mitarbeiter_admin_speichern">
+                <?php echo Csrf::feld($csrfBereich); ?>
                 <input type="hidden" name="stundenkonto_only" value="1">
                 <input type="hidden" name="return_to" value="stundenkonto">
                 <input type="hidden" name="id" value="<?php echo (int)$id; ?>">
@@ -528,6 +532,7 @@ $umbuchungLink = static function (int $mid, int $monat, int $jahr, bool $stealth
 
             <h4>Verteilbuchung buchen</h4>
             <form method="post" action="?seite=mitarbeiter_admin_speichern">
+                <?php echo Csrf::feld($csrfBereich); ?>
                 <input type="hidden" name="stundenkonto_batch_only" value="1">
                 <input type="hidden" name="return_to" value="stundenkonto">
                 <input type="hidden" name="id" value="<?php echo (int)$id; ?>">

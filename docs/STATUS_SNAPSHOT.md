@@ -29,8 +29,12 @@ den Stufenplan (Abschnitt 11).
 
 ## Offene Bugs
 - **B-095:** `abteilung_admin_speichern`, `maschine_admin_speichern`,
-  `feiertag_admin_speichern` und `betriebsferien_admin_speichern` schreiben
-  ohne CSRF-Prüfung; geprüft wird nur beim Umschalten (P-2026-08-11-09).
+  `feiertag_admin_speichern`, `betriebsferien_admin_speichern` und
+  `maschine_admin_barcode_neu` schreiben ohne CSRF-Prüfung; geprüft wird nur
+  beim Umschalten (P-2026-08-11-09). `maschine_admin_barcode_neu` schreibt
+  zusätzlich per **GET** – ein `<img src>` genügt.
+  Kein Zählbefehl dazu: Zwei der Controller schreiben über Modelle, ein Muster
+  über `INSERT INTO` findet sie nicht. Die fünf Routen liest man nach.
 
 ## Offene Tasks
 - **T-104** Sechs Controller erzeugen HTML selbst, statt `views/` zu benutzen:

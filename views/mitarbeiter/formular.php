@@ -12,10 +12,12 @@ declare(strict_types=1);
  * - $alleRollen (array<int,array<string,mixed>>) – alle aktiven Rollen für die Checkbox-Auswahl
  * - $rollenIdsAusgewaehlt (array<int,int>) – Rollen-IDs, die aktuell für diesen Mitarbeiter gesetzt sind
   * - $alleMitarbeiterGenehmiger (array<int,array<string,mixed>>) – alle aktiven Mitarbeiter für die Genehmiger-Auswahl
+ * - $csrfBereich (string) – Bereichsname für `Csrf`, kommt aus dem Controller
 */
 
 require __DIR__ . '/../layout/header.php';
 
+$csrfBereich   = (string)($csrfBereich ?? '');
 $mitarbeiter   = $mitarbeiter ?? null;
 /** @var array<int,array<string,mixed>> $rollen */
 $rollen        = $rollen ?? [];
@@ -111,6 +113,7 @@ $zeigeAbteilungsrollenBereich = $hatAbteilungen || count($rollenScopesAbteilung)
     <?php endif; ?>
 
     <form method="post" action="?seite=mitarbeiter_admin_speichern">
+        <?php echo Csrf::feld($csrfBereich); ?>
         <input type="hidden" name="id" value="<?php echo $id !== null ? (int)$id : ''; ?>">
         <?php if ($istRechteModus): ?>
             <input type="hidden" name="mitarbeiter_rechte_abschnitt" value="1">
@@ -988,6 +991,7 @@ $zeigeAbteilungsrollenBereich = $hatAbteilungen || count($rollenScopesAbteilung)
         <?php if ($stundenkontoDarfVerwalten): ?>
             <h4>Manuelle Korrektur buchen</h4>
             <form method="post" action="?seite=mitarbeiter_admin_speichern">
+                <?php echo Csrf::feld($csrfBereich); ?>
                 <input type="hidden" name="stundenkonto_only" value="1">
                 <input type="hidden" name="id" value="<?php echo (int)$id; ?>">
                 <?php if ($stundenkontoStealthMode): ?>
@@ -1022,6 +1026,7 @@ $zeigeAbteilungsrollenBereich = $hatAbteilungen || count($rollenScopesAbteilung)
 
             <h4>Verteilbuchung buchen</h4>
             <form method="post" action="?seite=mitarbeiter_admin_speichern">
+                <?php echo Csrf::feld($csrfBereich); ?>
                 <input type="hidden" name="stundenkonto_batch_only" value="1">
                 <input type="hidden" name="id" value="<?php echo (int)$id; ?>">
                 <?php if ($stundenkontoStealthMode): ?>

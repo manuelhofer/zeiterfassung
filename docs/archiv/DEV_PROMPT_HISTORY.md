@@ -70,6 +70,79 @@ in den Statusbericht.
   D-002 entfallen; die Regel selbst gilt weiter.)
 
 
+## P-2026-08-14-04 csrf-fuer-die-mitarbeiterverwaltung
+
+### EINGELESEN
+- `core/Csrf.php` – die eine Stelle, an der der Schutz definiert ist.
+- `controller/KurzarbeitAdminController.php` und
+  `controller/BetriebsferienAdminController.php` als Muster (Pruefung im
+  Controller, Feld in der View ueber `$csrfBereich`).
+- `controller/MitarbeiterAdminController.php`, `views/mitarbeiter/formular.php`,
+  `views/mitarbeiter/stundenkonto.php`.
+- `docs/STATUS_SNAPSHOT.md`, B-095.
+
+### DATEIEN
+- `controller/MitarbeiterAdminController.php`
+- `views/mitarbeiter/formular.php`
+- `views/mitarbeiter/stundenkonto.php`
+- `docs/STATUS_SNAPSHOT.md`
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Ein POST auf `?seite=mitarbeiter_admin_speichern` ohne gueltiges Token
+schreibt nichts mehr, sondern landet mit Hinweis zurueck auf der
+Mitarbeiterliste – und zwar auf allen sechs Formularwegen, auch dem, der
+Rollen und Rechte setzt.
+
+### DONE
+Der Controller hatte **keine einzige** CSRF-Pruefung, und keine seiner Views
+gab ein Token aus – `grep -i csrf` traf in beiden Dateien nichts. Ueber die
+Route laufen 15 schreibende Statements, darunter `mitarbeiter_hat_recht` und
+`mitarbeiter_hat_rolle_scope`. Ein Fremd-POST konnte damit **Rechte vergeben**;
+das wiegt schwerer als die vier Routen aus B-095, die nur Stammdaten schreiben.
+
+- `CSRF_BEREICH = 'mitarbeiter_admin'` als Konstante, ein Bereich fuer alle
+  sechs Formulare – sie schicken an dieselbe Route.
+- Die Pruefung steht **vor** der Verzweigung nach `stundenkonto_only`,
+  `stundenkonto_batch_only` und `stundenkonto_umbuchung_only`. Eine Pruefung je
+  Zweig haette beim siebten Formular gefehlt.
+- Die fuenf Stellen, an denen der Controller eine der beiden Views einbindet,
+  setzen `$csrfBereich`; die Views bauen ihr Feld mit `Csrf::feld()` selbst –
+  dasselbe Muster wie Betriebsferien, damit der Bereichsname genau einmal
+  im Projekt steht.
+
+### TEST
+- `php -l` ueber alle drei geaenderten Dateien: sauber.
+- `grep -n -B1 "require .*views/mitarbeiter/(formular|stundenkonto).php"` – vor
+  **allen fuenf** Einbindungen steht die Zuweisung von `$csrfBereich`.
+- Gegenprobe, dass keine dritte Stelle die Views einbindet: `grep -rn` ueber
+  das Projekt findet nur diesen Controller. Sonst waere dort `$csrfBereich`
+  leer und das Formular unabschickbar geworden.
+- `Csrf::feld()` steht in allen sechs POST-Formularen, in keinem der drei
+  GET-Formulare (dort waere es sinnlos).
+
+### Gefundene Fehler im eigenen Entwurf
+Der erste Entwurf stellte einen Zaehlbefehl neben B-095
+(`INSERT INTO … && ! Csrf::istGueltig`). Ausprobiert liefert er
+`LoginController` und `MaschineAdminController` – er **verfehlt**
+`AbteilungAdminController` und `FeiertagController`, weil die ueber Modelle
+schreiben, und meldet die Erstinstallation als Fund. Also genau der Fehler, der
+gerade erst an T-104 aufgefallen war: ein Pruefbefehl, dessen Ausgabe nicht zur
+Behauptung daneben passt. Der Befehl ist wieder raus; stattdessen steht dort,
+warum es keinen gibt.
+
+### Was bewusst nicht erreicht wurde
+- **B-095 bleibt offen.** Die vier dort genannten Routen und
+  `maschine_admin_barcode_neu` sind ein eigenes Thema – P-2026-08-14-05.
+  B-095 nennt jetzt aber die vollstaendige Liste, vorher fehlte der
+  GET-Schreibzugriff.
+- **Nicht im Browser durchgeklickt.** Geprueft ist der Code, nicht die
+  laufende Maske.
+
+### NEXT
+P-2026-08-14-05: B-095 schliessen.
+
+
 ## P-2026-08-14-03 snapshot-nur-noch-offenes
 
 ### EINGELESEN
