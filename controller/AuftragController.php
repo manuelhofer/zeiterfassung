@@ -2137,10 +2137,6 @@ class AuftragController
     }
 
     /**
-     * Übernimmt ausgewählte Katalogschritte in einen Auftrag.
-     * Route: ?seite=auftrag_schritte_aus_katalog (POST)
-     */
-    /**
      * Haengt Katalogschritte an einen Auftrag.
      *
      * Eine Stelle fuer zwei Wege: die Uebernahme aus der Auftragsansicht
@@ -2218,6 +2214,10 @@ class AuftragController
         return $ids;
     }
 
+    /**
+     * Übernimmt ausgewählte Katalogschritte in einen vorhandenen Auftrag.
+     * Route: ?seite=auftrag_schritte_aus_katalog (POST)
+     */
     public function schritteAusKatalog(): void
     {
         if (!$this->pruefeZugriff()) {

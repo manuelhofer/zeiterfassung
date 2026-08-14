@@ -70,6 +70,69 @@ in den Statusbericht.
   D-002 entfallen; die Regel selbst gilt weiter.)
 
 
+## P-2026-08-14-02 doku-katalogschritte-beim-anlegen
+
+### EINGELESEN
+- `docs/fachregeln/auftraege_und_codes.md`, Abschnitt 4.
+- `docs/spezifikation_auftrag_barcode_laufkarte.md`, Abschnitt 4a
+  („Funktionen").
+- `docs/admin_handbuch.md`, Ablauf „Auftraege, Arbeitsschritte und Laufkarte".
+- `controller/AuftragController.php` um `uebernehmeKatalogSchritte()` und
+  `schritteAusKatalog()`.
+
+### DATEIEN
+- `docs/fachregeln/auftraege_und_codes.md`
+- `docs/spezifikation_auftrag_barcode_laufkarte.md`
+- `docs/admin_handbuch.md`
+- `controller/AuftragController.php` (nur Docblock)
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Wer nachschlaegt, wie Katalogschritte an einen Auftrag kommen, findet an jeder
+der drei Stellen **beide** Wege beschrieben - Anlegen-Formular und
+Auftragsansicht - statt nur den alten.
+
+### DONE
+P-2026-08-14-01 hat den Code geaendert und die Doku stehen lassen. Alle drei
+Stellen behaupteten weiterhin, Katalogschritte kaemen ausschliesslich ueber die
+Auftragsansicht an einen Auftrag:
+
+| Datei | stand da | steht jetzt da |
+| --- | --- | --- |
+| Fachregel, Abschnitt 4 | nur, was der Katalog *ist* | beide Wege, wer was anbietet, und dass die Einfuegeregel einmal existiert |
+| Spezifikation, 4a | „Im Auftragsdetail lassen sich Katalogschritte uebernehmen" | beide Wege mit Datum, dazu die bewusste Luecke beim Bearbeiten |
+| Admin-Handbuch, Schritt 2/3 | Schritt 3 „Arbeitsschritte zuordnen" | Haekchen schon in Schritt 2; Schritt 3 heisst „ergaenzen" |
+
+**Verwaister Docblock:** Beim Herausloesen von `uebernehmeKatalogSchritte()`
+ist der alte Kommentar `Route: ?seite=auftrag_schritte_aus_katalog (POST)` an
+Ort und Stelle geblieben - also ueber der neuen, privaten Methode, die gar
+keine Route hat, waehrend `schritteAusKatalog()` ohne Docblock dastand. Zwei
+Docblocks lagen dort uebereinander. Der Routen-Kommentar ist zurueck an seiner
+Methode.
+
+### TEST
+- `php -l controller/AuftragController.php` sauber.
+- `grep -n "Route: ?seite=auftrag_schritte_aus_katalog"` trifft genau einmal,
+  direkt ueber `schritteAusKatalog()`.
+- Beide Docblocks gegen den Code gelesen: `uebernehmeKatalogSchritte()` ist
+  `private` und wird aus `speichern()` und `schritteAusKatalog()` gerufen - die
+  Beschreibung „eine Stelle fuer zwei Wege" stimmt.
+- Doku gegen den Code geprueft, nicht gegen den Chatverlauf: die Auswahl im
+  Anlegen-Formular haengt an `$id === 0`, gelesen wird sie in
+  `leseKatalogAuswahlAusPost()`, und `ON DUPLICATE KEY UPDATE
+  arbeitsschritt_code = arbeitsschritt_code` laesst Vorhandenes unveraendert.
+- Reine Textaenderung an den drei `.md`-Dateien, keine Maske angefasst.
+
+### Was bewusst nicht erreicht wurde
+- **`docs/STATUS_SNAPSHOT.md` bleibt hier unberuehrt.** Dieser Patch macht
+  nichts auf oder zu; der Snapshot fuehrt Offenes, keine Doku-Historie. Seine
+  eigene Pflege ist Thema von P-2026-08-14-03.
+- **Das Markup bleibt im Controller** (T-104). Weiterhin ein zweites Thema.
+
+### NEXT
+P-2026-08-14-03: Snapshot auf Offenes eindampfen, T-104 nachmessen.
+
+
 ## P-2026-08-14-01 katalogschritte-schon-beim-anlegen
 
 ### EINGELESEN

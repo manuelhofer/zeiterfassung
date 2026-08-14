@@ -184,10 +184,14 @@ Code muss betriebsweit dasselbe bedeuten.
     genau der Fall „20-mal `fraesen`“.
   - Karten mit Schnittmarkierung, damit sie sich ausschneiden und an die
     Maschine haengen lassen.
-- **Übernahme in einen Auftrag:** Im Auftragsdetail lassen sich
-  Katalogschritte per Mehrfachauswahl übernehmen. Sie erscheinen dann auf der
-  Laufkarte. Bereits vorhandene Codes werden übersprungen, nicht doppelt
-  angelegt.
+- **Übernahme in einen Auftrag – zwei Stellen, eine Regel:** Schon im Formular
+  *Auftrag anlegen* stehen die **aktiven** Katalogschritte zum Anhaken; sie
+  hängen unmittelbar nach dem Speichern am neuen Auftrag (seit 2026-08-14).
+  Später führt der Weg über das Auftragsdetail, das per Mehrfachauswahl nur
+  noch die **fehlenden** Schritte anbietet. Beim *Bearbeiten* gibt es die
+  Auswahl bewusst nicht – sie wäre die dritte Stelle für dieselbe Sache.
+  Übernommene Schritte erscheinen auf der Laufkarte; bereits vorhandene Codes
+  werden übersprungen, nicht doppelt angelegt und nicht überschrieben.
 - **Bezeichnung beim Scannen:** Legt das Terminal einen Arbeitsschritt
   automatisch an und der Code steht im Katalog, wird die Bezeichnung von dort
   übernommen. Sonst stuenden in der Auswertung nur nackte Codes. Streng

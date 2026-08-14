@@ -98,6 +98,14 @@ Wirkung.
 für wiederkehrende Tätigkeiten – einmal pflegen, Codes beliebig oft
 ausdrucken.
 
+An einen Auftrag kommen Katalogschritte an **zwei** Stellen: beim Anlegen
+(Häkchen im Formular, angeboten werden die aktiven Schritte) und später in der
+Auftragsansicht (angeboten werden nur die, die dem Auftrag noch fehlen). Beim
+*Bearbeiten* gibt es die Auswahl bewusst nicht. Eingefügt wird beide Male über
+`AuftragController::uebernehmeKatalogSchritte()` – **die Regel steht genau
+einmal**: Ein Code, den der Auftrag schon hat, wird übersprungen und nicht
+überschrieben, denn eine am Auftrag gepflegte Bezeichnung ist die speziellere.
+
 ## 5. Haupt- und Nebenaufträge
 
 Ein Mitarbeiter kann **einen** Hauptauftrag laufen haben und zusätzlich

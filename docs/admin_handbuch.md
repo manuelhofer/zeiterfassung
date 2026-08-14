@@ -104,10 +104,16 @@ Kartenblatt ausgeben. Bei mehreren Fräsmaschinen also z. B. 20 Karten
 Pflicht ist nur die Auftragsnummer. Kunde, Kurzbeschreibung und Status sind
 freiwillig; was leer bleibt, erscheint auch nicht auf dem Ausdruck.
 
-**3. Arbeitsschritte zuordnen** (in der Auftrags-Detailansicht)
+Unter den Feldern stehen die Katalogschritte zum **Anhaken**. Was hier
+angehakt ist, hängt sofort nach dem Speichern am Auftrag – der übliche Fall
+ist damit in einem Schritt erledigt.
 
-Entweder frei eintippen (für werkstückspezifische Schritte wie
-„Aussendurchmesser auf 40 mm drehen“) oder aus dem Katalog übernehmen.
+**3. Arbeitsschritte ergänzen** (in der Auftrags-Detailansicht)
+
+Für alles, was beim Anlegen noch nicht feststand: frei eintippen (für
+werkstückspezifische Schritte wie „Aussendurchmesser auf 40 mm drehen“) oder
+nachträglich aus dem Katalog übernehmen. Angeboten werden dort nur die
+Schritte, die dem Auftrag noch fehlen.
 
 **4. Laufkarte drucken** (Detailansicht, *Laufkarte als PDF drucken*)
 
