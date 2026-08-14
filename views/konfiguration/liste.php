@@ -40,8 +40,13 @@ $fehlermeldung = $fehlermeldung ?? null;
         </div>
     <?php endif; ?>
 
+    <?php /* Bei einem Lesefehler ist die Liste ebenfalls leer – dann steht schon
+             die Fehlermeldung da, und „keine Einträge vorhanden" wäre daneben
+             die falsche Auskunft. */ ?>
     <?php if (count($eintraege) === 0): ?>
-        <p>Es sind derzeit keine Konfigurationseinträge vorhanden.</p>
+        <?php if (empty($fehlermeldung)): ?>
+            <p>Es sind derzeit keine Konfigurationseinträge vorhanden.</p>
+        <?php endif; ?>
     <?php else: ?>
         <table>
             <thead>

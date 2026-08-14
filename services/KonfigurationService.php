@@ -169,21 +169,21 @@ class KonfigurationService
     /**
      * Liefert alle Konfigurationseinträge als Array (für Backend-Übersichten).
      *
+     * Wirft weiter, wenn die Tabelle nicht lesbar ist – anders als `get()`, das
+     * bewusst auf den Standardwert zurückfällt. Für einen einzelnen Schlüssel
+     * gibt es diesen Rückfallwert, für die Übersicht nicht: Eine leere Liste
+     * hiesse „es gibt keine Einträge", und das ist eine andere Aussage als
+     * „die Einträge konnten nicht geladen werden". Der Aufrufer entscheidet,
+     * wie er den Fehler zeigt.
+     *
      * @return array<int,array<string,mixed>>
      */
     public function getAlle(): array
     {
-        try {
-            $sql = 'SELECT *
-                    FROM config
-                    ORDER BY schluessel ASC';
+        $sql = 'SELECT *
+                FROM config
+                ORDER BY schluessel ASC';
 
-            return $this->datenbank->fetchAlle($sql);
-        } catch (\Throwable $e) {
-            Logger::error('Fehler beim Laden aller Konfigurationseinträge', [
-                'exception' => $e->getMessage(),
-            ], null, null, 'config');
-            return [];
-        }
+        return $this->datenbank->fetchAlle($sql);
     }
 }

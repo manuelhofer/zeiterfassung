@@ -99,6 +99,90 @@ in den Statusbericht.
   D-002 entfallen; die Regel selbst gilt weiter.)
 
 
+## P-2026-08-14-14 t-110-fehlerpfad-der-konfiguration
+
+### EINGELESEN
+- `docs/STATUS_SNAPSHOT.md` (T-110), `docs/arbeitsregeln.md`.
+- `services/KonfigurationService.php` vollstaendig, besonders `get()` und
+  `getAlle()`.
+- `controller/KonfigurationController.php`, `index()`.
+- `views/konfiguration/liste.php` (aus P-2026-08-14-12).
+- `grep -rn "getAlle()" controller services core public views` – ein einziger
+  Aufrufer.
+
+### DATEIEN
+- `services/KonfigurationService.php`
+- `views/konfiguration/liste.php`
+- `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Ist die Tabelle `config` nicht lesbar, zeigt die Konfigurations-Uebersicht „Die
+Konfiguration konnte nicht geladen werden." statt der Behauptung, es gebe keine
+Eintraege.
+
+### DONE
+T-110, gefunden in P-2026-08-14-12. `getAlle()` hat seinen Fehler selbst
+abgefangen und `[]` zurueckgegeben – der `catch` im Controller konnte nie
+greifen, seine Fehlermeldung war unerreichbarer Code. Sichtbar war das nicht
+als Fehlermeldung, sondern als **falsche Auskunft**: Bei einer unlesbaren
+Tabelle stand „Es sind derzeit keine Konfigurationseintraege vorhanden." – ein
+Satz, nach dem man in der Datenbank sucht, was geloescht wurde.
+
+`getAlle()` faengt jetzt nicht mehr ab. Der Unterschied zu `get()`, das
+weiterhin abfaengt, steht als Kommentar an der Methode: Fuer einen einzelnen
+Schluessel gibt es einen Standardwert, auf den zurueckgefallen werden kann; fuer
+die Uebersicht gibt es keinen. „Leere Liste" und „nicht ladbar" sind zwei
+verschiedene Aussagen, und nur der Aufrufer weiss, wie er die zweite zeigt.
+
+Risiko ueberschaubar: `getAlle()` hat genau **einen** Aufrufer, und der bringt
+seit jeher den passenden `try`/`catch` mit. Doppeltes Loggen faellt weg – der
+Controller schreibt dieselbe Meldung mit derselben Kategorie `config`.
+
+**Ein zweiter sichtbarer Effekt kam dazu**, und der gehoert zum selben Thema:
+Bei einem Lesefehler ist die Liste ebenfalls leer, also stand die Fehlermeldung
+und direkt darunter „keine Eintraege vorhanden" – wieder die falsche Auskunft,
+nur eine Zeile tiefer. Die View zeigt den Leer-Hinweis jetzt nur noch, wenn
+keine Fehlermeldung dasteht.
+
+### TEST
+Frische Wegwerf-Umgebung: Kopie des Repos unter `/tmp`, eigene
+`config.local.php`, Datenbank `zeit_probe_t110` aus `sql/01_initial_schema.sql`,
+**erfundene** Daten (Pruefbenutzer „Probe Pruefer", ein Eintrag
+`probe.einfach`). Server mit `-d opcache.enable=0 -d opcache.enable_cli=0`
+gestartet – der Grund steht in P-2026-08-14-13. Entwicklungsdatenbank nicht
+angefasst, Probe-Datenbank am Ende geloescht.
+
+Drei Lagen, jeweils HTTP 200:
+
+| Lage | Fehlermeldung | „keine Eintraege" |
+| --- | --- | --- |
+| `config` lesbar, ein Eintrag | nein | nein (Liste steht) |
+| `config` unlesbar (`RENAME TABLE`) | **ja** | nein |
+| `config` lesbar, aber leer | nein | **ja** |
+
+Gegenprobe auf demselben Datenbankstand mit dem Stand aus HEAD: dort zeigt die
+unlesbare Tabelle **keine** Fehlermeldung, sondern „keine Eintraege" – genau der
+Fehler, um den es geht.
+
+`system_log` bestaetigt den Wechsel der Zustaendigkeit: Auf dem neuen Stand
+steht `error | config | Fehler beim Laden der Konfiguration` (Controller), die
+Servicemeldung „Fehler beim Laden aller Konfigurationseintraege" kommt nur noch
+aus der HEAD-Kopie.
+
+Danach auf dem neuen Stand geklickt: Dashboard, Konfiguration mit allen vier
+Tabs, Bearbeiten-Maske, Mitarbeiterliste, Rollen/Rechte, Monatsreport, Urlaub,
+Terminalverwaltung – alle HTTP 200, Serverlog ohne Warnung oder Deprecation.
+`php -l` ueber beide geaenderten Dateien.
+
+### Was bewusst nicht erreicht wurde
+Die uebrigen Methoden von `KonfigurationService` fangen weiter ab. Bei `get()`
+ist das richtig (Standardwert), bei `set()` ist es diskutabel – ein
+fehlgeschlagenes Schreiben meldet dem Aufrufer nichts. Nicht angefasst: anderes
+Thema, anderer Aufruferkreis, und es faellt hier nur nebenbei auf.
+
+### NEXT
+Naechste Maske aus T-104: `bearbeiten()` des `KonfigurationController`.
+
 ## P-2026-08-14-13 opcache-stolperstein-dokumentiert
 
 ### EINGELESEN

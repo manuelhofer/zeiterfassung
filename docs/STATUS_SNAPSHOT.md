@@ -47,9 +47,6 @@ Keine bekannten.
   Beim Bauen einer Maske erst in `views/layout/header.php` nachsehen, was es
   schon gibt, und **keine eigenen Grössen auf Knöpfe schreiben** – warum, steht
   dort als Kommentar.
-- **T-110** `KonfigurationService::getAlle()` fängt selbst ab und gibt `[]`
-  zurück. Der `catch` in `KonfigurationController::index()` kann deshalb nie
-  greifen, seine Fehlermeldung ist unerreichbar (gefunden P-2026-08-14-12).
 - **T-105** `SmokeTestController::index()` ist eine Methode mit ~3.700 Zeilen.
   Diagnosewerkzeug, keine Fachlogik – aber praktisch nicht mehr änderbar. Es ist
   nur *eine* Maske aus T-104 und trotzdem der grösste Brocken darin.
