@@ -17,7 +17,7 @@ declare(strict_types=1);
  * **Warum kein Rückfall auf ein schwaches Token:** Die früheren Kopien
  * fingen ein misslungenes `random_bytes()` ab und setzten ersatzweise
  * `bin2hex((string)mt_rand())` – acht Hexzeichen, vorhersagbar, und damit
- * schlechter als gar kein Schutz, weil er einen vortaeuscht. Wenn das System
+ * schlechter als gar kein Schutz, weil er einen vortäuscht. Wenn das System
  * keine Zufallszahlen liefern kann, ist das ein echter Fehler und darf
  * auffallen.
  */
@@ -48,7 +48,7 @@ class Csrf
      * Prüft das aus `$_POST` gesendete Token gegen den Bereich.
      *
      * Der Vergleich läuft über `hash_equals()`, damit die Laufzeit nichts
-     * über das erwartete Token verraet.
+     * über das erwartete Token verrät.
      */
     public static function istGueltig(string $bereich): bool
     {

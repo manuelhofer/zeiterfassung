@@ -133,7 +133,7 @@ class PDFService
      *
      * Strichcodes (Code 128) werden als Vektor gezeichnet. Der PDF-Writer dieses
      * Projekts kann keine Bilder einbetten - und gezeichnete Balken drucken
-     * ohnehin schaerfer als ein hochskaliertes Pixelbild.
+     * ohnehin schärfer als ein hochskaliertes Pixelbild.
      *
      * @param array<string,mixed>            $auftrag         Zeile aus `auftrag`
      * @param array<int,array<string,mixed>> $arbeitsschritte Zeilen aus `auftrag_arbeitsschritt`
@@ -223,7 +223,7 @@ class PDFService
                         continue;
                     }
                     $content .= $this->pdfTextCmd('/F1', 9, $links, $y, $label . ':');
-                    // 95 statt der frueheren 85 Punkte: "Zeichnungsnummer:" ist
+                    // 95 statt der früheren 85 Punkte: "Zeichnungsnummer:" ist
                     // das breiteste Label und stiess sonst an den Wert.
                     $content .= $this->pdfTextCmd('/F2', 10, $links + 95, $y, $this->trimMaxChars($wert, max(20, $textBreite)));
                     $y -= 14;
@@ -256,7 +256,7 @@ class PDFService
 
         if ($arbeitsschritte === []) {
             $content .= "BT\n";
-            $content .= $this->pdfTextCmd('/F1', 10, $links, $y, 'Fuer diesen Auftrag sind keine aktiven Arbeitsschritte hinterlegt.');
+            $content .= $this->pdfTextCmd('/F1', 10, $links, $y, 'Für diesen Auftrag sind keine aktiven Arbeitsschritte hinterlegt.');
             $content .= "ET\n";
         }
 
@@ -341,12 +341,12 @@ class PDFService
      * Erzeugt ein Druckblatt mit Strichcode-Karten für Arbeitsschritte.
      *
      * Gedacht zum Ausschneiden und an die Maschine hängen: Wer mehrere
-     * Fräsmaschinen hat, druckt die Karte `fraesen` entsprechend oft und
+     * Fräsmaschinen hat, druckt die Karte `fräsen` entsprechend oft und
      * hängt sie an jede davon. Gescannt wird dann Auftrag (von der Laufkarte)
      * plus Arbeitsschritt (von der Maschine).
      *
      * Sechs Karten je A4-Seite (2 Spalten x 3 Zeilen). Der Strichcode ist rund
-     * 80 mm breit und 25 mm hoch - gross genug für einen Handscanner aus
+     * 80 mm breit und 25 mm hoch - groß genug für einen Handscanner aus
      * Armlänge.
      *
      * @param array<int,array<string,mixed>> $karten je Eintrag `code` und optional `bezeichnung`
@@ -413,7 +413,7 @@ class PDFService
                 . $this->pdfNum($kartenBreite) . ' ' . $this->pdfNum($kartenHoehe) . " re S\n";
             $content .= "[] 0 d\n0 0 0 RG\n";
 
-            // Strichcode mittig in der oberen Haelfte
+            // Strichcode mittig in der oberen Hälfte
             $codeBreite = $kartenBreite - 40;
             $codeHoehe  = 70.0;
             $qrX = $x + 20;
@@ -451,7 +451,7 @@ class PDFService
      * Zeichnet einen Code-128-Strichcode als gefüllte Rechtecke.
      *
      * Der `BarcodeService` liefert die Balken in Modulen; hier werden sie auf
-     * die gewünschte Breite skaliert. Gezeichnete Balken drucken schaerfer als
+     * die gewünschte Breite skaliert. Gezeichnete Balken drucken schärfer als
      * ein hochskaliertes Pixelbild - und der PDF-Writer dieses Projekts kann
      * ohnehin keine Bilder einbetten.
      *
@@ -568,7 +568,7 @@ class PDFService
 
         // Mikro-Buchungs-Grenze (Sekunden) aus Konfiguration (Default 180).
         // Wichtig: Der PDF-Mikro-Filter muss sich wie die Monatsübersicht primär am Rohstempel orientieren,
-        // da Rundungen sonst zu Rueckspruengen (Ende < Start) führen können.
+        // da Rundungen sonst zu Rücksprüngen (Ende < Start) führen können.
         $microMaxSeconds = $this->holeMicroBuchungMaxSeconds();
 
         // Header + Datenzeilen (Mehrfach-Kommen/Gehen: je Arbeitsblock eine Zeile)
@@ -713,7 +713,7 @@ class PDFService
                         $bemerkungen[] = sprintf('%02d.%02d: %s', $day, $monat, $kommentar);
                     }
                 } elseif (!empty($t['ist_betriebsferien'])) {
-                    // Fallback: Betriebsferien nur dann als "BF" markieren, wenn sie auch tatsaechlich als Urlaub zählen.
+                    // Fallback: Betriebsferien nur dann als "BF" markieren, wenn sie auch tatsächlich als Urlaub zählen.
                     // Hintergrund: Betriebsferien können Feiertage/Wochenenden schneiden oder es kann an einem BF-Tag
                     // gearbeitet worden sein. In diesen Fällen darf im PDF kein "BF" stehen, da es sonst wie "Urlaub"
                     // wirken würde.
@@ -816,7 +816,7 @@ class PDFService
             // Standard: ohne show_micro zeigen wir alle NICHT-Mikro-Arbeitsblöcke als eigene Zeilen.
             // (Mehrfach-Kommen/Gehen bleibt sichtbar; Mikro-Blöcke wurden oben bereits gefiltert.)
 
-            // Primaer-Zeile für Meta-Felder (Pause/Kurzarbeit/Feiertag/Urlaub):
+            // Primär-Zeile für Meta-Felder (Pause/Kurzarbeit/Feiertag/Urlaub):
             // Erste sichtbare Blockzeile mit Dauer >= 60 Minuten, sonst die erste Blockzeile.
             $metaPrimaryMinSeconds = 3600;
             $metaPrimaryIndex = 0;
@@ -1765,7 +1765,7 @@ class PDFService
     
     /**
      * Block-Dauer in Sekunden.
-     * Wird genutzt, um bei Mehrfach-Blöcken eine Primaer-Zeile für Meta-Felder zu bestimmen.
+     * Wird genutzt, um bei Mehrfach-Blöcken eine Primär-Zeile für Meta-Felder zu bestimmen.
      */
     private function calcBlockSeconds(array $block): int
     {

@@ -95,7 +95,7 @@ class MitarbeiterModel
      * P-2026-08-09-16 nicht mehr lesen, und ein Spaltenrecht lässt `SELECT *`
      * scheitern. Beide Aufrufstellen fangen Fehler ab und rechnen dann mit
      * 0 Stunden weiter – der Ausfall wäre also **kein Absturz, sondern eine
-     * stille Falschrechnung**. Genau davor schuetzt diese Methode.
+     * stille Falschrechnung**. Genau davor schützt diese Methode.
      *
      * @return float|null null, wenn es den Mitarbeiter nicht gibt oder nichts
      *         hinterlegt ist – bewusst unterschieden von 0.0.

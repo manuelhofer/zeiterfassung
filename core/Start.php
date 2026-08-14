@@ -19,7 +19,7 @@ declare(strict_types=1);
 final class Start
 {
     /**
-     * Laedt die Konfiguration, setzt die Zeitzone und startet die Session.
+     * Lädt die Konfiguration, setzt die Zeitzone und startet die Session.
      *
      * @return array<string,mixed> die geladene Konfiguration
      */

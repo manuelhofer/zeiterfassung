@@ -49,7 +49,7 @@ class UrlaubGenehmigungService
      * Wegen zusammen: namentlich eingetragen **oder** über eine Abteilung.
      *
      * Der Genehmiger selbst ist nie enthalten. Eigene Anträge hängen
-     * ausschliesslich an `URLAUB_GENEHMIGEN_SELF`.
+     * ausschließlich an `URLAUB_GENEHMIGEN_SELF`.
      *
      * @return array<int,int> Mitarbeiter-IDs, aufsteigend
      */
@@ -246,7 +246,7 @@ class UrlaubGenehmigungService
 
         try {
             // `UPPER` auf beiden Seiten: Die Rechtecodes werden im ganzen
-            // Projekt ohne Rücksicht auf Gross-/Kleinschreibung verglichen
+            // Projekt ohne Rücksicht auf Groß-/Kleinschreibung verglichen
             // (`AuthService::hatRecht()`), das muss hier genauso sein.
             $zeilen = $this->datenbank->fetchAlle(
                 "SELECT s.scope_id, s.gilt_unterbereiche

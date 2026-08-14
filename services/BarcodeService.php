@@ -10,24 +10,24 @@ declare(strict_types=1);
  * **Warum Code 128 und nicht QR:** Im Betrieb sind 1D-Handscanner im Einsatz,
  * und die Maschinen-Codes des Projekts sind ebenfalls Code 128
  * (`MaschineQrCodeService::erzeugeBarcodePng`). Ein einziger Codetyp bedeutet:
- * ein Scannertyp, keine Sonderfaelle. Code 128 kann Buchstaben, Ziffern und
+ * ein Scannertyp, keine Sonderfälle. Code 128 kann Buchstaben, Ziffern und
  * Sonderzeichen, deshalb steht im Strichcode weiterhin **der Code selbst**
- * (z. B. `fraesen`) – es braucht keine künstliche Nummer.
+ * (z. B. `fräsen`) – es braucht keine künstliche Nummer.
  *
  * Zwei Ausgabewege, weil zwei Ziele bedient werden:
  * - `stelleBildBereit()` schreibt eine PNG-Datei unterhalb von `public/` für
  *   die Anzeige im Backend.
  * - `holeBalken()` liefert die reine Balkenfolge, damit die PDFs den Code als
  *   Vektor zeichnen können. Der PDF-Writer des Projekts kann keine Bilder
- *   einbetten, und gezeichnete Balken drucken ohnehin schaerfer.
+ *   einbetten, und gezeichnete Balken drucken ohnehin schärfer.
  *
- * Der Inhalt ist immer **nur der nackte Code** – kein Praefix, keine URL. Das
+ * Der Inhalt ist immer **nur der nackte Code** – kein Präfix, keine URL. Das
  * Terminal liest seine Scan-Felder als reinen Text, deshalb funktionieren
  * gedruckte Codes ohne jede Änderung am Terminal.
  */
 class BarcodeService
 {
-    /** Standard-Speicherort unterhalb von `public/`, per Konfiguration aenderbar. */
+    /** Standard-Speicherort unterhalb von `public/`, per Konfiguration änderbar. */
     private const STANDARD_REL_PFAD = 'uploads/auftrag_codes';
 
     /** Modulbreite und Höhe der erzeugten PNG-Dateien (Bildschirmanzeige). */
@@ -48,12 +48,12 @@ class BarcodeService
      * Stellt sicher, dass für die Nutzdaten eine PNG-Datei existiert, und
      * liefert deren Pfad relativ zu `public/`.
      *
-     * Neu erzeugt wird nur, wenn die Datei fehlt oder aelter ist als der
+     * Neu erzeugt wird nur, wenn die Datei fehlt oder älter ist als der
      * übergebene Änderungszeitpunkt des Datensatzes. So bekommt ein
      * umbenannter Arbeitsschritt automatisch einen neuen Code, ohne dass bei
      * jedem Seitenaufruf gerechnet wird.
      *
-     * @param string      $nutzdaten   Inhalt des Codes (z. B. `fraesen`)
+     * @param string      $nutzdaten   Inhalt des Codes (z. B. `fräsen`)
      * @param string      $dateiname   Dateiname ohne Pfad (z. B. `schritt_12.png`)
      * @param string|null $geaendertAm Änderungszeitpunkt des Datensatzes (Y-m-d H:i:s)
      *
@@ -77,7 +77,7 @@ class BarcodeService
         $zielOrdner = dirname($zielPfad);
         if (!is_dir($zielOrdner)) {
             if (!mkdir($zielOrdner, 0755, true) && !is_dir($zielOrdner)) {
-                $this->protokolliereFehler('Zielordner fuer Strichcodes konnte nicht angelegt werden', ['ordner' => $zielOrdner]);
+                $this->protokolliereFehler('Zielordner für Strichcodes konnte nicht angelegt werden', ['ordner' => $zielOrdner]);
                 return null;
             }
         }
@@ -217,12 +217,12 @@ class BarcodeService
     private function erzeugePngDatei(string $nutzdaten, string $zielPfad): bool
     {
         if (!class_exists('Picqer\\Barcode\\BarcodeGeneratorPNG')) {
-            $this->protokolliereFehler('Strichcode-Bibliothek nicht verfuegbar', ['ziel' => $zielPfad]);
+            $this->protokolliereFehler('Strichcode-Bibliothek nicht verfügbar', ['ziel' => $zielPfad]);
             return false;
         }
 
         if (!function_exists('imagecreate') && !extension_loaded('imagick')) {
-            $this->protokolliereFehler('Keine Bildunterstuetzung (GD/Imagick) vorhanden', ['ziel' => $zielPfad]);
+            $this->protokolliereFehler('Keine Bildunterstützung (GD/Imagick) vorhanden', ['ziel' => $zielPfad]);
             return false;
         }
 

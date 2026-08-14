@@ -5,15 +5,15 @@ declare(strict_types=1);
  * TerminalDbBenutzerService
  *
  * Legt für ein Terminal einen **eigenen Datenbankbenutzer** mit
- * eingeschraenkten Rechten an (siehe
+ * eingeschränkten Rechten an (siehe
  * `docs/spezifikation_terminal_installation.md`, Abschnitt 2a).
  *
  * Warum überhaupt ein eigener Benutzer je Gerät:
  *
  * - **Einzeln sperrbar:** Ein Hallenterminal steht frei zugänglich herum. Wer
- *   es mitnimmt, hat die Zugangsdaten. Mit einem eigenen Benutzer genuegt ein
+ *   es mitnimmt, hat die Zugangsdaten. Mit einem eigenen Benutzer genügt ein
  *   `DROP USER` für genau dieses Gerät - alle anderen laufen weiter.
- * - **Eingeschraenkt:** Das Terminal stempelt, bucht Auftragszeiten und nimmt
+ * - **Eingeschränkt:** Das Terminal stempelt, bucht Auftragszeiten und nimmt
  *   Urlaubsanträge entgegen. Es braucht dafür nirgends `DELETE`, `DROP` oder
  *   `ALTER` und keinen Schreibzugriff auf Rechte, Rollen oder Stundenkonto.
  * - **Nachvollziehbar:** In den Datenbankprotokollen ist erkennbar, welches
@@ -23,7 +23,7 @@ declare(strict_types=1);
  *
  * **Bewusste Abweichung von der Regel „immer prepared statements“:**
  * `CREATE USER` und `GRANT` sind DDL. MySQL/MariaDB erlauben dort **keine**
- * Platzhalter - weder für Benutzernamen noch für Passwoerter oder
+ * Platzhalter - weder für Benutzernamen noch für Passwörter oder
  * Tabellennamen. Die Anweisungen müssen also zusammengesetzt werden. Statt zu
  * escapen wird deshalb **eingegrenzt**: Benutzername, Host, Schema- und
  * Tabellennamen werden vor der Verwendung gegen ein enges Muster geprüft, das
@@ -57,7 +57,7 @@ class TerminalDbBenutzerService
         // --- Lesen ------------------------------------------------------
         // Anmeldung am Terminal, Namen, Wochenarbeitszeit, Urlaubsanspruch.
         'mitarbeiter'                => 'SELECT',
-        // Rechteprüfung (welche Knoepfe darf dieser Mitarbeiter sehen).
+        // Rechteprüfung (welche Knöpfe darf dieser Mitarbeiter sehen).
         'mitarbeiter_hat_rolle'       => 'SELECT',
         'mitarbeiter_hat_rolle_scope' => 'SELECT',
         'mitarbeiter_hat_recht'       => 'SELECT',
@@ -101,7 +101,7 @@ class TerminalDbBenutzerService
         'urlaubsantrag'               => 'SELECT, INSERT, UPDATE',
         // Feiertage werden bei Bedarf nachgeneriert (UrlaubService). Ohne
         // INSERT rechnet ein Terminal im Januar ohne die Feiertage des neuen
-        // Jahres - das fällt niemandem auf und ist deshalb gefaehrlicher als
+        // Jahres - das fällt niemandem auf und ist deshalb gefährlicher als
         // das Recht selbst.
         'feiertag'                    => 'SELECT, INSERT',
         // Protokoll. Lesen, weil die Monatsauswertung Pausen-Overrides aus dem
@@ -110,7 +110,7 @@ class TerminalDbBenutzerService
         // Rückfallebene: Normalerweise liegt die Offline-Queue in der lokalen
         // Ausweichdatenbank des Terminals. Fehlt die, greift der
         // OfflineQueueManager auf die Hauptdatenbank zurück. Kein DELETE -
-        // hängengebliebene Einträge raeumt ein Admin im Backend weg.
+        // hängengebliebene Einträge räumt ein Admin im Backend weg.
         'db_injektionsqueue'          => 'SELECT, INSERT, UPDATE',
     ];
 
@@ -118,7 +118,7 @@ class TerminalDbBenutzerService
      * Spaltenweise Rechte.
      *
      * `mitarbeiter` ist absichtlich der einzige Fall: Am Terminal lassen sich
-     * RFID-Chips zuweisen, dafür genuegt genau diese eine Spalte.
+     * RFID-Chips zuweisen, dafür genügt genau diese eine Spalte.
      *
      * @var array<string,array<string,array<int,string>>>
      */
@@ -208,7 +208,7 @@ class TerminalDbBenutzerService
         $passwort = $this->wuerflePasswort();
 
         if (!$this->istBenutzernameGueltig($benutzer) || !$this->istHostGueltig($host)) {
-            $this->protokolliere('error', 'Terminal-Datenbankbenutzer: Name oder Host unzulaessig', [
+            $this->protokolliere('error', 'Terminal-Datenbankbenutzer: Name oder Host unzulässig', [
                 'terminal_id' => $terminalId,
                 'benutzer'    => $benutzer,
                 'host'        => $host,
@@ -234,7 +234,7 @@ class TerminalDbBenutzerService
 
             // Alten Zugang der vorherigen Kopplung entfernen, sofern bekannt und
             // nicht identisch mit dem neuen (sonst zieht man sich den Benutzer
-            // gleich wieder unter den Fuessen weg).
+            // gleich wieder unter den Füßen weg).
             if (is_string($alterBenutzer) && $alterBenutzer !== '') {
                 $alterHostWert = (is_string($alterHost) && $alterHost !== '') ? $alterHost : $host;
                 if ($alterBenutzer !== $benutzer || $alterHostWert !== $host) {
@@ -292,7 +292,7 @@ class TerminalDbBenutzerService
 
     /**
      * Entfernt einen Terminal-Datenbankbenutzer (z. B. wenn ein Gerät
-     * ausgemustert wird oder eine Kopplung fehlschlaegt).
+     * ausgemustert wird oder eine Kopplung fehlschlägt).
      */
     public function entferne(string $benutzer, string $host): bool
     {
@@ -424,7 +424,7 @@ class TerminalDbBenutzerService
                 $this->protokolliere('error', 'Terminal-Datenbankbenutzer: Spaltenliste nicht bestimmbar', [
                     'tabelle'  => $tabelle,
                     'gesperrt' => implode(', ', $gesperrt),
-                    'hinweis'  => 'Heisst die Spalte noch so? Siehe SPALTEN_GESPERRT in TerminalDbBenutzerService.',
+                    'hinweis'  => 'Heißt die Spalte noch so? Siehe SPALTEN_GESPERRT in TerminalDbBenutzerService.',
                 ]);
 
                 return null;
@@ -517,7 +517,7 @@ class TerminalDbBenutzerService
 
         // Gegenprobe zuerst: Jede gesperrte Spalte muss es wirklich geben.
         // Wäre `passwort_hash` umbenannt worden, sperrte die Liste nichts mehr
-        // und niemand hätte es gemerkt - der stille Fall ist der gefaehrliche.
+        // und niemand hätte es gemerkt - der stille Fall ist der gefährliche.
         foreach ($gesperrt as $spalte) {
             if (!in_array($spalte, $spalten, true)) {
                 return null;
@@ -564,10 +564,10 @@ class TerminalDbBenutzerService
     /**
      * Von welchen Rechnern aus der Terminal-Benutzer sich verbinden darf.
      *
-     * Standard ist `%` (beliebiger Rechner). Das ist eine bewusste Abwaegung:
+     * Standard ist `%` (beliebiger Rechner). Das ist eine bewusste Abwägung:
      * Terminals bekommen ihre Adresse per DHCP, eine feste Bindung würde beim
      * nächsten Neustart stillschweigend den Zugang kappen. Wer sein Netz kennt,
-     * traegt in der `config` ein engeres Muster ein (z. B. `192.168.10.%`).
+     * trägt in der `config` ein engeres Muster ein (z. B. `192.168.10.%`).
      */
     private function holeHostMuster(): string
     {

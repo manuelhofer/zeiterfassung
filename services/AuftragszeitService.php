@@ -221,7 +221,7 @@ class AuftragszeitService
                 . " AND typ='haupt' AND status='laufend' AND endzeit IS NULL";
 
 
-            // 2) Auftrag (Minimaldatensatz) sicherstellen, damit die Buchung später aufloesbar ist
+            // 2) Auftrag (Minimaldatensatz) sicherstellen, damit die Buchung später auflösbar ist
             $sql2 = 'INSERT INTO auftrag (auftragsnummer, aktiv) VALUES ('
                 . $this->sqlNullableString($auftragscode, 100) . ', 1)
                 ON DUPLICATE KEY UPDATE auftragsnummer = auftragsnummer';
@@ -679,7 +679,7 @@ class AuftragszeitService
 
         try {
             $dbOnline = Database::getInstanz();
-            // Zwei Platzhalter fuer denselben Wert: Die Verbindung arbeitet
+            // Zwei Platzhalter für denselben Wert: Die Verbindung arbeitet
             // ohne `ATTR_EMULATE_PREPARES`, und ein zweimal verwendeter
             // benannter Platzhalter ist dann ein Fehler, kein Komfort.
             $sql = 'UPDATE auftragszeit

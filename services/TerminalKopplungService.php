@@ -19,7 +19,7 @@ declare(strict_types=1);
  *   wird wie ein Passwort behandelt: einmal anzeigen, danach nicht mehr
  *   rekonstruierbar. Wer ihn verliert, erzeugt einen neuen.
  * - **Einmalig verwendbar.** Nach dem Einlösen ist er verbraucht; ein
- *   abgehörter Code nuetzt niemandem mehr.
+ *   abgehörter Code nützt niemandem mehr.
  * - **Zeitlich begrenzt** (Standard 30 Minuten) - ein vergessener Zettel am
  *   Terminal wird damit von selbst wertlos.
  * - **Alphabet ohne Verwechslungen:** kein O/0, kein I/1/l. Der Code wird an
@@ -78,7 +78,7 @@ class TerminalKopplungService
             $this->entwerteOffeneCodes($terminalId);
 
             // Bei einer Kollision des Hashes (praktisch ausgeschlossen, aber
-            // die Spalte ist UNIQUE) einfach neu wuerfeln.
+            // die Spalte ist UNIQUE) einfach neu würfeln.
             for ($versuch = 0; $versuch < 5; $versuch++) {
                 $code = $this->wuerfleCode();
 
@@ -99,7 +99,7 @@ class TerminalKopplungService
                     continue;
                 }
 
-                $this->protokolliere('info', 'Kopplungscode fuer Terminal erzeugt', [
+                $this->protokolliere('info', 'Kopplungscode für Terminal erzeugt', [
                     'terminal_id'    => $terminalId,
                     'gueltig_minuten' => $gueltigMinuten,
                 ], $erstelltVonMitarbeiterId);
@@ -149,7 +149,7 @@ class TerminalKopplungService
             if (!is_array($zeile)) {
                 // Bewusst ohne Angabe, ob der Code unbekannt, abgelaufen oder
                 // schon verbraucht war - das hilft nur beim Durchprobieren.
-                $this->protokolliere('warn', 'Kopplung fehlgeschlagen: Code ungueltig', [
+                $this->protokolliere('warn', 'Kopplung fehlgeschlagen: Code ungültig', [
                     'host' => $host,
                 ]);
                 return null;
@@ -195,7 +195,7 @@ class TerminalKopplungService
 
             return $terminal;
         } catch (\Throwable $e) {
-            $this->protokolliere('error', 'Kopplung konnte nicht geprueft werden', [
+            $this->protokolliere('error', 'Kopplung konnte nicht geprüft werden', [
                 'exception' => $e->getMessage(),
                 'host'      => $host,
             ]);

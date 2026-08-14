@@ -53,7 +53,7 @@ class UrlaubService
      * Zweck:
      * - Anzeige "Urlaubstage (abzgl. geplante Betriebsferien)" im Monatsreport (PDF/HTML).
      * - Wochenenden und betriebsfreie Feiertage zählen nicht als Urlaubstage.
-     * - Betriebsferien werden global + abteilungsbezogen beruecksichtigt.
+     * - Betriebsferien werden global + abteilungsbezogen berücksichtigt.
      */
     public function zaehleBetriebsferienArbeitstageFuerMitarbeiter(int $mitarbeiterId, string $vonDatum, string $bisDatum): float
     {
@@ -159,7 +159,7 @@ class UrlaubService
                 }
             }
         } catch (\Throwable $e) {
-            Logger::warn('Betriebsferien-Zaehler: Tageswerte fuer Skip konnten nicht geladen werden', [
+            Logger::warn('Betriebsferien-Zähler: Tageswerte für Skip konnten nicht geladen werden', [
                 'mitarbeiter_id' => $mitarbeiterId,
                 'von'            => $von->format('Y-m-d'),
                 'bis'            => $bis->format('Y-m-d'),
@@ -236,7 +236,7 @@ class UrlaubService
                 }
             }
         } catch (\Throwable $e) {
-            Logger::warn('Betriebsferien-Zaehler: Krankzeitraeume fuer Skip konnten nicht geladen werden', [
+            Logger::warn('Betriebsferien-Zähler: Krankzeiträume für Skip konnten nicht geladen werden', [
                 'mitarbeiter_id' => $mitarbeiterId,
                 'von'            => $von->format('Y-m-d'),
                 'bis'            => $bis->format('Y-m-d'),
@@ -565,7 +565,7 @@ class UrlaubService
                 }
             }
         } catch (\Throwable $e) {
-            Logger::warn('Betriebsferien-Zaehler: Tageswerte fuer Skip konnten nicht geladen werden', [
+            Logger::warn('Betriebsferien-Zähler: Tageswerte für Skip konnten nicht geladen werden', [
                 'mitarbeiter_id' => $mitarbeiterId,
                 'von'            => $von->format('Y-m-d'),
                 'bis'            => $bis->format('Y-m-d'),
@@ -642,7 +642,7 @@ class UrlaubService
                 }
             }
         } catch (\Throwable $e) {
-            Logger::warn('Betriebsferien-Zaehler: Krankzeitraeume fuer Skip konnten nicht geladen werden', [
+            Logger::warn('Betriebsferien-Zähler: Krankzeiträume für Skip konnten nicht geladen werden', [
                 'mitarbeiter_id' => $mitarbeiterId,
                 'von'            => $von->format('Y-m-d'),
                 'bis'            => $bis->format('Y-m-d'),
@@ -1382,7 +1382,7 @@ class UrlaubService
             // Rückfall auf 0 Tage verändert den Saldo sichtbar – das darf
             // niemals stillschweigend passieren, sonst ist eine falsche
             // Urlaubsberechnung hinterher nicht mehr nachvollziehbar.
-            Logger::warn('Urlaubssaldo: Betriebsferien-Tage konnten nicht gezaehlt werden (Rueckfall auf 0)', [
+            Logger::warn('Urlaubssaldo: Betriebsferien-Tage konnten nicht gezählt werden (Rückfall auf 0)', [
                 'mitarbeiter_id' => $mitarbeiterId,
                 'jahr'           => $jahr,
                 'exception'      => $e->getMessage(),

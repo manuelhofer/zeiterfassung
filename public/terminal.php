@@ -18,7 +18,7 @@ $aktion = isset($_GET['aktion']) ? (string)$_GET['aktion'] : 'start';
 // ------------------------------------------------------------
 // Das Installationsskript bringt ein Terminal bis hierher, kennt aber bewusst
 // keine Zugangsdaten. Fehlt deshalb `config/config.local.php`, gibt es nichts
-// zu bedienen – dann erscheint statt der Oberflaeche die Einrichtungsseite
+// zu bedienen – dann erscheint statt der Oberfläche die Einrichtungsseite
 // (Server-Adresse + Kopplungscode). Dieselbe Mechanik wie die Erstinstallation
 // im Backend, siehe `docs/spezifikation_terminal_installation.md`, Abschnitt 2.
 //

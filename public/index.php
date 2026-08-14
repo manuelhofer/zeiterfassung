@@ -14,12 +14,12 @@ $konfig = Start::los();
 // `terminal.php` auch dieser Front-Controller im Zugriff, und ein Hallengerät
 // lieferte bis P-2026-08-09-19 die Anmeldemaske des Backends aus.
 //
-// Was das schuetzt, und was ausdrücklich nicht: Der Datenbankbenutzer des
+// Was das schützt, und was ausdrücklich nicht: Der Datenbankbenutzer des
 // Geräts darf Mitarbeiterstammdaten, Zeitbuchungen und Stundenkonten **lesen**
 // (siehe Rechteliste in docs/spezifikation_terminal_installation.md). Wer das
 // Gerät aufschraubt, liest die Zugangsdaten aus `config.local.php` und kommt
 // an diese Daten - daran ändert diese Sperre nichts. Sie nimmt lediglich die
-// Backend-Oberflaeche aus dem Weg, die auf einem Hallengerät nichts zu suchen
+// Backend-Oberfläche aus dem Weg, die auf einem Hallengerät nichts zu suchen
 // hat. Der Schutz der Daten liegt bei der Rechteliste, nicht hier.
 //
 // Bewusst **ohne Ausnahme für den Kopplungs-Endpunkt**: Der läuft auf dem
@@ -28,14 +28,14 @@ $konfig = Start::los();
 //
 // Rückweg für die Wartung: `installation_typ` in `config/config.local.php`
 // auf 'backend' setzen. Das braucht Zugriff auf die Datei, und das ist die
-// richtige Huerde.
+// richtige Hürde.
 $istTerminal = ($konfig['app']['installation_typ'] ?? 'backend') === 'terminal';
 
-// Zweiter Fall, sonst bliebe eine Luecke von Tagen: Zwischen dem Aufsetzen und
+// Zweiter Fall, sonst bliebe eine Lücke von Tagen: Zwischen dem Aufsetzen und
 // dem Koppeln gibt es noch keine `config.local.php`, also gilt der Standard
 // 'backend' - und ein Gerät, das schon in der Halle hängt, zeigte bis dahin
 // die Anmeldemaske. Woran ein solches Gerät zu erkennen ist:
-// `config/geraet.local.php` legt ausschließlich install_terminal.sh an.
+// `config/gerät.local.php` legt ausschließlich install_terminal.sh an.
 //
 // Nur wenn `config.local.php` fehlt. Ist sie da und nennt 'backend', ist das
 // eine ausdrückliche Entscheidung und gewinnt.
@@ -47,7 +47,7 @@ if (!$istTerminal
 }
 
 if ($istTerminal) {
-    // Weiterleiten statt 404: Auf einem Kiosk ist die Terminal-Oberflaeche das,
+    // Weiterleiten statt 404: Auf einem Kiosk ist die Terminal-Oberfläche das,
     // was der Aufrufer gemeint hat - bei einem noch nicht gekoppelten Gerät
     // ist das die Einrichtungsseite. Ein Fehlerbild wäre hier nur im Weg.
     header('Location: terminal.php', true, 302);

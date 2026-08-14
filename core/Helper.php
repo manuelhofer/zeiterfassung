@@ -191,7 +191,7 @@ class Helper
      * 2. sonst das Verzeichnis des laufenden Skripts (`SCRIPT_NAME`),
      * 3. sonst leer = Domain-Wurzel.
      *
-     * Rückgabe ohne führenden/abschließenden Schraegstrich (z. B.
+     * Rückgabe ohne führenden/abschließenden Schrägstrich (z. B.
      * `zeiterfassung`) oder eine vollständige URL, wenn `base_url` eine solche
      * ist. Leerer String bedeutet Domain-Wurzel.
      */

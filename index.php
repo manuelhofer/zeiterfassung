@@ -2,7 +2,7 @@
 declare(strict_types=1);
 
 /**
- * Einstieg ueber die Projektwurzel.
+ * Einstieg über die Projektwurzel.
  *
  * Der eigentliche Web-Einstieg liegt in `public/index.php`. Wenn die
  * Projektwurzel direkt aufgerufen wird (z. B. in einer XAMPP-Installation),

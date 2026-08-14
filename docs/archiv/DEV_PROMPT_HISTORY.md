@@ -70,6 +70,77 @@ in den Statusbericht.
   D-002 entfallen; die Regel selbst gilt weiter.)
 
 
+## P-2026-08-14-09 umlaute-in-services-core-und-modellen
+
+### EINGELESEN
+- `docs/arbeitsregeln.md`, Abschnitt 7.
+- `services/PDFService.php` (`escapePdfText()`, `schaetzeTextBreitePt()`) –
+  weil dort Text in eine Datei geht, nicht auf eine Seite.
+- `services/`, `core/`, `modelle/`, `public/`, `index.php`.
+
+### DATEIEN
+- 9 Dateien in `services/`, 3 in `core/`, 1 in `modelle/`, 3 in `public/`,
+  `index.php`
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Nach diesem Patch findet die Restsuche ueber **alle** PHP-Dateien kein
+deutsches Wort mehr in Umschreibung – ausser den von der Regel ausgenommenen
+Bezeichnern, Spaltennamen, Spaltenwerten, CSS-Klassen und Routen.
+
+### DONE
+Zweiter und letzter Durchgang mit demselben Werkzeug aus P-2026-08-14-08.
+66 Token in 17 Dateien, fast ausschliesslich Kommentare. Dazu ein
+Log-Text von Hand (`Bildunterstuetzung` in `BarcodeService`), der durch den
+Tabu-Filter fiel.
+
+### Gefundene Fehler im eigenen Entwurf
+**Beinahe-Fehler beim PDF.** Der Patch aendert in `PDFService` einen Text, der
+in die Laufkarte gedruckt wird („Für diesen Auftrag sind keine aktiven
+Arbeitsschritte hinterlegt."). Umlaute in eine PDF-Datei zu schreiben ist
+nicht dasselbe wie Umlaute in HTML. Nachgesehen statt gehofft:
+
+- Die Fonts sind mit `/Encoding /WinAnsiEncoding` eingebunden, und
+  `escapePdfText()` konvertiert vorher mit
+  `iconv('UTF-8', 'Windows-1252//TRANSLIT', …)`. `ä ö ü ß` und `–` gibt es in
+  Windows-1252 – gegengeprueft: 27 Zeichen ergeben 27 Bytes, jeder Umlaut also
+  genau ein Byte, kein Fragezeichen.
+- `schaetzeTextBreitePt()` zaehlt ueber `mb_strlen(…, 'UTF-8')`, nicht
+  `strlen()`. Haette es Bytes gezaehlt, waere zentrierter und rechtsbuendiger
+  Text durch jeden Umlaut verrutscht – lautlos, denn das PDF waere gueltig
+  geblieben.
+
+Beides war schon richtig gebaut. Aber es war Glueck, nicht Vorsicht: Ich
+haette den Text geaendert, ohne hinzusehen, wenn mir „PDF" nicht aufgefallen
+waere.
+
+### TEST
+- `php -l` ueber **alle 142** PHP-Dateien: sauber.
+- Diff auf Umlaute in Array-Schluesseln und `[...]`-Zugriffen geprueft: kein
+  Treffer. Alle Aenderungen ausserhalb von Kommentaren sind Log- und
+  Ausgabetexte.
+- Routen unveraendert: 72 in `public/index.php`, 13 in `public/terminal.php`.
+- Restsuche ueber alle PHP-Dateien: uebrig bleiben nur `loeschen`
+  (POST-Wert `aktion=loeschen` und Methodenname), `behaelter` (JS-Variable),
+  `naechstgelegen` (Spaltenwert), `verfuegbar` (Array-Schluessel),
+  `sekundaeraktionen`/`uebersichtheute` (CSS-Klassen), `Personalbuero`
+  (ASCII-Rueckfall eines Rollennamens) und `imagecreatetruecolor` (PHP-Funktion)
+  – alle von der Regel ausgenommen.
+- `iconv`-Gegenprobe zur PDF-Kodierung, siehe oben.
+
+### Was bewusst nicht erreicht wurde
+- **Die Markdown-Dateien in `docs/` sind nicht angefasst.** Abschnitt 7 nennt
+  Kommentare und Oberflaechentexte; die Doku steht dort nicht. Mehrere Dateien
+  schreiben trotzdem „Kernablaeufe" und „Funktionalitaet"
+  (`wartungscheckliste.md`). Eigener Patch, wenn gewuenscht.
+- **Nicht im Browser durchgeklickt, keine Laufkarte gedruckt.** Die
+  PDF-Kodierung ist am Code geprueft, nicht an einer Ausgabe.
+
+### NEXT
+P-2026-08-14-10: die kleinen Funde aus der Pruefung – doppeltes Auslesen von
+`katalog_ids`, `aktiv`-Filter beim Uebernehmen, fehlende Push-Regel im README.
+
+
 ## P-2026-08-14-08 umlaute-in-oberflaeche-und-controllern
 
 ### EINGELESEN

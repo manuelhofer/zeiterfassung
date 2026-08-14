@@ -832,7 +832,7 @@ class ReportService
             // Arbeitszeit / Kernwerte
             'arbeitszeit_stunden' => sprintf('%.2f', 0.0),
             'pausen_stunden'      => sprintf('%.2f', 0.0),
-            // Pausen-Grenzfaelle (T-081): Entscheidung nötig? (Default ohne Entscheidung: keine Pause)
+            // Pausen-Grenzfälle (T-081): Entscheidung nötig? (Default ohne Entscheidung: keine Pause)
             'pause_entscheidung_noetig' => 0,
             'pause_entscheidung_auto_minuten' => 0,
             'saldo_stunden'       => '',

@@ -43,14 +43,14 @@ $id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 if ($id <= 0) {
     http_response_code(400);
     header('Content-Type: text/plain; charset=UTF-8');
-    echo 'Ungueltige Maschinen-ID.';
+    echo 'Ungültige Maschinen-ID.';
     exit;
 }
 
 if (!function_exists('imagecreatetruecolor') && !extension_loaded('imagick')) {
     http_response_code(501);
     header('Content-Type: text/plain; charset=UTF-8');
-    echo 'Barcode-Ausgabe nicht verfuegbar (PHP-GD fehlt). Bitte php-gd installieren.';
+    echo 'Barcode-Ausgabe nicht verfügbar (PHP-GD fehlt). Bitte php-gd installieren.';
     exit;
 }
 
@@ -59,7 +59,7 @@ $name = trim((string)($_GET['name'] ?? ''));
 $barcodeDaten = $id . '_' . $name;
 
 // Erst erzeugen, dann Bild-Header senden: Sonst steht bei einem Fehlschlag
-// bereits `Content-Type: image/png` fest und die Fehlermeldung kaeme als
+// bereits `Content-Type: image/png` fest und die Fehlermeldung käme als
 // kaputtes Bild an.
 ob_start();
 $codeService->gebeBarcodePngAus($barcodeDaten);
@@ -71,7 +71,7 @@ if ($ausgabe === '' || $ausgabe === false) {
     // die ein QR-Code kein schlechterer Code ist, sondern gar keiner (siehe
     // Kopf von services/BarcodeService.php). Das Etikett sah brauchbar aus und
     // fiel erst an der Maschine auf.
-    Logger::error('Barcode-Ausgabe fuer Maschine fehlgeschlagen', [
+    Logger::error('Barcode-Ausgabe für Maschine fehlgeschlagen', [
         'id'   => $id,
         'name' => $name,
     ], $id, null, 'maschine');

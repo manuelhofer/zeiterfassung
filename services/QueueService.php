@@ -166,8 +166,8 @@ class QueueService
     public function holeStatusSummary(): array
 {
     // Speicherort und Verbindung kommen aus derselben Regel wie beim
-    // Schreiben (`OfflineQueueManager`) - sonst zaehlt die Kachel in einer
-    // anderen Datenbank, als das Terminal befuellt.
+    // Schreiben (`OfflineQueueManager`) - sonst zählt die Kachel in einer
+    // anderen Datenbank, als das Terminal befüllt.
     $pdo = $this->offlineQueueManager->holeQueueVerbindungOderNull();
 
     $out = [
@@ -181,8 +181,8 @@ class QueueService
     ];
 
     // Vorher holte diese Methode die Verbindung ausserhalb des try-Blocks und
-    // ohne Pruefung der Hauptdatenbank: Faellt beides aus, flog die Ausnahme
-    // aus der Methode heraus statt in den Rueckgabewert.
+    // ohne Prüfung der Hauptdatenbank: Fällt beides aus, flog die Ausnahme
+    // aus der Methode heraus statt in den Rückgabewert.
     if (!($pdo instanceof \PDO)) {
         return $out;
     }
@@ -253,7 +253,7 @@ class QueueService
      *
      * `null` bedeutet durchweg **unbekannt**, nicht `false`: Wenn sich die
      * Datenbank gar nicht ansprechen lässt, ist „nicht verfügbar" eine
-     * staerkere Aussage, als gerechtfertigt wäre.
+     * stärkere Aussage, als gerechtfertigt wäre.
      *
      * @return array{hauptdb_verfügbar:?bool, queue_verfügbar:?bool,
      *               queue_speicherort:?string, offen:?int, fehler:?int,
@@ -285,9 +285,9 @@ class QueueService
         if ($pdo instanceof \PDO) {
             $zustand['queue_verfuegbar'] = true;
         } elseif ($zustand['hauptdb_verfuegbar'] === false) {
-            // Beide Wege geprueft, keiner trug - das ist ein echtes Nein.
+            // Beide Wege geprüft, keiner trug - das ist ein echtes Nein.
             // Liess sich die Hauptdatenbank dagegen gar nicht befragen, bleibt
-            // es bei `null`: unbekannt, nicht "nicht verfuegbar".
+            // es bei `null`: unbekannt, nicht "nicht verfügbar".
             $zustand['queue_verfuegbar'] = false;
         }
 
