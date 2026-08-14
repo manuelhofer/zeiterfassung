@@ -32,12 +32,26 @@ den Stufenplan (Abschnitt 11).
 Keine bekannten.
 
 ## Offene Tasks
-- **T-104** Sechs Controller erzeugen HTML selbst, statt `views/` zu benutzen:
-  `AuftragController` und `KonfigurationController` (je 6 Masken),
-  `UrlaubController` (3), `TerminalAdminController` (2), `AuditLogController`
-  und `SmokeTestController` (je 1) – zusammen 19. Eine Maske je Patch; Muster
-  und Prüfweg: P-2026-08-11-09. Nachzählen statt glauben:
-  `grep -rn "views/layout/header.php" controller/`
+- **T-104** Vier Controller erzeugen HTML selbst, statt `views/` zu benutzen –
+  **13 Masken**: `KonfigurationController` (6), `AuftragController` (4),
+  `TerminalAdminController` (2), `SmokeTestController` (1). Eine Maske je
+  Patch; Muster und Prüfweg: P-2026-08-11-09.
+
+  Nachzählen liefert **19**, nicht 13 – der Unterschied ist Absicht und keine
+  Schlamperei:
+
+  ```bash
+  grep -rn "require __DIR__ . '/../views/layout/header.php'" controller/
+  ```
+
+  Von diesen 19 Einbindungen sind 5 dreizeilige „Keine Berechtigung"-Blöcke
+  (`UrlaubController` 3, `AuditLogController` 1, `AuftragController` 1) und
+  eine ist eine **fertig migrierte** Maske, die nur Kopf, View und Fuß
+  einbindet (`AuftragController` → `views/auftragszeit/bearbeiten.php`). Weder
+  das eine noch das andere ist Arbeit aus T-104. `UrlaubController` und
+  `AuditLogController` stehen deshalb **nicht** mehr in der Liste: Alle ihre
+  Masken liegen längst in `views/`.
+
   Beim Bauen einer Maske erst in `views/layout/header.php` nachsehen, was es
   schon gibt, und **keine eigenen Grössen auf Knöpfe schreiben** – warum, steht
   dort als Kommentar.

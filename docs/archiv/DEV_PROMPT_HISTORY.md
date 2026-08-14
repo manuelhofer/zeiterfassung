@@ -70,6 +70,75 @@ in den Statusbericht.
   D-002 entfallen; die Regel selbst gilt weiter.)
 
 
+## P-2026-08-14-06 t-104-nachgezaehlt-und-klassifiziert
+
+### EINGELESEN
+- `docs/STATUS_SNAPSHOT.md`, T-104 und T-105.
+- Alle 20 Fundstellen von `views/layout/header.php` in `controller/`, jede
+  einzeln im Umfeld gelesen.
+- `controller/UrlaubController.php` und `AuditLogController.php` daraufhin
+  ganz auf ihre View-Nutzung geprueft.
+
+### DATEIEN
+- `docs/STATUS_SNAPSHOT.md`
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Der in T-104 genannte Zaehlbefehl liefert eine Zahl, die im Text daneben
+erklaert wird – und kein Controller steht in der Liste, dessen Masken laengst
+in `views/` liegen.
+
+### DONE
+P-2026-08-14-03 hat T-104 von „vier Controller" auf „sechs Controller, 19
+Masken" korrigiert und dabei zwei neue Fehler eingebaut:
+
+1. **Der Befehl passt nicht zur Zahl.** `grep -rn "views/layout/header.php"
+   controller/` liefert **20** Zeilen, nicht 19. Die zwanzigste ist
+   `SmokeTestController.php:133` – eine `is_file()`-Pruefung, ob die Datei
+   ueberhaupt existiert. Der Befehl heisst jetzt
+   `grep -rn "require __DIR__ . '/../views/layout/header.php'" controller/`
+   und liefert genau 19.
+2. **19 sind keine 19 Masken.** Einzeln nachgesehen:
+   - **13 echte Masken** – `KonfigurationController` 6, `AuftragController` 4
+     (Liste, Detail, Auftragsformular, Arbeitsschritt bearbeiten),
+     `TerminalAdminController` 2, `SmokeTestController` 1.
+   - **5 dreizeilige „Keine Berechtigung"-Bloecke** – `UrlaubController` 3,
+     `AuditLogController` 1, `AuftragController` 1
+     (`zeigeKeinRecht()`). Kopf, ein `<section>`, Fuss. Das ist keine Maske.
+   - **1 fertig migrierte Maske** – `AuftragController:1432` bindet Kopf,
+     `views/auftragszeit/bearbeiten.php` und Fuss ein. Sie ist das *Ziel* von
+     T-104, nicht die Arbeit.
+3. **Zwei Controller standen zu Unrecht auf der Liste.** `UrlaubController`
+   rendert ueber `views/urlaub/meine_antraege.php`, `verwaltung.php` und
+   `genehmigung_liste.php`, `AuditLogController` ueber `views/logs/audit.php`.
+   Beide sind fertig; uebrig sind nur ihre 403-Bloecke.
+
+### Gefundene Fehler im eigenen Entwurf
+Die 19 stammten daher, dass ich die Ausgabe des Befehls gezaehlt und die
+Zeilen fuer Masken gehalten habe, ohne eine einzige davon aufzuschlagen. Genau
+davor warnt die Zeile „Nachzaehlen statt glauben", die im selben Patch
+danebengeschrieben wurde. Zaehlen ersetzt Nachsehen nicht.
+
+### TEST
+- Zaehlbefehl ausgefuehrt: 19 Zeilen, verteilt auf sechs Controller
+  (`grep -rc`), passt zur Aufschluesselung im Text.
+- Jede der 19 Stellen im Umfeld gelesen und einer der drei Gruppen zugeordnet;
+  13 + 5 + 1 = 19.
+- `grep -n "views/" controller/UrlaubController.php` und dasselbe fuer
+  `AuditLogController` – belegt, dass deren Masken in `views/` liegen.
+- Kaltstart nachgemessen: 15.423 Bytes / 15.178 Zeichen, also unter der
+  Grenze.
+
+### Was bewusst nicht erreicht wurde
+- **Keine Maske umgebaut.** Dieser Patch korrigiert eine Beschreibung.
+- **T-105 bleibt, wie es ist.** „Nur *eine* Maske aus T-104 und trotzdem der
+  groesste Brocken darin" stimmt weiterhin.
+
+### NEXT
+P-2026-08-14-07: Die Kaltstart-Messung auf Bytes umstellen und die
+Zeilenzahl-Angaben zur History entfernen – beide driften.
+
+
 ## P-2026-08-14-05 b-095-geschlossen
 
 ### EINGELESEN
