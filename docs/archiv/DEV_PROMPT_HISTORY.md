@@ -44,6 +44,35 @@ AKZEPTANZKRITERIUM, DONE, TEST, „Gefundene Fehler im eigenen Entwurf",
 nennen ZIP-Dateinamen statt Commits – das ist Historie, kein gueltiger
 Arbeitsweg.
 
+## Bekannte Luecke: fuenf Patches ohne Eintrag
+
+Diese Datei ist vollstaendig **ab dem 09.08.2026**. Aus dem 08.08.2026 gibt es
+fuenf Commits, deren Patch-ID hier fehlt:
+
+`P-2026-08-08-12`, `P-2026-08-08-17`, `P-2026-08-08-27`, `P-2026-08-08-32`,
+`P-2026-08-08-34`
+
+Es war der Tag, an dem der Verlauf von ZIP-Lieferungen auf Commits umgestellt
+wurde; die Eintraege sind dabei liegengeblieben. Sie werden **nicht
+nacherfunden** – was in einem Patch gedacht wurde, weiss nachtraeglich niemand
+mehr, und ein erfundener Eintrag waere schlimmer als eine bekannte Luecke. Was
+dort passiert ist, steht im Commit:
+
+```bash
+git log --grep="P-2026-08-08-12" --stat
+```
+
+Weil die fuenf IDs hier oben ausgeschrieben stehen, findet sie der folgende
+Befehl – er meldet deshalb **jede** Patch-ID, die weder einen Eintrag hat noch
+hier als bekannte Luecke steht. Erwartete Ausgabe: **keine**.
+
+```bash
+git log --format='%s' | grep -oP '^P-\d{4}-\d{2}-\d{2}-\d{2}' | sort -u \
+  | while read -r id; do grep -q "$id" docs/archiv/DEV_PROMPT_HISTORY.md || echo "$id"; done
+```
+
+Meldet er etwas, hat ein Patch seinen Eintrag vergessen (Arbeitsregel 4).
+
 ## Entscheidungen (D-IDs)
 
 Grundsatzentscheidungen, auf die spaetere Eintraege sich berufen. Sie stehen
@@ -68,6 +97,62 @@ in den Statusbericht.
 - **D-006:** Micro-Patches sind Pflicht: **1 Patch = 1 Thema = 1 Effekt.** (Die
   frueher mitgenannte Begruendung „es bleiben nur 2 weitere Dateien" ist mit
   D-002 entfallen; die Regel selbst gilt weiter.)
+
+
+## P-2026-08-14-11 push-regel-im-readme-und-luecke-benannt
+
+### EINGELESEN
+- `README.md`, Abschnitt „Mitarbeiten".
+- `docs/arbeitsregeln.md`, Abschnitte 3 und 4.
+- `CHATSTART.md`, Abschnitt 2 (die vier unumkehrbaren Regeln).
+- `git log --format='%s'` gegen diese Datei.
+
+### DATEIEN
+- `README.md`
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Wer nur `README.md` liest, kennt alle vier Regeln, bei denen ein Verstoss nicht
+mehr zu reparieren ist – und der Befehl, der Patches ohne Verlaufseintrag
+sucht, liefert die Ausgabe, die danebensteht.
+
+### DONE
+**Die Push-Regel fehlte im README.** `CHATSTART.md` nennt vier Regeln, „bei
+denen ein Verstoss nicht mehr zu reparieren ist", darunter „Gepusht wird nur
+auf ausdrueckliche Ansage". Die Kurzfassung im README fuehrte davon nur zwei –
+ausgerechnet die Push-Regel und „keine Refactors nebenbei" fehlten. Das ist die
+Datei, die ein frisch Klonender zuerst liest, und ein versehentlicher Push ist
+genau der Fall, den man nicht zurueckholt. Beide sind ergaenzt.
+
+**Fuenf Patches ohne Verlaufseintrag.** `P-2026-08-08-12`, `-17`, `-27`, `-32`
+und `-34` haben Commits, aber keinen Eintrag hier – vom Tag der Umstellung von
+ZIP auf Commits. Nicht nacherfunden: Was in einem Patch gedacht wurde, weiss
+nachtraeglich niemand mehr, und ein erfundener Eintrag ist schlimmer als eine
+benannte Luecke. Stattdessen stehen sie oben in der Datei mit Begruendung und
+dem Befehl, der sie findet.
+
+### Gefundene Fehler im eigenen Entwurf
+Der erste Entwurf schrieb die IDs verkuerzt (`P-2026-08-08-12`, `-17`, `-27`,
+…). Der Pruefbefehl daneben meldete daraufhin vier der fuenf als „ohne
+Eintrag", weil `grep` die Kurzformen nicht findet – die Ausgabe passte also
+schon wieder nicht zum Text daneben. Dritter Anlauf desselben Fehlers in einer
+Sitzung. Jetzt stehen alle fuenf IDs ausgeschrieben, und die dokumentierte
+Erwartung ist **keine Ausgabe** – ein Kriterium, das man nicht falsch lesen
+kann.
+
+### TEST
+- Pruefbefehl ausgefuehrt: keine Ausgabe, wie dokumentiert.
+- Gegenprobe der Behauptung: Die vier Regeln aus `CHATSTART.md`, Abschnitt 2,
+  stehen jetzt alle im README-Abschnitt „Mitarbeiten".
+- `git log --grep="P-2026-08-08-12" --stat` liefert den Commit – der im Text
+  genannte Weg zur Ersatzinformation funktioniert.
+
+### Was bewusst nicht erreicht wurde
+- **Keine Eintraege nachgetragen.** Siehe oben.
+
+### NEXT
+Nichts Offenes aus dieser Pruefreihe. Naechster Schritt bleibt der Geraetetest
+(siehe `docs/STATUS_SNAPSHOT.md`).
 
 
 ## P-2026-08-14-10 katalog-uebernahme-eine-stelle-je-schritt

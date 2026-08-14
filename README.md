@@ -110,6 +110,8 @@ Kurzfassung – vollständig in [`docs/arbeitsregeln.md`](docs/arbeitsregeln.md)
   `P-2026-08-08-01 report-kommen-gehen`.
 - [`docs/archiv/DEV_PROMPT_HISTORY.md`](docs/archiv/DEV_PROMPT_HISTORY.md) im
   **selben Commit** pflegen.
+- **Keine Refactors nebenbei.** Was auffällt, wird notiert, nicht mitgemacht.
+- **Gepusht wird nur auf ausdrückliche Ansage.** Lokal committen ist frei.
 - Vor dem Start prüfen, ob die Sache nicht längst erledigt ist (History +
   `git log`).
 - Nach der Änderung: `php -l` über die geänderten Dateien und die betroffenen
