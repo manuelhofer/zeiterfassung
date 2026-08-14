@@ -141,6 +141,13 @@ P-2026-08-11-02 beschrieben.
    `hatRecht('MITARBEITER_VERWALTEN')` bleibt `false`. Dieselbe Rolle
    betriebsweit zugewiesen gewährt es wie bisher.
 
+## 6a. Beim Aufsetzen einer echten Installation zu bedenken
+
+Zeilen mit `scope_typ = 'abteilung'` **wirken** ab diesem Stand, sofern die
+Rolle `URLAUB_GENEHMIGEN` enthält – vorher waren sie folgenlos. Wer eine
+Installation aufsetzt oder einen Dump übernimmt, sieht deshalb einmal nach,
+welche solchen Zeilen darin stehen. In der Entwicklungsdatenbank gibt es eine.
+
 ## 7. Was ausdrücklich nicht dazugehört
 
 - **Kein Zyklenschutz „von Hand".** `abteilung.parent_id` hat einen

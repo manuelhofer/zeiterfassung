@@ -70,6 +70,83 @@ in den Statusbericht.
   D-002 entfallen; die Regel selbst gilt weiter.)
 
 
+## P-2026-08-14-03 snapshot-nur-noch-offenes
+
+### EINGELESEN
+- `docs/STATUS_SNAPSHOT.md` vollstaendig.
+- `docs/arbeitsregeln.md`, Abschnitte 6 und 9 (was in den Snapshot gehoert,
+  16-KB-Grenze).
+- `views/layout/header.php` um den Regelblock `button, .button-link`.
+- `docs/fachregeln/terminal_und_offline.md`, Abschnitt „Die Queue".
+- `grep -rn "views/layout/header.php" controller/` zum Nachzaehlen von T-104.
+
+### DATEIEN
+- `docs/STATUS_SNAPSHOT.md`
+- `docs/fachregeln/terminal_und_offline.md`
+- `docs/spezifikation_abteilungsrechte.md`
+- `docs/README.md`
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Im Snapshot steht kein Punkt mehr, der mit „behoben" oder „erledigt"
+beginnt - und jede darin enthaltene lebende Regel ist weiterhin auffindbar,
+nur an ihrem fachlichen Platz.
+
+### DONE
+Der Snapshot fuehrte vier abgeschlossene Punkte mit (B-093, B-080, T-108,
+T-109). Die Regel dazu ist eindeutig - Erledigtes wird **entfernt**, nicht
+abgehakt - aber blind loeschen waere falsch gewesen: In drei der vier Bloecke
+steckte eine Aussage, die noch gilt. Sie sind umgezogen statt weggeworfen:
+
+| War im Snapshot | Steht jetzt |
+| --- | --- |
+| T-108: „wer neu auf `db_injektionsqueue` zugreift, nimmt `holeQueueVerbindungOderNull()`/`holeQueueSpeicherort()`" | `fachregeln/terminal_und_offline.md`, Abschnitt „Die Queue" |
+| B-093: `scope_typ = 'abteilung'` wirkt beim Aufsetzen einer echten Installation | `spezifikation_abteilungsrechte.md`, neuer Abschnitt 6a |
+| T-109: keine eigenen Groessen auf Knoepfe | stand als Kommentar laengst in `views/layout/header.php`; im Snapshot blieb nur der **Zeiger** darauf, in T-104 |
+| B-080: Jahreswechsel beobachten | bleibt, aber als offener Beobachtungspunkt formuliert statt als „behoben in P-…" |
+
+**T-104 war falsch.** Dort stand „Vier Controller erzeugen HTML selbst" und
+genannt waren drei. Nachgezaehlt sind es **sechs** Controller mit zusammen
+**19** Masken: `AuftragController` und `KonfigurationController` je 6,
+`UrlaubController` 3, `TerminalAdminController` 2, `AuditLogController` und
+`SmokeTestController` je 1. Die Zahl steht jetzt mit dem Befehl daneben, mit
+dem man sie nachzaehlt - eine Zahl ohne Messweg driftet wieder.
+
+`spezifikation_abteilungsrechte.md` war aus `docs/README.md` nicht erreichbar
+und haengt seit dem Entfernen von B-093 auch nicht mehr am Snapshot. Sie ist in
+die Themen-Tabelle eingetragen; sonst waere die eben dorthin verschobene Regel
+schlechter auffindbar als vorher.
+
+### TEST
+- Kaltstart nachgemessen wie in Arbeitsregel 9:
+  `cat CLAUDE.md CHATSTART.md docs/arbeitsregeln.md docs/STATUS_SNAPSHOT.md | wc -c -m`
+  → **vorher 15.999 Bytes / 16.247 Zeichen, jetzt 14.845 / 15.083**. Die Grenze
+  von 16 KB war auf 385 Bytes heran; jetzt sind es wieder gut 1.500.
+- `grep -n "behoben\|erledigt" docs/STATUS_SNAPSHOT.md` → **ein** Treffer, Zeile
+  16: „Ein behobener Fehler betrifft den Test, sonst nichts." Das ist der
+  Fliesstext im Projektstatus, kein Buchhaltungseintrag - er bleibt. Als
+  Abnahme taugt der Grep damit nur mit Blick auf den Treffer, nicht auf die
+  Trefferzahl; wer ihn spaeter blind laufen laesst, haelt ihn faelschlich fuer
+  rot.
+- Jede der vier verschobenen Aussagen am Zielort gegengelesen; die beiden
+  Methodennamen des `OfflineQueueManager` und der Kommentarblock in
+  `views/layout/header.php` existieren wie beschrieben.
+- Links im Snapshot und in `docs/README.md` aufgerufen: alle Ziele vorhanden.
+- Kein Code angefasst, nur Text.
+
+### Was bewusst nicht erreicht wurde
+- **B-095 bleibt offen.** Die fehlende CSRF-Pruefung an vier
+  `*_admin_speichern`-Routen ist ein eigener Patch, kein Nebenbei.
+- **T-104 wird hier nur korrekt beschrieben, nicht abgearbeitet.**
+- **Die Patch-IDs -09 bis -14 vom 11.08. bleiben, wie sie sind** (siehe
+  P-2026-08-14-01): ein Schluessel, kein Kalender.
+
+### NEXT
+Entweder B-095 (CSRF an den vier Speicher-Routen) oder die naechste Maske aus
+T-104. Der Gerätetest bleibt der eigentliche naechste Schritt und braucht einen
+Bildschirm.
+
+
 ## P-2026-08-14-02 doku-katalogschritte-beim-anlegen
 
 ### EINGELESEN

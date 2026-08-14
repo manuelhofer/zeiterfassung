@@ -25,6 +25,7 @@ Hand gepflegt.
 | [`fachregeln/`](fachregeln/) | Die Fachlogik, nach Thema getrennt. Nur die passende Datei lesen, nicht alle |
 | [`rechte_prompt.md`](rechte_prompt.md) | Source of Truth für Rechte-Codes und ihre Prüfpunkte |
 | [`spezifikation_auftrag_barcode_laufkarte.md`](spezifikation_auftrag_barcode_laufkarte.md) | Aufträge, Arbeitsschritte, Katalog, Strichcodes, Laufkarte (umgesetzt) |
+| [`spezifikation_abteilungsrechte.md`](spezifikation_abteilungsrechte.md) | Urlaubsgenehmigung je Abteilung: Zielbild, Grenzen, was beim Aufsetzen einer Installation zu bedenken ist (umgesetzt) |
 | [`spezifikation_terminal_installation.md`](spezifikation_terminal_installation.md) | Terminal per Skript aufsetzen und koppeln. Welche Stufe fertig ist, steht dort im Stufenplan – bewusst nur an dieser einen Stelle |
 
 ## Installation und Betrieb

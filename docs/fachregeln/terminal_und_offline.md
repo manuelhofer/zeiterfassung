@@ -161,6 +161,12 @@ Hauptdatenbank, sowie Metadaten (Mitarbeiter-ID, Art der Aktion).
 Auf allen Terminalseiten wird in diesem Zustand gut sichtbar angezeigt:
 **„Hauptdatenbank nicht aktiv – Admin anfordern"**.
 
+**Wo die Queue liegt, weiss genau eine Stelle:** der `OfflineQueueManager` mit
+`holeQueueVerbindungOderNull()` und `holeQueueSpeicherort()`. Wer neu auf
+`db_injektionsqueue` zugreift, nimmt diese beiden – **nicht** `Database`
+direkt, sonst entsteht eine zweite Meinung darüber, welche Datenbank gemeint
+ist.
+
 ### Wiederanlauf und Störungsmodus
 
 Sobald die Hauptdatenbank wieder erreichbar ist, wird die Queue in zeitlicher

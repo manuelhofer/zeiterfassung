@@ -28,44 +28,27 @@ Abschnitt 12 – dort und bewusst nicht hier ein zweites Mal. Dasselbe gilt für
 den Stufenplan (Abschnitt 11).
 
 ## Offene Bugs
-- **B-095 offen:** `abteilung_admin_speichern`, `maschine_admin_speichern`,
+- **B-095:** `abteilung_admin_speichern`, `maschine_admin_speichern`,
   `feiertag_admin_speichern` und `betriebsferien_admin_speichern` schreiben
   ohne CSRF-Prüfung; geprüft wird nur beim Umschalten (P-2026-08-11-09).
-- **B-093 behoben** (P-2026-08-11-05 bis -07): Eine Rolle mit
-  `scope_typ = 'abteilung'` wirkt jetzt – aber **nur** auf die
-  Urlaubsgenehmigung, ausgewertet in `UrlaubGenehmigungService`, nicht in
-  `hatRecht()`. Zielbild, Grenzen und die sieben Akzeptanzkriterien:
-  [`spezifikation_abteilungsrechte.md`](spezifikation_abteilungsrechte.md).
-  Zu bedenken **beim späteren Aufsetzen einer echten Installation**: Zeilen mit
-  `scope_typ = 'abteilung'` wirken dort ab diesem Stand, sofern die Rolle
-  `URLAUB_GENEHMIGEN` enthält. In der Entwicklungsdatenbank steht eine solche
-  Zeile.
-- **B-080 behoben in P-2026-08-10-28.** Bleibt als Beobachtungspunkt: Die
-  Übertragskette rechnet jetzt über **laufendes Jahr und Vorjahr** und schreibt
-  das Ergebnis in `urlaub_kontingent_jahr` fest. Im Praxis-Test darauf achten,
-  ob die Salden zum Jahreswechsel plausibel bleiben – der erste echte Wechsel
-  steht noch aus.
 
 ## Offene Tasks
-- **T-104** Vier Controller erzeugen HTML selbst, statt `views/` zu benutzen –
-  größter Brocken `SmokeTestController`, dann `KonfigurationController` und
-  `AuftragController`. Ein Controller je Patch; Muster und Prüfweg:
-  P-2026-08-11-09.
+- **T-104** Sechs Controller erzeugen HTML selbst, statt `views/` zu benutzen:
+  `AuftragController` und `KonfigurationController` (je 6 Masken),
+  `UrlaubController` (3), `TerminalAdminController` (2), `AuditLogController`
+  und `SmokeTestController` (je 1) – zusammen 19. Eine Maske je Patch; Muster
+  und Prüfweg: P-2026-08-11-09. Nachzählen statt glauben:
+  `grep -rn "views/layout/header.php" controller/`
+  Beim Bauen einer Maske erst in `views/layout/header.php` nachsehen, was es
+  schon gibt, und **keine eigenen Grössen auf Knöpfe schreiben** – warum, steht
+  dort als Kommentar.
 - **T-105** `SmokeTestController::index()` ist eine Methode mit ~3.700 Zeilen.
-  Diagnosewerkzeug, keine Fachlogik – aber praktisch nicht mehr änderbar.
-- **T-108 erledigt** (P-2026-08-11-03 und -04): `DbInjektionsqueueModel` war
-  tot und ist weg; die Regel „wo liegt die Queue" steht nur noch im
-  `OfflineQueueManager` (`holeQueueVerbindungOderNull()`,
-  `holeQueueSpeicherort()`). Wer neu auf `db_injektionsqueue` zugreift, nimmt
-  diese beiden – nicht `Database` direkt.
-- **T-109 erledigt** (P-2026-08-10-39 bis -42, Nachbesserung P-2026-08-11-01):
-  Alle Backend-Masken gestalten
-  sich aus `views/layout/header.php`, keine Farbe mehr per `style="…"`. Einzige
-  Ausnahme bleibt `SmokeTestController` (siehe T-105). Beim Bauen neuer Masken
-  gilt: erst dort nachsehen, was es schon gibt, und **keine eigenen Grössen auf
-  Knöpfe schreiben** – `button` und `.button-link` sind nur deshalb gleich hoch,
-  weil sie sich `box-sizing: border-box` teilen. Nachprüfen mit
-  `grep -rc 'style="[^"]*\(background:#\|border:.*solid #\|color:#\)' --include='*.php' controller views`
+  Diagnosewerkzeug, keine Fachlogik – aber praktisch nicht mehr änderbar. Es ist
+  nur *eine* Maske aus T-104 und trotzdem der grösste Brocken darin.
+- **Jahreswechsel beobachten:** Die Urlaubs-Übertragskette rechnet über
+  laufendes Jahr und Vorjahr und schreibt das Ergebnis in
+  `urlaub_kontingent_jahr` fest (B-080). Der erste echte Jahreswechsel steht
+  noch aus – dann prüfen, ob die Salden plausibel bleiben.
 - Praxis-Test: Bugs und Anomalien sammeln, als Micro-Patches beheben.
 - Offen aus P-2026-08-08-02: Terminal-Buchungsflows sind unter PHP 8.5 noch
   nicht **im Browser** mit angemeldetem Mitarbeiter durchgeklickt. Die
