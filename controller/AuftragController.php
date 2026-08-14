@@ -1631,7 +1631,31 @@ class AuftragController
                         'aktiv'     => $aktiv,
                     ]
                 );
-                $_SESSION['auftrag_detail_flash_ok'] = 'Der Auftrag wurde angelegt. Jetzt koennen Arbeitsschritte ergaenzt werden.';
+                $neueAuftragId = (int)$this->db->letzteInsertId();
+                $meldung = 'Der Auftrag wurde angelegt.';
+
+                // Im Anlegen-Formular angehakte Standardschritte gleich
+                // uebernehmen - sonst muss man denselben Auftrag zweimal
+                // anfassen, um ihn arbeitsfaehig zu machen.
+                $katalogIds = $this->leseKatalogAuswahlAusPost();
+                if ($katalogIds !== [] && $neueAuftragId > 0) {
+                    try {
+                        [$uebernommen] = $this->uebernehmeKatalogSchritte($neueAuftragId, $katalogIds);
+                        $meldung .= ' ' . ($uebernommen === 1
+                            ? 'Ein Arbeitsschritt wurde aus dem Katalog uebernommen.'
+                            : $uebernommen . ' Arbeitsschritte wurden aus dem Katalog uebernommen.');
+                    } catch (\Throwable $e) {
+                        $this->protokolliere('Katalogschritte beim Anlegen nicht uebernommen', [
+                            'auftrag_id' => $neueAuftragId,
+                            'exception'  => $e->getMessage(),
+                        ]);
+                        $meldung .= ' Die ausgewaehlten Arbeitsschritte konnten nicht uebernommen werden.';
+                    }
+                } else {
+                    $meldung .= ' Jetzt koennen Arbeitsschritte ergaenzt werden.';
+                }
+
+                $_SESSION['auftrag_detail_flash_ok'] = $meldung;
             }
         } catch (\Throwable $e) {
             $this->protokolliere('Auftrag konnte nicht gespeichert werden', [
@@ -1660,6 +1684,26 @@ class AuftragController
         $status           = (string)($auftrag['status'] ?? '');
         $aktiv            = (int)($auftrag['aktiv'] ?? 1) === 1;
         $csrfToken        = Csrf::token(self::CSRF_BEREICH_STAMM);
+
+        // Nur beim Anlegen: die aktiven Standardschritte zur Auswahl. Beim
+        // Bearbeiten steht dieselbe Auswahl in der Auftragsansicht und weiss
+        // dort zusaetzlich, was der Auftrag schon hat.
+        $katalogAuswahl = [];
+        $katalogAngehakt = $id > 0 ? [] : $this->leseKatalogAuswahlAusPost();
+        if ($id === 0) {
+            try {
+                $katalogAuswahl = $this->db->fetchAlle(
+                    'SELECT id, code, bezeichnung FROM arbeitsschritt_katalog
+                      WHERE aktiv = 1
+                   ORDER BY sort_order ASC, code ASC'
+                );
+            } catch (\Throwable $e) {
+                $katalogAuswahl = [];
+                $this->protokolliere('Arbeitsschritt-Katalog fuer das Auftragsformular nicht ladbar', [
+                    'exception' => $e->getMessage(),
+                ]);
+            }
+        }
 
         $esc = static function ($wert): string {
             return htmlspecialchars((string)$wert, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
@@ -1729,6 +1773,31 @@ class AuftragController
                         Aktiv
                     </label>
                 </div>
+
+                <?php if ($id === 0 && count($katalogAuswahl) > 0): ?>
+                    <div class="admin-card" style="margin:0.75rem 0;max-width:640px;">
+                        <strong>Arbeitsschritte aus dem Katalog</strong>
+                        <p style="margin:0.4rem 0;"><small>
+                            Was hier angehakt ist, haengt beim Speichern gleich am Auftrag und
+                            steht auf der Laufkarte. Spaeter aendern geht in der Auftragsansicht.
+                            <a href="?seite=arbeitsschritt_katalog">Katalog pflegen</a>
+                        </small></p>
+                        <?php foreach ($katalogAuswahl as $kat): ?>
+                            <?php
+                                $katId   = (int)($kat['id'] ?? 0);
+                                $katCode = (string)($kat['code'] ?? '');
+                                $katBez  = trim((string)($kat['bezeichnung'] ?? ''));
+                            ?>
+                            <label style="display:block;margin:0.15rem 0;">
+                                <input type="checkbox" name="katalog_ids[]" value="<?php echo $katId; ?>"<?php echo isset($katalogAngehakt[$katId]) ? ' checked' : ''; ?>>
+                                <code><?php echo $esc($katCode); ?></code>
+                                <?php if ($katBez !== ''): ?>
+                                    &ndash; <?php echo $esc($katBez); ?>
+                                <?php endif; ?>
+                            </label>
+                        <?php endforeach; ?>
+                    </div>
+                <?php endif; ?>
 
                 <div class="form-actions">
                     <button type="submit">Speichern</button>
@@ -2071,6 +2140,84 @@ class AuftragController
      * Übernimmt ausgewählte Katalogschritte in einen Auftrag.
      * Route: ?seite=auftrag_schritte_aus_katalog (POST)
      */
+    /**
+     * Haengt Katalogschritte an einen Auftrag.
+     *
+     * Eine Stelle fuer zwei Wege: die Uebernahme aus der Auftragsansicht
+     * (`schritteAusKatalog()`) und die Auswahl direkt im Anlegen-Formular
+     * (`speichern()`). Vorhandene Codes bleiben unveraendert - eine am Auftrag
+     * gepflegte Bezeichnung ist die speziellere und soll gewinnen.
+     *
+     * @param array<int,int> $katalogIds
+     * @return array{0:int,1:int} uebernommen, uebersprungen
+     */
+    private function uebernehmeKatalogSchritte(int $auftragId, array $katalogIds): array
+    {
+        if ($auftragId <= 0 || $katalogIds === []) {
+            return [0, 0];
+        }
+
+        $uebernommen   = 0;
+        $uebersprungen = 0;
+
+        $platzhalter = implode(',', array_fill(0, count($katalogIds), '?'));
+        $eintraege = $this->db->fetchAlle(
+            'SELECT code, bezeichnung FROM arbeitsschritt_katalog WHERE id IN (' . $platzhalter . ')',
+            array_values($katalogIds)
+        );
+
+        foreach ($eintraege as $eintrag) {
+            $code = trim((string)($eintrag['code'] ?? ''));
+            if ($code === '') {
+                continue;
+            }
+
+            $betroffen = $this->db->ausfuehren(
+                'INSERT INTO auftrag_arbeitsschritt (auftrag_id, arbeitsschritt_code, bezeichnung, aktiv)
+                 VALUES (:aid, :code, :bez, 1)
+                 ON DUPLICATE KEY UPDATE arbeitsschritt_code = arbeitsschritt_code',
+                [
+                    'aid'  => $auftragId,
+                    'code' => $code,
+                    'bez'  => ($eintrag['bezeichnung'] ?? null) !== '' ? $eintrag['bezeichnung'] : null,
+                ]
+            );
+
+            // MySQL liefert 1 fuer INSERT, 0 wenn der Eintrag schon existierte.
+            if ($betroffen > 0) {
+                $uebernommen++;
+            } else {
+                $uebersprungen++;
+            }
+        }
+
+        return [$uebernommen, $uebersprungen];
+    }
+
+    /**
+     * Liest die angehakten Katalog-IDs aus dem POST, entdoppelt sie und wirft
+     * alles weg, was keine positive Zahl ist.
+     *
+     * @return array<int,int>
+     */
+    private function leseKatalogAuswahlAusPost(): array
+    {
+        $auswahl = $_POST['katalog_ids'] ?? [];
+        if (!is_array($auswahl)) {
+            return [];
+        }
+
+        $ids = [];
+        foreach ($auswahl as $wert) {
+            $id = (int)$wert;
+            if ($id > 0) {
+                $ids[$id] = $id;
+            }
+        }
+
+        return $ids;
+    }
+
     public function schritteAusKatalog(): void
     {
         if (!$this->pruefeZugriff()) {
@@ -2134,41 +2281,8 @@ class AuftragController
 
         $uebernommen = 0;
         $uebersprungen = 0;
-
         try {
-            $platzhalter = implode(',', array_fill(0, count($ids), '?'));
-            $eintraege = $this->db->fetchAlle(
-                'SELECT code, bezeichnung FROM arbeitsschritt_katalog WHERE id IN (' . $platzhalter . ')',
-                array_values($ids)
-            );
-
-            foreach ($eintraege as $eintrag) {
-                $code = trim((string)($eintrag['code'] ?? ''));
-                if ($code === '') {
-                    continue;
-                }
-
-                // Vorhandene Codes werden übersprungen, nicht überschrieben -
-                // eine bereits gepflegte Bezeichnung am Auftrag ist die
-                // speziellere und soll gewinnen.
-                $betroffen = $this->db->ausfuehren(
-                    'INSERT INTO auftrag_arbeitsschritt (auftrag_id, arbeitsschritt_code, bezeichnung, aktiv)
-                     VALUES (:aid, :code, :bez, 1)
-                     ON DUPLICATE KEY UPDATE arbeitsschritt_code = arbeitsschritt_code',
-                    [
-                        'aid'  => $auftragId,
-                        'code' => $code,
-                        'bez'  => ($eintrag['bezeichnung'] ?? null) !== '' ? $eintrag['bezeichnung'] : null,
-                    ]
-                );
-
-                // MySQL liefert 1 für INSERT, 0 wenn der Eintrag schon existierte.
-                if ($betroffen > 0) {
-                    $uebernommen++;
-                } else {
-                    $uebersprungen++;
-                }
-            }
+            [$uebernommen, $uebersprungen] = $this->uebernehmeKatalogSchritte($auftragId, $ids);
         } catch (\Throwable $e) {
             $this->protokolliere('Katalogschritte konnten nicht uebernommen werden', [
                 'auftrag_id' => $auftragId,

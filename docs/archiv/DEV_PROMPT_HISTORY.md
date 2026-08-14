@@ -70,6 +70,88 @@ in den Statusbericht.
   D-002 entfallen; die Regel selbst gilt weiter.)
 
 
+## P-2026-08-14-01 katalogschritte-schon-beim-anlegen
+
+### EINGELESEN
+- `controller/AuftragController.php`: `neu()`, `speichern()`,
+  `renderAuftragFormular()`, `schritteAusKatalog()`.
+- Die Karte "Aus dem Arbeitsschritt-Katalog uebernehmen" in der Auftragsansicht
+  als Vorbild fuer Auswahl und Beschriftung.
+
+### DATEIEN
+- `controller/AuftragController.php`
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Wer im Formular "Auftrag anlegen" `saegen` und `fraesen` anhakt und speichert,
+findet beide Schritte unmittelbar danach am neuen Auftrag - ohne den Auftrag ein
+zweites Mal zu oeffnen.
+
+### DONE
+Beauftragt von Manuel: Die Standardschritte liessen sich bisher **erst nach**
+dem Speichern anhaengen, in der Auftragsansicht. Fachlich ist das eine Huerde
+ohne Grund - wer einen Auftrag anlegt, weiss in aller Regel schon, welche
+Schritte er hat.
+
+Neu im Anlegen-Formular: eine Karte mit den **aktiven** Katalogschritten zum
+Anhaken. Sie erscheint nur beim Anlegen (`$id === 0`). Beim Bearbeiten bleibt
+es bei der Karte in der Auftragsansicht - die weiss zusaetzlich, welche
+Schritte der Auftrag schon hat, und kann deshalb nur die fehlenden anbieten.
+
+Die Einfuege-Logik stand bisher mitten in `schritteAusKatalog()`. Sie ist jetzt
+`uebernehmeKatalogSchritte()` und wird von beiden Wegen benutzt - inklusive der
+Regel, dass vorhandene Codes uebersprungen und nicht ueberschrieben werden
+(`ON DUPLICATE KEY UPDATE`). Ein zweiter Helfer liest die angehakten IDs aus dem
+POST. Damit gibt es die Regel "wie kommt ein Katalogschritt an einen Auftrag"
+weiterhin genau einmal.
+
+Die Erfolgsmeldung sagt jetzt, was passiert ist: "Der Auftrag wurde angelegt.
+2 Arbeitsschritte wurden aus dem Katalog uebernommen." Ohne Auswahl steht dort
+unveraendert der bisherige Satz.
+
+### TEST
+Wegwerf-Instanz (eigene Datenbank aus dem Schema, erfundener Katalog:
+`saegen`, `fraesen`, dazu ein **inaktiver** Eintrag):
+
+| Fall | Ergebnis |
+| --- | --- |
+| Anlegen-Maske | bietet `saegen` und `fraesen`, den inaktiven Eintrag **nicht** |
+| Anlegen mit zwei Haken | Auftrag angelegt, beide Schritte am Auftrag, Meldung nennt "2 Arbeitsschritte" |
+| Anlegen ohne Haken | Auftrag angelegt, bisherige Meldung, keine Schritte |
+| Validierungsfehler (Nummer leer) | Formular kommt zurueck, **beide Haken noch gesetzt** |
+| Bearbeiten-Maske | zeigt die Auswahl nicht (0 Checkboxen) |
+| Bestehender Weg aus der Auftragsansicht | unveraendert: "Ein Arbeitsschritt wurde uebernommen.", Zeile in der DB |
+
+`php -l` sauber, keine PHP-Meldungen im Serverlog. Wegwerf-Datenbank danach
+entfernt.
+
+### Gefundene Fehler im eigenen Entwurf
+**Der Regressionstest des alten Wegs meldete zuerst "nichts uebernommen".** Ich
+hatte `auftrag_id=2` geraten - die Startdaten des Schemas belegen aber bereits
+die IDs 1 bis 4, der Testauftrag hatte die 6. Mit der ID aus dem Formular
+selbst lief der Weg auf Anhieb. Beinahe haette ich eine Regression gemeldet,
+die es nicht gibt; geraten wird keine ID, sie steht im HTML.
+
+**Nebenbefund zur Nummerierung:** Die Patches -09 bis -14 tragen das Datum
+2026-08-11, weil ich sie an den vorherigen Eintrag angehaengt habe, statt die
+Uhr zu fragen; `git log` weist sie als 2026-08-12 aus. Dieser Eintrag traegt
+das tatsaechliche Datum. Umbenannt wird nichts - Commit-Betreffs sind
+geschrieben, und die Patch-ID ist ein Schluessel, kein Kalender.
+
+### Was bewusst nicht erreicht wurde
+- **Beim Bearbeiten gibt es die Auswahl nicht.** Sie waere dort die dritte
+  Stelle fuer dieselbe Sache und muesste zusaetzlich wissen, was schon dran ist.
+- **Keine Reihenfolge, keine Mengen.** Die uebernommenen Schritte landen so am
+  Auftrag, wie der Katalog sie sortiert; Feinheiten regelt weiterhin die
+  Auftragsansicht.
+- **`AuftragController` bleibt einer der vier Controller aus T-104**; das neue
+  Markup steht wie das uebrige noch im Controller. Es mit umzuziehen waere ein
+  zweites Thema gewesen.
+
+### NEXT
+T-104, naechster Controller: `TerminalAdminController`.
+
+
 ## P-2026-08-11-14 urlaubskontingent-maske-in-views
 
 ### EINGELESEN
