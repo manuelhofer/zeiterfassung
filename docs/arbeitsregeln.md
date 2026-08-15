@@ -14,6 +14,11 @@ Richtungen: eine Regel kommentarlos umgehen, oder ihr sehenden Auges in ein
 schlechtes Ergebnis folgen. Geändert wird sie als eigener Patch mit Begründung
 im Verlauf.
 
+Das gilt für den ganzen Arbeitsweg, nicht nur für diese Liste: Was am Ablauf
+stört – ein Schritt, der jedes Mal Zeit kostet, eine Datei am falschen Ort,
+eine Doku, die niemand mehr liest, eine Vorgabe, die keiner gestellt hat –,
+wird **angesprochen**, nicht ausgehalten.
+
 ## 1. Wann überhaupt gearbeitet wird
 
 Ob gerade gearbeitet wird, entscheidet der **Projektstatus** in

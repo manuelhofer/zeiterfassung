@@ -105,7 +105,8 @@ Einzelheiten: [Terminal-Installation](docs/spezifikation_terminal_installation.m
 
 Kurzfassung – vollständig in [`docs/arbeitsregeln.md`](docs/arbeitsregeln.md).
 Alle diese Regeln sind besprechbar: Steht eine im Weg oder ist sie falsch, ist
-das eine Frage wert und keine stille Ausnahme.
+das eine Frage wert und keine stille Ausnahme. Dasselbe gilt für alles andere am
+Arbeitsweg, was stört – ansprechen statt aushalten.
 
 - **Ein Patch = ein Thema** mit einem Akzeptanzkriterium in einem Satz.
 - Patch-ID `P-YYYY-MM-DD-XX` in den Commit-Betreff, z. B.

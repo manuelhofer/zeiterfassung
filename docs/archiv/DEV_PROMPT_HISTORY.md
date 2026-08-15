@@ -99,6 +99,65 @@ in den Statusbericht.
   D-002 entfallen; die Regel selbst gilt weiter.)
 
 
+## P-2026-08-15-26 arbeitsweg-ansprechen
+
+### EINGELESEN
+- `docs/arbeitsregeln.md` §0, `CHATSTART.md` Abschnitt 2, `README.md`
+  Abschnitt „Mitarbeiten" – die drei Stellen, die „besprechbar" sagen
+  (`grep -rn "besprechbar\|verhandelbar"`).
+- Ansage von Manuel im Chat: „die regeln sind fluid … man kann über alles
+  sprechen und es soll auch angesprochen werden was nicht gut ist für den
+  workflow …. das sollte auch so irgendwo stehen".
+- P-2026-08-15-07 (`regeln-sind-verhandelbar`) – dort ist §0 entstanden.
+
+### DATEIEN
+- `docs/arbeitsregeln.md`, `CHATSTART.md`, `README.md`
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+§0 verlangt das Ansprechen nicht mehr nur fuer die Regeln in dieser Datei,
+sondern fuer alles am Arbeitsweg, was stoert – und die beiden Verweise darauf
+in `CHATSTART.md` und `README.md` sagen dasselbe.
+
+### DONE
+§0 stand seit P-2026-08-15-07 da, aber eng: Gegenstand war „jede Regel hier".
+Genau das hat in dieser Sitzung nicht gereicht – die Byte-Grenze aus §9 war
+formal eine Regel, das eigentliche Problem lag aber daneben (der Snapshot
+waechst, die Zahl bestraft dafuer die Formulierung). Ein Befund, der zu keiner
+einzelnen Regel gehoert, hatte damit keine Stelle, an der er hingehoert, und
+wurde dreimal als Nebensatz im Verlauf abgelegt.
+
+Ein Absatz mehr in §0, mit vier Beispielen, damit „stoert" nicht abstrakt
+bleibt: ein Schritt, der jedes Mal Zeit kostet; eine Datei am falschen Ort;
+eine Doku, die niemand mehr liest; eine Vorgabe, die keiner gestellt hat. Der
+letzte Fall ist der aus P-2026-08-15-25.
+
+### TEST
+Keine Codeaenderung. `grep -rn "besprechbar"` ueber alle `*.md` ausserhalb des
+Verlaufs meldet die drei erwarteten Stellen, alle drei jetzt mit dem weiteren
+Geltungsbereich; die Links in `CHATSTART.md` auf `docs/arbeitsregeln.md` und in
+`README.md` auf dieselbe Datei zeigen weiterhin auf existierende Pfade
+(`ls` beider Ziele).
+
+Kaltstart 16.252 Bytes gegen 15.803 vor P-2026-08-15-25 – die beiden
+Regelpatches kosten zusammen 449 Bytes. Der Entwurf dieses Eintrags behauptete
+15.808 („§9 spart mehr ein, als §0 dazukommt"), geschrieben vor dem Messen: Der
+neue §9 erklaert jetzt auch, *warum* es keine Grenze gibt, und ist damit laenger
+als der alte samt `wc`-Block. Ohne Grenze ist die Zahl kein Verstoss mehr, eine
+erfundene Zahl im Verlauf aber sehr wohl.
+
+### Was bewusst nicht erreicht wurde
+`CLAUDE.md` bleibt unberuehrt: Sie soll laut ihrem eigenen Kopf nur enthalten,
+was ausschliesslich fuer Claude Code gilt – ein vierter Ort fuer denselben Satz
+waere genau die Doppelfuehrung, vor der sie warnt.
+
+Die Begruendung „keine Grenze, weil …" steht noch im Regeltext selbst, also im
+Kaltstart, obwohl sie Verlauf ist. Gehoert gekuerzt – aber als eigener Patch,
+das ist §9 und nicht §0. Als **T-117** notiert.
+
+### NEXT
+T-117 (§9 kuerzen), danach T-104, erste der vier Masken im `AuftragController`.
+
 ## P-2026-08-15-25 kaltstart-ohne-byte-grenze
 
 ### EINGELESEN
