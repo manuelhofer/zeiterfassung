@@ -26,27 +26,30 @@ Abschnitt 12, der Stufenplan in Abschnitt 11 – dort und bewusst nicht hier ein
 zweites Mal.
 
 ## Offene Bugs
-
-Keine bekannten.
+- **B-100** Krankzeitraum: Die Datumsprüfung testet nur die Form. `2026-02-30`
+  kommt durch und endet in „Speichern fehlgeschlagen." statt in „Bitte ein
+  gültiges Von-Datum angeben." Wie B-099, aber ohne falsche Daten in der
+  Tabelle.
 
 ## Offene Tasks
 - **T-112** „`catch` → `return []`" steckt an 26 Stellen in `modelle/` und
   `services/`. Falsch ist es nur dort, wo es die Fehlermeldung des Aufrufers
   unerreichbar macht (B-097, T-110). Durchsehen, nicht pauschal ändern;
   Suchlauf in P-2026-08-15-10.
-- **T-104** Vier Controller erzeugen HTML selbst, statt `views/` zu benutzen –
-  **8 Masken**: `KonfigurationController` (1), `AuftragController` (4),
-  `TerminalAdminController` (2), `SmokeTestController` (1). Eine Maske je
-  Patch; Muster und Prüfweg: P-2026-08-11-09.
+- **T-104** Drei Controller erzeugen HTML selbst, statt `views/` zu benutzen –
+  **7 Masken**: `AuftragController` (4), `TerminalAdminController` (2),
+  `SmokeTestController` (1). Eine Maske je Patch; Muster und Prüfweg:
+  P-2026-08-11-09, zuletzt P-2026-08-15-18.
 
-  Der `grep` nach dem Header-Require zählt zu hoch (auch „Keine
-  Berechtigung"-Blöcke). `UrlaubController` und `AuditLogController`: fertig,
-  siehe P-2026-08-14-06.
+  Achtung: Der `grep` nach dem Header-Require zählt zu hoch – er findet auch
+  „Keine Berechtigung"-Blöcke in längst fertigen Controllern.
 
   Beim Bauen einer Maske erst in `views/layout/header.php` nachsehen und
   **keine eigenen Grössen auf Knöpfe schreiben** – Begründung steht dort.
+- **T-114** Die Tab-Zeile der Konfiguration steht sechsmal identisch in
+  `views/konfiguration/` – jetzt lohnt ein gemeinsames Teil-Template.
 - **T-105** `SmokeTestController::index()` ist eine einzige, riesige Methode:
-  Diagnosewerkzeug, keine Fachlogik, praktisch nicht mehr änderbar – nur *eine*
+  Diagnosewerkzeug ohne Fachlogik, praktisch nicht mehr änderbar – nur *eine*
   Maske aus T-104 und trotzdem der grösste Brocken darin.
 - **Jahreswechsel beobachten:** Die Urlaubs-Übertragskette schreibt ihr Ergebnis
   in `urlaub_kontingent_jahr` fest (B-080). Beim ersten echten Jahreswechsel

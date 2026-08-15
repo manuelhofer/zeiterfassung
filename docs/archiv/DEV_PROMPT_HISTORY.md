@@ -99,6 +99,111 @@ in den Statusbericht.
   D-002 entfallen; die Regel selbst gilt weiter.)
 
 
+## P-2026-08-15-18 t-104-krankzeitraum-in-views
+
+### EINGELESEN
+- `docs/STATUS_SNAPSHOT.md` (T-104), `docs/arbeitsregeln.md`.
+- `controller/KonfigurationController.php`, `indexKrankzeitraum()` vollstaendig
+  – Regelpruefungen, Wechsel-Vorbereitung, Markup, JavaScript.
+- `views/konfiguration/pausenregeln.php` als Muster.
+- `core/Helper.php` – gibt es dort schon eine Datumsanzeige? Nein:
+  `formatDatum()` liefert `Y-m-d`, nicht `d.m.Y`.
+
+### DATEIEN
+- `views/konfiguration/krankzeitraum.php` (neu)
+- `controller/KonfigurationController.php`
+- `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Die Maske „Krankzeiten (LFZ/KK)" erzeugt dasselbe HTML wie vorher – bis auf die
+Einrueckung und die zwei `Csrf::feld()`-Stellen –, obwohl das Markup jetzt in
+`views/konfiguration/krankzeitraum.php` liegt.
+
+### DONE
+**Die letzte der sechs Masken des `KonfigurationController`** und mit Abstand
+die groesste. Der Controller behaelt beide POST-Wege, die Overlap- und
+LFZ/KK-Regeln, die Vorbereitung „Wechsel zu KK" und das Laden; die View bekommt
+neun Werte plus die Anzeigefunktion. 1.638 → 1.367 Zeilen Controller plus 323
+Zeilen View.
+
+Damit ist der Controller von **2.177 Zeilen** (Stand vor P-2026-08-14-12) auf
+1.367 geschrumpft, und sechs Masken liegen in `views/konfiguration/`.
+
+**Eine bewusste Abweichung**: `Csrf::feld()` an zwei Stellen. Knopf-Groessen gab
+es hier keine.
+
+**Die Anzeigefunktion wird als Closure weitergereicht.** `$formatKrankDatumAnzeige`
+macht aus `2026-06-01` ein `01.06.2026`; der Controller braucht sie in seinen
+Fehlermeldungen („Mitarbeiter ist vom … bis … bereits Krank LF"), die View in
+der Tabelle. Sie zweimal zu schreiben waere schlechter als sie zu uebergeben,
+und sie ins `Helper` zu heben ist ein eigenes Thema – `core/Helper.php` hat
+heute keine deutsche Datumsanzeige, das waere also eine neue oeffentliche
+Funktion mit Wirkung auf alles. Die View nennt die Erwartung in ihrem Kopf.
+
+Das JavaScript des 6-Wochen-Vorschlags zieht unveraendert mit um: Es haengt an
+`id`-Attributen dieser Maske und hat keine Fachlogik ausserhalb.
+
+### TEST
+Wegwerf-Umgebung aus P-2026-08-15-08, HEAD-Kopie auf P-2026-08-15-17. Drei
+erfundene Krankzeitraeume fuer den Pruefbenutzer: LFZ 01.06.–12.07., KK ab
+13.07. (offen, Kommentar mit `<b>`, `&`, `"` und `äöüß`), ein inaktiver LFZ.
+
+| Lage | Abweichende Zeilen | erwartet |
+| --- | --- | --- |
+| Liste mit drei Zeitraeumen | 12 | 12 (Formular + 3 × Umschalten) |
+| mit `ok=1` | 12 | 12 |
+| Bearbeiten (`id=`) | 12 | 12 |
+| `wechsel_kk_von=` (KK vorbereiten) | 12 | 12 |
+| Leere Liste | 3 | 3 (nur das Formular) |
+| Tabelle unlesbar | 3 | 3 |
+
+POST- und Regelwege auf dem neuen Stand:
+
+| Weg | Ergebnis |
+| --- | --- |
+| LFZ anlegen (01.06.–12.07.) | 302 `&ok=1`, Zeile da |
+| Ueberlappender LFZ | „Überschneidung mit Zeitraum #8 (01.06.2026 bis 12.07.2026)." – nichts gespeichert |
+| KK **im** LFZ-Zeitraum | „Der Zeitraum ist gesperrt: … bereits Krank LF. Krank KK darf erst danach beginnen." |
+| KK ab dem Tag nach LFZ-Ende | 302 `&ok=1` |
+| „Wechsel zu KK" | Hinweis „Krank KK wurde mit dem Folgetag nach Krank LF vorbereitet.", Formular auf `2026-07-13` |
+| Ohne Mitarbeiter | „Bitte einen Mitarbeiter auswählen." |
+| Bis vor Von | „Bis-Datum darf nicht vor Von-Datum liegen." |
+| Umschalten | 302, `aktiv = 0` |
+| Falsches CSRF-Token | „CSRF-Check fehlgeschlagen." |
+
+Die Datumsanzeige `01.06.2026` in den Regelmeldungen belegt nebenbei, dass die
+weitergereichte Closure im Controller **und** in der View dieselbe ist.
+
+22 Backend-Aufrufe HTTP 200, Serverlog ohne Meldung, `php -l` ueber beide
+Dateien, beide Umlaut-Suchlaeufe der Wartungscheckliste ohne Treffer.
+
+### Gefundene Fehler im eigenen Entwurf
+Nach B-099 lag die Frage nahe, ob die **Datums**pruefung derselben Maske
+denselben Fehler macht. Sie macht ihn: `preg_match('/^\d{4}-\d{2}-\d{2}$/')`
+prueft nur die Form.
+
+| Eingabe | Ergebnis |
+| --- | --- |
+| `abc` | „Bitte ein gültiges Von-Datum angeben." – richtig |
+| `2026-02-30` | „Speichern fehlgeschlagen." – die Datenbank lehnt ab |
+| `2026-13-01` | „Speichern fehlgeschlagen." |
+| `01.06.2026` | wird zu `2026-06-01` normalisiert – so gewollt |
+
+Anders als bei B-099 landet **nichts** Falsches in der Tabelle (`date` ist
+strenger als `time`), aber die Meldung schiebt einen Tippfehler auf das System.
+Bitter dabei: `normalisiereKrankDatumEingabe()` prueft das Datum bereits richtig
+(`createFromFormat` samt `getLastErrors`) – nur gibt es die Eingabe bei einem
+Fehler unveraendert zurueck, und der Aufrufer erfaehrt nichts davon. Als
+**B-100** notiert, nicht hier behoben: Dieser Patch soll das HTML gleich lassen.
+
+### Was bewusst nicht erreicht wurde
+Die Tab-Zeile steht jetzt sechsmal identisch in `views/konfiguration/`. Genau
+dafuer war in P-2026-08-14-12 der Blick auf ein gemeinsames Teil-Template
+angekuendigt – jetzt lohnt er sich, ist aber ein eigener Patch (**T-114**).
+
+### NEXT
+B-100 (Datumspruefung), dann T-114 (Tab-Zeile als Teil-Template).
+
 ## P-2026-08-15-17 b-099-uhrzeit-mit-bereich-pruefen
 
 ### EINGELESEN
