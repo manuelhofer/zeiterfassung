@@ -73,11 +73,16 @@ class AbteilungAdminController
             unset($_SESSION['abteilung_admin_flash_error']);
         }
 
+        // Ohne Fallback laden: Diese Maske sagt dem Benutzer, ob es Abteilungen
+        // gibt – dafür muss sie einen Lesefehler von „keine vorhanden"
+        // unterscheiden können.
+        $ladefehler = false;
         try {
-            $abteilungen = $this->abteilungModel->holeAlleAktiven();
+            $abteilungen = $this->abteilungModel->holeAlleAktivenOhneFallback();
         } catch (\Throwable $e) {
             $abteilungen  = [];
             $fehlermeldung = 'Die Abteilungen konnten nicht geladen werden.';
+            $ladefehler    = true;
             Logger::error('Fehler beim Laden der Abteilungen im Admin-Bereich', [
                 'exception' => $e->getMessage(),
             ], null, null, 'abteilung');

@@ -99,6 +99,87 @@ in den Statusbericht.
   D-002 entfallen; die Regel selbst gilt weiter.)
 
 
+## P-2026-08-15-11 b-097-abteilungsliste-meldet-lesefehler
+
+### EINGELESEN
+- `docs/STATUS_SNAPSHOT.md` (B-097), `docs/arbeitsregeln.md`.
+- P-2026-08-14-14 (T-110) – derselbe Fehler in `KonfigurationService`.
+- `modelle/AbteilungModel.php` vollstaendig.
+- `grep -rn "holeAlleAktiven" --include='*.php' .` – **15** Aufrufer allein fuer
+  das Abteilungsmodell, verteilt auf fuenf Controller.
+- `controller/AbteilungAdminController.php`, `index()`.
+
+### DATEIEN
+- `modelle/AbteilungModel.php`
+- `controller/AbteilungAdminController.php`, `views/abteilung/liste.php`
+- `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Ist `abteilung` nicht lesbar, zeigt die Abteilungsliste „Die Abteilungen konnten
+nicht geladen werden." statt der Behauptung, es seien keine hinterlegt – und die
+Formulare, die dieselbe Methode nur fuer ihre Auswahlliste benutzen, laden
+weiterhin.
+
+### DONE
+B-097. `holeAlleAktiven()` fing selbst ab und lieferte `[]`; der `catch` im
+Controller war unerreichbar, seine Fehlermeldung erschien nie. Sichtbar war
+nicht ein Fehler, sondern eine **normal aussehende Seite mit einer falschen
+Aussage** – bei T-110 stand dieselbe Analyse schon einmal.
+
+**Der Unterschied zu T-110 ist die Zahl der Aufrufer.** Dort war es einer,
+also konnte die Methode einfach aufhoeren abzufangen. Hier sind es 15, und die
+meisten fuellen nur eine Auswahlliste in einem Formular. Wuerde die Methode
+durchwerfen, braeche bei unlesbarer Tabelle das Mitarbeiterformular ab, statt
+eine leere Auswahl zu zeigen – ein neuer Fehler als Preis fuer den alten.
+
+Deshalb zwei Methoden mit klarer Aufgabenteilung:
+
+- `holeAlleAktiven()` faengt weiter ab, fuer Auswahllisten. Der Kommentar sagt
+  jetzt, **wofuer** das richtig ist und wann nicht.
+- `holeAlleAktivenOhneFallback()` reicht den Fehler durch. Fuer jede Maske, die
+  dem Benutzer sagt, ob es Abteilungen gibt.
+
+Der Name ist absichtlich lang: Wer ihn liest, weiss ohne Nachschlagen, was
+anders ist. Die SQL steht nur noch einmal da – die fangende Methode ruft die
+andere auf.
+
+Doppeltes Loggen faellt fuer den Listenweg weg: Das Modell loggt nur noch, wenn
+es selbst abfaengt.
+
+### TEST
+Wegwerf-Umgebung aus P-2026-08-15-08. Drei Lagen der Abteilungsliste:
+
+| Lage | HTTP | Leer-Hinweis | Fehlermeldung |
+| --- | --- | --- | --- |
+| lesbar, ein Eintrag (`Probe-Abteilung`) | 200 | nein (Liste steht) | nein |
+| lesbar, leer | 200 | **ja** | nein |
+| unlesbar (`RENAME TABLE`) | 200 | nein | **ja** |
+
+Auf HEAD zeigt die dritte Lage weder Fehlermeldung noch etwas anderes als
+„keine aktiven Abteilungen hinterlegt" – der Fehler, um den es geht.
+
+Gegenprobe fuer den Fallback, alle bei unlesbarer Tabelle und alle HTTP 200:
+Maschine bearbeiten, Terminal bearbeiten, Betriebsferien bearbeiten, Mitarbeiter
+bearbeiten, Mitarbeiterliste, Dashboard. `system_log` zeigt die erwartete
+Zustaendigkeit: „Fehler beim Laden aktiver Abteilungen" (Modell) kommt aus den
+vier Formularen, „Fehler beim Laden der Abteilungen im Admin-Bereich"
+(Controller) aus der Liste – **kein** Aufruf schreibt beide.
+
+22 Backend-Aufrufe HTTP 200, Serverlog ohne Deprecation oder Warnung, `php -l`
+ueber die drei geaenderten Dateien.
+
+### Was bewusst nicht erreicht wurde
+Die uebrigen 14 Aufrufer bleiben beim Fallback. Ob eine Auswahlliste, die still
+leer bleibt, an jeder Stelle das Richtige ist, ist eine eigene Frage – sie
+gehoert zu T-112 und wird nicht nebenbei beantwortet.
+
+Die anderen Methoden von `AbteilungModel` fangen ebenfalls ab. Fuer
+`holeNachId()` ist das plausibel (der Aufrufer prueft auf `null`), aber
+ungeprueft – auch das ist T-112.
+
+### NEXT
+B-098 (Feiertagsliste), danach zurueck zu T-104.
+
 ## P-2026-08-15-10 t-111-leerhinweis-in-sechs-listen
 
 ### EINGELESEN

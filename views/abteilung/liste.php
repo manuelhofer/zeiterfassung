@@ -6,11 +6,13 @@ declare(strict_types=1);
  * Erwartet:
  * - $abteilungen  (array<int,array<string,mixed>>)
  * - $fehlermeldung (string|null)
+ * - optional: $ladefehler (bool) – true, wenn die Liste nicht gelesen werden konnte
  */
 require __DIR__ . '/../layout/header.php';
 
 $abteilungen  = $abteilungen ?? [];
 $fehlermeldung = $fehlermeldung ?? null;
+$ladefehler    = (bool)($ladefehler ?? false);
 ?>
 <section>
     <h2>Abteilungen</h2>
@@ -24,8 +26,13 @@ $fehlermeldung = $fehlermeldung ?? null;
         </div>
     <?php endif; ?>
 
+    <?php /* Bei einem Lesefehler ist die Liste ebenfalls leer – dann steht schon
+             die Fehlermeldung da, und „keine Abteilungen hinterlegt" wäre
+             daneben die falsche Auskunft. */ ?>
     <?php if (count($abteilungen) === 0): ?>
-        <p>Es sind derzeit keine aktiven Abteilungen hinterlegt.</p>
+        <?php if (!$ladefehler): ?>
+            <p>Es sind derzeit keine aktiven Abteilungen hinterlegt.</p>
+        <?php endif; ?>
     <?php else: ?>
         <table>
             <thead>

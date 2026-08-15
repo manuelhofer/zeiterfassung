@@ -16,19 +16,21 @@ class AbteilungModel
     }
 
     /**
-     * Lädt alle aktiven Abteilungen.
+     * Lädt alle aktiven Abteilungen; bei einem Lesefehler eine leere Liste.
+     *
+     * Richtig für Aufrufer, die nur eine Auswahl füllen (Formulare, Filter) –
+     * dort ist eine leere Auswahl besser als eine abgebrochene Seite. Wer
+     * „nicht ladbar" von „nichts vorhanden" unterscheiden muss, also jede
+     * Liste, die dem Benutzer eines von beidem sagt, nimmt
+     * `holeAlleAktivenOhneFallback()`. Warum die Unterscheidung nötig ist,
+     * steht in P-2026-08-14-14 (T-110).
      *
      * @return array<int,array<string,mixed>>
      */
     public function holeAlleAktiven(): array
     {
         try {
-            $sql = 'SELECT *
-                    FROM abteilung
-                    WHERE aktiv = 1
-                    ORDER BY name ASC';
-
-            return $this->datenbank->fetchAlle($sql);
+            return $this->holeAlleAktivenOhneFallback();
         } catch (\Throwable $e) {
             Logger::error('Fehler beim Laden aktiver Abteilungen', [
                 'exception' => $e->getMessage(),
@@ -36,6 +38,21 @@ class AbteilungModel
 
             return [];
         }
+    }
+
+    /**
+     * Wie `holeAlleAktiven()`, gibt einen Lesefehler aber an den Aufrufer weiter.
+     *
+     * @return array<int,array<string,mixed>>
+     */
+    public function holeAlleAktivenOhneFallback(): array
+    {
+        $sql = 'SELECT *
+                FROM abteilung
+                WHERE aktiv = 1
+                ORDER BY name ASC';
+
+        return $this->datenbank->fetchAlle($sql);
     }
 
     /**

@@ -26,11 +26,9 @@ Abschnitt 12, der Stufenplan in Abschnitt 11 – dort und bewusst nicht hier ein
 zweites Mal.
 
 ## Offene Bugs
-- **B-097** Abteilungsliste: Ist `abteilung` nicht lesbar, erscheint **keine**
-  Fehlermeldung, sondern „keine aktiven Abteilungen hinterlegt". Ursache wie
-  T-110: `AbteilungModel::holeAlleAktiven()` fängt selbst ab.
-- **B-098** Feiertagsliste: gleiches Bild, andere Ursache – der `catch` im
-  `FeiertagController` loggt nur.
+- **B-098** Feiertagsliste: Ist `feiertag` nicht lesbar, erscheint **keine**
+  Fehlermeldung, sondern „Für dieses Jahr wurden keine Feiertage gefunden." –
+  der `catch` im `FeiertagController` loggt nur.
 
 ## Offene Tasks
 - **T-112** „`catch` → `return []`" steckt an 26 Stellen in `modelle/` und
