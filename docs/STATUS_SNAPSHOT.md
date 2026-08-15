@@ -35,9 +35,12 @@ Keine bekannten.
   unerreichbar macht (B-097, T-110). Durchsehen, nicht pauschal ändern;
   Suchlauf in P-2026-08-15-10.
 - **T-104** Drei Controller erzeugen HTML selbst, statt `views/` zu benutzen –
-  **7 Masken**: `AuftragController` (4), `TerminalAdminController` (2),
+  **6 Masken**: `AuftragController` (4), `TerminalAdminController` (1),
   `SmokeTestController` (1). Eine Maske je Patch; Muster und Prüfweg:
-  P-2026-08-11-09, zuletzt P-2026-08-15-18.
+  P-2026-08-11-09, zuletzt P-2026-08-15-21.
+- **T-115** Die Knöpfe der Terminalliste tragen eigene Grössen
+  (`padding: 0.15rem 0.5rem`). Richtig wäre `.table-actions` aus
+  `views/layout/header.php` – sichtbare Änderung, eigener Patch.
 
   Achtung: Der `grep` nach dem Header-Require zählt zu hoch – er findet auch
   „Keine Berechtigung"-Blöcke in längst fertigen Controllern.

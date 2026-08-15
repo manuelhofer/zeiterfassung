@@ -99,6 +99,86 @@ in den Statusbericht.
   D-002 entfallen; die Regel selbst gilt weiter.)
 
 
+## P-2026-08-15-21 t-104-terminalliste-in-views
+
+### EINGELESEN
+- `docs/STATUS_SNAPSHOT.md` (T-104), `docs/arbeitsregeln.md`.
+- `controller/TerminalAdminController.php`, `index()` vollstaendig.
+- `views/konfiguration/systemlog.php` als Muster.
+- `views/terminal/` – wofuer das Verzeichnis schon belegt ist (Kiosk-UI).
+- `sql/01_initial_schema.sql`, Tabelle `terminal`.
+
+### DATEIEN
+- `views/terminal_admin/liste.php` (neu)
+- `controller/TerminalAdminController.php`
+- `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Die Terminalliste erzeugt dasselbe HTML wie vorher – bis auf die Einrueckung und
+die fuenf `Csrf::feld()`-Stellen –, obwohl das Markup jetzt in
+`views/terminal_admin/liste.php` liegt.
+
+### DONE
+Erste der beiden Masken des `TerminalAdminController`. Der Controller behaelt
+Flash-Meldungen, Kopplungscode-Verbrauch und die Abfrage; die View bekommt neun
+Werte. 864 → 717 Zeilen Controller plus 178 Zeilen View.
+
+**Ein eigenes Verzeichnis `views/terminal_admin/`**, nicht `views/terminal/`:
+Letzteres ist die Kiosk-Oberflaeche (`start.php`, `stoerung.php`,
+`_layout_top.php` …). Backend-Maske und Geraete-UI im selben Verzeichnis waeren
+zwei Dinge unter einem Namen; die Trennung entspricht auch dem, was
+`installation_typ` unterscheidet.
+
+Nebenbei bestaetigt: Die Unterstrich-Schreibweise fuer Teil-Templates aus
+P-2026-08-15-20 gibt es im Projekt laengst – `views/terminal/` benutzt sie fuer
+`_layout_top.php`, `_statusbox.php`, `_script.php`. Der Name war also keine
+Erfindung, sondern (unwissentlich) die schon vorhandene Regel.
+
+**Eine bewusste Abweichung**: `Csrf::feld()` statt der handgeschriebenen Zeile,
+fuenf Stellen im Markup.
+
+### TEST
+Wegwerf-Umgebung aus P-2026-08-15-08; die HEAD-Kopie wird seit diesem Lauf vom
+Skript selbst aktualisiert (die Panne aus -14 und -20). Zwei erfundene Terminals:
+eines gekoppelt (`db_benutzer`, `gekoppelt_am`) mit Sonderzeichen im Namen
+(`Halle <b>&amp; "Nord"</b>`, Standort `Werkstatt äöüß`), eines ungekoppelt,
+inaktiv, ohne Standort, `auto_logout_timeout_sekunden = 0`.
+
+| Lage | Abweichende Zeilen | erwartet |
+| --- | --- | --- |
+| Liste mit zwei Terminals | 27 | 27 (9 × `Csrf::feld`) |
+| Leere Liste | 0 | 0 |
+| Tabelle unlesbar | 0 | 0 |
+
+Danach die Wege, die kein Seitenaufruf zeigt, auf **beiden** Staenden gleich:
+
+| Weg | Ergebnis |
+| --- | --- |
+| Kopplungscode erzeugen | 302, Panel „Kopplungscode für …" erscheint **einmal**, beim naechsten Aufruf nicht mehr; Zeile „Code offen bis" steht in der Tabelle |
+| Quick-Toggle `offline_erlaubt_kommen_gehen` | 302, Wert kippt in der Datenbank, Flash „Änderung gespeichert." |
+| Falsches CSRF-Token | Flash „CSRF-Check fehlgeschlagen. Bitte Seite neu laden.", Wert unveraendert |
+
+Der Einmal-Charakter des Codes ist der Punkt, an dem eine Migration still etwas
+kaputt machen kann: Er lebt in der Session und wird beim Rendern verbraucht.
+Deshalb zweimal hintereinander geladen.
+
+22 Backend-Aufrufe HTTP 200, Serverlog ohne Meldung, `php -l` ueber beide
+Dateien.
+
+### Was bewusst nicht erreicht wurde
+Die sechs Knoepfe der Liste tragen `style="padding: 0.15rem 0.5rem;"` – genau
+das, was T-104 verbietet. Beim blossen Entfernen wuerden sie auf die
+Standardgroesse springen und die Tabelle deutlich hoeher machen; richtig waere
+`.table-actions` aus `views/layout/header.php`, das es fuer diesen Fall gibt.
+Das ist eine sichtbare Aenderung mit Layoutfolgen und gehoert nicht in einen
+Patch, dessen Nachweis „HTML gleich" lautet. Notiert als **T-115**.
+
+Die zweite Maske des Controllers (`renderFormular()`) bleibt, wie sie ist –
+eine Maske je Patch.
+
+### NEXT
+T-115 (Knopf-Groessen der Terminalliste), danach `renderFormular()`.
+
 ## P-2026-08-15-20 t-114-tabzeile-als-teil-template
 
 ### EINGELESEN
