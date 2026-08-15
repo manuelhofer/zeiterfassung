@@ -3373,10 +3373,12 @@ class SmokeTestController
         // T-069 (Teil): Feiertag-Quick-Check (Monatsreport)
         // - Prüft, ob ein Datum im Monatsreport als Feiertag erkannt wird und (wenn ohne Arbeit) Sollstunden im Feld "Feiertag" landen.
         // - Hinweis: Der Report kann im Hintergrund fehlende Feiertage nachziehen (idempotentes Seeding), weil es auch im Live-Betrieb so funktioniert.
-        $feiertagTestDatum = (new DateTimeImmutable('today'))->format('Y-01-01');
-        $feiertagTestMitarbeiterId = $pdfTestMitarbeiterId;
-        $feiertagTestErgebnis = null;
-        $feiertagTestHinweis = null;
+        $feiertagQuickDaten = [
+            'mitarbeiter_id' => $pdfTestMitarbeiterId,
+            'datum' => (new DateTimeImmutable('today'))->format('Y-01-01'),
+            'ergebnis' => null,
+            'hinweis' => null,
+        ];
 
         // T-069 (Teil): Feiertag-Seed-Check (bundesweit)
         // - Prüft, ob die bundeseinheitliche Grundmenge für ein Jahr vollständig in `feiertag` vorhanden ist.
@@ -3388,51 +3390,61 @@ class SmokeTestController
         // T-069 (Teil): Monatsreport-Raster-Check
         // - Prüft, ob `ReportService::holeMonatsdatenFuerMitarbeiter()` wirklich ein vollständiges Monatsraster liefert.
         // - Erwartung: Anzahl Tageswerte = Anzahl Kalendertage im Monat UND alle Datumswerte (YYYY-MM-DD) sind vorhanden.
-        $monatsrasterTestJahr = (int)date('Y');
-        $monatsrasterTestMonat = (int)date('n');
-        $monatsrasterTestMitarbeiterId = $pdfTestMitarbeiterId;
-        $monatsrasterTestErgebnis = null;
-        $monatsrasterTestHinweis = null;
+        $monatsrasterDaten = [
+            'mitarbeiter_id' => $pdfTestMitarbeiterId,
+            'jahr' => (int)date('Y'),
+            'monat' => (int)date('n'),
+            'ergebnis' => null,
+            'hinweis' => null,
+        ];
 
         // T-069 (Fortsetzung): Monatsreport-Fallback-Check (lückenhafte Tageswerte)
         // - Prüft, ob es Tage mit Zeitbuchungen gibt, die noch keinen Datensatz in `tageswerte_mitarbeiter` haben,
         //   und ob der Monatsreport diese Tage trotzdem sinnvoll füllt (Fallback aus Zeitbuchungen).
-        $monatsfallbackTestJahr = (int)date('Y');
-        $monatsfallbackTestMonat = (int)date('n');
-        $monatsfallbackTestMitarbeiterId = $pdfTestMitarbeiterId;
-        $monatsfallbackTestErgebnis = null;
-        $monatsfallbackTestHinweis = null;
+        $monatsfallbackDaten = [
+            'mitarbeiter_id' => $pdfTestMitarbeiterId,
+            'jahr' => (int)date('Y'),
+            'monat' => (int)date('n'),
+            'ergebnis' => null,
+            'hinweis' => null,
+        ];
 
 
         // T-069 (Fortsetzung): Kommen/Gehen-Sequenz-Check (Monat)
         // - Analysiert die Reihenfolge der Zeitbuchungen pro Tag (kommen/gehen).
         // - Findet Auffälligkeiten: doppelte Typen, gehen ohne kommen, offener Block (kommen ohne gehen), ungerade Anzahl.
         // - Rein lesend.
-        $buchungssequenzTestJahr = (int)date('Y');
-        $buchungssequenzTestMonat = (int)date('n');
-        $buchungssequenzTestMitarbeiterId = $pdfTestMitarbeiterId;
-        $buchungssequenzTestErgebnis = null;
-        $buchungssequenzTestHinweis = null;
+        $buchungssequenzDaten = [
+            'mitarbeiter_id' => $pdfTestMitarbeiterId,
+            'jahr' => (int)date('Y'),
+            'monat' => (int)date('n'),
+            'ergebnis' => null,
+            'hinweis' => null,
+        ];
 
 
         // T-069 (Fortsetzung): Doppelzählung-Check (Betriebsferien/Kurzarbeit Volltag)
         // - Prüft im Monatsreport, ob Betriebsferien (Urlaub 8h) oder Kurzarbeit-Volltag nicht zusätzlich gezählt werden,
         //   wenn Arbeitszeit vorhanden ist.
         // - Rein lesend.
-        $doppelzaehlungTestJahr = (int)date('Y');
-        $doppelzaehlungTestMonat = (int)date('n');
-        $doppelzaehlungTestMitarbeiterId = $pdfTestMitarbeiterId;
-        $doppelzaehlungTestErgebnis = null;
-        $doppelzaehlungTestHinweis = null;
+        $doppelzaehlungDaten = [
+            'mitarbeiter_id' => $pdfTestMitarbeiterId,
+            'jahr' => (int)date('Y'),
+            'monat' => (int)date('n'),
+            'ergebnis' => null,
+            'hinweis' => null,
+        ];
 
         // T-069 (Fortsetzung): Feiertag+Arbeitszeit Doppelzählung-Check (Monat)
         // - Prüft im Monatsreport, ob an Feiertagen mit Arbeitszeit keine Feiertagsstunden zusätzlich gezählt werden.
         // - Rein lesend.
-        $feiertagArbeitszeitTestJahr = (int)date('Y');
-        $feiertagArbeitszeitTestMonat = (int)date('n');
-        $feiertagArbeitszeitTestMitarbeiterId = $pdfTestMitarbeiterId;
-        $feiertagArbeitszeitTestErgebnis = null;
-        $feiertagArbeitszeitTestHinweis = null;
+        $feiertagArbeitszeitDaten = [
+            'mitarbeiter_id' => $pdfTestMitarbeiterId,
+            'jahr' => (int)date('Y'),
+            'monat' => (int)date('n'),
+            'ergebnis' => null,
+            'hinweis' => null,
+        ];
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST' && array_key_exists('terminal_login_code', $_POST)) {
             [
@@ -3486,23 +3498,19 @@ class SmokeTestController
 
         // Feiertag-Quick-Check: Monatsreport-Datum prüfen
         if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['feiertag_test_run'])) {
-            [
-                'mitarbeiter_id' => $feiertagTestMitarbeiterId,
-                'datum' => $feiertagTestDatum,
-                'ergebnis' => $feiertagTestErgebnis,
-                'hinweis' => $feiertagTestHinweis,
-            ] = $this->pruefeFeiertagQuick($feiertagTestMitarbeiterId, $feiertagTestDatum);
+            $feiertagQuickDaten = $this->pruefeFeiertagQuick(
+                $feiertagQuickDaten['mitarbeiter_id'],
+                $feiertagQuickDaten['datum']
+            );
         }
 
         // Monatsreport-Raster-Check: Vollständigkeit (Anzahl Tage + Datumslücken) prüfen
         if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['monatsraster_test_run'])) {
-            [
-                'mitarbeiter_id' => $monatsrasterTestMitarbeiterId,
-                'jahr' => $monatsrasterTestJahr,
-                'monat' => $monatsrasterTestMonat,
-                'ergebnis' => $monatsrasterTestErgebnis,
-                'hinweis' => $monatsrasterTestHinweis,
-            ] = $this->pruefeMonatsraster($monatsrasterTestMitarbeiterId, $monatsrasterTestJahr, $monatsrasterTestMonat);
+            $monatsrasterDaten = $this->pruefeMonatsraster(
+                $monatsrasterDaten['mitarbeiter_id'],
+                $monatsrasterDaten['jahr'],
+                $monatsrasterDaten['monat']
+            );
         }
 
 
@@ -3511,49 +3519,41 @@ class SmokeTestController
         // - Sucht Tage mit Zeitbuchungen, aber ohne passenden Datensatz in `tageswerte_mitarbeiter`.
         // - Prüft anschließend, ob der Monatsreport diese Tage per Fallback (aus Zeitbuchungen) sinnvoll befüllt.
         if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['monatsfallback_test_run'])) {
-            [
-                'mitarbeiter_id' => $monatsfallbackTestMitarbeiterId,
-                'jahr' => $monatsfallbackTestJahr,
-                'monat' => $monatsfallbackTestMonat,
-                'ergebnis' => $monatsfallbackTestErgebnis,
-                'hinweis' => $monatsfallbackTestHinweis,
-            ] = $this->pruefeMonatsfallback($monatsfallbackTestMitarbeiterId, $monatsfallbackTestJahr, $monatsfallbackTestMonat);
+            $monatsfallbackDaten = $this->pruefeMonatsfallback(
+                $monatsfallbackDaten['mitarbeiter_id'],
+                $monatsfallbackDaten['jahr'],
+                $monatsfallbackDaten['monat']
+            );
         }
 
         // Doppelzählung-Check (Betriebsferien/Kurzarbeit Volltag):
         // - Prüft im Monatsreport, ob Betriebsferien-Urlaub (8h) oder Kurzarbeit-Volltag nicht zusätzlich gezählt werden,
         //   wenn an diesem Tag Arbeitszeit vorhanden ist.
         if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['doppelzaehlung_test_run'])) {
-            [
-                'mitarbeiter_id' => $doppelzaehlungTestMitarbeiterId,
-                'jahr' => $doppelzaehlungTestJahr,
-                'monat' => $doppelzaehlungTestMonat,
-                'ergebnis' => $doppelzaehlungTestErgebnis,
-                'hinweis' => $doppelzaehlungTestHinweis,
-            ] = $this->pruefeDoppelzaehlung($doppelzaehlungTestMitarbeiterId, $doppelzaehlungTestJahr, $doppelzaehlungTestMonat);
+            $doppelzaehlungDaten = $this->pruefeDoppelzaehlung(
+                $doppelzaehlungDaten['mitarbeiter_id'],
+                $doppelzaehlungDaten['jahr'],
+                $doppelzaehlungDaten['monat']
+            );
         }
 
 
 
         // Feiertag+Arbeitszeit Doppelzählung-Check (Monat): Feiertagsstunden dürfen bei Arbeitszeit nicht zusätzlich zählen.
         if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['feiertag_arbeitszeit_test_run'])) {
-            [
-                'mitarbeiter_id' => $feiertagArbeitszeitTestMitarbeiterId,
-                'jahr' => $feiertagArbeitszeitTestJahr,
-                'monat' => $feiertagArbeitszeitTestMonat,
-                'ergebnis' => $feiertagArbeitszeitTestErgebnis,
-                'hinweis' => $feiertagArbeitszeitTestHinweis,
-            ] = $this->pruefeFeiertagUndArbeitszeit($feiertagArbeitszeitTestMitarbeiterId, $feiertagArbeitszeitTestJahr, $feiertagArbeitszeitTestMonat);
+            $feiertagArbeitszeitDaten = $this->pruefeFeiertagUndArbeitszeit(
+                $feiertagArbeitszeitDaten['mitarbeiter_id'],
+                $feiertagArbeitszeitDaten['jahr'],
+                $feiertagArbeitszeitDaten['monat']
+            );
         }
         // Kommen/Gehen-Sequenz-Check (Monat): Zeitbuchung-Reihenfolge pro Tag analysieren
         if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['buchungssequenz_test_run'])) {
-            [
-                'mitarbeiter_id' => $buchungssequenzTestMitarbeiterId,
-                'jahr' => $buchungssequenzTestJahr,
-                'monat' => $buchungssequenzTestMonat,
-                'ergebnis' => $buchungssequenzTestErgebnis,
-                'hinweis' => $buchungssequenzTestHinweis,
-            ] = $this->pruefeBuchungssequenz($buchungssequenzTestMitarbeiterId, $buchungssequenzTestJahr, $buchungssequenzTestMonat);
+            $buchungssequenzDaten = $this->pruefeBuchungssequenz(
+                $buchungssequenzDaten['mitarbeiter_id'],
+                $buchungssequenzDaten['jahr'],
+                $buchungssequenzDaten['monat']
+            );
         }
 
 

@@ -33,9 +33,10 @@ Keine bekannten.
 
 Ein Satz je Task – die Begründung steht im Verlauf, nicht hier.
 
-- **T-105** Alle zwölf Check-Blöcke sind eigene Methoden
-  (P-2026-08-15-44/-45); offen ist der letzte Schritt: `views/smoke_test/index.php`
-  in Teil-Templates zerlegen, jedes mit dem Bündel seines Checks.
+- **T-105** Die sechs Monatsreport-Checks sind Teil-Templates mit eigenem Bündel
+  (P-2026-08-15-46); offen sind die übrigen Blöcke von
+  `views/smoke_test/index.php` – Terminal-Login, die drei PDF-Checks,
+  Feiertag-Seed, Terminal-Konfiguration, Queue-Übersicht.
 - **T-112** „`catch` → `return []`" an 26 Stellen in `modelle/` und `services/`
   durchsehen – falsch nur dort, wo es die Fehlermeldung des Aufrufers
   unerreichbar macht; Suchlauf in P-2026-08-15-10.

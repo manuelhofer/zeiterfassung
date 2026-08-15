@@ -99,6 +99,136 @@ in den Statusbericht.
   D-002 entfallen; die Regel selbst gilt weiter.)
 
 
+## P-2026-08-15-46 t-105-monatsreport-teil-templates
+
+### EINGELESEN
+- `docs/STATUS_SNAPSHOT.md` (T-105), `docs/arbeitsregeln.md`, `git log --oneline -20`.
+- P-2026-08-15-37 (dort steht, warum die Teil-Templates hinter die Methoden
+  gehören) und P-2026-08-15-44/-45 (dort entstanden die Bündel).
+- `views/auftrag/blaetternavigation.php` als Muster für ein Teil-Template mit
+  **einem** Bündel, dazu die sechs Blöcke in `views/smoke_test/index.php`.
+
+### DATEIEN
+- `views/smoke_test/feiertag_quick.php`, `monatsraster.php`,
+  `monatsfallback.php`, `doppelzaehlung.php`, `feiertag_arbeitszeit.php`,
+  `buchungssequenz.php` (neu)
+- `views/smoke_test/index.php`, `controller/SmokeTestController.php`
+- `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Der Monatsraster-Check zeigt für Mitarbeiter 15 im Juli 2026 dieselbe Tabelle
+wie vorher, obwohl sein Markup jetzt in `views/smoke_test/monatsraster.php`
+steht und nur noch `$monatsrasterDaten` liest.
+
+### DONE
+Die sechs Monatsreport-Checks sind eigene Teil-Templates. Jedes bekommt
+**einen** Wert – das Bündel seiner Methode – und packt ihn in seinen ersten
+Zeilen aus:
+
+```php
+$mitarbeiterId = (int)($monatsrasterDaten['mitarbeiter_id'] ?? 0);
+$ergebnis      = $monatsrasterDaten['ergebnis'] ?? null;
+```
+
+`views/smoke_test/index.php` geht von 1.270 auf 776 Zeilen und hat an ihrer
+Stelle sechs `require`-Zeilen. Im Controller entfallen die sechs
+Auspack-Blöcke; dafür steht die Vorbelegung jetzt als Bündel da:
+
+```php
+$monatsrasterDaten = ['mitarbeiter_id' => $pdfTestMitarbeiterId, 'jahr' => …];
+if (… $_POST['monatsraster_test_run'] …) {
+    $monatsrasterDaten = $this->pruefeMonatsraster($monatsrasterDaten['mitarbeiter_id'], …);
+}
+```
+
+**`index()` bleibt bei 570 Zeilen** – was die Zerlegung an Auspack-Zeilen
+spart, kommt als Vorbelegung wieder dazu. Kürzer wird die Methode erst, wenn
+auch die Vorbelegung in die Methode wandert; das geht aber nicht nebenbei:
+`$pdfTestMitarbeiterId` wird vom PDF-Quick-Check **überschrieben**, und der
+läuft vor diesen sechs. Wer die Vorbelegung nach unten schiebt, ändert damit
+still den Vorgabewert der sechs Checks. Eigener Patch, eigene Begründung.
+
+**Die langen Namen sind weg, aber nur innen.** In den Teil-Templates heißt es
+`$monat` statt `$monatsfallbackTestMonat` – der Name ist im Dateinamen schon
+gesagt. Die Methoden im Controller behalten ihre langen Parameternamen; das
+war der eigene kleine Patch aus P-2026-08-15-44 und ist er weiterhin.
+
+**Kein `?? []` auf das Bündel selbst.** Ein fehlendes Bündel soll eine Meldung
+im Log erzeugen und keine still leere Kachel – dieselbe Begründung, die schon
+im Kopf der View steht. `?? null` steht nur auf den **Schlüsseln** des
+Bündels, so wie das Markup die Ergebnisfelder immer schon gelesen hat.
+
+### TEST
+Wegwerf-Umgebung neu aufgesetzt (zwei Kopien, `zeit_probe_t105` und
+`zeit_probe_t105_off` aus dem Schema, erfundener Prüfbenutzer, die Juli-Daten
+aus P-2026-08-15-37), beide Server mit `-d opcache.enable=0`.
+Leerraum-unabhängig verglichen, 21 Lagen:
+
+| Lage | Echte Abweichungen |
+| --- | --- |
+| Seite ohne Aktion | 0 |
+| Feiertag-Quick-Check, gültiges und unsinniges Datum | 0 |
+| Monatsraster-, Fallback-, Doppelzählung-, Feiertag+Arbeitszeit-Check | 0 |
+| Kommen/Gehen-Sequenz-Check | 0 |
+| Mitarbeiter-ID 0 und Monat 13 (beide Fehlerpfade) | 0 |
+| Doppelzählung und Feiertag+Arbeitszeit **mit** Auffälligkeiten | 0 |
+| Raster mit Lücke, Dublette und kaputtem Datum | 0 |
+| Fallback mit „nicht befüllt" | 0 |
+| die unangetasteten Checks (PDF-Quick, Synth, DB-Multipage, Login, Seed) | 0 |
+
+**Vier Zweige entstehen nur, wenn der Report selbst falsch rechnet** – die drei
+Listen des Raster-Checks (fehlend, doppelt, ungültig) und die Liste „nicht
+befüllt" des Fallback-Checks. Sie wären sonst ungeprüft geblieben. Deshalb
+wurde `ReportService::holeMonatsdatenFuerMitarbeiter()` in **beiden**
+Wegwerf-Kopien vorübergehend um einen Tag erleichtert, ein Tag verdoppelt und
+einer mit kaputtem Datum versehen; danach beide Kopien zurückgesetzt und
+nachgesehen, dass der Raster-Check wieder 31 Tageswerte meldet. Im Repository
+ist nichts geändert. Dieselbe Technik wie bei B-102 in P-2026-08-15-37.
+
+Die beiden Auffälligkeiten-Tabellen brauchten kein solches Eingreifen, nur
+passende Daten: Betriebsferien auf einen **Samstag** (dort greift die
+Report-Korrektur nicht) und ein `kennzeichen_feiertag` ohne Kalender-Feiertag.
+Beide Tabellen sind danach mit je einer Zeile erschienen.
+
+**Dass die Teil-Templates nichts voneinander erben, ist doppelt geprüft.**
+Statisch: ein Skript stellt für jede Datei benutzte gegen gesetzte Namen und
+meldet für alle sechs genau **einen** Namen von außen – ihr eigenes Bündel.
+Das Skript ist gegengeprüft, indem in einer Kopie eine Zuweisung entfernt
+wurde; dann meldet es den Namen zusätzlich. Zur Laufzeit: Im Lauf des
+Raster-Checks für Juli steht **nur** dessen Monatsfeld auf 7, die fünf anderen
+Formulare zeigen weiter den Vorgabemonat 8 – ein geerbter Wert wäre genau hier
+sichtbar geworden.
+
+70 Backend-Routen auf beiden Ständen mit **identischen** Statuscodes (43 x 200,
+der Rest POST-Routen mit 302/400/405), `php -l` über alle acht Dateien, die
+drei Umlaut-Suchläufe ohne Treffer, beide Serverlogs ohne eine einzige
+PHP-Meldung.
+
+### Gefundene Fehler im eigenen Entwurf
+**Der erste Erb-Prüfer hat jede Variable gemeldet.** Er sammelte die
+Zuweisungen in einem falsch gesetzten Fenster ein und kam so auf „alles kommt
+von außen". Das war offensichtlich falsch und darum harmlos – die Lehre ist
+die umgekehrte Richtung: Hätte er *nichts* gemeldet, wäre das genauso falsch
+gewesen und ich hätte es geglaubt. Ein selbstgebauter Prüfer braucht beide
+Gegenproben, den Fall, in dem er schweigen muss, und den, in dem er anschlagen
+muss. Die zweite fehlte und ist nachgeholt.
+
+**Der Routen-Durchlauf hat sich selbst ausgeloggt.** Die Routennamen kommen
+sortiert aus `public/index.php` – und mitten in der Liste steht `logout`.
+Alles danach war 302 auf die Loginmaske, `smoke_test` eingeschlossen. Wer alle
+Routen durchklickt, nimmt `logout` heraus.
+
+### Was bewusst nicht erreicht wurde
+Neun Blöcke stehen weiter im Markup von `index.php`: Terminal-Login, die drei
+PDF-Checks samt Kandidatenliste, Feiertag-Seed, Terminal-Konfiguration,
+Offline-Queue, die Abhängigkeitstabelle und die Klick-Checkliste. Die letzten
+drei haben gar kein Bündel – die Tabelle bekommt `$checks`, die Checkliste ist
+reiner Text.
+
+### NEXT
+T-105: Terminal-Login und die drei PDF-Checks als Teil-Templates, danach die
+Blöcke ohne POST.
+
 ## P-2026-08-15-45 t-105-restliche-checks-als-methoden
 
 ### EINGELESEN
