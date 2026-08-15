@@ -1581,94 +1581,6 @@ class SmokeTestController
                     $footerSeite2 = null;
                     if ($pageObjCount >= 2) {
                         $footerSeite2 = (strpos($pdfInhalt, '(Seite 2/') !== false);
-
-
-                        // T-069 (Fortsetzung): Report-Monatsübersicht HTML-Render-Check (Kandidat)
-                        // - Rein lesend.
-                        // - Rendert die Monatsübersicht für denselben Kandidaten via ReportController und prüft grob die HTML-Struktur.
-                        $reportHtmlOk = null;
-                        $reportHtmlHinweis = '';
-                        $reportHtmlHasHeading = false;
-                        $reportHtmlHasTable = false;
-                        $reportHtmlHasHeaderCells = false;
-                        $reportHtmlHasPdfLink = false;
-                        $reportHtmlTrCount = 0;
-                        $reportHtmlDaysInMonth = 0;
-                        $reportHtmlRowsMinOk = null;
-
-                        $kannViewAll = false;
-                        try {
-                            $kannViewAll = (
-                                $this->auth->hatRecht('REPORT_MONAT_VIEW_ALL')
-                                || $this->auth->hatRecht('REPORTS_ANSEHEN_ALLE')
-                            );
-                        } catch (Throwable $e) {
-                            $kannViewAll = false;
-                        }
-
-                        $angemeldeteIdFuerHtml = (int)($pdfTestMitarbeiterId ?? 0);
-                        if (!$kannViewAll && $angemeldeteIdFuerHtml > 0 && $mid !== $angemeldeteIdFuerHtml) {
-                            $reportHtmlOk = null;
-                            $reportHtmlHinweis = 'SKIP: Kein REPORT_MONAT_VIEW_ALL/REPORTS_ANSEHEN_ALLE Recht für fremde Mitarbeiter.';
-                        } else {
-                            $backupGet = $_GET;
-                            try {
-                                if (!class_exists('ReportController')) {
-                                    throw new Exception('ReportController fehlt.');
-                                }
-
-                                $_GET['mitarbeiter_id'] = (string)$mid;
-                                $_GET['seite'] = 'report_monat';
-
-                                $obLevel = ob_get_level();
-                                ob_start();
-                                $html = '';
-                                try {
-                                    $rc = new ReportController();
-                                    $rc->monatsuebersicht($jahr, $monat);
-                                    $html = (string)ob_get_clean();
-                                } catch (Throwable $e) {
-                                    while (ob_get_level() > $obLevel) {
-                                        @ob_end_clean();
-                                    }
-                                    throw $e;
-                                }
-
-                                $reportHtmlDaysInMonth = (int)cal_days_in_month(CAL_GREGORIAN, (int)$monat, (int)$jahr);
-                                $reportHtmlHasHeading = (stripos($html, 'Monatsübersicht') !== false);
-                                $reportHtmlHasTable = (stripos($html, '<table') !== false);
-                                $reportHtmlHasHeaderCells = (
-                                    strpos($html, '<th>Datum</th>') !== false
-                                    && strpos($html, '<th>An</th>') !== false
-                                    && strpos($html, '<th>Ab</th>') !== false
-                                );
-                                $reportHtmlHasPdfLink = (strpos($html, '?seite=report_monat_pdf') !== false);
-
-                                $mTr = [];
-                                $reportHtmlTrCount = (int)preg_match_all('/<tr\b/i', $html, $mTr);
-
-                                // Mindestens: Headerzeile + pro Kalendertag mindestens eine Zeile (Mehrfach-Kommen/Gehen => mehr).
-                                $reportHtmlRowsMinOk = ($reportHtmlTrCount >= ($reportHtmlDaysInMonth + 1));
-
-                                $reportHtmlOk = (
-                                    $reportHtmlHasHeading
-                                    && $reportHtmlHasTable
-                                    && $reportHtmlHasHeaderCells
-                                    && $reportHtmlHasPdfLink
-                                    && $reportHtmlRowsMinOk
-                                );
-
-                                if ($reportHtmlOk !== true) {
-                                    $reportHtmlHinweis = 'HTML-Struktur unerwartet (Heading/Table/Headers/PDF-Link/Zeilenanzahl prüfen).';
-                                }
-                            } catch (Throwable $e) {
-                                $reportHtmlOk = false;
-                                $reportHtmlHinweis = 'HTML-Render-Check fehlgeschlagen: ' . $e->getMessage();
-                            } finally {
-                                $_GET = $backupGet;
-                            }
-                        }
-
                     }
 
                     $headerArbeitszeitliste = (strpos($pdfInhalt, '(Arbeitszeitliste)') !== false);
@@ -2320,6 +2232,97 @@ class SmokeTestController
 
                         $footerSeite1 = (strpos($pdfInhalt, '(Seite 1/') !== false);
                         $footerSeite2 = (strpos($pdfInhalt, '(Seite 2/') !== false);
+
+                        // T-069 (Fortsetzung): Report-Monatsübersicht HTML-Render-Check (Kandidat)
+                        // - Rein lesend.
+                        // - Rendert die Monatsübersicht für denselben Kandidaten via ReportController und prüft grob die HTML-Struktur.
+                        $reportHtmlOk = null;
+                        $reportHtmlHinweis = '';
+                        $reportHtmlHasHeading = false;
+                        $reportHtmlHasTable = false;
+                        $reportHtmlHasHeaderCells = false;
+                        $reportHtmlHasPdfLink = false;
+                        $reportHtmlTrCount = 0;
+                        $reportHtmlDaysInMonth = 0;
+                        $reportHtmlRowsMinOk = null;
+
+                        $kannViewAll = false;
+                        try {
+                            $kannViewAll = (
+                                $this->auth->hatRecht('REPORT_MONAT_VIEW_ALL')
+                                || $this->auth->hatRecht('REPORTS_ANSEHEN_ALLE')
+                            );
+                        } catch (Throwable $e) {
+                            $kannViewAll = false;
+                        }
+
+                        $angemeldeteIdFuerHtml = (int)($this->auth->holeAngemeldeteMitarbeiterId() ?? 0);
+                        if (!$kannViewAll && $angemeldeteIdFuerHtml > 0 && $mid !== $angemeldeteIdFuerHtml) {
+                            $reportHtmlOk = null;
+                            $reportHtmlHinweis = 'SKIP: Kein REPORT_MONAT_VIEW_ALL/REPORTS_ANSEHEN_ALLE Recht für fremde Mitarbeiter.';
+                        } else {
+                            $backupGet = $_GET;
+                            try {
+                                if (!class_exists('ReportController')) {
+                                    throw new Exception('ReportController fehlt.');
+                                }
+
+                                $_GET['mitarbeiter_id'] = (string)$mid;
+                                $_GET['seite'] = 'report_monat';
+
+                                $obLevel = ob_get_level();
+                                ob_start();
+                                $html = '';
+                                try {
+                                    $rc = new ReportController();
+                                    $rc->monatsuebersicht($jahr, $monat);
+                                    $html = (string)ob_get_clean();
+                                } catch (Throwable $e) {
+                                    while (ob_get_level() > $obLevel) {
+                                        @ob_end_clean();
+                                    }
+                                    throw $e;
+                                }
+
+                                // Nicht cal_days_in_month(): das braucht die Erweiterung
+                                // `calendar`, die in keiner Installationsanleitung des
+                                // Projekts steht. `format('t')` kann PHP von Haus aus.
+                                $reportHtmlDaysInMonth = (int)(new DateTimeImmutable(
+                                    sprintf('%04d-%02d-01', (int)$jahr, (int)$monat)
+                                ))->format('t');
+                                $reportHtmlHasHeading = (stripos($html, 'Monatsübersicht') !== false);
+                                $reportHtmlHasTable = (stripos($html, '<table') !== false);
+                                $reportHtmlHasHeaderCells = (
+                                    strpos($html, '<th>Datum</th>') !== false
+                                    && strpos($html, '<th>An</th>') !== false
+                                    && strpos($html, '<th>Ab</th>') !== false
+                                );
+                                $reportHtmlHasPdfLink = (strpos($html, '?seite=report_monat_pdf') !== false);
+
+                                $mTr = [];
+                                $reportHtmlTrCount = (int)preg_match_all('/<tr\b/i', $html, $mTr);
+
+                                // Mindestens: Headerzeile + pro Kalendertag mindestens eine Zeile (Mehrfach-Kommen/Gehen => mehr).
+                                $reportHtmlRowsMinOk = ($reportHtmlTrCount >= ($reportHtmlDaysInMonth + 1));
+
+                                $reportHtmlOk = (
+                                    $reportHtmlHasHeading
+                                    && $reportHtmlHasTable
+                                    && $reportHtmlHasHeaderCells
+                                    && $reportHtmlHasPdfLink
+                                    && $reportHtmlRowsMinOk
+                                );
+
+                                if ($reportHtmlOk !== true) {
+                                    $reportHtmlHinweis = 'HTML-Struktur unerwartet (Heading/Table/Headers/PDF-Link/Zeilenanzahl prüfen).';
+                                }
+                            } catch (Throwable $e) {
+                                $reportHtmlOk = false;
+                                $reportHtmlHinweis = 'HTML-Render-Check fehlgeschlagen: ' . $e->getMessage();
+                            } finally {
+                                $_GET = $backupGet;
+                            }
+                        }
 
                         $ok = ($bytes > 0 && $headerOk && $eofOk && $pagesAtLeast2);
                         if ($pagesMatch === false) {

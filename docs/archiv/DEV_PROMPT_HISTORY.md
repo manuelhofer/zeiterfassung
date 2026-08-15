@@ -99,6 +99,131 @@ in den Statusbericht.
   D-002 entfallen; die Regel selbst gilt weiter.)
 
 
+## P-2026-08-15-39 b-103-render-check-an-seinen-platz
+
+### EINGELESEN
+- `docs/STATUS_SNAPSHOT.md` (B-103), P-2026-08-15-37 – dort ist der Fund
+  entstanden.
+- Im `SmokeTestController` beide beteiligten Bloecke vollstaendig: der
+  PDF-Quick-Check (`pdf_test_run`) und der PDF-DB-Auto-Multipage-Check
+  (`pdf_db_multipage_run`), dazu die Anzeige beider in
+  `views/smoke_test/index.php`.
+- `services/AuthService.php`: `holeAngemeldeteMitarbeiterId()`.
+- `docs/installationsanleitung.md` und `docs/lokale_entwicklungsumgebung.md`,
+  Abschnitte zu den PHP-Erweiterungen.
+
+### DATEIEN
+- `controller/SmokeTestController.php`
+- `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Der PDF-DB-Auto-Multipage-Check meldet fuer Mitarbeiter 15 im September 2026
+„HTML-Render-Check: OK" mit gefuellten Werten (`<tr>` Count 103, Tage im Monat
+30) statt „SKIP" mit lauter Nullen, und das Serverlog bleibt dabei ohne
+PHP-Meldung.
+
+### DONE
+**Der Block stand an der falschen Stelle.** Sein eigener Kommentar sagt es:
+„HTML-Render-Check (**Kandidat**)" – „Kandidat" ist das Wort des
+Auto-Multipage-Checks. Geschrieben war er fuer diesen, gelandet ist er im
+PDF-Quick-Check, verschachtelt in dessen `if ($pageObjCount >= 2)`. Dort
+richtet er zweierlei Schaden an:
+
+- Er rechnet mit `$mid`, `$jahr`, `$monat` – Namen, die es im Quick-Check nicht
+  gibt (der heisst sie `$pdfTestMitarbeiterId`, `$pdfTestJahr`,
+  `$pdfTestMonat`). Bei einem mehrseitigen Quick-Check-PDF rendert er also die
+  Monatsuebersicht fuer Mitarbeiter 0, Jahr 0, Monat 0 – drei Warnungen und
+  eine voellig sinnlose Arbeit.
+- Seine Ergebnisse zeigt niemand an. Angezeigt werden sie im
+  Auto-Multipage-Check, und der laeuft in einem **anderen** Request: dort sind
+  die neun Variablen undefiniert – zehn weitere Warnungen, „SKIP" und Nullen.
+
+Der Block ist deshalb komplett dorthin gewandert, wo seine Eingaben stehen und
+seine Ergebnisse gelesen werden: hinter die PDF-Pruefung des
+Auto-Multipage-Checks, vor die Zeile `if ($reportHtmlOk === false)`.
+
+**Zwei Anpassungen im Block, beide notwendig, damit er ueberhaupt etwas
+liefert:**
+
+Der Rechte-Riegel las die eigene Mitarbeiter-ID aus `$pdfTestMitarbeiterId` –
+dem **Formularfeld eines anderen Checks**. Das ging bisher gut, weil dieses
+Feld mit der ID des Angemeldeten vorbelegt wird; wer aber den Quick-Check im
+selben Request abschickt, ueberschreibt es mit seiner Eingabe. Am neuen Ort
+steht dort `$this->auth->holeAngemeldeteMitarbeiterId()` – die Frage, die
+gemeint war.
+
+`cal_days_in_month()` braucht die PHP-Erweiterung **`calendar`**. Die steht in
+keiner der beiden Installationsanleitungen, und auf dieser Entwicklungsmaschine
+ist sie nicht installiert: Der Block starb sofort mit „Call to undefined
+function". Ersetzt durch `DateTimeImmutable::format('t')` – dieselbe Auskunft,
+ohne Erweiterung, und genau die Schreibweise, die der Monatsraster-Check zwei
+Bloecke weiter unten schon benutzt.
+
+Die zweite Fundstelle derselben Funktion steht im `DashboardController` und
+faellt nicht in dieses Thema – als **B-104** notiert, siehe unten.
+
+### TEST
+Wegwerf-Umgebung und Daten aus P-2026-08-15-37, dazu ein **mehrseitiger** Monat:
+180 erfundene Buchungen im September 2026 (30 Tage x 3 Arbeitsbloecke), damit
+das Monats-PDF drei Seiten bekommt. Erst damit lief der falsch platzierte Block
+auf dem alten Stand ueberhaupt – bei einem einseitigen PDF haette der Vergleich
+nichts gezeigt.
+
+| Lage | HEAD | neuer Stand |
+| --- | --- | --- |
+| Auto-Multipage, Juli 2026 (1 Seite) | HTML-Render-Check **SKIP**, alles nein/0 | **OK**, `<tr>` 46, Tage 31, Mindest-OK ja |
+| Auto-Multipage, September 2026 (3 Seiten) | **SKIP**, alles nein/0 | **OK**, `<tr>` 103, Tage 30, Mindest-OK ja |
+| PDF-Quick-Check, September 2026 (3 Seiten) | 3 Seiten erkannt | 3 Seiten erkannt, **0 echte Abweichungen im HTML** |
+
+Die letzte Zeile ist der eigentliche Nachweis, dass hier nichts verlorengeht:
+Der Quick-Check ruft den Block nicht mehr auf und sieht trotzdem genauso aus
+wie vorher – er hat dessen Ergebnisse nie angezeigt.
+
+**Warnungen im Serverlog**, gemessen an frisch gestarteten Servern:
+
+| Stand | Undefined-variable-Warnungen |
+| --- | --- |
+| HEAD, ein Auto-Multipage-Lauf | 10 (`$reportHtml…`) |
+| HEAD, ein Quick-Check-Lauf mit mehrseitigem PDF | 12 (`$mid`, `$jahr`, `$monat` und `$reportHtml…`) |
+| neuer Stand, beide Laeufe | **0** |
+
+Danach die Rueckversicherung, dass sonst nichts kippt: alle fuenfzehn
+Vergleichsfaelle aus P-2026-08-15-37 noch einmal gegen HEAD – 0 echte
+Abweichungen ausser in den beiden reparierten Bloecken. 26 Backend-Routen HTTP
+200 auf beiden Staenden, `php -l`, die drei Umlaut-Suchlaeufe ohne Treffer, und
+das Log des neuen Standes nach dem ganzen Klicktest ohne eine einzige
+PHP-Meldung (der alte Stand: 24).
+
+### Gefundene Fehler im eigenen Entwurf
+Der erste Durchgang meldete „0 Warnungen" auf **beiden** Staenden – ein
+schoenes, aber falsches Ergebnis. Ich hatte die Logdateien mit `rm` geloescht;
+`tee` schreibt danach in einen Dateinamen, den es nicht mehr gibt, und `grep`
+findet nichts, statt zu widersprechen. Ein Log, das man leeren will, wird
+geleert (`: > datei`) oder der Server neu gestartet – gelöscht wird es nicht.
+Dasselbe eine Runde spaeter noch einmal in klein: `grep -c` auf eine per
+`: >` geleerte Datei, in der noch NUL-Bytes standen, schwieg ebenfalls, weil
+grep sie fuer binaer hielt (`grep -a` half).
+
+### B-104: dieselbe Funktion, zweite Fundstelle
+`DashboardController` ruft `cal_days_in_month()` im Selbsttest auf, den
+`?seite=dashboard&smoke=1` und `&smoke=2` anstossen. Ohne die Erweiterung
+`calendar` endet die Seite dort mit **HTTP 500**; im `system_log` steht
+`{"seite":"dashboard","exception":"Call to undefined function
+cal_days_in_month()"}`. Auf beiden Staenden gleich, also aelter als dieser
+Patch. Nicht mitgemacht – anderer Controller, anderer Klickweg, eigener Patch.
+
+Der normale Dashboard-Aufruf ist nicht betroffen; er war in allen Klicktests
+HTTP 200.
+
+### Was bewusst nicht erreicht wurde
+Ob die Erweiterung `calendar` auf dem Zielsystem installiert ist, weiss ich
+nicht – hier ist sie es nicht. Die Frage gehoert zu B-104: Entweder verlaesst
+sich das Projekt nicht auf sie (dann faellt auch die zweite Fundstelle), oder
+sie gehoert in beide Installationsanleitungen.
+
+### NEXT
+B-104, danach T-105.
+
 ## P-2026-08-15-38 b-102-sequenz-check-sql
 
 ### EINGELESEN
