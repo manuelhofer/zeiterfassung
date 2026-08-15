@@ -19,8 +19,8 @@ zip_naming:
 - Es wird nur noch gearbeitet, wenn **Bugs gefunden** werden oder wenn der Nutzer **ausdrücklich** eine Erweiterung beauftragt.
 
 ## Lizenzierung (Open Source)
-- Lizenz: **GNU Affero General Public License v3.0 oder spaeter** (SPDX: `AGPL-3.0-or-later`, siehe Datei `LICENSE`).
-- Kurzfassung: Jeder darf den Code **kopieren, benutzen, veraendern und weitergeben**. Wenn jemand eine geaenderte Version **verteilt** oder den Dienst **ueber ein Netzwerk bereitstellt** (Web-App/SaaS), muss er den Quellcode dieser Version den Nutzern bereitstellen (AGPL Netzwerkklausel).
+- Lizenz: **GNU Affero General Public License v3.0 oder später** (SPDX: `AGPL-3.0-or-later`, siehe Datei `LICENSE`).
+- Kurzfassung: Jeder darf den Code **kopieren, benutzen, verändern und weitergeben**. Wenn jemand eine geänderte Version **verteilt** oder den Dienst **über ein Netzwerk bereitstellt** (Web-App/SaaS), muss er den Quellcode dieser Version den Nutzern bereitstellen (AGPL Netzwerkklausel).
 - UI-Footer: Hinweis "**Erdacht von Manuel Kleespies**" + "Open Source (GNU AGPLv3)".
 ## Source of Truth
 - Projektstand: **aktuelles Projekt-ZIP** vom Nutzer

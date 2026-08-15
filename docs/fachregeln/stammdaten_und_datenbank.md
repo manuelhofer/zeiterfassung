@@ -41,7 +41,7 @@ Timestamps.
 
 Mitarbeiter können in **mehreren** Abteilungen geführt werden
 (`mitarbeiter_hat_abteilung` mit `ist_stammabteilung` für Berichte). Wer
-überwiegend in der Fraeserei arbeitet, aber auch drehen kann, gehört zu
+überwiegend in der Fräserei arbeitet, aber auch drehen kann, gehört zu
 beiden.
 
 **Beim Stempeln oder Auftragsstart wird kein harter Abteilungsabgleich
@@ -81,22 +81,22 @@ legt fehlende Schlüssel idempotent an – er überschreibt nie vorhandene Werte
 ## 5. Allgemeine Datenbank-Regeln
 
 - Engine **InnoDB**, Zeichensatz **utf8mb4**.
-- Primaerschluessel `id INT UNSIGNED AUTO_INCREMENT`.
-- Fremdschluessel: `ON UPDATE CASCADE`; `ON DELETE` je nach Sinn (`SET NULL`,
-  `RESTRICT`, in Ausnahmefaellen `CASCADE`).
+- Primärschlüssel `id INT UNSIGNED AUTO_INCREMENT`.
+- Fremdschlüssel: `ON UPDATE CASCADE`; `ON DELETE` je nach Sinn (`SET NULL`,
+  `RESTRICT`, in Ausnahmefällen `CASCADE`).
 - **Aktiv-Flags statt hartem Löschen**, wo sinnvoll.
 - Zugriff **immer** über PDO mit **Prepared Statements**.
 
-**Strukturaenderungen** gehören als Migrationsdatei nach `sql/` **und** müssen
+**Strukturänderungen** gehören als Migrationsdatei nach `sql/` **und** müssen
 in `sql/01_initial_schema.sql` nachgezogen werden, damit Neuinstallationen
 konsistent bleiben. Migrationen müssen **idempotent** sein – sie laufen in der
 Praxis mehr als einmal.
 
 ## 6. Backend-Funktionen im Überblick
 
-Nur zur Orientierung; die tatsaechlichen Routen stehen in `public/index.php`.
+Nur zur Orientierung; die tatsächlichen Routen stehen in `public/index.php`.
 
-1. **Login/Logout** mit rollenbasiertem Menue. Existiert noch kein
+1. **Login/Logout** mit rollenbasiertem Menü. Existiert noch kein
    login-berechtigter Mitarbeiter, erscheint statt des Logins die
    **Erstinstallation** (erster Admin-Benutzer).
 2. **Stammdaten:** Mitarbeiter, Rollen, Abteilungen, Maschinen, Terminals,
@@ -116,6 +116,6 @@ Die Top-Navigation ist in Aufklappgruppen geordnet: `Urlaub`, `Uebersichten`,
 ## 7. Erweiterbarkeit
 
 Das System soll so gebaut sein, dass neue Terminals einfach ergänzt werden
-können, zusätzliche Rollen und Rechte möglich sind, kuenftige
+können, zusätzliche Rollen und Rechte möglich sind, künftige
 ERP-Schnittstellen für Aufträge einfach anzubinden sind und neue Auswertungen
-ohne grosse Umbauten entstehen.
+ohne große Umbauten entstehen.

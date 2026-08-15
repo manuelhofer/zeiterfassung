@@ -137,12 +137,15 @@ Debian/Apache. Auch die lokale Entwicklungsumgebung ist nativ aufgesetzt.
   Enterprise-OOP, keine überkomplexen Vererbungsbäume.
 - **Deutsch:** Oberfläche, Variablennamen, Kommentare
   (`$mitarbeiter`, `$zeitbuchung`, `$urlaubService`).
-- **Umlaute schreiben, nicht umschreiben:** `ä ö ü ß` in Kommentaren und
-  Oberflächentexten, nicht `ae oe ue ss`. Alles ist UTF-8. Ausgenommen bleiben
-  Bezeichner, Dateinamen, Datenbankfelder und -werte, Konfigurationsschlüssel
-  und Shell-Skripte – dort gilt weiterhin ASCII. **Auch dann, wenn sie in einem
-  Kommentar zitiert werden oder als `value` in einem Formularfeld stehen:** Ein
-  Name behält seine Schreibweise, egal wo er auftaucht.
+- **Umlaute schreiben, nicht umschreiben:** `ä ö ü ß` überall, wo Text für
+  Menschen steht – Oberfläche, Kommentare, Dokumentation **und Verlauf**. Nie
+  `ae oe ue ss`. Alles ist UTF-8. Ausgenommen bleiben Bezeichner, Dateinamen,
+  Datenbankfelder und -werte, Konfigurationsschlüssel, Routen- und
+  Commit-Namen und Shell-Skripte – dort gilt weiterhin ASCII. **Auch dann,
+  wenn sie in einem Kommentar, einer Tabelle oder mitten im Fließtext zitiert
+  werden:** Ein Name behält seine Schreibweise, egal wo er auftaucht. Im
+  Commit heißt das: **Betreff ASCII** (er ist ein Name), **Text darunter mit
+  Umlauten** (er ist für Menschen).
 - Kommentare erklären vor allem das **Warum**, nicht das Was.
 - DB-Zugriff **immer** PDO mit Prepared Statements. Wo das nicht geht (die
   Offline-Queue speichert fertiges SQL), maskieren über `Helper::sqlLiteral()`

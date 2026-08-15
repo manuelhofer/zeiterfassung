@@ -17,7 +17,7 @@ Die Fachregel beschreibt ein allgemeines Bereichsmodell: Jede Rolle soll auf
 eine Abteilung eingegrenzt werden können. Gebaut wird davon jetzt **ein
 Ausschnitt**, und zwar bewusst.
 
-Ein allgemeines Modell hiesse: `hatRecht()` bekommt ein Ziel, und jede der 84
+Ein allgemeines Modell hieße: `hatRecht()` bekommt ein Ziel, und jede der 84
 Prüfstellen im Projekt muss entscheiden, worauf sie sich bezieht – dazu
 Datenfilterung in Listen, Auswertungen und PDF. Das ist ein Umbau am
 Rechtesystem eines Systems, das im Praxis-Test läuft.
@@ -25,7 +25,7 @@ Rechtesystem eines Systems, das im Praxis-Test läuft.
 Der Bedarf dahinter ist dagegen schmal und konkret: **Ein Schichtleiter soll
 den Urlaub seiner Abteilung genehmigen, ohne dass jeder Mitarbeiter einzeln als
 sein „Genehmigter" eingetragen werden muss.** Genau das wird gebaut – und
-sonst nichts: Eine abteilungsbezogen zugewiesene Rolle gewährt ausschliesslich
+sonst nichts: Eine abteilungsbezogen zugewiesene Rolle gewährt ausschließlich
 dieses eine Recht (siehe Abschnitt 3).
 
 ## 2. Zielbild
@@ -47,7 +47,7 @@ Wer einer Abteilung zugeordnet ist, gehört für die Genehmigung dazu.
 ## 3. Was sich nicht ändert
 
 - **`hatRecht($code)` behält seine Signatur** und wertet weiterhin
-  **ausschliesslich betriebsweite** Zuweisungen aus. Begrenzt wird nicht das
+  **ausschließlich betriebsweite** Zuweisungen aus. Begrenzt wird nicht das
   Recht, sondern die Menge der Mitarbeiter, auf die es sich anwenden lässt.
 - **Eine abteilungsbezogen zugewiesene Rolle gewährt genau ein Recht:
   `URLAUB_GENEHMIGEN`, und nur für ihre Abteilung.** Alle übrigen Rechte
@@ -97,10 +97,10 @@ Die Menge ist die Vereinigung aus:
 1. `mitarbeiter_genehmiger` (namentlich eingetragen), und
 2. allen Mitarbeitern der Abteilungen, in denen der Genehmiger eine Rolle mit
    `URLAUB_GENEHMIGEN` und `scope_typ = 'abteilung'` hat – bei
-   `gilt_unterbereiche = 1` einschliesslich Unterbaum.
+   `gilt_unterbereiche = 1` einschließlich Unterbaum.
 
 Der Genehmiger selbst ist **nicht** enthalten; eigene Anträge hängen
-ausschliesslich an `URLAUB_GENEHMIGEN_SELF`.
+ausschließlich an `URLAUB_GENEHMIGEN_SELF`.
 
 ## 5. Maske
 
@@ -126,7 +126,7 @@ P-2026-08-11-02 beschrieben.
    `scope_typ = 'abteilung'`, `scope_id = CNC`, `gilt_unterbereiche = 0`.
    Mitarbeiter A ist in CNC. G sieht A's offenen Antrag in der Liste und kann
    ihn genehmigen – **ohne** Eintrag in `mitarbeiter_genehmiger`.
-2. **Nicht zuständig ausserhalb.** Mitarbeiter B ist in Montage. G sieht B's
+2. **Nicht zuständig außerhalb.** Mitarbeiter B ist in Montage. G sieht B's
    Antrag nicht, und ein von Hand gebauter POST auf B's Antrag wird abgewiesen.
 3. **Unterbereiche.** Mit `gilt_unterbereiche = 1` und CNC als Elternabteilung
    von „CNC Nachtschicht" sieht G auch deren Mitarbeiter C. Mit `0` nicht.
@@ -137,7 +137,7 @@ P-2026-08-11-02 beschrieben.
 6. **Global sticht.** `URLAUB_GENEHMIGEN_ALLE` zeigt weiterhin alle Anträge,
    unabhängig von jeder Abteilung.
 7. **Kein Rechtezuwachs anderswo.** Eine Rolle mit Abteilungsbezug, die
-   ausserdem `MITARBEITER_VERWALTEN` enthält, gewährt dieses Recht **nicht** –
+   außerdem `MITARBEITER_VERWALTEN` enthält, gewährt dieses Recht **nicht** –
    `hatRecht('MITARBEITER_VERWALTEN')` bleibt `false`. Dieselbe Rolle
    betriebsweit zugewiesen gewährt es wie bisher.
 

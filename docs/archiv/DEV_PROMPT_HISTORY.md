@@ -18,53 +18,53 @@ legacy_zip_naming:
 
 # Verlauf (LOG/ARCHIV)
 
-Diese Datei ist der **vollstaendige Projektverlauf**, chronologisch absteigend,
-ein Eintrag je Patch. Sie wird nie geloescht und bei jedem Patch im selben
-Commit ergaenzt (`docs/arbeitsregeln.md`, Abschnitt 6).
+Diese Datei ist der **vollständige Projektverlauf**, chronologisch absteigend,
+ein Eintrag je Patch. Sie wird nie gelöscht und bei jedem Patch im selben
+Commit ergänzt (`docs/arbeitsregeln.md`, Abschnitt 6).
 
-**Sie ist keine Startlektuere.** Wer wissen will, wie der Stand ist und was als
-Naechstes ansteht, liest `docs/STATUS_SNAPSHOT.md` – dort und nur dort stehen
-Projektstatus, naechster Schritt, offene Bugs (B-IDs) und offene Tasks (T-IDs).
+**Sie ist keine Startlektüre.** Wer wissen will, wie der Stand ist und was als
+Nächstes ansteht, liest `docs/STATUS_SNAPSHOT.md` – dort und nur dort stehen
+Projektstatus, nächster Schritt, offene Bugs (B-IDs) und offene Tasks (T-IDs).
 Hier nachzuschlagen lohnt genau dann, wenn zu einem bestimmten Patch die
-Begruendung, der Test oder ein gefundener Fehler gesucht wird; `git log
+Begründung, der Test oder ein gefundener Fehler gesucht wird; `git log
 --oneline` nennt dazu die Patch-ID.
 
-Frueher stand oben ein SNAPSHOT-Block, der Projektziel, Entry Points, Bugs,
-Tasks und den naechsten Schritt ein zweites Mal fuehrte – also genau das, was
+Früher stand oben ein SNAPSHOT-Block, der Projektziel, Entry Points, Bugs,
+Tasks und den nächsten Schritt ein zweites Mal führte – also genau das, was
 `docs/STATUS_SNAPSHOT.md` schon sagt. Zwei Fassungen derselben Angabe driften
-auseinander, und dann weiss niemand mehr, welche gilt; ausserdem zwang der
-Block jeden neuen Chat, eine Datei mit ueber 12.000 Zeilen zu oeffnen, um drei
-Absaetze zu lesen. Entfernt in P-2026-08-09-10.
+auseinander, und dann weiß niemand mehr, welche gilt; außerdem zwang der
+Block jeden neuen Chat, eine Datei mit über 12.000 Zeilen zu öffnen, um drei
+Absätze zu lesen. Entfernt in P-2026-08-09-10.
 
 ## Aufbau eines Eintrags
 
 `## P-JJJJ-MM-TT-XX kurzbeschreibung`, darunter EINGELESEN, DATEIEN,
 AKZEPTANZKRITERIUM, DONE, TEST, „Gefundene Fehler im eigenen Entwurf",
-„Was bewusst nicht erreicht wurde" und NEXT. Eintraege vor dem 2026-08-08
-nennen ZIP-Dateinamen statt Commits – das ist Historie, kein gueltiger
+„Was bewusst nicht erreicht wurde" und NEXT. Einträge vor dem 2026-08-08
+nennen ZIP-Dateinamen statt Commits – das ist Historie, kein gültiger
 Arbeitsweg.
 
-## Bekannte Luecke: fuenf Patches ohne Eintrag
+## Bekannte Lücke: fünf Patches ohne Eintrag
 
-Diese Datei ist vollstaendig **ab dem 09.08.2026**. Aus dem 08.08.2026 gibt es
-fuenf Commits, deren Patch-ID hier fehlt:
+Diese Datei ist vollständig **ab dem 09.08.2026**. Aus dem 08.08.2026 gibt es
+fünf Commits, deren Patch-ID hier fehlt:
 
 `P-2026-08-08-12`, `P-2026-08-08-17`, `P-2026-08-08-27`, `P-2026-08-08-32`,
 `P-2026-08-08-34`
 
 Es war der Tag, an dem der Verlauf von ZIP-Lieferungen auf Commits umgestellt
-wurde; die Eintraege sind dabei liegengeblieben. Sie werden **nicht
-nacherfunden** – was in einem Patch gedacht wurde, weiss nachtraeglich niemand
-mehr, und ein erfundener Eintrag waere schlimmer als eine bekannte Luecke. Was
+wurde; die Einträge sind dabei liegengeblieben. Sie werden **nicht
+nacherfunden** – was in einem Patch gedacht wurde, weiß nachträglich niemand
+mehr, und ein erfundener Eintrag wäre schlimmer als eine bekannte Lücke. Was
 dort passiert ist, steht im Commit:
 
 ```bash
 git log --grep="P-2026-08-08-12" --stat
 ```
 
-Weil die fuenf IDs hier oben ausgeschrieben stehen, findet sie der folgende
+Weil die fünf IDs hier oben ausgeschrieben stehen, findet sie der folgende
 Befehl – er meldet deshalb **jede** Patch-ID, die weder einen Eintrag hat noch
-hier als bekannte Luecke steht. Erwartete Ausgabe: **keine**.
+hier als bekannte Lücke steht. Erwartete Ausgabe: **keine**.
 
 ```bash
 git log --format='%s' | grep -oP '^P-\d{4}-\d{2}-\d{2}-\d{2}' | sort -u \
@@ -75,29 +75,135 @@ Meldet er etwas, hat ein Patch seinen Eintrag vergessen (Arbeitsregel 4).
 
 ## Entscheidungen (D-IDs)
 
-Grundsatzentscheidungen, auf die spaetere Eintraege sich berufen. Sie stehen
-hier, weil sie Verlauf sind: Warum etwas so gilt, gehoert zur Geschichte, nicht
+Grundsatzentscheidungen, auf die spätere Einträge sich berufen. Sie stehen
+hier, weil sie Verlauf sind: Warum etwas so gilt, gehört zur Geschichte, nicht
 in den Statusbericht.
 
 - **D-001:** Das Repo nutzt `sql/01_initial_schema.sql` als Schema-Referenz.
 - **D-002:** ~~Pro Patch-Iteration maximal 3 Dateien, Lieferung als ZIP.~~
-  **Ueberholt seit Master-Prompt v13** (Arbeit direkt im Git-Workspace). Das
+  **Überholt seit Master-Prompt v13** (Arbeit direkt im Git-Workspace). Das
   Limit war eine reine Zeitbegrenzung des damaligen Chat-Workflows; geblieben
   ist „1 Thema pro Patch".
-- **D-003:** ~~Diese Datei bekommt oben einen SNAPSHOT zur schnellen Uebergabe
-  in neue Chats.~~ **Ueberholt seit P-2026-08-09-10:** Der Snapshot fuehrte
+- **D-003:** ~~Diese Datei bekommt oben einen SNAPSHOT zur schnellen Übergabe
+  in neue Chats.~~ **Überholt seit P-2026-08-09-10:** Der Snapshot führte
   dieselben Angaben wie `docs/STATUS_SNAPSHOT.md`. Geblieben ist, dass der
-  Verlauf **vollstaendig** bleibt und nie gekuerzt wird.
+  Verlauf **vollständig** bleibt und nie gekürzt wird.
 - **D-004:** Zeitbuchungen (Kommen/Gehen) werden immer als **Rohzeit**
-  gespeichert. Rundung erfolgt ausschliesslich bei **Auswertungen/Export/PDF**.
+  gespeichert. Rundung erfolgt ausschließlich bei **Auswertungen/Export/PDF**.
 - **D-005:** **Pre-Flight Gate** ist Pflicht: Vor jeder Implementierung werden
   die Inputs gelesen und ein Duplicate-Check gegen History und `git log`
-  gemacht. (Der frueher geforderte SHA256-Nachweis entfaellt seit v13 – der
+  gemacht. (Der früher geforderte SHA256-Nachweis entfällt seit v13 – der
   Commit-Hash leistet das genauer.)
 - **D-006:** Micro-Patches sind Pflicht: **1 Patch = 1 Thema = 1 Effekt.** (Die
-  frueher mitgenannte Begruendung „es bleiben nur 2 weitere Dateien" ist mit
+  früher mitgenannte Begründung „es bleiben nur 2 weitere Dateien" ist mit
   D-002 entfallen; die Regel selbst gilt weiter.)
 
+
+## P-2026-08-15-41 eine-schreibweise-fuer-umlaute
+
+### EINGELESEN
+- `docs/arbeitsregeln.md` §7 (Umlaut-Regel), §9; `docs/wartungscheckliste.md`,
+  Abschnitt „Nach flächigen Textänderungen".
+- P-2026-08-14-08 und P-2026-08-15-01/-02/-03 – die beiden Male, an denen eine
+  flächige Textänderung schon einmal still etwas zerbrochen hat.
+- `public/index.php` und `public/terminal.php` (Routennamen), `git log
+  --format='%s'` (Commit-Betreffe).
+
+### DATEIEN
+- 14 Dateien unter `docs/` (Verlauf, Fachregeln, Spezifikation, Archiv)
+- `docs/arbeitsregeln.md`, `docs/wartungscheckliste.md`
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Im Fließtext der Dokumentation steht kein `fuer`, `ueber` oder `naechst` mehr –
+und alle 167 kebab-case-Commit-Betreffe stehen weiterhin wörtlich im Verlauf.
+
+### DONE
+Der Verlauf schrieb `ae oe ue ss`, Snapshot und Code schrieben `ä ö ü ß`. §7
+regelte nur „Kommentare und Oberflächentexte" – Dokumentation kam darin nicht
+vor. Also musste man es bei jedem neuen Eintrag entscheiden. Manuels Vorgabe:
+eindeutig machen, damit niemand mehr darüber nachdenkt.
+
+**4.890 Ersetzungen in 14 Dateien**, das Archiv der abgelösten Prompts
+eingeschlossen. Bewusst ohne Ausnahme: Eine Datei, die anders geschrieben ist,
+lässt genau die Frage wieder aufkommen, die dieser Patch abstellt.
+
+§7 sagt jetzt „Oberfläche, Kommentare, Dokumentation **und Verlauf**",
+nennt Routen- und Commit-Namen ausdrücklich bei den Ausnahmen und zieht die
+Grenze im Commit selbst: **Betreff ASCII** – er ist ein Name –, **Text darunter
+mit Umlauten** – er ist für Menschen. Ohne diesen Satz hätte die Frage beim
+nächsten Commit-Text wieder von vorn begonnen; dieser Eintrag hat sie prompt
+selbst aufgeworfen.
+
+**Wie ersetzt wurde – nicht mit `sed`.** `muss`, `dass`, `Klasse`, `Prozess`,
+`Adresse`, `neue`, `Queue` enthalten dieselben Buchstabenpaare und sind richtig,
+wie sie sind. Ein blindes `s/ue/ü/` hätte sie alle zerstört. Stattdessen:
+
+1. Kandidaten nur aus dem Fließtext ziehen – Codeblöcke, Code-Spans, Linkziele,
+   Frontmatter, Patch-IDs, Dateinamen, Namen mit Unterstrich und kebab-case
+   sind gesperrt.
+2. Für jedes Kandidatenwort **alle** Rückübersetzungen erzeugen und `hunspell
+   -d de_DE` fragen, welche davon Deutsch sind.
+3. Ersetzt wird nur, wenn das Original **kein** Deutsch ist und **genau eine**
+   Rückübersetzung es ist. Damit bleibt `muss` stehen und `fuer` wird `für`.
+4. Was hunspell nicht kennt – 58 Komposita wie `Verlaufseintraege` oder
+   `geraeteabhaengig` –, steht als Handliste im Skript und wurde einzeln
+   entschieden.
+
+Mehrdeutige Fälle gab es null. Übrig geblieben sind 37 Wörter, die bleiben
+sollen: englische Begriffe (`Queue`, `Request`, `Success`), ein Eigenname
+(`Manuel`) und richtiges Deutsch (`Minusstunden`, `Auslassungspunkten`).
+
+### Gefundene Fehler im eigenen Entwurf
+**Der erste Durchgang hat 33 Commit-Betreffe zerschossen.** Die Überschriften
+des Verlaufs lauten `## P-2026-08-15-27 t-117-kaltstart-begruendung-in-den-verlauf`
+– die Patch-ID war gesperrt, der Betreff dahinter nicht. Aus
+`begruendung` wurde `begründung`, und damit stand in der Überschrift ein
+Betreff, den es im Git-Verlauf nicht gibt. `php -l` sagt dazu nichts, die Datei
+sieht gut aus, und beim nächsten `git log --grep` findet niemand mehr etwas.
+Genau der stumme Schaden, vor dem die Wartungscheckliste warnt – bemerkt nur,
+weil die Rechtschreibprüfung hinterher neue unbekannte Wörter mit Bindestrichen
+meldete. Alles zurückgesetzt, Maske um kebab-case und um „Patch-ID plus
+folgendes Wort" erweitert, neu gelaufen.
+
+**Und ein Routenname im Fließtext.** Eine Zeile zählt Terminal-Seiten auf:
+„auftrag_starten/stoppen, nebenauftrag, urlaub, logout, stoerung" – ohne
+Backticks. `auftrag_starten` war durch den Unterstrich geschützt, `stoerung`
+nicht. Der Vergleich der geänderten Wörter gegen die echten Bezeichner aus
+`public/index.php`, `public/terminal.php` und den Methodennamen hat es
+gefunden; von 16 verdächtigen Stellen war es die einzige echte, die übrigen
+waren gewöhnliche Verben („Eintrag löschen").
+
+Aus beidem ist ein **vierter Suchlauf** in der Wartungscheckliste geworden: Er
+vergleicht die kebab-case-Betreffe aus `git log` gegen den Verlauf. Sechs
+fehlen dort seit jeher – deshalb steht dabei, dass man ihn **vor** der Änderung
+einmal laufen lässt und hinterher nur auf neue Meldungen achtet.
+
+### TEST
+- Codeblöcke, Code-Spans und Linkziele vorher und nachher extrahiert und
+  verglichen: **Byte für Byte identisch** (15.213 Stellen).
+- Alle vier Suchläufe der Wartungscheckliste: die ersten drei ohne Treffer, der
+  vierte meldet dieselben sechs Betreffe wie vor der Änderung, keinen neuen.
+- Rechtschreibprüfung über den Fließtext aller 14 Dateien: unbekannte Wörter
+  **4.379 → 3.276**. Die 95 neu hinzugekommenen sind durchweg Komposita, die
+  hunspell nicht kennt (`Aufräumplans`, `geräteabhängig`) – kein einziger
+  kebab-case-Name darunter.
+- Der Suchlauf, der den Patch ausgelöst hat, findet nur noch ein Wort:
+  `stoerung`, den Routennamen – der bleiben soll.
+- Kaltstart 15.413 → **15.493 Bytes** (§7 ist um zwei Zeilen länger).
+
+Kein Code angefasst, also kein `php -l` und kein Klickweg.
+
+### Was bewusst nicht erreicht wurde
+Der Snapshot bleibt unverändert: Dieser Patch ändert keinen Status, keinen Bug
+und keine Task.
+
+Die Rechtschreibprüfung meldet weiterhin 3.276 unbekannte Wörter. Das sind
+Fachbegriffe, Dateinamen und Komposita – sie zu bereinigen wäre eine andere
+Aufgabe und keine, die jemand gestellt hat.
+
+### NEXT
+Die Wegwerf-Umgebung in der Wartungscheckliste verankern, danach T-105.
 
 ## P-2026-08-15-40 b-104-dashboard-ohne-ext-calendar
 
@@ -107,7 +213,7 @@ in den Statusbericht.
 - `DashboardController`, Selbsttest-Block ab „Smoke-Test nur wenn explizit
   angefordert" bis zum Ende der mutierenden Checks.
 - `docs/installationsanleitung.md` (Abschnitt Voraussetzungen) und
-  `docs/lokale_entwicklungsumgebung.md` (benoetigte Erweiterungen).
+  `docs/lokale_entwicklungsumgebung.md` (benötigte Erweiterungen).
 
 ### DATEIEN
 - `controller/DashboardController.php`
@@ -123,19 +229,19 @@ Der Selbsttest des Dashboards rechnete die Tage des Monats mit
 **`calendar`**, und die steht in **keiner** der beiden Installationsanleitungen
 des Projekts – weder unter den Voraussetzungen der Produktivinstallation
 (`pdo`, `pdo_mysql`, `mbstring`, `json`, `gd`) noch bei der lokalen Umgebung
-(zusaetzlich `mysqli`, `iconv`). Auf einer Installation ohne sie endete
+(zusätzlich `mysqli`, `iconv`). Auf einer Installation ohne sie endete
 `?seite=dashboard&smoke=1` mit HTTP 500.
 
 Ersetzt durch `DateTimeImmutable::format('t')` – dieselbe Auskunft, ohne
 Erweiterung. **Warum nicht andersherum**, also die Erweiterung in die
-Anleitungen aufnehmen: Sie wuerde fuer genau zwei Zeilen im ganzen Projekt
-gebraucht, die es auch ohne sie gibt, und jede bestehende Installation muesste
-nachziehen. Eine Abhaengigkeit, die man streichen kann, wird gestrichen und
+Anleitungen aufnehmen: Sie würde für genau zwei Zeilen im ganzen Projekt
+gebraucht, die es auch ohne sie gibt, und jede bestehende Installation müsste
+nachziehen. Eine Abhängigkeit, die man streichen kann, wird gestrichen und
 nicht dokumentiert.
 
 Damit ist `cal_days_in_month()` aus dem Projekt verschwunden (die zweite
 Fundstelle fiel in P-2026-08-15-39); der Suchlauf findet nur noch die beiden
-Kommentare, die erklaeren, warum dort etwas anderes steht.
+Kommentare, die erklären, warum dort etwas anderes steht.
 
 ### TEST
 Wegwerf-Umgebung aus P-2026-08-15-37, beide Server frisch gestartet.
@@ -152,32 +258,32 @@ cal_days_in_month()"}`.
 
 Auf dem neuen Stand laufen beide Stufen durch: Alle Zeilen des Selbsttests
 melden „OK", darunter die reparierte „ReportService Monatsraster". `smoke=2`
-unterscheidet sich von `smoke=1` um genau den zusaetzlichen Block (DB-Schreiben
+unterscheidet sich von `smoke=1` um genau den zusätzlichen Block (DB-Schreiben
 mit Rollback), also zehn Zeilen mehr – der Unterschied, den der Code an dieser
 Stelle vorsieht.
 
-26 Backend-Routen HTTP 200 auf beiden Staenden, `php -l`, Serverlog des neuen
+26 Backend-Routen HTTP 200 auf beiden Ständen, `php -l`, Serverlog des neuen
 Standes ohne PHP-Meldung (HEAD: 24).
 
 ### Gefundene Fehler im eigenen Entwurf
-Beim Durchsehen des Selbsttests bin ich ueber ein „Fehler: 1" gestolpert und
+Beim Durchsehen des Selbsttests bin ich über ein „Fehler: 1" gestolpert und
 war schon dabei, es als weiteren Fund zu notieren. Es ist die
-Queue-Uebersicht des Dashboards, die einen Eintrag im Zustand `fehler` zaehlt –
+Queue-Übersicht des Dashboards, die einen Eintrag im Zustand `fehler` zählt –
 und den hatte ich selbst als Testdatum angelegt. Wer in einer Maske nach dem
-Wort „Fehler" sucht, findet auch die Spaltenueberschriften.
+Wort „Fehler" sucht, findet auch die Spaltenüberschriften.
 
 ### Was bewusst nicht erreicht wurde
 Ob auf dem Zielsystem `calendar` installiert ist, bleibt unbeantwortet – die
 Frage ist jetzt gegenstandslos, weil das Projekt die Erweiterung nicht mehr
-anfasst. Die Anleitungen sind deshalb unveraendert geblieben.
+anfasst. Die Anleitungen sind deshalb unverändert geblieben.
 
 Der Selbsttest des Dashboards ist damit zum ersten Mal in dieser Sitzung
-ueberhaupt gelaufen; was seine einzelnen Checks fachlich aussagen, ist nicht
-geprueft worden. Er meldet „OK" – ob er die richtigen Fragen stellt, ist eine
+überhaupt gelaufen; was seine einzelnen Checks fachlich aussagen, ist nicht
+geprüft worden. Er meldet „OK" – ob er die richtigen Fragen stellt, ist eine
 andere Frage als die, ob er startet.
 
 ### NEXT
-T-105: die fuenfzehn Check-Bloecke aus `SmokeTestController::index()` in eigene
+T-105: die fünfzehn Check-Blöcke aus `SmokeTestController::index()` in eigene
 Methoden.
 
 ## P-2026-08-15-39 b-103-render-check-an-seinen-platz
@@ -185,7 +291,7 @@ Methoden.
 ### EINGELESEN
 - `docs/STATUS_SNAPSHOT.md` (B-103), P-2026-08-15-37 – dort ist der Fund
   entstanden.
-- Im `SmokeTestController` beide beteiligten Bloecke vollstaendig: der
+- Im `SmokeTestController` beide beteiligten Blöcke vollständig: der
   PDF-Quick-Check (`pdf_test_run`) und der PDF-DB-Auto-Multipage-Check
   (`pdf_db_multipage_run`), dazu die Anzeige beider in
   `views/smoke_test/index.php`.
@@ -198,38 +304,38 @@ Methoden.
 - `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
 
 ### AKZEPTANZKRITERIUM
-Der PDF-DB-Auto-Multipage-Check meldet fuer Mitarbeiter 15 im September 2026
-„HTML-Render-Check: OK" mit gefuellten Werten (`<tr>` Count 103, Tage im Monat
+Der PDF-DB-Auto-Multipage-Check meldet für Mitarbeiter 15 im September 2026
+„HTML-Render-Check: OK" mit gefüllten Werten (`<tr>` Count 103, Tage im Monat
 30) statt „SKIP" mit lauter Nullen, und das Serverlog bleibt dabei ohne
 PHP-Meldung.
 
 ### DONE
 **Der Block stand an der falschen Stelle.** Sein eigener Kommentar sagt es:
 „HTML-Render-Check (**Kandidat**)" – „Kandidat" ist das Wort des
-Auto-Multipage-Checks. Geschrieben war er fuer diesen, gelandet ist er im
+Auto-Multipage-Checks. Geschrieben war er für diesen, gelandet ist er im
 PDF-Quick-Check, verschachtelt in dessen `if ($pageObjCount >= 2)`. Dort
 richtet er zweierlei Schaden an:
 
 - Er rechnet mit `$mid`, `$jahr`, `$monat` – Namen, die es im Quick-Check nicht
-  gibt (der heisst sie `$pdfTestMitarbeiterId`, `$pdfTestJahr`,
+  gibt (der heißt sie `$pdfTestMitarbeiterId`, `$pdfTestJahr`,
   `$pdfTestMonat`). Bei einem mehrseitigen Quick-Check-PDF rendert er also die
-  Monatsuebersicht fuer Mitarbeiter 0, Jahr 0, Monat 0 – drei Warnungen und
-  eine voellig sinnlose Arbeit.
+  Monatsübersicht für Mitarbeiter 0, Jahr 0, Monat 0 – drei Warnungen und
+  eine völlig sinnlose Arbeit.
 - Seine Ergebnisse zeigt niemand an. Angezeigt werden sie im
-  Auto-Multipage-Check, und der laeuft in einem **anderen** Request: dort sind
+  Auto-Multipage-Check, und der läuft in einem **anderen** Request: dort sind
   die neun Variablen undefiniert – zehn weitere Warnungen, „SKIP" und Nullen.
 
 Der Block ist deshalb komplett dorthin gewandert, wo seine Eingaben stehen und
-seine Ergebnisse gelesen werden: hinter die PDF-Pruefung des
+seine Ergebnisse gelesen werden: hinter die PDF-Prüfung des
 Auto-Multipage-Checks, vor die Zeile `if ($reportHtmlOk === false)`.
 
-**Zwei Anpassungen im Block, beide notwendig, damit er ueberhaupt etwas
+**Zwei Anpassungen im Block, beide notwendig, damit er überhaupt etwas
 liefert:**
 
 Der Rechte-Riegel las die eigene Mitarbeiter-ID aus `$pdfTestMitarbeiterId` –
 dem **Formularfeld eines anderen Checks**. Das ging bisher gut, weil dieses
 Feld mit der ID des Angemeldeten vorbelegt wird; wer aber den Quick-Check im
-selben Request abschickt, ueberschreibt es mit seiner Eingabe. Am neuen Ort
+selben Request abschickt, überschreibt es mit seiner Eingabe. Am neuen Ort
 steht dort `$this->auth->holeAngemeldeteMitarbeiterId()` – die Frage, die
 gemeint war.
 
@@ -238,16 +344,16 @@ keiner der beiden Installationsanleitungen, und auf dieser Entwicklungsmaschine
 ist sie nicht installiert: Der Block starb sofort mit „Call to undefined
 function". Ersetzt durch `DateTimeImmutable::format('t')` – dieselbe Auskunft,
 ohne Erweiterung, und genau die Schreibweise, die der Monatsraster-Check zwei
-Bloecke weiter unten schon benutzt.
+Blöcke weiter unten schon benutzt.
 
 Die zweite Fundstelle derselben Funktion steht im `DashboardController` und
-faellt nicht in dieses Thema – als **B-104** notiert, siehe unten.
+fällt nicht in dieses Thema – als **B-104** notiert, siehe unten.
 
 ### TEST
 Wegwerf-Umgebung und Daten aus P-2026-08-15-37, dazu ein **mehrseitiger** Monat:
-180 erfundene Buchungen im September 2026 (30 Tage x 3 Arbeitsbloecke), damit
+180 erfundene Buchungen im September 2026 (30 Tage x 3 Arbeitsblöcke), damit
 das Monats-PDF drei Seiten bekommt. Erst damit lief der falsch platzierte Block
-auf dem alten Stand ueberhaupt – bei einem einseitigen PDF haette der Vergleich
+auf dem alten Stand überhaupt – bei einem einseitigen PDF hätte der Vergleich
 nichts gezeigt.
 
 | Lage | HEAD | neuer Stand |
@@ -266,41 +372,41 @@ wie vorher – er hat dessen Ergebnisse nie angezeigt.
 | --- | --- |
 | HEAD, ein Auto-Multipage-Lauf | 10 (`$reportHtml…`) |
 | HEAD, ein Quick-Check-Lauf mit mehrseitigem PDF | 12 (`$mid`, `$jahr`, `$monat` und `$reportHtml…`) |
-| neuer Stand, beide Laeufe | **0** |
+| neuer Stand, beide Läufe | **0** |
 
-Danach die Rueckversicherung, dass sonst nichts kippt: alle fuenfzehn
-Vergleichsfaelle aus P-2026-08-15-37 noch einmal gegen HEAD – 0 echte
-Abweichungen ausser in den beiden reparierten Bloecken. 26 Backend-Routen HTTP
-200 auf beiden Staenden, `php -l`, die drei Umlaut-Suchlaeufe ohne Treffer, und
+Danach die Rückversicherung, dass sonst nichts kippt: alle fünfzehn
+Vergleichsfälle aus P-2026-08-15-37 noch einmal gegen HEAD – 0 echte
+Abweichungen außer in den beiden reparierten Blöcken. 26 Backend-Routen HTTP
+200 auf beiden Ständen, `php -l`, die drei Umlaut-Suchläufe ohne Treffer, und
 das Log des neuen Standes nach dem ganzen Klicktest ohne eine einzige
 PHP-Meldung (der alte Stand: 24).
 
 ### Gefundene Fehler im eigenen Entwurf
-Der erste Durchgang meldete „0 Warnungen" auf **beiden** Staenden – ein
-schoenes, aber falsches Ergebnis. Ich hatte die Logdateien mit `rm` geloescht;
+Der erste Durchgang meldete „0 Warnungen" auf **beiden** Ständen – ein
+schönes, aber falsches Ergebnis. Ich hatte die Logdateien mit `rm` gelöscht;
 `tee` schreibt danach in einen Dateinamen, den es nicht mehr gibt, und `grep`
 findet nichts, statt zu widersprechen. Ein Log, das man leeren will, wird
 geleert (`: > datei`) oder der Server neu gestartet – gelöscht wird es nicht.
-Dasselbe eine Runde spaeter noch einmal in klein: `grep -c` auf eine per
+Dasselbe eine Runde später noch einmal in klein: `grep -c` auf eine per
 `: >` geleerte Datei, in der noch NUL-Bytes standen, schwieg ebenfalls, weil
-grep sie fuer binaer hielt (`grep -a` half).
+grep sie für binär hielt (`grep -a` half).
 
 ### B-104: dieselbe Funktion, zweite Fundstelle
 `DashboardController` ruft `cal_days_in_month()` im Selbsttest auf, den
-`?seite=dashboard&smoke=1` und `&smoke=2` anstossen. Ohne die Erweiterung
+`?seite=dashboard&smoke=1` und `&smoke=2` anstoßen. Ohne die Erweiterung
 `calendar` endet die Seite dort mit **HTTP 500**; im `system_log` steht
 `{"seite":"dashboard","exception":"Call to undefined function
-cal_days_in_month()"}`. Auf beiden Staenden gleich, also aelter als dieser
+cal_days_in_month()"}`. Auf beiden Ständen gleich, also älter als dieser
 Patch. Nicht mitgemacht – anderer Controller, anderer Klickweg, eigener Patch.
 
 Der normale Dashboard-Aufruf ist nicht betroffen; er war in allen Klicktests
 HTTP 200.
 
 ### Was bewusst nicht erreicht wurde
-Ob die Erweiterung `calendar` auf dem Zielsystem installiert ist, weiss ich
-nicht – hier ist sie es nicht. Die Frage gehoert zu B-104: Entweder verlaesst
-sich das Projekt nicht auf sie (dann faellt auch die zweite Fundstelle), oder
-sie gehoert in beide Installationsanleitungen.
+Ob die Erweiterung `calendar` auf dem Zielsystem installiert ist, weiß ich
+nicht – hier ist sie es nicht. Die Frage gehört zu B-104: Entweder verlässt
+sich das Projekt nicht auf sie (dann fällt auch die zweite Fundstelle), oder
+sie gehört in beide Installationsanleitungen.
 
 ### NEXT
 B-104, danach T-105.
@@ -310,7 +416,7 @@ B-104, danach T-105.
 ### EINGELESEN
 - `docs/STATUS_SNAPSHOT.md` (B-102), P-2026-08-15-37 – dort ist der Fund
   entstanden.
-- Der Sequenz-Check in `SmokeTestController::index()` vollstaendig, dazu die
+- Der Sequenz-Check in `SmokeTestController::index()` vollständig, dazu die
   benachbarten SQL-Stellen im selben Controller als Stilvergleich.
 
 ### DATEIEN
@@ -318,27 +424,27 @@ B-104, danach T-105.
 - `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
 
 ### AKZEPTANZKRITERIUM
-Der Kommen/Gehen-Sequenz-Check fuer Mitarbeiter 15 im Juli 2026 zeigt statt
+Der Kommen/Gehen-Sequenz-Check für Mitarbeiter 15 im Juli 2026 zeigt statt
 „Sequenz-Check Fehler: SQLSTATE[42000] …" seinen Ergebnisblock mit „Tage mit
-Buchungen: 9" und drei auffaelligen Tagen.
+Buchungen: 9" und drei auffälligen Tagen.
 
 ### DONE
-Vier Teilstuecke in **einfachen** Anfuehrungszeichen endeten auf `\n` – dort ist
+Vier Teilstücke in **einfachen** Anführungszeichen endeten auf `\n` – dort ist
 das kein Zeilenumbruch, sondern ein Backslash und ein `n` mitten im Statement.
 Das Statement war damit von der ersten Zeile an unsyntaktisch; der Check hat
 **nie** ein Ergebnis geliefert, sondern immer nur die Fehlermeldung der
 Datenbank angezeigt.
 
-Ersetzt durch **eine** Zeichenkette in doppelten Anfuehrungszeichen ueber vier
+Ersetzt durch **eine** Zeichenkette in doppelten Anführungszeichen über vier
 Zeilen – so wie die Mehrzahl der Abfragen in dieser Datei geschrieben ist
-(z. B. der Zaehl-Query des PDF-DB-Checks). Die Alternative waere gewesen, es
+(z. B. der Zähl-Query des PDF-DB-Checks). Die Alternative wäre gewesen, es
 dem Monatsfallback-Check gleichzutun, der dieselbe Konstruktion mit einem
-echten Zeilenumbruch **innerhalb** der einfachen Anfuehrungszeichen loest: Das
-laeuft zwar, sieht aber im Editor wie ein Versehen aus und ist genau die
+echten Zeilenumbruch **innerhalb** der einfachen Anführungszeichen löst: Das
+läuft zwar, sieht aber im Editor wie ein Versehen aus und ist genau die
 Schreibweise, aus der dieser Fehler entstanden ist.
 
 Der Suchlauf aus P-2026-08-15-37 ueber das ganze Projekt hatte nur diese eine
-Stelle gefunden; nach der Aenderung findet er keine mehr.
+Stelle gefunden; nach der Änderung findet er keine mehr.
 
 ### TEST
 Wegwerf-Umgebung und Daten aus P-2026-08-15-37 weiterverwendet (zwei Server,
@@ -353,26 +459,26 @@ Der Ergebnisblock zeigt jetzt genau die Tage, die als Kanten angelegt wurden:
 | 2026-07-07 | `odd, offen` | `K` |
 
 Dazu ein Mehrblock-Tag (2026-07-02, 2 Paare aus 4 Buchungen) und „Tage mit
-Buchungen: 9". Der Check zaehlt also nicht nur, er trifft auch.
+Buchungen: 9". Der Check zählt also nicht nur, er trifft auch.
 
 Weitere Lagen auf dem neuen Stand: Monat ohne jede Buchung → „OK", 0 Tage;
 Mitarbeiter-ID 999999 → 0 Tage, keine Fehlermeldung. In keiner der drei Lagen
 steht noch „Sequenz-Check Fehler" auf der Seite.
 
-Dass **nur** dieser Block anders wird, ist gepruefte Aussage und keine
-Annahme: Die Seite wurde an der Ueberschrift des Sequenz-Checks und an der des
-naechsten Abschnitts geteilt und die beiden Aussenteile gegen HEAD verglichen –
+Dass **nur** dieser Block anders wird, ist geprüfte Aussage und keine
+Annahme: Die Seite wurde an der Überschrift des Sequenz-Checks und an der des
+nächsten Abschnitts geteilt und die beiden Außenteile gegen HEAD verglichen –
 0 Abweichungen davor, 0 danach.
 
-26 Backend-Routen HTTP 200 auf beiden Staenden, `php -l`, Serverlog ohne neue
+26 Backend-Routen HTTP 200 auf beiden Ständen, `php -l`, Serverlog ohne neue
 PHP-Meldung.
 
 ### Was bewusst nicht erreicht wurde
 Die zehn Warnungen des PDF-DB-Auto-Multipage-Checks (B-103) bleiben – anderes
 Thema, eigener Patch.
 
-Der Ergebnisrahmen ist rot, die Ueberschrift daneben sagt aber „HINWEIS" statt
-„FAIL". Das ist so gewollt: Ein auffaelliger Tag ist ein Fund, den jemand
+Der Ergebnisrahmen ist rot, die Überschrift daneben sagt aber „HINWEIS" statt
+„FAIL". Das ist so gewollt: Ein auffälliger Tag ist ein Fund, den jemand
 ansehen soll, kein Fehler des Systems. Nicht angefasst.
 
 ### NEXT
@@ -384,9 +490,9 @@ B-103, danach T-105.
 - `docs/STATUS_SNAPSHOT.md` (T-104/T-105), `docs/arbeitsregeln.md`,
   `git log --oneline -20`.
 - `views/auftrag/liste.php` als Muster (P-2026-08-15-33),
-  `views/report/monatsuebersicht.php` als Muster fuer eine **grosse** View.
-- `core/Csrf.php` vollstaendig (`token()`, `feld()`, `const FELD`).
-- `SmokeTestController::index()` vollstaendig, dazu `pruefeZugriff()` und
+  `views/report/monatsuebersicht.php` als Muster für eine **große** View.
+- `core/Csrf.php` vollständig (`token()`, `feld()`, `const FELD`).
+- `SmokeTestController::index()` vollständig, dazu `pruefeZugriff()` und
   `public/index.php` (Routennamen).
 
 ### DATEIEN
@@ -396,7 +502,7 @@ B-103, danach T-105.
 
 ### AKZEPTANZKRITERIUM
 Die Smoke-Test-Seite erzeugt in allen Lagen dasselbe HTML wie vorher – bis auf
-die Einrueckung und die fuenf `Csrf::feld()`-Stellen –, obwohl das Markup jetzt
+die Einrückung und die fünf `Csrf::feld()`-Stellen –, obwohl das Markup jetzt
 in `views/smoke_test/index.php` liegt.
 
 ### DONE
@@ -404,53 +510,53 @@ in `views/smoke_test/index.php` liegt.
 Markup der letzten Maske ist eins zu eins in `views/smoke_test/index.php`
 gewandert; der Controller bindet es am Ende von `index()` ein.
 
-Wie im Muster faellt das handgeschriebene versteckte Feld weg: Die View ruft
-**fuenfmal** `Csrf::feld($csrfBereich)` auf und bekommt dafuer den
+Wie im Muster fällt das handgeschriebene versteckte Feld weg: Die View ruft
+**fünfmal** `Csrf::feld($csrfBereich)` auf und bekommt dafür den
 Bereichsnamen statt eines fertigen Tokens. Die Zuweisung
 `$csrfToken = Csrf::token(self::CSRF_BEREICH)` am Anfang der Methode ist damit
-tot und entfaellt – dasselbe Muster wie T-116 und T-118. Auf die
-CSRF-**Pruefung** wirkt das nicht: `Csrf::istGueltig()` liest die Session
+tot und entfällt – dasselbe Muster wie T-116 und T-118. Auf die
+CSRF-**Prüfung** wirkt das nicht: `Csrf::istGueltig()` liest die Session
 selbst, und ein Token, das erst beim Rendern entsteht, kann zu keinem schon
 abgeschickten Formular passen.
 
-**Eine View, nicht fuenfzehn Teil-Templates.** Die Seite besteht aus fuenfzehn
-unabhaengigen Check-Bloecken, und jeder waere ein eigenes Teil-Template wert.
-Dagegen steht, wie die Daten heute liegen: Die Bloecke teilen sich rund sechzig
-lose Variablen aus einer einzigen Methode. Ein Teil-Template wuerde sie
+**Eine View, nicht fünfzehn Teil-Templates.** Die Seite besteht aus fünfzehn
+unabhängigen Check-Blöcken, und jeder wäre ein eigenes Teil-Template wert.
+Dagegen steht, wie die Daten heute liegen: Die Blöcke teilen sich rund sechzig
+lose Variablen aus einer einzigen Methode. Ein Teil-Template würde sie
 stillschweigend aus der Umgebung erben – genau das, was P-2026-08-15-33 fuer
-die Blaetternavigation vermieden hat, indem es **ein** Buendel uebergibt.
-Buendel gibt es hier erst, wenn T-105 die Check-Bloecke in eigene Methoden
-zerlegt hat. Der Schnitt gehoert also hinter T-105, nicht davor; sonst wird
+die Blätternavigation vermieden hat, indem es **ein** Bündel übergibt.
+Bündel gibt es hier erst, wenn T-105 die Check-Blöcke in eigene Methoden
+zerlegt hat. Der Schnitt gehört also hinter T-105, nicht davor; sonst wird
 zweimal geschnitten und zweimal verglichen.
 
 **Keine `?? null`-Vorbelegung am Kopf der View**, anders als in den kleinen
 Masken. Der Controller setzt alle diese Variablen ausnahmslos, bevor er die
-View einbindet. Eine Vorbelegung waeren knapp sechzig Zeilen zum Mitpflegen –
-und sie wuerde einen Controller, der eine davon vergisst, in eine still leere
+View einbindet. Eine Vorbelegung wären knapp sechzig Zeilen zum Mitpflegen –
+und sie würde einen Controller, der eine davon vergisst, in eine still leere
 Kachel verwandeln statt in eine Meldung im Log. Stattdessen steht der Vertrag
-als Liste im Kopfkommentar, mit dieser Begruendung daneben.
+als Liste im Kopfkommentar, mit dieser Begründung daneben.
 
 ### TEST
 Wegwerf-Umgebung nach dem Muster aus P-2026-08-15-28, komplett neu aufgesetzt:
 zwei Kopien des Repos im Sitzungsordner (HEAD und Arbeitsstand), eigene
 `config.local.php`, frische Datenbanken `zeit_probe_t105` und
 `zeit_probe_t105_off` aus `sql/01_initial_schema.sql` bzw.
-`sql/offline_db_schema.sql`, **erfundener** Pruefbenutzer „Probe Pruefer",
+`sql/offline_db_schema.sql`, **erfundener** Prüfbenutzer „Probe Prüfer",
 beide Server mit `-d opcache.enable=0`. Entwicklungsdatenbank nicht angefasst.
 
-Erfundene Daten fuer die Kanten der Maske: Juli 2026 mit normalem Tag,
+Erfundene Daten für die Kanten der Maske: Juli 2026 mit normalem Tag,
 Mehrblock-Tag, „gehen ohne kommen", doppeltem „kommen", offenem Block und einem
 Tag ohne Tageswerte; Betriebsferien und Kurzarbeit-Volltag jeweils auf einen Tag
 mit Arbeitszeit; ein Feiertag mit gleichzeitiger Arbeitszeit; RFID-Code
 `RFID-PRÜF-001`; ein zweiter Mitarbeiter, dessen Personalnummer die ID des
 ersten ist (macht den numerischen Code mehrdeutig); Terminal-Config einmal
-gueltig, einmal ungueltig, einer geloescht; Queue-Eintraege in allen drei
-Zustaenden.
+gültig, einmal ungültig, einer gelöscht; Queue-Einträge in allen drei
+Zuständen.
 
 Verglichen wurde **leerraum-unabhaengig** (ganzes Dokument zu einem Strom,
-Umbruch nach jedem `>`, Token maskiert). Damit faellt auch der fehlende
-Zeilenumbruch von `Csrf::feld()` weg, den frueher jede Tabelle als „3 Zeilen
-je Stelle" mitfuehren musste – uebrig bleibt nur, was wirklich anders ist.
+Umbruch nach jedem `>`, Token maskiert). Damit fällt auch der fehlende
+Zeilenumbruch von `Csrf::feld()` weg, den früher jede Tabelle als „3 Zeilen
+je Stelle" mitführen musste – übrig bleibt nur, was wirklich anders ist.
 
 | Lage | Echte Abweichungen |
 | --- | --- |
@@ -458,87 +564,87 @@ je Stelle" mitfuehren musste – uebrig bleibt nur, was wirklich anders ist.
 | Terminal-Login per RFID / leer / mehrdeutig / unbekannt (`<script>`) | 0 |
 | PDF-Quick-Check mit und ohne Daten im Monat | 0 |
 | PDF-Synth-Check | 0 |
-| PDF-DB-Multipage: Top-1, Kandidatenliste, Liste mit PDF-Pruefung | 0 |
-| Feiertag-Quick-Check, gueltiges und unsinniges Datum | 0 |
-| Monatsraster-, Fallback-, Doppelzaehlung-, Feiertag+Arbeitszeit-Check | 0 |
+| PDF-DB-Multipage: Top-1, Kandidatenliste, Liste mit PDF-Prüfung | 0 |
+| Feiertag-Quick-Check, gültiges und unsinniges Datum | 0 |
+| Monatsraster-, Fallback-, Doppelzählung-, Feiertag+Arbeitszeit-Check | 0 |
 | Kommen/Gehen-Sequenz-Check (Ergebnisblock, s. u.) | 0 |
 | Feiertag-Seed-Check, seedend und mit blockiertem Schreiben („Fehlend"-Liste) | 0 |
 | `config` unlesbar (`RENAME TABLE`) | 0 |
-| Queue mit Eintraegen / Queue-Tabelle der Offline-DB unlesbar | 0 |
+| Queue mit Einträgen / Queue-Tabelle der Offline-DB unlesbar | 0 |
 | Falsches CSRF-Token | 0 |
 | Benutzer ohne Recht (403) | 0 |
 
-Die Kandidatenliste belegt die fuenfte `Csrf::feld()`-Stelle: Sie steht in der
+Die Kandidatenliste belegt die fünfte `Csrf::feld()`-Stelle: Sie steht in der
 Tabellenzeile und entsteht nur, wenn die Liste Treffer hat.
 
-Zusaetzlich der Weg, den kein HTML-Vergleich zeigt:
+Zusätzlich der Weg, den kein HTML-Vergleich zeigt:
 
-| Weg | Ergebnis auf beiden Staenden |
+| Weg | Ergebnis auf beiden Ständen |
 | --- | --- |
-| Queue-Roundtrip (`DO 1`) mit gueltigem Token | 302 auf `?seite=smoke_test`, Flash „Queue-Roundtrip OK (…, Offline-DB).", Eintrag in der Offline-DB auf `verarbeitet` |
+| Queue-Roundtrip (`DO 1`) mit gültigem Token | 302 auf `?seite=smoke_test`, Flash „Queue-Roundtrip OK (…, Offline-DB).", Eintrag in der Offline-DB auf `verarbeitet` |
 
 Die einzigen Unterschiede dieses Laufs sind die laufende Queue-ID und der
-Zufallsmarker – zwei Laeufe legen zwangslaeufig zwei verschiedene Eintraege an.
+Zufallsmarker – zwei Läufe legen zwangsläufig zwei verschiedene Einträge an.
 
-26 Backend-Routen HTTP 200 auf beiden Staenden (Routennamen aus
-`public/index.php` gelesen, nicht aus dem Gedaechtnis – die Falle aus
-P-2026-08-15-28), `php -l` ueber beide Dateien, die drei Umlaut-Suchlaeufe der
+26 Backend-Routen HTTP 200 auf beiden Ständen (Routennamen aus
+`public/index.php` gelesen, nicht aus dem Gedächtnis – die Falle aus
+P-2026-08-15-28), `php -l` über beide Dateien, die drei Umlaut-Suchläufe der
 Wartungscheckliste ohne Treffer.
 
-**Serverlogs:** beide Staende melden dieselben **zehn** PHP-Warnungen, siehe
+**Serverlogs:** beide Stände melden dieselben **zehn** PHP-Warnungen, siehe
 B-103. Neue Meldungen bringt dieser Patch keine, weggenommen hat er auch keine.
 
 ### Gefundene Fehler im eigenen Entwurf
 **Der Queue-Test hat zuerst nichts gemessen.** Um den Fehlerpfad zu erreichen,
 habe ich `db_injektionsqueue` in der **Haupt**-Datenbank umbenannt – die Seite
-zeigte weiter eine Queue mit „Gesamt 0" und ich haette das beinahe als
+zeigte weiter eine Queue mit „Gesamt 0" und ich hätte das beinahe als
 „Ersatztext nicht erreichbar" notiert. Gelesen wird die Queue aber aus der
 **Offline**-Datenbank; die Umbenennung betraf eine Tabelle, die dieser Check gar
 nicht anfasst. Erst der Blick auf die Zeile „Queue-DB: Offline-DB" hat es
 gezeigt. Dieselbe Sorte Fehler wie die gleichen Zeitstempel in P-2026-08-15-33:
-ein Test, der laeuft, aber am Gegenstand vorbei.
+ein Test, der läuft, aber am Gegenstand vorbei.
 
 **Schwache Suchmuster im Inhaltsnachweis.** Der Nachweis, dass ein Fall seinen
-Block wirklich gebaut hat, lief zuerst ueber `grep` auf Textstellen wie
+Block wirklich gebaut hat, lief zuerst über `grep` auf Textstellen wie
 „Terminal würde den Mitarbeiter per <strong>rfid" – null Treffer, obwohl der
 Block da war: Im HTML steht hinter `<strong>` ein Zeilenumbruch. Ein Muster,
-das ueber eine Zeilengrenze laeuft, beweist nichts; die Marke gehoert innerhalb
-einer Zeile gewaehlt.
+das über eine Zeilengrenze läuft, beweist nichts; die Marke gehört innerhalb
+einer Zeile gewählt.
 
 ### Zwei Fehler in fremdem Code, beide vorher schon da
 **B-102 – der Kommen/Gehen-Sequenz-Check lief noch nie.** Sein SQL wird aus
-Teilstuecken in **einfachen** Anfuehrungszeichen zusammengesetzt, die auf `\n`
+Teilstücken in **einfachen** Anführungszeichen zusammengesetzt, die auf `\n`
 enden – dort ist das kein Zeilenumbruch, sondern ein Backslash und ein `n`
 mitten im Statement. Die Seite zeigt darum immer „Sequenz-Check Fehler:
-SQLSTATE[42000] … near '\nFROM zeitbuchung …". Ein Suchlauf ueber das ganze
-Projekt findet genau diese eine Stelle. Fuer den HTML-Vergleich habe ich sie in
-**beiden Wegwerf-Kopien** vorruebergehend repariert, damit der Ergebnisblock
-ueberhaupt entsteht – mit 3 auffaelligen Tagen und 1 Mehrblock-Tag, beide
-Staende gleich –, und danach beide Kopien wieder auf ihren Ausgangsstand
-gesetzt. Im Repository ist nichts geaendert.
+SQLSTATE[42000] … near '\nFROM zeitbuchung …". Ein Suchlauf über das ganze
+Projekt findet genau diese eine Stelle. Für den HTML-Vergleich habe ich sie in
+**beiden Wegwerf-Kopien** vorübergehend repariert, damit der Ergebnisblock
+überhaupt entsteht – mit 3 auffälligen Tagen und 1 Mehrblock-Tag, beide
+Stände gleich –, und danach beide Kopien wieder auf ihren Ausgangsstand
+gesetzt. Im Repository ist nichts geändert.
 
 **B-103 – der HTML-Render-Check im PDF-DB-Auto-Multipage-Check ist blind.** Er
 liest neun `$reportHtml…`-Werte, die nur im **PDF-Quick-Check** entstehen. Bei
 seinem eigenen POST gibt es sie nicht: zehn Warnungen „Undefined variable" je
 Lauf, und die Anzeige meldet „HTML-Render-Check: SKIP" mit lauter Nullen.
 
-Beide sind aelter als dieser Patch und in beiden Staenden identisch. Nicht
+Beide sind älter als dieser Patch und in beiden Ständen identisch. Nicht
 mitgemacht, weil dieser Patch HTML-gleich bleiben muss – als B-102 und B-103
-notiert und direkt danach faellig.
+notiert und direkt danach fällig.
 
 ### Was bewusst nicht erreicht wurde
-**T-105 bleibt offen.** `index()` ist ohne Markup deutlich kuerzer, aber
-weiterhin eine einzige Methode mit fuenfzehn Check-Bloecken. Das ist der
-naechste Schnitt, und er gehoert vor den Schnitt der View in Teil-Templates
-(Begruendung oben).
+**T-105 bleibt offen.** `index()` ist ohne Markup deutlich kürzer, aber
+weiterhin eine einzige Methode mit fünfzehn Check-Blöcken. Das ist der
+nächste Schnitt, und er gehört vor den Schnitt der View in Teil-Templates
+(Begründung oben).
 
 Eine Lage ist unerreicht geblieben: die Meldung, wenn **gar keine**
-Datenbankverbindung steht. Dorthin fuehrt kein Weg, der nicht schon am Login
-scheitert – der Vergleich haette beide Male dieselbe Loginmaske verglichen.
+Datenbankverbindung steht. Dorthin führt kein Weg, der nicht schon am Login
+scheitert – der Vergleich hätte beide Male dieselbe Loginmaske verglichen.
 
-Zwei Testserver aus einer frueheren Sitzung liefen noch auf 8801 und 8802,
+Zwei Testserver aus einer früheren Sitzung liefen noch auf 8801 und 8802,
 obwohl P-2026-08-15-33 sie als beendet gemeldet hat. Sie sind gestoppt; ihre
-Datenbank war schon geloescht. Wer eine Wegwerf-Umgebung abraeumt, prueft es
+Datenbank war schon gelöscht. Wer eine Wegwerf-Umgebung abräumt, prüft es
 mit `ss -ltnp`, statt es zu glauben.
 
 ### NEXT
@@ -548,9 +654,9 @@ B-102 und B-103 beheben, danach T-105.
 
 ### EINGELESEN
 - `docs/arbeitsregeln.md` §9 in der Fassung aus P-2026-08-15-27.
-- `docs/STATUS_SNAPSHOT.md` vollstaendig.
-- Die eigenen Eintraege P-2026-08-15-25 und -27, „Was bewusst nicht erreicht
-  wurde" – dort ist diese Aufraeumarbeit zweimal angekuendigt.
+- `docs/STATUS_SNAPSHOT.md` vollständig.
+- Die eigenen Einträge P-2026-08-15-25 und -27, „Was bewusst nicht erreicht
+  wurde" – dort ist diese Aufräumarbeit zweimal angekündigt.
 
 ### DATEIEN
 - `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
@@ -561,17 +667,17 @@ Jeder Punkt unter „Offene Tasks" ist ein Satz, und T-104 und T-105 stehen als
 
 ### DONE
 Der Sitzungsabschluss aus §9, jetzt mit der Regel, die -25 dort hingeschrieben
-hat: ein Satz je Task, die Begruendung im Verlauf.
+hat: ein Satz je Task, die Begründung im Verlauf.
 
 **T-104 und T-105 sind zusammengelegt.** Sie beschrieben seit dieser Sitzung
 dieselbe Sache: Seit P-2026-08-15-33 ist der `SmokeTestController` der einzige
-verbliebene Fall von T-104 – und genau der ist T-105. Zwei Punkte fuer eine
-Aufgabe lassen den Rueckstand groesser aussehen, als er ist. Beide IDs stehen
-weiter im Text, damit aeltere Verlaufseintraege auffindbar bleiben.
+verbliebene Fall von T-104 – und genau der ist T-105. Zwei Punkte für eine
+Aufgabe lassen den Rückstand größer aussehen, als er ist. Beide IDs stehen
+weiter im Text, damit ältere Verlaufseinträge auffindbar bleiben.
 
-Gestrichen, weil ableitbar oder Verlauf: die Zaehlung der Masken (steht im
-Verlauf und driftet mit jedem Patch), die Aufzaehlung der Muster-Patches bis auf
-den letzten, der Knopf-Groessen-Hinweis (steht in `views/layout/header.php`, wo
+Gestrichen, weil ableitbar oder Verlauf: die Zählung der Masken (steht im
+Verlauf und driftet mit jedem Patch), die Aufzählung der Muster-Patches bis auf
+den letzten, der Knopf-Größen-Hinweis (steht in `views/layout/header.php`, wo
 er beim Bauen ohnehin gelesen wird) und die drei Verweise auf B-097/T-110 bei
 T-112 – ein Verweis reicht.
 
@@ -579,18 +685,18 @@ Der Block „Projektstatus" bleibt unangetastet: Er ist keine Task, sondern die
 Abgrenzung gegen Dringlichkeit, die es nicht gibt.
 
 Kaltstart 16.108 → **15.406 Bytes**, ohne dass eine Regel oder ein offener Punkt
-weggefallen waere.
+weggefallen wäre.
 
 ### TEST
-Keine Codeaenderung. Geprueft: Jeder Listenpunkt unter „Offene Tasks" ist ein
+Keine Codeänderung. Geprüft: Jeder Listenpunkt unter „Offene Tasks" ist ein
 Satz; die Anzahl offener Aufgaben ist gleich geblieben (T-104/T-105
 zusammengelegt, sechs Punkte statt sieben); die drei Links im Snapshot zeigen
-auf vorhandene Dateien (`ls`); `wc -c` ueber die vier Kaltstart-Dateien gibt
+auf vorhandene Dateien (`ls`); `wc -c` über die vier Kaltstart-Dateien gibt
 15.406.
 
 ### Was bewusst nicht erreicht wurde
-Der Verlauf selbst bleibt lang – er soll es. §6 sagt, er wird nie geloescht;
-gekuerzt wird der Snapshot, nicht die Geschichte.
+Der Verlauf selbst bleibt lang – er soll es. §6 sagt, er wird nie gelöscht;
+gekürzt wird der Snapshot, nicht die Geschichte.
 
 ### NEXT
 T-104/T-105: `SmokeTestController::index()` – die letzte Maske mit eigenem HTML.
@@ -600,8 +706,8 @@ T-104/T-105: `SmokeTestController::index()` – die letzte Maske mit eigenem HTM
 ### EINGELESEN
 - `docs/STATUS_SNAPSHOT.md` (T-120), P-2026-08-15-32 – dort ist die Frage
   entstanden.
-- Beide Bloecke vollstaendig: `views/auftrag/formular.php` (22 Zeilen) und
-  `views/auftrag/detail.php` (25 Zeilen), Zeile fuer Zeile verglichen.
+- Beide Blöcke vollständig: `views/auftrag/formular.php` (22 Zeilen) und
+  `views/auftrag/detail.php` (25 Zeilen), Zeile für Zeile verglichen.
 - `docs/arbeitsregeln.md` §3 („Keine Refactors nebenbei").
 
 ### DATEIEN
@@ -612,31 +718,31 @@ T-120 steht nicht mehr im Snapshot, und im Verlauf steht, warum die
 Katalog-Auswahl zweimal bleiben darf.
 
 ### DONE
-**Entschieden: kein gemeinsames Teil-Template.** Kein Code geaendert.
+**Entschieden: kein gemeinsames Teil-Template.** Kein Code geändert.
 
-Der Vergleich beider Bloecke (`comm` ueber die getrimmten Zeilen) ergibt
-**zwoelf** gemeinsame Zeilen, davon vier reine `<?php`-Klammern. Verschieden
-sind: Ueberschrift, Erklaertext, Rahmen-`style`, ob ein eigenes `<form>` mit
-Ziel und Knopf drumherum steht, und ob die Haekchen vorbelegt sein koennen.
+Der Vergleich beider Blöcke (`comm` über die getrimmten Zeilen) ergibt
+**zwölf** gemeinsame Zeilen, davon vier reine `<?php`-Klammern. Verschieden
+sind: Überschrift, Erklärtext, Rahmen-`style`, ob ein eigenes `<form>` mit
+Ziel und Knopf drumherum steht, und ob die Häkchen vorbelegt sein können.
 
-Ein Teil-Template dafuer braeuchte drei Parameter, um die Unterschiede wieder
-hereinzureichen – und wer dann eine der beiden Masken aendert, muss trotzdem
+Ein Teil-Template dafür bräuchte drei Parameter, um die Unterschiede wieder
+hereinzureichen – und wer dann eine der beiden Masken ändert, muss trotzdem
 erst nachsehen, was die andere davon mitbekommt. Zehn gesparte Zeilen sind das
 nicht wert.
 
-Der Grund, warum sie sich aehneln, ist kein Zufall und kein Fehler: Beide
+Der Grund, warum sie sich ähneln, ist kein Zufall und kein Fehler: Beide
 zeigen dieselbe Liste. Aber sie beantworten verschiedene Fragen – „was soll der
 neue Auftrag gleich mitbekommen" und „was fehlt diesem Auftrag noch".
 
 Das ist keine Regel gegen Teil-Templates: `views/auftrag/blaetternavigation.php`
 aus P-2026-08-15-33 ist eins geworden, weil dort ein geschlossener Block mit
-einem Datenbuendel wandert. Hier waere es eine Klammer um zwei verschiedene
+einem Datenbündel wandert. Hier wäre es eine Klammer um zwei verschiedene
 Dinge.
 
 ### TEST
-Keine Codeaenderung, also kein `php -l` und kein Klickweg. Geprueft wurde die
-Grundlage der Entscheidung: `comm -12` ueber beide Bloecke, Ergebnis oben; die
-beiden Dateien sind unveraendert (`git status` sauber ausser der Dokumentation).
+Keine Codeänderung, also kein `php -l` und kein Klickweg. Geprüft wurde die
+Grundlage der Entscheidung: `comm -12` über beide Blöcke, Ergebnis oben; die
+beiden Dateien sind unverändert (`git status` sauber außer der Dokumentation).
 
 ### Was bewusst nicht erreicht wurde
 Sollte eine dritte Maske dieselbe Auswahl brauchen, ist die Rechnung neu zu
@@ -650,7 +756,7 @@ T-105/T-104: `SmokeTestController::index()`.
 
 ### EINGELESEN
 - `docs/STATUS_SNAPSHOT.md` (B-101), P-2026-08-15-09 (B-096) und
-  P-2026-08-15-10 (T-111) – dort ist dasselbe fuer neun andere Listen passiert.
+  P-2026-08-15-10 (T-111) – dort ist dasselbe für neun andere Listen passiert.
 - `views/konfiguration/liste.php` als Muster.
 - `AuftragController::index()` und `detail()`, beide `catch`-Zweige.
 
@@ -662,13 +768,13 @@ T-105/T-104: `SmokeTestController::index()`.
 ### AKZEPTANZKRITERIUM
 Ist die Tabelle `auftrag` unlesbar, zeigt die Auftragsliste nur noch „Die
 Aufträge konnten nicht geladen werden." – der Satz „Keine Aufträge vorhanden."
-darunter faellt weg.
+darunter fällt weg.
 
 ### DONE
-B-101 aus P-2026-08-15-33. Beide Masken haengen ihren Leer-Hinweis jetzt an
+B-101 aus P-2026-08-15-33. Beide Masken hängen ihren Leer-Hinweis jetzt an
 einem eigenen Merker `$ladefehler`, den nur der `catch`-Zweig setzt. Eine leere
-Liste heisst „nichts da", ein Ladefehler heisst „nicht nachgesehen" – das sind
-zwei verschiedene Auskuenfte, und die zweite darf die erste nicht behaupten.
+Liste heißt „nichts da", ein Ladefehler heißt „nicht nachgesehen" – das sind
+zwei verschiedene Auskünfte, und die zweite darf die erste nicht behaupten.
 
 **Zwei Masken statt einer:** Die Detailansicht hatte denselben Fehler
 („Die Auftragsdetails konnten nicht geladen werden." + „Keine Buchungen
@@ -676,8 +782,8 @@ gefunden."), gefunden beim Nachstellen von B-101. Dasselbe Thema, dieselbe
 Zeile Logik, direkt nebenan – deshalb im selben Patch und nicht als zweite
 B-Nummer.
 
-Der Merker haengt bewusst **nicht** an `$fehlermeldung`: Eine misslungene
-POST-Aktion setzt eine Flash-Meldung und sagt ueber den Bestand gar nichts.
+Der Merker hängt bewusst **nicht** an `$fehlermeldung`: Eine misslungene
+POST-Aktion setzt eine Flash-Meldung und sagt über den Bestand gar nichts.
 Damit ist die Bauart im ganzen Projekt einheitlich – 16 Views nutzen jetzt
 `$ladefehler`, `grep` findet keine Stelle mehr, die den Leer-Hinweis an einer
 Fehlermeldung festmacht.
@@ -702,16 +808,16 @@ Die vorletzte Zeile ist der Punkt, an dem die alte Bauart falsch lag: Der
 Leer-Hinweis muss dort **bleiben** – die Sitzung ist abgelaufen, die Liste
 trotzdem gelesen und wirklich leer.
 
-25 Backend-Routen HTTP 200, Serverlog ohne Meldung, `php -l` ueber drei Dateien.
-Die Testdaten (323 Auftraege, 4 Buchungen) sind nach den `RENAME`- und
-`DELETE`-Laeufen wieder vollstaendig.
+25 Backend-Routen HTTP 200, Serverlog ohne Meldung, `php -l` über drei Dateien.
+Die Testdaten (323 Aufträge, 4 Buchungen) sind nach den `RENAME`- und
+`DELETE`-Läufen wieder vollständig.
 
 ### Was bewusst nicht erreicht wurde
-Der `catch`-Zweig in `detail()` faengt nur die Buchungsabfrage. Faellt das
+Der `catch`-Zweig in `detail()` fängt nur die Buchungsabfrage. Fällt das
 zweite `try` aus (Stammdaten, Arbeitsschritte, Strichcodes), zeigt die Maske
 weiterhin die Stammdaten-Zeile „Zu dieser Auftragsnummer gibt es noch keinen
-Stammdatensatz", obwohl es ihn geben koennte. Das ist derselbe Gedanke, aber ein
-anderer Pfad mit eigener Meldung – gehoert zu T-112 (`catch` → `return []`) und
+Stammdatensatz", obwohl es ihn geben könnte. Das ist derselbe Gedanke, aber ein
+anderer Pfad mit eigener Meldung – gehört zu T-112 (`catch` → `return []`) und
 nicht in diesen Patch.
 
 ### NEXT
@@ -723,7 +829,7 @@ T-105/T-104: die letzte Maske, `SmokeTestController::index()`.
 - `docs/STATUS_SNAPSHOT.md` (T-104), `views/auftrag/detail.php` als Muster
   (P-2026-08-15-32).
 - `AuftragController::index()`, `zeigeBlaetternavigation()`, `baueListenUrl()`,
-  `zaehleInaktiveAuftraege()` vollstaendig.
+  `zaehleInaktiveAuftraege()` vollständig.
 - `views/layout/header.php`, Block `.pager` / `.button-link.disabled`.
 
 ### DATEIEN
@@ -733,33 +839,33 @@ T-105/T-104: die letzte Maske, `SmokeTestController::index()`.
 
 ### AKZEPTANZKRITERIUM
 Die Auftragsliste erzeugt in allen Ansichten dasselbe HTML wie vorher – bis auf
-die Einrueckung und die `Csrf::feld()`-Stelle je Zeile –, obwohl das Markup
+die Einrückung und die `Csrf::feld()`-Stelle je Zeile –, obwohl das Markup
 jetzt in `views/auftrag/liste.php` liegt.
 
 ### DONE
 Letzte Maske des `AuftragController`; **der Controller ist damit fertig**
-(T-104 zaehlt nur noch den `SmokeTestController`). 2.053 → 1.842 Zeilen
-Controller plus 214 Zeilen Liste und 85 Zeilen Blaetternavigation.
+(T-104 zählt nur noch den `SmokeTestController`). 2.053 → 1.842 Zeilen
+Controller plus 214 Zeilen Liste und 85 Zeilen Blätternavigation.
 
-**Die Blaetternavigation wird ein eigenes Teil-Template.** Sie war eine private
-Methode, die HTML ausgab – nach dem Umzug waere sie der einzige Ort geblieben,
+**Die Blätternavigation wird ein eigenes Teil-Template.** Sie war eine private
+Methode, die HTML ausgab – nach dem Umzug wäre sie der einzige Ort geblieben,
 an dem der Controller noch Markup schreibt. Getrennt in: `baueBlaetterdaten()`
 im Controller rechnet Fenster, Pfeil-Schwelle, Von/Bis und die **URLs** aus
 (sie kommen aus `baueListenUrl()`, das bewusst aus Einzelwerten baut statt aus
 einem mitgeschickten Ziel – das bleibt Controller-Sache), und
 `views/auftrag/blaetternavigation.php` zeigt sie an.
 
-Das Teil-Template nimmt **ein** Buendel `$blaetterdaten` statt acht einzelner
-Variablen: Es wird aus `liste.php` heraus eingebunden und wuerde sonst deren
-Umgebung erben – `$seiteNr` und `$treffer` gibt es dort schon, und wer spaeter
+Das Teil-Template nimmt **ein** Bündel `$blaetterdaten` statt acht einzelner
+Variablen: Es wird aus `liste.php` heraus eingebunden und würde sonst deren
+Umgebung erben – `$seiteNr` und `$treffer` gibt es dort schon, und wer später
 eine Variable umbenennt, merkt vom stillen Mitlesen nichts.
 
-Ausserdem in den Controller gewandert: das Auslesen der beiden Flash-Meldungen,
+Außerdem in den Controller gewandert: das Auslesen der beiden Flash-Meldungen,
 das mitten im HTML stand.
 
 ### TEST
-Wegwerf-Umgebung aus P-2026-08-15-28, HEAD-Kopie auf P-2026-08-15-32. Fuer die
-Blaetternavigation **323 erfundene Auftraege** (13 Seiten), 12 davon inaktiv,
+Wegwerf-Umgebung aus P-2026-08-15-28, HEAD-Kopie auf P-2026-08-15-32. Für die
+Blätternavigation **323 erfundene Aufträge** (13 Seiten), 12 davon inaktiv,
 jeder siebte mit „Müller & Söhne" als Kunde.
 
 Verglichen wurde nach Abzug der bekannten `Csrf::feld()`-Stelle je Zeile:
@@ -769,16 +875,16 @@ Verglichen wurde nach Abzug der bekannten `Csrf::feld()`-Stelle je Zeile:
 | Seite 1 (Pfeile grau, kein Auslassungszeichen) | 0 |
 | Seite 2 und Seite 7 (Auslassung auf **beiden** Seiten) | 0 |
 | Letzte Seite (Pfeile nach rechts grau) | 0 |
-| `s=99` (ueber der letzten Seite) | 0 |
+| `s=99` (über der letzten Seite) | 0 |
 | Ansicht „inaktiv" | 0 |
 | Suche „Müller" | 0 |
-| Suche ohne Haekchen `mit_inaktiven=0` | 0 |
+| Suche ohne Häkchen `mit_inaktiven=0` | 0 |
 | Suche ohne Treffer | 0 |
 | Suche mit `%` und `_` im Begriff | 0 |
 | `auftrag`-Tabelle unlesbar (`RENAME TABLE`) | 0 |
 | Benutzer ohne `AUFTRAEGE_VERWALTEN` | 0 |
 
-Die Pfeil- und Zahlenreihe auf Seite 7 Zeichen fuer Zeichen nachgesehen:
+Die Pfeil- und Zahlenreihe auf Seite 7 Zeichen für Zeichen nachgesehen:
 `« ‹ 1 … 4 5 6 [7] 8 9 10 … 13 › »`, jede URL identisch zum alten Stand.
 
 POST-Wege auf dem neuen Stand:
@@ -786,28 +892,28 @@ POST-Wege auf dem neuen Stand:
 | Weg | Ergebnis |
 | --- | --- |
 | „Inaktiv setzen" aus Zeile mit Suche und Seite 2 | 302 auf `?seite=auftrag&q=MASSE&s=2`, `aktiv = 0`, Flash „… ist jetzt inaktiv und aus der Liste verschwunden." |
-| Falsches CSRF-Token | 302 auf `?seite=auftrag`, „Die Sitzung ist abgelaufen. Bitte erneut versuchen.", Wert unveraendert |
+| Falsches CSRF-Token | 302 auf `?seite=auftrag`, „Die Sitzung ist abgelaufen. Bitte erneut versuchen.", Wert unverändert |
 
-25 Backend-Routen HTTP 200, Serverlogs beider Staende ohne Meldung, `php -l`
-ueber drei Dateien, Umlaut-Suchlaeufe ohne Treffer.
+25 Backend-Routen HTTP 200, Serverlogs beider Stände ohne Meldung, `php -l`
+über drei Dateien, Umlaut-Suchläufe ohne Treffer.
 
 ### Gefundene Fehler im eigenen Entwurf
 Die Massendaten hatten anfangs **gleiche `geaendert_am`-Zeitstempel** (jeder
 28. Auftrag derselbe). Die Sortierung der Liste greift genau darauf zu; bei
 gleichen Werten ist die Reihenfolge unbestimmt, und `LIMIT/OFFSET` schnitt auf
-beiden Staenden andere Zeilen heraus – 112 gemeldete Abweichungen ohne einen
-einzigen Codeunterschied. Wer eine geblaetterte Liste vergleicht, braucht
+beiden Ständen andere Zeilen heraus – 112 gemeldete Abweichungen ohne einen
+einzigen Codeunterschied. Wer eine geblätterte Liste vergleicht, braucht
 **eindeutige Sortierwerte** in den Testdaten, sonst misst er den Zufall.
 
 ### Was bewusst nicht erreicht wurde
 Der Fehlerpfad zeigt weiterhin **beides**: „Die Aufträge konnten nicht geladen
 werden." und direkt darunter „Keine Aufträge vorhanden." – dieselbe falsche
-Auskunft, die P-2026-08-15-09 (B-096) fuer sechs andere Listen abgestellt hat.
+Auskunft, die P-2026-08-15-09 (B-096) für sechs andere Listen abgestellt hat.
 Hier nicht mitgemacht, weil dieser Patch HTML-gleich bleiben muss. Als **B-101**
-notiert und direkt danach faellig.
+notiert und direkt danach fällig.
 
 T-120 (die zweimal fast gleiche Katalog-Auswahl) ist mit dieser Maske
-entscheidbar geworden, gehoert aber nicht in denselben Patch.
+entscheidbar geworden, gehört aber nicht in denselben Patch.
 
 ### NEXT
 B-101, danach T-105/T-104 im `SmokeTestController`.
@@ -817,7 +923,7 @@ B-101, danach T-105/T-104 im `SmokeTestController`.
 ### EINGELESEN
 - `docs/STATUS_SNAPSHOT.md` (T-104), `views/auftrag/formular.php` als Muster
   (P-2026-08-15-31).
-- `AuftragController::detail()` vollstaendig, dazu `darfAuftraegeVerwalten()`
+- `AuftragController::detail()` vollständig, dazu `darfAuftraegeVerwalten()`
   und `pruefeZugriff()`.
 - `core/Csrf.php`, `feld()`.
 
@@ -827,28 +933,28 @@ B-101, danach T-105/T-104 im `SmokeTestController`.
 - `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
 
 ### AKZEPTANZKRITERIUM
-Das Auftragsdetail erzeugt dasselbe HTML wie vorher – bis auf die Einrueckung
+Das Auftragsdetail erzeugt dasselbe HTML wie vorher – bis auf die Einrückung
 und die drei `Csrf::feld()`-Stellen –, obwohl das Markup jetzt in
 `views/auftrag/detail.php` liegt.
 
 ### DONE
-Dritte Maske des `AuftragController` und die groesste: 2.360 → 2.053 Zeilen
-Controller plus 351 Zeilen View. Der Controller behaelt beide Abfragen (mit und
+Dritte Maske des `AuftragController` und die größte: 2.360 → 2.053 Zeilen
+Controller plus 351 Zeilen View. Der Controller behält beide Abfragen (mit und
 ohne Arbeitsschritt-Tabellen), die Summenbildung, die Strichcode-Erzeugung und
 die Katalogliste; die View bekommt fertige Werte.
 
 Zwei Dinge, die vorher **mitten im HTML** standen, rechnet jetzt der Controller
-vor: `$darfVerwalten` und der CSRF-Bereich. Das Token `$stammCsrf` faellt weg –
-die drei Formulare (Schritt hinzufuegen, aus Katalog uebernehmen, Auftrag
-loeschen) bauen ihr Feld mit `Csrf::feld($csrfBereich)`.
+vor: `$darfVerwalten` und der CSRF-Bereich. Das Token `$stammCsrf` fällt weg –
+die drei Formulare (Schritt hinzufügen, aus Katalog übernehmen, Auftrag
+löschen) bauen ihr Feld mit `Csrf::feld($csrfBereich)`.
 
 Der Kommentar „Ab hier die Stammdaten" ist als PHP-Kommentar mitgewandert; er
-erklaert die Reihenfolge der Bloecke und gilt weiterhin dem, der die Datei
-aendert.
+erklärt die Reihenfolge der Blöcke und gilt weiterhin dem, der die Datei
+ändert.
 
 ### TEST
 Wegwerf-Umgebung aus P-2026-08-15-28, HEAD-Kopie auf P-2026-08-15-31. Erfundene
-Daten: drei Auftraege (einer mit `A&"100"<x>`), vier Buchungen – eine laufende
+Daten: drei Aufträge (einer mit `A&"100"<x>`), vier Buchungen – eine laufende
 ohne Endzeit, zwei abgeschlossene auf denselben Schritt, eine auf eine
 Auftragsnummer **ohne** Stammdatensatz –, zwei Katalogschritte, davon einer
 (`saegen` / „Sägen & <b>mehr</b>") noch an keinem Auftrag.
@@ -856,46 +962,46 @@ Auftragsnummer **ohne** Stammdatensatz –, zwei Katalogschritte, davon einer
 | Lage | Abweichende Zeilen | erwartet |
 | --- | --- | --- |
 | Auftrag mit Schritten, ohne Buchung | 9 | 9 (3 × `Csrf::feld`) |
-| Auftrag mit drei Buchungen | 6 | 6 (2 × – der Loeschen-Kasten weicht dem Hinweis) |
+| Auftrag mit drei Buchungen | 6 | 6 (2 × – der Löschen-Kasten weicht dem Hinweis) |
 | Bezeichnung kommt aus dem Katalog | 6 | 6 |
 | Auftrag ohne Arbeitsschritte | 9 | 9 |
 | Nummer nur aus Buchungen (kein Stammsatz) | 0 | 0 (keine Verwaltungsformulare) |
 | Auftragsnummer gibt es gar nicht | 0 | 0 |
 | `auftragszeit` unlesbar (`RENAME TABLE`) | 9 | 9 |
 | Erfolgs-Flash nach dem Speichern | 6 | 6 |
-| Fehler-Flash nach verweigertem Loeschen | 6 | 6 |
+| Fehler-Flash nach verweigertem Löschen | 6 | 6 |
 | **Benutzer ohne `AUFTRAEGE_VERWALTEN`** | 0 | 0 |
 
 Inhaltlich nachgesehen, weil es die Zweige der Maske sind: „Gesamtstunden
-(abgeschlossen): 3.75" (2,5 h + 1,25 h; die laufende Buchung zaehlt nicht mit),
+(abgeschlossen): 3.75" (2,5 h + 1,25 h; die laufende Buchung zählt nicht mit),
 die Summentabelle je Arbeitsschritt, „(aus Katalog)", „Noch keine
 Arbeitsschritte hinterlegt.", „Zu dieser Auftragsnummer gibt es noch keinen
 Stammdatensatz", „Die Auftragsdetails konnten nicht geladen werden.", „Der
 Auftrag wurde gespeichert." und „Der Auftrag hat 3 Buchungen und wird deshalb
 nicht gelöscht. …" – der Auftrag steht danach noch in der Datenbank.
 
-Fuer den Rechte-Zweig eine **erfundene Rolle „Probe-Leser" ohne Rechte** und ein
+Für den Rechte-Zweig eine **erfundene Rolle „Probe-Leser" ohne Rechte** und ein
 Benutzer „Probe Leser": Er sieht Buchungen, Summen und den Laufkarten-Link, aber
-keinen der drei Verwaltungskaesten und keinen „Auftrag bearbeiten"-Knopf –
-identisch auf beiden Staenden.
+keinen der drei Verwaltungskästen und keinen „Auftrag bearbeiten"-Knopf –
+identisch auf beiden Ständen.
 
-25 Backend-Routen HTTP 200, Serverlogs beider Staende ohne Deprecation, Warning
-oder Notice, `php -l` ueber beide Dateien, die Umlaut-Suchlaeufe ohne Treffer.
+25 Backend-Routen HTTP 200, Serverlogs beider Stände ohne Deprecation, Warning
+oder Notice, `php -l` über beide Dateien, die Umlaut-Suchläufe ohne Treffer.
 
 ### Gefundene Fehler im eigenen Entwurf
 Der erste Vergleichslauf meldete eine Abweichung zu viel: `<p class="success">Der
 Auftrag wurde gespeichert.</p>` stand nur auf einem Stand. Das war **kein**
-Codeunterschied, sondern eine wartende Flash-Meldung aus einem frueheren
+Codeunterschied, sondern eine wartende Flash-Meldung aus einem früheren
 POST – sie wird beim ersten Lesen verbraucht, also sieht sie nur der Stand, der
-zufaellig zuerst abgerufen wird. Das Vergleichsskript holt jede Seite jetzt
+zufällig zuerst abgerufen wird. Das Vergleichsskript holt jede Seite jetzt
 zweimal und vergleicht die zweite Antwort. Wer Flash-Meldungen absichtlich
-pruefen will, muss sie auf **beiden** Staenden getrennt ausloesen – so ist es
+prüfen will, muss sie auf **beiden** Ständen getrennt auslösen – so ist es
 hier gemacht.
 
 ### Was bewusst nicht erreicht wurde
 Die Katalog-Auswahl steht jetzt zweimal fast gleich in `views/auftrag/` (im
 Formular beim Anlegen, im Detail beim Nachtragen). Die beiden unterscheiden sich
-in Zielroute, Vorbelegung und Ueberschrift; ob ein gemeinsames Teil-Template
+in Zielroute, Vorbelegung und Überschrift; ob ein gemeinsames Teil-Template
 mehr nutzt als kostet, entscheidet sich mit der letzten Maske – nicht jetzt
 nebenbei. Als **T-120** notiert.
 
@@ -918,39 +1024,39 @@ T-104, letzte Maske des `AuftragController`: die Auftragsliste (`index()`).
 
 ### AKZEPTANZKRITERIUM
 Auftrag anlegen und bearbeiten erzeugen dasselbe HTML wie vorher – bis auf die
-Einrueckung und die eine `Csrf::feld()`-Stelle –, obwohl das Markup jetzt in
+Einrückung und die eine `Csrf::feld()`-Stelle –, obwohl das Markup jetzt in
 `views/auftrag/formular.php` liegt.
 
 ### DONE
 Zweite der vier Masken des `AuftragController`. 2.460 → 2.360 Zeilen Controller
 plus 135 Zeilen View.
 
-Der Controller behaelt, was Fachlogik ist: Anzeigewerte vorrechnen, den
+Der Controller behält, was Fachlogik ist: Anzeigewerte vorrechnen, den
 Arbeitsschritt-Katalog laden (nur beim Anlegen) und die angehakten IDs aus dem
 POST lesen. Die View bekommt sieben Werte plus `$csrfBereich`.
 
 **Zwei Klassenkonstanten wandern als Variable in die View.**
 `self::STATUS_AUSWAHL` steht jetzt als `$statusAuswahl` im Aufruf, weil eine
 View die Konstanten ihres Controllers nicht kennen soll – sie wird auch von
-`speichern()` aus gerendert und haette sonst eine feste Bindung an genau diese
-Klasse. Der Altwert-Zweig („(Altwert)") prueft entsprechend `$statusAuswahl`
+`speichern()` aus gerendert und hätte sonst eine feste Bindung an genau diese
+Klasse. Der Altwert-Zweig („(Altwert)") prüft entsprechend `$statusAuswahl`
 statt der Konstante.
 
-Wie im Muster faellt das handgeschriebene versteckte CSRF-Feld weg
+Wie im Muster fällt das handgeschriebene versteckte CSRF-Feld weg
 (`Csrf::feld($csrfBereich)`), und die lokale `$esc`-Hilfe wandert mit in die
-View. Keine eigenen Groessen auf Knoepfen; die `style`-Angaben an `div`, `input`
-und `select` sind 1:1 uebernommen, damit der Vergleich aussagekraeftig bleibt.
+View. Keine eigenen Größen auf Knöpfen; die `style`-Angaben an `div`, `input`
+und `select` sind 1:1 übernommen, damit der Vergleich aussagekräftig bleibt.
 
 ### TEST
-Wegwerf-Umgebung aus P-2026-08-15-28, beide Staende neu bespielt (HEAD-Kopie auf
-P-2026-08-15-30). Erfundene Daten: drei Auftraege, einer davon mit
+Wegwerf-Umgebung aus P-2026-08-15-28, beide Stände neu bespielt (HEAD-Kopie auf
+P-2026-08-15-30). Erfundene Daten: drei Aufträge, einer davon mit
 Sonderzeichen in Nummer, Kunde und Kurzbeschreibung (`A&"100"<x>`,
 „Müller & Söhne", „Träger äöüß <b>x</b>"), einer mit dem **frei eingetippten
 Altwert-Status** `offfen`, dazu ein Katalogeintrag `fraesen` / „Fräsen".
 
 | Lage | Abweichende Zeilen | erwartet |
 | --- | --- | --- |
-| Anlegen, Katalog gefuellt | 3 | 3 (1 × `Csrf::feld`) |
+| Anlegen, Katalog gefüllt | 3 | 3 (1 × `Csrf::feld`) |
 | Bearbeiten, Sonderzeichen | 3 | 3 |
 | Bearbeiten, Altwert-Status | 3 | 3 |
 | Anlegen, kein aktiver Katalogeintrag | 3 | 3 |
@@ -962,7 +1068,7 @@ Altwert-Status** `offfen`, dazu ein Katalogeintrag `fraesen` / „Fräsen".
 Immer dieselbe Stelle: `Csrf::feld()` gibt sein `input` ohne Zeilenumbruch aus.
 Gezielt nachgesehen, weil es die Kanten dieser Maske sind: `(Altwert)` und
 `value="offfen" selected` stehen im neuen HTML, der Katalogkasten erscheint bei
-gefuelltem Katalog und fehlt bei leerem **und** bei unlesbarer Tabelle, und der
+gefülltem Katalog und fehlt bei leerem **und** bei unlesbarer Tabelle, und der
 angehakte Katalogschritt bleibt im Fehlerfall angehakt.
 
 Die Wege, die kein HTML-Vergleich zeigt:
@@ -974,26 +1080,26 @@ Die Wege, die kein HTML-Vergleich zeigt:
 | Falsches CSRF-Token | 302 `?seite=auftrag`, „Die Sitzung ist abgelaufen. Bitte erneut versuchen." |
 | Fehlermeldungen | „Bitte eine Auftragsnummer angeben.", „Die Auftragsnummer &quot;NEU-1&quot; gibt es bereits. …" |
 
-25 Backend-Routen HTTP 200, Serverlogs beider Staende ohne Deprecation, Warning
-oder Notice, `php -l` ueber beide Dateien, die drei Umlaut-Suchlaeufe der
+25 Backend-Routen HTTP 200, Serverlogs beider Stände ohne Deprecation, Warning
+oder Notice, `php -l` über beide Dateien, die drei Umlaut-Suchläufe der
 Wartungscheckliste ohne Treffer.
 
 ### Was bewusst nicht erreicht wurde
 Die beiden verbliebenen Masken des Controllers (Liste und Detail) sind die
-grossen; sie kommen einzeln. Die Detailmaske enthaelt ausserdem eine zweite
-Katalog-Auswahl, die dem Kasten in dieser View aehnelt – ob sich daraus ein
+großen; sie kommen einzeln. Die Detailmaske enthält außerdem eine zweite
+Katalog-Auswahl, die dem Kasten in dieser View ähnelt – ob sich daraus ein
 gemeinsames Teil-Template lohnt, entscheidet sich erst, wenn beide in `views/`
-liegen. Vorher waere es geraten.
+liegen. Vorher wäre es geraten.
 
 ### NEXT
-T-104, naechste Maske: `detail()`.
+T-104, nächste Maske: `detail()`.
 
 ## P-2026-08-15-30 t-118-tote-token-zuweisungen-weg
 
 ### EINGELESEN
 - `docs/STATUS_SNAPSHOT.md` (T-118), `docs/arbeitsregeln.md` §3.
 - P-2026-08-15-24 – derselbe Fund im `TerminalAdminController` (T-116), samt
-  Begruendung, warum das Entfernen gefahrlos ist.
+  Begründung, warum das Entfernen gefahrlos ist.
 - `core/Csrf.php`, `token()` und `istGueltig()`.
 - `AuftragController`: `speichern()`, `schrittSpeichern()`,
   `schritteAusKatalog()`, dazu `renderAuftragFormular()` wegen des Tokens, das
@@ -1005,12 +1111,12 @@ T-104, naechste Maske: `detail()`.
 
 ### AKZEPTANZKRITERIUM
 Ein POST auf `?seite=auftrag_schritt_speichern` mit falschem Token meldet
-weiterhin „Die Sitzung ist abgelaufen. Bitte erneut versuchen." und aendert
+weiterhin „Die Sitzung ist abgelaufen. Bitte erneut versuchen." und ändert
 nichts – obwohl die drei ungenutzten `Csrf::token()`-Zuweisungen weg sind.
 
 ### DONE
 T-118 aus P-2026-08-15-28, dasselbe Muster wie T-116: Drei Methoden holten sich
-ein Token in eine Variable, die niemand liest. Alle drei pruefen direkt danach
+ein Token in eine Variable, die niemand liest. Alle drei prüfen direkt danach
 mit `istGueltig()` und antworten mit `header('Location: …')` – sie zeigen kein
 Formular, also braucht keine von ihnen ein Token.
 
@@ -1020,41 +1126,41 @@ Formular, aber beide holen sich ihr Token dort selbst:
 gebraucht), `renderSchrittFormular()` seit P-2026-08-15-28 ueber
 `Csrf::feld()` in der View.
 
-Damit sind im `AuftragController` noch zwei `Csrf::token()`-Aufrufe uebrig, und
-beide haben einen Empfaenger.
+Damit sind im `AuftragController` noch zwei `Csrf::token()`-Aufrufe übrig, und
+beide haben einen Empfänger.
 
 ### TEST
 Wegwerf-Umgebung aus P-2026-08-15-28, Arbeitsstand neu hineingespiegelt.
 
-| Weg | falsches Token | gueltiges Token |
+| Weg | falsches Token | gültiges Token |
 | --- | --- | --- |
 | `auftrag_speichern` | 302 `?seite=auftrag`, nichts angelegt | 302 `auftrag_detail&code=NEU-1`, Auftrag da |
-| `auftrag_schritt_speichern` | 302, Schritt unveraendert | 302 aufs Detail, Code geaendert |
-| `auftrag_schritte_aus_katalog` | 302, kein Schritt dazu | 302 aufs Detail, `fraesen` uebernommen |
+| `auftrag_schritt_speichern` | 302, Schritt unverändert | 302 aufs Detail, Code geändert |
+| `auftrag_schritte_aus_katalog` | 302, kein Schritt dazu | 302 aufs Detail, `fraesen` übernommen |
 
 Alle drei Fehlerwege zeigen danach „Die Sitzung ist abgelaufen. Bitte erneut
 versuchen." in der Auftragsliste.
 
-Zusaetzlich der Fall, um den es bei T-116 ging: **frische Sitzung, in der noch
-nie ein Stamm-Formular geoeffnet wurde** – es gibt also gar kein Token in der
-Sitzung. POST mit erfundenem Token: 302, Fehlermeldung, Datensatz unveraendert.
-Genau wie vorher, als `token()` den Wert an dieser Stelle noch angelegt haette.
+Zusätzlich der Fall, um den es bei T-116 ging: **frische Sitzung, in der noch
+nie ein Stamm-Formular geöffnet wurde** – es gibt also gar kein Token in der
+Sitzung. POST mit erfundenem Token: 302, Fehlermeldung, Datensatz unverändert.
+Genau wie vorher, als `token()` den Wert an dieser Stelle noch angelegt hätte.
 
 `php -l`, Serverlog ohne Meldung.
 
 ### Was bewusst nicht erreicht wurde
-`renderAuftragFormular()` baut sein CSRF-Feld weiterhin von Hand statt ueber
-`Csrf::feld()`. Das aendert sich mit T-104, wenn diese Maske in `views/` zieht –
-vorher waere es eine HTML-Aenderung ohne Vergleichsstand.
+`renderAuftragFormular()` baut sein CSRF-Feld weiterhin von Hand statt über
+`Csrf::feld()`. Das ändert sich mit T-104, wenn diese Maske in `views/` zieht –
+vorher wäre es eine HTML-Änderung ohne Vergleichsstand.
 
 ### NEXT
-T-104, naechste Maske: `renderAuftragFormular()`.
+T-104, nächste Maske: `renderAuftragFormular()`.
 
 ## P-2026-08-15-29 t-119-umlaute-in-texten-und-kommentaren
 
 ### EINGELESEN
 - `docs/arbeitsregeln.md` §7, Absatz „Umlaute schreiben, nicht umschreiben".
-- `docs/wartungscheckliste.md`, die drei Umlaut-Suchlaeufe.
+- `docs/wartungscheckliste.md`, die drei Umlaut-Suchläufe.
 - `docs/STATUS_SNAPSHOT.md` (T-119).
 
 ### DATEIEN
@@ -1065,35 +1171,35 @@ T-104, naechste Maske: `renderAuftragFormular()`.
 
 ### AKZEPTANZKRITERIUM
 Die Maske „Arbeitsschritt bearbeiten" zeigt „Änderungen erzeugen automatisch
-einen neuen Strichcode." statt „Aenderungen …" – und der Suchlauf nach
-`Aender`/`Ueber` ausserhalb von Bezeichnern meldet nichts mehr.
+einen neuen Strichcode." statt „Änderungen …" – und der Suchlauf nach
+`Aender`/`Ueber` außerhalb von Bezeichnern meldet nichts mehr.
 
 ### DONE
 T-119 aus P-2026-08-15-28. Aus drei notierten Stellen sind beim Suchlauf **acht**
-geworden, verteilt auf fuenf Dateien:
+geworden, verteilt auf fünf Dateien:
 
 | Stelle | vorher | Art |
 | --- | --- | --- |
-| `views/auftrag/schritt_formular.php` | „Aenderungen erzeugen" | Oberflaechentext |
-| `views/arbeitsschritt_katalog/formular.php` | „Eine Aenderung erzeugt" | Oberflaechentext |
-| `controller/AuftragController.php` (Detailmaske) | „Uebernommene Schritte" | Oberflaechentext |
-| `controller/AuftragController.php` (`laufkarte()`) | „Recht zum Aendern" | Kommentar |
-| `views/layout/header.php` (4 ×) | „Ueberschrift", „Uebersichten" | CSS-Kommentar |
-| `services/TerminalDbBenutzerService.php` | „Aendern und Löschen" | Kommentar |
+| `views/auftrag/schritt_formular.php` | „Änderungen erzeugen" | Oberflächentext |
+| `views/arbeitsschritt_katalog/formular.php` | „Eine Änderung erzeugt" | Oberflächentext |
+| `controller/AuftragController.php` (Detailmaske) | „Übernommene Schritte" | Oberflächentext |
+| `controller/AuftragController.php` (`laufkarte()`) | „Recht zum Ändern" | Kommentar |
+| `views/layout/header.php` (4 ×) | „Überschrift", „Übersichten" | CSS-Kommentar |
+| `services/TerminalDbBenutzerService.php` | „Ändern und Löschen" | Kommentar |
 
 Die dritte notierte Stelle war ein Kommentar, nicht wie vermutet ein zweiter
-Oberflaechentext – der Snapshot-Eintrag hat da danebengelegen; gefunden hat ihn
+Oberflächentext – der Snapshot-Eintrag hat da danebengelegen; gefunden hat ihn
 erst der Suchlauf.
 
 **Was bewusst ASCII bleibt:** Spaltennamen (`gueltig_bis`, `uebertrag_tage`),
 Methodennamen (`loescheEintrag()`, `pruefeHauptdatenbank()`), Variablen
 (`$ueberschrift`), Formularwerte (`naechstgelegen`) und `data-`-Attribute. §7
-nennt sie ausdruecklich – der Suchlauf zeigt sie trotzdem an, deshalb ist jede
-Fundstelle einzeln angesehen worden, nicht per Ersetzung ueber alles.
+nennt sie ausdrücklich – der Suchlauf zeigt sie trotzdem an, deshalb ist jede
+Fundstelle einzeln angesehen worden, nicht per Ersetzung über alles.
 
 ### TEST
 Wegwerf-Umgebung aus P-2026-08-15-28 weiterbenutzt, Arbeitsstand neu
-hineingespiegelt. Die drei geaenderten Oberflaechentexte im HTML nachgesehen:
+hineingespiegelt. Die drei geänderten Oberflächentexte im HTML nachgesehen:
 
 | Maske | Ausgabe |
 | --- | --- |
@@ -1103,8 +1209,8 @@ hineingespiegelt. Die drei geaenderten Oberflaechentexte im HTML nachgesehen:
 
 Alle drei mit korrektem Umlaut, kein Mojibake. Die vier CSS-Kommentare stehen im
 ausgelieferten `<style>`-Block und sind dort ebenfalls richtig (zwei per `grep`
-in der Dashboard-Antwort gezaehlt); sechs Masken weiterhin HTTP 200, Serverlog
-ohne Meldung, `php -l` ueber alle fuenf geaenderten Dateien.
+in der Dashboard-Antwort gezählt); sechs Masken weiterhin HTTP 200, Serverlog
+ohne Meldung, `php -l` über alle fünf geänderten Dateien.
 
 Der Suchlauf, der die acht Stellen gefunden hat, meldet jetzt nichts mehr:
 
@@ -1113,19 +1219,19 @@ grep -rnE '(^|[^$_[:alnum:]-])(Aender|Ueber|Uebersicht)' --include='*.php' \
   views/ controller/ services/ core/ modelle/ public/ | grep -vE "\$|'|\"|->"
 ```
 
-Die Katalogmaske brauchte fuer den Test einen erfundenen Katalogeintrag
+Die Katalogmaske brauchte für den Test einen erfundenen Katalogeintrag
 (`fraesen` / „Fräsen") – ihr Hinweis erscheint nur beim Bearbeiten, nicht beim
 Anlegen.
 
 ### Gefundene Fehler im eigenen Entwurf
-Der erste Suchlauf lief nur ueber Zeilen, die **mit** `*`, `//` oder `/*`
+Der erste Suchlauf lief nur über Zeilen, die **mit** `*`, `//` oder `/*`
 beginnen. Damit fehlten die Folgezeilen mehrzeiliger Kommentare – zwei der vier
-Fundstellen in `header.php` stehen genau dort und waeren durchgerutscht.
+Fundstellen in `header.php` stehen genau dort und wären durchgerutscht.
 
 ### Was bewusst nicht erreicht wurde
 JavaScript-Bezeichner in `views/terminal/*.php` bleiben ASCII (`loesche()`,
 `pruefUrl`) – §7 will das so. Der Hinweis der Wartungscheckliste, dass zur
-Laufzeit gebaute Attribute in keinem Suchlauf auftauchen, gilt unveraendert.
+Laufzeit gebaute Attribute in keinem Suchlauf auftauchen, gilt unverändert.
 
 ### NEXT
 T-118 (drei ungenutzte `Csrf::token()`-Zuweisungen im `AuftragController`).
@@ -1139,7 +1245,7 @@ T-118 (drei ungenutzte `Csrf::token()`-Zuweisungen im `AuftragController`).
 - `core/Csrf.php`: `token()`, `feld()`, `istGueltig()`, `const FELD`.
 - `views/layout/header.php`, Block `button` / `.button-link`.
 - `AuftragController::renderSchrittFormular()` und `schrittSpeichern()`
-  vollstaendig.
+  vollständig.
 
 ### DATEIEN
 - `views/auftrag/schritt_formular.php` (neu)
@@ -1148,39 +1254,39 @@ T-118 (drei ungenutzte `Csrf::token()`-Zuweisungen im `AuftragController`).
 
 ### AKZEPTANZKRITERIUM
 Die Maske „Arbeitsschritt bearbeiten" erzeugt dasselbe HTML wie vorher – bis auf
-die Einrueckung und die eine `Csrf::feld()`-Stelle –, obwohl das Markup jetzt in
+die Einrückung und die eine `Csrf::feld()`-Stelle –, obwohl das Markup jetzt in
 `views/auftrag/schritt_formular.php` liegt.
 
 ### DONE
 Erste der vier Masken des `AuftragController` und die kleinste; bewusst als
-Einstieg gewaehlt, weil dieser Controller mit 2.505 Zeilen der groesste der
+Einstieg gewählt, weil dieser Controller mit 2.505 Zeilen der größte der
 Reihe ist und das Muster hier ohne Nebenwirkungen sitzt. 2.505 → 2.460 Zeilen
 Controller plus 71 Zeilen View. Neues Verzeichnis `views/auftrag/`.
 
 `renderSchrittFormular()` rechnet weiterhin die Anzeigewerte vor und bindet dann
-die View ein. Wie im Muster faellt das handgeschriebene versteckte Feld weg: Die
-View ruft `Csrf::feld($csrfBereich)` auf und bekommt dafuer den Bereichsnamen
+die View ein. Wie im Muster fällt das handgeschriebene versteckte Feld weg: Die
+View ruft `Csrf::feld($csrfBereich)` auf und bekommt dafür den Bereichsnamen
 statt eines fertigen Tokens. Die lokale `$esc`-Hilfsfunktion ist mit in die View
-gewandert – sie gehoert zur Darstellung.
+gewandert – sie gehört zur Darstellung.
 
-Der Knopf-Regel aus T-104 („keine eigenen Groessen") war nichts hinzuzufuegen:
-Diese Maske schreibt keine Groessen auf ihre Knoepfe. Die drei `style`-Angaben
-an `div` und `input` sind 1:1 uebernommen, damit der HTML-Vergleich aussagekraeftig
+Der Knopf-Regel aus T-104 („keine eigenen Größen") war nichts hinzuzufügen:
+Diese Maske schreibt keine Größen auf ihre Knöpfe. Die drei `style`-Angaben
+an `div` und `input` sind 1:1 übernommen, damit der HTML-Vergleich aussagekräftig
 bleibt.
 
 ### TEST
 Wegwerf-Umgebung nach dem Muster aus P-2026-08-15-08, komplett neu aufgesetzt
-(die Kopien frueherer Sitzungen sind weg): zwei Kopien des Repos im
+(die Kopien früherer Sitzungen sind weg): zwei Kopien des Repos im
 Sitzungsordner (HEAD und Arbeitsstand), eigene `config.local.php`, frische
 Datenbank `zeit_probe_t104d` aus `sql/01_initial_schema.sql`, **erfundener**
-Pruefbenutzer „Probe Pruefer", beide Server mit `-d opcache.enable=0`.
+Prüfbenutzer „Probe Prüfer", beide Server mit `-d opcache.enable=0`.
 Entwicklungsdatenbank nicht angefasst.
 
-Ein erfundener Auftrag `A&"100"<x>` mit drei Arbeitsschritten fuer die Kanten
+Ein erfundener Auftrag `A&"100"<x>` mit drei Arbeitsschritten für die Kanten
 der Maske: ein normaler, einer mit `<script>`, `&`, `"` und `äöüß` in Code und
 Bezeichnung, einer ohne Bezeichnung und inaktiv.
 
-HTML beider Staende normalisiert (Leerraum zusammengefasst, Token maskiert) und
+HTML beider Stände normalisiert (Leerraum zusammengefasst, Token maskiert) und
 verglichen:
 
 | Lage | Abweichende Zeilen | erwartet |
@@ -1192,27 +1298,27 @@ verglichen:
 | `id=0` | 0 | 0 – beide 302 auf `?seite=auftrag` |
 | POST, leerer Code | 3 | 3 |
 | POST, Code schon vergeben | 3 | 3 |
-| POST, Code laenger als 100 Zeichen | 3 | 3 |
+| POST, Code länger als 100 Zeichen | 3 | 3 |
 
 Die drei Zeilen sind immer dieselbe Stelle: `Csrf::feld()` gibt sein `input`
-ohne Zeilenumbruch aus, deshalb faellt es nach der Normalisierung mit der
-naechsten Zeile zusammen. Kein anderer Unterschied – auch nicht bei der
+ohne Zeilenumbruch aus, deshalb fällt es nach der Normalisierung mit der
+nächsten Zeile zusammen. Kein anderer Unterschied – auch nicht bei der
 Maskierung des `<script>`-Codes oder bei der fehlenden Bezeichnung.
 
 Danach die Wege, die kein HTML-Vergleich zeigt, auf dem neuen Stand:
 
 | Weg | Ergebnis |
 | --- | --- |
-| Speichern mit gueltigem Token | 302 auf `auftrag_detail`, `SCHRITT-NEU-Ä` und `Fräsen fein` in der Datenbank |
-| Falsches CSRF-Token | 302 auf `?seite=auftrag`, Flash „Die Sitzung ist abgelaufen. Bitte erneut versuchen.", nichts geaendert |
+| Speichern mit gültigem Token | 302 auf `auftrag_detail`, `SCHRITT-NEU-Ä` und `Fräsen fein` in der Datenbank |
+| Falsches CSRF-Token | 302 auf `?seite=auftrag`, Flash „Die Sitzung ist abgelaufen. Bitte erneut versuchen.", nichts geändert |
 | Fehlermeldung im Formular | „Bitte einen Code für den Arbeitsschritt angeben.", „Der Code &quot;OHNE-BEZ&quot; ist bei diesem Auftrag schon vergeben.", „Der Code darf höchstens 100 Zeichen lang sein." |
 
 25 Backend-Aufrufe HTTP 200 (Dashboard, Mitarbeiter, Rollen, Monatsreport, vier
 Urlaubsmasken, Kontingente, Konfiguration, Terminalverwaltung, Queue,
 Audit-Log, Tagesansicht, Rundungsregeln, Maschinen, Abteilungen, Feiertage,
 Betriebsferien, Kurzarbeit, Katalog, Smoke-Test, Auftragsliste, Auftrag anlegen,
-Auftragsdetail, Laufkarte), Serverlogs beider Staende ohne Deprecation, Warning
-oder Notice, `php -l` ueber beide Dateien. Die drei Suchlaeufe der
+Auftragsdetail, Laufkarte), Serverlogs beider Stände ohne Deprecation, Warning
+oder Notice, `php -l` über beide Dateien. Die drei Suchläufe der
 Wartungscheckliste zu Umlauten in `value`-Attributen, Bezeichnern und
 Variablennamen: keine Treffer.
 
@@ -1222,14 +1328,14 @@ Der Klicktest lief zuerst gegen sechs Routennamen, die es nicht gibt
 `betriebsferien`) – genau die Falle aus P-2026-08-15-08: `public/index.php`
 leitet Unbekanntes auf das Dashboard um, also **302 statt Fehlerseite**. Weil
 hier der HTTP-Code mitprotokolliert wurde, ist es aufgefallen; ein Skript, das
-nur „nicht 200" zaehlt, haette sechs nie besuchte Masken als geprueft gemeldet.
-Richtig heissen sie alle `…_admin`. Die Warnung steht seit -08 im Verlauf und
-war trotzdem wieder faellig: Routennamen gehoeren gegen `public/index.php`
-geprueft, nicht gegen das Gedaechtnis.
+nur „nicht 200" zählt, hätte sechs nie besuchte Masken als geprüft gemeldet.
+Richtig heißen sie alle `…_admin`. Die Warnung steht seit -08 im Verlauf und
+war trotzdem wieder fällig: Routennamen gehören gegen `public/index.php`
+geprüft, nicht gegen das Gedächtnis.
 
 ### Was bewusst nicht erreicht wurde
-Der Hinweistext der Maske schreibt „Aenderungen" statt „Änderungen" – ein
-Verstoss gegen §7, der schon vorher da war. Nicht mitgeaendert, weil dieser
+Der Hinweistext der Maske schreibt „Änderungen" statt „Änderungen" – ein
+Verstoß gegen §7, der schon vorher da war. Nicht mitgeändert, weil dieser
 Patch HTML-gleich bleiben muss, um vergleichbar zu sein. Mit zwei weiteren
 Fundstellen als **T-119** notiert.
 
@@ -1240,7 +1346,7 @@ Methoden, die diese Maske nicht baut, also nicht in diesem Patch – als
 **T-118** notiert.
 
 ### NEXT
-T-119 und T-118 abarbeiten, dann T-104, naechste Maske: `renderAuftragFormular()`.
+T-119 und T-118 abarbeiten, dann T-104, nächste Maske: `renderAuftragFormular()`.
 
 ## P-2026-08-15-27 t-117-kaltstart-begruendung-in-den-verlauf
 
@@ -1256,22 +1362,22 @@ T-119 und T-118 abarbeiten, dann T-104, naechste Maske: `renderAuftragFormular()
 
 ### AKZEPTANZKRITERIUM
 §9 sagt „eine Byte-Grenze gibt es nicht" mit Verweis auf P-2026-08-15-25, statt
-die Begruendung auszuschreiben – der Kaltstart faellt von 16.252 auf 16.108
+die Begründung auszuschreiben – der Kaltstart fällt von 16.252 auf 16.108
 Bytes.
 
 ### DONE
-T-117 aus P-2026-08-15-26. Der Absatz „sie hat zuletzt dazu gefuehrt, an
-Wortlaengen zu sparen …" erklaerte eine Entscheidung, die schon getroffen ist.
+T-117 aus P-2026-08-15-26. Der Absatz „sie hat zuletzt dazu geführt, an
+Wortlängen zu sparen …" erklärte eine Entscheidung, die schon getroffen ist.
 Wer §9 liest, muss wissen, dass es keine Grenze gibt; warum es sie mal gab und
-warum sie weg ist, braucht nur, wer sie wieder einfuehren will – und der findet
-es ueber die Patch-ID. Genau der Fall, den §9 selbst beschreibt: Erklaerungen
-gehoeren dorthin, wo sie bei Bedarf gelesen werden.
+warum sie weg ist, braucht nur, wer sie wieder einführen will – und der findet
+es über die Patch-ID. Genau der Fall, den §9 selbst beschreibt: Erklärungen
+gehören dorthin, wo sie bei Bedarf gelesen werden.
 
-Aus zwei Absaetzen ist einer geworden, die Regel und die Snapshot-Disziplin
-stehen unveraendert darin.
+Aus zwei Absätzen ist einer geworden, die Regel und die Snapshot-Disziplin
+stehen unverändert darin.
 
 ### TEST
-Keine Codeaenderung. `cat CLAUDE.md CHATSTART.md docs/arbeitsregeln.md
+Keine Codeänderung. `cat CLAUDE.md CHATSTART.md docs/arbeitsregeln.md
 docs/STATUS_SNAPSHOT.md | wc -c` gibt **16.108** (vorher 16.252, vor der ganzen
 Reihe 15.803). Die Patch-ID im Verweis existiert: `git log --grep=P-2026-08-15-25`
 findet den Commit, und der Eintrag steht in dieser Datei. §9 nennt weiterhin
@@ -1283,7 +1389,7 @@ Der Rest der 305 Bytes, die die Reihe gekostet hat, bleibt stehen: Er steckt in
 Beiwerk.
 
 Der Snapshot ist weiterhin nicht auf „ein Satz je Eintrag" gebracht – dieselbe
-Ansage wie in P-2026-08-15-25, sie gilt unveraendert.
+Ansage wie in P-2026-08-15-25, sie gilt unverändert.
 
 ### NEXT
 T-104, erste der vier Masken im `AuftragController`.
@@ -1304,25 +1410,25 @@ T-104, erste der vier Masken im `AuftragController`.
 - `docs/archiv/DEV_PROMPT_HISTORY.md`
 
 ### AKZEPTANZKRITERIUM
-§0 verlangt das Ansprechen nicht mehr nur fuer die Regeln in dieser Datei,
-sondern fuer alles am Arbeitsweg, was stoert – und die beiden Verweise darauf
+§0 verlangt das Ansprechen nicht mehr nur für die Regeln in dieser Datei,
+sondern für alles am Arbeitsweg, was stört – und die beiden Verweise darauf
 in `CHATSTART.md` und `README.md` sagen dasselbe.
 
 ### DONE
 §0 stand seit P-2026-08-15-07 da, aber eng: Gegenstand war „jede Regel hier".
 Genau das hat in dieser Sitzung nicht gereicht – die Byte-Grenze aus §9 war
 formal eine Regel, das eigentliche Problem lag aber daneben (der Snapshot
-waechst, die Zahl bestraft dafuer die Formulierung). Ein Befund, der zu keiner
-einzelnen Regel gehoert, hatte damit keine Stelle, an der er hingehoert, und
+wächst, die Zahl bestraft dafür die Formulierung). Ein Befund, der zu keiner
+einzelnen Regel gehört, hatte damit keine Stelle, an der er hingehört, und
 wurde dreimal als Nebensatz im Verlauf abgelegt.
 
-Ein Absatz mehr in §0, mit vier Beispielen, damit „stoert" nicht abstrakt
+Ein Absatz mehr in §0, mit vier Beispielen, damit „stört" nicht abstrakt
 bleibt: ein Schritt, der jedes Mal Zeit kostet; eine Datei am falschen Ort;
 eine Doku, die niemand mehr liest; eine Vorgabe, die keiner gestellt hat. Der
 letzte Fall ist der aus P-2026-08-15-25.
 
 ### TEST
-Keine Codeaenderung. `grep -rn "besprechbar"` ueber alle `*.md` ausserhalb des
+Keine Codeänderung. `grep -rn "besprechbar"` über alle `*.md` außerhalb des
 Verlaufs meldet die drei erwarteten Stellen, alle drei jetzt mit dem weiteren
 Geltungsbereich; die Links in `CHATSTART.md` auf `docs/arbeitsregeln.md` und in
 `README.md` auf dieselbe Datei zeigen weiterhin auf existierende Pfade
@@ -1331,33 +1437,33 @@ Geltungsbereich; die Links in `CHATSTART.md` auf `docs/arbeitsregeln.md` und in
 Kaltstart 16.252 Bytes gegen 15.803 vor P-2026-08-15-25 – die beiden
 Regelpatches kosten zusammen 449 Bytes. Der Entwurf dieses Eintrags behauptete
 15.808 („§9 spart mehr ein, als §0 dazukommt"), geschrieben vor dem Messen: Der
-neue §9 erklaert jetzt auch, *warum* es keine Grenze gibt, und ist damit laenger
-als der alte samt `wc`-Block. Ohne Grenze ist die Zahl kein Verstoss mehr, eine
+neue §9 erklärt jetzt auch, *warum* es keine Grenze gibt, und ist damit länger
+als der alte samt `wc`-Block. Ohne Grenze ist die Zahl kein Verstoß mehr, eine
 erfundene Zahl im Verlauf aber sehr wohl.
 
 ### Was bewusst nicht erreicht wurde
-`CLAUDE.md` bleibt unberuehrt: Sie soll laut ihrem eigenen Kopf nur enthalten,
-was ausschliesslich fuer Claude Code gilt – ein vierter Ort fuer denselben Satz
-waere genau die Doppelfuehrung, vor der sie warnt.
+`CLAUDE.md` bleibt unberührt: Sie soll laut ihrem eigenen Kopf nur enthalten,
+was ausschließlich für Claude Code gilt – ein vierter Ort für denselben Satz
+wäre genau die Doppelführung, vor der sie warnt.
 
-Die Begruendung „keine Grenze, weil …" steht noch im Regeltext selbst, also im
-Kaltstart, obwohl sie Verlauf ist. Gehoert gekuerzt – aber als eigener Patch,
+Die Begründung „keine Grenze, weil …" steht noch im Regeltext selbst, also im
+Kaltstart, obwohl sie Verlauf ist. Gehört gekürzt – aber als eigener Patch,
 das ist §9 und nicht §0. Als **T-117** notiert.
 
 ### NEXT
-T-117 (§9 kuerzen), danach T-104, erste der vier Masken im `AuftragController`.
+T-117 (§9 kürzen), danach T-104, erste der vier Masken im `AuftragController`.
 
 ## P-2026-08-15-25 kaltstart-ohne-byte-grenze
 
 ### EINGELESEN
-- `docs/arbeitsregeln.md` §9 vollstaendig.
-- Die eigenen Eintraege P-2026-08-15-13 und -14 – dort steht der Befund, dass
-  fuenfmal gekuerzt wurde, um etwas hinzufuegen zu duerfen.
+- `docs/arbeitsregeln.md` §9 vollständig.
+- Die eigenen Einträge P-2026-08-15-13 und -14 – dort steht der Befund, dass
+  fünfmal gekürzt wurde, um etwas hinzufügen zu dürfen.
 - Ansage von Manuel im Chat: „ich hab da keine grenze gesetzt von 4 dateien und
   16kb .. mach die grenze weg .. tu was du schafst … so klein wie irgend
-  moeglich aber wenn es halt ein bisschen mehr braucht braucht es ein bisschen
+  möglich aber wenn es halt ein bisschen mehr braucht braucht es ein bisschen
   mehr".
-- `grep` nach `16.384`/`16.000`/`Kaltstart` ueber alle `*.md` – die Grenze stand
+- `grep` nach `16.384`/`16.000`/`Kaltstart` über alle `*.md` – die Grenze stand
   nur in §9, nirgends sonst.
 
 ### DATEIEN
@@ -1366,44 +1472,44 @@ T-117 (§9 kuerzen), danach T-104, erste der vier Masken im `AuftragController`.
 
 ### AKZEPTANZKRITERIUM
 §9 nennt keine Byte-Zahl und keinen Messbefehl mehr, sondern „so kurz wie
-moeglich, aber nicht kuerzer" plus die Disziplin, an der es wirklich haengt:
+möglich, aber nicht kürzer" plus die Disziplin, an der es wirklich hängt:
 ein Satz je Bug und Task im Snapshot.
 
 ### DONE
-Die Grenze von 16.384 Bytes hat sich niemand gewuenscht – sie war eine
-Eigenerfindung frueherer Sitzungen aus der richtigen Absicht „Kaltstart klein
+Die Grenze von 16.384 Bytes hat sich niemand gewünscht – sie war eine
+Eigenerfindung früherer Sitzungen aus der richtigen Absicht „Kaltstart klein
 halten". Als Zahl hat sie das Falsche gesteuert: Weil der Snapshot voll
-mitzaehlt und jede Sitzung, die Bugs findet, ihn wachsen laesst, wurde am Ende
-an Wortlaengen gespart (30 Bytes in P-2026-08-15-14), statt zu entscheiden, was
-ueberhaupt hineingehoert. Eine Zahl, die man durch Umformulieren erreicht, misst
+mitzählt und jede Sitzung, die Bugs findet, ihn wachsen lässt, wurde am Ende
+an Wortlängen gespart (30 Bytes in P-2026-08-15-14), statt zu entscheiden, was
+überhaupt hineingehört. Eine Zahl, die man durch Umformulieren erreicht, misst
 nichts mehr.
 
-Ersetzt durch zwei Saetze, die dasselbe Ziel ohne Zahl verfolgen: kurz halten,
+Ersetzt durch zwei Sätze, die dasselbe Ziel ohne Zahl verfolgen: kurz halten,
 aber ein paar Zeilen mehr sind erlaubt, wenn die Sache sie braucht – und die
-Disziplin dort ansetzen, wo der Umfang tatsaechlich entsteht: ein Satz je Bug
-und Task im Snapshot, Begruendung im Verlauf.
+Disziplin dort ansetzen, wo der Umfang tatsächlich entsteht: ein Satz je Bug
+und Task im Snapshot, Begründung im Verlauf.
 
 Mit entfallen ist der `wc -c`-Block samt Warnung vor `wc -c -m` (P-2026-08-14-03)
 – ohne Grenze gibt es nichts zu messen. Die Falle bleibt im Verlauf dokumentiert,
-falls je wieder jemand zaehlt.
+falls je wieder jemand zählt.
 
 ### TEST
-Keine Codeaenderung, also kein `php -l` und kein Klickweg. Geprueft wurde die
-Dokumentation selbst: `grep -rn "16\.384\|16\.000\|16384\|Kaltstart"` ueber alle
-`*.md` ausserhalb des Verlaufs meldet nur noch die Ueberschrift von §9. Kein
+Keine Codeänderung, also kein `php -l` und kein Klickweg. Geprüft wurde die
+Dokumentation selbst: `grep -rn "16\.384\|16\.000\|16384\|Kaltstart"` über alle
+`*.md` außerhalb des Verlaufs meldet nur noch die Überschrift von §9. Kein
 anderer Text und keine andere Datei hat sich auf die Zahl berufen, also gibt es
-keine haengenden Verweise. §9 ist um 4 Zeilen kuerzer als vorher.
+keine hängenden Verweise. §9 ist um 4 Zeilen kürzer als vorher.
 
 ### Gefundene Fehler im eigenen Entwurf
-Der erste Entwurf hat die Grenze nur angehoben (auf 24 KB). Das waere derselbe
-Fehler mit groesserer Zahl gewesen: Auch 24.000 werden erreicht, und dann steht
-dieselbe Sitzung wieder vor derselben Wahl zwischen Kuerzen und Weglassen.
+Der erste Entwurf hat die Grenze nur angehoben (auf 24 KB). Das wäre derselbe
+Fehler mit größerer Zahl gewesen: Auch 24.000 werden erreicht, und dann steht
+dieselbe Sitzung wieder vor derselben Wahl zwischen Kürzen und Weglassen.
 
 ### Was bewusst nicht erreicht wurde
 Der Snapshot ist mit diesem Patch **nicht** auf „ein Satz je Eintrag" gebracht
 worden – er hat heute mehrere mehrzeilige Punkte (T-104, T-112). Das ist eine
-inhaltliche Entscheidung je Eintrag und gehoert nicht in denselben Patch wie die
-Regel; es faellt beim naechsten Aufraeumen des Snapshots an.
+inhaltliche Entscheidung je Eintrag und gehört nicht in denselben Patch wie die
+Regel; es fällt beim nächsten Aufräumen des Snapshots an.
 
 ### NEXT
 §0: dass nicht nur Regeln, sondern der ganze Arbeitsweg besprechbar ist.
@@ -1412,7 +1518,7 @@ Regel; es faellt beim naechsten Aufraeumen des Snapshots an.
 
 ### EINGELESEN
 - `docs/STATUS_SNAPSHOT.md` (T-116), `docs/arbeitsregeln.md` §3.
-- `core/Csrf.php`, `token()`, `feld()` und `istGueltig()` vollstaendig.
+- `core/Csrf.php`, `token()`, `feld()` und `istGueltig()` vollständig.
 - Die drei Methoden `toggleFlag()`, `kopplung()`, `entkoppeln()`.
 
 ### DATEIEN
@@ -1429,11 +1535,11 @@ T-116 aus P-2026-08-15-23. Drei Methoden holten sich ein Token in eine Variable,
 die niemand liest – alle drei antworten mit `header('Location: …')` und zeigen
 gar kein Formular.
 
-**Warum das gefahrlos ist, obwohl `token()` mehr tut als zurueckgeben:** Die
+**Warum das gefahrlos ist, obwohl `token()` mehr tut als zurückgeben:** Die
 Methode legt den Wert in der Sitzung an, wenn er fehlt. Fehlt er, kann
 `istGueltig()` direkt danach aber ohnehin nicht zustimmen – es vergleicht den
-frisch erzeugten Wert mit dem aus dem POST, und die koennen nicht gleich sein.
-Der Weg endet also so oder so bei der Fehlermeldung. Das naechste Formular legt
+frisch erzeugten Wert mit dem aus dem POST, und die können nicht gleich sein.
+Der Weg endet also so oder so bei der Fehlermeldung. Das nächste Formular legt
 sein Token selbst an, weil `Csrf::feld()` intern `token()` aufruft.
 
 ### TEST
@@ -1450,9 +1556,9 @@ Wegwerf-Umgebung aus P-2026-08-15-08.
 22 Backend-Aufrufe HTTP 200, Serverlog ohne Meldung, `php -l`.
 
 ### Was bewusst nicht erreicht wurde
-Ob andere Controller dieselbe tote Zuweisung mitschleppen, ist ungeprueft. Ein
-Suchlauf waere billig (`grep -rn "csrfToken = Csrf::token" controller/`), das
-Aufraeumen aber je Datei eine eigene Pruefung wert – und diese Sitzung endet
+Ob andere Controller dieselbe tote Zuweisung mitschleppen, ist ungeprüft. Ein
+Suchlauf wäre billig (`grep -rn "csrfToken = Csrf::token" controller/`), das
+Aufräumen aber je Datei eine eigene Prüfung wert – und diese Sitzung endet
 hier.
 
 ### NEXT
@@ -1473,25 +1579,25 @@ T-104 geht weiter mit dem `AuftragController` (vier Masken).
 - `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
 
 ### AKZEPTANZKRITERIUM
-Das Terminal-Formular erzeugt dasselbe HTML wie vorher – bis auf die Einrueckung
+Das Terminal-Formular erzeugt dasselbe HTML wie vorher – bis auf die Einrückung
 und die eine `Csrf::feld()`-Stelle –, obwohl das Markup jetzt in
 `views/terminal_admin/formular.php` liegt.
 
 ### DONE
 Zweite und letzte Maske des `TerminalAdminController`; **der Controller ist
-damit fertig** (T-104 zaehlt noch fuenf Masken, alle in `AuftragController` und
+damit fertig** (T-104 zählt noch fünf Masken, alle in `AuftragController` und
 `SmokeTestController`). 717 → 638 Zeilen Controller plus 111 Zeilen View.
 
 `renderFormular()` rechnet weiterhin die Anzeigewerte vor (Standardwerte,
 `modus` auf die erlaubten zwei begrenzt, `timeout` mindestens 60) und bindet
 danach die View ein.
 
-**Der Parameter `$csrfToken` faellt weg.** Er existierte nur, um das
-handgeschriebene versteckte Feld zu fuellen; die View ruft jetzt
+**Der Parameter `$csrfToken` fällt weg.** Er existierte nur, um das
+handgeschriebene versteckte Feld zu füllen; die View ruft jetzt
 `Csrf::feld($csrfBereich)` auf, wie alle migrierten Formulare. Die Signatur hat
 damit drei statt vier Parameter, angepasst an allen vier Aufrufstellen. Das ist
 kein Refactor nebenbei, sondern das Ende desselben Fadens: Das Argument hatte
-nach dem Umzug keinen Empfaenger mehr.
+nach dem Umzug keinen Empfänger mehr.
 
 Zwei `$csrfToken = Csrf::token(...)`-Zeilen sind dadurch verwaist und
 entfernt. Das ist gefahrlos, weil `Csrf::feld()` den Token selbst anlegt, falls
@@ -1511,32 +1617,32 @@ Speichern-Wege auf dem neuen Stand:
 | Weg | Ergebnis |
 | --- | --- |
 | Neues Terminal anlegen | 302 auf die Liste, Zeile mit allen Werten (`Halle C`, `terminal`, 90 s) |
-| Bearbeiten-Formular | Felder gefuellt (`value="Probe-Terminal"`, `value="Halle C"`, `value="90"`) |
-| Aendern (Name, Standort, Modus, Timeout) | 302, alle vier Werte in der Datenbank geaendert |
+| Bearbeiten-Formular | Felder gefüllt (`value="Probe-Terminal"`, `value="Halle C"`, `value="90"`) |
+| Ändern (Name, Standort, Modus, Timeout) | 302, alle vier Werte in der Datenbank geändert |
 | Checkbox `aktiv` **nicht** gesendet | `aktiv = 0`, ebenso die beiden Offline-Flags |
 | Leerer Name | „Bitte geben Sie einen Namen für das Terminal ein." |
-| Falsches CSRF-Token | HTTP 400, Formular kommt **gefuellt** zurueck (`value="Boeser Versuch"`), nichts gespeichert |
+| Falsches CSRF-Token | HTTP 400, Formular kommt **gefüllt** zurück (`value="Boeser Versuch"`), nichts gespeichert |
 
-Die vorletzte Zeile ist der Grund, aus dem die Maske ueberhaupt ein Formular
-zurueckgibt statt einer nackten Fehlerseite: Nach einem abgelehnten POST soll
-die Eingabe nicht verloren sein. Genau das haette ein unachtsamer Umzug
-zerstoert.
+Die vorletzte Zeile ist der Grund, aus dem die Maske überhaupt ein Formular
+zurückgibt statt einer nackten Fehlerseite: Nach einem abgelehnten POST soll
+die Eingabe nicht verloren sein. Genau das hätte ein unachtsamer Umzug
+zerstört.
 
-22 Backend-Aufrufe HTTP 200, Serverlog ohne Meldung, `php -l` ueber beide
+22 Backend-Aufrufe HTTP 200, Serverlog ohne Meldung, `php -l` über beide
 Dateien, Umlaut-Suchlauf ohne Treffer.
 
 ### Gefundene Fehler im eigenen Entwurf
 Beim Test stand zuerst `aktiv=0` im POST, und das Terminal war danach trotzdem
 aktiv. Kein Fehler der Anwendung: `leseTerminalAusPost()` liest Checkboxen mit
-`isset()`, und ein Browser sendet ein nicht angehaktes Kaestchen gar nicht.
-`aktiv=0` **ist** also „angehakt". Der Test prueft jetzt richtig, naemlich ohne
+`isset()`, und ein Browser sendet ein nicht angehaktes Kästchen gar nicht.
+`aktiv=0` **ist** also „angehakt". Der Test prüft jetzt richtig, nämlich ohne
 den Parameter.
 
 ### Was bewusst nicht erreicht wurde
 Drei weitere `$csrfToken = Csrf::token(...)` im Controller (in `toggleFlag()`,
 `kopplung()`, `entkoppeln()`) sind ebenfalls ungenutzt – das waren sie aber
-schon **vor** diesem Patch (nachgesehen in `git show HEAD:`). Sie gehoeren in
-einen eigenen kleinen Patch, nicht in diesen: Hier faellt nur weg, was dieser
+schon **vor** diesem Patch (nachgesehen in `git show HEAD:`). Sie gehören in
+einen eigenen kleinen Patch, nicht in diesen: Hier fällt nur weg, was dieser
 Patch verwaist hat. Notiert als **T-116**.
 
 ### NEXT
@@ -1546,7 +1652,7 @@ T-116 (drei ungenutzte Token-Zeilen), danach T-104 mit dem `AuftragController`.
 
 ### EINGELESEN
 - `docs/STATUS_SNAPSHOT.md` (T-115), `docs/arbeitsregeln.md`.
-- `views/layout/header.php`, die Bloecke `button`/`.button-link`,
+- `views/layout/header.php`, die Blöcke `button`/`.button-link`,
   `.table-actions` und `.table-wrap` samt ihren Kommentaren.
 - `views/mitarbeiter/liste.php` als Beispiel, wo beide Klassen zusammen stehen.
 - `views/terminal_admin/liste.php` (aus P-2026-08-15-21).
@@ -1556,67 +1662,67 @@ T-116 (drei ungenutzte Token-Zeilen), danach T-104 mit dem `AuftragController`.
 - `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
 
 ### AKZEPTANZKRITERIUM
-Kein Knopf der Terminalliste schreibt mehr seine eigene Groesse, die Knoepfe sind
+Kein Knopf der Terminalliste schreibt mehr seine eigene Größe, die Knöpfe sind
 alle 28 Pixel hoch – und bei 820 Pixeln Fensterbreite schiebt die Tabelle nicht
 mehr die ganze Seite zur Seite, sondern scrollt in ihrem eigenen Rahmen.
 
 ### DONE
-T-115 aus P-2026-08-15-21. Die sechs Knoepfe trugen
+T-115 aus P-2026-08-15-21. Die sechs Knöpfe trugen
 `style="padding: 0.15rem 0.5rem;"` – genau das, was T-104 verbietet. Sie stehen
-jetzt in `.table-actions`, dem Block, den `views/layout/header.php` fuer Knoepfe
-in Tabellenzellen bereithaelt.
+jetzt in `.table-actions`, dem Block, den `views/layout/header.php` für Knöpfe
+in Tabellenzellen bereithält.
 
 **Die Annahme in T-115 war falsch, und das Messen hat es gezeigt.** Notiert war,
-die Knoepfe wuerden ohne die eigene Angabe „auf die Standardgroesse springen und
-die Tabelle deutlich hoeher machen". Tatsaechlich waren sie **vorher** groesser:
+die Knöpfe würden ohne die eigene Angabe „auf die Standardgröße springen und
+die Tabelle deutlich höher machen". Tatsächlich waren sie **vorher** größer:
 `min-height: 2rem` aus dem Layout gewinnt gegen ein kleineres `padding`, die
-Knoepfe waren also schon immer 32 Pixel hoch. In `.table-actions` sind sie 28.
-Wer eine sichtbare Aenderung nur schaetzt, schaetzt in die falsche Richtung.
+Knöpfe waren also schon immer 32 Pixel hoch. In `.table-actions` sind sie 28.
+Wer eine sichtbare Änderung nur schätzt, schätzt in die falsche Richtung.
 
-Dazu kam `.table-wrap` um die Tabelle. Das gehoert zum selben Thema, nicht
+Dazu kam `.table-wrap` um die Tabelle. Das gehört zum selben Thema, nicht
 nebenbei: `.table-actions` setzt in Zellen `flex-wrap: nowrap` und
-`white-space: nowrap`, die Spalten koennen also nicht mehr so weit schrumpfen.
+`white-space: nowrap`, die Spalten können also nicht mehr so weit schrumpfen.
 Bei 820 Pixeln war die Tabelle danach 1.218 statt 1.049 Pixel breit – ohne
-Rahmen haette das die **Seite** breiter gemacht. Der Kommentar an `.table-wrap`
+Rahmen hätte das die **Seite** breiter gemacht. Der Kommentar an `.table-wrap`
 im Layout sagt genau das voraus; hier ist der Fall eingetreten.
 
 ### TEST
 Wegwerf-Umgebung aus P-2026-08-15-08, zwei erfundene Terminals (eines gekoppelt,
-eines nicht). Gemessen wurde diesmal **im Browser** ueber das DOM, nicht im
-HTML-Text – Groessen stehen nicht im Markup, sondern entstehen aus dem
+eines nicht). Gemessen wurde diesmal **im Browser** über das DOM, nicht im
+HTML-Text – Größen stehen nicht im Markup, sondern entstehen aus dem
 Stylesheet.
 
 Bei 1.280 Pixeln Fensterbreite:
 
-| Groesse | HEAD | neu |
+| Größe | HEAD | neu |
 | --- | --- | --- |
-| Knopfhoehe | 32 px | 28 px |
-| Schriftgroesse im Knopf | 14,88 px | 14,4 px |
-| Zeilenhoehen der zwei Zeilen | 114 / 67 px | 110 / 56 px |
+| Knopfhöhe | 32 px | 28 px |
+| Schriftgröße im Knopf | 14,88 px | 14,4 px |
+| Zeilenhöhen der zwei Zeilen | 114 / 67 px | 110 / 56 px |
 | Tabellenbreite | 1.237 px | 1.237 px |
-| Seite laeuft ueber | nein | nein |
+| Seite läuft über | nein | nein |
 
 Bei 820 Pixeln:
 
 | | HEAD | neu |
 | --- | --- | --- |
 | Tabellenbreite | 1.049 px | 1.218 px |
-| **Seite** laeuft ueber | **ja** | nein |
+| **Seite** läuft über | **ja** | nein |
 | Tabelle scrollt im Rahmen | – | ja |
 
-Bei 375 Pixeln (Mobilgeraet): Seite laeuft nicht ueber, Tabelle scrollt im
-Rahmen, Knoepfe weiterhin 28 Pixel. Zusaetzlich geprueft, dass in **jeder**
+Bei 375 Pixeln (Mobilgerät): Seite läuft nicht über, Tabelle scrollt im
+Rahmen, Knöpfe weiterhin 28 Pixel. Zusätzlich geprüft, dass in **jeder**
 Aktionszelle der Inhalt in die Zelle passt (Flex-Breite ≤ Zellenbreite) – bei
 `nowrap` ist das die Stelle, an der es sonst herausragt.
 
-Funktionsprobe danach unveraendert: Kopplungscode erzeugen (Panel genau einmal),
+Funktionsprobe danach unverändert: Kopplungscode erzeugen (Panel genau einmal),
 Quick-Toggle kippt den Wert, falsches CSRF-Token wird abgewiesen. 22
 Backend-Aufrufe HTTP 200, Serverlog ohne Meldung, `php -l`.
 
 ### Was bewusst nicht erreicht wurde
-Andere Masken haben dieselben handgeschriebenen Groessen (`AuftragController`,
+Andere Masken haben dieselben handgeschriebenen Größen (`AuftragController`,
 Teile der Urlaubsansichten). Nicht angefasst – hier ging es um die Liste, die
-gerade nach `views/` gezogen ist. Wer die naechste Maske migriert, sieht sie
+gerade nach `views/` gezogen ist. Wer die nächste Maske migriert, sieht sie
 ohnehin.
 
 ### NEXT
@@ -1627,9 +1733,9 @@ Controllers.
 
 ### EINGELESEN
 - `docs/STATUS_SNAPSHOT.md` (T-104), `docs/arbeitsregeln.md`.
-- `controller/TerminalAdminController.php`, `index()` vollstaendig.
+- `controller/TerminalAdminController.php`, `index()` vollständig.
 - `views/konfiguration/systemlog.php` als Muster.
-- `views/terminal/` – wofuer das Verzeichnis schon belegt ist (Kiosk-UI).
+- `views/terminal/` – wofür das Verzeichnis schon belegt ist (Kiosk-UI).
 - `sql/01_initial_schema.sql`, Tabelle `terminal`.
 
 ### DATEIEN
@@ -1638,28 +1744,28 @@ Controllers.
 - `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
 
 ### AKZEPTANZKRITERIUM
-Die Terminalliste erzeugt dasselbe HTML wie vorher – bis auf die Einrueckung und
-die fuenf `Csrf::feld()`-Stellen –, obwohl das Markup jetzt in
+Die Terminalliste erzeugt dasselbe HTML wie vorher – bis auf die Einrückung und
+die fünf `Csrf::feld()`-Stellen –, obwohl das Markup jetzt in
 `views/terminal_admin/liste.php` liegt.
 
 ### DONE
-Erste der beiden Masken des `TerminalAdminController`. Der Controller behaelt
+Erste der beiden Masken des `TerminalAdminController`. Der Controller behält
 Flash-Meldungen, Kopplungscode-Verbrauch und die Abfrage; die View bekommt neun
 Werte. 864 → 717 Zeilen Controller plus 178 Zeilen View.
 
 **Ein eigenes Verzeichnis `views/terminal_admin/`**, nicht `views/terminal/`:
-Letzteres ist die Kiosk-Oberflaeche (`start.php`, `stoerung.php`,
-`_layout_top.php` …). Backend-Maske und Geraete-UI im selben Verzeichnis waeren
+Letzteres ist die Kiosk-Oberfläche (`start.php`, `stoerung.php`,
+`_layout_top.php` …). Backend-Maske und Geräte-UI im selben Verzeichnis wären
 zwei Dinge unter einem Namen; die Trennung entspricht auch dem, was
 `installation_typ` unterscheidet.
 
-Nebenbei bestaetigt: Die Unterstrich-Schreibweise fuer Teil-Templates aus
-P-2026-08-15-20 gibt es im Projekt laengst – `views/terminal/` benutzt sie fuer
+Nebenbei bestätigt: Die Unterstrich-Schreibweise für Teil-Templates aus
+P-2026-08-15-20 gibt es im Projekt längst – `views/terminal/` benutzt sie für
 `_layout_top.php`, `_statusbox.php`, `_script.php`. Der Name war also keine
 Erfindung, sondern (unwissentlich) die schon vorhandene Regel.
 
 **Eine bewusste Abweichung**: `Csrf::feld()` statt der handgeschriebenen Zeile,
-fuenf Stellen im Markup.
+fünf Stellen im Markup.
 
 ### TEST
 Wegwerf-Umgebung aus P-2026-08-15-08; die HEAD-Kopie wird seit diesem Lauf vom
@@ -1674,43 +1780,43 @@ inaktiv, ohne Standort, `auto_logout_timeout_sekunden = 0`.
 | Leere Liste | 0 | 0 |
 | Tabelle unlesbar | 0 | 0 |
 
-Danach die Wege, die kein Seitenaufruf zeigt, auf **beiden** Staenden gleich:
+Danach die Wege, die kein Seitenaufruf zeigt, auf **beiden** Ständen gleich:
 
 | Weg | Ergebnis |
 | --- | --- |
-| Kopplungscode erzeugen | 302, Panel „Kopplungscode für …" erscheint **einmal**, beim naechsten Aufruf nicht mehr; Zeile „Code offen bis" steht in der Tabelle |
+| Kopplungscode erzeugen | 302, Panel „Kopplungscode für …" erscheint **einmal**, beim nächsten Aufruf nicht mehr; Zeile „Code offen bis" steht in der Tabelle |
 | Quick-Toggle `offline_erlaubt_kommen_gehen` | 302, Wert kippt in der Datenbank, Flash „Änderung gespeichert." |
-| Falsches CSRF-Token | Flash „CSRF-Check fehlgeschlagen. Bitte Seite neu laden.", Wert unveraendert |
+| Falsches CSRF-Token | Flash „CSRF-Check fehlgeschlagen. Bitte Seite neu laden.", Wert unverändert |
 
 Der Einmal-Charakter des Codes ist der Punkt, an dem eine Migration still etwas
 kaputt machen kann: Er lebt in der Session und wird beim Rendern verbraucht.
 Deshalb zweimal hintereinander geladen.
 
-22 Backend-Aufrufe HTTP 200, Serverlog ohne Meldung, `php -l` ueber beide
+22 Backend-Aufrufe HTTP 200, Serverlog ohne Meldung, `php -l` über beide
 Dateien.
 
 ### Was bewusst nicht erreicht wurde
-Die sechs Knoepfe der Liste tragen `style="padding: 0.15rem 0.5rem;"` – genau
-das, was T-104 verbietet. Beim blossen Entfernen wuerden sie auf die
-Standardgroesse springen und die Tabelle deutlich hoeher machen; richtig waere
-`.table-actions` aus `views/layout/header.php`, das es fuer diesen Fall gibt.
-Das ist eine sichtbare Aenderung mit Layoutfolgen und gehoert nicht in einen
+Die sechs Knöpfe der Liste tragen `style="padding: 0.15rem 0.5rem;"` – genau
+das, was T-104 verbietet. Beim bloßen Entfernen würden sie auf die
+Standardgröße springen und die Tabelle deutlich höher machen; richtig wäre
+`.table-actions` aus `views/layout/header.php`, das es für diesen Fall gibt.
+Das ist eine sichtbare Änderung mit Layoutfolgen und gehört nicht in einen
 Patch, dessen Nachweis „HTML gleich" lautet. Notiert als **T-115**.
 
 Die zweite Maske des Controllers (`renderFormular()`) bleibt, wie sie ist –
 eine Maske je Patch.
 
 ### NEXT
-T-115 (Knopf-Groessen der Terminalliste), danach `renderFormular()`.
+T-115 (Knopf-Größen der Terminalliste), danach `renderFormular()`.
 
 ## P-2026-08-15-20 t-114-tabzeile-als-teil-template
 
 ### EINGELESEN
 - `docs/STATUS_SNAPSHOT.md` (T-114), `docs/arbeitsregeln.md`.
-- P-2026-08-14-12 – dort wurde dieser Patch angekuendigt („beim Migrieren der
+- P-2026-08-14-12 – dort wurde dieser Patch angekündigt („beim Migrieren der
   letzten der sechs Masken lohnt der Blick darauf").
 - Alle sechs Dateien in `views/konfiguration/`.
-- `grep -rn 'tab=krankzeitraum">Krank (LFZ/KK)</a>' views/ controller/` – fuenf
+- `grep -rn 'tab=krankzeitraum">Krank (LFZ/KK)</a>' views/ controller/` – fünf
   Treffer, alle in `views/konfiguration/`.
 
 ### DATEIEN
@@ -1724,39 +1830,39 @@ Alle sechs Konfigurations-Masken liefern **zeichengleiches** HTML wie vorher,
 obwohl die Tab-Zeile nur noch in einer Datei steht.
 
 ### DONE
-T-114, angekuendigt in P-2026-08-14-12 und erst jetzt faellig: Vorher stand die
-Zeile teils im Controller, teils in Views – ein gemeinsames Stueck haette den
+T-114, angekündigt in P-2026-08-14-12 und erst jetzt fällig: Vorher stand die
+Zeile teils im Controller, teils in Views – ein gemeinsames Stück hätte den
 Umzug der Masken behindert. Seit P-2026-08-15-18 liegen alle sechs in
-`views/konfiguration/`, fuenf davon mit identischer Tab-Zeile (die Bearbeiten-
+`views/konfiguration/`, fünf davon mit identischer Tab-Zeile (die Bearbeiten-
 Maske hat keine, sie verlinkt „Zurück zur Übersicht").
 
 Neue Datei `_tabzeile.php`, eingebunden mit `require __DIR__ . '/_tabzeile.php';`.
 35 Zeilen weg, 5 dazu.
 
-**Der Unterstrich im Namen** trennt Teil von Maske. Ohne ihn stuende die Datei
-zwischen `liste.php` und `systemlog.php` und saehe aus wie eine sechste Seite –
-die Verzeichnisliste ist die einzige Uebersicht, die es hier gibt.
+**Der Unterstrich im Namen** trennt Teil von Maske. Ohne ihn stünde die Datei
+zwischen `liste.php` und `systemlog.php` und sähe aus wie eine sechste Seite –
+die Verzeichnisliste ist die einzige Übersicht, die es hier gibt.
 
-**Die `require`-Zeile bleibt ohne Einrueckung.** Das faellt im Quelltext auf,
+**Die `require`-Zeile bleibt ohne Einrückung.** Das fällt im Quelltext auf,
 ist aber Absicht: Das Teil-Template bringt seine vier Leerzeichen selbst mit.
-Eingerueckt stuenden acht im HTML – kein Fehler, aber dann waere das
-Akzeptanzkriterium (zeichengleich) nicht mehr zu halten, und genau daran haengt
+Eingerückt stünden acht im HTML – kein Fehler, aber dann wäre das
+Akzeptanzkriterium (zeichengleich) nicht mehr zu halten, und genau daran hängt
 der Nachweis, dass nur verschoben wurde. Beide Dateien sagen das im Kommentar.
 
-Die aktuelle Maske wird **nicht** hervorgehoben. Das waere eine sichtbare
-Aenderung an fuenf Masken, also ein eigenes Thema – hier steht die Bewegung des
+Die aktuelle Maske wird **nicht** hervorgehoben. Das wäre eine sichtbare
+Änderung an fünf Masken, also ein eigenes Thema – hier steht die Bewegung des
 Codes, nicht die Gestaltung.
 
 ### TEST
 Wegwerf-Umgebung aus P-2026-08-15-08, HEAD-Kopie auf P-2026-08-15-19.
 Verglichen wurde diesmal **roh**, nicht normalisiert (nur die CSRF-Token
-maskiert), weil ein Teil-Template genau an der Einrueckung schiefgehen kann:
+maskiert), weil ein Teil-Template genau an der Einrückung schiefgehen kann:
 
 | Maske | abweichende Zeilen |
 | --- | --- |
-| Konfiguration (Uebersicht) | 0 |
+| Konfiguration (Übersicht) | 0 |
 | System-Log | 0 |
-| Sonstiges-Gruende | 0 |
+| Sonstiges-Gründe | 0 |
 | Pausenregeln | 0 |
 | Krankzeiten | 0 |
 | Bearbeiten (ohne Tab-Zeile) | 0 |
@@ -1764,16 +1870,16 @@ maskiert), weil ein Teil-Template genau an der Einrueckung schiefgehen kann:
 Der erste Lauf meldete 240 und 378 Abweichungen bei Pausen und Krankzeiten – die
 HEAD-Kopie war vier Commits alt und zeigte die Masken noch aus dem Controller.
 Zweiter Fehler derselben Art wie in P-2026-08-15-14; seitdem wird die Kopie vor
-jeder Messreihe erneuert. Beim dritten Mal gehoert das in ein Skript, nicht in
+jeder Messreihe erneuert. Beim dritten Mal gehört das in ein Skript, nicht in
 einen Verlaufseintrag.
 
-22 Backend-Aufrufe HTTP 200, Serverlog ohne Meldung, `php -l` ueber alle sechs
+22 Backend-Aufrufe HTTP 200, Serverlog ohne Meldung, `php -l` über alle sechs
 Dateien.
 
 ### Was bewusst nicht erreicht wurde
-Andere Masken haben aehnliche Wiederholungen (die Kopfzeile der Urlaubsansichten,
-die Blaetterleisten). Nicht angefasst: Dieser Patch raeumt ein Verzeichnis auf,
-das gerade fertig geworden ist, und keine Sammelstelle fuer alle Doppelungen.
+Andere Masken haben ähnliche Wiederholungen (die Kopfzeile der Urlaubsansichten,
+die Blätterleisten). Nicht angefasst: Dieser Patch räumt ein Verzeichnis auf,
+das gerade fertig geworden ist, und keine Sammelstelle für alle Doppelungen.
 
 ### NEXT
 T-104 geht weiter mit `TerminalAdminController` (2 Masken) oder
@@ -1786,7 +1892,7 @@ kleinere und wurde in P-2026-08-15-10 ohnehin schon angefasst.
 - `docs/STATUS_SNAPSHOT.md` (B-100), `docs/arbeitsregeln.md` §3.
 - `controller/KonfigurationController.php`: `istUhrzeit()` aus
   P-2026-08-15-17 als Muster, dazu die Validierung im Krank-POST.
-- `normalisiereKrankDatumEingabe()` – prueft bereits richtig, meldet aber nichts.
+- `normalisiereKrankDatumEingabe()` – prüft bereits richtig, meldet aber nichts.
 
 ### DATEIEN
 - `controller/KonfigurationController.php`
@@ -1797,23 +1903,23 @@ Ein Krankzeitraum mit `von_datum=2026-02-30` wird mit „Bitte ein gültiges
 Von-Datum angeben." abgelehnt statt mit „Speichern fehlgeschlagen."
 
 ### DONE
-B-100 aus P-2026-08-15-18, dieselbe Familie wie B-099: Die Pruefung sah die
+B-100 aus P-2026-08-15-18, dieselbe Familie wie B-099: Die Prüfung sah die
 Form, nicht den Inhalt. Neue private Methode `istDatum()` mit `checkdate()` –
-damit stehen Schaltjahr und Monatslaengen **nicht** noch einmal als Ausdruck im
+damit stehen Schaltjahr und Monatslängen **nicht** noch einmal als Ausdruck im
 Code. Beide Datumsfelder benutzen sie.
 
 Der Vergleich `$bis < $von` bleibt Zeichenvergleich und hat jetzt den Kommentar,
-der sagt, warum das reicht (beide Werte geprueft und auf `YYYY-MM-DD`
+der sagt, warum das reicht (beide Werte geprüft und auf `YYYY-MM-DD`
 normalisiert) – dieselbe Stelle wie bei den Uhrzeiten in -17.
 
 `normalisiereKrankDatumEingabe()` bleibt, wie sie ist. Sie darf weiterhin
-`01.06.2026` zu `2026-06-01` machen und bei Unsinn die Eingabe zurueckgeben; das
-Urteil faellt jetzt die Pruefung dahinter. Die Alternative – die Funktion `null`
-zurueckgeben zu lassen – haette jeden ihrer Aufrufer geaendert, fuer denselben
+`01.06.2026` zu `2026-06-01` machen und bei Unsinn die Eingabe zurückgeben; das
+Urteil fällt jetzt die Prüfung dahinter. Die Alternative – die Funktion `null`
+zurückgeben zu lassen – hätte jeden ihrer Aufrufer geändert, für denselben
 Effekt.
 
 ### TEST
-Wegwerf-Umgebung aus P-2026-08-15-08, acht Eingaben gegen beide Staende:
+Wegwerf-Umgebung aus P-2026-08-15-08, acht Eingaben gegen beide Stände:
 
 | von | bis | HEAD | neu |
 | --- | --- | --- | --- |
@@ -1827,15 +1933,15 @@ Wegwerf-Umgebung aus P-2026-08-15-08, acht Eingaben gegen beide Staende:
 | `2026-06-01` | `2026-06-10` | gespeichert | gespeichert |
 
 Die beiden 29. Februar stehen absichtlich beieinander: 2026 ist kein Schaltjahr,
-2024 eines. Eine Pruefung, die beide gleich behandelt, waere entweder zu streng
+2024 eines. Eine Prüfung, die beide gleich behandelt, wäre entweder zu streng
 oder wirkungslos – `checkdate()` trennt sie richtig.
 
 22 Backend-Aufrufe HTTP 200, Serverlog ohne Meldung, `php -l`.
 
 ### Was bewusst nicht erreicht wurde
-Andere Masken pruefen Datumseingaben auf ihre eigene Art (Urlaub, Betriebsferien,
-Kurzarbeit, Auftragszeiten). Ob dort dieselbe Luecke steckt, ist ungeprueft –
-das ist ein eigener Durchgang und gehoert zu T-112, wo schon die verwandte Frage
+Andere Masken prüfen Datumseingaben auf ihre eigene Art (Urlaub, Betriebsferien,
+Kurzarbeit, Auftragszeiten). Ob dort dieselbe Lücke steckt, ist ungeprüft –
+das ist ein eigener Durchgang und gehört zu T-112, wo schon die verwandte Frage
 nach abgefangenen Fehlern steht.
 
 ### NEXT
@@ -1845,8 +1951,8 @@ T-114: die Tab-Zeile der Konfiguration als gemeinsames Teil-Template.
 
 ### EINGELESEN
 - `docs/STATUS_SNAPSHOT.md` (T-104), `docs/arbeitsregeln.md`.
-- `controller/KonfigurationController.php`, `indexKrankzeitraum()` vollstaendig
-  – Regelpruefungen, Wechsel-Vorbereitung, Markup, JavaScript.
+- `controller/KonfigurationController.php`, `indexKrankzeitraum()` vollständig
+  – Regelprüfungen, Wechsel-Vorbereitung, Markup, JavaScript.
 - `views/konfiguration/pausenregeln.php` als Muster.
 - `core/Helper.php` – gibt es dort schon eine Datumsanzeige? Nein:
   `formatDatum()` liefert `Y-m-d`, nicht `d.m.Y`.
@@ -1858,12 +1964,12 @@ T-114: die Tab-Zeile der Konfiguration als gemeinsames Teil-Template.
 
 ### AKZEPTANZKRITERIUM
 Die Maske „Krankzeiten (LFZ/KK)" erzeugt dasselbe HTML wie vorher – bis auf die
-Einrueckung und die zwei `Csrf::feld()`-Stellen –, obwohl das Markup jetzt in
+Einrückung und die zwei `Csrf::feld()`-Stellen –, obwohl das Markup jetzt in
 `views/konfiguration/krankzeitraum.php` liegt.
 
 ### DONE
 **Die letzte der sechs Masken des `KonfigurationController`** und mit Abstand
-die groesste. Der Controller behaelt beide POST-Wege, die Overlap- und
+die größte. Der Controller behält beide POST-Wege, die Overlap- und
 LFZ/KK-Regeln, die Vorbereitung „Wechsel zu KK" und das Laden; die View bekommt
 neun Werte plus die Anzeigefunktion. 1.638 → 1.367 Zeilen Controller plus 323
 Zeilen View.
@@ -1871,28 +1977,28 @@ Zeilen View.
 Damit ist der Controller von **2.177 Zeilen** (Stand vor P-2026-08-14-12) auf
 1.367 geschrumpft, und sechs Masken liegen in `views/konfiguration/`.
 
-**Eine bewusste Abweichung**: `Csrf::feld()` an zwei Stellen. Knopf-Groessen gab
+**Eine bewusste Abweichung**: `Csrf::feld()` an zwei Stellen. Knopf-Größen gab
 es hier keine.
 
 **Die Anzeigefunktion wird als Closure weitergereicht.** `$formatKrankDatumAnzeige`
 macht aus `2026-06-01` ein `01.06.2026`; der Controller braucht sie in seinen
 Fehlermeldungen („Mitarbeiter ist vom … bis … bereits Krank LF"), die View in
-der Tabelle. Sie zweimal zu schreiben waere schlechter als sie zu uebergeben,
+der Tabelle. Sie zweimal zu schreiben wäre schlechter als sie zu übergeben,
 und sie ins `Helper` zu heben ist ein eigenes Thema – `core/Helper.php` hat
-heute keine deutsche Datumsanzeige, das waere also eine neue oeffentliche
+heute keine deutsche Datumsanzeige, das wäre also eine neue öffentliche
 Funktion mit Wirkung auf alles. Die View nennt die Erwartung in ihrem Kopf.
 
-Das JavaScript des 6-Wochen-Vorschlags zieht unveraendert mit um: Es haengt an
-`id`-Attributen dieser Maske und hat keine Fachlogik ausserhalb.
+Das JavaScript des 6-Wochen-Vorschlags zieht unverändert mit um: Es hängt an
+`id`-Attributen dieser Maske und hat keine Fachlogik außerhalb.
 
 ### TEST
 Wegwerf-Umgebung aus P-2026-08-15-08, HEAD-Kopie auf P-2026-08-15-17. Drei
-erfundene Krankzeitraeume fuer den Pruefbenutzer: LFZ 01.06.–12.07., KK ab
+erfundene Krankzeiträume für den Prüfbenutzer: LFZ 01.06.–12.07., KK ab
 13.07. (offen, Kommentar mit `<b>`, `&`, `"` und `äöüß`), ein inaktiver LFZ.
 
 | Lage | Abweichende Zeilen | erwartet |
 | --- | --- | --- |
-| Liste mit drei Zeitraeumen | 12 | 12 (Formular + 3 × Umschalten) |
+| Liste mit drei Zeiträumen | 12 | 12 (Formular + 3 × Umschalten) |
 | mit `ok=1` | 12 | 12 |
 | Bearbeiten (`id=`) | 12 | 12 |
 | `wechsel_kk_von=` (KK vorbereiten) | 12 | 12 |
@@ -1904,7 +2010,7 @@ POST- und Regelwege auf dem neuen Stand:
 | Weg | Ergebnis |
 | --- | --- |
 | LFZ anlegen (01.06.–12.07.) | 302 `&ok=1`, Zeile da |
-| Ueberlappender LFZ | „Überschneidung mit Zeitraum #8 (01.06.2026 bis 12.07.2026)." – nichts gespeichert |
+| Überlappender LFZ | „Überschneidung mit Zeitraum #8 (01.06.2026 bis 12.07.2026)." – nichts gespeichert |
 | KK **im** LFZ-Zeitraum | „Der Zeitraum ist gesperrt: … bereits Krank LF. Krank KK darf erst danach beginnen." |
 | KK ab dem Tag nach LFZ-Ende | 302 `&ok=1` |
 | „Wechsel zu KK" | Hinweis „Krank KK wurde mit dem Folgetag nach Krank LF vorbereitet.", Formular auf `2026-07-13` |
@@ -1916,13 +2022,13 @@ POST- und Regelwege auf dem neuen Stand:
 Die Datumsanzeige `01.06.2026` in den Regelmeldungen belegt nebenbei, dass die
 weitergereichte Closure im Controller **und** in der View dieselbe ist.
 
-22 Backend-Aufrufe HTTP 200, Serverlog ohne Meldung, `php -l` ueber beide
-Dateien, beide Umlaut-Suchlaeufe der Wartungscheckliste ohne Treffer.
+22 Backend-Aufrufe HTTP 200, Serverlog ohne Meldung, `php -l` über beide
+Dateien, beide Umlaut-Suchläufe der Wartungscheckliste ohne Treffer.
 
 ### Gefundene Fehler im eigenen Entwurf
-Nach B-099 lag die Frage nahe, ob die **Datums**pruefung derselben Maske
+Nach B-099 lag die Frage nahe, ob die **Datums**prüfung derselben Maske
 denselben Fehler macht. Sie macht ihn: `preg_match('/^\d{4}-\d{2}-\d{2}$/')`
-prueft nur die Form.
+prüft nur die Form.
 
 | Eingabe | Ergebnis |
 | --- | --- |
@@ -1933,18 +2039,18 @@ prueft nur die Form.
 
 Anders als bei B-099 landet **nichts** Falsches in der Tabelle (`date` ist
 strenger als `time`), aber die Meldung schiebt einen Tippfehler auf das System.
-Bitter dabei: `normalisiereKrankDatumEingabe()` prueft das Datum bereits richtig
+Bitter dabei: `normalisiereKrankDatumEingabe()` prüft das Datum bereits richtig
 (`createFromFormat` samt `getLastErrors`) – nur gibt es die Eingabe bei einem
-Fehler unveraendert zurueck, und der Aufrufer erfaehrt nichts davon. Als
+Fehler unverändert zurück, und der Aufrufer erfährt nichts davon. Als
 **B-100** notiert, nicht hier behoben: Dieser Patch soll das HTML gleich lassen.
 
 ### Was bewusst nicht erreicht wurde
 Die Tab-Zeile steht jetzt sechsmal identisch in `views/konfiguration/`. Genau
-dafuer war in P-2026-08-14-12 der Blick auf ein gemeinsames Teil-Template
-angekuendigt – jetzt lohnt er sich, ist aber ein eigener Patch (**T-114**).
+dafür war in P-2026-08-14-12 der Blick auf ein gemeinsames Teil-Template
+angekündigt – jetzt lohnt er sich, ist aber ein eigener Patch (**T-114**).
 
 ### NEXT
-B-100 (Datumspruefung), dann T-114 (Tab-Zeile als Teil-Template).
+B-100 (Datumsprüfung), dann T-114 (Tab-Zeile als Teil-Template).
 
 ## P-2026-08-15-17 b-099-uhrzeit-mit-bereich-pruefen
 
@@ -1952,9 +2058,9 @@ B-100 (Datumspruefung), dann T-114 (Tab-Zeile als Teil-Template).
 - `docs/STATUS_SNAPSHOT.md` (B-099), `docs/arbeitsregeln.md` §3.
 - `controller/KonfigurationController.php`, POST-Zweig `speichern` der
   Pausenregeln.
-- `grep -rn 'preg_match.*\d{2}:\d{2}'` ueber `controller services core modelle
-  views public` – die uebrigen Treffer formatieren Werte **aus der Datenbank**
-  (Audit-Log, PDF, Urlaubsansichten); geprueft wird Benutzereingabe nur hier.
+- `grep -rn 'preg_match.*\d{2}:\d{2}'` über `controller services core modelle
+  views public` – die übrigen Treffer formatieren Werte **aus der Datenbank**
+  (Audit-Log, PDF, Urlaubsansichten); geprüft wird Benutzereingabe nur hier.
 
 ### DATEIEN
 - `controller/KonfigurationController.php`
@@ -1965,9 +2071,9 @@ Ein Pausenfenster mit `von=30:00` und `bis=32:00` wird abgelehnt („Bitte eine
 gültige Von-Uhrzeit angeben (HH:MM).") und landet nicht in der Datenbank.
 
 ### DONE
-B-099 aus P-2026-08-15-16, und beim Nachmessen groesser als notiert: Die
-Pruefung sah nur die **Form** (`\d{2}:\d{2}`), nicht den Bereich. Notiert war
-„zwei irrefuehrende Meldungen" – der Test auf dem alten Stand zeigt zusaetzlich,
+B-099 aus P-2026-08-15-16, und beim Nachmessen größer als notiert: Die
+Prüfung sah nur die **Form** (`\d{2}:\d{2}`), nicht den Bereich. Notiert war
+„zwei irreführende Meldungen" – der Test auf dem alten Stand zeigt zusätzlich,
 dass Unsinn **gespeichert** wird:
 
 | Eingabe | HEAD |
@@ -1978,19 +2084,19 @@ dass Unsinn **gespeichert** wird:
 MySQL/MariaDB nimmt in einer `time`-Spalte alles von `-838:59:59` bis
 `838:59:59` an – ein Wert wie `30:00:00` ist dort eine **Dauer**, keine
 Uhrzeit. Nur die Minuten (`:99`) sprengen den Bereich, deshalb fiel bisher
-ueberhaupt etwas auf.
+überhaupt etwas auf.
 
 Neue private Methode `istUhrzeit()` mit `^([01]\d|2[0-3]):[0-5]\d$`, benutzt an
 beiden Stellen. Sie steht als `static` bei den anderen Helfern oben im
-Controller und traegt die Begruendung im Kommentar: Der Browser liefert ueber
-`<input type="time">` nur Gueltiges, ein POST von Hand nicht.
+Controller und trägt die Begründung im Kommentar: Der Browser liefert über
+`<input type="time">` nur Gültiges, ein POST von Hand nicht.
 
 Der Vergleich `$bis <= $von` bleibt ein Zeichenvergleich – jetzt zu Recht, weil
-beide Werte hier geprueft und zweistellig sind. Ein Kommentar sagt das, damit
-niemand ihn spaeter fuer eine Schlamperei haelt.
+beide Werte hier geprüft und zweistellig sind. Ein Kommentar sagt das, damit
+niemand ihn später für eine Schlamperei hält.
 
 ### TEST
-Wegwerf-Umgebung aus P-2026-08-15-08, sieben Eingaben gegen beide Staende, dazu
+Wegwerf-Umgebung aus P-2026-08-15-08, sieben Eingaben gegen beide Stände, dazu
 nach jedem Versuch die Zeilenzahl in `pausenfenster`:
 
 | Eingabe | HEAD | neu |
@@ -2003,16 +2109,16 @@ nach jedem Versuch die Zeilenzahl in `pausenfenster`:
 | `23:59` – `23:59` | „Bis-Uhrzeit muss nach…" | gleich |
 | `00:00` – `23:59` | gespeichert | gespeichert |
 
-Die beiden Randfaelle `00:00` und `23:59` stehen absichtlich dabei: Ein zu
-strenger Ausdruck haette sie mitgenommen, und das waere schlimmer als der
-Fehler, um den es geht. Die Belegzeilen aus dem HEAD-Lauf wurden geloescht.
+Die beiden Randfälle `00:00` und `23:59` stehen absichtlich dabei: Ein zu
+strenger Ausdruck hätte sie mitgenommen, und das wäre schlimmer als der
+Fehler, um den es geht. Die Belegzeilen aus dem HEAD-Lauf wurden gelöscht.
 
 22 Backend-Aufrufe HTTP 200, Serverlog ohne Meldung, `php -l`.
 
 ### Was bewusst nicht erreicht wurde
-Die Krankzeitraum-Maske prueft **Daten**, nicht Uhrzeiten, und hat dafuer eigene
+Die Krankzeitraum-Maske prüft **Daten**, nicht Uhrzeiten, und hat dafür eigene
 Normalisierer (`normalisiereKrankDatumEingabe`). Ob die denselben Fehler machen,
-ist ungeprueft – das ist die naechste Maske aus T-104, dort faellt es beim Lesen
+ist ungeprüft – das ist die nächste Maske aus T-104, dort fällt es beim Lesen
 ohnehin an.
 
 ### NEXT
@@ -2023,7 +2129,7 @@ ohnehin an.
 ### EINGELESEN
 - `docs/STATUS_SNAPSHOT.md` (T-104), `docs/arbeitsregeln.md`.
 - `views/konfiguration/sonstiges_gruende.php` als Muster (P-2026-08-15-14).
-- `controller/KonfigurationController.php`, `indexPausenregeln()` vollstaendig,
+- `controller/KonfigurationController.php`, `indexPausenregeln()` vollständig,
   besonders die Validierung im POST-Zweig.
 
 ### DATEIEN
@@ -2033,25 +2139,25 @@ ohnehin an.
 
 ### AKZEPTANZKRITERIUM
 Die Maske „Pausenregeln" erzeugt dasselbe HTML wie vorher – bis auf die
-Einrueckung und die drei `Csrf::feld()`-Stellen –, obwohl das Markup jetzt in
+Einrückung und die drei `Csrf::feld()`-Stellen –, obwohl das Markup jetzt in
 `views/konfiguration/pausenregeln.php` liegt.
 
 ### DONE
-Fuenfte der sechs Masken des `KonfigurationController` und die erste mit **zwei
-unabhaengigen Formularen** auf einer Seite: die gesetzlichen Mindestwerte (aus
+Fünfte der sechs Masken des `KonfigurationController` und die erste mit **zwei
+unabhängigen Formularen** auf einer Seite: die gesetzlichen Mindestwerte (aus
 `config`) und die betrieblichen Pausenfenster (Liste plus Formular).
 
-Der Controller behaelt beide POST-Wege, die Validierung, das Laden des zu
+Der Controller behält beide POST-Wege, die Validierung, das Laden des zu
 bearbeitenden Fensters und die Liste; die View bekommt zehn Werte – zu den
-ueblichen sechs kommen `$fenster`, `$form`, `$editId` und die vier `cfg*`-Werte
+üblichen sechs kommen `$fenster`, `$form`, `$editId` und die vier `cfg*`-Werte
 der gesetzlichen Pausen. 1.788 → 1.638 Zeilen Controller plus 192 Zeilen View.
 
 **Eine bewusste Abweichung**: `Csrf::feld()` statt der handgeschriebenen Zeile,
-an drei Stellen (zwei feste Formulare, eines je Tabellenzeile). Knopf-Groessen
+an drei Stellen (zwei feste Formulare, eines je Tabellenzeile). Knopf-Größen
 gab es hier keine zu entfernen.
 
 Der Merker `$ladefehler` (P-2026-08-15-09) und der Link „Neu anlegen" nur beim
-Bearbeiten (P-2026-08-15-15) waren schon da und ziehen unveraendert mit um.
+Bearbeiten (P-2026-08-15-15) waren schon da und ziehen unverändert mit um.
 
 ### TEST
 Wegwerf-Umgebung aus P-2026-08-15-08, HEAD-Kopie **vor** der Messung auf
@@ -2069,40 +2175,40 @@ POST-Wege auf dem neuen Stand:
 
 | Weg | Ergebnis |
 | --- | --- |
-| Gesetzliche Werte speichern (Schwelle 1: 6 → 7) | 302 `&ok=1`, `config` geaendert, danach zurueckgesetzt |
+| Gesetzliche Werte speichern (Schwelle 1: 6 → 7) | 302 `&ok=1`, `config` geändert, danach zurückgesetzt |
 | Neues Pausenfenster (12:00–12:30) | 302 `&ok=1`, Zeile mit `12:00:00`/`12:30:00` |
 | Umschalten | 302, `aktiv = 0` |
 | Bis vor Von | „Bis-Uhrzeit muss nach der Von-Uhrzeit liegen." |
-| Falsches CSRF-Token | „CSRF-Check fehlgeschlagen.", `aktiv` unveraendert |
+| Falsches CSRF-Token | „CSRF-Check fehlgeschlagen.", `aktiv` unverändert |
 
-22 Backend-Aufrufe HTTP 200, Serverlog ohne Meldung, `php -l` ueber beide
+22 Backend-Aufrufe HTTP 200, Serverlog ohne Meldung, `php -l` über beide
 Dateien, Umlaut-Suchlauf ohne Treffer.
 
 ### Gefundene Fehler im eigenen Entwurf
 Der Test sollte die Meldung „Bitte eine gültige Von-Uhrzeit angeben (HH:MM)."
-zeigen und bekam sie nicht. Grund ist keine Aenderung dieses Patches, sondern
-die Validierung selbst: `preg_match('/^\d{2}:\d{2}$/', $von)` prueft nur die
-**Form**, nicht den Bereich. Damit passiert `25:99` die Pruefung, und der
+zeigen und bekam sie nicht. Grund ist keine Änderung dieses Patches, sondern
+die Validierung selbst: `preg_match('/^\d{2}:\d{2}$/', $von)` prüft nur die
+**Form**, nicht den Bereich. Damit passiert `25:99` die Prüfung, und der
 Benutzer bekommt je nach zweitem Wert:
 
 - `von=25:99`, `bis=13:00` → „Bis-Uhrzeit muss nach der Von-Uhrzeit liegen." –
-  eine Erklaerung, die auf die falsche Eingabe zeigt.
+  eine Erklärung, die auf die falsche Eingabe zeigt.
 - `von=25:99`, `bis=26:00` → „Speichern fehlgeschlagen." Die Datenbank weist die
   `time`-Spalte ab, es landet **nichts** in der Tabelle (nachgesehen), aber die
   Meldung klingt nach einem Systemproblem statt nach einem Tippfehler.
 
-Aus dem Browser ist das nicht ausloesbar (`<input type="time">` liefert gueltige
-Werte), per POST von Hand schon. Keine Datenverfaelschung, aber zwei irrefuehrende
+Aus dem Browser ist das nicht auslösbar (`<input type="time">` liefert gültige
+Werte), per POST von Hand schon. Keine Datenverfälschung, aber zwei irreführende
 Meldungen. Nicht in diesem Patch behoben – hier soll das HTML gleich bleiben.
 Notiert als **B-099**.
 
 ### Was bewusst nicht erreicht wurde
 Eine Maske des Controllers fehlt noch: `indexKrankzeitraum()`, mit Abstand die
-groesste. Danach steht die Tab-Zeile sechsmal identisch da und das gemeinsame
+größte. Danach steht die Tab-Zeile sechsmal identisch da und das gemeinsame
 Teil-Template lohnt sich.
 
 ### NEXT
-B-099 (Uhrzeit-Pruefung), dann `indexKrankzeitraum()` als letzte Maske.
+B-099 (Uhrzeit-Prüfung), dann `indexKrankzeitraum()` als letzte Maske.
 
 ## P-2026-08-15-15 t-113-neu-anlegen-nur-beim-bearbeiten
 
@@ -2118,62 +2224,62 @@ B-099 (Uhrzeit-Pruefung), dann `indexKrankzeitraum()` als letzte Maske.
 - `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
 
 ### AKZEPTANZKRITERIUM
-Auf der leeren Maske „Sonstiges-Gründe" steht kein „Neu anlegen" mehr; oeffnet
+Auf der leeren Maske „Sonstiges-Gründe" steht kein „Neu anlegen" mehr; öffnet
 man einen Eintrag zum Bearbeiten, ist der Link da und leert das Formular.
 
 ### DONE
 T-113 aus P-2026-08-15-14. Diese Masken haben Liste und Formular auf **einer**
 Seite; „Neu anlegen" zeigt deshalb auf genau die Seite, auf der man schon steht.
-Beim Bearbeiten leert das Formular – dafuer ist der Link da. Ohne Bearbeitung
-tut er nichts: Die Maske laedt neu und sieht aus wie vorher.
+Beim Bearbeiten leert das Formular – dafür ist der Link da. Ohne Bearbeitung
+tut er nichts: Die Maske lädt neu und sieht aus wie vorher.
 
-Ein Link, der nichts tut, ist schlechter als keiner. Wer ihn drueckt und nichts
-passieren sieht, sucht den Fehler bei sich oder haelt die Maske fuer kaputt.
+Ein Link, der nichts tut, ist schlechter als keiner. Wer ihn drückt und nichts
+passieren sieht, sucht den Fehler bei sich oder hält die Maske für kaputt.
 
-Der Link erscheint deshalb nur noch bei `$editId > 0`. Beim Bearbeiten aendert
-sich nichts – dort war er richtig und bleibt, wo er war. Die Alternative waere
+Der Link erscheint deshalb nur noch bei `$editId > 0`. Beim Bearbeiten ändert
+sich nichts – dort war er richtig und bleibt, wo er war. Die Alternative wäre
 gewesen, ihn ganz zu entfernen: Er ist beim Bearbeiten deckungsgleich mit
 „Abbrechen" im Formular. Dagegen spricht die Beschriftung – wer einen neuen
 Eintrag anlegen will, sucht „Neu anlegen" und nicht „Abbrechen".
 
 **Drei Masken statt einer**, weil derselbe Link dreimal dasteht: Sonstiges-
-Gruende (schon in `views/`), Krankzeitraum und Pausenregeln (noch im
-Controller, T-104). Die beiden letzten bringen die Aenderung beim Umzug mit.
+Gründe (schon in `views/`), Krankzeitraum und Pausenregeln (noch im
+Controller, T-104). Die beiden letzten bringen die Änderung beim Umzug mit.
 
 ### TEST
 Wegwerf-Umgebung aus P-2026-08-15-08, je Maske ein erfundener Datensatz
 (Sonstiges-Grund `SU`, Pausenfenster 09:00–09:15, Krankzeitraum LFZ 01.–05.08.).
-Gezaehlt wurde das Vorkommen von `>Neu anlegen<` im HTML:
+Gezählt wurde das Vorkommen von `>Neu anlegen<` im HTML:
 
 | Maske | ohne `id` HEAD | ohne `id` neu | mit `id` HEAD | mit `id` neu |
 | --- | --- | --- | --- | --- |
-| Sonstiges-Gruende | 1 | **0** | 1 | 1 |
+| Sonstiges-Gründe | 1 | **0** | 1 | 1 |
 | Pausenregeln | 1 | **0** | 1 | 1 |
 | Krankzeitraum | 1 | **0** | 1 | 1 |
 
-Gegenprobe, dass „mit `id`" auch wirklich Bearbeiten heisst: Das Formular ist
-gefuellt (`code="SU"`, `von_uhrzeit="09:00:00"`, `von_datum="2026-08-01"`), und
-der Link fuehrt auf die Maske mit leerem Formular (`code=""`).
+Gegenprobe, dass „mit `id`" auch wirklich Bearbeiten heißt: Das Formular ist
+gefüllt (`code="SU"`, `von_uhrzeit="09:00:00"`, `von_datum="2026-08-01"`), und
+der Link führt auf die Maske mit leerem Formular (`code=""`).
 
 Der erste Durchlauf war wertlos und sah trotzdem gut aus: Zwei `INSERT`s waren
 fehlgeschlagen (`typ` ist ein `enum('lfz','kk')`, nicht `'LFZ'`; `pausenfenster`
-hat keine Spalte `minuten`), und weil der Fehler mit `2>/dev/null` unterdrueckt
+hat keine Spalte `minuten`), und weil der Fehler mit `2>/dev/null` unterdrückt
 war, lief der Test mit **leeren** IDs. „Mit id" zeigte dann 0 Treffer – was wie
-das gewuenschte Ergebnis aussieht und in Wahrheit gar nichts geprueft hat. Die
+das gewünschte Ergebnis aussieht und in Wahrheit gar nichts geprüft hat. Die
 Tabelle oben stammt aus dem Lauf mit echten IDs.
 
-22 Backend-Aufrufe HTTP 200, Serverlog ohne Meldung, `php -l` ueber beide
+22 Backend-Aufrufe HTTP 200, Serverlog ohne Meldung, `php -l` über beide
 Dateien.
 
 ### Was bewusst nicht erreicht wurde
 Dass die Maske beim Bearbeiten nicht deutlich sagt, **welchen** Eintrag man
-gerade aendert (kein „Eintrag bearbeiten" ueber dem Formular), bleibt offen. Das
-ist eine Gestaltungsfrage fuer alle drei Masken und keine Zeile mehr – nicht
-notiert als Task, sondern hier festgehalten, weil es beim naechsten Umzug einer
-dieser Masken ohnehin auffaellt.
+gerade ändert (kein „Eintrag bearbeiten" über dem Formular), bleibt offen. Das
+ist eine Gestaltungsfrage für alle drei Masken und keine Zeile mehr – nicht
+notiert als Task, sondern hier festgehalten, weil es beim nächsten Umzug einer
+dieser Masken ohnehin auffällt.
 
 ### NEXT
-T-104, naechste Maske: `indexPausenregeln()`.
+T-104, nächste Maske: `indexPausenregeln()`.
 
 ## P-2026-08-15-14 t-104-sonstiges-gruende-in-views
 
@@ -2190,13 +2296,13 @@ T-104, naechste Maske: `indexPausenregeln()`.
 
 ### AKZEPTANZKRITERIUM
 Die Maske „Sonstiges-Gründe" erzeugt dasselbe HTML wie vorher – bis auf die
-Einrueckung und die zwei unten benannten Absichten –, obwohl das Markup jetzt in
+Einrückung und die zwei unten benannten Absichten –, obwohl das Markup jetzt in
 `views/konfiguration/sonstiges_gruende.php` liegt.
 
 ### DONE
 Vierte der sechs Masken des `KonfigurationController`, und die erste dieser
-Reihe, die **Liste und Formular auf einer Seite** hat. Der Controller behaelt
-Zugriffspruefung, alle POST-Wege (speichern, umschalten), das Laden des zu
+Reihe, die **Liste und Formular auf einer Seite** hat. Der Controller behält
+Zugriffsprüfung, alle POST-Wege (speichern, umschalten), das Laden des zu
 bearbeitenden Eintrags und die Liste; die View bekommt sieben Werte:
 `$eintraege`, `$form`, `$editId`, `$ok`, `$fehlermeldung`, `$ladefehler`,
 `$csrfBereich`. 1.926 → 1.788 Zeilen Controller plus 162 Zeilen View.
@@ -2206,8 +2312,8 @@ bearbeitenden Eintrags und die Liste; die View bekommt sieben Werte:
 1. `Csrf::feld()` statt der handgeschriebenen `csrf_token`-Zeile, hier an vier
    Stellen (Formular plus ein Umschalt-Formular je Zeile).
 2. Der Speichern-Knopf verliert `style="padding:0.55rem 0.9rem;"` – dieselbe
-   Stelle wie in P-2026-08-15-06, dieselbe Begruendung (T-104 im Snapshot:
-   keine eigenen Groessen auf Knoepfe).
+   Stelle wie in P-2026-08-15-06, dieselbe Begründung (T-104 im Snapshot:
+   keine eigenen Größen auf Knöpfe).
 
 `$ladefehler` war schon da – die Maske hat ihn in P-2026-08-15-09 bekommen und
 bringt ihn beim Umzug mit.
@@ -2215,17 +2321,17 @@ bringt ihn beim Umzug mit.
 ### TEST
 Wegwerf-Umgebung aus P-2026-08-15-08, **HEAD-Kopie vorher aktualisiert** auf
 P-2026-08-15-13. Das ist kein Detail: Die erste Messung lief noch gegen den
-Stand von heute frueh und zeigte deshalb eine sechste Abweichung – den
-Leer-Hinweis, den -09 entfernt hat. Wer zwei Staende vergleicht, muss wissen,
+Stand von heute früh und zeigte deshalb eine sechste Abweichung – den
+Leer-Hinweis, den -09 entfernt hat. Wer zwei Stände vergleicht, muss wissen,
 welche zwei.
 
-Drei erfundene Gruende: `SU` (normal), `X&Y` mit Titel
+Drei erfundene Gründe: `SU` (normal), `X&Y` mit Titel
 `<b>Test &amp; "Anführung"</b> äöüß` und `<script>`-Text im Kommentar, `NULLK`
 mit `NULL`-Kommentar und `0.00` Stunden.
 
 | Lage | Abweichende Zeilen | erwartet |
 | --- | --- | --- |
-| Liste mit drei Gruenden | 14 | 14 (4 × `Csrf::feld`, 1 × Knopf) |
+| Liste mit drei Gründen | 14 | 14 (4 × `Csrf::feld`, 1 × Knopf) |
 | mit `ok=1` | 14 | 14 |
 | Bearbeiten (`id=` eines Grundes) | 14 | 14 |
 | `id=999999` (gibt es nicht) | 14 | 14 |
@@ -2241,19 +2347,19 @@ POST-Wege auf dem neuen Stand:
 | --- | --- |
 | Neuen Grund anlegen (`3,5` Stunden mit Komma) | 302 `&ok=1`, in der DB `3.50` |
 | Grund umschalten (aktiv → inaktiv) | 302 `&ok=1`, `aktiv = 0` |
-| Falsches CSRF-Token | „CSRF-Check fehlgeschlagen.", `aktiv` unveraendert |
+| Falsches CSRF-Token | „CSRF-Check fehlgeschlagen.", `aktiv` unverändert |
 | Leerer Code | „Bitte einen gültigen Code (1–10 Zeichen, A-Z/0-9) angeben." |
 | `default_stunden=abc` | „Bitte gültige Default-Stunden angeben (z. B. 8 oder 8.00)." |
 | `id=0` beim Umschalten | „Ungültige ID." |
 
 22 Backend-Aufrufe HTTP 200, Serverlog ohne Deprecation oder Warnung, `php -l`
-ueber beide Dateien, Suchlauf nach Umlauten in `value`-Attributen: keine Treffer.
+über beide Dateien, Suchlauf nach Umlauten in `value`-Attributen: keine Treffer.
 
-**Kaltstart:** 15.980 → 16.146 durch T-113, danach an drei Stellen gekuerzt
+**Kaltstart:** 15.980 → 16.146 durch T-113, danach an drei Stellen gekürzt
 (T-104-`grep`-Absatz, T-105, Jahreswechsel) auf **16.031**. Das sind 31 Bytes
-ueber der Marke aus §9 und 353 unter der Grenze. Hier ist Schluss mit
-Wortkuerzen: Die naechsten Kandidaten waeren Saetze, die etwas erklaeren, und
-das Kuerzen ersetzt keine Entscheidung darueber, was im Snapshot stehen soll
+über der Marke aus §9 und 353 unter der Grenze. Hier ist Schluss mit
+Wortkürzen: Die nächsten Kandidaten wären Sätze, die etwas erklären, und
+das Kürzen ersetzt keine Entscheidung darüber, was im Snapshot stehen soll
 (siehe P-2026-08-15-13, „Was bewusst nicht erreicht wurde").
 
 ### Was bewusst nicht erreicht wurde
@@ -2267,17 +2373,17 @@ ist keine Falschheit, aber auch keine gute Beschriftung. Nicht angefasst: Diese
 Maske sollte HTML-gleich bleiben. Notiert unter **T-113**.
 
 ### NEXT
-T-104, naechste Maske: `indexPausenregeln()`.
+T-104, nächste Maske: `indexPausenregeln()`.
 
 ## P-2026-08-15-13 gefundenes-wird-abgearbeitet
 
 ### EINGELESEN
 - `docs/arbeitsregeln.md`, §3 und §9.
 - `README.md`, Abschnitt „Mitarbeiten".
-- `docs/STATUS_SNAPSHOT.md` (fuer die Kuerzung).
+- `docs/STATUS_SNAPSHOT.md` (für die Kürzung).
 - Ansage von Manuel im Chat: „arbeite auch mal fehler ab nicht nur immer
   beischreiben was so auffällt auch mal lösen".
-- Die eigenen Eintraege P-2026-08-15-09 bis -12 – dort ist genau das passiert.
+- Die eigenen Einträge P-2026-08-15-09 bis -12 – dort ist genau das passiert.
 
 ### DATEIEN
 - `docs/arbeitsregeln.md`, `README.md`
@@ -2288,66 +2394,66 @@ T-104, naechste Maske: `indexPausenregeln()`.
 abgearbeitet wird – und der Kaltstart bleibt unter 16.000 Bytes.
 
 ### DONE
-Die Regel „Keine Refactors nebenbei" hatte nur eine Haelfte: notieren statt
+Die Regel „Keine Refactors nebenbei" hatte nur eine Hälfte: notieren statt
 mitmachen. Was danach mit der Notiz passiert, stand nirgends. Wer die Regel
-woertlich nimmt, schreibt Zettel und legt sie ab – und weil ein Fund immer aus
-einer anderen Aufgabe faellt, ist der naechste Patch nie „dafuer zustaendig".
-So waechst eine Liste, die niemand abarbeitet, und der Code bleibt, wie er war.
+wörtlich nimmt, schreibt Zettel und legt sie ab – und weil ein Fund immer aus
+einer anderen Aufgabe fällt, ist der nächste Patch nie „dafür zuständig".
+So wächst eine Liste, die niemand abarbeitet, und der Code bleibt, wie er war.
 
-Die zweite Haelfte steht jetzt daneben: **abgearbeitet, moeglichst gleich
-danach, als eigener Patch.** Mit der Begruendung, die den Unterschied macht –
-wer den Fehler gefunden hat, weiss am meisten ueber ihn. Eine Woche spaeter
-liest jemand denselben Satz und faengt bei null an.
+Die zweite Hälfte steht jetzt daneben: **abgearbeitet, möglichst gleich
+danach, als eigener Patch.** Mit der Begründung, die den Unterschied macht –
+wer den Fehler gefunden hat, weiß am meisten über ihn. Eine Woche später
+liest jemand denselben Satz und fängt bei null an.
 
 Der Zuschnitt bleibt unangetastet: Ein Fund wird **nicht** in den laufenden
-Patch gezogen. Genau deshalb ist die Ergaenzung vertraeglich mit dem Rest von
+Patch gezogen. Genau deshalb ist die Ergänzung verträglich mit dem Rest von
 §3 – sie sagt nicht „doch mitmachen", sondern „nicht liegenlassen".
 
 Diese Sitzung hat es vorgemacht: B-096 fiel in P-2026-08-15-08 auf und war in
 -09 behoben, T-111 in -09 und in -10 abgearbeitet, B-097 und B-098 in -10
-gefunden, in -11 und -12 behoben. Kein Fund lag laenger als einen Patch.
+gefunden, in -11 und -12 behoben. Kein Fund lag länger als einen Patch.
 
-`README.md` bekommt denselben Halbsatz in der Kurzfassung. Es zaehlt nicht zum
+`README.md` bekommt denselben Halbsatz in der Kurzfassung. Es zählt nicht zum
 Kaltstart, kostet also keine Bytes.
 
 ### TEST
-Keine Codeaenderung, also nichts zu klicken. Gemessen wurde, was §9 verlangt:
+Keine Codeänderung, also nichts zu klicken. Gemessen wurde, was §9 verlangt:
 
 | Stand | Bytes |
 | --- | --- |
 | vorher | 15.930 |
-| mit der neuen Regel | 16.076 – **ueber der Marke** |
-| nach Kuerzung im Snapshot | 15.980 |
+| mit der neuen Regel | 16.076 – **über der Marke** |
+| nach Kürzung im Snapshot | 15.980 |
 
-Gekuerzt wurde in T-104 (die `grep`-Warnung und der Knopf-Hinweis sagen dasselbe
+Gekürzt wurde in T-104 (die `grep`-Warnung und der Knopf-Hinweis sagen dasselbe
 in weniger Worten) und in der Terminal-Zeile („mit angemeldetem Mitarbeiter"
-stand schon in „im Browser"). Kein Inhalt ist weggefallen, nur Wortlaenge.
+stand schon in „im Browser"). Kein Inhalt ist weggefallen, nur Wortlänge.
 
-Verweise auf Abschnittsnummern gegengeprueft: `docs/installationsanleitung.md`
+Verweise auf Abschnittsnummern gegengeprüft: `docs/installationsanleitung.md`
 (§7) und `docs/spezifikation_abteilungsrechte.md` (§1) stimmen weiterhin – es
 kam kein Abschnitt dazu, nur Text in einen bestehenden.
 
 ### Was bewusst nicht erreicht wurde
-`CHATSTART.md` bleibt unveraendert. Dort stehen nur die vier Regeln, bei denen
-ein Verstoss nicht mehr zu reparieren ist; ein liegengebliebener Fund ist
-aergerlich, aber reparierbar.
+`CHATSTART.md` bleibt unverändert. Dort stehen nur die vier Regeln, bei denen
+ein Verstoß nicht mehr zu reparieren ist; ein liegengebliebener Fund ist
+ärgerlich, aber reparierbar.
 
 **Der Kaltstart ist strukturell am Anschlag.** Dieser Patch ist der dritte in
-Folge, der kuerzen musste, um etwas hinzufuegen zu duerfen, und die Kuerzungen
+Folge, der kürzen musste, um etwas hinzufügen zu dürfen, und die Kürzungen
 werden kleinlicher. Der Grund ist nicht der Text der Regeln, sondern der
-Snapshot: Er zaehlt voll mit, und wenn eine Sitzung Bugs findet, waechst er.
-Das ist keine Frage, die ein Patch nebenbei entscheidet – Vorschlaege stehen im
+Snapshot: Er zählt voll mit, und wenn eine Sitzung Bugs findet, wächst er.
+Das ist keine Frage, die ein Patch nebenbei entscheidet – Vorschläge stehen im
 Chat, entscheiden muss es Manuel.
 
 ### NEXT
-Zurueck zu T-104: `indexSonstigesGruende()` des `KonfigurationController`.
+Zurück zu T-104: `indexSonstigesGruende()` des `KonfigurationController`.
 
 ## P-2026-08-15-12 b-098-feiertagsliste-meldet-lesefehler
 
 ### EINGELESEN
 - `docs/STATUS_SNAPSHOT.md` (B-098), `docs/arbeitsregeln.md`.
 - `controller/FeiertagController.php`, `index()`.
-- `views/feiertag/liste.php` vollstaendig – sie hatte **keinen** Platz fuer eine
+- `views/feiertag/liste.php` vollständig – sie hatte **keinen** Platz für eine
   Fehlermeldung.
 - `services/FeiertagService.php`, `generiereFeiertageFuerJahrWennNoetig()`.
 - P-2026-08-15-10 und -11 als Muster.
@@ -2364,18 +2470,18 @@ nicht geladen werden." statt „Für dieses Jahr wurden keine Feiertage gefunden
 B-098, die zweite der beiden Listen aus P-2026-08-15-10, die ihren Lesefehler
 gar nicht zeigten. Ursache hier nicht im Modell, sondern im Controller: Sein
 `catch` **loggte nur**. Die View kannte gar keine Fehlermeldung – es gab keine
-Variable und keinen Block dafuer.
+Variable und keinen Block dafür.
 
 Der Controller setzt jetzt Meldung und `$ladefehler`, die View bekommt den
-ueblichen `fehlermeldung`-Block und zeigt ihren Leer-Hinweis nur ohne
+üblichen `fehlermeldung`-Block und zeigt ihren Leer-Hinweis nur ohne
 Ladefehler. Damit sieht diese Maske aus wie die neun anderen.
 
 Der Satz „Für dieses Jahr wurden keine Feiertage gefunden." bleibt stehen und
 ist keine tote Zeile: Er greift, wenn die Tabelle lesbar, aber leer ist – etwa
-wenn das Nachsaeen des Service scheitert. Genau diese Lage steht im Test.
+wenn das Nachsäen des Service scheitert. Genau diese Lage steht im Test.
 
 ### TEST
-Wegwerf-Umgebung aus P-2026-08-15-08. Drei Lagen, beide Staende:
+Wegwerf-Umgebung aus P-2026-08-15-08. Drei Lagen, beide Stände:
 
 | Lage | HEAD | neu |
 | --- | --- | --- |
@@ -2383,35 +2489,35 @@ Wegwerf-Umgebung aus P-2026-08-15-08. Drei Lagen, beide Staende:
 | lesbar, aber leer | Leer-Hinweis | Leer-Hinweis |
 | unlesbar (`RENAME TABLE`) | **Leer-Hinweis, keine Meldung** | nur Fehlermeldung |
 
-Die leere Lage ist der interessante Teil des Aufbaus: Ein blosses `DELETE`
-genuegt nicht, weil `generiereFeiertageFuerJahrWennNoetig()` beim naechsten
-Aufruf sofort nachsaet (gemessen: 9 Eintraege). Dafuer wurde ein Trigger
+Die leere Lage ist der interessante Teil des Aufbaus: Ein bloßes `DELETE`
+genügt nicht, weil `generiereFeiertageFuerJahrWennNoetig()` beim nächsten
+Aufruf sofort nachsät (gemessen: 9 Einträge). Dafür wurde ein Trigger
 gesetzt, der `INSERT` auf `feiertag` mit `SIGNAL SQLSTATE '45000'` abweist –
 danach ist die Tabelle lesbar und bleibt leer. Der Trigger ist am Ende wieder
-weg, die Feiertage sind nachgesaet.
+weg, die Feiertage sind nachgesät.
 
 22 Backend-Aufrufe HTTP 200, Serverlog ohne Deprecation oder Warnung, `php -l`
-ueber beide Dateien.
+über beide Dateien.
 
 ### Was bewusst nicht erreicht wurde
-`generiereFeiertageFuerJahrWennNoetig()` faengt seinen eigenen Lesefehler ab und
-macht mit einer leeren Liste weiter – es versucht dann zu saeen, was bei
+`generiereFeiertageFuerJahrWennNoetig()` fängt seinen eigenen Lesefehler ab und
+macht mit einer leeren Liste weiter – es versucht dann zu säen, was bei
 unlesbarer Tabelle ebenfalls scheitert. Sichtbar ist das nicht (die Warnung
-steht im Log, die Seite laedt), und es gehoert zu T-112.
+steht im Log, die Seite lädt), und es gehört zu T-112.
 
 Damit sind alle acht Listen aus T-111 abgearbeitet.
 
 ### NEXT
-Zurueck zu T-104: `indexSonstigesGruende()` des `KonfigurationController`.
+Zurück zu T-104: `indexSonstigesGruende()` des `KonfigurationController`.
 
 ## P-2026-08-15-11 b-097-abteilungsliste-meldet-lesefehler
 
 ### EINGELESEN
 - `docs/STATUS_SNAPSHOT.md` (B-097), `docs/arbeitsregeln.md`.
 - P-2026-08-14-14 (T-110) – derselbe Fehler in `KonfigurationService`.
-- `modelle/AbteilungModel.php` vollstaendig.
-- `grep -rn "holeAlleAktiven" --include='*.php' .` – **15** Aufrufer allein fuer
-  das Abteilungsmodell, verteilt auf fuenf Controller.
+- `modelle/AbteilungModel.php` vollständig.
+- `grep -rn "holeAlleAktiven" --include='*.php' .` – **15** Aufrufer allein für
+  das Abteilungsmodell, verteilt auf fünf Controller.
 - `controller/AbteilungAdminController.php`, `index()`.
 
 ### DATEIEN
@@ -2422,7 +2528,7 @@ Zurueck zu T-104: `indexSonstigesGruende()` des `KonfigurationController`.
 ### AKZEPTANZKRITERIUM
 Ist `abteilung` nicht lesbar, zeigt die Abteilungsliste „Die Abteilungen konnten
 nicht geladen werden." statt der Behauptung, es seien keine hinterlegt – und die
-Formulare, die dieselbe Methode nur fuer ihre Auswahlliste benutzen, laden
+Formulare, die dieselbe Methode nur für ihre Auswahlliste benutzen, laden
 weiterhin.
 
 ### DONE
@@ -2432,24 +2538,24 @@ nicht ein Fehler, sondern eine **normal aussehende Seite mit einer falschen
 Aussage** – bei T-110 stand dieselbe Analyse schon einmal.
 
 **Der Unterschied zu T-110 ist die Zahl der Aufrufer.** Dort war es einer,
-also konnte die Methode einfach aufhoeren abzufangen. Hier sind es 15, und die
-meisten fuellen nur eine Auswahlliste in einem Formular. Wuerde die Methode
-durchwerfen, braeche bei unlesbarer Tabelle das Mitarbeiterformular ab, statt
-eine leere Auswahl zu zeigen – ein neuer Fehler als Preis fuer den alten.
+also konnte die Methode einfach aufhören abzufangen. Hier sind es 15, und die
+meisten füllen nur eine Auswahlliste in einem Formular. Würde die Methode
+durchwerfen, bräche bei unlesbarer Tabelle das Mitarbeiterformular ab, statt
+eine leere Auswahl zu zeigen – ein neuer Fehler als Preis für den alten.
 
 Deshalb zwei Methoden mit klarer Aufgabenteilung:
 
-- `holeAlleAktiven()` faengt weiter ab, fuer Auswahllisten. Der Kommentar sagt
-  jetzt, **wofuer** das richtig ist und wann nicht.
-- `holeAlleAktivenOhneFallback()` reicht den Fehler durch. Fuer jede Maske, die
+- `holeAlleAktiven()` fängt weiter ab, für Auswahllisten. Der Kommentar sagt
+  jetzt, **wofür** das richtig ist und wann nicht.
+- `holeAlleAktivenOhneFallback()` reicht den Fehler durch. Für jede Maske, die
   dem Benutzer sagt, ob es Abteilungen gibt.
 
-Der Name ist absichtlich lang: Wer ihn liest, weiss ohne Nachschlagen, was
+Der Name ist absichtlich lang: Wer ihn liest, weiß ohne Nachschlagen, was
 anders ist. Die SQL steht nur noch einmal da – die fangende Methode ruft die
 andere auf.
 
-Doppeltes Loggen faellt fuer den Listenweg weg: Das Modell loggt nur noch, wenn
-es selbst abfaengt.
+Doppeltes Loggen fällt für den Listenweg weg: Das Modell loggt nur noch, wenn
+es selbst abfängt.
 
 ### TEST
 Wegwerf-Umgebung aus P-2026-08-15-08. Drei Lagen der Abteilungsliste:
@@ -2463,34 +2569,34 @@ Wegwerf-Umgebung aus P-2026-08-15-08. Drei Lagen der Abteilungsliste:
 Auf HEAD zeigt die dritte Lage weder Fehlermeldung noch etwas anderes als
 „keine aktiven Abteilungen hinterlegt" – der Fehler, um den es geht.
 
-Gegenprobe fuer den Fallback, alle bei unlesbarer Tabelle und alle HTTP 200:
+Gegenprobe für den Fallback, alle bei unlesbarer Tabelle und alle HTTP 200:
 Maschine bearbeiten, Terminal bearbeiten, Betriebsferien bearbeiten, Mitarbeiter
 bearbeiten, Mitarbeiterliste, Dashboard. `system_log` zeigt die erwartete
-Zustaendigkeit: „Fehler beim Laden aktiver Abteilungen" (Modell) kommt aus den
+Zuständigkeit: „Fehler beim Laden aktiver Abteilungen" (Modell) kommt aus den
 vier Formularen, „Fehler beim Laden der Abteilungen im Admin-Bereich"
 (Controller) aus der Liste – **kein** Aufruf schreibt beide.
 
 22 Backend-Aufrufe HTTP 200, Serverlog ohne Deprecation oder Warnung, `php -l`
-ueber die drei geaenderten Dateien.
+über die drei geänderten Dateien.
 
 ### Was bewusst nicht erreicht wurde
-Die uebrigen 14 Aufrufer bleiben beim Fallback. Ob eine Auswahlliste, die still
+Die übrigen 14 Aufrufer bleiben beim Fallback. Ob eine Auswahlliste, die still
 leer bleibt, an jeder Stelle das Richtige ist, ist eine eigene Frage – sie
-gehoert zu T-112 und wird nicht nebenbei beantwortet.
+gehört zu T-112 und wird nicht nebenbei beantwortet.
 
-Die anderen Methoden von `AbteilungModel` fangen ebenfalls ab. Fuer
-`holeNachId()` ist das plausibel (der Aufrufer prueft auf `null`), aber
-ungeprueft – auch das ist T-112.
+Die anderen Methoden von `AbteilungModel` fangen ebenfalls ab. Für
+`holeNachId()` ist das plausibel (der Aufrufer prüft auf `null`), aber
+ungeprüft – auch das ist T-112.
 
 ### NEXT
-B-098 (Feiertagsliste), danach zurueck zu T-104.
+B-098 (Feiertagsliste), danach zurück zu T-104.
 
 ## P-2026-08-15-10 t-111-leerhinweis-in-sechs-listen
 
 ### EINGELESEN
 - `docs/STATUS_SNAPSHOT.md` (T-111), `docs/arbeitsregeln.md`.
-- P-2026-08-15-09 – dasselbe Thema, dort fuer die Konfiguration.
-- Die acht Listen ausserhalb der Konfiguration, je Controller der `catch` und
+- P-2026-08-15-09 – dasselbe Thema, dort für die Konfiguration.
+- Die acht Listen außerhalb der Konfiguration, je Controller der `catch` und
   je View die Bedingung um den Leer-Hinweis.
 - `modelle/AbteilungModel.php`, `holeAlleAktiven()` (zum Befund unten).
 
@@ -2506,37 +2612,37 @@ B-098 (Feiertagsliste), danach zurueck zu T-104.
 ### AKZEPTANZKRITERIUM
 Ist `maschine` nicht lesbar, steht unter „Die Maschinen konnten nicht geladen
 werden." **nicht** mehr „Es sind derzeit keine Maschinen hinterlegt." – und in
-den fuenf anderen Listen dieses Patches ebenso wenig der jeweils eigene Hinweis.
+den fünf anderen Listen dieses Patches ebenso wenig der jeweils eigene Hinweis.
 
 ### DONE
 T-111, gefunden in P-2026-08-15-09. Gemessen statt vermutet: Alle acht Listen
-ausserhalb der Konfiguration zeigen bei unlesbarer Tabelle ihren Leer-Hinweis.
+außerhalb der Konfiguration zeigen bei unlesbarer Tabelle ihren Leer-Hinweis.
 Sechs davon melden immerhin den Fehler daneben – die sind hier dran, mit
 demselben Merker `$ladefehler` wie in P-2026-08-15-09.
 
 **Zwei bleiben offen, weil sie einen anderen Fehler haben**: Abteilungen und
-Feiertage zeigen ueberhaupt **keine** Fehlermeldung. Die Seite sieht aus wie
+Feiertage zeigen überhaupt **keine** Fehlermeldung. Die Seite sieht aus wie
 immer und behauptet, es sei nichts da.
 
-- Abteilungen: `AbteilungModel::holeAlleAktiven()` faengt selbst ab und gibt
-  `[]` zurueck – der `catch` im Controller ist unerreichbarer Code. Das ist
-  Zeile fuer Zeile T-110 (P-2026-08-14-14), nur in einem anderen Modell.
+- Abteilungen: `AbteilungModel::holeAlleAktiven()` fängt selbst ab und gibt
+  `[]` zurück – der `catch` im Controller ist unerreichbarer Code. Das ist
+  Zeile für Zeile T-110 (P-2026-08-14-14), nur in einem anderen Modell.
 - Feiertage: Der `catch` im Controller **loggt nur**, er setzt gar keine
   Meldung; die View kennt keine.
 
 Beide brauchen mehr als drei Zeilen und je einen eigenen Test – deshalb je ein
 eigener Patch, notiert als **B-097** und **B-098**.
 
-**Sechs Listen in einem Patch**, mit derselben Begruendung wie in -09: ein
+**Sechs Listen in einem Patch**, mit derselben Begründung wie in -09: ein
 Thema, ein Satz Ursache, in jeder Liste dieselben drei Zeilen. Elf Dateien sind
-fuer dieses Projekt viel (Arbeitsregel 3 nennt das ein Warnsignal), deshalb
-nachgeprueft: Es sind sechs Paare aus Controller und View, kein zweites Thema
-dazwischen – kein Umbau, keine neue Meldung, kein geaendertes Verhalten im
+für dieses Projekt viel (Arbeitsregel 3 nennt das ein Warnsignal), deshalb
+nachgeprüft: Es sind sechs Paare aus Controller und View, kein zweites Thema
+dazwischen – kein Umbau, keine neue Meldung, kein geändertes Verhalten im
 Normalfall.
 
 ### TEST
 Wegwerf-Umgebung aus P-2026-08-15-08 weiterbenutzt. Je Liste zwei Lagen,
-jeweils auf **beiden** Staenden: Tabelle unlesbar (`RENAME TABLE`) und Tabelle
+jeweils auf **beiden** Ständen: Tabelle unlesbar (`RENAME TABLE`) und Tabelle
 lesbar, aber leer (`DELETE`).
 
 | Liste | unlesbar HEAD | unlesbar neu | leer HEAD | leer neu |
@@ -2547,23 +2653,23 @@ lesbar, aber leer (`DELETE`).
 | Kurzarbeit | Hinweis **und** Fehler | nur Fehler | Hinweis | Hinweis |
 | Terminals | Hinweis **und** Fehler | nur Fehler | Hinweis | Hinweis |
 | Mitarbeiter | Hinweis **und** Fehler | nur Fehler | Hinweis | Hinweis |
-| Abteilungen | Hinweis, **kein** Fehler | unveraendert | – | – |
-| Feiertage | Hinweis, **kein** Fehler | unveraendert | – | – |
+| Abteilungen | Hinweis, **kein** Fehler | unverändert | – | – |
+| Feiertage | Hinweis, **kein** Fehler | unverändert | – | – |
 
-Alle Aufrufe HTTP 200. Die leere Lage der Rundungsregeln laesst sich nicht
+Alle Aufrufe HTTP 200. Die leere Lage der Rundungsregeln lässt sich nicht
 herstellen: `RundungsService::seedDefaultRegelnWennLeer()` legt die Standards
-sofort wieder an (nach dem `DELETE` gemessen: 2 Eintraege) – dieselbe Bauart wie
-`DefaultsSeeder` bei der Konfiguration, kein Befund. Fuer die Mitarbeiterliste
+sofort wieder an (nach dem `DELETE` gemessen: 2 Einträge) – dieselbe Bauart wie
+`DefaultsSeeder` bei der Konfiguration, kein Befund. Für die Mitarbeiterliste
 diente die Liste der **inaktiven** als leere Probe, statt die Tabelle zu leeren –
-darin haengt der angemeldete Pruefbenutzer.
+darin hängt der angemeldete Prüfbenutzer.
 
 22 Backend-Aufrufe HTTP 200, Serverlog ohne Deprecation oder Warnung, `php -l`
-ueber alle elf geaenderten Dateien.
+über alle elf geänderten Dateien.
 
 ### Gefundene Fehler im eigenen Entwurf
-Der erste Durchgang haette die Terminalverwaltung fast uebersehen: Ihre Maske
-steht noch im Controller (T-104), also findet sie kein Suchlauf ueber `views/`.
-Gefunden wurde sie nur, weil der Test ueber die **Routen** lief und nicht ueber
+Der erste Durchgang hätte die Terminalverwaltung fast übersehen: Ihre Maske
+steht noch im Controller (T-104), also findet sie kein Suchlauf über `views/`.
+Gefunden wurde sie nur, weil der Test über die **Routen** lief und nicht über
 die Dateien. Wer in diesem Projekt „alle Listen" sucht, sucht in zwei
 Verzeichnissen.
 
@@ -2575,16 +2681,16 @@ Fehlermeldung des Aufrufers unerreichbar macht. Nicht durchgesehen, nicht
 angefasst: als **T-112** notiert, mit dem Suchlauf, der die 26 Stellen findet.
 
 ### NEXT
-B-097 (Abteilungen) und B-098 (Feiertage), dann zurueck zu T-104.
+B-097 (Abteilungen) und B-098 (Feiertage), dann zurück zu T-104.
 
 ## P-2026-08-15-09 b-096-leerhinweis-nur-ohne-ladefehler
 
 ### EINGELESEN
 - `docs/STATUS_SNAPSHOT.md` (B-096), `docs/arbeitsregeln.md`.
-- P-2026-08-14-14 – derselbe Fehler, dort fuer die Konfigurations-Uebersicht
-  behoben; die Begruendung steht in seinem DONE.
-- `controller/KonfigurationController.php`, alle fuenf Masken an ihren
-  `catch`-Bloecken und ihren Leer-Hinweisen.
+- P-2026-08-14-14 – derselbe Fehler, dort für die Konfigurations-Übersicht
+  behoben; die Begründung steht in seinem DONE.
+- `controller/KonfigurationController.php`, alle fünf Masken an ihren
+  `catch`-Blöcken und ihren Leer-Hinweisen.
 - `views/konfiguration/liste.php`, `views/konfiguration/systemlog.php`.
 
 ### DATEIEN
@@ -2599,62 +2705,62 @@ den drei Nachbarmasken ebenso wenig der jeweils eigene Leer-Hinweis.
 
 ### DONE
 B-096 aus P-2026-08-15-08. Beim Fehlerpfad-Test fiel auf, dass der Fehler nicht
-allein im System-Log steckt: **Vier** der fuenf Masken dieses Controllers sagen
+allein im System-Log steckt: **Vier** der fünf Masken dieses Controllers sagen
 bei unlesbarer Tabelle beides gleichzeitig – die Fehlermeldung und darunter, es
 sei nichts vorhanden. Der Satz schickt einen in die Datenbank, um zu suchen, was
-geloescht wurde, obwohl nur die Abfrage gescheitert ist.
+gelöscht wurde, obwohl nur die Abfrage gescheitert ist.
 
 **Vier Masken in einem Patch, nicht vier Patches.** Es ist ein Thema, ein Satz
-Ursache und in jeder Maske dieselben drei Zeilen; vier Commits dafuer waeren
+Ursache und in jeder Maske dieselben drei Zeilen; vier Commits dafür wären
 Buchhaltung ohne Nutzen. Der sichtbare Effekt ist derselbe, nur an vier Stellen.
 
-Geprueft wird ein eigener Merker `$ladefehler`, nicht `empty($fehlermeldung)`.
-Diese Masken setzen `$fehlermeldung` naemlich auch, wenn eine **POST-Aktion**
-misslingt (CSRF, ungueltige ID). Ueber den Bestand sagt das nichts: Bei leerer
-Tabelle und falschem Token gehoert der Leer-Hinweis weiterhin auf die Seite.
-`empty($fehlermeldung)` haette ihn dort still verschluckt – eine zweite falsche
+Geprüft wird ein eigener Merker `$ladefehler`, nicht `empty($fehlermeldung)`.
+Diese Masken setzen `$fehlermeldung` nämlich auch, wenn eine **POST-Aktion**
+misslingt (CSRF, ungültige ID). Über den Bestand sagt das nichts: Bei leerer
+Tabelle und falschem Token gehört der Leer-Hinweis weiterhin auf die Seite.
+`empty($fehlermeldung)` hätte ihn dort still verschluckt – eine zweite falsche
 Auskunft, nur andersherum.
 
 `views/konfiguration/liste.php` wird auf denselben Merker umgestellt, obwohl
-seine Bedingung dort gleichwertig ist (die Uebersicht hat kein Formular). Sonst
-stuenden in `views/konfiguration/` zwei Schreibweisen fuer dieselbe Aussage, und
+seine Bedingung dort gleichwertig ist (die Übersicht hat kein Formular). Sonst
+stünden in `views/konfiguration/` zwei Schreibweisen für dieselbe Aussage, und
 die drei noch nicht migrierten Masken bringen beim Umzug die dritte mit.
 
 ### TEST
 Wegwerf-Umgebung aus P-2026-08-15-08 weiterbenutzt (Datenbank `zeit_probe_t104c`,
 erfundene Daten, beide Server ohne OPcache). Je Maske zwei Lagen: Tabelle leer
-(`DELETE`) und Tabelle unlesbar (`RENAME TABLE`), jeweils auf **beiden** Staenden
-gemessen. Gezaehlt wurde, ob Leer-Hinweis und Fehlermeldung im HTML stehen.
+(`DELETE`) und Tabelle unlesbar (`RENAME TABLE`), jeweils auf **beiden** Ständen
+gemessen. Gezählt wurde, ob Leer-Hinweis und Fehlermeldung im HTML stehen.
 
 | Maske | leer (HEAD/neu) | unlesbar HEAD | unlesbar neu |
 | --- | --- | --- | --- |
 | System-Log | Hinweis / Hinweis | Hinweis **und** Fehler | nur Fehler |
 | Krankzeiten | Hinweis / Hinweis | Hinweis **und** Fehler | nur Fehler |
 | Pausenfenster | Hinweis / Hinweis | Hinweis **und** Fehler | nur Fehler |
-| Sonstiges-Gruende | Hinweis / Hinweis | Hinweis **und** Fehler | nur Fehler |
+| Sonstiges-Gründe | Hinweis / Hinweis | Hinweis **und** Fehler | nur Fehler |
 | Konfiguration | – | nur Fehler | nur Fehler |
 
-Die Konfigurations-Uebersicht ist die Gegenprobe: Sie war schon vorher richtig
-(P-2026-08-14-14) und bleibt es. Ihre leere Lage laesst sich mit `DELETE` nicht
-herstellen – `DefaultsSeeder` legt bei jedem Aufruf nach, gemessen 11 Eintraege
-direkt nach dem Loeschen. Das ist bekannt (P-2026-08-14-12), kein Befund.
+Die Konfigurations-Übersicht ist die Gegenprobe: Sie war schon vorher richtig
+(P-2026-08-14-14) und bleibt es. Ihre leere Lage lässt sich mit `DELETE` nicht
+herstellen – `DefaultsSeeder` legt bei jedem Aufruf nach, gemessen 11 Einträge
+direkt nach dem Löschen. Das ist bekannt (P-2026-08-14-12), kein Befund.
 
 Der Fall, wegen dem es `$ladefehler` gibt: leeres `system_log` **plus**
-POST mit falschem Token. Auf beiden Staenden steht die CSRF-Meldung und der
-Leer-Hinweis – der Patch aendert daran nichts, genau wie beabsichtigt.
+POST mit falschem Token. Auf beiden Ständen steht die CSRF-Meldung und der
+Leer-Hinweis – der Patch ändert daran nichts, genau wie beabsichtigt.
 
 22 Backend-Aufrufe HTTP 200, Serverlog ohne Deprecation oder Warnung, `php -l`
-ueber die drei geaenderten Dateien.
+über die drei geänderten Dateien.
 
 ### Was bewusst nicht erreicht wurde
-Dieselbe Bauart steht in weiteren Listen ausserhalb dieses Controllers
+Dieselbe Bauart steht in weiteren Listen außerhalb dieses Controllers
 (Abteilungen, Maschinen, Betriebsferien, Rundungsregeln, Mitarbeiter,
-Terminalverwaltung, Kurzarbeit). Ob dort ueberhaupt ein Ladefehler zur leeren
-Liste fuehren kann, ist ungeprueft – erst nachsehen, dann anfassen. Als **T-111**
+Terminalverwaltung, Kurzarbeit). Ob dort überhaupt ein Ladefehler zur leeren
+Liste führen kann, ist ungeprüft – erst nachsehen, dann anfassen. Als **T-111**
 notiert.
 
 ### NEXT
-T-111 (Nachbarlisten pruefen), danach die naechste Maske aus T-104:
+T-111 (Nachbarlisten prüfen), danach die nächste Maske aus T-104:
 `indexSonstigesGruende()`.
 
 ## P-2026-08-15-08 t-104-systemlog-in-views
@@ -2666,7 +2772,7 @@ T-111 (Nachbarlisten pruefen), danach die naechste Maske aus T-104:
 - `core/Csrf.php`, `feld()`.
 - `views/layout/header.php`, Block `button` / `.button-link` und
   `.table-actions`.
-- `controller/KonfigurationController.php`, `indexSystemlog()` vollstaendig.
+- `controller/KonfigurationController.php`, `indexSystemlog()` vollständig.
 - P-2026-08-14-14 (T-110) – wegen des Fehlerpfads, der hier wieder vorkommt.
 
 ### DATEIEN
@@ -2675,121 +2781,121 @@ T-111 (Nachbarlisten pruefen), danach die naechste Maske aus T-104:
 - `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
 
 ### AKZEPTANZKRITERIUM
-Die System-Log-Maske erzeugt dasselbe HTML wie vorher – bis auf die Einrueckung
+Die System-Log-Maske erzeugt dasselbe HTML wie vorher – bis auf die Einrückung
 und die zwei unten benannten Absichten –, obwohl das Markup jetzt in
 `views/konfiguration/systemlog.php` liegt.
 
 ### DONE
 Dritte der sechs Masken des `KonfigurationController` und die erste dieser Reihe
 **mit JavaScript** (das Aufklappen der Detailzeile). Das Skript ist reine
-Darstellung – es haengt an `[data-detail-toggle]` und kennt keine Fachlogik –,
+Darstellung – es hängt an `[data-detail-toggle]` und kennt keine Fachlogik –,
 also wandert es mit in die View und nicht in eine eigene Datei.
 
-Der Controller behaelt Zugriffspruefung, die beiden POST-Wege (einzelnen
-Eintrag loeschen, Log leeren) und die Abfrage; er reicht fuenf Werte an die
+Der Controller behält Zugriffsprüfung, die beiden POST-Wege (einzelnen
+Eintrag löschen, Log leeren) und die Abfrage; er reicht fünf Werte an die
 View: `$eintraege`, `$limit`, `$ok`, `$fehlermeldung`, `$csrfBereich`.
 2.023 → 1.897 Zeilen Controller plus 146 Zeilen View.
 
 **Zwei bewusste Abweichungen** vom bisherigen HTML, beide aus dem Muster:
 
 1. Statt der handgeschriebenen `csrf_token`-Zeile steht `Csrf::feld()` – hier an
-   **sieben** Stellen (Leeren-Formular plus ein Loeschen-Formular je Zeile).
+   **sieben** Stellen (Leeren-Formular plus ein Löschen-Formular je Zeile).
    Gleiche Ausgabe bis auf einen fehlenden Zeilenumbruch.
 2. Der Entwicklerhinweis zum Wert `loeschen` war ein **HTML**-Kommentar und
    stand damit im ausgelieferten Quelltext jeder Zeile. Er ist jetzt ein
-   PHP-Kommentar: Der Hinweis gilt dem, der die Datei aendert, nicht dem
-   Browser. Sein „weiter oben" stimmte ausserdem nicht mehr – der Vergleichswert
-   steht jetzt im Controller, nicht mehr eine Bildschirmseite hoeher.
+   PHP-Kommentar: Der Hinweis gilt dem, der die Datei ändert, nicht dem
+   Browser. Sein „weiter oben" stimmte außerdem nicht mehr – der Vergleichswert
+   steht jetzt im Controller, nicht mehr eine Bildschirmseite höher.
 
-Der Knopf-Regel aus T-104 („keine eigenen Groessen") war nichts hinzuzufuegen:
-Diese Maske schreibt keine Groessen auf ihre Knoepfe.
+Der Knopf-Regel aus T-104 („keine eigenen Größen") war nichts hinzuzufügen:
+Diese Maske schreibt keine Größen auf ihre Knöpfe.
 
 ### TEST
 Wegwerf-Umgebung wie in P-2026-08-14-12: zwei Kopien des Repos unter `/tmp`
 (HEAD und Arbeitsstand), eigene `config.local.php`, frische Datenbank
-`zeit_probe_t104c` aus `sql/01_initial_schema.sql`, **erfundener** Pruefbenutzer
-„Probe Pruefer", beide Server mit `-d opcache.enable=0 -d opcache.enable_cli=0`.
-Entwicklungsdatenbank nicht angefasst, Probe-Datenbank am Ende geloescht.
+`zeit_probe_t104c` aus `sql/01_initial_schema.sql`, **erfundener** Prüfbenutzer
+„Probe Prüfer", beide Server mit `-d opcache.enable=0 -d opcache.enable_cli=0`.
+Entwicklungsdatenbank nicht angefasst, Probe-Datenbank am Ende gelöscht.
 
-Acht erfundene Log-Eintraege, gebaut fuer die Kanten der Maske: Sonderzeichen in
-Nachricht, Kategorie und Daten (`<script>`, `&`, `"`, `äöüß`), Daten laenger als
-120 Zeichen, Kuerzung genau auf einer Umlautgrenze, `mitarbeiter_id` ohne
+Acht erfundene Log-Einträge, gebaut für die Kanten der Maske: Sonderzeichen in
+Nachricht, Kategorie und Daten (`<script>`, `&`, `"`, `äöüß`), Daten länger als
+120 Zeichen, Kürzung genau auf einer Umlautgrenze, `mitarbeiter_id` ohne
 Datensatz (→ „Mitarbeiter #99"), leere Kategorie mit leeren Daten, dazu je ein
 `info`- und ein `debug`-Eintrag, die der Filter der Abfrage **nicht** zeigen
 darf.
 
-HTML beider Staende normalisiert (Leerraum zusammengefasst, Token maskiert) und
+HTML beider Stände normalisiert (Leerraum zusammengefasst, Token maskiert) und
 verglichen:
 
 | Lage | Abweichende Zeilen | davon erwartet |
 | --- | --- | --- |
-| Liste mit sechs Eintraegen | 33 | 33 (7 × `Csrf::feld`, 6 × Kommentar) |
+| Liste mit sechs Einträgen | 33 | 33 (7 × `Csrf::feld`, 6 × Kommentar) |
 | Liste mit `ok=1` | 33 | 33 |
 | Leere Liste | 3 | 3 (nur das Leeren-Formular ist da) |
 | Tabelle unlesbar (`RENAME TABLE`) | 3 | 3 |
 
 Kein anderer Unterschied – auch nicht in der Maskierung des `<script>`-Textes,
-in der Kuerzung auf der Umlautgrenze oder in `info`/`debug`, die auf beiden
-Staenden fehlen.
+in der Kürzung auf der Umlautgrenze oder in `info`/`debug`, die auf beiden
+Ständen fehlen.
 
 Danach die Wege, die kein HTML-Vergleich zeigt, auf dem neuen Stand:
 
 | Weg | Ergebnis |
 | --- | --- |
-| Einzelnen Eintrag loeschen | 302 `&ok=1`, Zeile aus `system_log` weg, Rest unveraendert |
+| Einzelnen Eintrag löschen | 302 `&ok=1`, Zeile aus `system_log` weg, Rest unverändert |
 | Log leeren | 302 `&ok=1`, Tabelle leer |
-| Falsches CSRF-Token | „CSRF-Check fehlgeschlagen. Bitte Seite neu laden.", nichts geloescht |
-| `id=0` | „Ungültige Log-ID.", nichts geloescht |
+| Falsches CSRF-Token | „CSRF-Check fehlgeschlagen. Bitte Seite neu laden.", nichts gelöscht |
+| `id=0` | „Ungültige Log-ID.", nichts gelöscht |
 | `ok=1` | „Aktion abgeschlossen." |
 
 22 Backend-Aufrufe HTTP 200 (Dashboard, Mitarbeiter, Rollen, Monatsreport,
-Urlaub eigene Liste, Genehmigungsliste, alle fuenf Konfigurations-Masken,
+Urlaub eigene Liste, Genehmigungsliste, alle fünf Konfigurations-Masken,
 Terminalverwaltung, Queue, Audit-Log, Tagesansicht, Maschinen, Abteilungen,
-Feiertage, Betriebsferien, Katalog, Auftraege), Serverlog ohne Deprecation oder
-Warnung, `php -l` ueber beide Dateien. Die beiden Suchlaeufe der
+Feiertage, Betriebsferien, Katalog, Aufträge), Serverlog ohne Deprecation oder
+Warnung, `php -l` über beide Dateien. Die beiden Suchläufe der
 Wartungscheckliste zu Umlauten in Werten und Bezeichnern: keine Treffer.
 
-**Kaltstart gekuerzt statt angebaut**, wie §9 es ab 16.000 Bytes verlangt: Der
+**Kaltstart gekürzt statt angebaut**, wie §9 es ab 16.000 Bytes verlangt: Der
 neue Bug B-096 im Snapshot kostet Platz, also ist an drei Stellen weggefallen,
-was ableitbar oder Verlauf ist – die Aufschluesselung der `grep`-Fehltreffer bei
+was ableitbar oder Verlauf ist – die Aufschlüsselung der `grep`-Fehltreffer bei
 T-104 (steht in P-2026-08-14-06), die Zeilenzahl in T-105 (driftet, §9 nennt
 genau das) und zwei UX-Notizen, die jetzt eine Zeile teilen.
 
 | Stand | Bytes |
 | --- | --- |
 | vor diesem Patch | 15.986 |
-| mit B-096, ungekuerzt | 16.274 – **ueber der Marke** |
-| nach den drei Kuerzungen | 15.980 |
+| mit B-096, ungekürzt | 16.274 – **über der Marke** |
+| nach den drei Kürzungen | 15.980 |
 
 ### Gefundene Fehler im eigenen Entwurf
 Der Klicktest lief zuerst gegen vier erfundene Routennamen (`seite=report`,
 `urlaub`, `audit_log`, `zeit`). Alle vier gibt es nicht; `public/index.php`
 leitet unbekannte Seiten auf das Dashboard um – **HTTP 302, keine Fehlerseite**.
-Ein Skript, das nur „nicht 200" meldet, haette hier stumm vier Ablaeufe als
-geprueft gezaehlt, die nie aufgerufen wurden. Richtig heissen sie
+Ein Skript, das nur „nicht 200" meldet, hätte hier stumm vier Abläufe als
+geprüft gezählt, die nie aufgerufen wurden. Richtig heißen sie
 `report_monat`, `urlaub_meine`, `audit_logs`, `zeit_heute`. Wer Klicktests
-skriptet, prueft die Routennamen gegen `public/index.php`, nicht gegen das
-Gedaechtnis.
+skriptet, prüft die Routennamen gegen `public/index.php`, nicht gegen das
+Gedächtnis.
 
 ### Was bewusst nicht erreicht wurde
 Der Fehlerpfad zeigt weiterhin **beides**: „Das System-Log konnte nicht geladen
 werden." und direkt darunter „Es sind derzeit keine Log-Einträge vorhanden." –
 genau die falsche Auskunft, die P-2026-08-14-14 fuer die Konfigurations-
-Uebersicht abgestellt hat. Hier nicht mitgemacht, weil dieser Patch das HTML
+Übersicht abgestellt hat. Hier nicht mitgemacht, weil dieser Patch das HTML
 gleich lassen muss, um vergleichbar zu bleiben. Als eigener Patch direkt danach.
 
 Die drei restlichen Masken des Controllers (Krankzeitraum, Pausenregeln,
-Sonstiges-Gruende) bleiben, wie sie sind – eine Maske je Patch. Das gemeinsame
-Teil-Template fuer die Tab-Zeile bleibt offen bis zur letzten Maske.
+Sonstiges-Gründe) bleiben, wie sie sind – eine Maske je Patch. Das gemeinsame
+Teil-Template für die Tab-Zeile bleibt offen bis zur letzten Maske.
 
 ### NEXT
-Der Fehlerpfad dieser Maske (siehe oben), dann die naechste Maske aus T-104:
+Der Fehlerpfad dieser Maske (siehe oben), dann die nächste Maske aus T-104:
 `indexSonstigesGruende()` (362 Zeilen).
 
 ## P-2026-08-15-07 regeln-sind-verhandelbar
 
 ### EINGELESEN
-- `docs/arbeitsregeln.md` vollstaendig, besonders §9 (Kaltstart-Grenze).
+- `docs/arbeitsregeln.md` vollständig, besonders §9 (Kaltstart-Grenze).
 - `CHATSTART.md`, Abschnitt 2.
 - Ansage von Manuel im Chat: „alle regeln sind fluid man kann über alles reden
   … das kann übrigens auch mal in die allgemeine aufgabenstellung aufgenommen
@@ -2806,30 +2912,30 @@ Der Fehlerpfad dieser Maske (siehe oben), dann die naechste Maske aus T-104:
 der Datei besprechbar ist – und der Kaltstart bleibt unter 16.000 Bytes.
 
 ### DONE
-Bisher stand nirgends, was fuer dieses Projekt von Anfang an gilt: Die Regeln
+Bisher stand nirgends, was für dieses Projekt von Anfang an gilt: Die Regeln
 sind Werkzeug, nicht Gesetz. Wer die Datei kalt liest, konnte das nicht wissen –
-sie klingt von der ersten Zeile an nach Vorschrift („gilt fuer **jede**
+sie klingt von der ersten Zeile an nach Vorschrift („gilt für **jede**
 Änderung"), und ein Werkzeug, das sie so liest, arbeitet stumm an einer Regel
 vorbei oder folgt ihr in ein schlechtes Ergebnis.
 
-Neuer **Abschnitt 0** vor allen anderen, weil er ueber alle anderen etwas sagt.
+Neuer **Abschnitt 0** vor allen anderen, weil er über alle anderen etwas sagt.
 Er nennt beides, was nicht geht: kommentarlos umgehen **und** sehenden Auges
-folgen. Und er sagt, wie eine Aenderung aussieht – eigener Patch mit Begruendung
-im Verlauf, damit aus „darueber kann man reden" nicht „das nimmt hier jeder,
+folgen. Und er sagt, wie eine Änderung aussieht – eigener Patch mit Begründung
+im Verlauf, damit aus „darüber kann man reden" nicht „das nimmt hier jeder,
 wie er will" wird.
 
 `CHATSTART.md` bekommt den Halbsatz an der Stelle, die ohnehin auf die
 Arbeitsregeln zeigt. Das ist die Datei, die jedes Werkzeug zuerst liest – dort
 muss der Hinweis stehen, sonst findet ihn nur, wer schon in der richtigen Datei
 ist. `README.md` bekommt ihn im Abschnitt „Mitarbeiten": Das ist die Kurzfassung
-fuer Menschen von aussen, und die liest die Liste sonst als Bedingungskatalog.
-`README.md` zaehlt nicht zum Kaltstart, kostet also keine Bytes.
+für Menschen von außen, und die liest die Liste sonst als Bedingungskatalog.
+`README.md` zählt nicht zum Kaltstart, kostet also keine Bytes.
 
 **Dieser Patch hat die Kaltstart-Grenze erreicht** und deshalb im selben Zug
-gekuerzt, wie §9 es verlangt: Der Nachsatz zu `wc -c -m` erzaehlte die Panne aus
+gekürzt, wie §9 es verlangt: Der Nachsatz zu `wc -c -m` erzählte die Panne aus
 P-2026-08-14-03 mit Zahlen nach („385 Bytes Luft gemeldet, wo 137 waren"). Der
-Verweis auf den Patch bleibt, die Nacherzaehlung faellt weg – sie steht dort, wo
-sie hingehoert, im Verlauf.
+Verweis auf den Patch bleibt, die Nacherzählung fällt weg – sie steht dort, wo
+sie hingehört, im Verlauf.
 
 ### TEST
 Der Befehl aus §9, dreimal gemessen:
@@ -2837,32 +2943,32 @@ Der Befehl aus §9, dreimal gemessen:
 | Stand | Bytes |
 | --- | --- |
 | vorher | 15.550 |
-| erster Entwurf des Abschnitts | 16.012 – **ueber der Marke** |
-| nach Kuerzung von Abschnitt 0 und §9 | 15.986 |
+| erster Entwurf des Abschnitts | 16.012 – **über der Marke** |
+| nach Kürzung von Abschnitt 0 und §9 | 15.986 |
 
-Die 16.012 waren kein Schaetzfehler, sondern der erste Entwurf: sechs Zeilen
-statt fuenf. Gemessen wurde jedes Mal mit `wc -c`, nicht mit `wc -c -m` – die
+Die 16.012 waren kein Schätzfehler, sondern der erste Entwurf: sechs Zeilen
+statt fünf. Gemessen wurde jedes Mal mit `wc -c`, nicht mit `wc -c -m` – die
 Falle, die §9 nennt.
 
-Verweise gegengeprueft mit `grep -rn "arbeitsregeln.md" docs *.md`: Zwei Dateien
+Verweise gegengeprüft mit `grep -rn "arbeitsregeln.md" docs *.md`: Zwei Dateien
 nennen **Abschnittsnummern** – `docs/installationsanleitung.md` „Abschnitt 7"
 und `docs/spezifikation_abteilungsrechte.md` „§1". Beide stimmen weiterhin, weil
 der neue Abschnitt die Nummer **0** bekommen hat und 1–9 dadurch stehen bleiben.
-Waere er als „1" eingeschoben worden, waeren beide Verweise still falsch
-geworden – das ist der Grund fuer die Null, nicht der Stil.
+Wäre er als „1" eingeschoben worden, wären beide Verweise still falsch
+geworden – das ist der Grund für die Null, nicht der Stil.
 
 ### Was bewusst nicht erreicht wurde
 Der Kaltstart liegt mit 15.986 nur noch **14 Bytes** unter der Marke aus §9.
-Der naechste Patch, der eine dieser vier Dateien anfasst, kuerzt also, statt
-anzubauen – das ist keine Randnotiz, sondern die naechste faellige Arbeit an der
-Doku. Kandidaten stehen nicht hier: Was gekuerzt wird, entscheidet, wer kuerzt.
+Der nächste Patch, der eine dieser vier Dateien anfasst, kürzt also, statt
+anzubauen – das ist keine Randnotiz, sondern die nächste fällige Arbeit an der
+Doku. Kandidaten stehen nicht hier: Was gekürzt wird, entscheidet, wer kürzt.
 
-`CLAUDE.md` bleibt unangetastet. Der Hinweis gilt werkzeugneutral und gehoert
-deshalb nach `CHATSTART.md`; eine zweite Fassung in `CLAUDE.md` waere genau die
-Doppelung, die diese Datei ausdruecklich vermeidet.
+`CLAUDE.md` bleibt unangetastet. Der Hinweis gilt werkzeugneutral und gehört
+deshalb nach `CHATSTART.md`; eine zweite Fassung in `CLAUDE.md` wäre genau die
+Doppelung, die diese Datei ausdrücklich vermeidet.
 
 ### NEXT
-T-104, naechste Maske: `indexSystemlog()` (207 Zeilen, mit JavaScript).
+T-104, nächste Maske: `indexSystemlog()` (207 Zeilen, mit JavaScript).
 
 ## P-2026-08-15-06 t-104-konfiguration-bearbeiten-in-views
 
@@ -2873,7 +2979,7 @@ T-104, naechste Maske: `indexSystemlog()` (207 Zeilen, mit JavaScript).
   weil diese Maske ein Formular hat und die erste keines.
 - `core/Csrf.php`, besonders `feld()`.
 - `views/layout/header.php`, der Block zu `button` / `.button-link`.
-- `controller/KonfigurationController.php`, `bearbeiten()` vollstaendig.
+- `controller/KonfigurationController.php`, `bearbeiten()` vollständig.
 
 ### DATEIEN
 - `views/konfiguration/bearbeiten.php` (neu)
@@ -2881,14 +2987,14 @@ T-104, naechste Maske: `indexSystemlog()` (207 Zeilen, mit JavaScript).
 - `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
 
 ### AKZEPTANZKRITERIUM
-Die Bearbeiten-Maske erzeugt fuer einen bestehenden Schluessel dasselbe HTML wie
-vorher – bis auf die Einrueckung und die zwei unten benannten Absichten –,
+Die Bearbeiten-Maske erzeugt für einen bestehenden Schlüssel dasselbe HTML wie
+vorher – bis auf die Einrückung und die zwei unten benannten Absichten –,
 obwohl das Markup jetzt in `views/konfiguration/bearbeiten.php` liegt.
 
 ### DONE
 Zweite der sechs Masken des `KonfigurationController`, wie in P-2026-08-14-12
-angekuendigt. Der Controller behaelt Laden, Validierung und Speichern und reicht
-danach fuenf Werte an die View: `$datensatz`, `$istBearbeiten`,
+angekuendigt. Der Controller behält Laden, Validierung und Speichern und reicht
+danach fünf Werte an die View: `$datensatz`, `$istBearbeiten`,
 `$schluesselGet`, `$fehlermeldung`, `$csrfBereich`. 2.108 → 2.023 Zeilen
 Controller plus 112 Zeilen View.
 
@@ -2896,75 +3002,75 @@ Controller plus 112 Zeilen View.
 
 1. Statt der handgeschriebenen `csrf_token`-Zeile steht `Csrf::feld()` – dieselbe
    Ausgabe, aber die Maske kann den Feldnamen nicht mehr verschreiben. Genau
-   dafuer gibt es die Methode (`core/Csrf.php`). Der Unterschied im HTML ist ein
+   dafür gibt es die Methode (`core/Csrf.php`). Der Unterschied im HTML ist ein
    fehlender Zeilenumbruch.
 2. Der Speichern-Knopf verliert sein `style="padding:0.55rem 0.9rem;"`. Der
-   Snapshot sagt zu T-104: beim Bauen einer Maske **keine eigenen Groessen auf
-   Knoepfe schreiben**. `views/layout/header.php` setzt fuer `button` und
+   Snapshot sagt zu T-104: beim Bauen einer Maske **keine eigenen Größen auf
+   Knöpfe schreiben**. `views/layout/header.php` setzt für `button` und
    `.button-link` gemeinsam `padding`, `min-height` und `box-sizing`, damit ein
    Knopf und ein Knopf-Link nebeneinander gleich hoch sind; eine eigene
    Angabe bricht genau das. Dieser Knopf war der einzige der Maske.
 
-Damit ist `$csrfToken` in `bearbeiten()` ueberfluessig geworden und faellt weg –
-die uebrigen vier Masken des Controllers bringen ihren eigenen Aufruf mit.
+Damit ist `$csrfToken` in `bearbeiten()` überflüssig geworden und fällt weg –
+die übrigen vier Masken des Controllers bringen ihren eigenen Aufruf mit.
 
-Die Tab-Zeile hat diese Maske nicht (sie verlinkt nur „Zurueck zur Uebersicht"),
-also bleibt die Doppelung aus P-2026-08-14-12 unveraendert bei fuenf Stellen.
+Die Tab-Zeile hat diese Maske nicht (sie verlinkt nur „Zurück zur Übersicht"),
+also bleibt die Doppelung aus P-2026-08-14-12 unveraendert bei fünf Stellen.
 
 ### TEST
 Drei Server auf derselben Probe-Datenbank: HEAD vor diesem Patch, der neue
 Stand, und der Stand aus P-2026-08-15-05 fuer den Schreibfehler. Erfundene
-Eintraege: `probe.einfach`, `probe.sonder` (Wert `<b>&amp; "Anfuehrung"</b>`,
+Einträge: `probe.einfach`, `probe.sonder` (Wert `<b>&amp; "Anfuehrung"</b>`,
 Beschreibung mit `<`, `&`, `"` und `äöüß`), `probe.leer` (Wert, Typ und
 Beschreibung `NULL`).
 
-HTML beider Staende normalisiert (Leerraum zusammengefasst, Token maskiert) und
-verglichen – fuenf Aufrufe, jeweils **genau zwei** Abweichungen, und zwar die
+HTML beider Stände normalisiert (Leerraum zusammengefasst, Token maskiert) und
+verglichen – fünf Aufrufe, jeweils **genau zwei** Abweichungen, und zwar die
 beiden oben genannten:
 
 | Aufruf | Abweichungen |
 | --- | --- |
-| ohne Schluessel (Anlegen) | 2 |
+| ohne Schlüssel (Anlegen) | 2 |
 | `probe.einfach` | 2 |
 | `probe.sonder` | 2 |
 | `probe.leer` | 2 |
 | `schluessel=gibtesnicht` | 2 |
 
 Alles andere zeichengleich – auch die Maskierung von `<b>&amp; "Anfuehrung"</b>`
-im Textfeld, das `readonly` am gesperrten Schluessel, das `urlencode()` im
+im Textfeld, das `readonly` am gesperrten Schlüssel, das `urlencode()` im
 Formularziel und die Zeile „Erstellt / Geändert".
 
 Danach die Wege, die kein HTML-Vergleich zeigt:
 
 | Weg | Ergebnis |
 | --- | --- |
-| Speichern eines bestehenden Eintrags | 302 `&ok=1`, Wert in der Datenbank geaendert |
+| Speichern eines bestehenden Eintrags | 302 `&ok=1`, Wert in der Datenbank geändert |
 | Neuen Eintrag anlegen | 302 `&ok=1`, Eintrag da |
-| Falsches CSRF-Token | „CSRF-Check fehlgeschlagen. Bitte Seite neu laden.", Wert unveraendert |
-| Leerer Schluessel | „Bitte geben Sie einen Schlüssel an." |
-| Schluessel mit Leerzeichen | „Der Schlüssel darf keine Leerzeichen enthalten." |
-| Schreibsperre (Trigger aus P-2026-08-15-05) | „Der Eintrag konnte nicht gespeichert werden.", Wert unveraendert |
+| Falsches CSRF-Token | „CSRF-Check fehlgeschlagen. Bitte Seite neu laden.", Wert unverändert |
+| Leerer Schlüssel | „Bitte geben Sie einen Schlüssel an." |
+| Schlüssel mit Leerzeichen | „Der Schlüssel darf keine Leerzeichen enthalten." |
+| Schreibsperre (Trigger aus P-2026-08-15-05) | „Der Eintrag konnte nicht gespeichert werden.", Wert unverändert |
 
-29 Backend-Aufrufe HTTP 200, Serverlog ohne PHP-Meldung, `php -l` ueber beide
-Dateien. Probe-Eintraege geloescht, Entwicklungsdatenbank nicht angefasst.
+29 Backend-Aufrufe HTTP 200, Serverlog ohne PHP-Meldung, `php -l` über beide
+Dateien. Probe-Einträge gelöscht, Entwicklungsdatenbank nicht angefasst.
 
 ### Gefundene Fehler im eigenen Entwurf
 Der erste Entwurf der View hat `$csrfToken` als Variable weitergereicht, so wie
-der Controller sie hatte. Das haette funktioniert und trotzdem am Muster
+der Controller sie hatte. Das hätte funktioniert und trotzdem am Muster
 vorbeigebaut: Alle bereits migrierten Formular-Views bekommen `$csrfBereich` und
-rufen `Csrf::feld()` selbst auf. Zwei Wege fuer dieselbe Sache in
-`views/` waeren genau die Art Uneinheitlichkeit, die T-104 aufloesen soll.
+rufen `Csrf::feld()` selbst auf. Zwei Wege für dieselbe Sache in
+`views/` wären genau die Art Uneinheitlichkeit, die T-104 auflösen soll.
 
 ### Was bewusst nicht erreicht wurde
 Die vier restlichen Masken des Controllers (Systemlog, Krankzeitraum,
-Pausenregeln, Sonstiges-Gruende) bleiben, wie sie sind – eine Maske je Patch.
+Pausenregeln, Sonstiges-Gründe) bleiben, wie sie sind – eine Maske je Patch.
 
-Das gemeinsame Teil-Template fuer die Tab-Zeile ist weiter offen; es lohnt sich
+Das gemeinsame Teil-Template für die Tab-Zeile ist weiter offen; es lohnt sich
 erst, wenn die letzte der sechs Masken dran ist (so schon in P-2026-08-14-12
 festgehalten).
 
 ### NEXT
-Naechste Maske aus T-104. Nachgemessen, nicht geschaetzt, sind die vier
+Nächste Maske aus T-104. Nachgemessen, nicht geschätzt, sind die vier
 verbliebenen `indexSystemlog()` 207, `indexSonstigesGruende()` 362,
 `indexPausenregeln()` 385 und `indexKrankzeitraum()` 723 Zeilen – also
 `indexSystemlog()`. Sie bringt als erste dieser Reihe JavaScript mit (das
@@ -2975,7 +3081,7 @@ Aufklappen der Detailzeile).
 ### EINGELESEN
 - P-2026-08-14-14, Abschnitt „Was bewusst nicht erreicht wurde" – dort steht
   dieser Punkt als offen.
-- `services/KonfigurationService.php` vollstaendig.
+- `services/KonfigurationService.php` vollständig.
 - `grep -rn "KonfigurationService" controller services core views modelle public`
   – `set()` hat genau zwei Aufrufer, beide in `KonfigurationController`.
 - Beide Aufrufstellen mit ihrem `try`/`catch`.
@@ -2988,77 +3094,77 @@ Aufklappen der Detailzeile).
 ### AKZEPTANZKRITERIUM
 Ist die Tabelle `config` nicht beschreibbar, zeigt die Bearbeiten-Maske „Der
 Eintrag konnte nicht gespeichert werden." – vorher meldete sie „gespeichert"
-und liess den alten Wert stehen.
+und ließ den alten Wert stehen.
 
 ### DONE
 Derselbe Bau wie T-110, nur beim Schreiben: `set()` hat seinen Fehler selbst
-abgefangen, geloggt und `void` zurueckgegeben. Beide Aufrufer haben einen
+abgefangen, geloggt und `void` zurückgegeben. Beide Aufrufer haben einen
 passenden `try`/`catch` – der nie greifen konnte. Also lief der Ablauf
 weiter bis zum `header('Location: …&ok=1')`.
 
-Was der Benutzer davon sah: „Gespeichert.", die Uebersicht, und darin den
+Was der Benutzer davon sah: „Gespeichert.", die Übersicht, und darin den
 **alten** Wert. Kein Fehler, keine Warnung, nichts zum Nachschlagen. Der
 Log-Eintrag stand da, aber niemand sieht in ein Log, wenn ihm gerade Erfolg
 gemeldet wurde.
 
-`set()` faengt nicht mehr ab; die Begruendung steht als Kommentar an der
+`set()` fängt nicht mehr ab; die Begründung steht als Kommentar an der
 Methode, parallel zu dem an `getAlle()`: Beim Lesen gibt es einen
-Standardwert, auf den man zurueckfallen kann, beim Schreiben gibt es keinen
-Ersatz fuer „ist nicht angekommen". Die Cache-Zeile steht jetzt hinter dem
-Schreiben – vorher haette sie den nicht geschriebenen Wert fuer den Rest des
-Requests als gueltig ausgegeben.
+Standardwert, auf den man zurückfallen kann, beim Schreiben gibt es keinen
+Ersatz für „ist nicht angekommen". Die Cache-Zeile steht jetzt hinter dem
+Schreiben – vorher hätte sie den nicht geschriebenen Wert für den Rest des
+Requests als gültig ausgegeben.
 
-**Ein Log-Eintrag waere dabei verlorengegangen.** Von den zwei Aufrufern loggt
-nur `bearbeiten()` im `catch`; der Pausenregel-Zweig setzte bloss
+**Ein Log-Eintrag wäre dabei verlorengegangen.** Von den zwei Aufrufern loggt
+nur `bearbeiten()` im `catch`; der Pausenregel-Zweig setzte bloß
 „Speichern fehlgeschlagen." und schwieg im Log. Solange `set()` selbst geloggt
 hat, fiel das nicht auf. Also bekommt der Zweig sein eigenes
-`Logger::error(… , 'config')` – sonst haette dieser Patch die Sichtbarkeit an
+`Logger::error(… , 'config')` – sonst hätte dieser Patch die Sichtbarkeit an
 einer Stelle verbessert und an der anderen verschlechtert.
 
 ### TEST
 Zwei Server auf **derselben** Probe-Datenbank: der neue Stand und eine Kopie
 von `7fa0d8f`. So sieht man den Unterschied am selben Datenbestand statt in
-zwei Laeufen.
+zwei Läufen.
 
-Die Schreibsperre kam nicht ueber Rechte, sondern ueber zwei Trigger auf
+Die Schreibsperre kam nicht über Rechte, sondern über zwei Trigger auf
 `config` (`BEFORE INSERT`/`BEFORE UPDATE` mit `SIGNAL SQLSTATE '45000'`). Das
-trifft genau die Frage: **Lesen bleibt moeglich, Schreiben scheitert.** Mit
-entzogenen Rechten waere auch das Laden der Maske gescheitert, und dann prueft
+trifft genau die Frage: **Lesen bleibt möglich, Schreiben scheitert.** Mit
+entzogenen Rechten wäre auch das Laden der Maske gescheitert, und dann prüft
 man einen anderen Fehler.
 
 | Maske | Stand | Antwort | Datenbank | Meldung |
 | --- | --- | --- | --- | --- |
-| Bearbeiten | `7fa0d8f` | 302 `&ok=1` | unveraendert | keine |
-| Bearbeiten | neu | 200, kein Redirect | unveraendert | „Der Eintrag konnte nicht gespeichert werden." |
-| Pausenregeln | `7fa0d8f` | 302 `&ok=1` | unveraendert | keine |
-| Pausenregeln | neu | 200, kein Redirect | unveraendert | „Speichern fehlgeschlagen." |
+| Bearbeiten | `7fa0d8f` | 302 `&ok=1` | unverändert | keine |
+| Bearbeiten | neu | 200, kein Redirect | unverändert | „Der Eintrag konnte nicht gespeichert werden." |
+| Pausenregeln | `7fa0d8f` | 302 `&ok=1` | unverändert | keine |
+| Pausenregeln | neu | 200, kein Redirect | unverändert | „Speichern fehlgeschlagen." |
 
-`system_log` zeigt den Wechsel der Zustaendigkeit: neu steht dort
+`system_log` zeigt den Wechsel der Zuständigkeit: neu steht dort
 `error | config | Fehler beim Speichern eines Config-Eintrags` (Controller)
 bzw. `… Fehler beim Speichern der gesetzlichen Pausenregeln`; die
 Servicemeldung „Fehler beim Schreiben eines Konfigurationswertes" kommt nur
 noch aus der alten Kopie.
 
-Danach Trigger geloescht und der Normalfall geprueft: Bearbeiten speichert
+Danach Trigger gelöscht und der Normalfall geprüft: Bearbeiten speichert
 (`probe.schreibtest` = `NEUER-WERT`, 302 `&ok=1`), Pausenregeln speichern alle
 vier Werte (7/35/10/50). 29 Backend-Aufrufe HTTP 200, Serverlog ohne
-PHP-Meldung. `php -l` ueber beide Dateien. Probe-Eintrag und Trigger entfernt,
+PHP-Meldung. `php -l` über beide Dateien. Probe-Eintrag und Trigger entfernt,
 Entwicklungsdatenbank nicht angefasst.
 
 ### Gefundene Fehler im eigenen Entwurf
 Der erste Plan war, die Schreibsperre mit `RENAME TABLE config` zu erzeugen –
-so wie in P-2026-08-14-14 fuer den Lesefehler. Das haette hier den falschen
-Fall geprueft: Ohne Tabelle scheitert schon das Laden der Maske, und die
+so wie in P-2026-08-14-14 fuer den Lesefehler. Das hätte hier den falschen
+Fall geprüft: Ohne Tabelle scheitert schon das Laden der Maske, und die
 Fehlermeldung, die man dann sieht, kommt aus einem ganz anderen `catch`. Der
 Trigger trennt Lesen und Schreiben sauber.
 
 ### Was bewusst nicht erreicht wurde
-Ein leerer Schluessel laesst `set()` weiterhin stillschweigend nichts tun
+Ein leerer Schlüssel lässt `set()` weiterhin stillschweigend nichts tun
 (`return;` ganz oben). Das ist kein Datenbankfehler, sondern ein
-Programmierfehler beim Aufrufer, und beide Aufrufer pruefen vorher. Eine
-Ausnahme daraus zu machen, waere eine eigene Entscheidung.
+Programmierfehler beim Aufrufer, und beide Aufrufer prüfen vorher. Eine
+Ausnahme daraus zu machen, wäre eine eigene Entscheidung.
 
-`get()` faengt weiter ab – dort ist es richtig, dafuer gibt es den
+`get()` fängt weiter ab – dort ist es richtig, dafür gibt es den
 Standardwert.
 
 ### NEXT
@@ -3068,50 +3174,50 @@ T-104: `bearbeiten()` des `KonfigurationController` nach
 ## P-2026-08-15-04 pruefgriff-fuer-flaechige-textaenderungen
 
 ### EINGELESEN
-- `docs/wartungscheckliste.md` vollstaendig.
+- `docs/wartungscheckliste.md` vollständig.
 - `docs/arbeitsregeln.md` §5, der auf die Checkliste verweist.
-- Die eigenen Eintraege P-2026-08-15-01 bis -03 und der von P-2026-08-10-19.
+- Die eigenen Einträge P-2026-08-15-01 bis -03 und der von P-2026-08-10-19.
 
 ### DATEIEN
 - `docs/wartungscheckliste.md`
 - `docs/archiv/DEV_PROMPT_HISTORY.md`
 
 ### AKZEPTANZKRITERIUM
-Die drei Suchlaeufe aus dem neuen Abschnitt, woertlich aus der Datei kopiert und
-auf dem Stand `7fa0d8f` ausgefuehrt, melden genau die 15 Stellen, die
+Die drei Suchläufe aus dem neuen Abschnitt, wörtlich aus der Datei kopiert und
+auf dem Stand `7fa0d8f` ausgeführt, melden genau die 15 Stellen, die
 P-2026-08-15-01 bis -03 repariert haben – auf dem heutigen Stand keine einzige.
 
 ### DONE
-Drei Patches hintereinander haben denselben Fehlertyp aufgeraeumt, und der Fall
-stand vorher schon vollstaendig beschrieben im Verlauf (P-2026-08-10-19) – ohne
-dass das etwas verhindert haette. Ein vierter Absatz haette daran nichts
-geaendert. Was fehlt, ist kein Text zum Lesen, sondern ein Befehl zum Ausfuehren,
-und zwar dort, wo nach einer Aenderung ohnehin nachgesehen wird.
+Drei Patches hintereinander haben denselben Fehlertyp aufgeräumt, und der Fall
+stand vorher schon vollständig beschrieben im Verlauf (P-2026-08-10-19) – ohne
+dass das etwas verhindert hätte. Ein vierter Absatz hätte daran nichts
+geändert. Was fehlt, ist kein Text zum Lesen, sondern ein Befehl zum Ausführen,
+und zwar dort, wo nach einer Änderung ohnehin nachgesehen wird.
 
-`docs/wartungscheckliste.md` bekommt deshalb den Abschnitt **„Nach flaechigen
-Textaenderungen (Pflicht)"** mit drei kopierbaren Suchlaeufen und der Ansage
+`docs/wartungscheckliste.md` bekommt deshalb den Abschnitt **„Nach flächigen
+Textänderungen (Pflicht)"** mit drei kopierbaren Suchläufen und der Ansage
 „Erwartete Ausgabe: jeweils keine":
 
 1. `value="…"` mit Umlaut – ein Formularwert ist ein Bezeichner, kein Text.
-2. Namen mit Unterstrich und Umlaut – Spalten, Array-Schluessel, Felder, auch
+2. Namen mit Unterstrich und Umlaut – Spalten, Array-Schlüssel, Felder, auch
    wo ein Kommentar sie nur zitiert.
 3. Funktions- und Variablennamen mit Umlaut, PHP wie JavaScript.
 
-Dazu steht dort, **was die Suchlaeufe nicht finden**: Werte, die erst zur
+Dazu steht dort, **was die Suchläufe nicht finden**: Werte, die erst zur
 Laufzeit entstehen. `data-taste-wert="löschen"` stand in keinem Quelltext und
-war trotzdem da (P-2026-08-15-03). Der Abschnitt „Manuelle Kernablaeufe" bekommt
+war trotzdem da (P-2026-08-15-03). Der Abschnitt „Manuelle Kernabläufe" bekommt
 darum zwei Terminal-Zeilen mit: Bildschirmtastatur (Zeichen, Löschen,
 Umschalttaste) und Urlaub-Wizard (Zurück, Enddatum vor Startdatum).
 
 Warum die Checkliste und nicht die Arbeitsregeln: Die Arbeitsregeln liest jeder
-Chat beim Kaltstart, sie stehen unter einer Byte-Grenze (§9), und dort gehoert
+Chat beim Kaltstart, sie stehen unter einer Byte-Grenze (§9), und dort gehört
 das **Prinzip** hin – der Satz dazu steht seit P-2026-08-15-02 in §7. Der
-konkrete Befehl gehoert in die Datei, die man aufschlaegt, wenn man gerade etwas
-geaendert hat. §5 verweist bereits dorthin.
+konkrete Befehl gehört in die Datei, die man aufschlägt, wenn man gerade etwas
+geändert hat. §5 verweist bereits dorthin.
 
 ### TEST
-Die drei Befehle nicht abgetippt, sondern mit `awk` aus den Codebloecken der
-Datei geschnitten und so ausgefuehrt – sonst prueft man seinen Entwurf und nicht
+Die drei Befehle nicht abgetippt, sondern mit `awk` aus den Codeblöcken der
+Datei geschnitten und so ausgeführt – sonst prüft man seinen Entwurf und nicht
 die Doku:
 
 | Stand | 1) Formularwerte | 2) Bezeichner | 3) Funktionsnamen |
@@ -3120,39 +3226,39 @@ die Doku:
 | heute | 0 | 0 | 0 |
 
 Die 15 Meldungen auf dem alten Stand sind genau die Stellen aus
-P-2026-08-15-01 (2), -02 (12) und -03 (1 – die uebrigen zehn Stellen von -03
+P-2026-08-15-01 (2), -02 (12) und -03 (1 – die übrigen zehn Stellen von -03
 sind Attributnamen und Sentinelwerte, die Suchlauf 3 nicht abdeckt und die
-deshalb im Text ausdruecklich als Luecke benannt sind).
+deshalb im Text ausdrücklich als Lücke benannt sind).
 
 ### Gefundene Fehler im eigenen Entwurf
-Der erste Entwurf war ein Pruefskript in `scripts/dev/`, das Formularwerte
-automatisch gegen ihre Vergleichspartner haelt. Es hat den Fehler zwar
+Der erste Entwurf war ein Prüfskript in `scripts/dev/`, das Formularwerte
+automatisch gegen ihre Vergleichspartner hält. Es hat den Fehler zwar
 gefunden – aber zusammen mit 29 harmlosen Meldungen, weil Werte oft gar nicht
 im Controller verglichen werden, sondern im Model (`'ABZIEHEN'`), per Route
 (`name="seite"`) oder gar nicht (`wizard_aktion=speichern` ist der Default-Fall).
-Vorher 30 Meldungen, nachher 29 – diesen Unterschied sieht niemand. Ein Pruefer,
+Vorher 30 Meldungen, nachher 29 – diesen Unterschied sieht niemand. Ein Prüfer,
 der bei jedem Lauf Rauschen produziert, wird nach dem zweiten Mal ignoriert und
-ist dann schaedlicher als keiner. Verworfen zugunsten der drei engen Suchlaeufe,
+ist dann schädlicher als keiner. Verworfen zugunsten der drei engen Suchläufe,
 die genau eine Frage stellen und heute null Treffer haben.
 
 ### Was bewusst nicht erreicht wurde
 Kein Automatismus – kein Git-Hook, kein CI-Schritt. Das Projekt hat beides
-nicht, und ein Hook waere eine Entscheidung ueber die Arbeitsumgebung, kein
-Doku-Patch. Die Suchlaeufe laufen, wenn jemand sie aufruft.
+nicht, und ein Hook wäre eine Entscheidung über die Arbeitsumgebung, kein
+Doku-Patch. Die Suchläufe laufen, wenn jemand sie aufruft.
 
-Die Suchlaeufe pruefen **eine** Sorte Schaden: Umlaut dort, wo ASCII stehen
-muss. Eine Textersetzung kann auch Sinn zerstoeren, ohne ein Sonderzeichen zu
+Die Suchläufe prüfen **eine** Sorte Schaden: Umlaut dort, wo ASCII stehen
+muss. Eine Textersetzung kann auch Sinn zerstören, ohne ein Sonderzeichen zu
 hinterlassen; dagegen hilft nur Lesen.
 
 ### NEXT
-Zurueck zu T-104: `bearbeiten()` des `KonfigurationController` in `views/`.
+Zurück zu T-104: `bearbeiten()` des `KonfigurationController` in `views/`.
 
 ## P-2026-08-15-03 terminal-js-bezeichner-wieder-ascii
 
 ### EINGELESEN
-- Eigene Eintraege P-2026-08-15-01 und -02.
+- Eigene Einträge P-2026-08-15-01 und -02.
 - P-2026-08-10-19, Abschnitt „Gefundene Fehler im eigenen Entwurf" – dort steht
-  der Fall „vier JavaScript-Funktionsnamen umbenannt, zufaellig konsistent".
+  der Fall „vier JavaScript-Funktionsnamen umbenannt, zufällig konsistent".
 - `views/terminal/start.php`, der Urlaub-Wizard und die Bildschirmtastatur.
 - `views/terminal/einrichtung.php`, die Bildschirmtastatur der Einrichtungsseite.
 
@@ -3162,15 +3268,15 @@ Zurueck zu T-104: `bearbeiten()` des `KonfigurationController` in `views/`.
 - `docs/archiv/DEV_PROMPT_HISTORY.md`
 
 ### AKZEPTANZKRITERIUM
-Die „Löschen"-Taste der Bildschirmtastatur loescht weiterhin ein Zeichen, aber
-ihr Wert heisst wieder `loeschen` statt `löschen` – die Beschriftung bleibt
+Die „Löschen"-Taste der Bildschirmtastatur löscht weiterhin ein Zeichen, aber
+ihr Wert heißt wieder `loeschen` statt `löschen` – die Beschriftung bleibt
 „Löschen".
 
 ### DONE
 Der dritte und letzte Rest aus P-2026-08-14-08, diesmal **nicht kaputt, aber
-gefaehrlich**: Elf Stellen, an denen der Umlaut-Patch einen Bezeichner oder
-einen Sentinelwert im Terminal-JavaScript uebersetzt hat – Definition *und*
-Verwendung, also zufaellig konsistent und deshalb unauffaellig.
+gefährlich**: Elf Stellen, an denen der Umlaut-Patch einen Bezeichner oder
+einen Sentinelwert im Terminal-JavaScript übersetzt hat – Definition *und*
+Verwendung, also zufällig konsistent und deshalb unauffällig.
 
 | Stelle | war | ist |
 | --- | --- | --- |
@@ -3184,8 +3290,8 @@ Verwendung, also zufaellig konsistent und deshalb unauffaellig.
 Warum das trotzdem weg muss: `data-fehler-für` ist ein **Attributname** mit
 Umlaut, `lösche()` ein Funktionsname. Beides funktioniert nur, solange
 Definition und Verwendung in derselben Datei stehen. Genau davor warnt
-P-2026-08-10-19 („ein Aufruf aus einer anderen Datei haette das Terminal
-zerlegt"). Wer dieses JavaScript spaeter in eine eigene `.js`-Datei zieht – was
+P-2026-08-10-19 („ein Aufruf aus einer anderen Datei hätte das Terminal
+zerlegt"). Wer dieses JavaScript später in eine eigene `.js`-Datei zieht – was
 bei `views/terminal/start.php` naheliegt –, zerlegt es dabei, und `php -l` sagt
 nichts dazu.
 
@@ -3194,8 +3300,8 @@ Die Beschriftungen bleiben, wie sie sind: `erstelleTaste('Löschen',
 
 ### TEST
 Zum ersten Mal in dieser Serie **im Browser**, nicht per `curl`: Ein Terminal
-laesst sich nicht sinnvoll mit Formular-POSTs pruefen, wenn die Frage lautet, ob
-eine Taste ein Zeichen loescht.
+lässt sich nicht sinnvoll mit Formular-POSTs prüfen, wenn die Frage lautet, ob
+eine Taste ein Zeichen löscht.
 
 Probe-Umgebung wie zuvor, dazu eine zweite Kopie **ohne** `config.local.php` auf
 einem eigenen Port – so zeigt `terminal.php` die Einrichtungsseite. Erfundene
@@ -3205,7 +3311,7 @@ Vorher gemessen, damit die Gegenprobe etwas wert ist: Auf dem alten Stand
 tippte die Bildschirmtastatur `abc`, die Taste mit `data-taste-wert="löschen"`
 machte daraus `ab`, „Zurück" sprang von Schritt 2 auf Schritt 1.
 
-Nach der Aenderung, dieselben Handgriffe:
+Nach der Änderung, dieselben Handgriffe:
 
 | Handgriff | Ergebnis |
 | --- | --- |
@@ -3216,29 +3322,29 @@ Nach der Aenderung, dieselben Handgriffe:
 | Einrichtungsseite, Kopplungscode `ABC` + „Löschen" | `ABC` → `AB` |
 | Einrichtungsseite, Serveradresse: `a`, Umschalttaste, `B` | `aB`, danach „Löschen" → `a` |
 
-Zusaetzlich abgefragt, dass die alten Werte wirklich weg sind: In der Seite gibt
+Zusätzlich abgefragt, dass die alten Werte wirklich weg sind: In der Seite gibt
 es weder `[data-taste-wert="löschen"]` noch `[data-wert="#löschen"]` oder
-`[data-wert="#groß"]` – sonst haette die Gegenprobe nur bewiesen, dass beide
+`[data-wert="#groß"]` – sonst hätte die Gegenprobe nur bewiesen, dass beide
 Fassungen nebeneinander existieren.
 
 Danach die 29 Backend-Aufrufe wie in P-2026-08-15-02: alle HTTP 200. `php -l`
-ueber beide Dateien.
+über beide Dateien.
 
 ### Gefundene Fehler im eigenen Entwurf
 Der Suchlauf nach `data-…="…"` mit Umlaut hat `data-taste-wert="löschen"`
 **nicht** gefunden – dieses Attribut entsteht erst zur Laufzeit in
 `erstelleTaste()` und steht nirgends im Quelltext. Aufgefallen ist es nur, weil
-die fertige Seite im Browser danach abgefragt wurde. Ein Scan ueber Quelltext
-findet generierte Attribute grundsaetzlich nicht; wer nur greppt, haelt die
-Stelle fuer sauber.
+die fertige Seite im Browser danach abgefragt wurde. Ein Scan über Quelltext
+findet generierte Attribute grundsätzlich nicht; wer nur greppt, hält die
+Stelle für sauber.
 
 ### Was bewusst nicht erreicht wurde
-Der Kommentar-Fliesstext und alle sichtbaren Beschriftungen behalten ihre
+Der Kommentar-Fließtext und alle sichtbaren Beschriftungen behalten ihre
 Umlaute – das ist die Regel, nicht die Ausnahme. Auch `'verfügbar'` in
-`start.php` bleibt: Das ist Anzeigetext, kein Schluessel.
+`start.php` bleibt: Das ist Anzeigetext, kein Schlüssel.
 
-Die Zeichenvorraete der Tastatur (`'ä'`, `'ö'`, `'ü'`, `'ß'`) bleiben
-selbstverstaendlich – sie sind die Zeichen, die getippt werden sollen.
+Die Zeichenvorräte der Tastatur (`'ä'`, `'ö'`, `'ü'`, `'ß'`) bleiben
+selbstverständlich – sie sind die Zeichen, die getippt werden sollen.
 
 ### NEXT
 Der Handgriff in `docs/wartungscheckliste.md`.
@@ -3248,8 +3354,8 @@ Der Handgriff in `docs/wartungscheckliste.md`.
 ### EINGELESEN
 - Eigener Eintrag P-2026-08-15-01, Abschnitt „Was bewusst nicht erreicht wurde".
 - `docs/arbeitsregeln.md` §7, der Absatz „Umlaute schreiben, nicht umschreiben".
-- Die zwoelf Fundstellen selbst, jede im Umfeld von fuenf Zeilen.
-- Zum Gegenpruefen der echten Schreibweise: `sql/01_initial_schema.sql`,
+- Die zwölf Fundstellen selbst, jede im Umfeld von fünf Zeilen.
+- Zum Gegenprüfen der echten Schreibweise: `sql/01_initial_schema.sql`,
   `sql/05_migration_terminal_kopplung.sql`,
   `sql/07_migration_urlaub_uebertrag_festschreiben.sql` und der jeweilige Code.
 
@@ -3264,16 +3370,16 @@ Der Handgriff in `docs/wartungscheckliste.md`.
 
 ### AKZEPTANZKRITERIUM
 Der Kommentar in `TerminalKopplungService::entwerteOffeneCodes()` zitiert
-`gueltig_bis >= NOW()` – also die Bedingung, die man so in phpMyAdmin einfuegen
+`gueltig_bis >= NOW()` – also die Bedingung, die man so in phpMyAdmin einfügen
 kann; vorher stand dort `gültig_bis`, eine Spalte, die es nicht gibt.
 
 ### DONE
-Zwoelf Stellen, an denen ein Kommentar einen Schluessel, eine Spalte oder ein
+Zwölf Stellen, an denen ein Kommentar einen Schlüssel, eine Spalte oder ein
 Feld mit Umlaut nennt, obwohl der Name im Code ASCII ist. Aus derselben Serie
-wie P-2026-08-15-01, aber aelter: `git blame` zeigt P-2026-08-10-19 und
+wie P-2026-08-15-01, aber älter: `git blame` zeigt P-2026-08-10-19 und
 P-2026-08-10-26.
 
-| Datei | Kommentar sagte | heisst wirklich |
+| Datei | Kommentar sagte | heißt wirklich |
 | --- | --- | --- |
 | `PausenService.php` (2x) | `entscheidung_nötig` | `entscheidung_noetig` |
 | `QueueService.php` | `letzte_ausführung` | `letzte_ausfuehrung` |
@@ -3290,27 +3396,27 @@ Kein Fehlverhalten – aber jede dieser Zeilen kostet jemanden Zeit, und zwei
 kosten mehr als die anderen: Der Kommentar in `TerminalKopplungService` zitiert
 eine **SQL-Bedingung**, die so kopiert eine Fehlermeldung gibt, und die beiden
 `@return array{…}`-Zeilen in `QueueService` und `PausenService` beschreiben
-Schluessel, die der Aufrufer nie findet. Ein Werkzeug, das Docblocks auswertet,
+Schlüssel, die der Aufrufer nie findet. Ein Werkzeug, das Docblocks auswertet,
 liest hier schlicht etwas Falsches.
 
-Der umgebende Fliesstext behaelt seine Umlaute: „manuell geändert wurde
+Der umgebende Fließtext behält seine Umlaute: „manuell geändert wurde
 (`zeitbuchung.manuell_geaendert=1`)" ist genau richtig so – Sprache mit Umlaut,
 Name ohne.
 
-**Die Regel bekommt denselben Satz mit.** §7 zaehlte auf, was ASCII bleibt
-(Bezeichner, Dateinamen, Datenbankfelder, Konfigurationsschluessel), sagte aber
+**Die Regel bekommt denselben Satz mit.** §7 zählte auf, was ASCII bleibt
+(Bezeichner, Dateinamen, Datenbankfelder, Konfigurationsschlüssel), sagte aber
 nicht, dass das auch dort gilt, wo der Name nur *zitiert* wird. Beide Pannen
 dieser Serie hingen genau daran: einmal im Kommentar, einmal im `value` eines
-Formularfelds. Der Zusatz nennt beide Faelle.
+Formularfelds. Der Zusatz nennt beide Fälle.
 
 ### TEST
 Wegwerf-Umgebung aus P-2026-08-15-01 weiterbenutzt (eigene Datenbanken,
-erfundene Daten, Server ohne OPcache). `php -l` ueber alle acht PHP-Dateien.
+erfundene Daten, Server ohne OPcache). `php -l` über alle acht PHP-Dateien.
 29 Aufrufe durchgeklickt – 22 Backend-Masken, die vier Tabs der Konfiguration
 und die drei Queue-Filter –, alle HTTP 200, Serverlog ohne eine einzige
 Warnung, Deprecation oder Notice.
 
-Der Suchlauf, der die Stellen gefunden hat, laeuft danach ohne Treffer:
+Der Suchlauf, der die Stellen gefunden hat, läuft danach ohne Treffer:
 
 ```bash
 grep -rInoE '[A-Za-zäöüßÄÖÜ]*[äöüß][A-Za-zäöüß]*_[A-Za-z_äöüß]+|[A-Za-z]+_[A-Za-z_]*[äöüß][A-Za-zäöüß_]*' \
@@ -3321,23 +3427,23 @@ grep -rInoE '[A-Za-zäöüßÄÖÜ]*[äöüß][A-Za-zäöüß]*_[A-Za-z_äöüß
 Der erste Suchlauf war zu grob: Er hat jede Zeichenkette gemeldet, deren
 Umlaut-Form irgendwo als ASCII-Bezeichner vorkommt – 430 Treffer, davon
 praktisch alles Sprache („über" wegen `ueb`, „löschen", „verfügbar", „Aufträge").
-In dieser Menge waeren die zwoelf echten Funde untergegangen. Erst die
-Einschraenkung auf Namen **mit Unterstrich** – also auf das, was nur ein
+In dieser Menge wären die zwölf echten Funde untergegangen. Erst die
+Einschränkung auf Namen **mit Unterstrich** – also auf das, was nur ein
 Bezeichner sein kann – trennt Fund von Rauschen. Ein Scan, der zu viel meldet,
 ist so unbrauchbar wie einer, der nichts meldet.
 
 ### Was bewusst nicht erreicht wurde
-`arbeitsblöcke` hat keinen Unterstrich und faellt durch dieses Raster; gefunden
-wurde es nur, weil der erste, gröbere Lauf es in Anfuehrungszeichen zeigte. Ein
-Scan, der auch solche Faelle sicher findet, muesste die tatsaechlich benutzten
-Array-Schluessel kennen – das ist ein eigenes Werkzeug und ein eigenes Thema.
+`arbeitsblöcke` hat keinen Unterstrich und fällt durch dieses Raster; gefunden
+wurde es nur, weil der erste, gröbere Lauf es in Anführungszeichen zeigte. Ein
+Scan, der auch solche Fälle sicher findet, müsste die tatsächlich benutzten
+Array-Schlüssel kennen – das ist ein eigenes Werkzeug und ein eigenes Thema.
 
-Nicht angefasst: `docs/` ausserhalb von §7 und `docs/archiv/`. Im Archiv wird
-nicht nachtraeglich korrigiert.
+Nicht angefasst: `docs/` außerhalb von §7 und `docs/archiv/`. Im Archiv wird
+nicht nachträglich korrigiert.
 
 ### NEXT
-Der Handgriff in `docs/wartungscheckliste.md`, der bei flaechigen
-Textaenderungen faellig wird (aus P-2026-08-15-01).
+Der Handgriff in `docs/wartungscheckliste.md`, der bei flächigen
+Textänderungen fällig wird (aus P-2026-08-15-01).
 
 ## P-2026-08-15-01 zwei-loeschen-knoepfe-ohne-wirkung
 
@@ -3354,12 +3460,12 @@ Textaenderungen faellig wird (aus P-2026-08-15-01).
 - `docs/archiv/DEV_PROMPT_HISTORY.md`
 
 ### AKZEPTANZKRITERIUM
-Ein Klick auf „Loeschen" in der System-Log-Maske entfernt die Zeile wirklich –
+Ein Klick auf „Löschen" in der System-Log-Maske entfernt die Zeile wirklich –
 vorher blieb sie stehen, ohne dass etwas dazu gesagt wurde.
 
 ### DONE
-Zwei tote Knoepfe, beide aus P-2026-08-14-08. Der Umlaut-Patch hat in zwei
-versteckten Formularfeldern den **Wert** mituebersetzt:
+Zwei tote Knöpfe, beide aus P-2026-08-14-08. Der Umlaut-Patch hat in zwei
+versteckten Formularfeldern den **Wert** mitübersetzt:
 
 | Stelle | Formular schickte | Controller vergleicht |
 | --- | --- | --- |
@@ -3368,94 +3474,94 @@ versteckten Formularfeldern den **Wert** mituebersetzt:
 
 Beide Male trifft der Vergleich nicht mehr, beide Male passiert daraufhin gar
 nichts: kein Redirect, keine Meldung, HTTP 200, dieselbe Liste. Der Eintrag ist
-noch da. Wer das sieht, haelt es fuer einen Datenbankfehler oder fuer ein
+noch da. Wer das sieht, hält es für einen Datenbankfehler oder für ein
 fehlendes Recht – und sucht an der falschen Stelle.
 
 Die Werte stehen wieder auf ASCII, mit je einem Kommentar daneben, warum das
-hier **kein** Verstoss gegen die Umlaut-Regel ist: Ein `value` in einem
-`type="hidden"`-Feld ist kein Oberflaechentext, sondern der Vergleichspartner
+hier **kein** Verstoß gegen die Umlaut-Regel ist: Ein `value` in einem
+`type="hidden"`-Feld ist kein Oberflächentext, sondern der Vergleichspartner
 einer `if`-Bedingung. Sichtbar bleibt die Beschriftung des Knopfes, und die
 hatte den Umlaut schon vorher.
 
 **Warum das Werkzeug aus P-2026-08-14-08 es nicht gemerkt hat:** Es hat
-Bezeichner, Spaltennamen, Rechte-Codes und Routen geschuetzt – also alles, was
+Bezeichner, Spaltennamen, Rechte-Codes und Routen geschützt – also alles, was
 im PHP-Quelltext wie ein Bezeichner *aussieht*. Ein Wert in Inline-HTML sieht
-aber wie Text aus. Die Luecke war nicht die Wortliste, sondern die Annahme,
+aber wie Text aus. Die Lücke war nicht die Wortliste, sondern die Annahme,
 Inline-HTML enthalte nur Text.
 
 **Und das ist der eigentliche Befund:** Dieser Fehler war vier Tage vorher schon
 einmal gebaut – und wurde erkannt, bevor er ausgeliefert wurde. P-2026-08-10-19
-hat genau dieses Werkzeug in einem zweiten Anlauf ueber `T_INLINE_HTML` laufen
+hat genau dieses Werkzeug in einem zweiten Anlauf über `T_INLINE_HTML` laufen
 lassen, gemerkt, dass `views/queue/liste.php` danach `value="löschen"` sendet,
 den Anlauf verworfen und das Werkzeug auf `T_COMMENT`/`T_DOC_COMMENT`
-beschraenkt.
+beschränkt.
 
 Das steht nicht nur in der Commit-Nachricht. Es steht in diesem Verlauf, im
 Eintrag zu P-2026-08-10-19, unter „Gefundene Fehler im eigenen Entwurf", mit
 Dateinamen, mit dem Wort „lautlos wirkungslos" – und im TEST-Abschnitt sogar
-mit der Gegenprobe, die man dafuer laufen laesst („`views/queue/liste.php`
+mit der Gegenprobe, die man dafür laufen lässt („`views/queue/liste.php`
 sendet weiterhin `value="loeschen"`"). Besser aufschreiben kann man eine Falle
 nicht.
 
 P-2026-08-14-08 hat trotzdem dieselbe Fassung wieder gebaut, dieselbe Datei
 zerlegt und diesmal ausgeliefert. Das Wissen war da, an der richtigen Stelle,
-gut geschrieben – gelesen wurde es nicht, weil der Verlauf ausdruecklich
-**keine** Startlektuere ist (`CHATSTART.md`, Abschnitt 3) und nichts den
+gut geschrieben – gelesen wurde es nicht, weil der Verlauf ausdrücklich
+**keine** Startlektüre ist (`CHATSTART.md`, Abschnitt 3) und nichts den
 Zusammenhang „ich baue gerade wieder so ein Werkzeug" mit dem alten Eintrag
-verbindet. Ein Text, den man nur findet, wenn man schon weiss, wonach man
-sucht, schuetzt nicht. Was hier gefehlt hat, ist kein Absatz, sondern ein
-Handgriff in `docs/wartungscheckliste.md`, der bei flaechigen Textaenderungen
-faellig wird. Der kommt als eigener Patch.
+verbindet. Ein Text, den man nur findet, wenn man schon weiß, wonach man
+sucht, schützt nicht. Was hier gefehlt hat, ist kein Absatz, sondern ein
+Handgriff in `docs/wartungscheckliste.md`, der bei flächigen Textänderungen
+fällig wird. Der kommt als eigener Patch.
 
 ### TEST
 Wegwerf-Umgebung wie in P-2026-08-14-14: `git archive HEAD` nach `/tmp`, eigene
 `config.local.php`, Datenbanken `zeit_probe_loeschen` (aus
 `sql/01_initial_schema.sql`) und `zeit_probe_loeschen_off` (aus
-`sql/offline_db_schema.sql`), erfundene Daten (Benutzer „Probe Pruefer", zwei
+`sql/offline_db_schema.sql`), erfundene Daten (Benutzer „Probe Prüfer", zwei
 Log-Zeilen, ein Queue-Eintrag im Status `fehler`). Server mit
 `-d opcache.enable=0 -d opcache.enable_cli=0`. Entwicklungsdatenbank nicht
-angefasst, Probe-Datenbanken danach geloescht.
+angefasst, Probe-Datenbanken danach gelöscht.
 
-Erst der Fehler auf dem HEAD-Stand, dann derselbe Ablauf nach der Aenderung:
+Erst der Fehler auf dem HEAD-Stand, dann derselbe Ablauf nach der Änderung:
 
 | Ablauf | HEAD | nach dem Fix |
 | --- | --- | --- |
-| System-Log, „Loeschen" auf einer Zeile | HTTP 200, Zeile bleibt, keine Meldung | HTTP 302 `&ok=1`, Zeile weg |
-| Queue-Fehler, „Ignorieren/Loeschen" | HTTP 200, Eintrag bleibt, keine Meldung | HTTP 302 `&meldung=eintrag_geloescht`, Eintrag weg |
+| System-Log, „Löschen" auf einer Zeile | HTTP 200, Zeile bleibt, keine Meldung | HTTP 302 `&ok=1`, Zeile weg |
+| Queue-Fehler, „Ignorieren/Löschen" | HTTP 200, Eintrag bleibt, keine Meldung | HTTP 302 `&meldung=eintrag_geloescht`, Eintrag weg |
 
 Der POST wurde mit genau dem Wert geschickt, den die Maske im jeweiligen Stand
-im Formular stehen hatte – nicht mit einem von Hand gesetzten. Gegengeprueft im
-Serverlog: keine Warnung, keine Deprecation. Zusaetzlich „System-Log leeren"
+im Formular stehen hatte – nicht mit einem von Hand gesetzten. Gegengeprüft im
+Serverlog: keine Warnung, keine Deprecation. Zusätzlich „System-Log leeren"
 (der zweite Knopf derselben Maske, Wert `leeren`, nie angefasst) – funktioniert
 weiterhin.
 
 ### Gefundene Fehler im eigenen Entwurf
 Der erste Griff war, nur die eine Stelle zu reparieren, die beim Lesen des
-Controllers auffiel. Erst ein Scan ueber alle Zeichenketten, die wie ein
+Controllers auffiel. Erst ein Scan über alle Zeichenketten, die wie ein
 Bezeichner aussehen (ein Wort, klein, Umlaut drin), hat die zweite gefunden –
 in einer anderen Datei, aus einem anderen Patch derselben Serie
-(P-2026-08-14-09). Ohne den Scan waere die Queue-Maske kaputt geblieben.
+(P-2026-08-14-09). Ohne den Scan wäre die Queue-Maske kaputt geblieben.
 
 ### Was bewusst nicht erreicht wurde
 Derselbe Scan hat zwei **Kommentare** gefunden, die seit derselben Serie einen
-Schluessel falsch nennen: `views/report/monatsuebersicht.php` schreibt
+Schlüssel falsch nennen: `views/report/monatsuebersicht.php` schreibt
 `'arbeitsblöcke'`, `services/ReportService.php` schreibt
-`'zeit_manuell_geändert'` – beide Schluessel heissen im Code ASCII. Das ist
+`'zeit_manuell_geändert'` – beide Schlüssel heißen im Code ASCII. Das ist
 Doku-Drift, kein Fehlverhalten: eigener Patch.
 
 Nicht angefasst ist auch, dass ein unbekannter Aktionswert in beiden Masken
-**stillschweigend** durchfaellt. Genau das hat den Fehler so schwer sichtbar
+**stillschweigend** durchfällt. Genau das hat den Fehler so schwer sichtbar
 gemacht, ist aber ein eigenes Thema und ein eigener sichtbarer Effekt.
 
 ### NEXT
-Die beiden falsch benannten Schluessel in den Kommentaren, danach der stille
+Die beiden falsch benannten Schlüssel in den Kommentaren, danach der stille
 Durchfall bei unbekannter Aktion.
 
 ## P-2026-08-14-14 t-110-fehlerpfad-der-konfiguration
 
 ### EINGELESEN
 - `docs/STATUS_SNAPSHOT.md` (T-110), `docs/arbeitsregeln.md`.
-- `services/KonfigurationService.php` vollstaendig, besonders `get()` und
+- `services/KonfigurationService.php` vollständig, besonders `get()` und
   `getAlle()`.
 - `controller/KonfigurationController.php`, `index()`.
 - `views/konfiguration/liste.php` (aus P-2026-08-14-12).
@@ -3468,72 +3574,72 @@ Durchfall bei unbekannter Aktion.
 - `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
 
 ### AKZEPTANZKRITERIUM
-Ist die Tabelle `config` nicht lesbar, zeigt die Konfigurations-Uebersicht „Die
+Ist die Tabelle `config` nicht lesbar, zeigt die Konfigurations-Übersicht „Die
 Konfiguration konnte nicht geladen werden." statt der Behauptung, es gebe keine
-Eintraege.
+Einträge.
 
 ### DONE
 T-110, gefunden in P-2026-08-14-12. `getAlle()` hat seinen Fehler selbst
-abgefangen und `[]` zurueckgegeben – der `catch` im Controller konnte nie
+abgefangen und `[]` zurückgegeben – der `catch` im Controller konnte nie
 greifen, seine Fehlermeldung war unerreichbarer Code. Sichtbar war das nicht
 als Fehlermeldung, sondern als **falsche Auskunft**: Bei einer unlesbaren
-Tabelle stand „Es sind derzeit keine Konfigurationseintraege vorhanden." – ein
-Satz, nach dem man in der Datenbank sucht, was geloescht wurde.
+Tabelle stand „Es sind derzeit keine Konfigurationseinträge vorhanden." – ein
+Satz, nach dem man in der Datenbank sucht, was gelöscht wurde.
 
-`getAlle()` faengt jetzt nicht mehr ab. Der Unterschied zu `get()`, das
-weiterhin abfaengt, steht als Kommentar an der Methode: Fuer einen einzelnen
-Schluessel gibt es einen Standardwert, auf den zurueckgefallen werden kann; fuer
-die Uebersicht gibt es keinen. „Leere Liste" und „nicht ladbar" sind zwei
-verschiedene Aussagen, und nur der Aufrufer weiss, wie er die zweite zeigt.
+`getAlle()` fängt jetzt nicht mehr ab. Der Unterschied zu `get()`, das
+weiterhin abfängt, steht als Kommentar an der Methode: Für einen einzelnen
+Schlüssel gibt es einen Standardwert, auf den zurückgefallen werden kann; für
+die Übersicht gibt es keinen. „Leere Liste" und „nicht ladbar" sind zwei
+verschiedene Aussagen, und nur der Aufrufer weiß, wie er die zweite zeigt.
 
-Risiko ueberschaubar: `getAlle()` hat genau **einen** Aufrufer, und der bringt
-seit jeher den passenden `try`/`catch` mit. Doppeltes Loggen faellt weg – der
+Risiko überschaubar: `getAlle()` hat genau **einen** Aufrufer, und der bringt
+seit jeher den passenden `try`/`catch` mit. Doppeltes Loggen fällt weg – der
 Controller schreibt dieselbe Meldung mit derselben Kategorie `config`.
 
-**Ein zweiter sichtbarer Effekt kam dazu**, und der gehoert zum selben Thema:
+**Ein zweiter sichtbarer Effekt kam dazu**, und der gehört zum selben Thema:
 Bei einem Lesefehler ist die Liste ebenfalls leer, also stand die Fehlermeldung
-und direkt darunter „keine Eintraege vorhanden" – wieder die falsche Auskunft,
+und direkt darunter „keine Einträge vorhanden" – wieder die falsche Auskunft,
 nur eine Zeile tiefer. Die View zeigt den Leer-Hinweis jetzt nur noch, wenn
 keine Fehlermeldung dasteht.
 
 ### TEST
 Frische Wegwerf-Umgebung: Kopie des Repos unter `/tmp`, eigene
 `config.local.php`, Datenbank `zeit_probe_t110` aus `sql/01_initial_schema.sql`,
-**erfundene** Daten (Pruefbenutzer „Probe Pruefer", ein Eintrag
+**erfundene** Daten (Prüfbenutzer „Probe Prüfer", ein Eintrag
 `probe.einfach`). Server mit `-d opcache.enable=0 -d opcache.enable_cli=0`
 gestartet – der Grund steht in P-2026-08-14-13. Entwicklungsdatenbank nicht
-angefasst, Probe-Datenbank am Ende geloescht.
+angefasst, Probe-Datenbank am Ende gelöscht.
 
 Drei Lagen, jeweils HTTP 200:
 
-| Lage | Fehlermeldung | „keine Eintraege" |
+| Lage | Fehlermeldung | „keine Einträge" |
 | --- | --- | --- |
 | `config` lesbar, ein Eintrag | nein | nein (Liste steht) |
 | `config` unlesbar (`RENAME TABLE`) | **ja** | nein |
 | `config` lesbar, aber leer | nein | **ja** |
 
 Gegenprobe auf demselben Datenbankstand mit dem Stand aus HEAD: dort zeigt die
-unlesbare Tabelle **keine** Fehlermeldung, sondern „keine Eintraege" – genau der
+unlesbare Tabelle **keine** Fehlermeldung, sondern „keine Einträge" – genau der
 Fehler, um den es geht.
 
-`system_log` bestaetigt den Wechsel der Zustaendigkeit: Auf dem neuen Stand
+`system_log` bestätigt den Wechsel der Zuständigkeit: Auf dem neuen Stand
 steht `error | config | Fehler beim Laden der Konfiguration` (Controller), die
-Servicemeldung „Fehler beim Laden aller Konfigurationseintraege" kommt nur noch
+Servicemeldung „Fehler beim Laden aller Konfigurationseinträge" kommt nur noch
 aus der HEAD-Kopie.
 
 Danach auf dem neuen Stand geklickt: Dashboard, Konfiguration mit allen vier
 Tabs, Bearbeiten-Maske, Mitarbeiterliste, Rollen/Rechte, Monatsreport, Urlaub,
 Terminalverwaltung – alle HTTP 200, Serverlog ohne Warnung oder Deprecation.
-`php -l` ueber beide geaenderten Dateien.
+`php -l` über beide geänderten Dateien.
 
 ### Was bewusst nicht erreicht wurde
-Die uebrigen Methoden von `KonfigurationService` fangen weiter ab. Bei `get()`
+Die übrigen Methoden von `KonfigurationService` fangen weiter ab. Bei `get()`
 ist das richtig (Standardwert), bei `set()` ist es diskutabel – ein
 fehlgeschlagenes Schreiben meldet dem Aufrufer nichts. Nicht angefasst: anderes
-Thema, anderer Aufruferkreis, und es faellt hier nur nebenbei auf.
+Thema, anderer Aufruferkreis, und es fällt hier nur nebenbei auf.
 
 ### NEXT
-Naechste Maske aus T-104: `bearbeiten()` des `KonfigurationController`.
+Nächste Maske aus T-104: `bearbeiten()` des `KonfigurationController`.
 
 ## P-2026-08-14-13 opcache-stolperstein-dokumentiert
 
@@ -3549,53 +3655,53 @@ Naechste Maske aus T-104: `bearbeiten()` des `KonfigurationController`.
 
 ### AKZEPTANZKRITERIUM
 Die vier Zeilen, die in Abschnitt 5 zum Nachstellen stehen, liefern beim
-zweiten Abruf `STAND-A` – also den alten Stand, obwohl die Datei geaendert
+zweiten Abruf `STAND-A` – also den alten Stand, obwohl die Datei geändert
 wurde.
 
 ### DONE
 Abschnitt 5 („Stolpersteine") bekommt den OPcache-Fall, Abschnitt 1 einen
 Verweis darauf. Der Satz dort – „Datei speichern, Seite neu laden, fertig" –
-stimmt naemlich nicht immer, und das ist der Satz, auf den sich jeder verlaesst.
+stimmt nämlich nicht immer, und das ist der Satz, auf den sich jeder verlässt.
 
 Gemessen auf diesem Rechner, nicht aus der Dokumentation abgeschrieben:
 `/etc/php/php.ini` setzt `opcache.enable=1`, `opcache.enable_cli=1` und
-`opcache.revalidate_freq=180`. Eine einmal uebersetzte Datei wird also bis zu
-drei Minuten lang nicht erneut geprueft – im Browser wie auf der
+`opcache.revalidate_freq=180`. Eine einmal übersetzte Datei wird also bis zu
+drei Minuten lang nicht erneut geprüft – im Browser wie auf der
 Kommandozeile.
 
 **Warum das so schwer zu erkennen ist**, steht mit im Text: Der Effekt tritt
-nicht zuverlaessig auf. `opcache.file_update_protection` ist 2 Sekunden, und
-Dateien, die juenger sind, kommen gar nicht erst in den Cache. Speichern und
-sofort neu laden zeigt die Aenderung; speichern, kurz nachdenken, neu laden
+nicht zuverlässig auf. `opcache.file_update_protection` ist 2 Sekunden, und
+Dateien, die jünger sind, kommen gar nicht erst in den Cache. Speichern und
+sofort neu laden zeigt die Änderung; speichern, kurz nachdenken, neu laden
 zeigt sie nicht. Genau diese Sprunghaftigkeit hat in P-2026-08-14-12 zwei
 Messreihen gekostet, weil der erste Versuch scheinbar funktionierte.
 
-Abschnitt 7 nennt `restart php-fpm` bereits, aber nur fuer Aenderungen an
+Abschnitt 7 nennt `restart php-fpm` bereits, aber nur für Änderungen an
 `config.local.php` und PHP-Einstellungen. Dass auch ganz normale
-Quelltextaenderungen betroffen sind, stand nirgends.
+Quelltextänderungen betroffen sind, stand nirgends.
 
 ### Gefundene Fehler im eigenen Entwurf
-Die erste Probe schien zu belegen, dass php-fpm die Aenderung sofort uebernimmt
+Die erste Probe schien zu belegen, dass php-fpm die Änderung sofort übernimmt
 – zwei Abrufe, beide der neue Stand. Der Grund war
-`file_update_protection`: Beide Abrufe trafen eine Datei, die juenger als zwei
+`file_update_protection`: Beide Abrufe trafen eine Datei, die jünger als zwei
 Sekunden war, also nie im Cache landete. Erst eine Probe mit **frischem
 Dateinamen** und vier Sekunden Wartezeit vor dem ersten Abruf zeigte das
 Verhalten. Wer hier zu schnell misst, dokumentiert das Gegenteil.
 
 ### TEST
-Die vier Zeilen aus Abschnitt 5 wortwoertlich ausgefuehrt:
-Abruf 1 `STAND-A`, Abruf 2 nach der Aenderung wieder `STAND-A`, auch 15
-Sekunden spaeter noch. Die Probedatei wurde danach geloescht, `git status` ist
+Die vier Zeilen aus Abschnitt 5 wortwörtlich ausgeführt:
+Abruf 1 `STAND-A`, Abruf 2 nach der Änderung wieder `STAND-A`, auch 15
+Sekunden später noch. Die Probedatei wurde danach gelöscht, `git status` ist
 sauber.
 
 ### Was bewusst nicht erreicht wurde
-`opcache.revalidate_freq=0` in `/etc/php/conf.d/99-zeiterfassung-dev.ini` wuerde
-den Stolperstein beseitigen, statt ihn zu beschreiben – das aendert aber
+`opcache.revalidate_freq=0` in `/etc/php/conf.d/99-zeiterfassung-dev.ini` würde
+den Stolperstein beseitigen, statt ihn zu beschreiben – das ändert aber
 `scripts/dev/setup_lokale_umgebung_arch.sh` und die Maschine, ist also ein
 eigenes Thema und eine eigene Entscheidung.
 
 ### NEXT
-T-110 (toter Fehlerpfad der Konfigurations-Uebersicht), danach die naechste
+T-110 (toter Fehlerpfad der Konfigurations-Übersicht), danach die nächste
 Maske aus T-104.
 
 ## P-2026-08-14-12 konfigurations-uebersicht-in-views
@@ -3607,7 +3713,7 @@ Maske aus T-104.
 - `views/betriebsferien/liste.php` und `views/betriebsferien/formular.php` als
   Muster (P-2026-08-11-09), dazu der Eintrag zu -09 und -14 hier.
 - `views/layout/header.php` nur nach Knopf-Regeln durchsucht – diese Maske hat
-  keine Knoepfe, nur Links.
+  keine Knöpfe, nur Links.
 
 ### DATEIEN
 - `views/konfiguration/liste.php` (neu)
@@ -3615,37 +3721,37 @@ Maske aus T-104.
 - `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
 
 ### AKZEPTANZKRITERIUM
-Die Konfigurations-Uebersicht erzeugt dasselbe HTML wie vorher – bis auf die
-Einrueckung –, obwohl das Markup jetzt in `views/konfiguration/liste.php`
+Die Konfigurations-Übersicht erzeugt dasselbe HTML wie vorher – bis auf die
+Einrückung –, obwohl das Markup jetzt in `views/konfiguration/liste.php`
 liegt.
 
 ### DONE
 Erste von sechs Masken des `KonfigurationController`. Bewusst die kleinste
-zuerst: kein Formular, kein JavaScript, keine Knoepfe – damit steht das
-Verzeichnis `views/konfiguration/`, in das die uebrigen fuenf nachziehen
-(Systemlog, Krankzeitraum, Pausenregeln, Sonstiges-Gruende, Bearbeiten).
+zuerst: kein Formular, kein JavaScript, keine Knöpfe – damit steht das
+Verzeichnis `views/konfiguration/`, in das die übrigen fünf nachziehen
+(Systemlog, Krankzeitraum, Pausenregeln, Sonstiges-Gründe, Bearbeiten).
 
-Verschoben wurde **nur** Markup. `index()` behaelt die Tab-Weichen und das
-Laden der Eintraege und bindet danach die View ein; 2.177 → 2.103 Zeilen
+Verschoben wurde **nur** Markup. `index()` behält die Tab-Weichen und das
+Laden der Einträge und bindet danach die View ein; 2.177 → 2.103 Zeilen
 Controller plus 90 Zeilen View.
 
-**Kein `$csrfBereich` noetig.** Anders als bei Betriebsferien und Maschinen
-enthaelt diese Maske kein Formular – sie verlinkt nur auf
+**Kein `$csrfBereich` nötig.** Anders als bei Betriebsferien und Maschinen
+enthält diese Maske kein Formular – sie verlinkt nur auf
 `konfiguration_admin_bearbeiten`. Die Konstante `CSRF_BEREICH` bleibt deshalb
 ungenutzt im Controller, statt vorsorglich in die View gereicht zu werden.
 
-Die Tab-Zeile („Konfiguration | Krank (LFZ/KK) | …") steht damit vorlaeufig
-doppelt: einmal in der neuen View, einmal in jeder der fuenf noch nicht
-migrierten Masken. Das ist Absicht – ein gemeinsames Teil-Template dafuer ist
-ein eigenes Thema und waere hier ein Refactor nebenbei. Beim Migrieren der
+Die Tab-Zeile („Konfiguration | Krank (LFZ/KK) | …") steht damit vorläufig
+doppelt: einmal in der neuen View, einmal in jeder der fünf noch nicht
+migrierten Masken. Das ist Absicht – ein gemeinsames Teil-Template dafür ist
+ein eigenes Thema und wäre hier ein Refactor nebenbei. Beim Migrieren der
 letzten der sechs Masken lohnt der Blick darauf.
 
 ### Gefundene Fehler im eigenen Entwurf
-Der Test sollte auch den Fehlerpfad zeigen. Zwei Anlaeufe waren wertlos, bevor
+Der Test sollte auch den Fehlerpfad zeigen. Zwei Anläufe waren wertlos, bevor
 das auffiel:
 
 1. Der Fehlerpfad ist gar nicht erreichbar. `KonfigurationService::getAlle()`
-   faengt selbst ab und liefert `[]` – der `catch` in `index()` kann nie
+   fängt selbst ab und liefert `[]` – der `catch` in `index()` kann nie
    greifen, die Variable `$fehlermeldung` bleibt immer `null`. Der Weg wurde
    deshalb erzwungen (Zuweisung von Hand in beiden Wegwerf-Kopien). Als
    **T-110** notiert, nicht hier behoben.
@@ -3654,29 +3760,29 @@ das auffiel:
    den alten Bytecode: Die erzwungene Fehlermeldung stand in der Datei und
    erschien trotzdem nicht im HTML. Alle Messungen der Tabelle unten stammen
    aus einem Lauf mit `-d opcache.enable=0 -d opcache.enable_cli=0` und frisch
-   gestarteten Servern. Wer hier eine Datei zwischen zwei Aufrufen aendert und
+   gestarteten Servern. Wer hier eine Datei zwischen zwei Aufrufen ändert und
    das nicht beachtet, misst den Stand von vorhin.
 
 ### TEST
 Wegwerf-Umgebung wie in P-2026-08-11-09: zwei Kopien des Repos unter `/tmp`
 (HEAD und Arbeitsstand), eigene `config.local.php`, frische Datenbank
 `zeit_probe_t104b` aus `sql/01_initial_schema.sql`, **erfundene** Daten
-(Pruefbenutzer „Probe Pruefer", sieben `probe.*`-Eintraege: einfacher Wert,
-Wert mit `<`, `&` und Anfuehrungszeichen, Wert mit 90 Zeichen fuer die
-Kuerzung auf 80, lange Beschreibung, Kuerzung mitten in Umlauten, `NULL`-Wert,
-Schluessel mit Leerzeichen und `&` fuer `urlencode()`). Die
+(Prüfbenutzer „Probe Prüfer", sieben `probe.*`-Einträge: einfacher Wert,
+Wert mit `<`, `&` und Anführungszeichen, Wert mit 90 Zeichen für die
+Kürzung auf 80, lange Beschreibung, Kürzung mitten in Umlauten, `NULL`-Wert,
+Schlüssel mit Leerzeichen und `&` für `urlencode()`). Die
 Entwicklungsdatenbank wurde nicht angefasst, die Probe-Datenbank am Ende
-geloescht.
+gelöscht.
 
 | Pfad | HEAD | neu |
 | --- | --- | --- |
-| Uebersicht | 39.605 B | 37.590 B |
-| Uebersicht mit `ok=1` | 39.680 B | 37.649 B |
+| Übersicht | 39.605 B | 37.590 B |
+| Übersicht mit `ok=1` | 39.680 B | 37.649 B |
 | Leere Liste | 26.836 B | 26.661 B |
 | Fehlermeldung (erzwungen) | 39.741 B | 37.694 B |
 
 Alle vier sind mit vereinheitlichtem Leerraum **zeichengleich**; die Differenz
-ist ausschliesslich die weggefallene Einrueckung (das Markup stand im
+ist ausschließlich die weggefallene Einrückung (das Markup stand im
 Controller acht Spalten weiter rechts).
 
 Der Pfad „leere Liste" braucht einen Umweg, weil `DefaultsSeeder` bei jedem
@@ -3686,19 +3792,19 @@ config_leer GROUP BY id`). Damit scheitert der Seeder – abgefangen, wie
 vorgesehen – und `getAlle()` liefert leer.
 
 Dazu auf dem neuen Stand geklickt: die vier Tabs (Krank, Pausen, Sonstiges,
-System-Log) und der Bearbeiten-Link je HTTP 200, dazu die Backend-Kernablaeufe
+System-Log) und der Bearbeiten-Link je HTTP 200, dazu die Backend-Kernabläufe
 aus `docs/wartungscheckliste.md` (Dashboard, Mitarbeiterliste, Rollen/Rechte,
 Monatsreport, Urlaub eigene Liste, Genehmigungsliste) – alle HTTP 200. Serverlog
-und `system_log` ohne Warnung oder Deprecation; die einzigen Eintraege sind die
-Logins und das erwartete Scheitern des Seeders aus dem Leer-Pfad. `php -l` ueber
-beide geaenderten Dateien.
+und `system_log` ohne Warnung oder Deprecation; die einzigen Einträge sind die
+Logins und das erwartete Scheitern des Seeders aus dem Leer-Pfad. `php -l` über
+beide geänderten Dateien.
 
 ### Was bewusst nicht erreicht wurde
-Die fuenf uebrigen Masken des Controllers bleiben, wo sie sind – eine Maske je
+Die fünf übrigen Masken des Controllers bleiben, wo sie sind – eine Maske je
 Patch. `SmokeTestController` (T-105) ebenso.
 
 ### NEXT
-Naechste Maske aus T-104. Naheliegend `bearbeiten()` als zweitkleinste des
+Nächste Maske aus T-104. Naheliegend `bearbeiten()` als zweitkleinste des
 `KonfigurationController` – erstes Formular in `views/konfiguration/`, also
 erstmals mit `$csrfBereich`.
 
@@ -3715,46 +3821,46 @@ erstmals mit `$csrfBereich`.
 - `docs/archiv/DEV_PROMPT_HISTORY.md`
 
 ### AKZEPTANZKRITERIUM
-Wer nur `README.md` liest, kennt alle vier Regeln, bei denen ein Verstoss nicht
+Wer nur `README.md` liest, kennt alle vier Regeln, bei denen ein Verstoß nicht
 mehr zu reparieren ist – und der Befehl, der Patches ohne Verlaufseintrag
 sucht, liefert die Ausgabe, die danebensteht.
 
 ### DONE
 **Die Push-Regel fehlte im README.** `CHATSTART.md` nennt vier Regeln, „bei
-denen ein Verstoss nicht mehr zu reparieren ist", darunter „Gepusht wird nur
-auf ausdrueckliche Ansage". Die Kurzfassung im README fuehrte davon nur zwei –
+denen ein Verstoß nicht mehr zu reparieren ist", darunter „Gepusht wird nur
+auf ausdrückliche Ansage". Die Kurzfassung im README führte davon nur zwei –
 ausgerechnet die Push-Regel und „keine Refactors nebenbei" fehlten. Das ist die
 Datei, die ein frisch Klonender zuerst liest, und ein versehentlicher Push ist
-genau der Fall, den man nicht zurueckholt. Beide sind ergaenzt.
+genau der Fall, den man nicht zurückholt. Beide sind ergänzt.
 
-**Fuenf Patches ohne Verlaufseintrag.** `P-2026-08-08-12`, `-17`, `-27`, `-32`
+**Fünf Patches ohne Verlaufseintrag.** `P-2026-08-08-12`, `-17`, `-27`, `-32`
 und `-34` haben Commits, aber keinen Eintrag hier – vom Tag der Umstellung von
-ZIP auf Commits. Nicht nacherfunden: Was in einem Patch gedacht wurde, weiss
-nachtraeglich niemand mehr, und ein erfundener Eintrag ist schlimmer als eine
-benannte Luecke. Stattdessen stehen sie oben in der Datei mit Begruendung und
+ZIP auf Commits. Nicht nacherfunden: Was in einem Patch gedacht wurde, weiß
+nachträglich niemand mehr, und ein erfundener Eintrag ist schlimmer als eine
+benannte Lücke. Stattdessen stehen sie oben in der Datei mit Begründung und
 dem Befehl, der sie findet.
 
 ### Gefundene Fehler im eigenen Entwurf
-Der erste Entwurf schrieb die IDs verkuerzt (`P-2026-08-08-12`, `-17`, `-27`,
-…). Der Pruefbefehl daneben meldete daraufhin vier der fuenf als „ohne
+Der erste Entwurf schrieb die IDs verkürzt (`P-2026-08-08-12`, `-17`, `-27`,
+…). Der Prüfbefehl daneben meldete daraufhin vier der fünf als „ohne
 Eintrag", weil `grep` die Kurzformen nicht findet – die Ausgabe passte also
 schon wieder nicht zum Text daneben. Dritter Anlauf desselben Fehlers in einer
-Sitzung. Jetzt stehen alle fuenf IDs ausgeschrieben, und die dokumentierte
+Sitzung. Jetzt stehen alle fünf IDs ausgeschrieben, und die dokumentierte
 Erwartung ist **keine Ausgabe** – ein Kriterium, das man nicht falsch lesen
 kann.
 
 ### TEST
-- Pruefbefehl ausgefuehrt: keine Ausgabe, wie dokumentiert.
+- Prüfbefehl ausgeführt: keine Ausgabe, wie dokumentiert.
 - Gegenprobe der Behauptung: Die vier Regeln aus `CHATSTART.md`, Abschnitt 2,
   stehen jetzt alle im README-Abschnitt „Mitarbeiten".
 - `git log --grep="P-2026-08-08-12" --stat` liefert den Commit – der im Text
   genannte Weg zur Ersatzinformation funktioniert.
 
 ### Was bewusst nicht erreicht wurde
-- **Keine Eintraege nachgetragen.** Siehe oben.
+- **Keine Einträge nachgetragen.** Siehe oben.
 
 ### NEXT
-Nichts Offenes aus dieser Pruefreihe. Naechster Schritt bleibt der Geraetetest
+Nichts Offenes aus dieser Prüfreihe. Nächster Schritt bleibt der Gerätetest
 (siehe `docs/STATUS_SNAPSHOT.md`).
 
 
@@ -3777,19 +3883,19 @@ ein stillgelegter Katalogschritt landet auch dann nicht am Auftrag, wenn seine
 ID im POST steht.
 
 ### DONE
-Zwei Funde aus der Pruefung des Auftragsmoduls:
+Zwei Funde aus der Prüfung des Auftragsmoduls:
 
 **1. Die Extraktion war auf halbem Weg stehengeblieben.** P-2026-08-14-01 hat
-`leseKatalogAuswahlAusPost()` herausgeloest und im neuen Weg (`speichern()`)
+`leseKatalogAuswahlAusPost()` herausgelöst und im neuen Weg (`speichern()`)
 benutzt – der alte Weg (`schritteAusKatalog()`) behielt seine eigene, Zeile
-fuer Zeile gleiche Schleife. Der Docblock von `uebernehmeKatalogSchritte()`
-behauptete „eine Stelle fuer zwei Wege"; das galt fuers Einfuegen, nicht fuers
-Lesen. Jetzt gilt es fuer beides: 13 Zeilen weg, ein Aufruf hin.
+für Zeile gleiche Schleife. Der Docblock von `uebernehmeKatalogSchritte()`
+behauptete „eine Stelle für zwei Wege"; das galt fürs Einfügen, nicht fürs
+Lesen. Jetzt gilt es für beides: 13 Zeilen weg, ein Aufruf hin.
 
-**2. `aktiv = 1` fehlte beim Einfuegen.** Angeboten werden an beiden Stellen
-nur aktive Schritte (`WHERE aktiv = 1`), eingefuegt wurde aber alles, dessen ID
-im POST stand. Ein Haekchen im Browser ist keine Zusicherung, und zwischen
-Seitenaufbau und Absenden kann ein Schritt stillgelegt worden sein – dann kaeme
+**2. `aktiv = 1` fehlte beim Einfügen.** Angeboten werden an beiden Stellen
+nur aktive Schritte (`WHERE aktiv = 1`), eingefügt wurde aber alles, dessen ID
+im POST stand. Ein Häkchen im Browser ist keine Zusicherung, und zwischen
+Seitenaufbau und Absenden kann ein Schritt stillgelegt worden sein – dann käme
 er trotzdem an den Auftrag und auf die Laufkarte. Die Bedingung steht jetzt
 auch im `SELECT` von `uebernehmeKatalogSchritte()`.
 
@@ -3799,26 +3905,26 @@ gewinnt, inaktiver Schritt kommt nicht).
 ### TEST
 - `php -l controller/AuftragController.php`: sauber.
 - `grep -n "katalog_ids" controller/ views/` – `$_POST['katalog_ids']` wird
-  genau einmal gelesen (Zeile 2206), die beiden Checkbox-Felder heissen
+  genau einmal gelesen (Zeile 2206), die beiden Checkbox-Felder heißen
   weiterhin so.
 - Beide Aufrufer von `uebernehmeKatalogSchritte()` gegengelesen: Der
-  Rueckgabewert `[uebernommen, uebersprungen]` bleibt gleich gebaut. Ein durch
-  `aktiv = 1` herausgefallener Schritt zaehlt in keiner der beiden Zahlen – die
+  Rückgabewert `[uebernommen, uebersprungen]` bleibt gleich gebaut. Ein durch
+  `aktiv = 1` herausgefallener Schritt zählt in keiner der beiden Zahlen – die
   Meldung nennt dann weniger Schritte als angehakt waren, was der Wahrheit
   entspricht.
-- Schema gegengeprueft: `arbeitsschritt_katalog.aktiv` ist
+- Schema gegengeprüft: `arbeitsschritt_katalog.aktiv` ist
   `tinyint(1) NOT NULL DEFAULT 1`, es gibt den Index
   `idx_arbeitsschritt_katalog_aktiv (aktiv, sort_order)`.
 
 ### Was bewusst nicht erreicht wurde
-- **Keine Meldung, wenn etwas wegen `aktiv = 0` wegfaellt.** Der Fall ist ein
+- **Keine Meldung, wenn etwas wegen `aktiv = 0` wegfällt.** Der Fall ist ein
   Rennen um Sekunden und die stillere Behandlung die richtige: Der Schritt
-  fehlt, das sieht man am Auftrag. Eine eigene Meldung waere mehr Text als
+  fehlt, das sieht man am Auftrag. Eine eigene Meldung wäre mehr Text als
   Nutzen.
 - **Nicht im Browser durchgeklickt.**
 
 ### NEXT
-P-2026-08-14-11: README – die Kurzfassung der Regeln laesst ausgerechnet die
+P-2026-08-14-11: README – die Kurzfassung der Regeln lässt ausgerechnet die
 Push-Regel weg.
 
 
@@ -3836,18 +3942,18 @@ Push-Regel weg.
 - `docs/archiv/DEV_PROMPT_HISTORY.md`
 
 ### AKZEPTANZKRITERIUM
-Nach diesem Patch findet die Restsuche ueber **alle** PHP-Dateien kein
-deutsches Wort mehr in Umschreibung – ausser den von der Regel ausgenommenen
+Nach diesem Patch findet die Restsuche über **alle** PHP-Dateien kein
+deutsches Wort mehr in Umschreibung – außer den von der Regel ausgenommenen
 Bezeichnern, Spaltennamen, Spaltenwerten, CSS-Klassen und Routen.
 
 ### DONE
 Zweiter und letzter Durchgang mit demselben Werkzeug aus P-2026-08-14-08.
-66 Token in 17 Dateien, fast ausschliesslich Kommentare. Dazu ein
+66 Token in 17 Dateien, fast ausschließlich Kommentare. Dazu ein
 Log-Text von Hand (`Bildunterstuetzung` in `BarcodeService`), der durch den
 Tabu-Filter fiel.
 
 ### Gefundene Fehler im eigenen Entwurf
-**Beinahe-Fehler beim PDF.** Der Patch aendert in `PDFService` einen Text, der
+**Beinahe-Fehler beim PDF.** Der Patch ändert in `PDFService` einen Text, der
 in die Laufkarte gedruckt wird („Für diesen Auftrag sind keine aktiven
 Arbeitsschritte hinterlegt."). Umlaute in eine PDF-Datei zu schreiben ist
 nicht dasselbe wie Umlaute in HTML. Nachgesehen statt gehofft:
@@ -3855,42 +3961,42 @@ nicht dasselbe wie Umlaute in HTML. Nachgesehen statt gehofft:
 - Die Fonts sind mit `/Encoding /WinAnsiEncoding` eingebunden, und
   `escapePdfText()` konvertiert vorher mit
   `iconv('UTF-8', 'Windows-1252//TRANSLIT', …)`. `ä ö ü ß` und `–` gibt es in
-  Windows-1252 – gegengeprueft: 27 Zeichen ergeben 27 Bytes, jeder Umlaut also
+  Windows-1252 – gegengeprüft: 27 Zeichen ergeben 27 Bytes, jeder Umlaut also
   genau ein Byte, kein Fragezeichen.
-- `schaetzeTextBreitePt()` zaehlt ueber `mb_strlen(…, 'UTF-8')`, nicht
-  `strlen()`. Haette es Bytes gezaehlt, waere zentrierter und rechtsbuendiger
-  Text durch jeden Umlaut verrutscht – lautlos, denn das PDF waere gueltig
+- `schaetzeTextBreitePt()` zählt über `mb_strlen(…, 'UTF-8')`, nicht
+  `strlen()`. Hätte es Bytes gezählt, wäre zentrierter und rechtsbündiger
+  Text durch jeden Umlaut verrutscht – lautlos, denn das PDF wäre gültig
   geblieben.
 
-Beides war schon richtig gebaut. Aber es war Glueck, nicht Vorsicht: Ich
-haette den Text geaendert, ohne hinzusehen, wenn mir „PDF" nicht aufgefallen
-waere.
+Beides war schon richtig gebaut. Aber es war Glück, nicht Vorsicht: Ich
+hätte den Text geändert, ohne hinzusehen, wenn mir „PDF" nicht aufgefallen
+wäre.
 
 ### TEST
-- `php -l` ueber **alle 142** PHP-Dateien: sauber.
-- Diff auf Umlaute in Array-Schluesseln und `[...]`-Zugriffen geprueft: kein
-  Treffer. Alle Aenderungen ausserhalb von Kommentaren sind Log- und
+- `php -l` über **alle 142** PHP-Dateien: sauber.
+- Diff auf Umlaute in Array-Schlüsseln und `[...]`-Zugriffen geprüft: kein
+  Treffer. Alle Änderungen außerhalb von Kommentaren sind Log- und
   Ausgabetexte.
-- Routen unveraendert: 72 in `public/index.php`, 13 in `public/terminal.php`.
-- Restsuche ueber alle PHP-Dateien: uebrig bleiben nur `loeschen`
+- Routen unverändert: 72 in `public/index.php`, 13 in `public/terminal.php`.
+- Restsuche über alle PHP-Dateien: übrig bleiben nur `loeschen`
   (POST-Wert `aktion=loeschen` und Methodenname), `behaelter` (JS-Variable),
-  `naechstgelegen` (Spaltenwert), `verfuegbar` (Array-Schluessel),
+  `naechstgelegen` (Spaltenwert), `verfuegbar` (Array-Schlüssel),
   `sekundaeraktionen`/`uebersichtheute` (CSS-Klassen), `Personalbuero`
-  (ASCII-Rueckfall eines Rollennamens) und `imagecreatetruecolor` (PHP-Funktion)
+  (ASCII-Rückfall eines Rollennamens) und `imagecreatetruecolor` (PHP-Funktion)
   – alle von der Regel ausgenommen.
 - `iconv`-Gegenprobe zur PDF-Kodierung, siehe oben.
 
 ### Was bewusst nicht erreicht wurde
 - **Die Markdown-Dateien in `docs/` sind nicht angefasst.** Abschnitt 7 nennt
-  Kommentare und Oberflaechentexte; die Doku steht dort nicht. Mehrere Dateien
-  schreiben trotzdem „Kernablaeufe" und „Funktionalitaet"
-  (`wartungscheckliste.md`). Eigener Patch, wenn gewuenscht.
+  Kommentare und Oberflächentexte; die Doku steht dort nicht. Mehrere Dateien
+  schreiben trotzdem „Kernabläufe" und „Funktionalität"
+  (`wartungscheckliste.md`). Eigener Patch, wenn gewünscht.
 - **Nicht im Browser durchgeklickt, keine Laufkarte gedruckt.** Die
-  PDF-Kodierung ist am Code geprueft, nicht an einer Ausgabe.
+  PDF-Kodierung ist am Code geprüft, nicht an einer Ausgabe.
 
 ### NEXT
-P-2026-08-14-10: die kleinen Funde aus der Pruefung – doppeltes Auslesen von
-`katalog_ids`, `aktiv`-Filter beim Uebernehmen, fehlende Push-Regel im README.
+P-2026-08-14-10: die kleinen Funde aus der Prüfung – doppeltes Auslesen von
+`katalog_ids`, `aktiv`-Filter beim Übernehmen, fehlende Push-Regel im README.
 
 
 ## P-2026-08-14-08 umlaute-in-oberflaeche-und-controllern
@@ -3911,72 +4017,72 @@ Bezeichner, Spaltenname, Rollenname, Rechte-Code oder Routenname hat dabei
 einen Umlaut bekommen.
 
 ### DONE
-Die Regel stand seit v13 in den Arbeitsregeln und wurde flaechendeckend
-gebrochen, auch in sichtbarer Oberflaeche: `<h2>Auftraege</h2>`, „Zurueck zur
-Liste", „Es war kein Auftrag ausgewaehlt", „… wird das Recht
-AUFTRAEGE_VERWALTEN benoetigt". 290 Token in 29 Dateien geaendert,
+Die Regel stand seit v13 in den Arbeitsregeln und wurde flächendeckend
+gebrochen, auch in sichtbarer Oberfläche: `<h2>Auftraege</h2>`, „Zurück zur
+Liste", „Es war kein Auftrag ausgewählt", „… wird das Recht
+AUFTRAEGE_VERWALTEN benötigt". 290 Token in 29 Dateien geändert,
 `AuftragController` allein 108.
 
 **Warum das nicht mit `sed` geht.** Die Ausnahmeliste der Regel ist keine
 Formalie: `begruendung`, `geaendert_am`, `gilt_fuer`, `gueltig_bis`,
 `ueberstunden`, `uebertrag_tage` und `schluessel` sind **Spaltennamen**;
 `naechstgelegen` ist ein **Spaltenwert** (`zeit_rundungsregel.richtung`);
-`stoerung` ist eine **Route**; `Personalbuero` ist der ASCII-Rueckfall eines
-**Rollennamens**. Eine Wortersetzung ueber die Datei haette SQL, Routen und
-den Rollenvergleich zerlegt – lautlos, denn PHP haette weiter kompiliert.
+`stoerung` ist eine **Route**; `Personalbuero` ist der ASCII-Rückfall eines
+**Rollennamens**. Eine Wortersetzung über die Datei hätte SQL, Routen und
+den Rollenvergleich zerlegt – lautlos, denn PHP hätte weiter kompiliert.
 
-Deshalb ein Werkzeug ueber `token_get_all()`, das nur anfasst:
+Deshalb ein Werkzeug über `token_get_all()`, das nur anfasst:
 - `T_COMMENT` / `T_DOC_COMMENT`
 - `T_INLINE_HTML`
 - String-Literale, die **nicht** wie SQL, Bezeichner, Rechte-Code, Route oder
-  Dateiname aussehen (`^[a-z0-9_]+$`, `^[A-Z][A-Z0-9_]+$`, SQL-Schluesselwoerter,
+  Dateiname aussehen (`^[a-z0-9_]+$`, `^[A-Z][A-Z0-9_]+$`, SQL-Schlüsselwörter,
   `seite=`/`aktion=`, Dateiendungen).
 
 Dazu Wortgrenzen (`\b`): In `holeMonatsdatenFuerMitarbeiter` und `gilt_fuer`
 steht `Fuer`/`fuer` nicht an einer Wortgrenze – camelCase und Unterstriche
-schuetzen die Bezeichner von selbst.
+schützen die Bezeichner von selbst.
 
 Ersetzt wird aus einer **festen Liste** von rund 300 Paaren, nicht per Regel
-`ae→ä`. Sonst waeren „Dauer", „bauen", „neue", „aktuell", „Quelle", „Klasse"
-und „manuell" mit verunglueckt – alles korrektes Deutsch ohne Umlaut.
+`ae→ä`. Sonst wären „Dauer", „bauen", „neue", „aktuell", „Quelle", „Klasse"
+und „manuell" mit verunglückt – alles korrektes Deutsch ohne Umlaut.
 
 Drei sichtbare Reste von Hand nachgezogen, die durch den Tabu-Filter fielen:
-„Urlaub Jahresuebersicht", „diese Jahresuebersicht" und der Menuepunkt
+„Urlaub Jahresübersicht", „diese Jahresübersicht" und der Menüpunkt
 `Mitarbeiteruebersicht` in `views/layout/header.php`.
 
 ### Gefundene Fehler im eigenen Entwurf
 Nicht von diesem Patch, aber dabei aufgefallen: Der Klassen-Docblock in
 `UrlaubJahresuebersichtController.php` nannte die Klasse seit jeher
-`UrlaubJahresübersichtController` – mit Umlaut, waehrend der echte Bezeichner
-ASCII ist. Ein Leser haette den Namen falsch abgeschrieben. Korrigiert, mit
+`UrlaubJahresübersichtController` – mit Umlaut, während der echte Bezeichner
+ASCII ist. Ein Leser hätte den Namen falsch abgeschrieben. Korrigiert, mit
 einem Satz dazu, warum der Bezeichner ASCII bleibt.
 
 ### TEST
-- `php -l` ueber **alle 142** PHP-Dateien: sauber.
-- `iconv -f UTF-8 -t UTF-8` ueber alle 29 geaenderten Dateien: kein kaputtes
+- `php -l` über **alle 142** PHP-Dateien: sauber.
+- `iconv -f UTF-8 -t UTF-8` über alle 29 geänderten Dateien: kein kaputtes
   Zeichen.
 - Alle 72 Routen aus `public/index.php` gegen alle `?seite=`-Links: kein
   verlinkter Name ohne Route (vorher wie nachher).
-- Rechte-Codes: alle 25 `hatRecht('…')` weiterhin reines Gross-ASCII.
-- Rollenvergleiche unveraendert: `'Chef'`, `'Personalbüro'`, `'Personalbuero'`,
+- Rechte-Codes: alle 25 `hatRecht('…')` weiterhin reines Groß-ASCII.
+- Rollenvergleiche unverändert: `'Chef'`, `'Personalbüro'`, `'Personalbuero'`,
   `'Vorarbeiter'`.
-- Gegenprobe auf Umlaute in Array-Schluesseln und `[...]`-Zugriffen im Diff:
+- Gegenprobe auf Umlaute in Array-Schlüsseln und `[...]`-Zugriffen im Diff:
   kein Treffer.
 - Nachgesehen, was stehen blieb: `behaelter` (JS-Variable),
-  `naechstgelegen` (Spaltenwert), `verfuegbar` (Array-Schluessel),
+  `naechstgelegen` (Spaltenwert), `verfuegbar` (Array-Schlüssel),
   `sekundaeraktionen`/`uebersichtheute` (CSS-Klassen) – alle vier Gruppen
-  nennt die Regel ausdruecklich als Ausnahme.
+  nennt die Regel ausdrücklich als Ausnahme.
 
 ### Was bewusst nicht erreicht wurde
 - **`services/`, `core/`, `modelle/`, `public/` fehlen noch** – dort steht fast
-  nur Kommentartext. Eigener Patch, damit dieser Diff pruefbar bleibt.
+  nur Kommentartext. Eigener Patch, damit dieser Diff prüfbar bleibt.
 - **Nicht im Browser durchgeklickt.**
-- **`ss` → `ß` nur in eindeutigen Faellen** (`gross`, `heisst`, `weiss`,
+- **`ss` → `ß` nur in eindeutigen Fällen** (`gross`, `heisst`, `weiss`,
   `ausserdem`, `schliessen`, `gleichmaessig`). „dass", „muss", „lassen" sind
   korrekt und bleiben.
 
 ### NEXT
-P-2026-08-14-09: dieselbe Behandlung fuer `services/`, `core/`, `modelle/`
+P-2026-08-14-09: dieselbe Behandlung für `services/`, `core/`, `modelle/`
 und `public/`.
 
 
@@ -3992,22 +4098,22 @@ und `public/`.
 - `docs/arbeitsregeln.md`
 - `CHATSTART.md`
 - `docs/README.md`
-- `docs/STATUS_SNAPSHOT.md` (T-104-Block gekuerzt, siehe unten)
+- `docs/STATUS_SNAPSHOT.md` (T-104-Block gekürzt, siehe unten)
 - `docs/archiv/DEV_PROMPT_HISTORY.md`
 
 ### AKZEPTANZKRITERIUM
 Die Kaltstart-Messung gibt genau **eine** Zahl aus, und in keiner der vier
-Kaltstart-Dateien steht mehr eine Zeilenzahl fuer
+Kaltstart-Dateien steht mehr eine Zeilenzahl für
 `docs/archiv/DEV_PROMPT_HISTORY.md`.
 
 ### DONE
 **Die Messung.** Abschnitt 9 nannte
-`… | wc -c -m` und daneben „Die Byte-Zahl ist die haertere Grenze". Das
-verleitet dazu, die erste ausgegebene Zahl fuer die Bytes zu halten – `wc`
-gibt aber **immer** Zeichen vor Bytes aus, unabhaengig von der Reihenfolge der
+`… | wc -c -m` und daneben „Die Byte-Zahl ist die härtere Grenze". Das
+verleitet dazu, die erste ausgegebene Zahl für die Bytes zu halten – `wc`
+gibt aber **immer** Zeichen vor Bytes aus, unabhängig von der Reihenfolge der
 Schalter. Genau so ist es in P-2026-08-14-03 passiert:
 
-| | gemeldet | tatsaechlich |
+| | gemeldet | tatsächlich |
 | --- | --- | --- |
 | vorher | 15.999 Bytes | 16.247 Bytes (15.999 Zeichen) |
 | nachher | 14.845 Bytes | 15.083 Bytes (14.845 Zeichen) |
@@ -4015,44 +4121,44 @@ Schalter. Genau so ist es in P-2026-08-14-03 passiert:
 
 Jetzt steht dort nur noch `wc -c`. Eine Zahl kann man nicht verwechseln. Dazu
 eine Warnschwelle bei 16.000 – die 16.384 sind sonst erst dann ein Thema, wenn
-es zu spaet ist – und ein Satz dazu, **warum** es die Grenze gibt: Diese vier
+es zu spät ist – und ein Satz dazu, **warum** es die Grenze gibt: Diese vier
 Dateien werden bei jeder noch so kleinen Frage gelesen.
 
-**Die Zeilenzahlen.** Fuer dieselbe Datei standen zwei verschiedene Werte:
-`CHATSTART.md` sagte „ueber 13.000 Zeilen", `docs/README.md` „Ueber 12.000
-Zeilen", tatsaechlich sind es 18.447. Beide sind raus; die Aussage („keine
-Startlektuere, waechst mit jedem Patch") bleibt, sie brauchte die Zahl nie.
-Abschnitt 9 nennt Zeilenzahlen von Dateien jetzt ausdruecklich als Beispiel
-fuer eine ableitbare Zahl, die niemand pflegen soll.
+**Die Zeilenzahlen.** Für dieselbe Datei standen zwei verschiedene Werte:
+`CHATSTART.md` sagte „über 13.000 Zeilen", `docs/README.md` „Über 12.000
+Zeilen", tatsächlich sind es 18.447. Beide sind raus; die Aussage („keine
+Startlektüre, wächst mit jedem Patch") bleibt, sie brauchte die Zahl nie.
+Abschnitt 9 nennt Zeilenzahlen von Dateien jetzt ausdrücklich als Beispiel
+für eine ableitbare Zahl, die niemand pflegen soll.
 
 Nicht angefasst: der Satz im Kopf dieser Datei, der den entfernten
-SNAPSHOT-Block begruendet und dabei „ueber 12.000 Zeilen" nennt. Er beschreibt
-den Stand von damals im Praeteritum – das ist Verlauf, kein gepflegter Wert.
+SNAPSHOT-Block begründet und dabei „über 12.000 Zeilen" nennt. Er beschreibt
+den Stand von damals im Präteritum – das ist Verlauf, kein gepflegter Wert.
 
 ### Gefundene Fehler im eigenen Entwurf
-Der erste Entwurf von Abschnitt 9 erklaerte die `wc`-Falle in einem Absatz von
+Der erste Entwurf von Abschnitt 9 erklärte die `wc`-Falle in einem Absatz von
 sechs Zeilen und setzte die Warnschwelle auf 15.000 Bytes. Nachgemessen: 15.661
 Bytes – die frisch geschriebene Regel war beim Schreiben schon verletzt, und
-zwar durch sich selbst. Die Erklaerung steht jetzt hier in der History (wird
+zwar durch sich selbst. Die Erklärung steht jetzt hier in der History (wird
 selten gelesen) statt im Kaltstart (wird immer gelesen), die Schwelle bei
 16.000. Im selben Zug den T-104-Block aus P-2026-08-14-06 von 23 auf 12 Zeilen
-gekuerzt – die Aufschluesselung stand ohnehin ausfuehrlich im Verlaufseintrag.
+gekürzt – die Aufschlüsselung stand ohnehin ausführlich im Verlaufseintrag.
 
 ### TEST
 - `cat … | wc -c` → **15.368 Bytes**. Unter der Grenze (16.384) und unter der
   neuen Schwelle (16.000).
-- Gegenprobe zur `wc`-Reihenfolge: `wc -c -m` und `wc -m -c` ueber dieselben
+- Gegenprobe zur `wc`-Reihenfolge: `wc -c -m` und `wc -m -c` über dieselben
   vier Dateien liefern beide `15368` an zweiter Stelle – die Schalterreihenfolge
-  aendert nichts, die Falle ist real.
-- `grep -rn "[0-9]\{2,\}\.[0-9]\{3\} Zeilen"` ueber die vier
+  ändert nichts, die Falle ist real.
+- `grep -rn "[0-9]\{2,\}\.[0-9]\{3\} Zeilen"` über die vier
   Kaltstart-Dateien: kein Treffer mehr.
 
 ### Was bewusst nicht erreicht wurde
-- **Der Projektstatus-Block bleibt lang.** Die Absaetze zu „kein
-  Produktivbetrieb" sind ausdruecklich so gewollt und stehen genau einmal.
+- **Der Projektstatus-Block bleibt lang.** Die Absätze zu „kein
+  Produktivbetrieb" sind ausdrücklich so gewollt und stehen genau einmal.
 
 ### NEXT
-P-2026-08-14-08: Umlaute in der sichtbaren Oberflaeche – `<h2>Auftraege</h2>`
+P-2026-08-14-08: Umlaute in der sichtbaren Oberfläche – `<h2>Auftraege</h2>`
 und Verwandtes.
 
 
@@ -4063,15 +4169,15 @@ und Verwandtes.
 - Alle 20 Fundstellen von `views/layout/header.php` in `controller/`, jede
   einzeln im Umfeld gelesen.
 - `controller/UrlaubController.php` und `AuditLogController.php` daraufhin
-  ganz auf ihre View-Nutzung geprueft.
+  ganz auf ihre View-Nutzung geprüft.
 
 ### DATEIEN
 - `docs/STATUS_SNAPSHOT.md`
 - `docs/archiv/DEV_PROMPT_HISTORY.md`
 
 ### AKZEPTANZKRITERIUM
-Der in T-104 genannte Zaehlbefehl liefert eine Zahl, die im Text daneben
-erklaert wird – und kein Controller steht in der Liste, dessen Masken laengst
+Der in T-104 genannte Zählbefehl liefert eine Zahl, die im Text daneben
+erklärt wird – und kein Controller steht in der Liste, dessen Masken längst
 in `views/` liegen.
 
 ### DONE
@@ -4080,37 +4186,37 @@ Masken" korrigiert und dabei zwei neue Fehler eingebaut:
 
 1. **Der Befehl passt nicht zur Zahl.** `grep -rn "views/layout/header.php"
    controller/` liefert **20** Zeilen, nicht 19. Die zwanzigste ist
-   `SmokeTestController.php:133` – eine `is_file()`-Pruefung, ob die Datei
-   ueberhaupt existiert. Der Befehl heisst jetzt
+   `SmokeTestController.php:133` – eine `is_file()`-Prüfung, ob die Datei
+   überhaupt existiert. Der Befehl heißt jetzt
    `grep -rn "require __DIR__ . '/../views/layout/header.php'" controller/`
    und liefert genau 19.
 2. **19 sind keine 19 Masken.** Einzeln nachgesehen:
    - **13 echte Masken** – `KonfigurationController` 6, `AuftragController` 4
      (Liste, Detail, Auftragsformular, Arbeitsschritt bearbeiten),
      `TerminalAdminController` 2, `SmokeTestController` 1.
-   - **5 dreizeilige „Keine Berechtigung"-Bloecke** – `UrlaubController` 3,
+   - **5 dreizeilige „Keine Berechtigung"-Blöcke** – `UrlaubController` 3,
      `AuditLogController` 1, `AuftragController` 1
-     (`zeigeKeinRecht()`). Kopf, ein `<section>`, Fuss. Das ist keine Maske.
+     (`zeigeKeinRecht()`). Kopf, ein `<section>`, Fuß. Das ist keine Maske.
    - **1 fertig migrierte Maske** – `AuftragController:1432` bindet Kopf,
-     `views/auftragszeit/bearbeiten.php` und Fuss ein. Sie ist das *Ziel* von
+     `views/auftragszeit/bearbeiten.php` und Fuß ein. Sie ist das *Ziel* von
      T-104, nicht die Arbeit.
 3. **Zwei Controller standen zu Unrecht auf der Liste.** `UrlaubController`
-   rendert ueber `views/urlaub/meine_antraege.php`, `verwaltung.php` und
-   `genehmigung_liste.php`, `AuditLogController` ueber `views/logs/audit.php`.
-   Beide sind fertig; uebrig sind nur ihre 403-Bloecke.
+   rendert über `views/urlaub/meine_antraege.php`, `verwaltung.php` und
+   `genehmigung_liste.php`, `AuditLogController` über `views/logs/audit.php`.
+   Beide sind fertig; übrig sind nur ihre 403-Blöcke.
 
 ### Gefundene Fehler im eigenen Entwurf
-Die 19 stammten daher, dass ich die Ausgabe des Befehls gezaehlt und die
-Zeilen fuer Masken gehalten habe, ohne eine einzige davon aufzuschlagen. Genau
-davor warnt die Zeile „Nachzaehlen statt glauben", die im selben Patch
-danebengeschrieben wurde. Zaehlen ersetzt Nachsehen nicht.
+Die 19 stammten daher, dass ich die Ausgabe des Befehls gezählt und die
+Zeilen für Masken gehalten habe, ohne eine einzige davon aufzuschlagen. Genau
+davor warnt die Zeile „Nachzählen statt glauben", die im selben Patch
+danebengeschrieben wurde. Zählen ersetzt Nachsehen nicht.
 
 ### TEST
-- Zaehlbefehl ausgefuehrt: 19 Zeilen, verteilt auf sechs Controller
-  (`grep -rc`), passt zur Aufschluesselung im Text.
+- Zählbefehl ausgeführt: 19 Zeilen, verteilt auf sechs Controller
+  (`grep -rc`), passt zur Aufschlüsselung im Text.
 - Jede der 19 Stellen im Umfeld gelesen und einer der drei Gruppen zugeordnet;
   13 + 5 + 1 = 19.
-- `grep -n "views/" controller/UrlaubController.php` und dasselbe fuer
+- `grep -n "views/" controller/UrlaubController.php` und dasselbe für
   `AuditLogController` – belegt, dass deren Masken in `views/` liegen.
 - Kaltstart nachgemessen: 15.423 Bytes / 15.178 Zeichen, also unter der
   Grenze.
@@ -4118,7 +4224,7 @@ danebengeschrieben wurde. Zaehlen ersetzt Nachsehen nicht.
 ### Was bewusst nicht erreicht wurde
 - **Keine Maske umgebaut.** Dieser Patch korrigiert eine Beschreibung.
 - **T-105 bleibt, wie es ist.** „Nur *eine* Maske aus T-104 und trotzdem der
-  groesste Brocken darin" stimmt weiterhin.
+  größte Brocken darin" stimmt weiterhin.
 
 ### NEXT
 P-2026-08-14-07: Die Kaltstart-Messung auf Bytes umstellen und die
@@ -4131,7 +4237,7 @@ Zeilenzahl-Angaben zur History entfernen – beide driften.
 - `docs/STATUS_SNAPSHOT.md`, B-095.
 - `controller/AbteilungAdminController.php`, `MaschineAdminController.php`,
   `FeiertagController.php`, `BetriebsferienAdminController.php`.
-- Die vier zugehoerigen `views/*/formular.php`.
+- Die vier zugehörigen `views/*/formular.php`.
 - `public/index.php`, Routenblock der vier Bereiche.
 
 ### DATEIEN
@@ -4145,50 +4251,50 @@ Zeilenzahl-Angaben zur History entfernen – beide driften.
 - `docs/archiv/DEV_PROMPT_HISTORY.md`
 
 ### AKZEPTANZKRITERIUM
-Ein POST ohne gueltiges Token auf `abteilung_admin_speichern`,
+Ein POST ohne gültiges Token auf `abteilung_admin_speichern`,
 `maschine_admin_speichern`, `feiertag_admin_speichern`,
 `betriebsferien_admin_speichern` oder `maschine_admin_barcode_neu` schreibt
 nichts mehr.
 
 ### DONE
 Vier Bereichskonstanten (`abteilung_admin`, `maschine_admin`, `feiertag_admin`;
-`betriebsferien_admin` gab es schon fuers Umschalten), fuenf Pruefungen, fuenf
+`betriebsferien_admin` gab es schon fürs Umschalten), fünf Prüfungen, fünf
 Formulare mit `Csrf::feld()`.
 
 **`maschine_admin_barcode_neu` war der stillste Fall.** Das Formular in
 `views/maschine/formular.php` schickte seit jeher per POST – nur *erzwungen*
 hat das niemand. Der Controller las die ID aus `$_GET` und schrieb los; ein
 `<img src="?seite=maschine_admin_barcode_neu&id=5">` auf einer beliebigen Seite
-haette gereicht. Jetzt POST-Zwang **und** Token. In B-095 stand diese Route
-gar nicht, sie kam erst beim Nachzaehlen in P-2026-08-14-04 dazu.
+hätte gereicht. Jetzt POST-Zwang **und** Token. In B-095 stand diese Route
+gar nicht, sie kam erst beim Nachzählen in P-2026-08-14-04 dazu.
 
 `AbteilungAdminController` und `MaschineAdminController` melden den Fehlschlag
-ueber eine Flash-Meldung, die ihre Liste schon anzeigt; `FeiertagController`
+über eine Flash-Meldung, die ihre Liste schon anzeigt; `FeiertagController`
 und `BetriebsferienAdminController` behalten ihren vorhandenen Weg
 (Direktausgabe bzw. `meldung=csrf_ungueltig`), damit dieser Patch nicht
 nebenbei vier Meldewege vereinheitlicht.
 
 ### TEST
-- `php -l` ueber alle acht geaenderten Dateien: sauber.
+- `php -l` über alle acht geänderten Dateien: sauber.
 - Vor **jeder** der sechs Einbindungen der vier Formular-Views steht
   `$csrfBereich = self::CSRF_BEREICH;` (nachgesehen mit `grep -n -B1`).
 - Gegenprobe, dass keine andere Datei diese Views einbindet: `grep -rn` findet
   nur die vier Controller.
-- Sweep ueber alle 25 Controller (schreibende Statements bzw. Modellaufrufe
-  gegen `Csrf::istGueltig`). Danach bleiben drei ohne Pruefung, alle drei
+- Sweep über alle 25 Controller (schreibende Statements bzw. Modellaufrufe
+  gegen `Csrf::istGueltig`). Danach bleiben drei ohne Prüfung, alle drei
   zurecht:
   - `AuditLogController` und `UrlaubJahresuebersichtController` haben nur
     `index()` und schreiben nicht.
-  - `LoginController` schreibt nur im Erstinstallations-Zweig, und der haengt
+  - `LoginController` schreibt nur im Erstinstallations-Zweig, und der hängt
     an `istErstinstallation()` – sobald ein Admin existiert, ist der Weg tot.
   - `TerminalKopplungController` ist der Maschinen-Endpunkt: bewusst ohne
     Anmeldung, POST-only, durch den Kopplungscode ausgewiesen und
     ratenbegrenzt. CSRF ist dort das falsche Mittel – es gibt keine
-    Sitzung, auf der jemand mitreiten koennte.
+    Sitzung, auf der jemand mitreiten könnte.
 
 ### Was bewusst nicht erreicht wurde
-- **Nicht im Browser durchgeklickt.** Geprueft ist der Code.
-- **Die vier Meldewege bleiben verschieden.** Ein Thema pro Patch; das waere
+- **Nicht im Browser durchgeklickt.** Geprüft ist der Code.
+- **Die vier Meldewege bleiben verschieden.** Ein Thema pro Patch; das wäre
   Kosmetik an vier Dateien mehr.
 
 ### NEXT
@@ -4201,8 +4307,8 @@ der danebensteht.
 ### EINGELESEN
 - `core/Csrf.php` – die eine Stelle, an der der Schutz definiert ist.
 - `controller/KurzarbeitAdminController.php` und
-  `controller/BetriebsferienAdminController.php` als Muster (Pruefung im
-  Controller, Feld in der View ueber `$csrfBereich`).
+  `controller/BetriebsferienAdminController.php` als Muster (Prüfung im
+  Controller, Feld in der View über `$csrfBereich`).
 - `controller/MitarbeiterAdminController.php`, `views/mitarbeiter/formular.php`,
   `views/mitarbeiter/stundenkonto.php`.
 - `docs/STATUS_SNAPSHOT.md`, B-095.
@@ -4215,69 +4321,69 @@ der danebensteht.
 - `docs/archiv/DEV_PROMPT_HISTORY.md`
 
 ### AKZEPTANZKRITERIUM
-Ein POST auf `?seite=mitarbeiter_admin_speichern` ohne gueltiges Token
-schreibt nichts mehr, sondern landet mit Hinweis zurueck auf der
+Ein POST auf `?seite=mitarbeiter_admin_speichern` ohne gültiges Token
+schreibt nichts mehr, sondern landet mit Hinweis zurück auf der
 Mitarbeiterliste – und zwar auf allen sechs Formularwegen, auch dem, der
 Rollen und Rechte setzt.
 
 ### DONE
-Der Controller hatte **keine einzige** CSRF-Pruefung, und keine seiner Views
-gab ein Token aus – `grep -i csrf` traf in beiden Dateien nichts. Ueber die
+Der Controller hatte **keine einzige** CSRF-Prüfung, und keine seiner Views
+gab ein Token aus – `grep -i csrf` traf in beiden Dateien nichts. Über die
 Route laufen 15 schreibende Statements, darunter `mitarbeiter_hat_recht` und
 `mitarbeiter_hat_rolle_scope`. Ein Fremd-POST konnte damit **Rechte vergeben**;
 das wiegt schwerer als die vier Routen aus B-095, die nur Stammdaten schreiben.
 
-- `CSRF_BEREICH = 'mitarbeiter_admin'` als Konstante, ein Bereich fuer alle
+- `CSRF_BEREICH = 'mitarbeiter_admin'` als Konstante, ein Bereich für alle
   sechs Formulare – sie schicken an dieselbe Route.
-- Die Pruefung steht **vor** der Verzweigung nach `stundenkonto_only`,
-  `stundenkonto_batch_only` und `stundenkonto_umbuchung_only`. Eine Pruefung je
-  Zweig haette beim siebten Formular gefehlt.
-- Die fuenf Stellen, an denen der Controller eine der beiden Views einbindet,
+- Die Prüfung steht **vor** der Verzweigung nach `stundenkonto_only`,
+  `stundenkonto_batch_only` und `stundenkonto_umbuchung_only`. Eine Prüfung je
+  Zweig hätte beim siebten Formular gefehlt.
+- Die fünf Stellen, an denen der Controller eine der beiden Views einbindet,
   setzen `$csrfBereich`; die Views bauen ihr Feld mit `Csrf::feld()` selbst –
   dasselbe Muster wie Betriebsferien, damit der Bereichsname genau einmal
   im Projekt steht.
 
 ### TEST
-- `php -l` ueber alle drei geaenderten Dateien: sauber.
+- `php -l` über alle drei geänderten Dateien: sauber.
 - `grep -n -B1 "require .*views/mitarbeiter/(formular|stundenkonto).php"` – vor
-  **allen fuenf** Einbindungen steht die Zuweisung von `$csrfBereich`.
-- Gegenprobe, dass keine dritte Stelle die Views einbindet: `grep -rn` ueber
-  das Projekt findet nur diesen Controller. Sonst waere dort `$csrfBereich`
+  **allen fünf** Einbindungen steht die Zuweisung von `$csrfBereich`.
+- Gegenprobe, dass keine dritte Stelle die Views einbindet: `grep -rn` über
+  das Projekt findet nur diesen Controller. Sonst wäre dort `$csrfBereich`
   leer und das Formular unabschickbar geworden.
 - `Csrf::feld()` steht in allen sechs POST-Formularen, in keinem der drei
-  GET-Formulare (dort waere es sinnlos).
+  GET-Formulare (dort wäre es sinnlos).
 
 ### Gefundene Fehler im eigenen Entwurf
-Der erste Entwurf stellte einen Zaehlbefehl neben B-095
+Der erste Entwurf stellte einen Zählbefehl neben B-095
 (`INSERT INTO … && ! Csrf::istGueltig`). Ausprobiert liefert er
 `LoginController` und `MaschineAdminController` – er **verfehlt**
-`AbteilungAdminController` und `FeiertagController`, weil die ueber Modelle
+`AbteilungAdminController` und `FeiertagController`, weil die über Modelle
 schreiben, und meldet die Erstinstallation als Fund. Also genau der Fehler, der
-gerade erst an T-104 aufgefallen war: ein Pruefbefehl, dessen Ausgabe nicht zur
+gerade erst an T-104 aufgefallen war: ein Prüfbefehl, dessen Ausgabe nicht zur
 Behauptung daneben passt. Der Befehl ist wieder raus; stattdessen steht dort,
 warum es keinen gibt.
 
 ### Was bewusst nicht erreicht wurde
 - **B-095 bleibt offen.** Die vier dort genannten Routen und
   `maschine_admin_barcode_neu` sind ein eigenes Thema – P-2026-08-14-05.
-  B-095 nennt jetzt aber die vollstaendige Liste, vorher fehlte der
+  B-095 nennt jetzt aber die vollständige Liste, vorher fehlte der
   GET-Schreibzugriff.
-- **Nicht im Browser durchgeklickt.** Geprueft ist der Code, nicht die
+- **Nicht im Browser durchgeklickt.** Geprüft ist der Code, nicht die
   laufende Maske.
 
 ### NEXT
-P-2026-08-14-05: B-095 schliessen.
+P-2026-08-14-05: B-095 schließen.
 
 
 ## P-2026-08-14-03 snapshot-nur-noch-offenes
 
 ### EINGELESEN
-- `docs/STATUS_SNAPSHOT.md` vollstaendig.
-- `docs/arbeitsregeln.md`, Abschnitte 6 und 9 (was in den Snapshot gehoert,
+- `docs/STATUS_SNAPSHOT.md` vollständig.
+- `docs/arbeitsregeln.md`, Abschnitte 6 und 9 (was in den Snapshot gehört,
   16-KB-Grenze).
 - `views/layout/header.php` um den Regelblock `button, .button-link`.
 - `docs/fachregeln/terminal_und_offline.md`, Abschnitt „Die Queue".
-- `grep -rn "views/layout/header.php" controller/` zum Nachzaehlen von T-104.
+- `grep -rn "views/layout/header.php" controller/` zum Nachzählen von T-104.
 
 ### DATEIEN
 - `docs/STATUS_SNAPSHOT.md`
@@ -4292,28 +4398,28 @@ beginnt - und jede darin enthaltene lebende Regel ist weiterhin auffindbar,
 nur an ihrem fachlichen Platz.
 
 ### DONE
-Der Snapshot fuehrte vier abgeschlossene Punkte mit (B-093, B-080, T-108,
+Der Snapshot führte vier abgeschlossene Punkte mit (B-093, B-080, T-108,
 T-109). Die Regel dazu ist eindeutig - Erledigtes wird **entfernt**, nicht
-abgehakt - aber blind loeschen waere falsch gewesen: In drei der vier Bloecke
+abgehakt - aber blind löschen wäre falsch gewesen: In drei der vier Blöcke
 steckte eine Aussage, die noch gilt. Sie sind umgezogen statt weggeworfen:
 
 | War im Snapshot | Steht jetzt |
 | --- | --- |
 | T-108: „wer neu auf `db_injektionsqueue` zugreift, nimmt `holeQueueVerbindungOderNull()`/`holeQueueSpeicherort()`" | `fachregeln/terminal_und_offline.md`, Abschnitt „Die Queue" |
 | B-093: `scope_typ = 'abteilung'` wirkt beim Aufsetzen einer echten Installation | `spezifikation_abteilungsrechte.md`, neuer Abschnitt 6a |
-| T-109: keine eigenen Groessen auf Knoepfe | stand als Kommentar laengst in `views/layout/header.php`; im Snapshot blieb nur der **Zeiger** darauf, in T-104 |
+| T-109: keine eigenen Größen auf Knöpfe | stand als Kommentar längst in `views/layout/header.php`; im Snapshot blieb nur der **Zeiger** darauf, in T-104 |
 | B-080: Jahreswechsel beobachten | bleibt, aber als offener Beobachtungspunkt formuliert statt als „behoben in P-…" |
 
 **T-104 war falsch.** Dort stand „Vier Controller erzeugen HTML selbst" und
-genannt waren drei. Nachgezaehlt sind es **sechs** Controller mit zusammen
+genannt waren drei. Nachgezählt sind es **sechs** Controller mit zusammen
 **19** Masken: `AuftragController` und `KonfigurationController` je 6,
 `UrlaubController` 3, `TerminalAdminController` 2, `AuditLogController` und
 `SmokeTestController` je 1. Die Zahl steht jetzt mit dem Befehl daneben, mit
-dem man sie nachzaehlt - eine Zahl ohne Messweg driftet wieder.
+dem man sie nachzählt - eine Zahl ohne Messweg driftet wieder.
 
 `spezifikation_abteilungsrechte.md` war aus `docs/README.md` nicht erreichbar
-und haengt seit dem Entfernen von B-093 auch nicht mehr am Snapshot. Sie ist in
-die Themen-Tabelle eingetragen; sonst waere die eben dorthin verschobene Regel
+und hängt seit dem Entfernen von B-093 auch nicht mehr am Snapshot. Sie ist in
+die Themen-Tabelle eingetragen; sonst wäre die eben dorthin verschobene Regel
 schlechter auffindbar als vorher.
 
 ### TEST
@@ -4323,9 +4429,9 @@ schlechter auffindbar als vorher.
   von 16 KB war auf 385 Bytes heran; jetzt sind es wieder gut 1.500.
 - `grep -n "behoben\|erledigt" docs/STATUS_SNAPSHOT.md` → **ein** Treffer, Zeile
   16: „Ein behobener Fehler betrifft den Test, sonst nichts." Das ist der
-  Fliesstext im Projektstatus, kein Buchhaltungseintrag - er bleibt. Als
+  Fließtext im Projektstatus, kein Buchhaltungseintrag - er bleibt. Als
   Abnahme taugt der Grep damit nur mit Blick auf den Treffer, nicht auf die
-  Trefferzahl; wer ihn spaeter blind laufen laesst, haelt ihn faelschlich fuer
+  Trefferzahl; wer ihn später blind laufen lässt, hält ihn fälschlich für
   rot.
 - Jede der vier verschobenen Aussagen am Zielort gegengelesen; die beiden
   Methodennamen des `OfflineQueueManager` und der Kommentarblock in
@@ -4334,15 +4440,15 @@ schlechter auffindbar als vorher.
 - Kein Code angefasst, nur Text.
 
 ### Was bewusst nicht erreicht wurde
-- **B-095 bleibt offen.** Die fehlende CSRF-Pruefung an vier
+- **B-095 bleibt offen.** Die fehlende CSRF-Prüfung an vier
   `*_admin_speichern`-Routen ist ein eigener Patch, kein Nebenbei.
 - **T-104 wird hier nur korrekt beschrieben, nicht abgearbeitet.**
 - **Die Patch-IDs -09 bis -14 vom 11.08. bleiben, wie sie sind** (siehe
-  P-2026-08-14-01): ein Schluessel, kein Kalender.
+  P-2026-08-14-01): ein Schlüssel, kein Kalender.
 
 ### NEXT
-Entweder B-095 (CSRF an den vier Speicher-Routen) oder die naechste Maske aus
-T-104. Der Gerätetest bleibt der eigentliche naechste Schritt und braucht einen
+Entweder B-095 (CSRF an den vier Speicher-Routen) oder die nächste Maske aus
+T-104. Der Gerätetest bleibt der eigentliche nächste Schritt und braucht einen
 Bildschirm.
 
 
@@ -4352,7 +4458,7 @@ Bildschirm.
 - `docs/fachregeln/auftraege_und_codes.md`, Abschnitt 4.
 - `docs/spezifikation_auftrag_barcode_laufkarte.md`, Abschnitt 4a
   („Funktionen").
-- `docs/admin_handbuch.md`, Ablauf „Auftraege, Arbeitsschritte und Laufkarte".
+- `docs/admin_handbuch.md`, Ablauf „Aufträge, Arbeitsschritte und Laufkarte".
 - `controller/AuftragController.php` um `uebernehmeKatalogSchritte()` und
   `schritteAusKatalog()`.
 
@@ -4364,44 +4470,44 @@ Bildschirm.
 - `docs/archiv/DEV_PROMPT_HISTORY.md`
 
 ### AKZEPTANZKRITERIUM
-Wer nachschlaegt, wie Katalogschritte an einen Auftrag kommen, findet an jeder
+Wer nachschlägt, wie Katalogschritte an einen Auftrag kommen, findet an jeder
 der drei Stellen **beide** Wege beschrieben - Anlegen-Formular und
 Auftragsansicht - statt nur den alten.
 
 ### DONE
-P-2026-08-14-01 hat den Code geaendert und die Doku stehen lassen. Alle drei
-Stellen behaupteten weiterhin, Katalogschritte kaemen ausschliesslich ueber die
+P-2026-08-14-01 hat den Code geändert und die Doku stehen lassen. Alle drei
+Stellen behaupteten weiterhin, Katalogschritte kämen ausschließlich über die
 Auftragsansicht an einen Auftrag:
 
 | Datei | stand da | steht jetzt da |
 | --- | --- | --- |
-| Fachregel, Abschnitt 4 | nur, was der Katalog *ist* | beide Wege, wer was anbietet, und dass die Einfuegeregel einmal existiert |
-| Spezifikation, 4a | „Im Auftragsdetail lassen sich Katalogschritte uebernehmen" | beide Wege mit Datum, dazu die bewusste Luecke beim Bearbeiten |
-| Admin-Handbuch, Schritt 2/3 | Schritt 3 „Arbeitsschritte zuordnen" | Haekchen schon in Schritt 2; Schritt 3 heisst „ergaenzen" |
+| Fachregel, Abschnitt 4 | nur, was der Katalog *ist* | beide Wege, wer was anbietet, und dass die Einfügeregel einmal existiert |
+| Spezifikation, 4a | „Im Auftragsdetail lassen sich Katalogschritte übernehmen" | beide Wege mit Datum, dazu die bewusste Lücke beim Bearbeiten |
+| Admin-Handbuch, Schritt 2/3 | Schritt 3 „Arbeitsschritte zuordnen" | Häkchen schon in Schritt 2; Schritt 3 heißt „ergänzen" |
 
-**Verwaister Docblock:** Beim Herausloesen von `uebernehmeKatalogSchritte()`
+**Verwaister Docblock:** Beim Herauslösen von `uebernehmeKatalogSchritte()`
 ist der alte Kommentar `Route: ?seite=auftrag_schritte_aus_katalog (POST)` an
-Ort und Stelle geblieben - also ueber der neuen, privaten Methode, die gar
-keine Route hat, waehrend `schritteAusKatalog()` ohne Docblock dastand. Zwei
-Docblocks lagen dort uebereinander. Der Routen-Kommentar ist zurueck an seiner
+Ort und Stelle geblieben - also über der neuen, privaten Methode, die gar
+keine Route hat, während `schritteAusKatalog()` ohne Docblock dastand. Zwei
+Docblocks lagen dort übereinander. Der Routen-Kommentar ist zurück an seiner
 Methode.
 
 ### TEST
 - `php -l controller/AuftragController.php` sauber.
 - `grep -n "Route: ?seite=auftrag_schritte_aus_katalog"` trifft genau einmal,
-  direkt ueber `schritteAusKatalog()`.
+  direkt über `schritteAusKatalog()`.
 - Beide Docblocks gegen den Code gelesen: `uebernehmeKatalogSchritte()` ist
   `private` und wird aus `speichern()` und `schritteAusKatalog()` gerufen - die
-  Beschreibung „eine Stelle fuer zwei Wege" stimmt.
-- Doku gegen den Code geprueft, nicht gegen den Chatverlauf: die Auswahl im
-  Anlegen-Formular haengt an `$id === 0`, gelesen wird sie in
+  Beschreibung „eine Stelle für zwei Wege" stimmt.
+- Doku gegen den Code geprüft, nicht gegen den Chatverlauf: die Auswahl im
+  Anlegen-Formular hängt an `$id === 0`, gelesen wird sie in
   `leseKatalogAuswahlAusPost()`, und `ON DUPLICATE KEY UPDATE
-  arbeitsschritt_code = arbeitsschritt_code` laesst Vorhandenes unveraendert.
-- Reine Textaenderung an den drei `.md`-Dateien, keine Maske angefasst.
+  arbeitsschritt_code = arbeitsschritt_code` lässt Vorhandenes unverändert.
+- Reine Textänderung an den drei `.md`-Dateien, keine Maske angefasst.
 
 ### Was bewusst nicht erreicht wurde
-- **`docs/STATUS_SNAPSHOT.md` bleibt hier unberuehrt.** Dieser Patch macht
-  nichts auf oder zu; der Snapshot fuehrt Offenes, keine Doku-Historie. Seine
+- **`docs/STATUS_SNAPSHOT.md` bleibt hier unberührt.** Dieser Patch macht
+  nichts auf oder zu; der Snapshot führt Offenes, keine Doku-Historie. Seine
   eigene Pflege ist Thema von P-2026-08-14-03.
 - **Das Markup bleibt im Controller** (T-104). Weiterhin ein zweites Thema.
 
@@ -4414,8 +4520,8 @@ P-2026-08-14-03: Snapshot auf Offenes eindampfen, T-104 nachmessen.
 ### EINGELESEN
 - `controller/AuftragController.php`: `neu()`, `speichern()`,
   `renderAuftragFormular()`, `schritteAusKatalog()`.
-- Die Karte "Aus dem Arbeitsschritt-Katalog uebernehmen" in der Auftragsansicht
-  als Vorbild fuer Auswahl und Beschriftung.
+- Die Karte "Aus dem Arbeitsschritt-Katalog übernehmen" in der Auftragsansicht
+  als Vorbild für Auswahl und Beschriftung.
 
 ### DATEIEN
 - `controller/AuftragController.php`
@@ -4424,29 +4530,29 @@ P-2026-08-14-03: Snapshot auf Offenes eindampfen, T-104 nachmessen.
 ### AKZEPTANZKRITERIUM
 Wer im Formular "Auftrag anlegen" `saegen` und `fraesen` anhakt und speichert,
 findet beide Schritte unmittelbar danach am neuen Auftrag - ohne den Auftrag ein
-zweites Mal zu oeffnen.
+zweites Mal zu öffnen.
 
 ### DONE
-Beauftragt von Manuel: Die Standardschritte liessen sich bisher **erst nach**
-dem Speichern anhaengen, in der Auftragsansicht. Fachlich ist das eine Huerde
-ohne Grund - wer einen Auftrag anlegt, weiss in aller Regel schon, welche
+Beauftragt von Manuel: Die Standardschritte ließen sich bisher **erst nach**
+dem Speichern anhängen, in der Auftragsansicht. Fachlich ist das eine Hürde
+ohne Grund - wer einen Auftrag anlegt, weiß in aller Regel schon, welche
 Schritte er hat.
 
 Neu im Anlegen-Formular: eine Karte mit den **aktiven** Katalogschritten zum
 Anhaken. Sie erscheint nur beim Anlegen (`$id === 0`). Beim Bearbeiten bleibt
-es bei der Karte in der Auftragsansicht - die weiss zusaetzlich, welche
+es bei der Karte in der Auftragsansicht - die weiß zusätzlich, welche
 Schritte der Auftrag schon hat, und kann deshalb nur die fehlenden anbieten.
 
-Die Einfuege-Logik stand bisher mitten in `schritteAusKatalog()`. Sie ist jetzt
+Die Einfüge-Logik stand bisher mitten in `schritteAusKatalog()`. Sie ist jetzt
 `uebernehmeKatalogSchritte()` und wird von beiden Wegen benutzt - inklusive der
-Regel, dass vorhandene Codes uebersprungen und nicht ueberschrieben werden
+Regel, dass vorhandene Codes übersprungen und nicht überschrieben werden
 (`ON DUPLICATE KEY UPDATE`). Ein zweiter Helfer liest die angehakten IDs aus dem
 POST. Damit gibt es die Regel "wie kommt ein Katalogschritt an einen Auftrag"
 weiterhin genau einmal.
 
 Die Erfolgsmeldung sagt jetzt, was passiert ist: "Der Auftrag wurde angelegt.
-2 Arbeitsschritte wurden aus dem Katalog uebernommen." Ohne Auswahl steht dort
-unveraendert der bisherige Satz.
+2 Arbeitsschritte wurden aus dem Katalog übernommen." Ohne Auswahl steht dort
+unverändert der bisherige Satz.
 
 ### TEST
 Wegwerf-Instanz (eigene Datenbank aus dem Schema, erfundener Katalog:
@@ -4457,45 +4563,45 @@ Wegwerf-Instanz (eigene Datenbank aus dem Schema, erfundener Katalog:
 | Anlegen-Maske | bietet `saegen` und `fraesen`, den inaktiven Eintrag **nicht** |
 | Anlegen mit zwei Haken | Auftrag angelegt, beide Schritte am Auftrag, Meldung nennt "2 Arbeitsschritte" |
 | Anlegen ohne Haken | Auftrag angelegt, bisherige Meldung, keine Schritte |
-| Validierungsfehler (Nummer leer) | Formular kommt zurueck, **beide Haken noch gesetzt** |
+| Validierungsfehler (Nummer leer) | Formular kommt zurück, **beide Haken noch gesetzt** |
 | Bearbeiten-Maske | zeigt die Auswahl nicht (0 Checkboxen) |
-| Bestehender Weg aus der Auftragsansicht | unveraendert: "Ein Arbeitsschritt wurde uebernommen.", Zeile in der DB |
+| Bestehender Weg aus der Auftragsansicht | unverändert: "Ein Arbeitsschritt wurde übernommen.", Zeile in der DB |
 
 `php -l` sauber, keine PHP-Meldungen im Serverlog. Wegwerf-Datenbank danach
 entfernt.
 
 ### Gefundene Fehler im eigenen Entwurf
-**Der Regressionstest des alten Wegs meldete zuerst "nichts uebernommen".** Ich
+**Der Regressionstest des alten Wegs meldete zuerst "nichts übernommen".** Ich
 hatte `auftrag_id=2` geraten - die Startdaten des Schemas belegen aber bereits
 die IDs 1 bis 4, der Testauftrag hatte die 6. Mit der ID aus dem Formular
-selbst lief der Weg auf Anhieb. Beinahe haette ich eine Regression gemeldet,
+selbst lief der Weg auf Anhieb. Beinahe hätte ich eine Regression gemeldet,
 die es nicht gibt; geraten wird keine ID, sie steht im HTML.
 
 **Nebenbefund zur Nummerierung:** Die Patches -09 bis -14 tragen das Datum
-2026-08-11, weil ich sie an den vorherigen Eintrag angehaengt habe, statt die
-Uhr zu fragen; `git log` weist sie als 2026-08-12 aus. Dieser Eintrag traegt
-das tatsaechliche Datum. Umbenannt wird nichts - Commit-Betreffs sind
-geschrieben, und die Patch-ID ist ein Schluessel, kein Kalender.
+2026-08-11, weil ich sie an den vorherigen Eintrag angehängt habe, statt die
+Uhr zu fragen; `git log` weist sie als 2026-08-12 aus. Dieser Eintrag trägt
+das tatsächliche Datum. Umbenannt wird nichts - Commit-Betreffs sind
+geschrieben, und die Patch-ID ist ein Schlüssel, kein Kalender.
 
 ### Was bewusst nicht erreicht wurde
-- **Beim Bearbeiten gibt es die Auswahl nicht.** Sie waere dort die dritte
-  Stelle fuer dieselbe Sache und muesste zusaetzlich wissen, was schon dran ist.
-- **Keine Reihenfolge, keine Mengen.** Die uebernommenen Schritte landen so am
+- **Beim Bearbeiten gibt es die Auswahl nicht.** Sie wäre dort die dritte
+  Stelle für dieselbe Sache und müsste zusätzlich wissen, was schon dran ist.
+- **Keine Reihenfolge, keine Mengen.** Die übernommenen Schritte landen so am
   Auftrag, wie der Katalog sie sortiert; Feinheiten regelt weiterhin die
   Auftragsansicht.
 - **`AuftragController` bleibt einer der vier Controller aus T-104**; das neue
-  Markup steht wie das uebrige noch im Controller. Es mit umzuziehen waere ein
+  Markup steht wie das übrige noch im Controller. Es mit umzuziehen wäre ein
   zweites Thema gewesen.
 
 ### NEXT
-T-104, naechster Controller: `TerminalAdminController`.
+T-104, nächster Controller: `TerminalAdminController`.
 
 
 ## P-2026-08-11-14 urlaubskontingent-maske-in-views
 
 ### EINGELESEN
-- `controller/UrlaubKontingentAdminController.php` vollstaendig.
-- P-2026-08-11-09 bis -12 als Muster (gleicher Schnitt, gleicher Pruefweg).
+- `controller/UrlaubKontingentAdminController.php` vollständig.
+- P-2026-08-11-09 bis -12 als Muster (gleicher Schnitt, gleicher Prüfweg).
 
 ### DATEIEN
 - `views/urlaub/kontingent_liste.php`, `views/urlaub/kontingent_formular.php`
@@ -4504,78 +4610,78 @@ T-104, naechster Controller: `TerminalAdminController`.
 - `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
 
 ### AKZEPTANZKRITERIUM
-Uebersicht und Formular des Urlaubskontingents erzeugen dasselbe HTML wie
-vorher - bis auf die Einrueckung -, obwohl das Markup jetzt in `views/urlaub/`
+Übersicht und Formular des Urlaubskontingents erzeugen dasselbe HTML wie
+vorher - bis auf die Einrückung -, obwohl das Markup jetzt in `views/urlaub/`
 liegt.
 
 ### DONE
-Fuenfter von neun Controllern aus T-104, 671 -> 454 Zeilen Controller plus zwei
+Fünfter von neun Controllern aus T-104, 671 -> 454 Zeilen Controller plus zwei
 Views.
 
 **Formatiert wird im Controller, angezeigt in der View.** Das Markup rief an
-sechs Stellen `$this->formatDecimal()` - eine private Methode. Die Uebersicht
+sechs Stellen `$this->formatDecimal()` - eine private Methode. Die Übersicht
 bekommt die drei Werte jetzt je Zeile fertig (`standard_anspruch_text`,
 `override_text`, `korrektur_text`), das Formular als eigene Variablen. Damit
 greift keine View auf den Controller zu; dieselbe Regel wie beim
 Maschinen-Barcode (P-2026-08-11-10) und den Wochentagen (-12).
 
-Die Views liegen in `views/urlaub/` und heissen `kontingent_*`, weil dort
-schon die uebrigen Urlaubsmasken stehen - ein eigenes Verzeichnis fuer zwei
-Dateien waere Trennung ohne Gewinn.
+Die Views liegen in `views/urlaub/` und heißen `kontingent_*`, weil dort
+schon die übrigen Urlaubsmasken stehen - ein eigenes Verzeichnis für zwei
+Dateien wäre Trennung ohne Gewinn.
 
 ### TEST
 Wegwerf-Instanz wie zuvor (eigene Datenbank, erfundene Daten: Monatsanspruch
-2,50, Override 27,50, Manuell 2,00, festgeschriebener Uebertrag 3,25 mit Datum,
-Notiz mit `<`, `&` und Anfuehrungszeichen). Sechs Renderpfade je Stand:
+2,50, Override 27,50, Manuell 2,00, festgeschriebener Übertrag 3,25 mit Datum,
+Notiz mit `<`, `&` und Anführungszeichen). Sechs Renderpfade je Stand:
 
 | Pfad | HEAD | neu |
 | --- | --- | --- |
-| Uebersicht | 29.333 B | 28.774 B |
-| Uebersicht Vorjahr | 29.287 B | 28.728 B |
+| Übersicht | 29.333 B | 28.774 B |
+| Übersicht Vorjahr | 29.287 B | 28.728 B |
 | Formular mit Kontingent | 32.053 B | 31.230 B |
 | Formular ohne Kontingentzeile | 31.646 B | 30.847 B |
 | Formular, Mitarbeiter unbekannt | 26.191 B | 26.080 B |
-| Formular, ungueltige Parameter (400) | 28 B | 28 B |
+| Formular, ungültige Parameter (400) | 28 B | 28 B |
 
 Alle sechs mit vereinheitlichtem Leerraum zeichengleich. Inhaltlich
 nachgesehen: In der Liste stehen 30.00 / 27.50 / 3.25 / 2.00, im Formular
 tragen die drei Eingabefelder dieselben Werte - die Formatierung ist also
-tatsaechlich gelaufen und nicht nur vorhanden.
+tatsächlich gelaufen und nicht nur vorhanden.
 
-Neun Backend-Masken im selben Vergleich unveraendert, **null** PHP-Meldungen
-im Serverlog, `php -l` ueber die drei geaenderten Dateien sauber.
+Neun Backend-Masken im selben Vergleich unverändert, **null** PHP-Meldungen
+im Serverlog, `php -l` über die drei geänderten Dateien sauber.
 
 ### Gefundene Fehler im eigenen Entwurf
-Keiner, der geblieben waere. Der Zwischenstand dieses Patches lag laenger
+Keiner, der geblieben wäre. Der Zwischenstand dieses Patches lag länger
 unfertig im Arbeitsverzeichnis (nur die Listen-View geschrieben) - beim
-Weiterarbeiten war die Wegwerf-Umgebung geloescht und musste neu aufgesetzt
-werden. Das Skript dafuer steht deshalb nicht mehr nur im Chat, sondern im
+Weiterarbeiten war die Wegwerf-Umgebung gelöscht und musste neu aufgesetzt
+werden. Das Skript dafür steht deshalb nicht mehr nur im Chat, sondern im
 Verlauf: DB aus `sql/01_initial_schema.sql`, Kopie des Repos, eigene
 `config.local.php`, Server je Lauf frisch mit `-d opcache.enable=0`.
 
 ### Was bewusst nicht erreicht wurde
 - **`speichern()` ist nicht durchgespielt.** Der Weg schreibt; das Formular
-  selbst ist ueber vier Varianten geprueft.
-- **Vier Controller aus T-104 bleiben offen**, darunter die drei grossen
+  selbst ist über vier Varianten geprüft.
+- **Vier Controller aus T-104 bleiben offen**, darunter die drei großen
   (`SmokeTest`, `Konfiguration`, `Auftrag`) und `TerminalAdmin`.
 - **B-095 bleibt offen.**
 
 ### NEXT
-T-104, naechster Controller: `TerminalAdminController`.
+T-104, nächster Controller: `TerminalAdminController`.
 
 
 ## P-2026-08-11-13 zeilenzahlen-nachgemessen
 
 ### EINGELESEN
-- Die eigenen Eintraege P-2026-08-11-09 bis -12, Abschnitt DONE.
-- `wc -l` ueber die vier betroffenen Controller.
+- Die eigenen Einträge P-2026-08-11-09 bis -12, Abschnitt DONE.
+- `wc -l` über die vier betroffenen Controller.
 
 ### DATEIEN
 - `docs/archiv/DEV_PROMPT_HISTORY.md`
 
 ### AKZEPTANZKRITERIUM
-Die in den Eintraegen -09 bis -12 genannten Zeilenzahlen stimmen mit `wc -l`
-ueberein.
+Die in den Einträgen -09 bis -12 genannten Zeilenzahlen stimmen mit `wc -l`
+überein.
 
 ### DONE
 Drei Zahlen korrigiert: Betriebsferien 336 → **338**, Maschinen 377 → **398**,
@@ -4584,34 +4690,34 @@ Katalog 402 → **406**.
 Der Fehler ist immer derselbe: gemessen wurde direkt nach dem Herausschneiden
 des Markups, geschrieben wurde der Eintrag danach – und dazwischen sind noch
 Kommentarzeilen dazugekommen. Bei -10 war die Abweichung mit 21 Zeilen so
-gross, dass die Zahl offensichtlich aus einem Zwischenstand stammte.
+groß, dass die Zahl offensichtlich aus einem Zwischenstand stammte.
 
 Warum das eine Korrektur wert ist: Zahlen in diesem Verlauf sind das, woran
-spaetere Chats den Umfang eines Vorhabens abschaetzen. Eine Zahl, die niemand
+spätere Chats den Umfang eines Vorhabens abschätzen. Eine Zahl, die niemand
 nachrechnet, wird geglaubt – deshalb muss sie stimmen oder fehlen.
 
 ### TEST
-`wc -l` ueber die vier Controller gegen die vier Eintraege gestellt: vier von
-vier stimmen jetzt. Kein Code beruehrt.
+`wc -l` über die vier Controller gegen die vier Einträge gestellt: vier von
+vier stimmen jetzt. Kein Code berührt.
 
 ### Gefundene Fehler im eigenen Entwurf
-Der Anlass ist der Fehler. Auffaellig ist, dass er dreimal hintereinander
-passiert ist, ohne dass er auffiel – Zahlen aus dem Gedaechtnis in einen Text
-zu schreiben, den man selbst gerade nicht mehr prueft, ist genau die Stelle,
+Der Anlass ist der Fehler. Auffällig ist, dass er dreimal hintereinander
+passiert ist, ohne dass er auffiel – Zahlen aus dem Gedächtnis in einen Text
+zu schreiben, den man selbst gerade nicht mehr prüft, ist genau die Stelle,
 an der so etwas entsteht.
 
 ### Was bewusst nicht erreicht wurde
-Aeltere Eintraege sind nicht nachgemessen. Der Verlauf wird nicht auf Verdacht
-durchgerechnet; korrigiert wird, was auffaellt.
+Ältere Einträge sind nicht nachgemessen. Der Verlauf wird nicht auf Verdacht
+durchgerechnet; korrigiert wird, was auffällt.
 
 ### NEXT
-T-104, naechster Controller: `UrlaubKontingentAdminController`.
+T-104, nächster Controller: `UrlaubKontingentAdminController`.
 
 
 ## P-2026-08-11-12 kurzarbeit-maske-in-views
 
 ### EINGELESEN
-- `controller/KurzarbeitAdminController.php` vollstaendig.
+- `controller/KurzarbeitAdminController.php` vollständig.
 - P-2026-08-11-09 bis -11 als Muster.
 
 ### DATEIEN
@@ -4621,7 +4727,7 @@ T-104, naechster Controller: `UrlaubKontingentAdminController`.
 
 ### AKZEPTANZKRITERIUM
 Kurzarbeit-Liste und Kurzarbeit-Formular erzeugen dasselbe HTML wie vorher –
-bis auf die Einrueckung –, obwohl das Markup jetzt in `views/kurzarbeit/`
+bis auf die Einrückung –, obwohl das Markup jetzt in `views/kurzarbeit/`
 liegt.
 
 ### DONE
@@ -4630,27 +4736,27 @@ Views.
 
 **Die Wochentage werden im Controller ausgeschrieben.** Die Liste rief mitten
 im Markup `$this->formatWochentageMask($mask)` auf – eine private Methode.
-Statt die View auf `$this` zugreifen zu lassen, haengt `index()` jeder Zeile
+Statt die View auf `$this` zugreifen zu lassen, hängt `index()` jeder Zeile
 ein Feld `wochentage_text` an, so wie die Katalogliste ihre `code_url`
 mitbringt. Aus „Bitmaske 31" wird damit an genau einer Stelle „Mo-Fr", und die
 View zeigt nur noch an.
 
 Das Formular bekommt die Maske dagegen als Zahl (`$mask`), weil es sie in
-sieben Kaestchen aufloest – das ist Darstellung und gehoert damit in die View.
+sieben Kästchen auflöst – das ist Darstellung und gehört damit in die View.
 
 Das kleine `<script>`, das bei Scope „Firma" die Mitarbeiterauswahl
-ausblendet, ist unveraendert mitgewandert. Es gehoert zur Maske, nicht zum
+ausblendet, ist unverändert mitgewandert. Es gehört zur Maske, nicht zum
 Controller.
 
 ### TEST
-Wegwerf-Instanz wie zuvor, erfundene Plaene: ein firmenweiter Plan (Mo-Fr,
+Wegwerf-Instanz wie zuvor, erfundene Pläne: ein firmenweiter Plan (Mo-Fr,
 Stunden, Sonderzeichen im Kommentar, aktiv) und ein Mitarbeiterplan (Sa+So
-ueber Maske 96, Prozent, ohne Kommentar, inaktiv). Acht Renderpfade:
+über Maske 96, Prozent, ohne Kommentar, inaktiv). Acht Renderpfade:
 
 | Pfad | HEAD | neu |
 | --- | --- | --- |
 | Liste, leer | 26.864 B | 26.593 B |
-| Liste mit zwei Plaenen | 29.294 B | 28.671 B |
+| Liste mit zwei Plänen | 29.294 B | 28.671 B |
 | Formular neu | 31.278 B | 30.343 B |
 | Formular firmenweiter Plan | 31.353 B | 30.418 B |
 | Formular Mitarbeiterplan | 31.282 B | 30.347 B |
@@ -4661,38 +4767,38 @@ ueber Maske 96, Prozent, ohne Kommentar, inaktiv). Acht Renderpfade:
 Alle acht mit vereinheitlichtem Leerraum zeichengleich. Inhaltlich
 nachgesehen, damit der Vergleich nicht nur „gleich" sagt: In der Spalte
 Wochentage steht „Mo-Fr" bzw. „Sa,So", im Formular des Mitarbeiterplans sind
-genau die Kaestchen 6 und 7 angehakt. Das Umschalten lief ueber den echten
+genau die Kästchen 6 und 7 angehakt. Das Umschalten lief über den echten
 POST mit dem Token **aus der neuen View**: `kurzarbeit_plan.aktiv` 1 → 0 in
-beiden Laeufen, Zustand vor jedem Lauf zurueckgesetzt.
+beiden Läufen, Zustand vor jedem Lauf zurückgesetzt.
 
-`php -l` ueber die drei geaenderten Dateien sauber, keine PHP-Meldungen im
+`php -l` über die drei geänderten Dateien sauber, keine PHP-Meldungen im
 Serverlog.
 
 ### Gefundene Fehler im eigenen Entwurf
-Keine, die im Ergebnis geblieben waeren. Die beiden Fallen der Vorgaenger –
+Keine, die im Ergebnis geblieben wären. Die beiden Fallen der Vorgänger –
 OPcache im eingebauten Server und schreibende Aufrufe in einer Vergleichsliste
 – waren diesmal von vornherein eingeplant: Der Toggle-Test setzt `aktiv` vor
-jedem Lauf zurueck.
+jedem Lauf zurück.
 
 ### Was bewusst nicht erreicht wurde
-- **Der Hinweis „Tages-Overrides folgen im naechsten Patch"** steht seit
+- **Der Hinweis „Tages-Overrides folgen im nächsten Patch"** steht seit
   Langem unter der Liste und ist mitgewandert. Ob er noch stimmt, ist eine
   fachliche Frage und kein Thema dieses Patches.
-- **`speichern()` ist nicht durchgespielt.** Der Weg schreibt und haette einen
-  Zustandsabgleich je Lauf gebraucht; das Formular selbst ist ueber drei
-  Varianten geprueft.
+- **`speichern()` ist nicht durchgespielt.** Der Weg schreibt und hätte einen
+  Zustandsabgleich je Lauf gebraucht; das Formular selbst ist über drei
+  Varianten geprüft.
 
 ### NEXT
-T-104, naechster Controller: `UrlaubKontingentAdminController` oder
+T-104, nächster Controller: `UrlaubKontingentAdminController` oder
 `TerminalAdminController` – beide rund 185 Zeilen Markup.
 
 
 ## P-2026-08-11-11 arbeitsschritt-katalog-in-views
 
 ### EINGELESEN
-- `controller/ArbeitsschrittKatalogController.php` vollstaendig.
+- `controller/ArbeitsschrittKatalogController.php` vollständig.
 - `services/AuthService.php`, Abschnitt Rechte-Cache – erst dadurch war der
-  Test der Hinweisseite ueberhaupt richtig zu bauen (siehe unten).
+  Test der Hinweisseite überhaupt richtig zu bauen (siehe unten).
 - P-2026-08-11-09 und -10 als Muster.
 
 ### DATEIEN
@@ -4703,34 +4809,34 @@ T-104, naechster Controller: `UrlaubKontingentAdminController` oder
 
 ### AKZEPTANZKRITERIUM
 Katalogliste, Katalogformular und die Hinweisseite „Keine Berechtigung"
-erzeugen dasselbe HTML wie vorher – bis auf die Einrueckung –, obwohl das
+erzeugen dasselbe HTML wie vorher – bis auf die Einrückung –, obwohl das
 Markup jetzt in `views/arbeitsschritt_katalog/` liegt.
 
 ### DONE
 Dritter von neun Controllern aus T-104, 573 → 406 Zeilen Controller plus drei
-Views. Drei Markup-Bloecke, nicht zwei: Der Controller hatte fuer „kein Recht"
+Views. Drei Markup-Blöcke, nicht zwei: Der Controller hatte für „kein Recht"
 eine eigene kleine Seite, und die ist genauso eine Maske wie die anderen.
 
 **Der `$esc`-Helfer wandert mit.** Der Controller definierte in zwei Methoden
-dieselbe Escaping-Closure fuer sein Markup; sie steht jetzt in den beiden
-Views, die sie benutzen. Im Controller ist sie damit weg – nicht als Aufraeumen
+dieselbe Escaping-Closure für sein Markup; sie steht jetzt in den beiden
+Views, die sie benutzen. Im Controller ist sie damit weg – nicht als Aufräumen
 nebenbei, sondern weil sie ohne das Markup keinen Zweck mehr hat.
 
 **Das Token bleibt, wie es war.** Diese Maske schreibt ihr `<input
-type="hidden" name="csrf_token" …>` selbst und bekommt dafuer `$csrf` aus dem
+type="hidden" name="csrf_token" …>` selbst und bekommt dafür `$csrf` aus dem
 Controller – anders als die Betriebsferien-Liste aus P-2026-08-11-09, die
 `Csrf::feld()` ruft. Beide Male ist genau das verschoben worden, was da war;
-die Masken zu vereinheitlichen waere ein eigenes Thema.
+die Masken zu vereinheitlichen wäre ein eigenes Thema.
 
 ### TEST
-Wegwerf-Instanz wie zuvor, erfundene Katalogeintraege (`probe-fraesen` mit
+Wegwerf-Instanz wie zuvor, erfundene Katalogeinträge (`probe-fraesen` mit
 Sonderzeichen in der Bezeichnung, `probe-inaktiv` ohne Bezeichnung und
 inaktiv). Neun Renderpfade, je gegen HEAD und gegen den Arbeitsstand:
 
 | Pfad | HEAD | neu |
 | --- | --- | --- |
 | Liste, leer | 26.582 B | 26.407 B |
-| Liste mit zwei Eintraegen | 30.590 B | 29.863 B |
+| Liste mit zwei Einträgen | 30.590 B | 29.863 B |
 | Formular neu | 28.293 B | 27.958 B |
 | Formular bearbeiten (aktiv) | 28.586 B | 28.227 B |
 | Formular bearbeiten (inaktiv) | 28.526 B | 28.167 B |
@@ -4740,46 +4846,46 @@ inaktiv). Neun Renderpfade, je gegen HEAD und gegen den Arbeitsstand:
 | Hinweisseite ohne Recht | 23.391 B | 23.344 B |
 
 Alle neun mit vereinheitlichtem Leerraum zeichengleich. Der POST ohne Code lief
-mit gueltigem Token und hat nichts geschrieben (Katalog vorher wie nachher
-zwei Zeilen). Neun Backend-Masken im Vergleich unveraendert, **null** PHP-
-Meldungen im Serverlog, `php -l` ueber alle vier geaenderten Dateien sauber.
+mit gültigem Token und hat nichts geschrieben (Katalog vorher wie nachher
+zwei Zeilen). Neun Backend-Masken im Vergleich unverändert, **null** PHP-
+Meldungen im Serverlog, `php -l` über alle vier geänderten Dateien sauber.
 
 ### Gefundene Fehler im eigenen Entwurf
 **Der erste Test der Hinweisseite hat die Hinweisseite nie gesehen.** Um „kein
 Recht" zu erzeugen, habe ich dem Probeadmin die Rollen in der Datenbank
-geloescht und die Seite abgerufen – beide Laeufe lieferten dasselbe, der
-Vergleich meldete „gleich", und ich haette es fast so notiert. Gerendert wurde
+gelöscht und die Seite abgerufen – beide Läufe lieferten dasselbe, der
+Vergleich meldete „gleich", und ich hätte es fast so notiert. Gerendert wurde
 aber weiterhin das **Formular**: `AuthService` legt die Rechte beim Anmelden in
-der Session ab (`auth_rechte_codes`), ein `DELETE` in der Datenbank aendert an
+der Session ab (`auth_rechte_codes`), ein `DELETE` in der Datenbank ändert an
 der laufenden Sitzung nichts. Erst mit Abmelden und erneutem Anmelden erschien
 die Seite mit „Keine Berechtigung".
 
 Zwei Lehren: Ein Vergleich, der nur „gleich" sagt, beweist nicht, dass der
-gemeinte Pfad gelaufen ist – deshalb steht in der Pruefung jetzt zusaetzlich
+gemeinte Pfad gelaufen ist – deshalb steht in der Prüfung jetzt zusätzlich
 eine inhaltliche Kontrolle (`<h2>` der Seite). Und: Rechte sind in dieser
 Anwendung ein Sitzungszustand, kein Datenbankzustand.
 
 ### Was bewusst nicht erreicht wurde
 - **`$csrf` in `index()` bleibt stehen, obwohl die Liste es nicht braucht.**
   Der Aufruf hat eine Nebenwirkung – `Csrf::token()` legt das Token an, wenn es
-  fehlt –, und ihn zu entfernen waere eine Verhaltensaenderung in einem Patch,
+  fehlt –, und ihn zu entfernen wäre eine Verhaltensänderung in einem Patch,
   der nur Markup verschiebt. Notiert, nicht mitgemacht.
 - **Das Druckblatt (`blatt()`) ist nicht angefasst.** Es erzeugt ein PDF, kein
-  HTML, und faellt damit nicht unter T-104.
-- **B-095 bleibt offen**; diese Maske ist ohnehin nicht betroffen, sie prueft
+  HTML, und fällt damit nicht unter T-104.
+- **B-095 bleibt offen**; diese Maske ist ohnehin nicht betroffen, sie prüft
   ihr Token beim Speichern.
 
 ### NEXT
-T-104, naechster Controller: `KurzarbeitAdminController`.
+T-104, nächster Controller: `KurzarbeitAdminController`.
 
 
 ## P-2026-08-11-10 maschinen-maske-in-views
 
 ### EINGELESEN
-- `controller/MaschineAdminController.php` vollstaendig.
+- `controller/MaschineAdminController.php` vollständig.
 - `services/MaschineQrCodeService.php` (nur `baueBildUrl()`), um zu sehen, was
   von der Bild-URL im Controller bleiben muss.
-- P-2026-08-11-09 als Muster (gleicher Schnitt, gleicher Pruefweg).
+- P-2026-08-11-09 als Muster (gleicher Schnitt, gleicher Prüfweg).
 
 ### DATEIEN
 - `views/maschine/liste.php` (neu), `views/maschine/formular.php` (neu)
@@ -4788,29 +4894,29 @@ T-104, naechster Controller: `KurzarbeitAdminController`.
 
 ### AKZEPTANZKRITERIUM
 Maschinenliste und Maschinenformular erzeugen dasselbe HTML wie vorher – bis
-auf die Einrueckung –, obwohl das Markup jetzt in `views/maschine/` liegt.
+auf die Einrückung –, obwohl das Markup jetzt in `views/maschine/` liegt.
 
 ### DONE
 Zweiter von neun Controllern aus T-104. 545 → 398 Zeilen Controller plus zwei
 Views.
 
 **Die Bild-URL bleibt im Controller.** `renderFormular()` normalisiert den
-gespeicherten Pfad ueber `normalisiereCodeBildPfad()` – eine private Methode
-dieses Controllers – und laesst sich daraus von `MaschineQrCodeService` die URL
-bauen; die View bekommt nur noch `$codeBildUrl`. Technisch koennte eine per
+gespeicherten Pfad über `normalisiereCodeBildPfad()` – eine private Methode
+dieses Controllers – und lässt sich daraus von `MaschineQrCodeService` die URL
+bauen; die View bekommt nur noch `$codeBildUrl`. Technisch könnte eine per
 `require` eingebundene View auch `$this->…` aufrufen, weil der eingebundene
-Code im Klassenkontext laeuft. Genau das will man aber nicht: Eine View, die
+Code im Klassenkontext läuft. Genau das will man aber nicht: Eine View, die
 private Methoden ihres Aufrufers benutzt, ist nur noch mit diesem einen
 Controller verwendbar, und man sieht es ihr nicht an.
 
-Alles Uebrige leitet die View wie bisher aus `$maschine` ab (ID, Name,
+Alles Übrige leitet die View wie bisher aus `$maschine` ab (ID, Name,
 Abteilung, Beschreibung, Aktiv-Flag, Scan-Code) – dieselben Zeilen, nur
 verschoben.
 
 ### TEST
 Wegwerf-Instanz wie in P-2026-08-11-09 (eigene Datenbank `zeit_probe_t104`,
-erfundene Daten: „Probefraese <5 & "gross">" mit Barcode-Pfad und Abteilung,
-„Probesaege ohne Barcode" ohne beides). Neun Renderpfade, je einmal mit dem
+erfundene Daten: „Probefraese <5 & "groß">" mit Barcode-Pfad und Abteilung,
+„Probesäge ohne Barcode" ohne beides). Neun Renderpfade, je einmal mit dem
 Code aus HEAD und einmal mit dem Arbeitsstand, Server je Lauf frisch:
 
 | Pfad | HEAD | neu |
@@ -4827,43 +4933,43 @@ Code aus HEAD und einmal mit dem Arbeitsstand, Server je Lauf frisch:
 
 Alle neun mit vereinheitlichtem Leerraum zeichengleich. Damit sind beide
 Meldungszweige (`fehlermeldung`, `erfolgsmeldung`) und beide Barcode-Zweige
-(Bild vorhanden / „Noch kein Barcode") tatsaechlich gelaufen, nicht nur
+(Bild vorhanden / „Noch kein Barcode") tatsächlich gelaufen, nicht nur
 vorhanden.
 
 Zehn Backend-Masken (Dashboard, Mitarbeiter, Rollen, Monatsreport, Urlaub,
-Maschinen, Betriebsferien, Abteilungen, Feiertage, Auftraege) im selben
+Maschinen, Betriebsferien, Abteilungen, Feiertage, Aufträge) im selben
 Vergleich: alle zehn HTTP 200 und gleich, **null** Warnungen oder Deprecations
-im Serverlog. `php -l` ueber die drei geaenderten Dateien sauber.
+im Serverlog. `php -l` über die drei geänderten Dateien sauber.
 
 ### Gefundene Fehler im eigenen Entwurf
 **Der erste Vergleich meldete einen Unterschied, der keiner war.** In der
-Prueffolge stand „Barcode neu erzeugen" am Ende – dieser Aufruf **schreibt**
-`maschine.code_bild_pfad`. Der Lauf gegen HEAD hat den Wert also veraendert,
+Prüffolge stand „Barcode neu erzeugen" am Ende – dieser Aufruf **schreibt**
+`maschine.code_bild_pfad`. Der Lauf gegen HEAD hat den Wert also verändert,
 und der zweite Lauf startete mit einem anderen Zustand: Im Formular stand
 einmal `probe_barcode.png` und einmal `maschine_5_barcode.png`. Der Code war
 identisch, die Datenbank nicht.
 
-Lehre fuer die restlichen sieben: Schreibende Aufrufe gehoeren nicht in eine
-Vergleichsliste, die zweimal laeuft – oder der Zustand wird vor jedem Lauf
-zurueckgesetzt. Fuer die beiden POST-Pfade ist genau das gemacht.
+Lehre für die restlichen sieben: Schreibende Aufrufe gehören nicht in eine
+Vergleichsliste, die zweimal läuft – oder der Zustand wird vor jedem Lauf
+zurückgesetzt. Für die beiden POST-Pfade ist genau das gemacht.
 
 ### Was bewusst nicht erreicht wurde
-- **Sieben Controller aus T-104 bleiben offen**, darunter die drei grossen.
+- **Sieben Controller aus T-104 bleiben offen**, darunter die drei großen.
 - **B-095 bleibt offen.** `maschine_admin_speichern` ist eine der vier Routen
-  ohne CSRF-Pruefung; dieser Patch verschiebt nur Markup.
+  ohne CSRF-Prüfung; dieser Patch verschiebt nur Markup.
 - **Der Barcode wurde nicht angesehen**, nur die erzeugte URL im HTML.
 
 ### NEXT
-T-104, naechster Controller: `ArbeitsschrittKatalogController`.
+T-104, nächster Controller: `ArbeitsschrittKatalogController`.
 
 
 ## P-2026-08-11-09 betriebsferien-maske-in-views
 
 ### EINGELESEN
 - `docs/STATUS_SNAPSHOT.md` (T-104), `docs/arbeitsregeln.md`, `CHATSTART.md`.
-- `controller/BetriebsferienAdminController.php` vollstaendig.
+- `controller/BetriebsferienAdminController.php` vollständig.
 - `views/abteilung/liste.php` und `views/abteilung/formular.php` als Vorbild
-  fuer den Aufbau einer Backend-View.
+  für den Aufbau einer Backend-View.
 - `core/Csrf.php`, dazu `views/queue/liste.php` und `views/terminal/start.php`,
   um zu sehen, wie Views bisher an ihr Token kommen.
 
@@ -4875,17 +4981,17 @@ T-104, naechster Controller: `ArbeitsschrittKatalogController`.
 
 ### AKZEPTANZKRITERIUM
 Die Betriebsferien-Liste und das Formular erzeugen dasselbe HTML wie vorher –
-bis auf die Einrueckung –, obwohl das Markup jetzt in `views/betriebsferien/`
+bis auf die Einrückung –, obwohl das Markup jetzt in `views/betriebsferien/`
 liegt.
 
 ### DONE
 Erster von neun Controllern aus T-104. Der Zuschnitt ist bewusst „ein
 Controller je Patch": Betriebsferien ist der kleinste der neun und taugt damit
-als Muster fuer die uebrigen.
+als Muster für die übrigen.
 
-Verschoben wurde **nur** Markup. `index()` laedt weiterhin dieselbe Abfrage und
+Verschoben wurde **nur** Markup. `index()` lädt weiterhin dieselbe Abfrage und
 bindet danach `views/betriebsferien/liste.php` ein; `renderFormular()` ist auf
-ein `require` der Formular-View zusammengeschrumpft und behaelt seine drei
+ein `require` der Formular-View zusammengeschrumpft und behält seine drei
 Aufrufer (Bearbeiten, Validierungsfehler, Speicherfehler). Aus 475 Zeilen
 Controller werden 338 Zeilen Controller plus zwei Views.
 
@@ -4893,25 +4999,25 @@ Controller werden 338 Zeilen Controller plus zwei Views.
 Controller setzt `$csrfBereich = self::CSRF_BEREICH`, die View ruft damit
 `Csrf::feld()`. So bleibt der Bereichsname an genau einer Stelle, die Konstante
 bleibt `private`, und das Feld selbst wird weiterhin nicht von Hand
-geschrieben – genau dafuer gibt es `Csrf::feld()`. Die aelteren Views
+geschrieben – genau dafür gibt es `Csrf::feld()`. Die älteren Views
 (`queue/liste.php`, `urlaub/*`) bekommen einen fertigen `$csrfToken` und
 schreiben das `<input>` selbst; dieser Weg ist bewusst nicht kopiert, weil er
-den Feldnamen `csrf_token` ein weiteres Mal in eine Datei traegt.
+den Feldnamen `csrf_token` ein weiteres Mal in eine Datei trägt.
 
-Die beiden `echo '<p>…</p>'` fuer „keine Berechtigung" und „Ungueltiger Aufruf"
+Die beiden `echo '<p>…</p>'` für „keine Berechtigung" und „Ungültiger Aufruf"
 bleiben im Controller. Sie sind keine Maske, sondern Abbruchmeldungen, und sie
 stehen in fast jedem Controller gleich – auch in denen, die T-104 schon
-erfuellen.
+erfüllen.
 
 ### TEST
 Wegwerf-Umgebung: Kopie des Repos unter `/tmp`, eigene
 `config.local.php`, frische Datenbank `zeit_probe_t104` aus
 `sql/01_initial_schema.sql`, **erfundene** Daten (Abteilung „Probeabteilung",
 drei Betriebsferien-Zeilen: global/aktiv, abteilungsbezogen/inaktiv, eine ohne
-Beschreibung; eine Zeile mit `<`, `&` und Anfuehrungszeichen im Text, um das
+Beschreibung; eine Zeile mit `<`, `&` und Anführungszeichen im Text, um das
 Maskieren zu sehen). Die Entwicklungsdatenbank wurde nicht angefasst.
 
-Beide Staende gerendert – einmal der Code aus HEAD, einmal der Arbeitsstand,
+Beide Stände gerendert – einmal der Code aus HEAD, einmal der Arbeitsstand,
 jeweils mit frisch gestartetem Server – und sechs Ausgaben verglichen:
 
 | Maske | HEAD | neu |
@@ -4924,63 +5030,63 @@ jeweils mit frisch gestartetem Server – und sechs Ausgaben verglichen:
 | Formular nach Validierungsfehler (POST) | 27.984 B | 27.633 B |
 
 Alle sechs sind mit vereinheitlichtem Leerraum **zeichengleich**; die Differenz
-ist ausschliesslich die weggefallene Einrueckung (das Markup stand im
+ist ausschließlich die weggefallene Einrückung (das Markup stand im
 Controller acht Spalten weiter rechts).
 
-Dazu: Umschalten aktiv/inaktiv ueber den echten POST-Weg mit dem Token **aus
+Dazu: Umschalten aktiv/inaktiv über den echten POST-Weg mit dem Token **aus
 der neuen View** – `betriebsferien.aktiv` 0 → 1, Weiterleitung auf die Liste.
 Derselbe POST ohne Token: Weiterleitung mit `meldung=csrf_ungueltig`, Wert
-unveraendert.
+unverändert.
 
-Backend-Kernablaeufe aus `docs/wartungscheckliste.md` auf derselben Instanz:
+Backend-Kernabläufe aus `docs/wartungscheckliste.md` auf derselben Instanz:
 Dashboard, Mitarbeiterliste, Rollen/Rechte, Monatsreport HTML, Urlaub,
 Betriebsferien, Abteilungen, Feiertage – achtmal HTTP 200, **null** Warnungen,
-Notices oder Deprecations im Serverlog. `php -l` ueber die drei geaenderten
+Notices oder Deprecations im Serverlog. `php -l` über die drei geänderten
 Dateien sauber. Wegwerf-Datenbank und Kopie danach entfernt.
 
 ### Gefundene Fehler im eigenen Entwurf
-**Der erste Vergleich meldete „byte-identisch" – und mass den alten Code.**
-Der eingebaute Webserver (`php -S`) laeuft unter der SAPI `cli-server`, und
+**Der erste Vergleich meldete „byte-identisch" – und maß den alten Code.**
+Der eingebaute Webserver (`php -S`) läuft unter der SAPI `cli-server`, und
 dort greift `opcache.enable`, nicht `opcache.enable_cli`. Mit
 `opcache.revalidate_freq = 180` lieferte der Server bis zu drei Minuten lang
 die zuvor kompilierte Fassung. Der Beleg war eindeutig und trotzdem falsch:
-identische Byte-Zahlen, obwohl acht Spalten Einrueckung entfallen waren – genau
-das haette auffallen muessen. Aufgefallen ist es erst, als ein Gegentest mit
+identische Byte-Zahlen, obwohl acht Spalten Einrückung entfallen waren – genau
+das hätte auffallen müssen. Aufgefallen ist es erst, als ein Gegentest mit
 dem **alten** Controller dieselbe neue Ausgabe lieferte, und danach ein zweiter
 Fehler dazukam: Ein noch laufender Server hielt den Port besetzt, der neu
 gestartete brach mit „Address already in use" ab, und die Anfragen liefen
 weiter gegen den alten Prozess.
 
-Merksatz fuer die restlichen sieben Controller: Vergleich nur mit
-`-d opcache.enable=0`, Server je Lauf frisch starten und vorher pruefen, dass
+Merksatz für die restlichen sieben Controller: Vergleich nur mit
+`-d opcache.enable=0`, Server je Lauf frisch starten und vorher prüfen, dass
 der Port frei ist. Ein Ergebnis, das zu gut ist, um wahr zu sein, ist es meist
 auch nicht.
 
-**B-095 gefunden:** `BetriebsferienAdminController::speichern()` prueft kein
-CSRF-Token – und dieselbe Luecke haben `abteilung_admin_speichern`,
-`maschine_admin_speichern` und `feiertag_admin_speichern`. Geprueft wird nur
+**B-095 gefunden:** `BetriebsferienAdminController::speichern()` prüft kein
+CSRF-Token – und dieselbe Lücke haben `abteilung_admin_speichern`,
+`maschine_admin_speichern` und `feiertag_admin_speichern`. Geprüft wird nur
 beim Umschalten. Aufgefallen beim Testen, weil der Validierungsfehler-POST
-ohne Token durchlief. Nicht in diesem Patch behoben: eine Rechtepruefung
-nachzuruesten ist ein eigenes Thema und betrifft vier Masken, nicht eine.
+ohne Token durchlief. Nicht in diesem Patch behoben: eine Rechteprüfung
+nachzurüsten ist ein eigenes Thema und betrifft vier Masken, nicht eine.
 
 ### Was bewusst nicht erreicht wurde
-- **Die uebrigen acht Controller aus T-104** bleiben unveraendert.
-- **Am Markup selbst wurde nichts verbessert.** Die `style="…"`-Angaben fuer
-  Abstaende und Breiten sind mitgewandert, wie sie waren. Sie umzubauen waere
-  ein zweites Thema und wuerde den Vergleich „gleiche Ausgabe" zerstoeren, der
-  dieses Verschieben ueberhaupt absichert.
-- **Im Browser angesehen wurde die Maske nicht**, nur ihr HTML. Fuer eine
+- **Die übrigen acht Controller aus T-104** bleiben unverändert.
+- **Am Markup selbst wurde nichts verbessert.** Die `style="…"`-Angaben für
+  Abstände und Breiten sind mitgewandert, wie sie waren. Sie umzubauen wäre
+  ein zweites Thema und würde den Vergleich „gleiche Ausgabe" zerstören, der
+  dieses Verschieben überhaupt absichert.
+- **Im Browser angesehen wurde die Maske nicht**, nur ihr HTML. Für eine
   reine Verschiebung mit zeichengleicher Ausgabe reicht das.
 - **Das Kaltstart-Set liegt bei 16.247 B** (Grenze 16 KB = 16.384 B), also nur
-  noch 137 B darunter. Aufgeraeumt habe ich es nicht, weil das ein eigenes
+  noch 137 B darunter. Aufgeräumt habe ich es nicht, weil das ein eigenes
   Thema ist: Im Snapshot stehen T-108 und T-109 als „erledigt" mitsamt
-  Begruendung, obwohl `arbeitsregeln.md` §6 sagt, Erledigtes wird dort
-  **entfernt**. Ihr Merkwissen gehoert in die Fachregeln, nicht in den Stand.
+  Begründung, obwohl `arbeitsregeln.md` §6 sagt, Erledigtes wird dort
+  **entfernt**. Ihr Merkwissen gehört in die Fachregeln, nicht in den Stand.
 
 ### NEXT
-T-104, naechster Controller: `MaschineAdminController` – der zweitkleinste der
-verbliebenen acht, und wie Betriebsferien einer, dessen View beim Aufraeumen
-geloescht wurde.
+T-104, nächster Controller: `MaschineAdminController` – der zweitkleinste der
+verbliebenen acht, und wie Betriebsferien einer, dessen View beim Aufräumen
+gelöscht wurde.
 
 
 ## P-2026-08-11-08 kein-produktivbetrieb-festgehalten
@@ -4996,27 +5102,27 @@ geloescht wurde.
 
 ### AKZEPTANZKRITERIUM
 Der Projektstatus sagt in einem Satz, dass es keinen Produktivbetrieb gibt und
-wann er beginnt – ohne dass man dafuer eine zweite Datei aufschlagen muss.
+wann er beginnt – ohne dass man dafür eine zweite Datei aufschlagen muss.
 
 ### DONE
 Korrektur einer falschen Annahme, nicht des Codes.
 
 Im Snapshot stand „FERTIG – System ist im **Praxis-Test**". Daraus habe ich
-„laeuft bei jemandem" gemacht und in mehreren Eintraegen entsprechend
+„läuft bei jemandem" gemacht und in mehreren Einträgen entsprechend
 geschrieben: „im Produktivbestand nachsehen", „B-094 betrifft den laufenden
-Betrieb", „falls jemand deswegen Antraege liegen gelassen hat". Alles falsch.
+Betrieb", „falls jemand deswegen Anträge liegen gelassen hat". Alles falsch.
 Es gibt **keine** Installation im Einsatz. Produktivbetrieb beginnt erst auf
-ausdrueckliche Ansage von Manuel.
+ausdrückliche Ansage von Manuel.
 
 Der Unterschied ist nicht nur sprachlich: Aus „betrifft den Betrieb" folgt
-Dringlichkeit, ein Nachsehen in echten Daten und womoeglich eine
+Dringlichkeit, ein Nachsehen in echten Daten und womöglich eine
 Datenkorrektur – Arbeit, die es hier nicht gibt. Der Satz steht deshalb im
 Projektstatus, also in der Zeile, die jeder neue Chat ohnehin liest, und nennt
 gleich mit, welche Formulierungen bis dahin falsch sind.
 
-Bestehende Verlaufseintraege bleiben, wie sie sind – der Verlauf wird nicht
+Bestehende Verlaufseinträge bleiben, wie sie sind – der Verlauf wird nicht
 umgeschrieben. Im Snapshot ist der Hinweis zu B-093 umformuliert: aus „im
-Produktivbestand nachsehen" wird „zu bedenken beim spaeteren Aufsetzen einer
+Produktivbestand nachsehen" wird „zu bedenken beim späteren Aufsetzen einer
 echten Installation".
 
 ### TEST
@@ -5026,12 +5132,12 @@ zusammen bleiben unter der Grenze aus `arbeitsregeln.md` §9.
 ### Gefundene Fehler im eigenen Entwurf
 Der Fehler ist der Anlass des Patches. Bemerkenswert daran: „Praxis-Test" ist
 im Snapshot seit Langem der Projektstatus, und ich habe ihn gelesen, ohne zu
-fragen, was er heisst. Ein Zustandsname ist keine Beschreibung – wer daraus
+fragen, was er heißt. Ein Zustandsname ist keine Beschreibung – wer daraus
 ableitet, was es in der Welt gibt, rate.
 
 ### Was bewusst nicht erreicht wurde
-Die aelteren Verlaufseintraege behalten ihre falschen Nebensaetze. Sie zu
-korrigieren hiesse, den Verlauf zu faelschen; er haelt fest, was gedacht
+Die älteren Verlaufseinträge behalten ihre falschen Nebensätze. Sie zu
+korrigieren hieße, den Verlauf zu fälschen; er hält fest, was gedacht
 wurde, nicht was richtig war.
 
 ### NEXT
@@ -5043,7 +5149,7 @@ T-104: neun Controller erzeugen HTML selbst – ein Controller je Patch.
 ### EINGELESEN
 - `docs/spezifikation_abteilungsrechte.md` (P-2026-08-11-05), alle sieben
   Akzeptanzkriterien.
-- `controller/UrlaubController.php` vollstaendig, `UrlaubJahresuebersichtController`,
+- `controller/UrlaubController.php` vollständig, `UrlaubJahresuebersichtController`,
   `views/layout/header.php` (Navigation), `views/mitarbeiter/formular.php`
   (Abschnitt „Rollen in Abteilungen"), `controller/MitarbeiterAdminController.php`.
 - Schema von `mitarbeiter_hat_rolle_scope`, `mitarbeiter_hat_abteilung`,
@@ -5059,7 +5165,7 @@ T-104: neun Controller erzeugen HTML selbst – ein Controller je Patch.
 - `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
 
 ### AKZEPTANZKRITERIUM
-Genehmiger G, dessen Rolle `URLAUB_GENEHMIGEN` enthaelt und der Abteilung CNC
+Genehmiger G, dessen Rolle `URLAUB_GENEHMIGEN` enthält und der Abteilung CNC
 zugewiesen ist, sieht den offenen Antrag von Mitarbeiterin A aus CNC und kann
 ihn genehmigen – ohne Eintrag in `mitarbeiter_genehmiger`.
 
@@ -5067,31 +5173,31 @@ ihn genehmigen – ohne Eintrag in `mitarbeiter_genehmiger`.
 B-093 behoben, im Zuschnitt der Spezifikation.
 
 Neu ist `services/UrlaubGenehmigungService.php` als **einzige** Auskunft
-darueber, fuer wen ein Genehmiger zustaendig ist. Die Menge ist die
+darüber, für wen ein Genehmiger zuständig ist. Die Menge ist die
 Vereinigung aus namentlicher Zuordnung (`mitarbeiter_genehmiger`) und den
 Mitarbeitern der Abteilungen, in denen der Genehmiger eine Rolle mit
 `URLAUB_GENEHMIGEN` und `scope_typ = 'abteilung'` hat – bei
-`gilt_unterbereiche = 1` einschliesslich Unterbaum. Der Genehmiger selbst ist
+`gilt_unterbereiche = 1` einschließlich Unterbaum. Der Genehmiger selbst ist
 nie enthalten.
 
-Umgestellt sind alle fuenf Stellen, die diese Frage bisher selbst beantwortet
+Umgestellt sind alle fünf Stellen, die diese Frage bisher selbst beantwortet
 haben (die Spezifikation kannte nur vier, siehe unten). Dazu kommt die
 Navigation in `header.php`, die bisher ebenfalls eigene SQL hatte.
 
-`AuthService::hatRecht()` ist **unveraendert** und wertet weiterhin nur
-betriebsweite Zuweisungen aus. Der Abteilungsbezug wird ausschliesslich fuer
-`URLAUB_GENEHMIGEN` ausgewertet, und zwar im neuen Dienst. Damit gewaehrt eine
+`AuthService::hatRecht()` ist **unverändert** und wertet weiterhin nur
+betriebsweite Zuweisungen aus. Der Abteilungsbezug wird ausschließlich für
+`URLAUB_GENEHMIGEN` ausgewertet, und zwar im neuen Dienst. Damit gewährt eine
 abteilungsbezogen zugewiesene Rolle **kein** weiteres Recht – auch dann nicht,
-wenn sie welche enthaelt. Das ist der Unterschied zwischen „das Recht
+wenn sie welche enthält. Das ist der Unterschied zwischen „das Recht
 begrenzen" und „die Menge der Mitarbeiter begrenzen, auf die es sich anwenden
-laesst", und nur Letzteres ist gebaut.
+lässt", und nur Letzteres ist gebaut.
 
 Der Unterbaum wird iterativ mit Besuchsliste durchlaufen, nicht rekursiv:
 `abteilung.parent_id` zeigt auf dieselbe Tabelle, und eine Schleife darin ist
 zwar Unsinn, aber eintragbar.
 
 Die Sperre aus P-2026-08-10-25 faellt: `SCOPE_ABTEILUNG_AKTIV` steht auf
-`true`, die Formularfelder sind wieder bedienbar. Der rote Kasten „gewaehrt
+`true`, die Formularfelder sind wieder bedienbar. Der rote Kasten „gewährt
 derzeit keine Rechte" ist einem `warning-panel` gewichen, das sagt, was
 wirklich passiert – Urlaubsgenehmigung ja, alles andere nein.
 
@@ -5106,62 +5212,62 @@ Alle sieben Kriterien einzeln:
 
 | # | Kriterium | Ergebnis |
 | --- | --- | --- |
-| 1 | zustaendig ueber CNC | Liste zeigt Anna; POST setzt ihren Antrag auf `genehmigt` |
-| 2 | nicht zustaendig ausserhalb | Bert fehlt in der Liste; POST auf seinen Antrag: „Keine Berechtigung", Status bleibt `offen` |
-| 3 | `gilt_unterbereiche = 1` | zusaetzlich Carla; mit `0` nicht |
+| 1 | zuständig über CNC | Liste zeigt Anna; POST setzt ihren Antrag auf `genehmigt` |
+| 2 | nicht zuständig außerhalb | Bert fehlt in der Liste; POST auf seinen Antrag: „Keine Berechtigung", Status bleibt `offen` |
+| 3 | `gilt_unterbereiche = 1` | zusätzlich Carla; mit `0` nicht |
 | 4 | additiv | Bert namentlich eingetragen → Anna, Bert **und** Carla |
 | 5 | kein Selbsteintritt | Gerds eigener Antrag erscheint nie |
-| 6 | `URLAUB_GENEHMIGEN_ALLE` | alle drei fremden Antraege, der eigene weiterhin nicht |
+| 6 | `URLAUB_GENEHMIGEN_ALLE` | alle drei fremden Anträge, der eigene weiterhin nicht |
 | 7 | kein Rechtezuwachs | `hatRecht('MITARBEITER_VERWALTEN')` bleibt `false`; dieselbe Rolle betriebsweit zugewiesen liefert `true` |
 
-Dazu: Wer das Recht hat, aber fuer niemanden zustaendig ist, bekommt die
-Genehmigungsliste weiterhin mit 403 („Sie sind fuer niemanden als Genehmiger
+Dazu: Wer das Recht hat, aber für niemanden zuständig ist, bekommt die
+Genehmigungsliste weiterhin mit 403 („Sie sind für niemanden als Genehmiger
 eingetragen").
 
-Aufgeraeumt: Wegwerf-Datenbank geloescht, Projektkopien entfernt. In der
-echten Datenbank unveraendert **eine** Zeile mit `scope_typ = 'abteilung'` und
-**null** heute entschiedene Urlaubsantraege. `php -l` ueber alle sechs
-geaenderten Dateien sauber, `index.php` und `terminal.php?aktion=health` je
+Aufgeräumt: Wegwerf-Datenbank gelöscht, Projektkopien entfernt. In der
+echten Datenbank unverändert **eine** Zeile mit `scope_typ = 'abteilung'` und
+**null** heute entschiedene Urlaubsanträge. `php -l` über alle sechs
+geänderten Dateien sauber, `index.php` und `terminal.php?aktion=health` je
 HTTP 200.
 
 ### Gefundene Fehler im eigenen Entwurf
-Drei, und alle drei haetten geschadet:
+Drei, und alle drei hätten geschadet:
 
-**1. Eine fuenfte Aufrufstelle uebersehen.** Die Spezifikation zaehlte vier
-Stellen auf, die „fuer wen bin ich zustaendig" selbst beantworten. Es sind
-fuenf: `verarbeiteUrlaubGenehmigungPost()` fragte noch einmal eigenstaendig
+**1. Eine fünfte Aufrufstelle übersehen.** Die Spezifikation zählte vier
+Stellen auf, die „für wen bin ich zuständig" selbst beantworten. Es sind
+fünf: `verarbeiteUrlaubGenehmigungPost()` fragte noch einmal eigenständig
 nach, statt `darfUrlaubsantragBearbeiten()` zu rufen. Ausgerechnet die Stelle,
 die den POST absichert. Gefunden wurde sie nicht beim Lesen, sondern erst, als
-der Test einen Antrag genehmigen wollte und „Keine Berechtigung" zurueckkam.
+der Test einen Antrag genehmigen wollte und „Keine Berechtigung" zurückkam.
 Tabelle in der Spezifikation korrigiert.
 
-**2. Die Spezifikation widersprach sich selbst.** Abschnitt 3 sagte, uebrige
-Rechte einer abteilungsbezogenen Rolle gaelten global – Kriterium 7 sagte, die
-Aenderung fuege kein Recht hinzu. Beides zusammen geht nicht: Heute gewaehrt so
-eine Zeile *nichts*, „global" waere also sehr wohl ein Zuwachs, und zwar ein
-stiller, bei jedem der im Produktivbestand vielleicht vorhandenen Eintraege.
+**2. Die Spezifikation widersprach sich selbst.** Abschnitt 3 sagte, übrige
+Rechte einer abteilungsbezogenen Rolle gälten global – Kriterium 7 sagte, die
+Änderung füge kein Recht hinzu. Beides zusammen geht nicht: Heute gewährt so
+eine Zeile *nichts*, „global" wäre also sehr wohl ein Zuwachs, und zwar ein
+stiller, bei jedem der im Produktivbestand vielleicht vorhandenen Einträge.
 Umgesetzt ist die enge Lesart; die Korrektur steht als Kasten in der
-Spezifikation, damit nachvollziehbar bleibt, warum sie sich geaendert hat.
+Spezifikation, damit nachvollziehbar bleibt, warum sie sich geändert hat.
 
-**3. In der Navigation die Rechtepruefung verloren.** Der erste Entwurf
+**3. In der Navigation die Rechteprüfung verloren.** Der erste Entwurf
 ersetzte in `header.php` die Bedingung
-`hatRecht('URLAUB_GENEHMIGEN') && (Eintrag vorhanden)` durch ein blosses
-`istGenehmigerFuerIrgendwen()`. Damit haette jeder den Menuepunkt gesehen, der
+`hatRecht('URLAUB_GENEHMIGEN') && (Eintrag vorhanden)` durch ein bloßes
+`istGenehmigerFuerIrgendwen()`. Damit hätte jeder den Menüpunkt gesehen, der
 irgendwo in `mitarbeiter_genehmiger` steht – ganz ohne Recht. Die Maske selbst
-haette ihn dann mit 403 abgewiesen, aber ein Menuepunkt, der ins Nichts fuehrt,
+hätte ihn dann mit 403 abgewiesen, aber ein Menüpunkt, der ins Nichts führt,
 ist ein Versprechen, das das System nicht halten kann. Beide Bedingungen
 stehen wieder da.
 
 ### Was bewusst nicht erreicht wurde
 - **Das allgemeine Bereichsmodell.** `hatRecht()` bekommt kein Ziel, die
-  uebrigen rund 84 Pruefstellen bleiben unberuehrt. So entschieden und
-  begruendet in der Spezifikation.
-- **Auswertungen und PDF filtern nicht nach Abteilung.** Wer Monatsuebersicht
+  übrigen rund 84 Prüfstellen bleiben unberührt. So entschieden und
+  begründet in der Spezifikation.
+- **Auswertungen und PDF filtern nicht nach Abteilung.** Wer Monatsübersicht
   oder Stundenkonto sehen darf, sieht sie weiterhin ganz.
 - **Kein Zyklenschutz beim Speichern einer Abteilung.** Das Traversieren
-  vertraegt eine Schleife (Besuchsliste), verhindert wird sie nicht.
-- **Ungeprueft geblieben: die Jahresuebersicht im Browser.** Ihre
-  Zustaendigkeitsliste kommt aus demselben Dienst und ist damit mitgetestet,
+  verträgt eine Schleife (Besuchsliste), verhindert wird sie nicht.
+- **Ungeprüft geblieben: die Jahresübersicht im Browser.** Ihre
+  Zuständigkeitsliste kommt aus demselben Dienst und ist damit mitgetestet,
   die Maske selbst wurde aber nicht gerendert.
 
 ### NEXT
@@ -5176,7 +5282,7 @@ T-104: neun Controller erzeugen HTML selbst – ein Controller je Patch.
 - `services/AuftragszeitService.php`,
   `stoppeAlleLaufendenAuftraegeFuerMitarbeiterBisZeitpunkt()`.
 - Alle SQL-Zeichenketten in `controller/`, `services/`, `modelle/`, `core/`
-  maschinell auf mehrfach verwendete Platzhalter geprueft.
+  maschinell auf mehrfach verwendete Platzhalter geprüft.
 
 ### DATEIEN
 - `controller/UrlaubController.php`, `services/AuftragszeitService.php`
@@ -5196,37 +5302,37 @@ benannter Platzhalter darf dann **nur einmal** vorkommen – sonst wirft PDO
 Zwei Abfragen taten genau das:
 
 **1. Urlaub genehmigen** (`UrlaubController`). Der Genehmigungs-`UPDATE`
-benutzte `:gid` zweimal: einmal fuer `entscheidungs_mitarbeiter_id`, einmal
-fuer `AND ua.mitarbeiter_id <> :gid`. Die zweite Zeile wird **nur** angehaengt,
-wenn der Genehmiger *kein* `URLAUB_GENEHMIGEN_SELF` hat. Fuer genau diese Leute
-war das Genehmigen damit vollstaendig kaputt: Die Ausnahme wurde gefangen,
+benutzte `:gid` zweimal: einmal für `entscheidungs_mitarbeiter_id`, einmal
+für `AND ua.mitarbeiter_id <> :gid`. Die zweite Zeile wird **nur** angehängt,
+wenn der Genehmiger *kein* `URLAUB_GENEHMIGEN_SELF` hat. Für genau diese Leute
+war das Genehmigen damit vollständig kaputt: Die Ausnahme wurde gefangen,
 `$rows` blieb 0, und die Maske meldete „Urlaubsantrag konnte nicht
 aktualisiert werden (evtl. bereits entschieden)". Ein Satz, der auf ein
-Zeitproblem zeigt – und deshalb genau dort suchen laesst, wo nichts ist.
+Zeitproblem zeigt – und deshalb genau dort suchen lässt, wo nichts ist.
 
-Warum das niemandem auffiel: Chef und Personalbuero haben `_SELF` und damit
-die kaputte Zeile nie im `UPDATE`. Betroffen war ausschliesslich der
+Warum das niemandem auffiel: Chef und Personalbüro haben `_SELF` und damit
+die kaputte Zeile nie im `UPDATE`. Betroffen war ausschließlich der
 eingetragene Bereichsgenehmiger – also die Rolle, um die es in B-093 geht.
 
-**2. Auftraege bis Zeitpunkt stoppen** (`AuftragszeitService`). Derselbe
+**2. Aufträge bis Zeitpunkt stoppen** (`AuftragszeitService`). Derselbe
 Fehler mit `:endzeit`, einmal im `SET`, einmal in `startzeit <= :endzeit`.
-Diese Methode hat heute **keine Aufrufstelle** – `SmokeTestController` prueft
-sogar ausdruecklich, dass `ZeitController` sie *nicht* benutzt. Kaputt ist sie
-trotzdem; wer sie das naechste Mal anschliesst, haette den Fehler geerbt.
+Diese Methode hat heute **keine Aufrufstelle** – `SmokeTestController` prüft
+sogar ausdrücklich, dass `ZeitController` sie *nicht* benutzt. Kaputt ist sie
+trotzdem; wer sie das nächste Mal anschließt, hätte den Fehler geerbt.
 
 Beide Male jetzt ein eigener Platzhalter mit eigenem Wert, dazu ein Kommentar,
 der den Grund nennt – die Versuchung, „denselben Wert doch einfach nochmal zu
-nehmen", kommt sonst beim naechsten Mal wieder.
+nehmen", kommt sonst beim nächsten Mal wieder.
 
 ### TEST
 An einer Wegwerf-Datenbank mit erfundenen Mitarbeitern, **ohne** jede
 Beteiligung von B-093: Genehmiger Gerd hat `URLAUB_GENEHMIGEN` betriebsweit
-und ist namentlich fuer Anna eingetragen, `_SELF` hat er nicht. POST
+und ist namentlich für Anna eingetragen, `_SELF` hat er nicht. POST
 „genehmigen" auf Annas Antrag:
 
 | Stand | Ergebnis |
 | --- | --- |
-| HEAD, unveraendert | Status bleibt `offen`, Meldung „…evtl. bereits entschieden" |
+| HEAD, unverändert | Status bleibt `offen`, Meldung „…evtl. bereits entschieden" |
 | mit dieser Korrektur | Status `genehmigt`, Meldung „Urlaubsantrag wurde genehmigt." |
 
 Der Ausnahmetext stammt nicht aus einer Vermutung: `system_log` enthielt zu
@@ -5235,31 +5341,31 @@ beiden Versuchen `{"exception":"SQLSTATE[HY093]: Invalid parameter number"}`.
 Zweite Abfrage einzeln gegen dieselbe Datenbank gestellt: mit doppeltem
 `:endzeit` dieselbe Ausnahme, mit getrennten Platzhaltern sauberer Durchlauf.
 
-Gegenprobe ueber das ganze Projekt: Ein Skript hat alle SQL-Zeichenketten in
+Gegenprobe über das ganze Projekt: Ein Skript hat alle SQL-Zeichenketten in
 `controller/`, `services/`, `modelle/` und `core/` eingesammelt und die
-Platzhalter gezaehlt – **genau diese zwei** Fundstellen, keine weitere.
+Platzhalter gezählt – **genau diese zwei** Fundstellen, keine weitere.
 
 `php -l` auf beiden Dateien sauber.
 
 ### Gefundene Fehler im eigenen Entwurf
 Der Fehler war schon einmal fast unter den Tisch gefallen: In der ersten
-Messung sah ich nur „Keine Berechtigung fuer diesen Urlaubsantrag" und hielt
-das fuer ein Rechteproblem meiner eigenen Aenderung. Erst der Blick in
+Messung sah ich nur „Keine Berechtigung für diesen Urlaubsantrag" und hielt
+das für ein Rechteproblem meiner eigenen Änderung. Erst der Blick in
 `system_log` – nicht in die Maske – zeigte die eigentliche Ausnahme. Eine
 gefangene Ausnahme mit freundlicher Ersatzmeldung ist genau deshalb teuer: Sie
 sieht aus wie ein Fachproblem.
 
 ### Was bewusst nicht erreicht wurde
-- **`ATTR_EMULATE_PREPARES` bleibt aus.** Einschalten wuerde beide Abfragen
-  ebenfalls reparieren, aber die Vorbereitung zurueck in PHP holen. Der
+- **`ATTR_EMULATE_PREPARES` bleibt aus.** Einschalten würde beide Abfragen
+  ebenfalls reparieren, aber die Vorbereitung zurück in PHP holen. Der
   Schutz durch echte Prepared Statements ist mehr wert als die Bequemlichkeit,
-  einen Platzhalter zweimal schreiben zu duerfen.
+  einen Platzhalter zweimal schreiben zu dürfen.
 - **Die Ersatzmeldung „evtl. bereits entschieden" bleibt stehen.** Sie ist
-  fuer den echten Fall (jemand war schneller) richtig. Dass sie auch bei einem
+  für den echten Fall (jemand war schneller) richtig. Dass sie auch bei einem
   technischen Fehler erscheint, ist ein eigenes Thema.
 
 ### NEXT
-B-093 umsetzen – jetzt, wo das Genehmigen ueberhaupt funktioniert.
+B-093 umsetzen – jetzt, wo das Genehmigen überhaupt funktioniert.
 
 
 ## P-2026-08-11-05 spezifikation-abteilungsrechte
@@ -5267,7 +5373,7 @@ B-093 umsetzen – jetzt, wo das Genehmigen ueberhaupt funktioniert.
 ### EINGELESEN
 - `docs/fachregeln/rollen_rechte_genehmiger.md`, Abschnitte 3 und 4.
 - `services/AuthService.php` (`hatRecht()`, `ladeRechteCodesAusDb()`).
-- `controller/UrlaubController.php` (Genehmigungsliste, POST-Pruefung),
+- `controller/UrlaubController.php` (Genehmigungsliste, POST-Prüfung),
   `controller/UrlaubJahresuebersichtController.php`.
 - `controller/MitarbeiterAdminController.php` (Sperre aus P-2026-08-10-25).
 - Schema von `mitarbeiter_hat_rolle_scope`, `mitarbeiter_hat_abteilung`,
@@ -5278,12 +5384,12 @@ B-093 umsetzen – jetzt, wo das Genehmigen ueberhaupt funktioniert.
 - `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
 
 ### AKZEPTANZKRITERIUM
-Die Spezifikation nennt sieben pruefbare Akzeptanzkriterien fuer B-093 und
-grenzt ausdruecklich ab, was nicht dazugehoert.
+Die Spezifikation nennt sieben prüfbare Akzeptanzkriterien für B-093 und
+grenzt ausdrücklich ab, was nicht dazugehört.
 
 ### DONE
-Arbeitsregeln §1 verlangt fuer einen neuen Funktionsbereich zuerst eine
-Spezifikation; P-2026-08-10-25 hatte das ausdruecklich offen gelassen. Diese
+Arbeitsregeln §1 verlangt für einen neuen Funktionsbereich zuerst eine
+Spezifikation; P-2026-08-10-25 hatte das ausdrücklich offen gelassen. Diese
 liegt jetzt vor.
 
 Die Entscheidung dahinter (Manuel, 11.08.2026): **nicht** das allgemeine
@@ -5292,48 +5398,48 @@ wirklich vorkommt – ein Schichtleiter genehmigt Urlaub seiner Abteilung, ohne
 dass jeder Mitarbeiter einzeln als sein Genehmigter eingetragen werden muss.
 
 Ausschlaggebend war die Messung der Reichweite: `hatRecht()` wird an **84**
-Stellen in 24 Dateien gerufen. Das allgemeine Modell hiesse, jede davon
+Stellen in 24 Dateien gerufen. Das allgemeine Modell hieße, jede davon
 entscheiden zu lassen, worauf sie sich bezieht – mitten im Praxis-Test. Der
-Code `URLAUB_GENEHMIGEN` dagegen wird an genau **vier** Stellen geprueft, und
-alle vier beantworten dieselbe Frage („fuer wen bin ich zustaendig") heute mit
+Code `URLAUB_GENEHMIGEN` dagegen wird an genau **vier** Stellen geprüft, und
+alle vier beantworten dieselbe Frage („für wen bin ich zuständig") heute mit
 je eigener SQL. Die bekommen eine gemeinsame Auskunft.
 
 Kernentscheidung der Spezifikation: Begrenzt wird nicht das **Recht**, sondern
-die **Menge der Mitarbeiter**, auf die es sich anwenden laesst. `hatRecht()`
-behaelt damit seine Signatur, und es entsteht keine zweite Fassung der
-Rechtepruefung. Preis dafuer: Alle uebrigen Rechte einer abteilungsbezogen
+die **Menge der Mitarbeiter**, auf die es sich anwenden lässt. `hatRecht()`
+behält damit seine Signatur, und es entsteht keine zweite Fassung der
+Rechteprüfung. Preis dafür: Alle übrigen Rechte einer abteilungsbezogen
 zugewiesenen Rolle gelten weiterhin betriebsweit – deshalb verlangt die
 Spezifikation einen Satz in der Maske, der das sagt.
 
 ### TEST
-Nicht anwendbar – der Patch aendert kein Verhalten. Geprueft wurde die
-Faktenlage, auf der die Spezifikation steht: die vier Pruefstellen von
+Nicht anwendbar – der Patch ändert kein Verhalten. Geprüft wurde die
+Faktenlage, auf der die Spezifikation steht: die vier Prüfstellen von
 `URLAUB_GENEHMIGEN` (`grep`), die 84 Aufrufe von `hatRecht()`, das Vorhandensein
 von `abteilung.parent_id` und `mitarbeiter_hat_abteilung`, sowie dass in der
 lokalen Datenbank genau eine Zeile mit `scope_typ = 'abteilung'` steht.
 
 ### Gefundene Fehler im eigenen Entwurf
 Der erste Entwurf wollte den Abteilungsbezug in `AuthService` als
-`holeAbteilungenFuerRecht()` verankern – klingt allgemein und waere der Anfang
+`holeAbteilungenFuerRecht()` verankern – klingt allgemein und wäre der Anfang
 genau des Modells, das nicht gebaut werden soll. Zweite Fassung legt die
 Auskunft in einen `UrlaubGenehmigungService`: Der Name sagt, wie weit sie
 reicht, und niemand baut versehentlich darauf auf.
 
 ### Was bewusst nicht erreicht wurde
-Die Umsetzung. Sie folgt im naechsten Patch und richtet sich nach den sieben
+Die Umsetzung. Sie folgt im nächsten Patch und richtet sich nach den sieben
 Akzeptanzkriterien.
 
 ### NEXT
 B-093 umsetzen: `UrlaubGenehmigungService`, vier Aufrufstellen, Sperre in der
-Mitarbeitermaske loesen.
+Mitarbeitermaske lösen.
 
 
 ## P-2026-08-11-04 eine-regel-fuer-den-queue-speicherort
 
 ### EINGELESEN
-- `core/OfflineQueueManager.php` und `services/QueueService.php` vollstaendig.
+- `core/OfflineQueueManager.php` und `services/QueueService.php` vollständig.
 - `docs/fachregeln/terminal_und_offline.md`, Abschnitt 5 (Queue, Wiederanlauf,
-  Stoerungsmodus).
+  Störungsmodus).
 - Alle Aufrufer von `holeZustand()`, `holeStatusSummary()` und
   `queue_verfuegbar` – `public/terminal.php`, `DashboardController`,
   `TerminalController` und vier Terminal-Views.
@@ -5348,20 +5454,20 @@ Fallen Haupt- und Offline-Datenbank gleichzeitig aus, liefert
 vorher flog dort eine `PDOException` aus der Methode heraus.
 
 ### DONE
-Zweite Haelfte von T-108. Die Frage „in welcher Datenbank liegt die Queue
+Zweite Hälfte von T-108. Die Frage „in welcher Datenbank liegt die Queue
 gerade" wurde an **vier** Stellen beantwortet, in vier verschiedenen
 Fassungen:
 
 | Stelle | Regel |
 | --- | --- |
 | `OfflineQueueManager::holeQueueVerbindung()` | offline, sonst Haupt-DB **wenn erreichbar**, sonst Ausnahme |
-| `QueueService::holeQueueVerbindung()` | offline, sonst Haupt-DB – ungeprueft |
+| `QueueService::holeQueueVerbindung()` | offline, sonst Haupt-DB – ungeprüft |
 | `QueueService::holeStatusSummary()` | dasselbe noch einmal inline, ohne `try` |
 | `QueueService::holeZustand()` | dasselbe ein drittes Mal, mit `try` |
 
 Das ist keine Kosmetik: Wer anzeigt, muss in dieselbe Tabelle sehen, in die
-geschrieben wird. Driften die Fassungen auseinander, zaehlt die Kachel in der
-einen Datenbank, waehrend das Terminal in die andere schreibt – und niemand
+geschrieben wird. Driften die Fassungen auseinander, zählt die Kachel in der
+einen Datenbank, während das Terminal in die andere schreibt – und niemand
 merkt es, weil beide Zahlen plausibel aussehen.
 
 Jetzt gibt es die Regel einmal, im `OfflineQueueManager`:
@@ -5371,14 +5477,14 @@ Jetzt gibt es die Regel einmal, im `OfflineQueueManager`:
 ist – die schreibenden Pfade sollen laut bleiben. `QueueService` nutzt beide
 und hat keine eigene Fassung mehr.
 
-Das `null` in `holeZustand()` bleibt bewusst erhalten: Dort heisst `null`
-laut Docblock „unbekannt", nicht „nicht verfuegbar". `queue_verfuegbar` wird
+Das `null` in `holeZustand()` bleibt bewusst erhalten: Dort heißt `null`
+laut Docblock „unbekannt", nicht „nicht verfügbar". `queue_verfuegbar` wird
 deshalb nur dann `false`, wenn auch `hauptdb_verfuegbar` ein echtes `false`
-ist; liess sich die Hauptdatenbank gar nicht befragen, bleibt es bei `null`.
+ist; ließ sich die Hauptdatenbank gar nicht befragen, bleibt es bei `null`.
 
 ### TEST
 Projektkopie mit zwei Wegwerf-Datenbanken (`zeit_probe_t108`,
-`…_offline`) und erfundenem Mitarbeiter, drei Zustaende – jeweils **vorher**
+`…_offline`) und erfundenem Mitarbeiter, drei Zustände – jeweils **vorher**
 (Stand HEAD) und **nachher** gemessen:
 
 | Zustand | `holeStatusSummary()` vorher | nachher |
@@ -5387,26 +5493,26 @@ Projektkopie mit zwei Wegwerf-Datenbanken (`zeit_probe_t108`,
 | B) Haupt-DB weg | `verfuegbar=true quelle='offline'` | gleich |
 | C) beide weg | **PDOException** „Unknown database" | `verfuegbar=false quelle=NULL` |
 
-`holeZustand()` liefert in allen drei Zustaenden vorher wie nachher dasselbe
+`holeZustand()` liefert in allen drei Zuständen vorher wie nachher dasselbe
 (A: `queue_verfuegbar=true speicherort='offline'`, B: dito mit
 `hauptdb=false`, C: `queue_verfuegbar=false speicherort=NULL`).
 
-Regressionsprobe ueber den ganzen Weg: Haupt-DB weg → `bucheKommen()` = `0`,
+Regressionsprobe über den ganzen Weg: Haupt-DB weg → `bucheKommen()` = `0`,
 `holeZustand()` meldet `offen=1`, `holeOffeneEintraege()` liefert genau diesen
-Eintrag. Haupt-DB zurueck → `verarbeiteOffeneEintraege()` → `offen=0`,
+Eintrag. Haupt-DB zurück → `verarbeiteOffeneEintraege()` → `offen=0`,
 `fehler=0`, die Buchung steht mit `terminal_id=42` in `zeitbuchung`,
 `holeStatusSummary()` meldet `verarbeitet=1`.
 
-Danach beide Wegwerf-Datenbanken geloescht, Kopien entfernt.
+Danach beide Wegwerf-Datenbanken gelöscht, Kopien entfernt.
 `php -l` sauber, `index.php` und `terminal.php?aktion=health` je HTTP 200,
-Health unveraendert `queue_verfuegbar: true`, `queue_speicherort: "offline"`.
+Health unverändert `queue_verfuegbar: true`, `queue_speicherort: "offline"`.
 
 ### Gefundene Fehler im eigenen Entwurf
 **Fast einen dokumentierten Vertrag gebrochen.** Der erste Entwurf setzte
 `queue_verfuegbar = $pdo instanceof \PDO` – kurz und falsch. Der Docblock von
-`holeZustand()` sagt ausdruecklich, `null` heisse „unbekannt" und sei etwas
-anderes als `false`; `public/terminal.php` schaltet den Stoerungsbildschirm
-genau an `=== false`. Aus „wir konnten die Datenbank nicht fragen" waere so
+`holeZustand()` sagt ausdrücklich, `null` heiße „unbekannt" und sei etwas
+anderes als `false`; `public/terminal.php` schaltet den Störungsbildschirm
+genau an `=== false`. Aus „wir konnten die Datenbank nicht fragen" wäre so
 „die Queue ist weg" geworden. Gefunden beim Lesen des Docblocks, nicht beim
 Testen – die Wegwerf-Datenbanken erreichen den Fall gar nicht, weil
 `istHauptdatenbankVerfuegbar()` dort sauber `false` liefert statt zu werfen.
@@ -5415,8 +5521,8 @@ Testen – die Wegwerf-Datenbanken erreichen den Fall gar nicht, weil
 - **`QueueService` bleibt eine eigene Klasse.** Lesen und Anzeigen dort,
   Schreiben und Abarbeiten im Manager – die Trennung ist sinnvoll, doppelt war
   nur die Speicherort-Regel. T-108 ist damit erledigt.
-- **`holeStatusSummary()` behaelt seine abweichende Einrueckung** (Rumpf auf
-  Spalte 0). Das ist Formatierung und gehoert nicht in einen Patch am
+- **`holeStatusSummary()` behält seine abweichende Einrückung** (Rumpf auf
+  Spalte 0). Das ist Formatierung und gehört nicht in einen Patch am
   Offline-Pfad.
 
 ### NEXT
@@ -5426,57 +5532,57 @@ B-093 – braucht laut Arbeitsregeln §1 zuerst eine Spezifikation.
 ## P-2026-08-11-03 tote-queue-klasse-entfernt
 
 ### EINGELESEN
-- `modelle/DbInjektionsqueueModel.php` vollstaendig (140 Zeilen).
-- Verlaufseintrag P-2026-08-10-11 – dort wurde die Klasse ausdruecklich
-  **behalten**, mit der Begruendung „es wird benutzt".
+- `modelle/DbInjektionsqueueModel.php` vollständig (140 Zeilen).
+- Verlaufseintrag P-2026-08-10-11 – dort wurde die Klasse ausdrücklich
+  **behalten**, mit der Begründung „es wird benutzt".
 - `core/OfflineQueueManager.php` und `services/QueueService.php`, um zu sehen,
   ob eine der beiden noch etwas daraus braucht.
 
 ### DATEIEN
-- `modelle/DbInjektionsqueueModel.php` (geloescht)
+- `modelle/DbInjektionsqueueModel.php` (gelöscht)
 - `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
 
 ### AKZEPTANZKRITERIUM
-Nach dem Loeschen antwortet `terminal.php?aktion=health` weiterhin mit
+Nach dem Löschen antwortet `terminal.php?aktion=health` weiterhin mit
 `queue_verfuegbar: true` – die Offline-Queue arbeitet ohne die Klasse.
 
 ### DONE
-Erste Haelfte von T-108. Die Klasse hatte **null** Aufrufstellen.
+Erste Hälfte von T-108. Die Klasse hatte **null** Aufrufstellen.
 
 Interessant ist, wie sie tot wurde: P-2026-08-10-11 raeumte tote Klassen auf
 und entfernte dabei `core/OfflineQueueService.php` – und genau dort standen die
 beiden einzigen Verwendungen (`private DbInjektionsqueueModel $queueModel`).
 Im selben Commit steht unter „Was bewusst nicht erreicht wurde", das Model
 bleibe, „es wird benutzt". Das stimmte beim Lesen und war beim Schreiben des
-Satzes schon nicht mehr wahr. Wer eine Klasse entfernt, muss pruefen, was
-dadurch verwaist – die Aufrufstellen der geloeschten Klasse zaehlen mit.
+Satzes schon nicht mehr wahr. Wer eine Klasse entfernt, muss prüfen, was
+dadurch verwaist – die Aufrufstellen der gelöschten Klasse zählen mit.
 
 ### TEST
-- `grep` ueber alle `*.php`, `*.md`, `*.sql`, `*.sh`: kein Treffer mehr ausser
+- `grep` über alle `*.php`, `*.md`, `*.sql`, `*.sh`: kein Treffer mehr außer
   in Snapshot und Verlauf. Keine dynamische Instanziierung im Projekt
-  (`grep 'new $'` ohne Treffer), der Autoloader laedt also nur, was namentlich
+  (`grep 'new $'` ohne Treffer), der Autoloader lädt also nur, was namentlich
   dasteht.
-- `php -l` ueber **alle** PHP-Dateien des Projekts ausser der mitgelieferten
+- `php -l` über **alle** PHP-Dateien des Projekts außer der mitgelieferten
   Barcode-Bibliothek: sauber.
 - `index.php` und `terminal.php?aktion=health`: zweimal HTTP 200, Health meldet
   `hauptdb_verfuegbar: true`, `queue_verfuegbar: true`,
   `queue_speicherort: "offline"`, `queue_offen: 0`, `queue_fehler: 0`.
 
 ### Was bewusst nicht erreicht wurde
-Die zweite Haelfte von T-108: `OfflineQueueManager` und `QueueService` fuehren
+Die zweite Hälfte von T-108: `OfflineQueueManager` und `QueueService` führen
 die Regel „wo liegt die Queue" getrennt. Das ist Fachlogik am Offline-Pfad und
 bekommt einen eigenen Patch mit eigenem Test.
 
 ### NEXT
-P-2026-08-11-04: eine Regel fuer den Queue-Speicherort.
+P-2026-08-11-04: eine Regel für den Queue-Speicherort.
 
 
 ## P-2026-08-11-02 buchungen-tragen-die-terminal-id
 
 ### EINGELESEN
 - `docs/STATUS_SNAPSHOT.md` (T-102), `docs/fachregeln/terminal_und_offline.md`.
-- Verlaufseintrag P-2026-08-10-22 – dort wurde T-102 empirisch bestaetigt und
-  der Weg beschrieben, den Offline-Pfad ohne Geraet zu pruefen.
+- Verlaufseintrag P-2026-08-10-22 – dort wurde T-102 empirisch bestätigt und
+  der Weg beschrieben, den Offline-Pfad ohne Gerät zu prüfen.
 - `services/ZeitService.php` und `services/AuftragszeitService.php`
   (Online- und Offline-Zweig), `controller/TerminalController.php`
   (Buchungsstellen), `core/OfflineQueueManager.php`, `core/Helper.php`,
@@ -5494,53 +5600,53 @@ Eine Kommen-Buchung an Terminal 42 steht mit `terminal_id = 42` in
 `zeitbuchung` – online sofort, offline nach dem Einspielen der Queue.
 
 ### DONE
-T-102. Die Spalten gab es laengst, den Parameter auch – nur reichte sie
+T-102. Die Spalten gab es längst, den Parameter auch – nur reichte sie
 niemand durch. `terminal_id` war an **sechs** Stellen als `NULL`
 festverdrahtet:
 
 | Datei | Stelle |
 | --- | --- |
 | `TerminalController` | `bucheKommen()`, `bucheGehen()` |
-| `TerminalController` | Offline-SQL fuer die RFID-Buchung |
+| `TerminalController` | Offline-SQL für die RFID-Buchung |
 | `TerminalController` | Nebenauftrag, online und offline |
 | `AuftragszeitService` | `starteAuftrag()`, online und offline |
 
-Neu ist `Helper::terminalId()` als **einzige** Auskunft darueber, welches
-Geraet gerade laeuft. Sie liest `terminal.id` aus der Konfiguration, die die
+Neu ist `Helper::terminalId()` als **einzige** Auskunft darüber, welches
+Gerät gerade läuft. Sie liest `terminal.id` aus der Konfiguration, die die
 Kopplung geschrieben hat, und ist bewusst an `app.installation_typ` gebunden:
 Steht dort nicht `terminal`, liefert sie `null` – auch wenn ein
-`terminal`-Block aus einer frueheren Kopplung noch in der Datei steht. Sonst
-truege jede im Buero nachgetragene Buchung die ID eines Geraets, an dem sie nie
+`terminal`-Block aus einer früheren Kopplung noch in der Datei steht. Sonst
+trüge jede im Büro nachgetragene Buchung die ID eines Geräts, an dem sie nie
 war.
 
-Pausieren und Fortsetzen brauchten nichts: Diese Pfade uebernehmen die ID aus
+Pausieren und Fortsetzen brauchten nichts: Diese Pfade übernehmen die ID aus
 der pausierten Zeile (`$pause['terminal_id']`), erben also automatisch, sobald
 der Start sie setzt.
 
 **Eine Ausnahme von „explizit an der Aufrufstelle":** In
-`OfflineQueueManager::speichereInQueue()` faellt ein fehlendes `$terminalId`
-jetzt auf `Helper::terminalId()` zurueck. Grund: Das ist kein Buchungsfeld,
+`OfflineQueueManager::speichereInQueue()` fällt ein fehlendes `$terminalId`
+jetzt auf `Helper::terminalId()` zurück. Grund: Das ist kein Buchungsfeld,
 sondern Herkunft. Die Queue existiert nur auf einem Terminal, ein Eintrag ohne
 ID ist dort nie „von irgendwo", sondern immer „von hier" – und die neunzehn
-Aufrufstellen reichen sie ganz ueberwiegend nicht durch. Bei den Buchungen
+Aufrufstellen reichen sie ganz überwiegend nicht durch. Bei den Buchungen
 selbst steht der Wert dagegen sichtbar an der Aufrufstelle.
 
 ### TEST
-Vollstaendig durchgespielt, nach dem Muster aus P-2026-08-10-22: **Kopie** des
+Vollständig durchgespielt, nach dem Muster aus P-2026-08-10-22: **Kopie** des
 Projekts im Scratchpad, zwei **Wegwerf-Datenbanken** (`zeit_probe_t102`,
 `zeit_probe_t102_offline`) frisch aus `sql/01_initial_schema.sql` und
 `sql/offline_db_schema.sql`, ein **erfundener** Mitarbeiter. Die echte
-Konfiguration wurde nicht in die Kopie uebernommen, die echte Datenbank nicht
+Konfiguration wurde nicht in die Kopie übernommen, die echte Datenbank nicht
 angefasst. Probeterminal: ID 42.
 
 1. **Hauptdatenbank erreichbar.** `Helper::terminalId()` → `42`.
    `bucheKommen()` → `zeitbuchung #161 kommen/terminal terminal_id=42`,
    `starteAuftrag()` → `auftragszeit #9 haupt terminal_id=42`.
 2. **Hauptdatenbank weg.** Beide Aufrufe liefern `0` (Queue). In der Queue
-   stehen vier Eintraege, alle mit `meta_terminal_id=42`; in den beiden
+   stehen vier Einträge, alle mit `meta_terminal_id=42`; in den beiden
    INSERT-Befehlen ist Spalte 7 (`terminal_id`) der Wert `42` – nachgemessen,
-   nicht ueberflogen.
-3. **Hauptdatenbank zurueck.** `verarbeiteOffeneEintraege()` → `offen=0`,
+   nicht überflogen.
+3. **Hauptdatenbank zurück.** `verarbeiteOffeneEintraege()` → `offen=0`,
    `fehler=0`; die nachgezogenen Zeilen `zeitbuchung #162` und
    `auftragszeit #10` tragen ebenfalls `terminal_id=42`.
 4. **Gegenprobe Backend.** Dieselbe Konfiguration, nur
@@ -5548,35 +5654,35 @@ angefasst. Probeterminal: ID 42.
    gelassen: `Helper::terminalId()` → `null`, und die Web-Buchung landet als
    `zeitbuchung #163 kommen/web terminal_id=NULL`.
 
-Dazu `Helper::terminalId()` einzeln gegen sieben Konfigurationen geprueft
+Dazu `Helper::terminalId()` einzeln gegen sieben Konfigurationen geprüft
 (Zahl, Ziffernfolge als Text, `0`, fehlend, `'abc'`, Backend mit vorhandener
-ID, `installation_typ` gross geschrieben) – alle sieben wie erwartet.
+ID, `installation_typ` groß geschrieben) – alle sieben wie erwartet.
 
-Aufgeraeumt: beide Wegwerf-Datenbanken geloescht, Projektkopie entfernt, in der
+Aufgeräumt: beide Wegwerf-Datenbanken gelöscht, Projektkopie entfernt, in der
 echten Datenbank weiterhin **0** Zeilen mit `terminal_id`, `git status` zeigt
 nur die vier Quelldateien.
 
-`php -l` auf allen vier geaenderten PHP-Dateien sauber.
+`php -l` auf allen vier geänderten PHP-Dateien sauber.
 
 ### Gefundene Fehler im eigenen Entwurf
-**Beinahe den falschen Pfad gemessen.** Der Plan war, die Hauptdatenbank ueber
+**Beinahe den falschen Pfad gemessen.** Der Plan war, die Hauptdatenbank über
 einen toten Port unerreichbar zu machen, also `'port' => 59999` in die
-Konfiguration der Kopie. Diesen Schluessel gibt es aber nicht:
+Konfiguration der Kopie. Diesen Schlüssel gibt es aber nicht:
 `Database::erstellePdoAusKonfig()` baut den DSN aus `host`, `dbname` und
 `charset` – ein `port` daneben wird stillschweigend ignoriert, die Verbindung
-geht weiter auf 3306. Der Test haette dann den **Online**-Pfad gemessen und ihn
-fuer den Offline-Pfad gehalten, und zwar unauffaellig: Die Buchung waere
+geht weiter auf 3306. Der Test hätte dann den **Online**-Pfad gemessen und ihn
+für den Offline-Pfad gehalten, und zwar unauffällig: Die Buchung wäre
 erfolgreich gewesen, nur eben in der falschen Tabelle.
 
-Wer wirklich einen anderen Port braucht, setzt den vollstaendigen `dsn` – den
-wertet die Methode als Erstes aus. Fuer den Test war das unnoetig: Ein
+Wer wirklich einen anderen Port braucht, setzt den vollständigen `dsn` – den
+wertet die Methode als Erstes aus. Für den Test war das unnötig: Ein
 Datenbankname, den es nicht gibt, macht `istHauptdatenbankVerfuegbar()` sofort
 und ohne Wartezeit zu `false`.
 
-Beinahe-Fehler, vorher geprueft: Die Offline-SQL fuer die RFID-Buchung wird
-spaeter von `ermittleOfflineHintFuerRfid()` per `LIKE` im Text wiedergefunden.
-Das Suchmuster deckt nur `rfid_code = '…'` ab, die geaenderte letzte Spalte
-liegt ausserhalb – sonst haette die Buchung ihren eigenen Queue-Eintrag nicht
+Beinahe-Fehler, vorher geprüft: Die Offline-SQL für die RFID-Buchung wird
+später von `ermittleOfflineHintFuerRfid()` per `LIKE` im Text wiedergefunden.
+Das Suchmuster deckt nur `rfid_code = '…'` ab, die geänderte letzte Spalte
+liegt außerhalb – sonst hätte die Buchung ihren eigenen Queue-Eintrag nicht
 mehr gefunden.
 
 ### Was bewusst nicht erreicht wurde
@@ -5584,14 +5690,14 @@ mehr gefunden.
   soll auch keine geben: Woher eine Buchung von gestern kam, ist nicht mehr zu
   ermitteln, und geraten wird nicht.
 - **`system_log.terminal_id` bleibt, wie es ist.** Der `Logger` bekommt die ID
-  weiterhin von der Aufrufstelle. Das ist dieselbe Luecke eine Etage tiefer,
+  weiterhin von der Aufrufstelle. Das ist dieselbe Lücke eine Etage tiefer,
   aber ein eigenes Thema mit eigenem Akzeptanzkriterium.
-- **`Database` bekommt keinen `port`-Schluessel.** Waere bequemer als der
-  vollstaendige `dsn`, ist aber kein Fehler und kein offener Punkt – nur eine
+- **`Database` bekommt keinen `port`-Schlüssel.** Wäre bequemer als der
+  vollständige `dsn`, ist aber kein Fehler und kein offener Punkt – nur eine
   Stolperstelle, die jetzt oben dokumentiert ist.
 
 ### NEXT
-Naechster offener Punkt aus dem Snapshot: B-093 (abteilungsbezogene
+Nächster offener Punkt aus dem Snapshot: B-093 (abteilungsbezogene
 Rollenzuweisungen wirken nicht).
 
 
@@ -5603,7 +5709,7 @@ Rollenzuweisungen wirken nicht).
 - `views/layout/header.php`, Regelblock `button, .button-link` und die
   Ableitungen `td .table-actions` und `.pager .button-link`.
 - `controller/AuftragController.php`, Auftragsliste (Kopfleiste, Suchleiste,
-  Aktionsspalte) als Beispiel fuer die Mischung aus beiden Knopfarten.
+  Aktionsspalte) als Beispiel für die Mischung aus beiden Knopfarten.
 
 ### DATEIEN
 - `views/layout/header.php`
@@ -5621,15 +5727,15 @@ und `.button-link`.
 Der Grund war nicht zu sehen, sondern nur zu messen. Beide Knopfarten bekommen
 seit jeher dieselben Angaben – `padding: 0.38rem 0.68rem`, `min-height: 2rem`.
 Nur rechnet der Browser sie verschieden: Einem `<button>` gibt er von sich aus
-`border-box`, einem `<a>` nicht. Bei `content-box` gilt `min-height` allein fuer
+`border-box`, einem `<a>` nicht. Bei `content-box` gilt `min-height` allein für
 den Inhalt, Innenabstand und Rahmen kommen obendrauf. Aus derselben Regel wurden
-so zwei Hoehen:
+so zwei Höhen:
 
 | Ort | `<button>` | `<a class="button-link">` |
 | --- | --- | --- |
-| Suchleiste („Suchen" / „Zuruecksetzen") | 32,16 px | 46,16 px |
+| Suchleiste („Suchen" / „Zurücksetzen") | 32,16 px | 46,16 px |
 | Tabellenzeile („Inaktiv setzen" / „Details") | 28,00 px | 37,66 px |
-| Formularfuss („Speichern" / „Abbrechen") | 32,16 px | 46,16 px |
+| Formularfuß („Speichern" / „Abbrechen") | 32,16 px | 46,16 px |
 
 Danach sind es in jeder Zeile zwei gleiche Werte, und weil `.table-actions`
 mittig ausrichtet, deckt sich auch die Oberkante (Tabellenzeile vorher: Link ab
@@ -5637,49 +5743,49 @@ mittig ausrichtet, deckt sich auch die Oberkante (Tabellenzeile vorher: Link ab
 
 Zwei Nebenwirkungen, beide gewollt:
 
-- Die **Blaetterleiste** wird kompakter. `.pager .button-link` setzt
+- Die **Blätterleiste** wird kompakter. `.pager .button-link` setzt
   `min-width: 2.1rem`; unter `content-box` kamen Innenabstand und Rahmen noch
-  dazu, die Ziffernknoepfe waren 51,6 px breit statt der gemeinten 33,6 px.
-- Die **Zeilenhoehe** der Tabellen sinkt um rund 10 px, weil der zu hohe Link
-  die Zelle nicht mehr aufblaeht.
+  dazu, die Ziffernknöpfe waren 51,6 px breit statt der gemeinten 33,6 px.
+- Die **Zeilenhöhe** der Tabellen sinkt um rund 10 px, weil der zu hohe Link
+  die Zelle nicht mehr aufbläht.
 
 ### TEST
 - Probeseite mit dem Stylesheet aus `header.php` und **erfundenen** Daten
   gebaut (Auftragsliste mit Kopfleiste, Suchleiste, zwei Zeilen,
-  Blaetterleiste, Formularfuss) und im Browser gerendert. Bewusst nicht die
-  echte Maske: Die lokale Datenbank enthaelt echte Personendaten.
-- Auf derselben Seite alle zehn Knoepfe per `getBoundingClientRect()` gemessen,
+  Blätterleiste, Formularfuß) und im Browser gerendert. Bewusst nicht die
+  echte Maske: Die lokale Datenbank enthält echte Personendaten.
+- Auf derselben Seite alle zehn Knöpfe per `getBoundingClientRect()` gemessen,
   vorher und nachher – die Zahlen oben stammen daraus. Vorher zehn Elemente mit
   zwei verschiedenen `box-sizing`-Werten, nachher zehnmal `border-box` und in
-  jedem Paar dieselbe Hoehe.
+  jedem Paar dieselbe Höhe.
 - `php -l views/layout/header.php` sauber.
-- Gegengesucht, ob eine Maske eine eigene Groesse auf einen Knopf schreibt und
-  von `content-box` abhaengen koennte: nur `views/terminal/start.php`, und das
+- Gegengesucht, ob eine Maske eine eigene Größe auf einen Knopf schreibt und
+  von `content-box` abhängen könnte: nur `views/terminal/start.php`, und das
   Terminal bindet `views/layout/header.php` nicht ein.
 
 ### Gefundene Fehler im eigenen Entwurf
-Keine – aber der Fehler selbst gehoert hierher, denn er stammt aus T-109. Beim
+Keine – aber der Fehler selbst gehört hierher, denn er stammt aus T-109. Beim
 Zusammenlegen der Knopfstile ist genau die Angabe untergegangen, die zwei
-verschiedene HTML-Elemente ueberhaupt erst gleich rechnen laesst. Der Quelltext
+verschiedene HTML-Elemente überhaupt erst gleich rechnen lässt. Der Quelltext
 sah danach richtig aus: eine Regel, ein Satz Werte, beide Selektoren. Sichtbar
 wurde es erst im Bild, und begreifbar erst in Zahlen.
 
-Daraus die Regel fuer den naechsten Knopf: Wer `min-height`, `min-width` oder
+Daraus die Regel für den nächsten Knopf: Wer `min-height`, `min-width` oder
 `height` an etwas schreibt, das mal `<a>` und mal `<button>` ist, muss
-`box-sizing` dazuschreiben – sonst meint dieselbe Zahl zwei Groessen.
+`box-sizing` dazuschreiben – sonst meint dieselbe Zahl zwei Größen.
 
 ### Was bewusst nicht erreicht wurde
 - **Suchfeld und Knopf sind weiterhin 1,7 px verschieden hoch** (33,88 zu
-  32,16). Beide stehen unten buendig, der Unterschied faellt nicht auf. Ihn
-  wegzubekommen hiesse, am Innenabstand der Eingabefelder zu drehen – das
+  32,16). Beide stehen unten bündig, der Unterschied fällt nicht auf. Ihn
+  wegzubekommen hieße, am Innenabstand der Eingabefelder zu drehen – das
   betrifft jedes Formular im System und ist ein eigenes Thema.
-- **Am Aussehen selbst wurde nichts geaendert** – keine andere Farbe, kein
+- **Am Aussehen selbst wurde nichts geändert** – keine andere Farbe, kein
   anderer Radius, kein anderer Abstand. Ob „Details" in jeder Zeile ein voller
   blauer Knopf sein soll oder besser ein `.quiet` (der Kommentar bei `.quiet`
-  argumentiert dafuer), ist eine Gestaltungsfrage und kein Fehler.
+  argumentiert dafür), ist eine Gestaltungsfrage und kein Fehler.
 
 ### NEXT
-Weiter im Praxis-Test. Naechster Schritt bleibt der Geraetetest.
+Weiter im Praxis-Test. Nächster Schritt bleibt der Gerätetest.
 
 
 ## P-2026-08-10-42 restliche-masken-nutzen-die-klassen
@@ -5688,7 +5794,7 @@ Weiter im Praxis-Test. Naechster Schritt bleibt der Geraetetest.
 - Alle in T-109 verbliebenen Masken (Urlaub, Rundungsregeln, Terminals,
   Kontingente, Kurzarbeit, Rollen, Mitarbeiter, Stundenkonto, Queue, Katalog,
   Maschinen, Feiertage) sowie die Reste in Dashboard, Tagesansicht und
-  Monatsuebersicht.
+  Monatsübersicht.
 - `views/layout/header.php`, gesamter Klassenbestand.
 
 ### DATEIEN
@@ -5709,45 +5815,45 @@ Weiter im Praxis-Test. Naechster Schritt bleibt der Geraetetest.
 - `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
 
 ### AKZEPTANZKRITERIUM
-Eine Suche nach `style="…background/color/border…"` ueber `controller` und
-`views` findet ausser `SmokeTestController` keine Maske mehr, und 19
+Eine Suche nach `style="…background/color/border…"` über `controller` und
+`views` findet außer `SmokeTestController` keine Maske mehr, und 19
 gerenderte Seiten liefern null Eigenfarben im HTML aus.
 
 ### DONE
 Abschluss von T-109. Dieselben Muster tauchten in fast jeder Maske wieder auf,
 jedes Mal leicht anders geschrieben:
 
-- gruener Erfolgs- und roter Fehlerkasten (`#e8f5e9` / `#ffebee`) →
+- grüner Erfolgs- und roter Fehlerkasten (`#e8f5e9` / `#ffebee`) →
   `div.success`, `div.error`
-- graue Randnotiz in sieben Grautoenen (`#444`, `#555`, `#666`, `#777`, `#888`,
+- graue Randnotiz in sieben Grautönen (`#444`, `#555`, `#666`, `#777`, `#888`,
   `#999`, `#5d6b73`) → `.muted`
 - Link oder Knopf, der einen Knopf nachbaute → `.button-link` bzw. `.quiet`
 
 Sieben Bausteine kamen dazu, weil es sie wirklich brauchte:
 
-- **`.info-panel`** – Gegenstueck zu `.warning-panel` fuer den einmalig
-  angezeigten Kopplungscode eines Terminals: auffaellig, aber keine Warnung.
+- **`.info-panel`** – Gegenstück zu `.warning-panel` für den einmalig
+  angezeigten Kopplungscode eines Terminals: auffällig, aber keine Warnung.
 - **`.zeile-markiert`** – die orange hervorgehobene Zeile in der
   Genehmigungsliste, auf die aus einer Meldung heraus verwiesen wird.
 - **`.zeile-wochenende`** – Samstag und Sonntag im Stundenkonto.
 - **`.admin-card.zustand-ok` / `.zustand-fehler`** und **`.wert-ok` /
   `.wert-fehler`** – die Statuskacheln des Dashboards. Vorher rechnete die
   Maske sich Hintergrund und Schriftfarbe in Variablen (`$dbBg`, `$dbFarbe`)
-  aus; jetzt entscheidet sie nur noch ueber den **Zustand**, nicht ueber die
+  aus; jetzt entscheidet sie nur noch über den **Zustand**, nicht über die
   Farbe.
 - **`pre.code-block`** – SQL- und Fehlerausgabe in der Offline-Queue.
-- **`.stealth-rahmen`** – der auffaellige Rahmen um das Stundenkonto im
+- **`.stealth-rahmen`** – der auffällige Rahmen um das Stundenkonto im
   Stealth-Modus.
 - **`hr.trenner`** – feine Trennlinie in Karten und Zellen.
 
 ### TEST
-- 19 Masken ueber den Router gerendert: Dashboard, Tagesansicht,
-  Monatsuebersicht, Auftragsliste, Urlaub (eigene/Genehmigung/Verwaltung),
+- 19 Masken über den Router gerendert: Dashboard, Tagesansicht,
+  Monatsübersicht, Auftragsliste, Urlaub (eigene/Genehmigung/Verwaltung),
   Katalog, Rundungsregeln, Terminals, Kontingente, Kurzarbeit, Queue,
   Rollenformular, Mitarbeiterformular, Stundenkonto, Maschinen, Feiertage,
   Konfiguration – alle ohne Meldung und mit **null** Eigenfarben im HTML.
-- Rundungsregeln, Katalog und Dashboard zusaetzlich als Bild geprueft.
-- `php -l` auf allen geaenderten Dateien sauber.
+- Rundungsregeln, Katalog und Dashboard zusätzlich als Bild geprüft.
+- `php -l` auf allen geänderten Dateien sauber.
 
 ### Gefundene Fehler im eigenen Entwurf
 Zwei, beide erst im Bild sichtbar:
@@ -5755,28 +5861,28 @@ Zwei, beide erst im Bild sichtbar:
 **Halbe Umstellung sieht schlechter aus als gar keine.** In den Rundungsregeln
 stand „Neue Regel anlegen" als Link, daneben „Standardregeln anlegen" – und nur
 Letzteres wurde zum Knopf. Im Bild standen dann ein nackter Link, ein
-uebriggebliebener Strich `|` und ein Knopf nebeneinander. Dasselbe im Katalog
-mit dem Druckblatt-Link. Beide Zeilen jetzt vollstaendig als `.table-actions`
+übriggebliebener Strich `|` und ein Knopf nebeneinander. Dasselbe im Katalog
+mit dem Druckblatt-Link. Beide Zeilen jetzt vollständig als `.table-actions`
 mit Haupt- und Nebenknopf. Wer Bedienelemente vereinheitlicht, muss die
 **ganze** Zeile ansehen, nicht die Stelle, die der `grep` gefunden hat.
 
 **`.admin-card strong` zerriss die Statuskacheln.** Die Regel machte *jedes*
-`strong` in einer Karte zum Block – gedacht war die Ueberschrift. Als die
+`strong` in einer Karte zum Block – gedacht war die Überschrift. Als die
 Dashboard-Kacheln auf `.admin-card` umgestellt wurden, stand danach „Aktiv:"
 und „0" auf zwei Zeilen. Jetzt `.admin-card > strong`. Eine Klasse zu benutzen
-heisst eben auch, alles zu erben, was sie sonst noch tut.
+heißt eben auch, alles zu erben, was sie sonst noch tut.
 
 ### Was bewusst nicht erreicht wurde
-`SmokeTestController` (61 Stellen) bleibt wie angekuendigt aussen vor – siehe
-T-105: praktisch nicht mehr aenderbar, und ein Diagnosewerkzeug, das im Alltag
+`SmokeTestController` (61 Stellen) bleibt wie angekündigt außen vor – siehe
+T-105: praktisch nicht mehr änderbar, und ein Diagnosewerkzeug, das im Alltag
 niemand sieht.
 
-Reine Layoutangaben (Breiten, Abstaende, `border-bottom` in
-Dashboard-Tabellen) sind geblieben. Sie sind keine Farbe und gehoeren in einen
+Reine Layoutangaben (Breiten, Abstände, `border-bottom` in
+Dashboard-Tabellen) sind geblieben. Sie sind keine Farbe und gehören in einen
 eigenen Durchgang, falls er je gebraucht wird.
 
-Die Terminal-Oberflaeche (`terminal.css`) ist nicht betroffen: Sie ist bewusst
-eine eigene Gestaltung fuer den Touchbetrieb in der Halle.
+Die Terminal-Oberfläche (`terminal.css`) ist nicht betroffen: Sie ist bewusst
+eine eigene Gestaltung für den Touchbetrieb in der Halle.
 
 ### NEXT
 Praxis-Test. Neue Masken bauen sich ab jetzt aus `views/layout/header.php`.
@@ -5807,7 +5913,7 @@ verschwunden:
 
 - `<strong style="color:#b00020;">` – doppelt gemoppelt, `.warning-panel` färbt
   seine Überschrift bereits.
-- `color:#333` auf Fliesstext – das ist die Grundfarbe, nur dunkler geraten.
+- `color:#333` auf Fließtext – das ist die Grundfarbe, nur dunkler geraten.
 - `color:#666`/`#999`/`#555` auf Randangaben und Trennzeichen → `.muted`.
 - Der Hinweiskasten der Lohnfortzahlung → `p.notice`.
 - „Tag öffnen" war ein Link, der einen Knopf nachbaute → `.button-link quiet`.
@@ -5815,21 +5921,21 @@ verschwunden:
 ### TEST
 - Probe-Seite mit beiden Verschachtelungen gebaut und im Bild geprüft:
   Überschrift als direktes Kind rot, Überschrift als Enkel mit `.panel-titel`
-  rot, fette Wörter im Fliesstext darunter schwarz.
+  rot, fette Wörter im Fließtext darunter schwarz.
 - Dashboard, Konfigurationsübersicht und Konfigurations-Bearbeitenmaske
   gerendert: keine Meldungen, **keine** Eigenfarbe mehr im ausgelieferten HTML.
 - Dashboard zusätzlich als Bild angesehen (Schnellzugriff, Systemstatus).
 - `php -l` auf allen drei geänderten Dateien sauber.
 
 ### Gefundene Fehler im eigenen Entwurf
-**Zwei der drei Überschriften waren gar keine direkten Kinder.** Die Regel heisst
+**Zwei der drei Überschriften waren gar keine direkten Kinder.** Die Regel heißt
 `.warning-panel > strong`; im Dashboard steckt die Überschrift aber in einem
 Zwischen-`div`, das sie neben die Randangabe stellt. Nach dem Entfernen des
-`style`-Attributs waeren diese beiden Überschriften schwarz geworden.
+`style`-Attributs wären diese beiden Überschriften schwarz geworden.
 
-Der naheliegende Ausweg – aus `>` ein Leerzeichen machen – waere schlimmer
-gewesen: Dann faerbt die Regel **jedes** fette Wort im Kasten rot, auch mitten
-im Fliesstext („ungleiche Anzahl"). Stattdessen `.panel-titel` als
+Der naheliegende Ausweg – aus `>` ein Leerzeichen machen – wäre schlimmer
+gewesen: Dann färbt die Regel **jedes** fette Wort im Kasten rot, auch mitten
+im Fließtext („ungleiche Anzahl"). Stattdessen `.panel-titel` als
 ausdrückliche Auszeichnung der Überschrift.
 
 ### Was bewusst nicht erreicht wurde
@@ -5873,17 +5979,17 @@ Fortsetzung von T-109, zweite Gruppe. Hier lagen zwei verschiedene Fälle
 nebeneinander, und sie brauchen verschiedene Antworten:
 
 **Gestaltung ohne Aussage** – Flash-Meldungen, Hinweiskästen, graue
-Randnotizen, der rote Kasten „Buchung bearbeiten", die Fusszeile. Die
+Randnotizen, der rote Kasten „Buchung bearbeiten", die Fußzeile. Die
 verschwinden ersatzlos in die vorhandenen Klassen: `p.success`, `p.error`,
 `p.notice`, `.muted`, `.warning-panel`, `footer`.
 
-**Farbe, die etwas bedeutet** – in der Monatsübersicht heisst Rot „von Hand
+**Farbe, die etwas bedeutet** – in der Monatsübersicht heißt Rot „von Hand
 korrigiert", Gelb „Betriebsferien", rot-fett „FEHLT". Die darf nicht
 verschwinden, sie soll nur an **einer** Stelle definiert sein: neue Klassen
 `.zelle-manuell`, `.zeile-betriebsferien`, `.wert-fehlt`, `.hinweis-fehlt`.
 Gleiche Farbwerte wie vorher – dieser Patch ändert das Bild nicht, nur den Ort.
 
-Ausserdem: Zeilenaktionen der Tagesansicht als Knöpfe (`Bearbeiten` blau,
+Außerdem: Zeilenaktionen der Tagesansicht als Knöpfe (`Bearbeiten` blau,
 `Löschen` rot) statt Link-Strich-Formular, „Abbrechen" als zurückhaltender
 Knopf, und `views/auftragszeit/bearbeiten.php` bekommt eine `.form-actions`-
 Zeile samt Abbrechen-Knopf, die vorher fehlte.
@@ -5941,7 +6047,7 @@ T-109 weiter: Dashboard und Konfiguration.
 
 ### AKZEPTANZKRITERIUM
 In der Auftragsliste sind „Details" und „Inaktiv setzen" Knöpfe in derselben
-Farbgebung wie „+ Auftrag hinzufuegen", und „Zuruecksetzen" ist ein Knopf statt
+Farbgebung wie „+ Auftrag hinzufügen", und „Zurücksetzen" ist ein Knopf statt
 eines Links.
 
 ### DONE
@@ -5955,7 +6061,7 @@ stattdessen elf Mal eigene Farben und Rahmen per `style="…"` gesetzt.
 Also nichts Neues erfunden, sondern das Vorhandene benutzt. Ergänzt wurden nur
 drei Bausteine, die noch fehlten:
 
-- **`.quiet`** – gleiche Knopfform, weniger Gewicht (weiss mit blauer Schrift).
+- **`.quiet`** – gleiche Knopfform, weniger Gewicht (weiß mit blauer Schrift).
   Eine Tabellenzeile mit zwei kräftig blauen Knöpfen ist nur noch Farbe; der
   Haupthebel bleibt blau, der zweite tritt zurück.
 - **`:disabled` / `.disabled`** – ausgegraut statt versteckt, damit die
@@ -5968,7 +6074,7 @@ Umgestellt in allen vier Auftragsmasken: Flash-Meldungen auf `p.success`/
 `p.error`, Kopfzeile und Zeilenaktionen auf `.table-actions`, Suchzeile auf
 `.toolbar`, Formularknöpfe auf `.form-actions`, Löschen auf `.warning-panel` mit
 `button.danger`, graue Zeilen auf `.muted`, Tabelle in `.table-wrap` (scrollt
-waagerecht, statt die Seite zu sprengen). „Reset" heisst jetzt „Zuruecksetzen"
+waagerecht, statt die Seite zu sprengen). „Reset" heißt jetzt „Zurücksetzen"
 und ist ein Knopf.
 
 Übrig bleiben in dieser Datei nur noch Breiten- und Abstandsangaben – keine
@@ -5979,7 +6085,7 @@ Masken im kopflosen Firefox gerendert und angesehen:
 
 - Liste: blauer Hauptknopf, zurückhaltender Nebenknopf, „Details" und
   „Inaktiv setzen" nebeneinander in einer Zeile, inaktive Zeile grau.
-- Blätterleiste bei 162 Aufträgen auf Seite 4: „76–100 von 162 Auftraegen",
+- Blätterleiste bei 162 Aufträgen auf Seite 4: „76–100 von 162 Aufträgen",
   `« ‹ 1 2 3 [4] 5 6 7 › »`, aktuelle Seite gefüllt, „Seite 4 von 7".
 - Detailansicht: Kopfaktionen als Knöpfe, Karten für Arbeitsschritte, rot
   umrandeter Löschbereich mit rotem Knopf.
@@ -5994,7 +6100,7 @@ Hauptnavigation (`nav { background-color: #37474f; color: #fff; }`). Wer eine
 Klasse vergibt, hat damit noch nicht den Elementselektor überschrieben.
 
 **Die Zeilenknöpfe standen übereinander.** `.table-actions` bricht um; in einer
-schmalen Tabellenspalte heisst das sofort zwei Zeilen und doppelte Zeilenhöhe.
+schmalen Tabellenspalte heißt das sofort zwei Zeilen und doppelte Zeilenhöhe.
 In Tabellenzellen gilt jetzt `flex-wrap: nowrap` – wird die Tabelle dadurch zu
 breit, scrollt `.table-wrap`.
 
@@ -6017,7 +6123,7 @@ abgearbeitet werden kann (Stand dieses Patches):
 `TerminalAdminController`, `KurzarbeitAdminController`,
 `KonfigurationController`.
 
-`SmokeTestController` bleibt bewusst aussen vor (61 Stellen, T-105): ein
+`SmokeTestController` bleibt bewusst außen vor (61 Stellen, T-105): ein
 Diagnosewerkzeug, das ohnehin niemand im Alltag sieht.
 
 `public/css/app.css` ist tote Datei – sie wird von keiner Maske eingebunden, das
@@ -6036,7 +6142,7 @@ T-109 Maske für Maske, beginnend bei `views/report/monatsuebersicht.php`.
 - `core/Logger.php`, Signatur von `info()`; `services/AuthService.php`,
   `holeAngemeldeteMitarbeiterId()`.
 - `sql/01_initial_schema.sql`: `auftragszeit` hat **keine** Fremdschlüssel auf
-  `auftrag` – die Datenbank haelt hier nichts auf.
+  `auftrag` – die Datenbank hält hier nichts auf.
 
 ### DATEIEN
 - `controller/AuftragController.php`
@@ -6045,16 +6151,16 @@ T-109 Maske für Maske, beginnend bei `views/report/monatsuebersicht.php`.
 - `docs/archiv/DEV_PROMPT_HISTORY.md`
 
 ### AKZEPTANZKRITERIUM
-Ein Auftrag ohne Buchungen verschwindet über „Auftrag endgueltig loeschen" samt
+Ein Auftrag ohne Buchungen verschwindet über „Auftrag endgültig löschen" samt
 seiner Arbeitsschritte; bei `123123123123` (eine Buchung) erscheint stattdessen
 der Hinweis, ihn auf inaktiv zu setzen.
 
 ### DONE
 Löschen gibt es jetzt – aber nur dort, wo es niemandem etwas wegnimmt.
 
-Ein Auftrag mit Buchungen wird **nicht** gelöscht. Die gebuchten Stunden waeren
+Ein Auftrag mit Buchungen wird **nicht** gelöscht. Die gebuchten Stunden wären
 sonst einer Nummer zugeordnet, zu der es nichts mehr gibt; die Auswertung zeigte
-Zeit ohne Auftrag. Fuer diesen Fall gibt es „inaktiv" (P-2026-08-10-35), und
+Zeit ohne Auftrag. Für diesen Fall gibt es „inaktiv" (P-2026-08-10-35), und
 genau darauf verweist der Hinweis in der Detailansicht.
 
 Der Knopf steht in der Detailansicht, nicht in der Liste: Eine unumkehrbare
@@ -6069,8 +6175,8 @@ Jede Löschung geht mit Mitarbeiter-ID nach `system_log` – es ist der einzige 
 auf dem Auftragsstammdaten aus der Datenbank verschwinden.
 
 ### TEST
-- `123123123123` (1 Buchung): Detailansicht zeigt „Nicht moeglich: An diesem
-  Auftrag haengt eine Buchung", kein Knopf im HTML. Der POST von Hand wird
+- `123123123123` (1 Buchung): Detailansicht zeigt „Nicht möglich: An diesem
+  Auftrag hängt eine Buchung", kein Knopf im HTML. Der POST von Hand wird
   ebenfalls abgewiesen, Bestand bleibt bei 3 Aufträgen.
 - Testauftrag `TEST-LOESCHEN` mit zwei Arbeitsschritten angelegt und gelöscht:
   Auftrag weg, keine verwaisten Arbeitsschritte, Bestand wieder 3.
@@ -6080,17 +6186,17 @@ auf dem Auftragsstammdaten aus der Datenbank verschwinden.
 
 ### Gefundene Fehler im eigenen Entwurf
 Der erste Entwurf prüfte die Buchungen nur beim Aufbau der Seite – der Knopf
-waere also aus einer Momentaufnahme entstanden. Zwischen Seitenaufbau und Klick
+wäre also aus einer Momentaufnahme entstanden. Zwischen Seitenaufbau und Klick
 kann in der Halle aber ein Scan dazwischenkommen. Die Prüfung sitzt jetzt im
 Controller und die Anzeige ist nur noch die Höflichkeit davor.
 
-Ausserdem stand in der Meldung „An diesem Auftrag haengen eine Buchung" –
+Außerdem stand in der Meldung „An diesem Auftrag hängen eine Buchung" –
 Singular und Plural jetzt getrennt formuliert.
 
 ### Was bewusst nicht erreicht wurde
 Die erzeugten Strichcode-PNG bleiben liegen. Sie tragen die Auftrags-ID im
 Dateinamen, sind reine Zwischendateien und werden bei Bedarf neu erzeugt; sie
-mitzulöschen waere ein zweites Thema (Aufräumen des Bildcaches).
+mitzulöschen wäre ein zweites Thema (Aufräumen des Bildcaches).
 
 Kein Massenlöschen und kein Papierkorb. Wer viel wegräumen will, setzt auf
 inaktiv – das ist der reversible Weg und deshalb der richtige.
@@ -6124,9 +6230,9 @@ Die Regel lautet jetzt: **Ausblenden gilt fürs Blättern, nicht fürs Suchen.**
 
 - Ohne Suchbegriff zeigt die Liste unverändert nur die aktiven Aufträge.
 - Sobald gesucht wird, geht die Suche über den ganzen Bestand. Das Häkchen
-  „Auch inaktive Auftraege durchsuchen" ist gesetzt und lässt sich abwählen.
+  „Auch inaktive Aufträge durchsuchen" ist gesetzt und lässt sich abwählen.
 - Inaktive Treffer stehen grau in der Liste; die Spalte „Aktiv" sagt es
-  ausserdem im Klartext.
+  außerdem im Klartext.
 - Der Umschaltknopf richtet sich jetzt nach der **Zeile** statt nach der
   Ansicht – in einer gemischten Trefferliste steht neben dem einen „Inaktiv
   setzen" und neben dem anderen „Aktiv setzen".
@@ -6134,13 +6240,13 @@ Die Regel lautet jetzt: **Ausblenden gilt fürs Blättern, nicht fürs Suchen.**
 Zur Wortwahl: Es bleibt bei „inaktiv" statt „fertig" oder „erledigt". Die Liste
 hat bereits eine Status-Spalte, die aus den Buchungen berechnet wird und dort
 „abgeschlossen" anzeigt. Zwei Wörter für zweierlei Bedeutung in derselben
-Tabelle waeren die schlechtere Lösung; ausserdem heisst es bei den
+Tabelle wären die schlechtere Lösung; außerdem heißt es bei den
 Arbeitsschritten schon so.
 
 ### TEST
 - `A-2026` → 2 Treffer: `A-2026-0815` normal, `A-2026-0999` grau.
 - Dieselbe Suche mit `mit_inaktiven=0` → nur `A-2026-0815`.
-- Ohne Suchbegriff → 2 aktive Aufträge, der inaktive bleibt aussen vor.
+- Ohne Suchbegriff → 2 aktive Aufträge, der inaktive bleibt außen vor.
 - Knöpfe in der gemischten Liste: `A-2026-0815` sendet `aktiv=0` („Inaktiv
   setzen"), `A-2026-0999` sendet `aktiv=1` („Aktiv setzen").
 - Häkchen-Zustand überlebt Blättern und Umschalten (`mit_inaktiven` steht in
@@ -6149,13 +6255,13 @@ Arbeitsschritten schon so.
 
 ### Gefundene Fehler im eigenen Entwurf
 Ein abgewähltes Häkchen sendet **gar nichts** – „nicht gesetzt" und „noch nie
-angezeigt" waeren damit derselbe Zustand gewesen, und das Häkchen liesse sich
+angezeigt" wären damit derselbe Zustand gewesen, und das Häkchen ließe sich
 nie abwählen. Gelöst mit einem versteckten Feld gleichen Namens **vor** der
 Checkbox: Der Wert kommt so immer mit, der spätere gewinnt.
 
-Ausserdem hing die Beschriftung des Umschaltknopfs zuerst an der Ansicht
+Außerdem hing die Beschriftung des Umschaltknopfs zuerst an der Ansicht
 (`$nurInaktive`). In einer Suche über alles stehen aber beide Sorten
-nebeneinander – dann haette der Knopf bei der Hälfte der Zeilen das Falsche
+nebeneinander – dann hätte der Knopf bei der Hälfte der Zeilen das Falsche
 getan.
 
 ### Was bewusst nicht erreicht wurde
@@ -6180,7 +6286,7 @@ Farbgebung der Liste.
 
 ### AKZEPTANZKRITERIUM
 Bei 162 Aufträgen zeigt die Liste 25 Zeilen, darunter „1–25 von 162
-Auftraegen", und `?seite=auftrag&s=7` zeigt die letzten 12.
+Aufträgen", und `?seite=auftrag&s=7` zeigt die letzten 12.
 
 ### DONE
 Die Liste war bei `LIMIT 200` hart abgeschnitten – ohne Hinweis, dass etwas
@@ -6189,10 +6295,10 @@ fehlt. Jetzt 25 Zeilen je Seite mit Blätternavigation darunter:
 - **Seitenzahlen** immer, mit einem Fenster von drei Seiten um die aktuelle und
   Auslassungspunkten zu Anfang und Ende (`1 … 4 5 6 7`).
 - **Sprungpfeile** `«` (Anfang), `‹` (zurück), `›` (vor), `»` (Ende) erst ab
-  fünf Seiten. Bei vier Seiten stehen ohnehin alle Zahlen da; Pfeile waeren nur
+  fünf Seiten. Bei vier Seiten stehen ohnehin alle Zahlen da; Pfeile wären nur
   ein zweiter Weg zum selben Ziel. Am Rand sind sie ausgegraut statt versteckt,
   damit die Zeile nicht springt.
-- **Trefferzeile** „26–50 von 162 Auftraegen" – die Zahl ist die eigentliche
+- **Trefferzeile** „26–50 von 162 Aufträgen" – die Zahl ist die eigentliche
   Auskunft, die vorher fehlte.
 
 Gezählt wird mit einer eigenen Abfrage über dieselbe Grundmenge, aber **ohne**
@@ -6228,12 +6334,12 @@ assoziativen Array als Zeichenkette, und `LIMIT '25'` ist ein Syntaxfehler. Beid
 Werte stehen jetzt als geprüfte Ganzzahl in der Abfrage, mit Begründung als
 Kommentar – sonst baut der Nächste den Platzhalter wieder ein.
 
-Ausserdem hatte der erste Entwurf die Zählabfrage aus derselben Zeichenkette
-gebaut wie die Datenabfrage, samt `LEFT JOIN auftragszeit`. Das haette bei
+Außerdem hatte der erste Entwurf die Zählabfrage aus derselben Zeichenkette
+gebaut wie die Datenabfrage, samt `LEFT JOIN auftragszeit`. Das hätte bei
 mehreren Buchungen je Auftrag zu hohe Trefferzahlen geliefert.
 
 ### Was bewusst nicht erreicht wurde
-Keine wählbare Seitengrösse und keine Sortierung per Spaltenkopf. Beides ist
+Keine wählbare Seitengröße und keine Sortierung per Spaltenkopf. Beides ist
 sinnvoll, aber jeweils ein eigenes Thema; die Reihenfolge bleibt „zuletzt
 gebucht zuerst".
 
@@ -6260,36 +6366,36 @@ und die Bedienelemente der Liste sollen einheitlich als Knöpfe aussehen.
 ### AKZEPTANZKRITERIUM
 Wer in der Auftragsliste bei `A-2026-0999` auf „Inaktiv setzen" klickt, sieht
 die Zeile dort nicht mehr – und findet sie unverändert unter „Inaktive
-Auftraege" wieder.
+Aufträge" wieder.
 
 ### DONE
 Die Liste wuchs bisher nur. Ein erledigter Auftrag von 2024 stand neben dem von
-heute, und die einzige Abhilfe waere Löschen gewesen – mit dem Verlust der
+heute, und die einzige Abhilfe wäre Löschen gewesen – mit dem Verlust der
 Stunden, die daran hängen.
 
 Jetzt gibt es zwei Ansichten auf dieselbe Liste:
 
 - **`?seite=auftrag`** zeigt aktive Aufträge. Dazu zählen ausdrücklich auch
   Auftragsnummern **ohne** Stammdatensatz (`a.aktiv IS NULL`) – die stammen
-  allein aus Buchungen und waeren sonst nirgends zu sehen.
+  allein aus Buchungen und wären sonst nirgends zu sehen.
 - **`?seite=auftrag&ansicht=inaktiv`** zeigt die abgelegten. Der Link steht oben
-  neben „+ Auftrag hinzufuegen", mit der Anzahl in Klammern.
+  neben „+ Auftrag hinzufügen", mit der Anzahl in Klammern.
 
 Umgestellt wird in der Aktionsspalte neben „Details" – ein POST mit
 Bereichs-Token, sichtbar nur mit `AUFTRAEGE_VERWALTEN`. Die Suche gilt in beiden
 Ansichten und bleibt beim Umschalten erhalten.
 
 Das Rückleitungsziel wird aus `q` und `ansicht` **neu gebaut**, nicht aus dem
-Formular übernommen: Ein mitgeschicktes Ziel waere eine offene Weiterleitung.
+Formular übernommen: Ein mitgeschicktes Ziel wäre eine offene Weiterleitung.
 
 Sonderfall Auftragsnummer ohne Stammdatensatz: Dort gibt es nichts, woran
-„inaktiv" haengen koennte. Statt den Knopf zu verstecken, legt die Aktion den
-Stammdatensatz an (`INSERT auftragsnummer, aktiv`) – sonst liesse sich genau die
+„inaktiv" hängen könnte. Statt den Knopf zu verstecken, legt die Aktion den
+Stammdatensatz an (`INSERT auftragsnummer, aktiv`) – sonst ließe sich genau die
 Zeile nicht ausblenden, die stört.
 
 ### TEST
 - Ausgangslage 3 Aufträge, davon `A-2026-0999` inaktiv: normale Liste 2 Zeilen,
-  Inaktiv-Ansicht 1 Zeile, Link zeigt „Inaktive Auftraege (1)".
+  Inaktiv-Ansicht 1 Zeile, Link zeigt „Inaktive Aufträge (1)".
 - `A-2026-0815` inaktiv gesetzt → Meldung „ist jetzt inaktiv und aus der Liste
   verschwunden", Zeile verschwunden, in der Inaktiv-Ansicht vorhanden.
 - Aus der Inaktiv-Ansicht wieder aktiv gesetzt → „ist wieder aktiv", Zeile zurück
@@ -6302,14 +6408,14 @@ Zeile nicht ausblenden, die stört.
 - `php -l` auf beiden geänderten Dateien sauber, keine Meldungen im Seitenaufbau.
 
 ### Gefundene Fehler im eigenen Entwurf
-Der erste Entwurf filterte schlicht auf `a.aktiv = 1`. Damit waeren alle
+Der erste Entwurf filterte schlicht auf `a.aktiv = 1`. Damit wären alle
 Auftragsnummern verschwunden, die nur aus Buchungen stammen – ausgerechnet die,
 die das Terminal ohne Rückfrage anlegt. `a.aktiv IS NULL` gehört zur aktiven
 Menge.
 
 ### Was bewusst nicht erreicht wurde
 Kein Massenumschalten über Auswahlkästchen. Das lohnt erst, wenn nach einem
-Jahreswechsel dreissig Aufträge auf einmal abgelegt werden – bis dahin ist ein
+Jahreswechsel dreißig Aufträge auf einmal abgelegt werden – bis dahin ist ein
 Knopf je Zeile ehrlicher.
 
 Die Detailansicht bekommt keinen eigenen Umschalter; dort erledigt das weiterhin
@@ -6336,7 +6442,7 @@ Die Suche nach `Muster` findet den Auftrag `A-2026-0815`, obwohl „Muster GmbH"
 dort nicht in der Auftragsnummer, sondern im Kundenfeld steht.
 
 ### DONE
-Das Suchfeld hiess „Suche (Auftragsnummer)" und tat auch genau das. Gesucht wird
+Das Suchfeld hieß „Suche (Auftragsnummer)" und tat auch genau das. Gesucht wird
 aber nach dem, was man im Kopf hat – dem Kunden, der Zeichnung, dem Werkstück.
 
 Ein Feld für vier Spalten: Auftragsnummer, Kunde, Zeichnungsnummer,
@@ -6369,7 +6475,7 @@ Kommentar an der Abfrage.
 
 ### Was bewusst nicht erreicht wurde
 Keine Volltextsuche und kein Index-Nutzen: `LIKE '%…%'` liest die Tabelle
-durch. Bei der Grössenordnung dieses Betriebs (einige tausend Aufträge) ist das
+durch. Bei der Größenordnung dieses Betriebs (einige tausend Aufträge) ist das
 unkritisch; wird es das nicht mehr, ist ein FULLTEXT-Index der nächste Schritt.
 
 Der **Status** wird nicht mitdurchsucht – er ist eine feste Auswahl, für die ein
@@ -6408,7 +6514,7 @@ Fertigung wird ein Auftrag im Gespräch über die Zeichnung gesucht, nicht über
 die Auftragsnummer; bisher landete diese Angabe in der Kurzbeschreibung, wo sie
 niemand zuverlässig wiederfindet.
 
-Wie alle Auftragsfelder ausser der Auftragsnummer ist sie **freiwillig**
+Wie alle Auftragsfelder außer der Auftragsnummer ist sie **freiwillig**
 (Fachregel Abschnitt 1) – leer bleibt sie auch auf dem Ausdruck unsichtbar.
 
 Sichtbar an vier Stellen: Formular (anlegen und bearbeiten), Auftragsliste als
@@ -6438,14 +6544,14 @@ Der Index nützt einer Suche mit `%…%` nichts, wohl aber einem Präfix-Treffer
 Zwei Stück:
 
 **Semikolon im Spaltenkommentar.** Der `COMMENT`-Text lautete zuerst
-„Freiwillig; Nummer der zugehoerigen Zeichnung". Der `mysql`-Client kommt damit
+„Freiwillig; Nummer der zugehörigen Zeichnung". Der `mysql`-Client kommt damit
 klar, jedes Werkzeug, das eine SQL-Datei selbst an Semikolons zerlegt, aber
 nicht – es zerschneidet mitten im Stringliteral. Jetzt steht dort ein
 Gedankenstrich. Dasselbe Semikolon steckt seit P-2026-08-10-28 auch im Kommentar
 von `uebertrag_festgeschrieben_am`; dort belassen, weil ein Ändern nur den
 Kommentar umschreibt und dieser Patch nicht der Ort dafür ist.
 
-**Label stiess an den Wert.** Die Wertespalte im Laufkarten-Kopf stand 85 Punkte
+**Label stieß an den Wert.** Die Wertespalte im Laufkarten-Kopf stand 85 Punkte
 hinter dem Rand. „Zeichnungsnummer:" ist zwar so lang wie das schon vorhandene
 „Kurzbeschreibung:", trägt aber breitere Zeichen und berührte den Wert fast.
 Auf 95 Punkte gesetzt und im Bild nachgesehen.
@@ -6506,7 +6612,7 @@ Router (P-23), gemeinsamer Programmstart (P-17) und das Entfernen von rund 40
 5. Entkoppeln über `TerminalDbBenutzerService::entferne()` getestet: Benutzer
    weg, keine Reste in `mysql.user`.
 
-Anschliessend aufgeräumt: Testterminal, Kopplungszeile, Probebuchung und die
+Anschließend aufgeräumt: Testterminal, Kopplungszeile, Probebuchung und die
 Antwortdatei mit den Zugangsdaten gelöscht.
 
 ### Ein Stolperstein, der keiner ist
@@ -6568,7 +6674,7 @@ Drei Stellen umgestellt beziehungsweise ergänzt:
 > Marc hat 2026 noch **32 Tage** übrig.
 > Nach dieser Genehmigung: **27 Tage** (−5)
 
-Die Spaltenüberschrift heisst entsprechend nicht mehr „Urlaubssaldo", sondern
+Die Spaltenüberschrift heißt entsprechend nicht mehr „Urlaubssaldo", sondern
 „Resturlaub". Bei negativem Ergebnis steht darunter „Achtung: damit im Minus".
 
 **Urlaubsverwaltung.** Sobald im Filter ein einzelner Mitarbeiter gewählt ist,
@@ -6712,7 +6818,7 @@ festgeschrieben `12,50`, aber der Saldo rechnete weiter mit `25,00`.
 
 Ursache: Ich hatte in P-2026-08-10-28 die Leseseite richtig gebaut – ein
 festgeschriebener Wert wird übernommen – aber der Auto-Block weiter unten
-überschrieb ihn anschliessend wieder. Zwei Stellen, die dieselbe Variable
+überschrieb ihn anschließend wieder. Zwei Stellen, die dieselbe Variable
 setzen, und die zweite gewann. „Festgeschrieben gewinnt immer" stand im
 Kommentar und stimmte nicht.
 
@@ -6880,7 +6986,7 @@ USE `zeiterfassung`;
 
 Damit war das Datenbank-Argument des Aufrufs **wirkungslos**. Die
 Installationsanleitung sagt „`mysql -u <USER> -p zeiterfassung < …`" – das sah
-richtig aus, aber es hätte genauso `mysql … irgendwas` heissen können: Das
+richtig aus, aber es hätte genauso `mysql … irgendwas` heißen können: Das
 Schema landete immer in `zeiterfassung`.
 
 Zwei Folgen, beide unangenehm:
@@ -6893,7 +6999,7 @@ Zwei Folgen, beide unangenehm:
   Workaround war dokumentiert, die Ursache nie behoben.
 
 `CREATE DATABASE` und `USE` sind entfernt; die Zieldatenbank bestimmt jetzt
-ausschliesslich der Aufruf. Der Kopf des Schemas sagt das und nennt den Grund.
+ausschließlich der Aufruf. Der Kopf des Schemas sagt das und nennt den Grund.
 Das Entwicklungsskript legt die Datenbank ohnehin selbst an und gibt sie jetzt
 beim Import ausdrücklich mit. Der `sed`-Workaround in der Doku entfällt.
 
@@ -6905,7 +7011,7 @@ Migration gegen eine Wegwerf-Datenbank zu prüfen.
 ### TEST
 - Neuinstallation in eine frische Datenbank `zeiterfassung_schemaprobe`:
   **35 Tabellen**, die neue Spalte `uebertrag_festgeschrieben_am` vorhanden,
-  Migration 07 läuft anschliessend fehlerfrei darauf. Probedatenbank wieder
+  Migration 07 läuft anschließend fehlerfrei darauf. Probedatenbank wieder
   entfernt.
 - Migration 07 zweimal hintereinander gegen die Arbeitsdatenbank: beim zweiten
   Lauf keine Änderung, kein Fehler (Idempotenz nach §5).
@@ -6919,7 +7025,7 @@ Neuinstallation zu prüfen, lautete
 `mysql … zeiterfassung_schemaprobe < sql/01_initial_schema.sql` – und lief
 wegen des `USE` gegen die **produktive** Datenbank. Gerettet hat mich nur, dass
 `CREATE TABLE` ohne `IF NOT EXISTS` beim ersten vorhandenen Tabellennamen
-abbricht und der Client standardmässig stoppt. Mit `--force` wäre es anders
+abbricht und der Client standardmäßig stoppt. Mit `--force` wäre es anders
 ausgegangen.
 
 Genau deshalb ist dieser Patch mehr als Kosmetik: Die Prüfung, die die
@@ -6987,7 +7093,7 @@ beide Male nicht durch `php -l` erkennbar:
    Skript entsprechend gehärtet.
 
 Beides fiel nur auf, weil ich nach dem Lauf gezielt nach Umlauten in
-Bezeichnern und danach den Linkcheck laufen liess. Die Lehre aus
+Bezeichnern und danach den Linkcheck laufen ließ. Die Lehre aus
 P-2026-08-10-19 – „nach jedem mechanischen Lauf gegenprüfen" – hat sich zum
 zweiten Mal ausgezahlt.
 
@@ -7137,7 +7243,7 @@ Damit es niemand erneut prüft:
 - **Der Rückfall aus P-2026-08-10-02 hat nie ausgelöst**: `system_log` enthält
   null Einträge der Kategorie `urlaubservice`. Die Betriebsferien-Zählung ist
   also nicht die Ursache. Dass dieser Pfad jetzt sichtbar ist, war trotzdem die
-  Voraussetzung dafür, ihn ausschliessen zu können.
+  Voraussetzung dafür, ihn ausschließen zu können.
 - **Kein Performanceproblem.** Die Rekursion geht genau eine Ebene tief;
   ein Saldo braucht ~5 ms, dreizehn ~32 ms.
 
@@ -7199,7 +7305,7 @@ Entscheidend ist die **Richtung** des Fehlers: Eine vergessene Zeile in der
 Liste macht die Seite **offen**, nicht unzugänglich. Der Fehler wäre also der
 gefährliche gewesen und wäre niemandem aufgefallen.
 
-Jetzt ist alles geschützt ausser drei ausdrücklich offenen Routen. Wer eine
+Jetzt ist alles geschützt außer drei ausdrücklich offenen Routen. Wer eine
 Route ergänzt, bekommt sie geschützt, ohne daran zu denken; wer sie öffnen
 will, muss eine Zeile schreiben – und denkt dann darüber nach. `index.php`
 wird dabei 52 Zeilen kürzer.
@@ -7337,14 +7443,14 @@ T-106 und T-107 – zwei mechanische Punkte aus dem Aufräum-Durchgang.
 ### DATEIEN
 - `docs/STATUS_SNAPSHOT.md`
 - `docs/archiv/DEV_PROMPT_HISTORY.md`
-- `AUFRAEUMPLAN.md` (geloescht, war nie eingecheckt)
+- `AUFRAEUMPLAN.md` (gelöscht, war nie eingecheckt)
 
 ### AKZEPTANZKRITERIUM
-Alle Kernablaeufe der Wartungscheckliste laufen fehlerfrei, und der Snapshot
+Alle Kernabläufe der Wartungscheckliste laufen fehlerfrei, und der Snapshot
 beschreibt den Stand nach dem Durchgang.
 
 ### DONE
-Abschluss des Aufraeum-Durchgangs vom 10.08.2026, 21 Patches
+Abschluss des Aufräum-Durchgangs vom 10.08.2026, 21 Patches
 (P-2026-08-10-01 bis -21). Bilanz gegen den Ausgangspunkt `de51a03`:
 
 | | |
@@ -7352,7 +7458,7 @@ Abschluss des Aufraeum-Durchgangs vom 10.08.2026, 21 Patches
 | Kaltstart-Set | 18.818 → 15.181 Byte (−20 %) |
 | Toter Code entfernt | rund 1.100 Zeilen in 20 Dateien |
 | QR-Bibliothek entfernt | 3.562 Zeilen |
-| `class_exists`-Huellen | 366 → 17 |
+| `class_exists`-Hüllen | 366 → 17 |
 | CSRF-Kopien | 15 → 1 (`core/Csrf.php`) |
 | Konfigurationsdienste | 2 → 1 |
 | `method_exists` auf eigene Methoden | 64 → 0 |
@@ -7362,46 +7468,46 @@ Abschluss des Aufraeum-Durchgangs vom 10.08.2026, 21 Patches
 Vier echte Fehler, die vorher niemand kannte:
 
 1. **SQL-Maskierung ohne Backslash** in der Offline-Queue – Terminal-Eingaben
-   konnten aus dem Stringliteral ausbrechen, und der Befehl laeuft spaeter
+   konnten aus dem Stringliteral ausbrechen, und der Befehl läuft später
    gegen die Hauptdatenbank (P-01).
 2. **`class_exists('LoggerService')`** auf eine Klasse, die es nie gab: Ein
    Fehlerpfad im Urlaubssaldo rechnete stillschweigend mit 0 Tagen weiter
    (P-02).
 3. **B-092** – die Route `betriebsferien_admin_toggle` rief eine Methode auf,
-   die es nicht gab; `betriebsferien.aktiv` liess sich nie umschalten (P-04).
-4. **QR-Rueckfall bei Maschinen-Codes** – erzeugte im Fehlerfall ein Etikett,
-   das die 1D-Scanner der Halle gar nicht lesen koennen (P-05).
+   die es nicht gab; `betriebsferien.aktiv` ließ sich nie umschalten (P-04).
+4. **QR-Rückfall bei Maschinen-Codes** – erzeugte im Fehlerfall ein Etikett,
+   das die 1D-Scanner der Halle gar nicht lesen können (P-05).
 
 Dazu **B-093**, gefunden beim Abgleich von Doku und Code: Abteilungsbezogene
-Rollenzuweisungen gewaehren gar nichts, weil `AuthService` nur
+Rollenzuweisungen gewähren gar nichts, weil `AuthService` nur
 `scope_typ = 'global'` auswertet. Nicht behoben – braucht eine Entscheidung.
 
 ### TEST
-Kernablaeufe aus `docs/wartungscheckliste.md`, Backend-Liste vollstaendig:
+Kernabläufe aus `docs/wartungscheckliste.md`, Backend-Liste vollständig:
 Dashboard, Mitarbeiterliste, Rollen/Rechte, Monatsreport HTML, Urlaub-Liste,
 Genehmigungsliste, Queue-Admin, Audit-Log, Selbsttest – **neun von neun ohne
-Ausnahme**. Monats-PDF: 11.758 Byte mit gueltiger `%PDF`-Signatur.
+Ausnahme**. Monats-PDF: 11.758 Byte mit gültiger `%PDF`-Signatur.
 
-Der PDF-Check des Selbsttests zusaetzlich ueber den **echten POST-Weg** mit
+Der PDF-Check des Selbsttests zusätzlich über den **echten POST-Weg** mit
 CSRF-Token: „OK: PDF-Check", Header und Footer gefunden, Seitenzahl konsistent.
-Das prueft die CSRF-Umstellung von der anderen Seite mit.
+Das prüft die CSRF-Umstellung von der anderen Seite mit.
 
-Maschinell: `php -l` ueber alle Dateien sauber, keine toten Markdown-Links,
+Maschinell: `php -l` über alle Dateien sauber, keine toten Markdown-Links,
 alle in der Doku genannten Repo-Pfade vorhanden (zwei erwartete Ausnahmen:
 `config/geraet.local.php` und `scripts/terminal/terminal.conf` entstehen zur
-Laufzeit; drei Verweise in `rechte_prompt.md` sind seit P-08 ausdruecklich als
+Laufzeit; drei Verweise in `rechte_prompt.md` sind seit P-08 ausdrücklich als
 „gibt es nicht mehr" gekennzeichnet).
 
-Vor dem Push geprueft: `config.local.php` ist gitignored und in keinem Commit,
+Vor dem Push geprüft: `config.local.php` ist gitignored und in keinem Commit,
 keine Zugangsdaten, keine Personendaten, keine echten Mailadressen in den neuen
 Zeilen. Keine Testreste in der Datenbank, keine Probe-Bilder.
 
 ### Was bewusst nicht erreicht wurde
-- **Der Offline-Pfad ist nicht durchgespielt.** Haupt-DB aus, Queue fuellen,
+- **Der Offline-Pfad ist nicht durchgespielt.** Haupt-DB aus, Queue füllen,
   Haupt-DB an, Queue leerlaufen lassen – das braucht eine kontrolliert
-  abgeschaltete Datenbank und gehoert in den Geraetetest.
+  abgeschaltete Datenbank und gehört in den Gerätetest.
 - **Terminal-Buchungsflows im Browser** (Kommen/Gehen, Auftrag starten/stoppen
-  mit angemeldetem Mitarbeiter) sind weiterhin ungeprueft; sie brauchen einen
+  mit angemeldetem Mitarbeiter) sind weiterhin ungeprüft; sie brauchen einen
   RFID-Chip oder echte Personaldaten. Stand schon vorher als offener Punkt im
   Snapshot und steht dort weiter.
 - **B-093 und B-080** sind nicht behoben, nur beobachtbar bzw. beschrieben.
@@ -7409,7 +7515,7 @@ Zeilen. Keine Testreste in der Datenbank, keine Probe-Bilder.
   mit 3.700 Zeilen (T-105) bleiben, wie sie sind.
 
 ### NEXT
-Geraetetest – siehe Snapshot und `docs/spezifikation_terminal_installation.md`,
+Gerätetest – siehe Snapshot und `docs/spezifikation_terminal_installation.md`,
 Abschnitt 12.
 
 
@@ -7483,8 +7589,8 @@ Praxis-Test und Gerätetest – siehe Snapshot.
 ### EINGELESEN
 - `docs/arbeitsregeln.md` §7 „Stil" – die in P-2026-08-10-07 festgeschriebene
   Regel.
-- Verteilung der Ersatzschreibung ueber Code und Doku (gemessen, nicht
-  geschaetzt): 1.918 Zeilen mit Umlauten gegen mehrere hundert mit `ae/oe/ue`,
+- Verteilung der Ersatzschreibung über Code und Doku (gemessen, nicht
+  geschätzt): 1.918 Zeilen mit Umlauten gegen mehrere hundert mit `ae/oe/ue`,
   teils in derselben Datei – `TerminalController` 150 zu 39,
   `AuftragController` 9 zu 31.
 
@@ -7493,8 +7599,8 @@ Rund 130 PHP-Dateien (nur Kommentare) und 15 Markdown-Dateien.
 `docs/archiv/` bleibt unangetastet.
 
 ### AKZEPTANZKRITERIUM
-Kommentare und Dokumentation schreiben Umlaute, waehrend Bezeichner,
-Formularwerte, JavaScript, SQL und Konfigurationsschluessel unveraendert
+Kommentare und Dokumentation schreiben Umlaute, während Bezeichner,
+Formularwerte, JavaScript, SQL und Konfigurationsschlüssel unverändert
 bleiben.
 
 ### DONE
@@ -7504,20 +7610,20 @@ Die Regel aus §7 umgesetzt: **313 Kommentarabschnitte** in PHP-Dateien und
 Der Zustand vorher war nicht „eine Konvention mit Ausnahmen", sondern zwei
 Konventionen nebeneinander, teils innerhalb einer Datei. Ausgenommen bleiben,
 wie in §7 festgelegt: Bezeichner, Dateinamen, Datenbankfelder und -werte,
-Konfigurationsschluessel, Shell-Skripte – und das Archiv.
+Konfigurationsschlüssel, Shell-Skripte – und das Archiv.
 
 ### TEST
-- `php -l` ueber alle Dateien sauber.
-- 18 Backend-Masken gerendert: unveraendert, 16 POST-Formulare, keines ohne
+- `php -l` über alle Dateien sauber.
+- 18 Backend-Masken gerendert: unverändert, 16 POST-Formulare, keines ohne
   Token, 0 Ausnahmen.
 - `index.php`, `terminal.php`, Health je HTTP 200.
-- Alle Markdown-Links gegengeprueft: keiner zerschossen.
+- Alle Markdown-Links gegengeprüft: keiner zerschossen.
 - Gezielte Gegenprobe am kritischsten Wert: `views/queue/liste.php` sendet
   weiterhin `value="loeschen"`, und `QueueController` vergleicht weiterhin
   gegen `'loeschen'`.
 
 ### Gefundene Fehler im eigenen Entwurf
-**Zwei Anlaeufe, beide mit ernsten Fehlern – und beide nur durch Nachsehen
+**Zwei Anläufe, beide mit ernsten Fehlern – und beide nur durch Nachsehen
 aufgefallen, nicht durch einen Test.**
 
 *Erster Anlauf, reine Textersetzung.* Der Probelauf auf einer Kopie von
@@ -7525,47 +7631,47 @@ aufgefallen, nicht durch einen Test.**
 `berechnePausenMinutenFuerBlock` → `…FürBlock`. Ein Textersetzer kann Sprache
 nicht von Bezeichnern unterscheiden. Verworfen.
 
-*Zweiter Anlauf, ueber `token_get_all()`* – richtig im Ansatz, aber ich hatte
+*Zweiter Anlauf, über `token_get_all()`* – richtig im Ansatz, aber ich hatte
 `T_INLINE_HTML` mitgenommen, also den HTML-Text der Views. Ergebnis:
 
-- **Ein Formularwert wurde uebersetzt.** `views/queue/liste.php` sendete
-  danach `<input name="aktion" value="löschen">`, waehrend
-  `QueueController` weiter gegen `'loeschen'` vergleicht. Das Loeschen eines
-  fehlerhaften Queue-Eintrags waere **lautlos wirkungslos** geworden – in
-  genau der Maske, die man im Stoerungsfall braucht.
+- **Ein Formularwert wurde übersetzt.** `views/queue/liste.php` sendete
+  danach `<input name="aktion" value="löschen">`, während
+  `QueueController` weiter gegen `'loeschen'` vergleicht. Das Löschen eines
+  fehlerhaften Queue-Eintrags wäre **lautlos wirkungslos** geworden – in
+  genau der Maske, die man im Störungsfall braucht.
 - **Vier JavaScript-Funktionsnamen** wurden umbenannt
   (`prüfeAktivenSchritt`, `löscheKommentarZeichen`, …). In diesem Fall
-  zufaellig konsistent, weil Definition und Aufrufe in derselben Datei liegen –
-  aber ein Aufruf aus einer anderen Datei haette das Terminal zerlegt.
+  zufällig konsistent, weil Definition und Aufrufe in derselben Datei liegen –
+  aber ein Aufruf aus einer anderen Datei hätte das Terminal zerlegt.
 - Dazu `@param`-Namen in Docblocks, die danach nicht mehr zur Variablen passten.
 
 Beides nicht durch `php -l` erkennbar: Alle drei Fassungen waren syntaktisch
 tadellos. Aufgefallen ist es, weil ich nach dem Lauf gezielt nach Umlauten in
 Bezeichnern gesucht habe.
 
-Der dritte Anlauf beschraenkt sich auf `T_COMMENT` und `T_DOC_COMMENT`.
-Strings bleiben aussen vor: Dort stecken SQL, Rechte-Codes, Rollennamen
-(`'Personalbuero'` ist ein Wert in der Datenbank) und Konfigurationsschluessel.
+Der dritte Anlauf beschränkt sich auf `T_COMMENT` und `T_DOC_COMMENT`.
+Strings bleiben außen vor: Dort stecken SQL, Rechte-Codes, Rollennamen
+(`'Personalbuero'` ist ein Wert in der Datenbank) und Konfigurationsschlüssel.
 
-Fuer Markdown ein eigenes Skript, das Codebloecke (``` und eingerueckt) und
-Inline-Code (`` ` ``) ueberspringt – dort stehen Shell-Befehle und Pfade.
+Für Markdown ein eigenes Skript, das Codeblöcke (``` und eingerueckt) und
+Inline-Code (`` ` ``) überspringt – dort stehen Shell-Befehle und Pfade.
 
 ### Was bewusst nicht erreicht wurde
-Oberflaechentexte in **PHP-Strings** sind nicht umgestellt. Sie sind ganz
-ueberwiegend schon in Umlauten geschrieben; der Rest liesse sich nur einzeln
-pruefen, weil in denselben Strings SQL und Schluessel stehen. Wer eine solche
+Oberflächentexte in **PHP-Strings** sind nicht umgestellt. Sie sind ganz
+überwiegend schon in Umlauten geschrieben; der Rest ließe sich nur einzeln
+prüfen, weil in denselben Strings SQL und Schlüssel stehen. Wer eine solche
 Meldung ohnehin anfasst, zieht sie mit.
 
 Ebenfalls nicht angefasst: `docs/archiv/`. Archiv wird nicht umgeschrieben.
 
 ### NEXT
-Abschlusspruefung (Phase 7 des Aufraeumplans).
+Abschlussprüfung (Phase 7 des Aufräumplans).
 
 
 ## P-2026-08-10-18 kleinigkeiten-einrueckung-verweise-bezeichner
 
 ### EINGELESEN
-- `public/index.php` (Docblocks, Jahr/Monat-Bloecke, Routenliste).
+- `public/index.php` (Docblocks, Jahr/Monat-Blöcke, Routenliste).
 - Alle 21 Code-Kommentare mit „Master-Prompt" und die Fachregel-Dateien, auf
   die sie jetzt zeigen.
 - `views/login/initial_admin.php`, `controller/KurzarbeitAdminController.php`.
@@ -7573,7 +7679,7 @@ Abschlusspruefung (Phase 7 des Aufraeumplans).
 ### DATEIEN
 `public/index.php`, `views/login/initial_admin.php`,
 `controller/KurzarbeitAdminController.php`, `services/QueueService.php`,
-`services/ReportService.php`, dazu 9 Dateien mit Tab-Einrueckung und 11 mit
+`services/ReportService.php`, dazu 9 Dateien mit Tab-Einrückung und 11 mit
 Verweisen auf den Master-Prompt.
 
 ### AKZEPTANZKRITERIUM
@@ -7581,78 +7687,78 @@ Monatsreport, Monats-PDF und Sammelexport reagieren auf die Jahr/Monat-Stepper
 genau wie vorher, auch bei `monat=0` und `monat=13`.
 
 ### DONE
-Fuenf kleine Dinge, die einzeln zu klein fuer einen Patch sind:
+Fünf kleine Dinge, die einzeln zu klein für einen Patch sind:
 
 **Verwaister Kommentarblock.** In `index.php` beschrieb ein Docblock
 („T-069 Teil 2a/2b … Wir clampen defensiv") die Funktion
 `normalize_jahr_monat`, stand aber vor `verarbeite_jahr_monat_aktion`, die
 ihren eigenen hatte. `normalize_jahr_monat` selbst stand ohne. Zugeordnet.
 
-**Dreimal derselbe Fuenfzeiler.** Die Jahr/Monat-Ermittlung stand fuer
-Monatsuebersicht, Monats-PDF und Sammelexport zeichengleich da. Jetzt
+**Dreimal derselbe Fünfzeiler.** Die Jahr/Monat-Ermittlung stand für
+Monatsübersicht, Monats-PDF und Sammelexport zeichengleich da. Jetzt
 `holeJahrMonatAusRequest()`.
 
 **`?seite=urlaubsplanung`** ist nirgends mehr verlinkt, bleibt aber als
-Alt-Link fuer Lesezeichen aus dem Betrieb – jetzt mit einer Zeile Kommentar,
-damit die naechste Suche nach toten Routen nicht wieder darueber stolpert.
+Alt-Link für Lesezeichen aus dem Betrieb – jetzt mit einer Zeile Kommentar,
+damit die nächste Suche nach toten Routen nicht wieder darüber stolpert.
 
-**Einrueckung.** 230 Zeilen mit fuehrenden Tabs in 9 Dateien auf vier
+**Einrückung.** 230 Zeilen mit führenden Tabs in 9 Dateien auf vier
 Leerzeichen gebracht; zwei Methodendeklarationen (`QueueService::holeStatusSummary`,
 `ReportService::holeBetriebsferienTageFuerMitarbeiterUndMonat`) standen in
-Spalte 1 statt eingerueckt.
+Spalte 1 statt eingerückt.
 
-**Ein Ausreisser beim Escaping.** 338 Stellen benutzen
+**Ein Ausreißer beim Escaping.** 338 Stellen benutzen
 `htmlspecialchars($x, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8')`, nur
-`views/login/initial_admin.php` an fuenf Stellen `ENT_QUOTES` ohne
-`ENT_SUBSTITUTE`. Ohne das Flag liefert `htmlspecialchars` bei ungueltigem
-UTF-8 einen **leeren String** – auf der Erstinstallationsmaske haette das
-geheissen: Eingabe verschwindet ohne Meldung.
+`views/login/initial_admin.php` an fünf Stellen `ENT_QUOTES` ohne
+`ENT_SUBSTITUTE`. Ohne das Flag liefert `htmlspecialchars` bei ungültigem
+UTF-8 einen **leeren String** – auf der Erstinstallationsmaske hätte das
+geheißen: Eingabe verschwindet ohne Meldung.
 
 **21 Verweise auf den Master-Prompt** („Master-Prompt v6", „v9",
 „Abschnitt 7") zeigten auf ein Dokument, das seit dem Doku-Umbau in
-`docs/archiv/` liegt und nicht mehr gilt. Alle auf die heute gueltige Datei
+`docs/archiv/` liegt und nicht mehr gilt. Alle auf die heute gültige Datei
 umgebogen, meist `docs/fachregeln/terminal_und_offline.md`. Jede genannte Regel
 wurde dort nachgeschlagen – keine fehlte.
 
 **Zwei englische Methodennamen.** `setFlashOk`/`setFlashErr` im
-`KurzarbeitAdminController` heissen jetzt `setzeHinweis`/`setzeFehler`, passend
-zum uebrigen Projekt.
+`KurzarbeitAdminController` heißen jetzt `setzeHinweis`/`setzeFehler`, passend
+zum übrigen Projekt.
 
 ### TEST
-- `holeJahrMonatAusRequest()` gegen acht Faelle: `8`→08, `0`→01, `13`→12,
+- `holeJahrMonatAusRequest()` gegen acht Fälle: `8`→08, `0`→01, `13`→12,
   Jahr `1900`→2026, Monat 12 + Stepper plus → 2027/01, Monat 1 + minus →
   2025/12, `jahr_plus` → 2027/06, ohne Parameter → laufender Monat.
-- 18 Backend-Masken gerendert: unveraendert bis auf 3 Byte im Monatsreport –
+- 18 Backend-Masken gerendert: unverändert bis auf 3 Byte im Monatsreport –
   das ist die eine Tab-Zeile in `views/report/monatsuebersicht.php`, die zu
   vier Leerzeichen wurde.
-- `grep`: kein `Master-Prompt`, kein fuehrender Tab, kein `ENT_QUOTES` ohne
+- `grep`: kein `Master-Prompt`, kein führender Tab, kein `ENT_QUOTES` ohne
   `ENT_SUBSTITUTE`, keine Methodendeklaration in Spalte 1 mehr.
-- `php -l` ueber alle Dateien sauber, Terminal und Health je HTTP 200.
+- `php -l` über alle Dateien sauber, Terminal und Health je HTTP 200.
 
 ### Gefundene Fehler im eigenen Entwurf
-Der Aufraeumplan hatte fuer die Whitespace-Aenderung einen **eigenen** Patch
+Der Aufräumplan hatte für die Whitespace-Änderung einen **eigenen** Patch
 vorgesehen, „damit `git blame` nachvollziehbar bleibt". Das ist hier nicht
 eingehalten: Die Tab-Umstellung steckt mit in diesem Sammelpatch. Bei 230
-Zeilen in 9 Dateien ist der Diff ueberschaubar geblieben, aber die Begruendung
-im Plan war richtig – bei einem groesseren Umfang waere die Trennung noetig
+Zeilen in 9 Dateien ist der Diff überschaubar geblieben, aber die Begründung
+im Plan war richtig – bei einem größeren Umfang wäre die Trennung nötig
 gewesen.
 
 ### Was bewusst nicht erreicht wurde
 Die Liste `$geschuetzteSeiten` in `index.php` wiederholt weiterhin jeden
-`case`-Zweig des Routers von Hand. Heute stimmen beide ueberein (geprueft);
-beim naechsten Route-Zusatz wird eine davon vergessen. Als T-107 notiert.
+`case`-Zweig des Routers von Hand. Heute stimmen beide überein (geprüft);
+beim nächsten Route-Zusatz wird eine davon vergessen. Als T-107 notiert.
 
 ### NEXT
-Umlaut-Konvention im Code umsetzen (F-3), danach Abschlusspruefung.
+Umlaut-Konvention im Code umsetzen (F-3), danach Abschlussprüfung.
 
 
 ## P-2026-08-10-17 queue-zustand-und-programmstart-aus-einer-hand
 
 ### EINGELESEN
-- `public/terminal.php` vollstaendig – beide Bloecke, die den Queue-Zustand
+- `public/terminal.php` vollständig – beide Blöcke, die den Queue-Zustand
   ermitteln.
 - `services/QueueService.php`, `core/OfflineQueueManager.php`.
-- Alle fuenf Views/Controller, die `offline_queue_verfuegbar` lesen.
+- Alle fünf Views/Controller, die `offline_queue_verfuegbar` lesen.
 - `public/index.php`, `public/maschine_code.php` (Vorspann).
 
 ### DATEIEN
@@ -7663,75 +7769,75 @@ Umlaut-Konvention im Code umsetzen (F-3), danach Abschlusspruefung.
 
 ### AKZEPTANZKRITERIUM
 Health-Endpunkt und Terminal-Bildschirm melden denselben Zustand aus **einer**
-Quelle, und alle drei Einstiegspunkte starten unveraendert.
+Quelle, und alle drei Einstiegspunkte starten unverändert.
 
 ### DONE
-**1. Der Queue-Zustand stand zweimal in `terminal.php`.** Einmal fuer den
-Health-Endpunkt (Zeilen 83–170), einmal fuer den Bildschirm (298–398) – fast
+**1. Der Queue-Zustand stand zweimal in `terminal.php`.** Einmal für den
+Health-Endpunkt (Zeilen 83–170), einmal für den Bildschirm (298–398) – fast
 derselbe Code, bis hin zum wortgleichen Kommentar „Konsistente Logik mit
 OfflineQueueManager". Zwei Fassungen derselben Wahrheit: Wird eine gepflegt und
-die andere nicht, meldet die Ueberwachung etwas anderes, als in der Halle auf
+die andere nicht, meldet die Überwachung etwas anderes, als in der Halle auf
 dem Bildschirm steht.
 
 Neu: `QueueService::holeZustand()`. Beide Stellen fragen dort. `null` bedeutet
-durchgaengig **unbekannt**, nicht `false` – wenn sich die Datenbank gar nicht
-ansprechen laesst, ist „nicht verfuegbar" eine staerkere Aussage als
+durchgängig **unbekannt**, nicht `false` – wenn sich die Datenbank gar nicht
+ansprechen lässt, ist „nicht verfügbar" eine stärkere Aussage als
 gerechtfertigt.
 
-**2. Der Legacy-Schluessel `offline_queue_verfuegbar`** wurde bei jedem Request
+**2. Der Legacy-Schlüssel `offline_queue_verfuegbar`** wurde bei jedem Request
 mit `queue_verfuegbar` synchron gehalten, „damit das Terminal nicht stumm
-bleibt, wenn eine View noch den alten Namen verwendet". Fuenf Stellen lasen ihn
-tatsaechlich noch. Alle umgestellt, der Schluessel ist weg.
+bleibt, wenn eine View noch den alten Namen verwendet". Fünf Stellen lasen ihn
+tatsächlich noch. Alle umgestellt, der Schlüssel ist weg.
 
 **3. Der Programmstart stand dreimal da.** `index.php`, `terminal.php` und
 `maschine_code.php` luden identisch Konfiguration, Zeitzone und Session –
-inklusive desselben `if/else` mit demselben Rueckfall `Europe/Berlin`. Jetzt
+inklusive desselben `if/else` mit demselben Rückfall `Europe/Berlin`. Jetzt
 `Start::los()`. In `index.php` stand der Block sogar **zweimal**: einmal oben
 und einmal nach der Terminal-Weiche.
 
 ### TEST
 - Health-Antwort vor und nach dem Umbau verglichen: **identisch** bis auf den
   Zeitstempel (`hauptdb_verfuegbar: true`, `queue_verfuegbar: true`,
-  `queue_speicherort: "offline"`, Zaehler 0/0).
-- `holeZustand()` gegen eine direkte Abfrage derselben Werte gegengeprueft:
+  `queue_speicherort: "offline"`, Zähler 0/0).
+- `holeZustand()` gegen eine direkte Abfrage derselben Werte gegengeprüft:
   vier von vier gleich.
 - 18 Backend-Masken: 16 POST-Formulare, keines ohne Token, 0 Ausnahmen.
 - `index.php`, `terminal.php`, Health je HTTP 200, `maschine_code.php` 403 ohne
   Anmeldung.
-- `php -l` ueber alle Dateien sauber.
+- `php -l` über alle Dateien sauber.
 
 ### Gefundene Fehler im eigenen Entwurf
 Beim Entfernen von `offline_queue_verfuegbar` bin ich davon ausgegangen, alle
-fuenf Lesestellen seien Rueckfaelle **nach** `queue_verfuegbar`. Vier waren es.
-Die fuenfte – `views/terminal/stoerung.php` – liest den alten Schluessel
-**allein**, ohne Alternative. Haette ich sie so gelassen, waere
-`$offlineQueueOk` dort auf `null` stehengeblieben, und der Stoerungsbildschirm
-haette „Offline-Queue: unbekannt" gezeigt statt „OK"/„NICHT VERFUEGBAR" – und
-`$fatalOhneQueue` waere nie wahr geworden, also der Hinweis „Administrator
+fünf Lesestellen seien Rückfälle **nach** `queue_verfuegbar`. Vier waren es.
+Die fünfte – `views/terminal/stoerung.php` – liest den alten Schlüssel
+**allein**, ohne Alternative. Hätte ich sie so gelassen, wäre
+`$offlineQueueOk` dort auf `null` stehengeblieben, und der Störungsbildschirm
+hätte „Offline-Queue: unbekannt" gezeigt statt „OK"/„NICHT VERFUEGBAR" – und
+`$fatalOhneQueue` wäre nie wahr geworden, also der Hinweis „Administrator
 anfordern" ausgeblieben. Ausgerechnet auf dem Bildschirm, der im Ernstfall
 angezeigt wird.
 
 Aufgefallen beim zeilenweisen Nachsehen jeder einzelnen Fundstelle, nicht durch
-einen Test – der Stoerungsfall laesst sich lokal nur mit abgeschalteter
+einen Test – der Störungsfall lässt sich lokal nur mit abgeschalteter
 Datenbank erzeugen.
 
 ### Was bewusst nicht erreicht wurde
-Der Stoerungsfall selbst (Haupt-DB aus **und** Offline-Queue aus) ist nicht
-durchgespielt. Das gehoert in den Geraetetest, wo die Datenbank ohnehin
+Der Störungsfall selbst (Haupt-DB aus **und** Offline-Queue aus) ist nicht
+durchgespielt. Das gehört in den Gerätetest, wo die Datenbank ohnehin
 kontrolliert abgeschaltet wird – als Punkt in der Wartungscheckliste bereits
 vorgesehen.
 
 ### NEXT
-P-2026-08-10-18: Kleinigkeiten (Einrueckung, Verweise, Bezeichner).
+P-2026-08-10-18: Kleinigkeiten (Einrückung, Verweise, Bezeichner).
 
 
 ## P-2026-08-10-16 class-exists-ballast-entfernt
 
 ### EINGELESEN
-- Alle 366 `class_exists`-Fundstellen, gruppiert nach gepruefter Klasse.
+- Alle 366 `class_exists`-Fundstellen, gruppiert nach geprüfter Klasse.
 - `core/Autoloader.php` – welche Verzeichnisse er bedient.
 - `controller/SmokeTestController.php` und den Selbsttest im
-  `DashboardController`, um die legitimen Pruefungen abzugrenzen.
+  `DashboardController`, um die legitimen Prüfungen abzugrenzen.
 
 ### DATEIEN
 60 Dateien in `controller/`, `core/`, `modelle/`, `services/`, `views/`,
@@ -7740,16 +7846,16 @@ P-2026-08-10-18: Kleinigkeiten (Einrueckung, Verweise, Bezeichner).
 ### AKZEPTANZKRITERIUM
 Alle Backend-Masken erzeugen dasselbe HTML wie vor dem Patch, `Logger` schreibt
 weiterhin nach `system_log`, und `class_exists` steht nur noch dort, wo die
-Klasse tatsaechlich fehlen kann.
+Klasse tatsächlich fehlen kann.
 
 ### DONE
-**366 → 17 Fundstellen**, 2.532 Zeilen entfernt (bei 1.845 wieder eingerueckten).
+**366 → 17 Fundstellen**, 2.532 Zeilen entfernt (bei 1.845 wieder eingerückten).
 
 Allein `class_exists('Logger')` stand **287-mal** im Projekt, dazu 27-mal
 `class_exists('Database')` und rund 50 weitere auf Projektklassen. Alle sind
 immer wahr: `core/Autoloader.php` wird von jedem der drei Einstiegspunkte als
 Erstes geladen und findet jede Klasse aus `core/`, `modelle/`, `services/`,
-`controller/`. Das Muster war ueberall dasselbe:
+`controller/`. Das Muster war überall dasselbe:
 
 ```php
 if (class_exists('Logger')) {
@@ -7758,96 +7864,96 @@ if (class_exists('Logger')) {
 ```
 
 Der Schaden ist nicht die Rechenzeit, sondern die Aussage: Es liest sich, als
-sei das Protokollieren optional und koenne fehlen. In einem System, dessen
-Fehlersuche an `system_log` haengt, ist das die falsche Botschaft – siehe
+sei das Protokollieren optional und könne fehlen. In einem System, dessen
+Fehlersuche an `system_log` hängt, ist das die falsche Botschaft – siehe
 P-2026-08-10-02, wo genau so ein Zweig einen Fehlerpfad verschluckt hat.
 
 **Die 17 verbliebenen bleiben mit gutem Grund:**
 
 - `class_exists('ZipArchive')` – eine PHP-**Erweiterung**, die fehlen kann. Der
-  Selbsttest prueft sie absichtlich.
-- vier auf `Picqer\Barcode\…` – ueber `require_once` geladen, nicht ueber den
+  Selbsttest prüft sie absichtlich.
+- vier auf `Picqer\Barcode\…` – über `require_once` geladen, nicht über den
   Autoloader.
-- zwoelf in `SmokeTestController` – dort ist die Pruefung der Zweck, nicht die
+- zwölf in `SmokeTestController` – dort ist die Prüfung der Zweck, nicht die
   Absicherung.
 
 Nebenbei fielen zwei **unerreichbare `else`-Zweige** auf, die nur durch die
-Huelle am Leben gehalten wurden – unter anderem im `TerminalController` ein
-Ersatzpfad fuer den Monatsstatus, der nie lief.
+Hülle am Leben gehalten wurden – unter anderem im `TerminalController` ein
+Ersatzpfad für den Monatsstatus, der nie lief.
 
 ### TEST
-- **18 Backend-Masken gerendert und die HTML-Groessen mit dem Lauf vor dem
+- **18 Backend-Masken gerendert und die HTML-Größen mit dem Lauf vor dem
   Patch verglichen: byte-identisch** (Dashboard 25.933, Tagesansicht 31.283,
-  Monatsreport 97.113 usw.). 16 POST-Formulare, keines ohne gueltiges Token,
+  Monatsreport 97.113 usw.). 16 POST-Formulare, keines ohne gültiges Token,
   0 Ausnahmen.
 - `Logger::error()` gegen die Datenbank: `system_log` 0 → 1 Eintrag, Probe
   wieder entfernt.
 - `index.php`, `terminal.php`, Health je HTTP 200; `maschine_code.php` liefert
-  403 ohne Anmeldung (unveraendert richtig).
-- `php -l` ueber **alle** PHP-Dateien: sauber.
+  403 ohne Anmeldung (unverändert richtig).
+- `php -l` über **alle** PHP-Dateien: sauber.
 
 ### Gefundene Fehler im eigenen Entwurf
-Beim Aufloesen von `if (class_exists('ReportService')) {` im
+Beim Auflösen von `if (class_exists('ReportService')) {` im
 `TerminalController` hat mein Skript das passende `}` gefunden – aber der Block
-hatte einen `} else {`-Zweig dazwischen, den die Klammersuche uebersprungen hat.
+hatte einen `} else {`-Zweig dazwischen, den die Klammersuche übersprungen hat.
 Ergebnis: ein verwaistes `} else {` und ein **Parse-Fehler**. Das Skript
-enthaelt eine Abbruchbedingung fuer `} else`, die hier nicht griff, weil die
-Einrueckung des `else` von der des `if` abwich.
+enthält eine Abbruchbedingung für `} else`, die hier nicht griff, weil die
+Einrückung des `else` von der des `if` abwich.
 
 Aufgefallen sofort durch `php -l` – anders als beim Hilfsskript in
 P-2026-08-10-13, wo die kaputte Datei syntaktisch sauber blieb. Von Hand
 korrigiert; der `else`-Zweig war ohnehin unerreichbar und ist entfallen.
 
 ### Was bewusst nicht erreicht wurde
-`try`/`catch`-Bloecke, die eine Ausnahme fangen und stillschweigend
+`try`/`catch`-Blöcke, die eine Ausnahme fangen und stillschweigend
 weitermachen, gibt es weiterhin an vielen Stellen. Ob das jeweils richtig ist,
-laesst sich nur einzeln beurteilen – kein Fall fuer einen mechanischen Patch.
+lässt sich nur einzeln beurteilen – kein Fall für einen mechanischen Patch.
 
 ### NEXT
-Phase 6: Kleinigkeiten (`index.php`, Einrueckung, Master-Prompt-Verweise).
+Phase 6: Kleinigkeiten (`index.php`, Einrückung, Master-Prompt-Verweise).
 
 
 ## P-2026-08-10-15 datenbankschnittstelle-und-konfiguration-vereinheitlicht
 
 ### EINGELESEN
-- `core/Database.php` (vollstaendige oeffentliche Schnittstelle),
+- `core/Database.php` (vollständige öffentliche Schnittstelle),
   `services/ConfigService.php`, `services/KonfigurationService.php`.
 - Alle 4 Aufrufstellen von `ConfigService`, alle 26 von `getPdo()`, alle 64
-  `method_exists`-Pruefungen.
+  `method_exists`-Prüfungen.
 - `sql/01_initial_schema.sql`, Tabelle `config`.
 
 ### DATEIEN
-24 Dateien; geloescht: `services/ConfigService.php`. Dazu `core/Database.php`,
+24 Dateien; gelöscht: `services/ConfigService.php`. Dazu `core/Database.php`,
 zehn Controller, drei Services, zwei Views, `public/terminal.php`.
 
 ### AKZEPTANZKRITERIUM
-Die vier bisher ueber `ConfigService` gelesenen Schluessel liefern dieselben
+Die vier bisher über `ConfigService` gelesenen Schlüssel liefern dieselben
 Werte wie zuvor, und `getPdo()` sowie `method_exists()` auf Projektmethoden
 kommen im Code nicht mehr vor.
 
 ### DONE
-Drei zusammenhaengende Punkte an derselben Schnittstelle – 332 Zeilen entfernt,
-185 hinzugefuegt.
+Drei zusammenhängende Punkte an derselben Schnittstelle – 332 Zeilen entfernt,
+185 hinzugefügt.
 
 **1. Zwei Konfigurationsdienste auf derselben Tabelle.** `ConfigService` (130
 Zeilen) und `KonfigurationService` (195) lasen beide `config`, beide mit einer
-Methode `get()` – aber mit **unterschiedlicher Rueckgabesemantik**:
+Methode `get()` – aber mit **unterschiedlicher Rückgabesemantik**:
 `ConfigService::get()` wandelte anhand der Spalte `typ` nach `int`/`bool`/
 `array` um, `KonfigurationService::get()` liefert immer `?string`. Wer den
 falschen erwischte, bekam schweigend einen anderen Typ.
 
 `KonfigurationService` gewinnt: mehr Aufrufer (26 gegen 9), deutscher Name,
 kann auch schreiben. Die vier Aufrufstellen sind umgestellt, zwei davon auf
-`getInt()` – das ersetzt jeweils fuenf Zeilen `is_int`/`ctype_digit`-Pruefung
+`getInt()` – das ersetzt jeweils fünf Zeilen `is_int`/`ctype_digit`-Prüfung
 durch eine.
 
-**2. `getPdo()` war ein zweiter Name fuer `getVerbindung()`** – die Methode gab
-nur `$this->getVerbindung()` zurueck. Beide waren etwa gleich haeufig im Umlauf
+**2. `getPdo()` war ein zweiter Name für `getVerbindung()`** – die Methode gab
+nur `$this->getVerbindung()` zurück. Beide waren etwa gleich häufig im Umlauf
 (26 zu 33), es gab also weder einen „eigentlichen" noch einen „alten". Auf
-`getVerbindung()` vereinheitlicht (deutscher Name, passt zur uebrigen Klasse),
+`getVerbindung()` vereinheitlicht (deutscher Name, passt zur übrigen Klasse),
 `getPdo()` entfernt.
 
-**3. 64 `method_exists()`-Pruefungen auf Methoden, die es alle gibt.** Muster:
+**3. 64 `method_exists()`-Prüfungen auf Methoden, die es alle gibt.** Muster:
 
 ```php
 if (method_exists($db, 'getVerbindung')) {
@@ -7858,43 +7964,43 @@ if (method_exists($db, 'getVerbindung')) {
 ```
 
 Der zweite Zweig war doppelt tot: erreichbar nur, wenn `getVerbindung` fehlte –
-und fuehrte dann zur selben Methode. Sechs solcher Ketten aufgeloest, dazu 24
-`if`-Huellen.
+und führte dann zur selben Methode. Sechs solcher Ketten aufgelöst, dazu 24
+`if`-Hüllen.
 
 Zwei davon hatten einen **`else`-Zweig mit echtem Code**, der nie lief:
-`views/layout/header.php` fuehrte unter „Legacy: Rollen-Mapping (vor
+`views/layout/header.php` führte unter „Legacy: Rollen-Mapping (vor
 Rechteverwaltung)" 14 Zuweisungen und einen kompletten zweiten
-Genehmiger-Pfad – zusammen 33 Zeilen, die seit Einfuehrung von `hatRecht()`
-unerreichbar waren. Ebenso zwei Fruehausstiege in `ReportController`, die
-`false` zurueckgaben, wenn `hatRecht` fehlt.
+Genehmiger-Pfad – zusammen 33 Zeilen, die seit Einführung von `hatRecht()`
+unerreichbar waren. Ebenso zwei Frühausstiege in `ReportController`, die
+`false` zurückgaben, wenn `hatRecht` fehlt.
 
-**Fuenf `method_exists` bleiben bewusst stehen:** in `SmokeTestController` und
-im Selbsttest des `DashboardController`. Dort ist die Pruefung der Zweck – sie
+**Fünf `method_exists` bleiben bewusst stehen:** in `SmokeTestController` und
+im Selbsttest des `DashboardController`. Dort ist die Prüfung der Zweck – sie
 melden, ob eine Methode vorhanden ist.
 
 ### TEST
 - Die vier Konfigurationswerte vor und nach der Umstellung verglichen:
   `terminal_session_idle_timeout` 300, `terminal_healthcheck_interval` 10,
   `terminal_db_host_muster` `'%'`, `terminal_db_host_extern` `''` – identisch,
-  gegengeprueft an den Rohwerten der Tabelle `config`.
-- 18 Backend-Masken gerendert: 16 POST-Formulare, keines ohne gueltiges Token,
+  gegengeprüft an den Rohwerten der Tabelle `config`.
+- 18 Backend-Masken gerendert: 16 POST-Formulare, keines ohne gültiges Token,
   0 Ausnahmen.
 - `index.php`, `terminal.php`, Health: dreimal HTTP 200; Health-Antwort
-  inhaltlich unveraendert (`queue_speicherort: "offline"`).
-- `php -l` ueber **alle** PHP-Dateien: sauber.
+  inhaltlich unverändert (`queue_speicherort: "offline"`).
+- `php -l` über **alle** PHP-Dateien: sauber.
 - `grep`: kein `getPdo` mehr, kein `ConfigService` mehr, `method_exists` nur
-  noch an den fuenf Selbsttest-Stellen.
+  noch an den fünf Selbsttest-Stellen.
 
 ### Gefundene Fehler im eigenen Entwurf
-Das Skript zum Aufloesen der `if`-Huellen dedentiert um vier Leerzeichen.
-`views/layout/header.php` ist an dieser Stelle mit **Tabs** eingerueckt, also
+Das Skript zum Auflösen der `if`-Hüllen dedentiert um vier Leerzeichen.
+`views/layout/header.php` ist an dieser Stelle mit **Tabs** eingerückt, also
 lief die Ersetzung dort ins Leere und der Block blieb stehen – aufgefallen nur,
 weil ich nach dem Durchlauf noch einmal `grep`t habe. Diese eine Stelle ist von
-Hand aufgeloest. Der Rest der Tab-Einrueckungen kommt in F-2.
+Hand aufgelöst. Der Rest der Tab-Einrückungen kommt in F-2.
 
 ### Was bewusst nicht erreicht wurde
 `class_exists('Logger')` und Verwandte (rund 380 Stellen) sind noch da – das
-ist der naechste Patch und wuerde diesen unlesbar machen.
+ist der nächste Patch und würde diesen unlesbar machen.
 
 ### NEXT
 P-2026-08-10-16: `class_exists`-Ballast entfernen.
@@ -7903,32 +8009,32 @@ P-2026-08-10-16: `class_exists`-Ballast entfernen.
 ## P-2026-08-10-14 csrf-umstellung-abgeschlossen
 
 ### EINGELESEN
-- Die restlichen zehn Controller mit eigener CSRF-Mechanik, vollstaendig.
+- Die restlichen zehn Controller mit eigener CSRF-Mechanik, vollständig.
 - `views/terminal/_logout_form.php`, `_statusbox.php`,
   `_urlaub_antraege_liste.php`, `auftrag_stoppen.php`, `start.php` – die
   Partials, die den Token aus der Session lesen.
 - `views/zeit/tagesansicht.php` wegen des abweichenden Feldnamens.
 
 ### DATEIEN
-17 Dateien: `core/Csrf.php` (um `verwerfe()` ergaenzt), zehn Controller, fuenf
+17 Dateien: `core/Csrf.php` (um `verwerfe()` ergänzt), zehn Controller, fünf
 Terminal-Partials, `views/zeit/tagesansicht.php`.
 
 ### AKZEPTANZKRITERIUM
 Kein Controller und keine View bauen mehr ein CSRF-Token oder einen
 Tokenvergleich selbst, und jedes POST-Formular im Backend und im Terminal
-traegt ein gueltiges Token.
+trägt ein gültiges Token.
 
 ### DONE
-Die Umstellung ist abgeschlossen: **396 Zeilen entfernt, 134 hinzugefuegt.**
-`grep -rn hash_equals` findet ausserhalb von `core/Csrf.php` nichts mehr.
+Die Umstellung ist abgeschlossen: **396 Zeilen entfernt, 134 hinzugefügt.**
+`grep -rn hash_equals` findet außerhalb von `core/Csrf.php` nichts mehr.
 
-Drei Funde, die beim blossen Ersetzen aufgefallen sind:
+Drei Funde, die beim bloßen Ersetzen aufgefallen sind:
 
-**1. Fuenf Terminal-Partials lesen den Token direkt aus der Session.** Weil der
-Schluessel von `terminal_csrf_token` auf `csrf_token_terminal` wechselte,
-haetten sie ab sofort einen leeren Token geliefert – die Terminal-Formulare
-waeren stillschweigend unbrauchbar geworden. Sie holen ihn jetzt ueber
-`Csrf::token(TerminalController::CSRF_BEREICH)`; die Konstante ist dafuer
+**1. Fünf Terminal-Partials lesen den Token direkt aus der Session.** Weil der
+Schlüssel von `terminal_csrf_token` auf `csrf_token_terminal` wechselte,
+hätten sie ab sofort einen leeren Token geliefert – die Terminal-Formulare
+wären stillschweigend unbrauchbar geworden. Sie holen ihn jetzt über
+`Csrf::token(TerminalController::CSRF_BEREICH)`; die Konstante ist dafür
 `public`.
 
 **2. `views/terminal/_logout_form.php` erzeugte im Notfall ein Token aus der
@@ -7938,51 +8044,51 @@ Uhrzeit:**
 $csrfToken = bin2hex(pack('N', time())) . bin2hex(pack('N', random_int(1, PHP_INT_MAX)));
 ```
 
-Die erste Haelfte ist der Unix-Zeitstempel im Klartext. Ersatzlos entfallen.
+Die erste Hälfte ist der Unix-Zeitstempel im Klartext. Ersatzlos entfallen.
 
 **3. `views/zeit/tagesansicht.php` nannte das Feld `csrf` statt `csrf_token`**
-– an sieben Stellen. Ein blosses Umstellen des Controllers auf
-`Csrf::istGueltig()` (das `$_POST['csrf_token']` liest) haette die
-Tageskorrektur lautlos unbedienbar gemacht: Das Formular haette abgeschickt,
-die Pruefung waere immer fehlgeschlagen. Feldname vereinheitlicht.
+– an sieben Stellen. Ein bloßes Umstellen des Controllers auf
+`Csrf::istGueltig()` (das `$_POST['csrf_token']` liest) hätte die
+Tageskorrektur lautlos unbedienbar gemacht: Das Formular hätte abgeschickt,
+die Prüfung wäre immer fehlgeschlagen. Feldname vereinheitlicht.
 
 Ebenfalls eingesammelt: `ZeitController` und `SmokeTestController` hatten
 Tokenerzeugung ohne eigene Methode direkt im Ablauf stehen und waren im
-urspruenglichen Fund von 14 Kopien gar nicht enthalten.
+ursprünglichen Fund von 14 Kopien gar nicht enthalten.
 
 ### TEST
 1. **18 Backend-Masken** mit angemeldeter Superuser-Session gerendert und jedes
-   `<form method="post">` im erzeugten HTML geprueft:
-   **16 POST-Formulare, 0 ohne gueltiges Token (64 Hexzeichen), 0 Ausnahmen.**
+   `<form method="post">` im erzeugten HTML geprüft:
+   **16 POST-Formulare, 0 ohne gültiges Token (64 Hexzeichen), 0 Ausnahmen.**
    Darunter die Tagesansicht mit 5, die Rundungsregeln mit 4, die
    Urlaubsverwaltung mit 2 und die Betriebsferien mit 2 Formularen.
-2. **Terminal ueber den echten Webserver:** 1 POST-Formular, 1 gueltiges Token,
+2. **Terminal über den echten Webserver:** 1 POST-Formular, 1 gültiges Token,
    kein leeres.
 3. Einheitentest von `Csrf`: richtiges Token gilt, fremdes/leeres/fehlendes
    nicht, zwei Bereiche liefern verschiedene Tokens.
 4. `Csrf::istGueltig()` mit falschem Token gegen
    `BetriebsferienAdminController::toggleAktiv()`: Aktion wurde abgewiesen,
-   der Datensatz blieb unveraendert.
-5. `php -l` ueber alle 17 Dateien sauber, Apache-Fehlerlog ohne neue Meldungen.
+   der Datensatz blieb unverändert.
+5. `php -l` über alle 17 Dateien sauber, Apache-Fehlerlog ohne neue Meldungen.
 
 ### Gefundene Fehler im eigenen Entwurf
-Der Versuch, die Ablehnung **ueber den Webserver** am Terminal zu zeigen, war
+Der Versuch, die Ablehnung **über den Webserver** am Terminal zu zeigen, war
 untauglich: `terminal.php?aktion=logout` leitet ohne angemeldeten Mitarbeiter
 in jedem Fall auf `aktion=start` um, mit richtigem wie mit falschem Token
 identisch (302 auf dieselbe Adresse). Der Test beweist also nichts. Der
 Nachweis der Ablehnung steht deshalb auf Punkt 3 und 4 – dort ist er echt.
 
-Zweitens hat mich die Groessenkontrolle des Diffs gerettet, nicht `php -l`:
-Nach dem Ersetzen zeigte `grep`, dass fuenf Views noch auf den alten
-Session-Schluessel zugriffen. Syntaktisch war alles tadellos.
+Zweitens hat mich die Größenkontrolle des Diffs gerettet, nicht `php -l`:
+Nach dem Ersetzen zeigte `grep`, dass fünf Views noch auf den alten
+Session-Schlüssel zugriffen. Syntaktisch war alles tadellos.
 
 ### Was bewusst nicht erreicht wurde
-Die Views bauen ihr verstecktes Feld weiter von Hand statt ueber
+Die Views bauen ihr verstecktes Feld weiter von Hand statt über
 `Csrf::feld()`. 70 Stellen, rein kosmetisch, kein eigener Patch wert – neue
 Formulare sollten `Csrf::feld()` benutzen.
 
 ### NEXT
-P-2026-08-10-15: die beiden Konfigurationsdienste zusammenfuehren.
+P-2026-08-10-15: die beiden Konfigurationsdienste zusammenführen.
 
 
 ## P-2026-08-10-13 csrf-umstellung-teil-2
@@ -7990,7 +8096,7 @@ P-2026-08-10-15: die beiden Konfigurationsdienste zusammenfuehren.
 ### EINGELESEN
 - `core/Csrf.php`, `controller/QueueController.php` als Vorlage aus
   P-2026-08-10-03.
-- Die vier umzustellenden Controller vollstaendig, inklusive der Stellen, an
+- Die vier umzustellenden Controller vollständig, inklusive der Stellen, an
   denen ihre Views das Token erwarten.
 
 ### DATEIEN
@@ -8002,60 +8108,60 @@ P-2026-08-10-15: die beiden Konfigurationsdienste zusammenfuehren.
 
 ### AKZEPTANZKRITERIUM
 Dashboard, Rundungsregeln, Arbeitsschritt-Katalog und Konfiguration rendern
-weiterhin gueltige Token, und jedes POST-Formular darin traegt eines.
+weiterhin gültige Token, und jedes POST-Formular darin trägt eines.
 
 ### DONE
 Vier weitere Controller auf `core/Csrf.php` umgestellt: eigene
 `holeOderErzeugeCsrfToken()` entfernt, `CSRF_KEY` durch `CSRF_BEREICH` ersetzt,
-neun handgebaute Tokenvergleiche durch `Csrf::istGueltig()` abgeloest.
+neun handgebaute Tokenvergleiche durch `Csrf::istGueltig()` abgelöst.
 
-Die handgebauten Vergleiche sahen ueberall so aus:
+Die handgebauten Vergleiche sahen überall so aus:
 
 ```php
 $postToken = isset($_POST['csrf_token']) ? (string)$_POST['csrf_token'] : '';
 if (!hash_equals($csrfToken, $postToken)) {
 ```
 
-`Csrf::istGueltig()` ist dabei nicht nur kuerzer, sondern strenger: Es weist ein
-leeres Session-Token ebenfalls ab, was die alte Fassung nur zufaellig tat, weil
+`Csrf::istGueltig()` ist dabei nicht nur kürzer, sondern strenger: Es weist ein
+leeres Session-Token ebenfalls ab, was die alte Fassung nur zufällig tat, weil
 `hash_equals('','')` true liefert.
 
 ### TEST
 Alle sieben bisher umgestellten Masken mit angemeldeter Superuser-Session
-gerendert und das HTML geprueft:
+gerendert und das HTML geprüft:
 
 | Maske | HTML | CSRF-Felder |
 | --- | --- | --- |
 | Dashboard | 25.933 B | 0 (keine POST-Formulare im aktuellen Datenstand) |
 | Rundungsregeln | 23.131 B | 4 |
 | Arbeitsschritt-Katalog | 32.132 B | 0 (Liste ohne POST-Formular) |
-| Konfiguration | 29.967 B | 0 (Uebersicht ohne POST-Formular) |
+| Konfiguration | 29.967 B | 0 (Übersicht ohne POST-Formular) |
 | Queue-Admin | 19.665 B | 1 |
 | Rollen | 19.518 B | 0 (Liste) |
 | Betriebsferien | 21.625 B | 2 |
 
-Weil „0 Felder" fuer sich nichts beweist, zweiter Durchgang: jedes
-`<form method="post">` im erzeugten HTML daraufhin geprueft, ob es ein
-`csrf_token` enthaelt – auch auf den Formularseiten (`Katalog-Neu`,
+Weil „0 Felder" für sich nichts beweist, zweiter Durchgang: jedes
+`<form method="post">` im erzeugten HTML daraufhin geprüft, ob es ein
+`csrf_token` enthält – auch auf den Formularseiten (`Katalog-Neu`,
 `Rollen-Neu`). Ergebnis: **kein einziges POST-Formular ohne Token.**
-`php -l` ueber alle vier Dateien sauber.
+`php -l` über alle vier Dateien sauber.
 
 ### Gefundene Fehler im eigenen Entwurf
 Das Hilfsskript zum Entfernen der Methoden war beim ersten Anlauf **kaputt** und
 hat in `ZeitRundungsregelAdminController` 2.322 und in
-`KonfigurationController` 5.916 Zeichen geloescht statt rund 450 – Klassenkopf,
+`KonfigurationController` 5.916 Zeichen gelöscht statt rund 450 – Klassenkopf,
 Konstruktor und `pruefeZugriff()` inklusive. Ursache: ein Regex mit `.*?` und
-`re.S` fuer den optionalen Docblock, der ueber Zeilengrenzen bis zum
-**Klassen**-Docblock am Dateianfang zurueckgriff.
+`re.S` für den optionalen Docblock, der über Zeilengrenzen bis zum
+**Klassen**-Docblock am Dateianfang zurückgriff.
 
-Aufgefallen ist es nur, weil die gemeldete Zeichenzahl nicht zur Groesse einer
+Aufgefallen ist es nur, weil die gemeldete Zeichenzahl nicht zur Größe einer
 CSRF-Methode passte. Nichts war committet, `git checkout --` hat es
-zurueckgeholt. Das Skript arbeitet jetzt zweistufig (Methodenzeile suchen, dann
-rueckwaerts genau eine Docblock-Zeile pruefen) und wurde erst an einer Kopie
+zurückgeholt. Das Skript arbeitet jetzt zweistufig (Methodenzeile suchen, dann
+rückwärts genau eine Docblock-Zeile prüfen) und wurde erst an einer Kopie
 erprobt, bevor es auf die echten Dateien losgelassen wurde.
 
-Lehre fuer den Rest der Umstellung: Bei mechanischen Aenderungen ist die
-**Groesse** des Diffs die erste Pruefung, nicht `php -l` – die entkernte Datei
+Lehre für den Rest der Umstellung: Bei mechanischen Änderungen ist die
+**Größe** des Diffs die erste Prüfung, nicht `php -l` – die entkernte Datei
 war syntaktisch tadellos.
 
 ### Was bewusst nicht erreicht wurde
@@ -8069,13 +8175,13 @@ P-2026-08-10-14: die restlichen acht Controller.
 ## P-2026-08-10-12 tote-views-entfernt
 
 ### EINGELESEN
-- Alle acht Dateien vollstaendig, bevor geloescht wurde.
+- Alle acht Dateien vollständig, bevor gelöscht wurde.
 - `controller/BetriebsferienAdminController.php`,
-  `controller/MaschineAdminController.php` – wie sie tatsaechlich rendern.
-- `views/terminal/start.php` als das lebende Gegenstueck.
+  `controller/MaschineAdminController.php` – wie sie tatsächlich rendern.
+- `views/terminal/start.php` als das lebende Gegenstück.
 
 ### DATEIEN
-Geloescht:
+Gelöscht:
 - `views/betriebsferien/liste.php` (95 Zeilen),
   `views/betriebsferien/formular.php` (83), `views/maschine/liste.php` (68)
 - `views/terminal/index.php` (27), `views/terminal/hauptmenue.php` (25),
@@ -8085,7 +8191,7 @@ Geloescht:
 - dazu `docs/archiv/DEV_PROMPT_HISTORY.md`
 
 ### AKZEPTANZKRITERIUM
-Betriebsferien-Liste, Maschinenliste und Terminal sehen unveraendert aus, und
+Betriebsferien-Liste, Maschinenliste und Terminal sehen unverändert aus, und
 in `views/` liegt keine Datei mehr, die nirgends eingebunden wird.
 
 ### DONE
@@ -8093,43 +8199,43 @@ Zwei verschiedene Sorten:
 
 **Drei Views mit lebendem Zwilling.** `betriebsferien/liste.php`,
 `betriebsferien/formular.php` und `maschine/liste.php` werden **nirgends**
-eingebunden – die zugehoerigen Controller erzeugen ihr HTML selbst, zwischen
+eingebunden – die zugehörigen Controller erzeugen ihr HTML selbst, zwischen
 `layout/header.php` und `layout/footer.php`. Das ist die unangenehmste Sorte
-toter Code: Wer die Betriebsferien-Liste aendern will, findet
-`views/betriebsferien/liste.php`, aendert sie – und im Browser passiert nichts.
+toter Code: Wer die Betriebsferien-Liste ändern will, findet
+`views/betriebsferien/liste.php`, ändert sie – und im Browser passiert nichts.
 Genau diese Falle stand kurz bevor, weil P-2026-08-10-04 den Aktiv-Schalter in
 den Controller eingebaut hat.
 
-**Fuenf Platzhalter.** Sie sagen selbst, was sie sind („Legacy/Platzhalter-View
-(nicht aktiv geroutet)"). Vor dem Loeschen gelesen: keiner enthaelt Fachwissen,
+**Fünf Platzhalter.** Sie sagen selbst, was sie sind („Legacy/Platzhalter-View
+(nicht aktiv geroutet)"). Vor dem Löschen gelesen: keiner enthält Fachwissen,
 das im Controller fehlt.
 
-`views/terminal/index.php` begruendete seine Existenz damit, „versehentliche
+`views/terminal/index.php` begründete seine Existenz damit, „versehentliche
 Direktaufrufe (z. B. durch falsche Links/Bookmarks) abzufangen". Nachgemessen:
-Der DocumentRoot zeigt auf `public/`, `views/` ist ueber den Webserver gar nicht
+Der DocumentRoot zeigt auf `public/`, `views/` ist über den Webserver gar nicht
 erreichbar (HTTP 404). Der Zweck konnte also nie eintreten.
 
 ### TEST
-- Vor dem Loeschen je Datei geprueft, ob ihr Pfad **mit Verzeichnis** irgendwo
+- Vor dem Löschen je Datei geprüft, ob ihr Pfad **mit Verzeichnis** irgendwo
   eingebunden wird: null Treffer.
-- Nach dem Loeschen ueber alle verbliebenen Views gelaufen: jede wird
+- Nach dem Löschen über alle verbliebenen Views gelaufen: jede wird
   eingebunden.
-- `views/terminal/index.php` und `../views/terminal/index.php` ueber den
-  Webserver: beide HTTP 404, waehrend `css/terminal.css` 200 liefert – Beleg,
+- `views/terminal/index.php` und `../views/terminal/index.php` über den
+  Webserver: beide HTTP 404, während `css/terminal.css` 200 liefert – Beleg,
   dass der DocumentRoot `public/` ist.
 - `index.php`, `terminal.php`, Health: dreimal HTTP 200.
 
 ### Gefundene Fehler im eigenen Entwurf
-Die erste Pruefung suchte mit `grep -e "/$basename"` und meldete fuer
-`betriebsferien/liste.php` sechs und fuer `formular.php` vierzehn
+Die erste Prüfung suchte mit `grep -e "/$basename"` und meldete für
+`betriebsferien/liste.php` sechs und für `formular.php` vierzehn
 Einbindungen – gefunden hatte sie in Wahrheit **jede** `liste.php` und
-`formular.php` des Projekts. Beinahe haette ich drei tote Dateien als lebendig
+`formular.php` des Projekts. Beinahe hätte ich drei tote Dateien als lebendig
 eingestuft. Richtig ist die Suche mit Verzeichnisanteil (`betriebsferien/liste.php`),
 und die liefert null.
 
 ### Was bewusst nicht erreicht wurde
 Die Controller erzeugen ihr HTML weiterhin selbst. Das umgekehrte Vorgehen –
-das Markup in die Views ziehen statt die Views zu loeschen – waere naeher an
+das Markup in die Views ziehen statt die Views zu löschen – wäre näher an
 der Struktur des Projekts, ist aber ein eigenes Vorhaben mit echtem
 Regressionsrisiko. Als T-104 im Snapshot notiert.
 
@@ -8144,15 +8250,15 @@ Phase 5: doppelter Code (CSRF-Rest, Konfigurationsdienste, `getPdo`,
 - `core/Auth.php`, `core/SessionManager.php`, `core/FeiertagGenerator.php`,
   `modelle/ConfigModel.php`, `modelle/SystemLogModel.php`,
   `modelle/AuftragArbeitsschrittModel.php`, `services/OfflineQueueService.php`
-  – jeweils vollstaendig, um zu sehen, ob Wissen darin steckt, das anderswo
+  – jeweils vollständig, um zu sehen, ob Wissen darin steckt, das anderswo
   fehlt.
 - `services/AuthService.php`, `services/FeiertagService.php`,
-  `core/OfflineQueueManager.php` als die tatsaechlich benutzten Gegenstuecke.
+  `core/OfflineQueueManager.php` als die tatsächlich benutzten Gegenstücke.
 - `docs/fachregeln/rollen_rechte_genehmiger.md`,
   `docs/fachregeln/urlaub_abwesenheit_feiertage.md`, `README.md`.
 
 ### DATEIEN
-Geloescht:
+Gelöscht:
 - `core/Auth.php` (258 Zeilen), `core/SessionManager.php` (291),
   `core/FeiertagGenerator.php` (197)
 - `modelle/ConfigModel.php` (73), `modelle/SystemLogModel.php` (70),
@@ -8165,56 +8271,56 @@ Angepasst:
   `docs/archiv/DEV_PROMPT_HISTORY.md`
 
 ### AKZEPTANZKRITERIUM
-Anmeldung, Rechtepruefung, Feiertage, Urlaub und die Offline-Queue
-funktionieren unveraendert, und keine der sieben Klassen wird noch
+Anmeldung, Rechteprüfung, Feiertage, Urlaub und die Offline-Queue
+funktionieren unverändert, und keine der sieben Klassen wird noch
 referenziert.
 
 ### DONE
-1.083 Zeilen, die nie ausgefuehrt wurden. Gefaehrlich war nicht der Platz,
+1.083 Zeilen, die nie ausgeführt wurden. Gefährlich war nicht der Platz,
 sondern dass sie echt aussehen:
 
 - **`core/Auth.php`** liest sich wie die Anmeldung des Projekts – mit
   `loginMitBenutzername()`, `loginMitRfid()`, `hatRolle()`. Benutzt wird seit
-  Langem ausschliesslich `services/AuthService.php` (26 Aufrufstellen);
+  Langem ausschließlich `services/AuthService.php` (26 Aufrufstellen);
   `Auth::` kam **null** Mal vor. Und die Fachregel schickte einen sogar
-  ausdruecklich dorthin („*Gilt fuer:* `services/AuthService.php`,
-  `core/Auth.php`"). Wer dort einen Anmeldefehler gesucht oder behoben haette,
-  haette ins Leere gearbeitet.
-- **`core/SessionManager.php`** wurde nur von `core/Auth.php` benutzt und faellt
+  ausdrücklich dorthin („*Gilt für:* `services/AuthService.php`,
+  `core/Auth.php`"). Wer dort einen Anmeldefehler gesucht oder behoben hätte,
+  hätte ins Leere gearbeitet.
+- **`core/SessionManager.php`** wurde nur von `core/Auth.php` benutzt und fällt
   mit ihm. `AuthService` verwaltet `$_SESSION` selbst.
 - **`core/FeiertagGenerator.php`** – null Treffer; die Feiertagslogik liegt in
   `services/FeiertagService.php`. Auch hier zeigte die Fachregel auf die tote
   Datei.
-- **`services/OfflineQueueService.php`** war die dritte Klasse fuer dieselbe
+- **`services/OfflineQueueService.php`** war die dritte Klasse für dieselbe
   Tabelle `db_injektionsqueue`, neben `core/OfflineQueueManager.php` (41
   Aufrufstellen) und `services/QueueService.php` (7). Null Treffer.
 - **`modelle/ConfigModel.php`, `SystemLogModel.php`,
-  `AuftragArbeitsschrittModel.php`** – null Treffer. Logging laeuft direkt
-  ueber `core/Logger.php`, Konfiguration ueber `KonfigurationService`.
+  `AuftragArbeitsschrittModel.php`** – null Treffer. Logging läuft direkt
+  über `core/Logger.php`, Konfiguration über `KonfigurationService`.
 
 Doku im selben Commit nachgezogen: beide Fachregel-Kopfzeilen und die
 `core/`-Beschreibung in `README.md`, die noch „Session" und „Feiertage"
-auffuehrte.
+aufführte.
 
 ### TEST
-- `grep` je Klasse ueber `controller core modelle services views public`:
-  null Treffer ausserhalb der eigenen Datei, vor dem Loeschen einzeln geprueft.
-- `php -l` ueber **alle** PHP-Dateien des Projekts: sauber.
+- `grep` je Klasse über `controller core modelle services views public`:
+  null Treffer außerhalb der eigenen Datei, vor dem Löschen einzeln geprüft.
+- `php -l` über **alle** PHP-Dateien des Projekts: sauber.
 - `index.php`, `terminal.php`, `terminal.php?aktion=health`: dreimal HTTP 200.
-- Health-Antwort inhaltlich geprueft: `hauptdb_verfuegbar: true`,
+- Health-Antwort inhaltlich geprüft: `hauptdb_verfuegbar: true`,
   `queue_verfuegbar: true`, `queue_speicherort: "offline"` – die Offline-Queue
   arbeitet also weiterhin, obwohl eine ihrer drei Klassen weg ist.
 
 ### Gefundene Fehler im eigenen Entwurf
-Der Aufraeumplan hatte das auf zwei Patches aufgeteilt (`core/` und
+Der Aufräumplan hatte das auf zwei Patches aufgeteilt (`core/` und
 `modelle/`+`services/`). Beim Umsetzen zeigte sich, dass beide dieselbe
-`core/`-Zeile in `README.md` anfassen muessen – die Trennung haette denselben
-Satz zweimal geaendert. Zusammengelegt, weil es ohnehin ein Thema ist: tote
+`core/`-Zeile in `README.md` anfassen müssen – die Trennung hätte denselben
+Satz zweimal geändert. Zusammengelegt, weil es ohnehin ein Thema ist: tote
 Klassen.
 
 ### Was bewusst nicht erreicht wurde
 `modelle/DbInjektionsqueueModel.php` bleibt, obwohl es nur zwei Aufrufstellen
-hat – es wird benutzt. Damit gibt es fuer `db_injektionsqueue` immer noch drei
+hat – es wird benutzt. Damit gibt es für `db_injektionsqueue` immer noch drei
 Zugriffswege (Manager, Service, Model). Das zu ordnen ist Fachlogik am
 Offline-Pfad und braucht einen eigenen Patch mit Offline-Test.
 
@@ -8225,13 +8331,13 @@ P-2026-08-10-12: tote Views mit benutztem Zwilling.
 ## P-2026-08-10-10 leere-platzhalterdateien-entfernt
 
 ### EINGELESEN
-- Alle 14 betroffenen Dateien vollstaendig (je drei Zeilen).
+- Alle 14 betroffenen Dateien vollständig (je drei Zeilen).
 - `public/index.php` (Router) – keine der acht Controller-Klassen wird
   instanziiert.
-- Duplicate-Check ueber `grep` auf jeden Klassen- bzw. Dateinamen.
+- Duplicate-Check über `grep` auf jeden Klassen- bzw. Dateinamen.
 
 ### DATEIEN
-Geloescht:
+Gelöscht:
 - `controller/AbteilungController.php`, `AuthController.php`,
   `BackendController.php`, `MaschineController.php`,
   `MitarbeiterController.php`, `PDFController.php`, `RollenController.php`,
@@ -8242,40 +8348,40 @@ Geloescht:
 - dazu `docs/archiv/DEV_PROMPT_HISTORY.md`
 
 ### AKZEPTANZKRITERIUM
-Backend und Terminal starten unveraendert, und keine Klassendatei endet mehr
+Backend und Terminal starten unverändert, und keine Klassendatei endet mehr
 auf `?>`.
 
 ### DONE
 Vierzehn Dateien mit je drei Zeilen: ein `<?php`, ein Kommentar, ein `?>`.
 Keine Klasse, keine Funktion, kein Aufrufer. Sie stammen aus der
-Anfangsgeruestung des Projekts; die tatsaechliche Arbeit machen laengst
+Anfangsgerüstung des Projekts; die tatsächliche Arbeit machen längst
 `MitarbeiterAdminController`, `LoginController`, `PDFService` und so weiter.
 
-Der Schaden ist nicht der Platz, sondern die Irrefuehrung: Wer nach dem
+Der Schaden ist nicht der Platz, sondern die Irreführung: Wer nach dem
 Login-Code sucht, findet `controller/AuthController.php` mit dem Kommentar
 „Login/Logout & Benutzerwechsel" – und dahinter nichts.
 
 Sie waren zugleich die **einzigen** Klassendateien des Projekts mit
-schliessendem `?>`. Das ist ein eigener Grund: Leerzeichen nach `?>` landen in
+schließendem `?>`. Das ist ein eigener Grund: Leerzeichen nach `?>` landen in
 der Ausgabe und brechen `header()`-Aufrufe.
 
 Die dadurch leeren Verzeichnisse `views/auth/` und `views/config/` sind mit
 entfernt.
 
 ### TEST
-- `index.php`, `terminal.php` und `terminal.php?aktion=health` ueber den
+- `index.php`, `terminal.php` und `terminal.php?aktion=health` über den
   lokalen Webserver: dreimal HTTP 200.
 - Keine Datei in `controller/`, `core/`, `modelle/`, `services/` endet mehr auf
   `?>`.
 
 ### Gefundene Fehler im eigenen Entwurf
-Die erste Fassung der Pruefung war `grep -rln '?>'` – die schlaegt bei jeder
+Die erste Fassung der Prüfung war `grep -rln '?>'` – die schlägt bei jeder
 View an, die zwischen PHP und HTML wechselt, und meldete neun Controller mit
-Inline-HTML als Treffer. Gemeint war „endet auf `?>`", und das prueft man mit
+Inline-HTML als Treffer. Gemeint war „endet auf `?>`", und das prüft man mit
 `tail -c`, nicht mit `grep`. Danach: sauber.
 
 In `views/` enden weiterhin 35 Dateien auf `?>`. Das sind Templates, dort ist
-es ueblich und ungefaehrlich, solange nichts dahinter steht – bewusst nicht
+es üblich und ungefährlich, solange nichts dahinter steht – bewusst nicht
 angefasst.
 
 ### NEXT
@@ -8287,7 +8393,7 @@ P-2026-08-10-11: `core/Auth.php` und `core/SessionManager.php`.
 ### EINGELESEN
 - `docs/fachregeln/rollen_rechte_genehmiger.md`, Abschnitte 3 und 4.
 - `services/AuthService.php`: `hatRecht()`, `holeAngemeldeteRechteCodes()`,
-  `ladeRechteCodesAusDb()` – Zeile fuer Zeile gegen die Doku gelesen.
+  `ladeRechteCodesAusDb()` – Zeile für Zeile gegen die Doku gelesen.
 - `sql/01_initial_schema.sql`: `mitarbeiter_hat_rolle_scope`,
   `mitarbeiter_hat_recht`.
 - `controller/MitarbeiterAdminController.php` – wer `gilt_unterbereiche`
@@ -8300,11 +8406,11 @@ P-2026-08-10-11: `core/Auth.php` und `core/SessionManager.php`.
 
 ### AKZEPTANZKRITERIUM
 Abschnitt 4 der Fachregel beschreibt die Signatur und den Ablauf, die
-`AuthService` tatsaechlich hat, und jede dort genannte Tabelle existiert.
+`AuthService` tatsächlich hat, und jede dort genannte Tabelle existiert.
 
 ### DONE
 Der Vorpatch hatte den falschen Tabellennamen an drei Stellen korrigiert. Die
-Gegenprobe fand eine vierte – und die fuehrte auf etwas Groesseres: **Abschnitt
+Gegenprobe fand eine vierte – und die führte auf etwas Größeres: **Abschnitt
 4 beschrieb ein Zielbild, kein Verhalten.**
 
 Dokumentiert war:
@@ -8313,53 +8419,53 @@ Dokumentiert war:
 hatRecht(string $code, ?int $zielMitarbeiterId = null, ?int $zielAbteilungId = null): bool
 ```
 
-dazu eine Scope-Aufloesung ueber die Ziel-Abteilung, Matching im Unterbaum und
-„der spezifischste Scope gewinnt". Tatsaechlich lautet die Signatur
+dazu eine Scope-Auflösung über die Ziel-Abteilung, Matching im Unterbaum und
+„der spezifischste Scope gewinnt". Tatsächlich lautet die Signatur
 `hatRecht(string $rechtCode): bool` – **ohne** Scope-Parameter. Wer der Doku
-folgte, uebergab Argumente, die stillschweigend verschwinden, und hielt eine
-Rechtepruefung fuer abteilungsgenau, die global ist. In der Datei, die laut
-Lesekarte **immer** zu lesen ist, wenn Rechte beruehrt werden.
+folgte, übergab Argumente, die stillschweigend verschwinden, und hielt eine
+Rechteprüfung für abteilungsgenau, die global ist. In der Datei, die laut
+Lesekarte **immer** zu lesen ist, wenn Rechte berührt werden.
 
-Ebenfalls falsch: die Overrides stuenden in `mitarbeiter_hat_recht_scope` mit
+Ebenfalls falsch: die Overrides stünden in `mitarbeiter_hat_recht_scope` mit
 einer Spalte `effect` ENUM('allow','deny'). Beides existiert nicht. Richtig ist
 `mitarbeiter_hat_recht` mit `erlaubt` – die *Aussage* dazu („deny sticht allow,
 Overrides stechen Rollen") stimmt allerdings und ist in
 `ladeRechteCodesAusDb()` sauber umgesetzt.
 
 Abschnitt 4 beschreibt jetzt den Ist-Zustand mit allen vier Schritten der
-Code-Ermittlung. Abschnitt 3 behaelt das Bereichsmodell als Zielbild, markiert
+Code-Ermittlung. Abschnitt 3 behält das Bereichsmodell als Zielbild, markiert
 aber je Zeile, was davon gebaut ist.
 
 ### Neuer Bug: B-093
-Aus dem Abgleich faellt ein echter Fehler heraus:
+Aus dem Abgleich fällt ein echter Fehler heraus:
 `ladeRechteCodesAusDb()` liest aus `mitarbeiter_hat_rolle_scope` **nur** Zeilen
 mit `scope_typ = 'global'` – der Code sagt das selbst in einem Kommentar
 („vorerst nur scope_typ='global' wird ausgewertet"). Die Mitarbeiterverwaltung
 kann aber sehr wohl `scope_typ = 'abteilung'` samt `gilt_unterbereiche`
-speichern. Eine abteilungsbezogene Rollenzuweisung gewaehrt damit **gar
-nichts**, ohne jede Rueckmeldung: Die Maske sieht aus, als haette sie gewirkt.
+speichern. Eine abteilungsbezogene Rollenzuweisung gewährt damit **gar
+nichts**, ohne jede Rückmeldung: Die Maske sieht aus, als hätte sie gewirkt.
 
 Nicht in diesem Patch behoben – das ist Fachlogik und braucht eine
-Entscheidung (Scope-Auswertung nachbauen oder die Auswahl aus der Oberflaeche
+Entscheidung (Scope-Auswertung nachbauen oder die Auswahl aus der Oberfläche
 nehmen). Als B-093 im Snapshot notiert.
 
 ### TEST
-- Signatur und Ablauf Zeile fuer Zeile gegen `services/AuthService.php`
+- Signatur und Ablauf Zeile für Zeile gegen `services/AuthService.php`
   gegengelesen (Zeilen 360–392 und 513–615).
 - `grep` auf `effect` in Schema und Code: kein Treffer.
-- `grep` auf `mitarbeiter_hat_recht_scope`: ausserhalb von `docs/archiv/` kein
+- `grep` auf `mitarbeiter_hat_recht_scope`: außerhalb von `docs/archiv/` kein
   Treffer mehr.
-- `gilt_unterbereiche`: fuenf Fundstellen, alle in
+- `gilt_unterbereiche`: fünf Fundstellen, alle in
   `MitarbeiterAdminController` (schreibend/anzeigend), keine in `AuthService`.
 
 ### Gefundene Fehler im eigenen Entwurf
 Der Vorpatch P-2026-08-10-08 hat sein eigenes Akzeptanzkriterium **nicht**
-erfuellt: Ich hatte drei Fundstellen korrigiert und die Gegenprobe erst nach
-dem Commit laufen lassen – sie zeigte sofort eine vierte. Richtig waere
-gewesen, `grep` vor dem `git commit` auszufuehren, nicht danach. Der
-Aufraeumplan hatte den Befehl sogar als Akzeptanzkriterium vorgesehen.
+erfüllt: Ich hatte drei Fundstellen korrigiert und die Gegenprobe erst nach
+dem Commit laufen lassen – sie zeigte sofort eine vierte. Richtig wäre
+gewesen, `grep` vor dem `git commit` auszuführen, nicht danach. Der
+Aufräumplan hatte den Befehl sogar als Akzeptanzkriterium vorgesehen.
 
-Dass daraus B-093 wurde, ist Glueck, kein Verdienst.
+Dass daraus B-093 wurde, ist Glück, kein Verdienst.
 
 ### Was bewusst nicht erreicht wurde
 B-093 selbst. Und Abschnitt 3 bleibt ein Zielbild – jetzt aber als solches
@@ -8386,7 +8492,7 @@ P-2026-08-10-10: toter Code – Stub-Dateien.
 - `docs/archiv/DEV_PROMPT_HISTORY.md`
 
 ### AKZEPTANZKRITERIUM
-Keine Datei ausserhalb von `docs/archiv/` nennt eine Tabelle oder eine
+Keine Datei außerhalb von `docs/archiv/` nennt eine Tabelle oder eine
 SQL-Datei, die es nicht gibt.
 
 ### DONE
@@ -8394,49 +8500,49 @@ Drei sachliche Fehler:
 
 **1. Ein Tabellenname, den es nicht gibt.** `rechte_prompt.md` (2×) und
 `fachregeln/rollen_rechte_genehmiger.md` (1×) sprachen von
-`mitarbeiter_rechte_override`, `rollen_rechte_genehmiger.md` zusaetzlich von
+`mitarbeiter_rechte_override`, `rollen_rechte_genehmiger.md` zusätzlich von
 `mitarbeiter_hat_recht_scope`. **Beide existieren nicht** – weder im Schema noch
-im Code. Die Tabelle heisst `mitarbeiter_hat_recht`, und die Unterscheidung
-Allow/Deny laeuft ueber die Spalte `erlaubt`. Das wiegt schwerer als ein
+im Code. Die Tabelle heißt `mitarbeiter_hat_recht`, und die Unterscheidung
+Allow/Deny läuft über die Spalte `erlaubt`. Das wiegt schwerer als ein
 Tippfehler: `rollen_rechte_genehmiger.md` ist laut Lesekarte **immer** zu lesen,
-wenn Rechte beruehrt werden. Wer danach im Schema sucht, findet nichts.
+wenn Rechte berührt werden. Wer danach im Schema sucht, findet nichts.
 
 **2. Drei SQL-Dateien, die es nicht gibt.** `rechte_prompt.md` verwies auf
 `sql/19_migration_rechte_legacy_merge.sql`,
 `sql/20_migration_recht_code_unique.sql` und `sql/zeiterfassung_aktuell.sql`.
-In `sql/` liegen `01` bis `06`. Geprueft, ob die beschriebenen Wirkungen
+In `sql/` liegen `01` bis `06`. Geprüft, ob die beschriebenen Wirkungen
 verlorengingen – **nein**: `UNIQUE KEY uniq_recht_code`, `KEY idx_recht_aktiv`
 und die Spalte `recht.aktiv` stehen alle im Initialschema an der Tabelle
-`recht`. Es war also nur die Formulierung falsch, kein Bug. Die Eintraege sagen
+`recht`. Es war also nur die Formulierung falsch, kein Bug. Die Einträge sagen
 jetzt, dass es die Dateien nicht mehr gibt und wo ihr Ergebnis steht.
 
 **3. Der XAMPP-Abschnitt der Wartungscheckliste** beschrieb einen Rechner, den
 es nicht mehr gibt (`D:\xampp1\php\php.exe`). Die Entwicklungsumgebung ist
-nativ auf Arch/CachyOS, produktiv laeuft Debian. Rund 700 B, die nie jemand
+nativ auf Arch/CachyOS, produktiv läuft Debian. Rund 700 B, die nie jemand
 braucht – und die einzige englische Ausgabe der Datei stand darin
-(`'OK: all PHP files lint clean'`). Entfernt; die verbliebene Ueberschrift
-„Linux / lokale Entwicklungsumgebung" ist damit ueberfluessig und ebenfalls
-weg. Dazu der Tippfehler „Ablaufe" → „Ablaeufe".
+(`'OK: all PHP files lint clean'`). Entfernt; die verbliebene Überschrift
+„Linux / lokale Entwicklungsumgebung" ist damit überflüssig und ebenfalls
+weg. Dazu der Tippfehler „Ablaufe" → „Abläufe".
 
 ### TEST
-- `grep -rn mitarbeiter_rechte_override docs/` – ausserhalb von `docs/archiv/`
-  kein Treffer mehr; dasselbe fuer `mitarbeiter_hat_recht_scope`.
+- `grep -rn mitarbeiter_rechte_override docs/` – außerhalb von `docs/archiv/`
+  kein Treffer mehr; dasselbe für `mitarbeiter_hat_recht_scope`.
 - Pfad-Abgleich aller in `docs/` genannten Repo-Pfade: es bleiben nur die zwei
   erwarteten Ausnahmen (`config/geraet.local.php`,
   `scripts/terminal/terminal.conf`), die zur Laufzeit entstehen.
 - Alle acht Verweise auf `wartungscheckliste.md` in anderen Dokumenten
-  gegengeprueft – keiner zeigte auf den entfernten Abschnitt.
+  gegengeprüft – keiner zeigte auf den entfernten Abschnitt.
 - `docs/wartungscheckliste.md` 3.729 → 3.085 B.
 
 ### Gefundene Fehler im eigenen Entwurf
-Der Aufraeumplan hatte fuer die drei SQL-Verweise vorgesehen, notfalls eine
-B-ID anzulegen, falls die Wirkungen fehlen. Diese Pruefung waere fast
+Der Aufräumplan hatte für die drei SQL-Verweise vorgesehen, notfalls eine
+B-ID anzulegen, falls die Wirkungen fehlen. Diese Prüfung wäre fast
 ausgefallen – „steht bestimmt im Initialschema" ist eine Vermutung, kein
-Befund. Nachgesehen: Sie stehen tatsaechlich drin, belegt mit Zeilennummern.
+Befund. Nachgesehen: Sie stehen tatsächlich drin, belegt mit Zeilennummern.
 
 ### Was bewusst nicht erreicht wurde
-`docs/rechte_prompt.md` heisst weiterhin „Prompt", obwohl es eine
-Spezifikation ist. Umbenennen beruehrt sieben Verweise in anderen Dokumenten
+`docs/rechte_prompt.md` heißt weiterhin „Prompt", obwohl es eine
+Spezifikation ist. Umbenennen berührt sieben Verweise in anderen Dokumenten
 und lohnt nur, wenn ohnehin an der Datei gearbeitet wird.
 
 ### NEXT
@@ -8447,7 +8553,7 @@ P-2026-08-10-09: toter Code – Stub-Dateien.
 
 ### EINGELESEN
 - `CLAUDE.md`, `CHATSTART.md`, `docs/arbeitsregeln.md`,
-  `docs/STATUS_SNAPSHOT.md` – vollstaendig, Abschnitt fuer Abschnitt vermessen.
+  `docs/STATUS_SNAPSHOT.md` – vollständig, Abschnitt für Abschnitt vermessen.
 - `docs/README.md`, `README.md`, `docs/fachregeln/README.md`,
   `docs/spezifikation_terminal_installation.md` (Abschnitte 6, 7, 8, 11).
 
@@ -8466,7 +8572,7 @@ Das Kaltstart-Set ist deutlich kleiner, und jede entfernte Aussage ist per
 
 ### DONE
 Ausgangslage 18.818 B, jetzt **14.976 B (−20 %)**. Der Gewinn kommt fast
-vollstaendig aus Wiederholung, nicht aus Kuerzung. Belegt vor dem Umbau:
+vollständig aus Wiederholung, nicht aus Kürzung. Belegt vor dem Umbau:
 
 - „Statt gepflegter Liste `git log` lesen" stand an **zehn** Stellen.
 - „Fertig, im Praxis-Test, nur bei Bugs" an vier.
@@ -8482,61 +8588,61 @@ Im Einzelnen:
   die localhost-Adresse sind gestrichen; sie stehen in `arbeitsregeln.md` §2
   bzw. in `lokale_entwicklungsumgebung.md` und `README.md`.
 - **`CHATSTART.md` 5.705 → 4.271 B.** Abschnitt 5 („Warum die Doku so
-  aufgeteilt ist") ist nach `docs/README.md` gezogen – Begruendung, keine
+  aufgeteilt ist") ist nach `docs/README.md` gezogen – Begründung, keine
   Arbeitsanweisung. Abschnitt 2 ist von neun Stichpunkten auf die vier
-  reduziert, bei denen ein Verstoss nicht mehr zu reparieren ist; der Rest
-  steht vollstaendig in `arbeitsregeln.md`, worauf der Abschnitt jetzt
-  ausdruecklich verweist. Die Lesekarte bleibt **vollstaendig** – sie ist der
+  reduziert, bei denen ein Verstoß nicht mehr zu reparieren ist; der Rest
+  steht vollständig in `arbeitsregeln.md`, worauf der Abschnitt jetzt
+  ausdrücklich verweist. Die Lesekarte bleibt **vollständig** – sie ist der
   Teil, der Lesearbeit spart.
 - **`docs/arbeitsregeln.md` 8.338 → 7.349 B.** Gestrichen: der
   Herkunftsvermerk auf Master-Prompt v13 (steht in `fachregeln/README.md` und
-  `archiv/ALTE_PROMPTS.md`), der Projektstatus (gehoert in den Snapshot), die
+  `archiv/ALTE_PROMPTS.md`), der Projektstatus (gehört in den Snapshot), die
   Struktur-Tabelle (steht in `README.md` und ist an einem `ls` ablesbar), der
   Absatz „Keine handgepflegten Listen" (vierte Fassung derselben Aussage) und
   die Dateiliste im Pre-Flight-Gate (steht als Lesekarte in `CHATSTART.md`).
-  Ergaenzt: die Umlaut-Regel, der Verweis auf `Helper::sqlLiteral()` und
+  Ergänzt: die Umlaut-Regel, der Verweis auf `Helper::sqlLiteral()` und
   `core/Csrf.php`.
 - **`docs/STATUS_SNAPSHOT.md` 3.757 → 2.781 B**, obwohl vier neue T-IDs
   hinzugekommen sind (T-104 bis T-107, rund 900 B). Der Kopf ist von drei
-  Absaetzen auf einen geschrumpft, „Was zuletzt passiert ist" ist weg (dritte
+  Absätzen auf einen geschrumpft, „Was zuletzt passiert ist" ist weg (dritte
   Fassung von „lies `git log`" im selben Kaltstart-Set), und die sieben
-  Pruefpunkte des Geraetetests sind als Abschnitt 12 in die
+  Prüfpunkte des Gerätetests sind als Abschnitt 12 in die
   Terminal-Spezifikation gezogen – dorthin, wohin der Snapshot ohnehin schon
   verwies.
 
-Ausserdem umgesetzt: **Umlaute statt `ae/oe/ue`** in allen vier Dateien. Das
+Außerdem umgesetzt: **Umlaute statt `ae/oe/ue`** in allen vier Dateien. Das
 ist normalerweise ein eigener Patch, hier aber Teil desselben Vorgangs, weil
 alle vier Dateien zeilenweise neu geschrieben wurden – ein zweiter Durchgang
-haette denselben Text noch einmal angefasst. Die Regel dazu steht jetzt in
+hätte denselben Text noch einmal angefasst. Die Regel dazu steht jetzt in
 §7 „Stil".
 
 ### TEST
 - Alle 14 Ziele der Lesekarte vorher/nachher verglichen: keines verloren
   (`grep -oP '\]\(\K[^)]+' | sort | comm`).
 - Alle in `CHATSTART.md` genannten Dateien existieren.
-- Die sieben Pruefpunkte in der Spezifikation `diff`-identisch mit der alten
+- Die sieben Prüfpunkte in der Spezifikation `diff`-identisch mit der alten
   Fassung im Snapshot.
 - Jede gestrichene Aussage einzeln per `grep` in ihrer neuen Heimat
   nachgewiesen.
-- `wc -c` ueber das Set: 18.818 → 14.976 B.
+- `wc -c` über das Set: 18.818 → 14.976 B.
 
 ### Gefundene Fehler im eigenen Entwurf
-Der Plan hatte **unter 12 KB** angekuendigt. Das war zu optimistisch: Die
-Schaetzung beruhte auf Abschnittsgroessen, ohne zu beruecksichtigen, dass der
-Snapshot durch die neuen T-IDs waechst und `arbeitsregeln.md` um die
-Umlaut-Regel und zwei neue Verweise ergaenzt wird. 12 KB waeren nur durch
-Loeschen echter Regeln erreichbar gewesen. Die Grenze in §9 steht deshalb jetzt
+Der Plan hatte **unter 12 KB** angekündigt. Das war zu optimistisch: Die
+Schätzung beruhte auf Abschnittsgrößen, ohne zu berücksichtigen, dass der
+Snapshot durch die neuen T-IDs wächst und `arbeitsregeln.md` um die
+Umlaut-Regel und zwei neue Verweise ergänzt wird. 12 KB wären nur durch
+Löschen echter Regeln erreichbar gewesen. Die Grenze in §9 steht deshalb jetzt
 auf **15 KB** – dem gemessenen Wert mit etwas Luft – statt auf einer Zahl, die
 niemand einhalten kann. Dazu der Einzeiler zum Nachmessen.
 
 ### Was bewusst nicht erreicht wurde
 Zwei Punkte aus dem alten Abschnitt 8 („klar strukturierte Rollen- und
-Genehmigerlogik", „uebersichtliche Backend-Oberflaechen") sind ersatzlos weg.
-Sie waren Absichtserklaerungen ohne pruefbaren Inhalt; das Konkrete dazu steht
+Genehmigerlogik", „übersichtliche Backend-Oberflächen") sind ersatzlos weg.
+Sie waren Absichtserklärungen ohne prüfbaren Inhalt; das Konkrete dazu steht
 in `docs/fachregeln/rollen_rechte_genehmiger.md`, worauf die Lesekarte zeigt.
 
 `README.md` ist unangetastet – die richtet sich an Menschen, die frisch klonen,
-und wird nicht bei jedem Chat gelesen. Ihre Wiederholungen sind dort erwuenscht.
+und wird nicht bei jedem Chat gelesen. Ihre Wiederholungen sind dort erwünscht.
 
 ### NEXT
 P-2026-08-10-08: falsche Angaben in der Rechte-Doku (Tabellenname, tote
@@ -8547,10 +8653,10 @@ SQL-Verweise).
 
 ### EINGELESEN
 - `services/MaschineQrCodeService.php` nach P-2026-08-10-05.
-- Vollstaendige Suche nach `QRcode`, `qrlib`, `phpqrcode` im Projektcode.
+- Vollständige Suche nach `QRcode`, `qrlib`, `phpqrcode` im Projektcode.
 
 ### DATEIEN
-- `services/phpqrcode/` (13 Dateien, geloescht)
+- `services/phpqrcode/` (13 Dateien, gelöscht)
 - `docs/archiv/DEV_PROMPT_HISTORY.md`
 
 ### AKZEPTANZKRITERIUM
@@ -8560,26 +8666,26 @@ fehlerfrei, obwohl die QR-Bibliothek nicht mehr im Repository liegt.
 ### DONE
 `services/phpqrcode/` war nach P-2026-08-10-05 ohne Aufrufer – 3.562 Zeilen
 einer Bibliothek von 2010, die bei jeder Suche im Projekt mitgelesen wurde und
-bei jedem PHP-Sprung als Deprecation-Kandidat mitgeprueft werden musste.
+bei jedem PHP-Sprung als Deprecation-Kandidat mitgeprüft werden musste.
 
-Sie wurde ueber `require_once` geladen, nicht ueber den Autoloader; die einzige
+Sie wurde über `require_once` geladen, nicht über den Autoloader; die einzige
 Ladestelle war `MaschineQrCodeService::ladeBibliothek()`, die im Vorpatch
 entfallen ist.
 
 ### TEST
-- Strichcode-Ausgabe nach dem Loeschen: 200 Byte PNG, gueltige Signatur.
+- Strichcode-Ausgabe nach dem Löschen: 200 Byte PNG, gültige Signatur.
 - `erzeugeMaschinenBarcode()` legt die Datei an (182 B), Probe entfernt.
-- Ueber den lokalen Webserver: `index.php` 200, `terminal.php` 200,
+- Über den lokalen Webserver: `index.php` 200, `terminal.php` 200,
   `terminal.php?aktion=health` 200.
 - `php -l` sauber.
 
 ### Was bewusst nicht erreicht wurde
 Sollte je wieder ein QR-Code gebraucht werden, kommt die Bibliothek nicht
-zurueck – dann waere eine gepflegte Fassung die richtige Wahl. Der alte Stand
-bleibt ueber `git log` erreichbar.
+zurück – dann wäre eine gepflegte Fassung die richtige Wahl. Der alte Stand
+bleibt über `git log` erreichbar.
 
 ### NEXT
-Phase 2 des Aufraeumplans: Kaltstart verkleinern (A-1 bis A-5).
+Phase 2 des Aufräumplans: Kaltstart verkleinern (A-1 bis A-5).
 
 
 ## P-2026-08-10-05 kein-qr-rueckfall-bei-maschinencodes
@@ -8588,7 +8694,7 @@ Phase 2 des Aufraeumplans: Kaltstart verkleinern (A-1 bis A-5).
 - `public/maschine_code.php`, `controller/MaschineAdminController.php`,
   `services/MaschineQrCodeService.php`.
 - `services/BarcodeService.php`, Kopfkommentar – dort steht die Festlegung auf
-  Code 128 und ihre Begruendung.
+  Code 128 und ihre Begründung.
 - `docs/spezifikation_auftrag_barcode_laufkarte.md`, Abschnitt Codetypen.
 
 ### DATEIEN
@@ -8598,18 +8704,18 @@ Phase 2 des Aufraeumplans: Kaltstart verkleinern (A-1 bis A-5).
 - `docs/archiv/DEV_PROMPT_HISTORY.md`
 
 ### AKZEPTANZKRITERIUM
-Schlaegt die Strichcode-Erzeugung fehl, liefert `maschine_code.php` einen
+Schlägt die Strichcode-Erzeugung fehl, liefert `maschine_code.php` einen
 HTTP-500 mit Klartext statt eines QR-Codes.
 
 ### DONE
 An drei Stellen wurde bei fehlgeschlagener Strichcode-Erzeugung ersatzweise ein
 **QR-Code** ausgegeben oder gespeichert. Das widerspricht der Festlegung im Kopf
 von `BarcodeService`: In der Halle sind 1D-Handscanner im Einsatz, deshalb ist
-im Projekt alles Code 128. Fuer diese Geraete ist ein QR-Code kein schlechterer
-Code – er ist gar keiner. Der Rueckfall lieferte also ein Etikett, das
-brauchbar aussieht und erst an der Maschine auffaellt. Die Erfolgsmeldung sagte
-sogar ausdruecklich „daher wurde ein QR-Code hinterlegt", als waere das eine
-Loesung.
+im Projekt alles Code 128. Für diese Geräte ist ein QR-Code kein schlechterer
+Code – er ist gar keiner. Der Rückfall lieferte also ein Etikett, das
+brauchbar aussieht und erst an der Maschine auffällt. Die Erfolgsmeldung sagte
+sogar ausdrücklich „daher wurde ein QR-Code hinterlegt", als wäre das eine
+Lösung.
 
 Stattdessen jetzt: `Logger::error` und eine ehrliche Fehlermeldung
 (HTTP 500 als Text bzw. Fehlermeldung in der Maske). Die damit aufruferlosen
@@ -8617,25 +8723,25 @@ QR-Methoden `erzeugeMaschinenQrCode()`, `gebeQrPngAus()`, `erzeugePng()` und
 `ladeBibliothek()` sind entfernt.
 
 ### TEST
-- Strichcode-Ausgabe: 200 Byte PNG mit gueltiger Signatur.
+- Strichcode-Ausgabe: 200 Byte PNG mit gültiger Signatur.
 - `erzeugeMaschinenBarcode(999, 'Probe')` legt die Datei an (182 B), Probe
   wieder entfernt.
-- `php -l` ueber alle drei Dateien sauber.
-- `grep` bestaetigt: ausserhalb von `services/phpqrcode/` ruft nichts mehr die
+- `php -l` über alle drei Dateien sauber.
+- `grep` bestätigt: außerhalb von `services/phpqrcode/` ruft nichts mehr die
   QR-Bibliothek auf.
 
 ### Gefundene Fehler im eigenen Entwurf
-Der erste Umbau von `maschine_code.php` liess die Bild-Header stehen, wo sie
+Der erste Umbau von `maschine_code.php` ließ die Bild-Header stehen, wo sie
 waren – **vor** der Erzeugung. Damit stand bei einem Fehlschlag bereits
-`Content-Type: image/png` fest, und die neue Klartext-Fehlermeldung waere im
-Browser als kaputtes Bild angekommen: genau derselbe Fehler in Gruen. Die
+`Content-Type: image/png` fest, und die neue Klartext-Fehlermeldung wäre im
+Browser als kaputtes Bild angekommen: genau derselbe Fehler in Grün. Die
 Header wandern jetzt hinter die Erzeugung.
 
 ### Was bewusst nicht erreicht wurde
-Die Klasse heisst weiterhin `MaschineQrCodeService`, obwohl sie keine QR-Codes
-mehr erzeugt. Der Name steckt auch in Konfigurationsschluesseln
+Die Klasse heißt weiterhin `MaschineQrCodeService`, obwohl sie keine QR-Codes
+mehr erzeugt. Der Name steckt auch in Konfigurationsschlüsseln
 (`maschinen_qr_url`, `maschinen_qr_rel_pfad`); ein Umbenennen braucht eine
-Migration und gehoert in einen eigenen Patch. Im Klassenkopf steht jetzt, warum
+Migration und gehört in einen eigenen Patch. Im Klassenkopf steht jetzt, warum
 der Name so ist.
 
 ### NEXT
@@ -8658,31 +8764,31 @@ Aufrufer.
 - `docs/archiv/DEV_PROMPT_HISTORY.md`
 
 ### AKZEPTANZKRITERIUM
-Ein Betriebsferien-Eintrag laesst sich in der Liste auf inaktiv schalten und
-verschwindet danach aus `BetriebsferienModel::holeAktive()`, ohne geloescht zu
+Ein Betriebsferien-Eintrag lässt sich in der Liste auf inaktiv schalten und
+verschwindet danach aus `BetriebsferienModel::holeAktive()`, ohne gelöscht zu
 werden.
 
 ### DONE
 B-092 behoben. Die Route `?seite=betriebsferien_admin_toggle` existierte samt
-Eintrag in der Liste der geschuetzten Seiten, die aufgerufene Methode aber
+Eintrag in der Liste der geschützten Seiten, die aufgerufene Methode aber
 nicht – jeder Aufruf endete im 500er des Front-Controllers.
 
 Dahinter steckte mehr als eine fehlende Methode: `betriebsferien.aktiv` wird von
 allen Lesern respektiert (`BetriebsferienModel::holeAktive()`,
 `UrlaubJahresuebersichtController`, `ReportService`), gesetzt wurde die Spalte
-aber nur beim Anlegen. Ein Eintrag liess sich damit nur loeschen, nicht
-stilllegen – und Loeschen nimmt die Historie mit.
+aber nur beim Anlegen. Ein Eintrag ließ sich damit nur löschen, nicht
+stilllegen – und Löschen nimmt die Historie mit.
 
-`toggleAktiv()` nachgeruestet, aufgebaut wie bei Kurzarbeit: POST-Pflicht,
-CSRF ueber `Csrf`, Rechtepruefung ueber `pruefeZugriff()`, Redirect zurueck auf
+`toggleAktiv()` nachgerüstet, aufgebaut wie bei Kurzarbeit: POST-Pflicht,
+CSRF über `Csrf`, Rechteprüfung über `pruefeZugriff()`, Redirect zurück auf
 die Liste. Die Liste bekommt in der bereits vorhandenen Spalte *Aktiv* einen
-Schalter, und die Rueckmeldungen aus dem Redirect (`meldung=…`) werden oben
+Schalter, und die Rückmeldungen aus dem Redirect (`meldung=…`) werden oben
 angezeigt statt stillschweigend zu verschwinden.
 
 ### TEST
 1. Datenebene: Probeeintrag angelegt – in `holeAktive()` sichtbar (1),
    nach `aktiv=0` nicht mehr (0), nach `aktiv=1` wieder (1), Probe entfernt.
-2. Controller mit angemeldeter Superuser-Session und gueltigem Token:
+2. Controller mit angemeldeter Superuser-Session und gültigem Token:
    `aktiv` ging 1 → 0.
 3. Gegenprobe mit falschem Token: `aktiv` blieb 0, die Aktion wurde
    abgewiesen.
@@ -8693,7 +8799,7 @@ Im Plan stand, die Liste zeige die Spalte *Aktiv* gar nicht an. Das war falsch �
 sie zeigt sie seit jeher als „Ja/Nein", nur eben ohne Schalter. Der Patch ist
 dadurch kleiner als gedacht.
 
-Ausserdem war der erste Versuch, die Route ueber den Webserver zu pruefen,
+Außerdem war der erste Versuch, die Route über den Webserver zu prüfen,
 wertlos: Ohne Anmeldung greift die Umleitung auf die Loginmaske **vor** dem
 Controller, also lieferten Fassung mit und ohne Fix beide 302. Der Fatal trat
 nur angemeldet auf. Erst der Test mit gesetzter Session zeigt etwas.
@@ -8703,14 +8809,14 @@ Der Controller erzeugt sein HTML weiterhin selbst, statt `views/betriebsferien/`
 zu benutzen – siehe T-104.
 
 ### NEXT
-P-2026-08-10-05: QR-Rueckfall bei Maschinen-Codes.
+P-2026-08-10-05: QR-Rückfall bei Maschinen-Codes.
 
 
 ## P-2026-08-10-03 csrf-an-einer-stelle
 
 ### EINGELESEN
 - Alle 14 Controller mit `holeOderErzeugeCsrfToken()`, im Vergleich gelesen.
-- `core/Helper.php` (Ablage fuer zentrale Kleinigkeiten), `core/Autoloader.php`.
+- `core/Helper.php` (Ablage für zentrale Kleinigkeiten), `core/Autoloader.php`.
 - Duplicate-Check: `git log -S"class Csrf"` – leer.
 
 ### DATEIEN
@@ -8728,8 +8834,8 @@ fehlendem oder fremdem Token wird abgewiesen.
 – `AuftragController` hatte zwei). Die Kopien waren nicht mehr gleich, und das
 ist der eigentliche Befund:
 
-- **Tokenlaenge:** meist `random_bytes(32)`, im `TerminalController` 16.
-- **Rueckfall:** meist `bin2hex((string)mt_rand())` – acht Hexzeichen,
+- **Tokenlänge:** meist `random_bytes(32)`, im `TerminalController` 16.
+- **Rückfall:** meist `bin2hex((string)mt_rand())` – acht Hexzeichen,
   vorhersagbar. Ein Schutz, der keiner ist, aber wie einer aussieht.
   Im `TerminalController` stattdessen `random_int()`, das im `catch` von
   `random_bytes()` mit derselben Wahrscheinlichkeit ebenfalls wirft.
@@ -8738,28 +8844,28 @@ ist der eigentliche Befund:
 
 Neu: `core/Csrf.php` mit `token()`, `istGueltig()` und `feld()`. Ein Token je
 **Bereich** – das entspricht den bisherigen `CSRF_KEY`-Konstanten und ist
-gewollt: Ein gemeinsames Token wuerde beim Neuladen einer Maske das Formular in
-einem zweiten Tab entwerten. Der schwache Rueckfall entfaellt ersatzlos: Kann
+gewollt: Ein gemeinsames Token würde beim Neuladen einer Maske das Formular in
+einem zweiten Tab entwerten. Der schwache Rückfall entfällt ersatzlos: Kann
 das System keine Zufallszahlen liefern, ist das ein echter Fehler und soll
 auffallen.
 
 Umgestellt sind zuerst `QueueController` und `RollenAdminController`. Die
-uebrigen zwoelf folgen in eigenen Patches, damit jede umgestellte Maske einzeln
+übrigen zwölf folgen in eigenen Patches, damit jede umgestellte Maske einzeln
 angeklickt werden kann.
 
 ### TEST
 Funktionsprobe gegen `core/Csrf.php`: Token 64 Hexzeichen; zwei Bereiche
 liefern verschiedene Tokens; zweiter Aufruf liefert dasselbe Token; richtiges
-Token gilt, fremdes/leeres/fehlendes gilt nicht. `php -l` ueber alle drei
+Token gilt, fremdes/leeres/fehlendes gilt nicht. `php -l` über alle drei
 Dateien sauber.
 
 ### Gefundene Fehler im eigenen Entwurf
-Erster Entwurf hatte einen Bereich `standard` als Vorgabewert. Das haette dazu
-verfuehrt, den Bereich beim Umstellen wegzulassen – und damit genau die
+Erster Entwurf hatte einen Bereich `standard` als Vorgabewert. Das hätte dazu
+verführt, den Bereich beim Umstellen wegzulassen – und damit genau die
 Vermischung erzeugt, die der Bereichsname verhindern soll. Der Parameter ist
 jetzt Pflicht.
 
-Ausserdem aendert sich der Session-Schluessel von `queue_admin_csrf_token` zu
+Außerdem ändert sich der Session-Schlüssel von `queue_admin_csrf_token` zu
 `csrf_token_queue_admin`. Beim ersten Aufruf nach dem Update wird also ein
 neues Token erzeugt. Das ist harmlos, weil das Token ohnehin in der Session
 lebt – ein zum Update-Zeitpunkt offenes Formular muss aber einmal neu geladen
@@ -8767,7 +8873,7 @@ werden.
 
 ### Was bewusst nicht erreicht wurde
 `SmokeTestController` verwaltet sein Token noch von Hand ohne eigene Methode –
-kommt mit den uebrigen Controllern.
+kommt mit den übrigen Controllern.
 
 ### NEXT
 P-2026-08-10-04: B-092, `toggleAktiv()` bei Betriebsferien – nutzt `Csrf`.
@@ -8787,19 +8893,19 @@ P-2026-08-10-04: B-092, `toggleAktiv()` bei Betriebsferien – nutzt `Csrf`.
 - `docs/archiv/DEV_PROMPT_HISTORY.md`
 
 ### AKZEPTANZKRITERIUM
-Scheitert die Betriebsferien-Zaehlung, steht ein `warn`-Eintrag mit
+Scheitert die Betriebsferien-Zählung, steht ein `warn`-Eintrag mit
 Mitarbeiter-ID, Jahr und Ausnahmetext in `system_log`, statt dass
 stillschweigend mit 0 Tagen weitergerechnet wird.
 
 ### DONE
-Der Fehlerzweig prueft mit `class_exists('LoggerService')` auf eine Klasse, die
+Der Fehlerzweig prüft mit `class_exists('LoggerService')` auf eine Klasse, die
 es im Repository **nie gab**. Die Bedingung war immer falsch. Konnte die
-Betriebsferien-Zaehlung nicht laufen, wurde ohne jede Spur mit **0 Tagen**
-weitergerechnet – und 0 Tage Betriebsferien veraendern den Urlaubssaldo
+Betriebsferien-Zählung nicht laufen, wurde ohne jede Spur mit **0 Tagen**
+weitergerechnet – und 0 Tage Betriebsferien verändern den Urlaubssaldo
 sichtbar.
 
 Umgestellt auf `Logger::warn()`, wie im ganzen Projekt sonst auch. Die
-`class_exists`-Huelle faellt weg: `core/Logger.php` liegt im Autoloader-Pfad
+`class_exists`-Hülle fällt weg: `core/Logger.php` liegt im Autoloader-Pfad
 und ist immer da.
 
 ### TEST
@@ -8809,16 +8915,16 @@ danach wieder entfernt. `php -l` sauber. `grep -rn LoggerService` liefert im
 ganzen Repository keinen Treffer mehr.
 
 ### Gefundene Fehler im eigenen Entwurf
-Zuerst nur als „toter Zweig" eingeordnet und fast mit dem grossen
-`class_exists`-Aufraeumen (P-2026-08-10-2x) zusammengelegt. Das waere falsch
-gewesen: Die anderen 305 Stellen pruefen auf Klassen, die es **gibt** – dort
-aendert das Entfernen nichts am Verhalten. Hier war der Zweig echt tot und ein
-Fehlerpfad blieb unsichtbar. Das ist ein Bugfix und gehoert in einen eigenen
+Zuerst nur als „toter Zweig" eingeordnet und fast mit dem großen
+`class_exists`-Aufräumen (P-2026-08-10-2x) zusammengelegt. Das wäre falsch
+gewesen: Die anderen 305 Stellen prüfen auf Klassen, die es **gibt** – dort
+ändert das Entfernen nichts am Verhalten. Hier war der Zweig echt tot und ein
+Fehlerpfad blieb unsichtbar. Das ist ein Bugfix und gehört in einen eigenen
 Patch mit eigenem Test.
 
 ### Was bewusst nicht erreicht wurde
-B-080 ist damit **nicht** behoben – nur beobachtbar gemacht. Ob der Rueckfall
-im Betrieb ueberhaupt eintritt, muss `system_log` zeigen.
+B-080 ist damit **nicht** behoben – nur beobachtbar gemacht. Ob der Rückfall
+im Betrieb überhaupt eintritt, muss `system_log` zeigen.
 
 ### NEXT
 P-2026-08-10-03: B-092, fehlende Methode `toggleAktiv()` bei Betriebsferien.
@@ -8840,26 +8946,26 @@ P-2026-08-10-03: B-092, fehlende Methode `toggleAktiv()` bei Betriebsferien.
 - `docs/archiv/DEV_PROMPT_HISTORY.md`
 
 ### AKZEPTANZKRITERIUM
-Ein Auftragscode `A1\` erzeugt ein SQL-Literal, das sich unveraendert und ohne
-Syntaxfehler ausfuehren laesst, und der Wert kommt aus der Datenbank genauso
-zurueck, wie er hineingegangen ist.
+Ein Auftragscode `A1\` erzeugt ein SQL-Literal, das sich unverändert und ohne
+Syntaxfehler ausführen lässt, und der Wert kommt aus der Datenbank genauso
+zurück, wie er hineingegangen ist.
 
 ### DONE
-Die Offline-Queue speichert fertigen SQL-Text, der spaeter gegen die
-Hauptdatenbank laeuft; Prepared Statements sind dort nicht moeglich. Maskiert
-wurde an fuenf Stellen mit `str_replace("'", "''", $wert)` – das verdoppelt
-Anfuehrungszeichen, laesst den **Backslash** aber unangetastet. MySQL/MariaDB
+Die Offline-Queue speichert fertigen SQL-Text, der später gegen die
+Hauptdatenbank läuft; Prepared Statements sind dort nicht möglich. Maskiert
+wurde an fünf Stellen mit `str_replace("'", "''", $wert)` – das verdoppelt
+Anführungszeichen, lässt den **Backslash** aber unangetastet. MySQL/MariaDB
 behandeln `\` in der Standardeinstellung als Fluchtzeichen. Ein Wert, der auf
-`\` endet, maskiert damit das schliessende Anfuehrungszeichen: Das Literal
+`\` endet, maskiert damit das schließende Anführungszeichen: Das Literal
 bleibt offen, und alles Nachfolgende wird SQL.
 
 Die Werte stammen aus Terminal-Eingaben (`$auftragscode`,
-`$arbeitsschrittCode`, RFID-Code), der erzeugte Befehl laeuft spaeter gegen die
-Hauptdatenbank. Das ist der denkbar schlechteste Ort fuer eine solche Luecke.
+`$arbeitsschrittCode`, RFID-Code), der erzeugte Befehl läuft später gegen die
+Hauptdatenbank. Das ist der denkbar schlechteste Ort für eine solche Lücke.
 
 Neu: `Helper::sqlEscape()` und `Helper::sqlLiteral()` – erst Backslashes
-verdoppeln, dann Anfuehrungszeichen. Die Reihenfolge ist wesentlich; umgekehrt
-wuerden die frisch erzeugten Backslashes gleich wieder verdoppelt. Die fuenf
+verdoppeln, dann Anführungszeichen. Die Reihenfolge ist wesentlich; umgekehrt
+würden die frisch erzeugten Backslashes gleich wieder verdoppelt. Die fünf
 Kopien rufen jetzt dorthin.
 
 ### TEST
@@ -8872,23 +8978,23 @@ Gegen die lokale MariaDB, vier Werte je zweimal (alt/neu):
 | `x\'; SELECT 1; --` | SQL-Syntaxfehler 1064 | Roundtrip identisch |
 | `normal-123` | ok | Roundtrip identisch |
 
-`php -l` ueber alle vier geaenderten Dateien sauber.
+`php -l` über alle vier geänderten Dateien sauber.
 
 ### Gefundene Fehler im eigenen Entwurf
-Beim ersten Durchgang haette ich nur die drei `sqlQuote`/`sqlString`-Funktionen
+Beim ersten Durchgang hätte ich nur die drei `sqlQuote`/`sqlString`-Funktionen
 umgestellt. `ermittleOfflineHintFuerRfid()` (TerminalController, Zeile ~1232)
 maskiert aber ebenfalls von Hand – nicht um SQL zu bauen, sondern um den in
-`bucheZeitOfflinePerRfid()` erzeugten Text per LIKE **wiederzufinden**. Waere
-die eine Seite umgestellt worden und die andere nicht, haette die Suche ihren
+`bucheZeitOfflinePerRfid()` erzeugten Text per LIKE **wiederzufinden**. Wäre
+die eine Seite umgestellt worden und die andere nicht, hätte die Suche ihren
 eigenen Eintrag bei jedem Code mit Backslash nicht mehr gefunden – ein stiller
-Folgefehler. Beide Seiten benutzen jetzt dieselbe Funktion; genau dafuer gibt
-es `sqlEscape()` zusaetzlich zu `sqlLiteral()`.
+Folgefehler. Beide Seiten benutzen jetzt dieselbe Funktion; genau dafür gibt
+es `sqlEscape()` zusätzlich zu `sqlLiteral()`.
 
 ### Was bewusst nicht erreicht wurde
 `sqlInt()`/`sqlNullableInt()` bleiben, wie sie sind – harte Typumwandlung, dort
 ist nichts zu maskieren. Der Umbau der Offline-Queue auf ein Format ohne rohes
-SQL (z. B. Aktion + Parameter als JSON) waere die grundsaetzliche Loesung, ist
-aber ein eigenes Vorhaben und beruehrt das Queue-Schema.
+SQL (z. B. Aktion + Parameter als JSON) wäre die grundsätzliche Lösung, ist
+aber ein eigenes Vorhaben und berührt das Queue-Schema.
 
 ### NEXT
 P-2026-08-10-02: toter Logging-Zweig im Urlaubssaldo (`LoggerService`).
@@ -8898,14 +9004,14 @@ P-2026-08-10-02: toter Logging-Zweig im Urlaubssaldo (`LoggerService`).
 
 ### EINGELESEN
 - `docs/rfid_reader_setup.md` und `docs/terminal/rfid-ws_rollout.md` – die
-  beiden Dateien, die P-2026-08-09-12 ausdruecklich zurueckgestellt hatte
+  beiden Dateien, die P-2026-08-09-12 ausdruecklich zurückgestellt hatte
   („bleiben, bis Stufe 5 gebaut ist"). Sie ist gebaut.
 - `docs/fachregeln/terminal_und_offline.md`, Abschnitt 1 – ebenfalls dort als
   bekannt-ungenau vermerkt.
 - `docs/README.md`, `docs/spezifikation_terminal_installation.md` (Abschnitte 3
   und 11).
 - Maschinelle Durchsicht: Links, genannte Repo-Pfade, Abschnittsverweise,
-  doppelte Ueberschriften, ueberholte Formulierungen.
+  doppelte Überschriften, überholte Formulierungen.
 
 ### DATEIEN
 - `docs/rfid_reader_setup.md`
@@ -8920,54 +9026,54 @@ Keine Datei beschreibt einen Stand, den es nicht mehr gibt, und die beiden
 RFID-Anleitungen sagen, dass der Normalweg jetzt ein Skript ist.
 
 ### DONE
-Zwei Rueckstellungen aus P-2026-08-09-12 eingeloest, drei sachliche Fehler
+Zwei Rückstellungen aus P-2026-08-09-12 eingeloest, drei sachliche Fehler
 behoben:
 
 - **`rfid_reader_setup.md`** bekommt vorn den Verweis auf
   `install_peripherie.sh` und bleibt darunter als Handweg und Fehlersuche
   stehen. Zwei echte Fehler darin behoben:
-  - Es hiess, `terminal.rfid_ws.enabled` sei in `config.local.php` zu setzen.
+  - Es hieß, `terminal.rfid_ws.enabled` sei in `config.local.php` zu setzen.
     Auf einem Terminal kommt der Wert aus `geraet.local.php` und wandert
-    **beim Koppeln** hinueber – bei einem bereits gekoppelten Geraet wirkt eine
-    Aenderung dort also gar nicht. Das stand nirgends und ist genau die Falle,
+    **beim Koppeln** hinüber – bei einem bereits gekoppelten Gerät wirkt eine
+    Änderung dort also gar nicht. Das stand nirgends und ist genau die Falle,
     in die man einmal tappt.
-  - Die Ueberschrift „Variante 2: SPI/RC522" versprach mehr, als da ist:
-    `rfid_ws.py` liest einen **seriellen** Anschluss, nicht den SPI-Bus. Fuer
+  - Die Überschrift „Variante 2: SPI/RC522" versprach mehr, als da ist:
+    `rfid_ws.py` liest einen **seriellen** Anschluss, nicht den SPI-Bus. Für
     RC522-Aufbauten mit vorgeschaltetem Mikrocontroller passt es; ein direkt am
-    SPI haengender RC522 braucht ein anderes Leseprogramm. Jetzt benannt.
+    SPI hängender RC522 braucht ein anderes Leseprogramm. Jetzt benannt.
 - **`rfid-ws_rollout.md`** nennt die Unterschiede zwischen Skript und Handweg,
   allen voran den Dienstbenutzer: Das Skript legt `rfidws` an, die Vorlage
   nannte `www-data`. Wer beides mischt, bekommt einen Dienst ohne Zugriff auf
   den seriellen Anschluss.
 - **`terminal_und_offline.md`** beschrieb ein Terminal als „Linux-PC mit
-  Window-Manager". Mit `cage` gibt es keinen im herkoemmlichen Sinn – `cage`
-  **ist** der Compositor. Nur der X11-Rueckfall startet `openbox`, und der
-  Grund dafuer steht jetzt dabei. P-2026-08-09-12 hatte das als Kosmetik
+  Window-Manager". Mit `cage` gibt es keinen im herkömmlichen Sinn – `cage`
+  **ist** der Compositor. Nur der X11-Rückfall startet `openbox`, und der
+  Grund dafür steht jetzt dabei. P-2026-08-09-12 hatte das als Kosmetik
   eingestuft und liegen gelassen; es ist keine Kosmetik, sondern eine falsche
-  Aussage in der Datei, die erklaert, was ein Terminal ist.
-- **`docs/README.md`** fuehrt jetzt auch `terminal/rfid-ws_rollout.md` und sagt
+  Aussage in der Datei, die erklärt, was ein Terminal ist.
+- **`docs/README.md`** führt jetzt auch `terminal/rfid-ws_rollout.md` und sagt
   bei beiden RFID-Dateien dazu, dass sie den Handweg beschreiben.
 - **Spezifikation, Abschnitt 3:** die gemeinsame `_paketfamilie.sh` benannt,
-  samt der Abgrenzung, was dort bewusst **nicht** hineingehoert.
+  samt der Abgrenzung, was dort bewusst **nicht** hineingehört.
   **Abschnitt 11:** vermerkt, dass nach dem Zusammenlegen alle vier Skripte
   gemeinsam in einem frischen Container liefen.
 
 ### TEST
-Maschinell ueber den gesamten Bestand ausserhalb `docs/archiv/`:
+Maschinell über den gesamten Bestand außerhalb `docs/archiv/`:
 
 - **Markdown-Links: 0 tot.**
-- **Genannte Repo-Pfade:** fuenf ohne Datei, alle erwartet und an Ort und
-  Stelle erklaert – `config/geraet.local.php` und
-  `scripts/terminal/terminal.conf` entstehen erst auf dem Geraet,
+- **Genannte Repo-Pfade:** fünf ohne Datei, alle erwartet und an Ort und
+  Stelle erklärt – `config/geraet.local.php` und
+  `scripts/terminal/terminal.conf` entstehen erst auf dem Gerät,
   `sql/19_…`/`sql/20_…` sind erledigte Migrationen im Rechte-Fahrplan,
   `sql/zeiterfassung_aktuell.sql` ist der nicht versionierte Dump.
-- **Abschnittsverweise:** einer scheinbar daneben („Abschnitt 12"), tatsaechlich
+- **Abschnittsverweise:** einer scheinbar daneben („Abschnitt 12"), tatsächlich
   ein Verweis auf den Master-Prompt v13 in
   `fachregeln/urlaub_abwesenheit_feiertage.md`, nicht auf die Spezifikation.
-  Kein Fehler; der Pruefer kennt nur eine Quelle.
-- **Doppelte Ueberschriften: keine.**
-- **Ueberholte Formulierungen** („zwei Befehlen", „Stufen 1 bis 4",
-  „als Naechstes Stufe 5", „steht zweimal"): keine mehr.
+  Kein Fehler; der Prüfer kennt nur eine Quelle.
+- **Doppelte Überschriften: keine.**
+- **Überholte Formulierungen** („zwei Befehlen", „Stufen 1 bis 4",
+  „als Nächstes Stufe 5", „steht zweimal"): keine mehr.
 - **Alle vier Skripte** sind in der Doku genannt, jedes in mindestens vier
   Dateien.
 - Kaltstart-Set: **18.818 B** – unter dem Richtwert aus Arbeitsregel 10.
@@ -8977,16 +9083,16 @@ Maschinell ueber den gesamten Bestand ausserhalb `docs/archiv/`:
   die es nicht mehr gibt. Wie in P-2026-08-09-14 entschieden: Der Abschnitt ist
   ein Verlaufsprotokoll seiner Zeit.
 - **Die Fachregeln zu Urlaub, Rundung und Auswertung** sind weiterhin nicht
-  gegen den Code gelesen. Das waere ein eigener Auftrag und keine
-  Nebenbeschaeftigung eines Doku-Durchgangs.
+  gegen den Code gelesen. Das wäre ein eigener Auftrag und keine
+  Nebenbeschäftigung eines Doku-Durchgangs.
 
 ### NEXT
-Der Geraetetest auf einem Bildschirm.
+Der Gerätetest auf einem Bildschirm.
 
 ## P-2026-08-09-20 paketfamilie-an-einer-stelle
 
 ### EINGELESEN
-- Die drei Erkennungsbloecke in `install_terminal.sh`, `install_kiosk.sh` und
+- Die drei Erkennungsblöcke in `install_terminal.sh`, `install_kiosk.sh` und
   `install_peripherie.sh` im direkten Vergleich – sind sie wirklich gleich?
 - Die Paketinstallation je Skript: Stufe 3 installiert einen Stapel, Stufe 4
   und 5 einzelne Pakete.
@@ -9003,67 +9109,67 @@ Der Geraetetest auf einem Bildschirm.
 - `docs/archiv/DEV_PROMPT_HISTORY.md`
 
 ### AKZEPTANZKRITERIUM
-Wer eine Paketfamilie ergaenzt, aendert genau eine Datei, und alle vier Stufen
-laufen unveraendert durch.
+Wer eine Paketfamilie ergänzt, ändert genau eine Datei, und alle vier Stufen
+laufen unverändert durch.
 
 ### DONE
 T-104 erledigt. Die Bedingung, die der Task selbst genannt hatte – „erst wenn
 eine dritte Stelle dazukommt" –, war mit P-2026-08-09-17 eingetreten.
 
-`scripts/terminal/_paketfamilie.sh` ist kein eigenstaendiges Skript, sondern
+`scripts/terminal/_paketfamilie.sh` ist kein eigenständiges Skript, sondern
 wird von den drei Installationsskripten eingelesen. Darin:
 
-- `erkenne_paketfamilie` – setzt `FAMILIE` und `BETRIEBSSYSTEM`, Rueckgabewert
+- `erkenne_paketfamilie` – setzt `FAMILIE` und `BETRIEBSSYSTEM`, Rückgabewert
   sagt, ob es geklappt hat. Ob das ein Abbruch ist, entscheidet der Aufrufer.
 - `paketquellen_auffrischen` – einmal je Lauf, vor dem ersten Installieren.
 - `paket_installieren` – variadisch, damit Stufe 3 ihren ganzen Stapel und
-  Stufe 4/5 einzelne Pakete uebergeben koennen.
+  Stufe 4/5 einzelne Pakete übergeben können.
 
 **Was bewusst NICHT hineinkam:** welche Pakete eine Stufe braucht. Das ist je
-Stufe verschieden und gehoert dorthin, wo es gebraucht wird. Gemeinsam ist nur,
-**wie** man auf dieser Familie installiert – sonst waere aus der gemeinsamen
-Datei eine Sammelstelle fuer alles geworden.
+Stufe verschieden und gehört dorthin, wo es gebraucht wird. Gemeinsam ist nur,
+**wie** man auf dieser Familie installiert – sonst wäre aus der gemeinsamen
+Datei eine Sammelstelle für alles geworden.
 
-Zwei Aenderungen ueber das reine Verschieben hinaus, beide mit Grund:
+Zwei Änderungen über das reine Verschieben hinaus, beide mit Grund:
 
 - **Auf Arch jetzt `pacman -Syu` statt `-Sy`.** Stufe 4 machte bisher `-Sy` und
   danach `-S` – der bekannte Weg in eine halb aktualisierte Installation
-  (partial upgrade). Auf einem Geraet, das danach jahrelang in einer Halle
+  (partial upgrade). Auf einem Gerät, das danach jahrelang in einer Halle
   steht, ist das keine theoretische Sorge. Stufe 3 machte es mit `-Syu` schon
   richtig; jetzt tun es alle drei.
 - **`/etc/os-release` wird in einer Subshell gelesen.** Die Datei setzt unter
   anderem `NAME` und `VERSION` – Namen, die ein aufrufendes Skript ebenfalls
-  benutzen koennte. Vorher wurde sie direkt in den Skript-Namensraum eingelesen;
-  das ging gut, war aber Glueck.
+  benutzen könnte. Vorher wurde sie direkt in den Skript-Namensraum eingelesen;
+  das ging gut, war aber Glück.
 
 ### TEST
 **Voller Durchlauf aller vier Stufen** im Debian-12-Container (frisch
 aufgesetzt, systemd als PID 1):
 
 - Stufe 3: sechs von sechs. Stufe 4: zehn von zehn. Stufe 5 (`bridge`): neun
-  von neun. Stufe 6: fuenf OK, vier FEHLT – alle vier richtig fuer einen
+  von neun. Stufe 6: fünf OK, vier FEHLT – alle vier richtig für einen
   Container.
 - **Wiederholung aller drei Installationsskripte: null FEHLT-Punkte** (idempotent).
-- Erkennung gegen alle vier Familien geprueft: `arch → pacman`,
+- Erkennung gegen alle vier Familien geprüft: `arch → pacman`,
   `fedora → dnf`, `opensuse-leap → zypper`, `ubuntu → apt`, `raspbian → apt`;
   im Container selbst `apt (Debian GNU/Linux 12)`.
-- `bash -n` auf allen fuenf Dateien fehlerfrei.
+- `bash -n` auf allen fünf Dateien fehlerfrei.
 
 Nebenbefund aus demselben Lauf: Der Selbsttest meldet auf dem **echten,
-frisch aufgesetzten und noch nicht gekoppelten** Geraet „Backend-Oberflaeche
+frisch aufgesetzten und noch nicht gekoppelten** Gerät „Backend-Oberfläche
 ist gesperrt (leitet auf terminal.php)". Damit ist die zweite Bedingung aus
-P-2026-08-09-19 auch ausserhalb des synthetischen Testaufbaus belegt.
+P-2026-08-09-19 auch außerhalb des synthetischen Testaufbaus belegt.
 
 ### Was bewusst nicht erreicht wurde
 - **`schritt`, `warnung` und `pruefe` stehen weiterhin dreimal.** Sie sind
-  zwar ebenfalls gleich, aber kein Grund fuer den Fehler, den T-104 beschreibt:
-  Wer eine Paketfamilie ergaenzt, fasst sie nicht an. Sie mitzunehmen haette
-  den Eingriff in drei gepruefte Skripte vergroessert, ohne etwas zu sichern.
-- **Nach wie vor nur `apt` geprueft.** Die Zusammenlegung macht die anderen
+  zwar ebenfalls gleich, aber kein Grund für den Fehler, den T-104 beschreibt:
+  Wer eine Paketfamilie ergänzt, fasst sie nicht an. Sie mitzunehmen hätte
+  den Eingriff in drei geprüfte Skripte vergrößert, ohne etwas zu sichern.
+- **Nach wie vor nur `apt` geprüft.** Die Zusammenlegung macht die anderen
   drei Familien wartbarer, nicht getestet.
 
 ### NEXT
-Der Geraetetest auf einem Bildschirm.
+Der Gerätetest auf einem Bildschirm.
 
 ## P-2026-08-09-19 terminal-ohne-backend
 
@@ -9071,8 +9177,8 @@ Der Geraetetest auf einem Bildschirm.
 - `public/index.php` (Kopf), `config/config.php` (wie `installation_typ`
   zustande kommt), `core/Auth.php` (die Abfrage hinter der Anmeldung).
 - `controller/TerminalEinrichtungController.php` – welche Datenbank die
-  Kopplung dem Geraet eintraegt.
-- Befundlauf an einem gekoppelten Wegwerf-Terminal: was es tatsaechlich lesen
+  Kopplung dem Gerät einträgt.
+- Befundlauf an einem gekoppelten Wegwerf-Terminal: was es tatsächlich lesen
   kann.
 
 ### DATEIEN
@@ -9083,81 +9189,81 @@ Der Geraetetest auf einem Bildschirm.
 - `docs/archiv/DEV_PROMPT_HISTORY.md`
 
 ### AKZEPTANZKRITERIUM
-Auf einem Geraet mit `installation_typ = 'terminal'` liefert `public/index.php`
-keine Backend-Oberflaeche mehr, sondern leitet auf `terminal.php` um.
+Auf einem Gerät mit `installation_typ = 'terminal'` liefert `public/index.php`
+keine Backend-Oberfläche mehr, sondern leitet auf `terminal.php` um.
 
 ### DONE
 T-103 entschieden und umgesetzt: Auf einem Terminal gibt es kein Backend.
 
-**Die Begruendung war eine andere als angenommen.** Die Vermutung lautete, das
-sei ohnehin harmlos, weil „die Daten fuer das Backend auf dem Terminal gar
+**Die Begründung war eine andere als angenommen.** Die Vermutung lautete, das
+sei ohnehin harmlos, weil „die Daten für das Backend auf dem Terminal gar
 nicht da sind". Der Befundlauf zeigt das Gegenteil: Es ist **dieselbe
 Datenbank**. Das Terminal bekommt bei der Kopplung nur einen eigenen Benutzer
 auf demselben Schema; unterschiedlich sind die **Rechte**, nicht die Daten.
-Gemessen an einem gekoppelten Testgeraet – lesbar: Namen, Personalnummern,
-E-Mail, Geburtsdatum, Zeitbuchungen **aller** Mitarbeiter, Urlaubsantraege,
+Gemessen an einem gekoppelten Testgerät – lesbar: Namen, Personalnummern,
+E-Mail, Geburtsdatum, Zeitbuchungen **aller** Mitarbeiter, Urlaubsanträge,
 Stundenkonto-Korrekturen, Rollen und Rechte. Gesperrt: Passwort-Hashes und
 Kopplungscodes anderer Terminals.
 
-Die Sperre ist also noetig, **weil** die Daten da sind – nicht, obwohl sie es
-nicht waeren.
+Die Sperre ist also nötig, **weil** die Daten da sind – nicht, obwohl sie es
+nicht wären.
 
 - `public/index.php` bricht vor allem Weiteren ab und leitet auf
   `terminal.php` um, wenn `installation_typ = 'terminal'` gilt **oder** eine
   `config/geraet.local.php` ohne `config.local.php` vorliegt. Der zweite Fall
   deckt das Fenster zwischen Aufstellen und Koppeln ab – oft Tage, in denen in
-  der Halle die Anmeldemaske haengt. Jene Datei legt ausschliesslich
-  `install_terminal.sh` an, ist also ein verlaesslicher Marker.
+  der Halle die Anmeldemaske hängt. Jene Datei legt ausschließlich
+  `install_terminal.sh` an, ist also ein verlässlicher Marker.
 - **Weiterleitung statt 404.** Wer auf einem Kiosk bei `/` landet, meint die
-  Terminal-Oberflaeche; bei einem ungekoppelten Geraet ist das die
-  Einrichtungsseite. Ein Fehlerbild waere dort nur im Weg.
-- **Keine Ausnahme fuer den Kopplungs-Endpunkt.** Der laeuft auf dem Backend.
-- **Rueckweg fuer die Wartung:** `installation_typ` in `config.local.php` auf
-  `backend` setzen. Das braucht Zugriff auf die Datei – die richtige Huerde.
-- Der Selbsttest prueft die Sperre mit: Die Anmeldemaske muss auf
+  Terminal-Oberfläche; bei einem ungekoppelten Gerät ist das die
+  Einrichtungsseite. Ein Fehlerbild wäre dort nur im Weg.
+- **Keine Ausnahme für den Kopplungs-Endpunkt.** Der läuft auf dem Backend.
+- **Rückweg für die Wartung:** `installation_typ` in `config.local.php` auf
+  `backend` setzen. Das braucht Zugriff auf die Datei – die richtige Hürde.
+- Der Selbsttest prüft die Sperre mit: Die Anmeldemaske muss auf
   `terminal.php` umleiten. Tut sie es nicht, ist das ein Fund mit Hinweis.
 
 ### TEST
 **13 von 13**, gegen eine echte Installation auf einem eigenen PHP-Server
-(damit die Entwicklungsumgebung unangetastet bleibt), in vier Zustaenden:
+(damit die Entwicklungsumgebung unangetastet bleibt), in vier Zuständen:
 
-- *Backend:* `?seite=login` liefert 200, geschuetzte Seiten leiten wie bisher
-  auf den Login – unveraendert.
+- *Backend:* `?seite=login` liefert 200, geschützte Seiten leiten wie bisher
+  auf den Login – unverändert.
 - *Terminal:* `?seite=login`, `?seite=dashboard`, `?seite=mitarbeiter_admin`,
   `?seite=terminal_kopplung` und `/` alle 302 auf `terminal.php`;
   `terminal.php` und der Health-Endpunkt weiter 200.
 - *Aufgesetzt, aber nicht gekoppelt* (nur `geraet.local.php`): gesperrt,
   `terminal.php` zeigt die Einrichtungsseite.
-- *Rueckweg:* `installation_typ = 'backend'` trotz vorhandener
+- *Rückweg:* `installation_typ = 'backend'` trotz vorhandener
   `geraet.local.php` – wieder erreichbar.
 
-Der neue Punkt im Selbsttest wurde in beide Richtungen geprueft: meldet OK bei
+Der neue Punkt im Selbsttest wurde in beide Richtungen geprüft: meldet OK bei
 gesperrtem Backend, FEHLT bei erreichbarem. `php -l` und `bash -n` fehlerfrei.
 
 ### Gefundene Fehler im eigenen Entwurf
-- Der erste Entwurf deckte nur `installation_typ = 'terminal'` ab und liess
-  damit genau das Fenster offen, in dem ein Geraet schon in der Halle haengt,
+- Der erste Entwurf deckte nur `installation_typ = 'terminal'` ab und ließ
+  damit genau das Fenster offen, in dem ein Gerät schon in der Halle hängt,
   aber noch nicht gekoppelt ist. Zweite Bedingung nachgezogen.
-- Beim Einfuegen in die Spezifikation ist eine **zweite Ueberschrift „## 10."**
-  entstanden und die Aufzaehlung „Was weiterhin gilt" wurde mitten
-  durchgeschnitten. Abschnitt 10 danach am Stueck neu gesetzt – eine Aussage,
+- Beim Einfügen in die Spezifikation ist eine **zweite Überschrift „## 10."**
+  entstanden und die Aufzählung „Was weiterhin gilt" wurde mitten
+  durchgeschnitten. Abschnitt 10 danach am Stück neu gesetzt – eine Aussage,
   eine Stelle.
 
 ### Was bewusst nicht erreicht wurde
-- **Kein Datenschutz.** Wer das Geraet aufschraubt, liest die Zugangsdaten und
+- **Kein Datenschutz.** Wer das Gerät aufschraubt, liest die Zugangsdaten und
   kommt an alles, was der Terminal-Benutzer lesen darf. Die Sperre verkleinert
-  die Angriffsflaeche; der Schutz liegt bei der Rechteliste.
+  die Angriffsfläche; der Schutz liegt bei der Rechteliste.
 - **Nebenbefund, nicht als Schutz eingeplant:** Seit P-2026-08-09-16 scheitert
   die Anmeldung auf einem Terminal ohnehin, weil `core/Auth.php` die Spalte
-  `passwort_hash` liest. Sich darauf zu verlassen waere ein Zufall statt eines
-  Entwurfs – bei einem Geraet, das **vor** jenem Patch gekoppelt wurde,
-  funktioniert die Anmeldung sehr wohl. Genau solche Geraete meldet der
+  `passwort_hash` liest. Sich darauf zu verlassen wäre ein Zufall statt eines
+  Entwurfs – bei einem Gerät, das **vor** jenem Patch gekoppelt wurde,
+  funktioniert die Anmeldung sehr wohl. Genau solche Geräte meldet der
   Selbsttest.
 - **`public/maschine_code.php`** ist nicht gesperrt. Es hat keinen Aufrufer im
-  Code und gehoert getrennt betrachtet; notiert, nicht mitgemacht.
+  Code und gehört getrennt betrachtet; notiert, nicht mitgemacht.
 
 ### NEXT
-Der Geraetetest auf einem Bildschirm.
+Der Gerätetest auf einem Bildschirm.
 
 ## P-2026-08-09-18 terminal-selbsttest
 
@@ -9165,7 +9271,7 @@ Der Geraetetest auf einem Bildschirm.
 - `docs/spezifikation_terminal_installation.md`, Abschnitt 8 (die sechs
   geforderten Punkte) und 6.3 (warum der Scan-Test der wichtigste ist).
 - `public/terminal.php` (`?aktion=health`) – welche Felder die Antwort hat.
-- Die Ergebnisliste von `install_terminal.sh` als Vorbild fuer die Ausgabe.
+- Die Ergebnisliste von `install_terminal.sh` als Vorbild für die Ausgabe.
 
 ### DATEIEN
 - `scripts/terminal/selbsttest.sh` (neu)
@@ -9174,77 +9280,77 @@ Der Geraetetest auf einem Bildschirm.
 - `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
 
 ### AKZEPTANZKRITERIUM
-Ein Lauf von `selbsttest.sh` sagt vor dem Verlassen des Geraets, ob es
-einsatzbereit ist – als Liste mit OK/FEHLT und mit einem Rueckgabewert, der
+Ein Lauf von `selbsttest.sh` sagt vor dem Verlassen des Geräts, ob es
+einsatzbereit ist – als Liste mit OK/FEHLT und mit einem Rückgabewert, der
 dazu passt.
 
 ### DONE
-Die Installationsskripte melden, was **sie** getan haben. Ob das Geraet danach
+Die Installationsskripte melden, was **sie** getan haben. Ob das Gerät danach
 bucht, ist etwas anderes – dazwischen liegen Kopplung, Netz, Datenbank und
-Hardware. Diese Luecke schliesst Stufe 6.
+Hardware. Diese Lücke schließt Stufe 6.
 
 Sieben Abschnitte: Webserver, Kopplung und Hauptdatenbank, Ausweichdatenbank,
-Health-Endpunkt, Kiosk, RFID, Scan-Test. `--ohne-scan` laesst den interaktiven
+Health-Endpunkt, Kiosk, RFID, Scan-Test. `--ohne-scan` lässt den interaktiven
 Teil weg.
 
-- **Drei Zustaende, nicht zwei.** Neben `OK` und `FEHLT` gibt es `--` fuer
-  *nicht geprueft*. Der Unterschied zwischen „der Kiosk laeuft nicht" und „hier
-  laeuft kein systemd, also war nichts zu sehen" ist der ganze Wert des Tests;
-  ein Lauf, der Unwissen als Erfolg meldet, waere schlimmer als keiner.
-- **Die Werte kommen vom Geraet, nicht aus der Antwortdatei.**
+- **Drei Zustände, nicht zwei.** Neben `OK` und `FEHLT` gibt es `--` für
+  *nicht geprüft*. Der Unterschied zwischen „der Kiosk läuft nicht" und „hier
+  läuft kein systemd, also war nichts zu sehen" ist der ganze Wert des Tests;
+  ein Lauf, der Unwissen als Erfolg meldet, wäre schlimmer als keiner.
+- **Die Werte kommen vom Gerät, nicht aus der Antwortdatei.**
   `/etc/zeiterfassung-peripherie.conf` und `/etc/zeiterfassung-kiosk.conf`
-  ueberschreiben, was in `terminal.conf` steht: Was eingerichtet wurde, wiegt
+  überschreiben, was in `terminal.conf` steht: Was eingerichtet wurde, wiegt
   schwerer als das, was jemand einmal aufschreiben wollte.
-- **Gegenprobe zu T-101.** Der Test versucht mit den Zugangsdaten des Geraets,
+- **Gegenprobe zu T-101.** Der Test versucht mit den Zugangsdaten des Geräts,
   `passwort_hash` zu lesen. Gelingt es, ist es ein Zugang von vor
   P-2026-08-09-16, und die Meldung sagt, was zu tun ist. Ohne diesen Punkt
-  bliebe ein altes Geraet unbemerkt offen.
-- **Aendert nichts.** Nur Lesen und Fragen; Rueckgabewert 0/1, damit eine
-  Ueberwachung ihn auswerten kann.
+  bliebe ein altes Gerät unbemerkt offen.
+- **Ändert nichts.** Nur Lesen und Fragen; Rückgabewert 0/1, damit eine
+  Überwachung ihn auswerten kann.
 
 ### TEST
-**Zwei Staende, zusammen 10 von 10 in der Auswertung.**
+**Zwei Stände, zusammen 10 von 10 in der Auswertung.**
 
 1. *Im Debian-12-Container* (ungekoppelt, kein Bildschirm): vier OK, vier
-   FEHLT, ein uebersprungen. Alle vier FEHLT waren **richtig** – nicht
-   gekoppelt, Kiosk laeuft nicht, Bridge laeuft nicht, Port 8765 tot. Genau der
-   Zustand eines Containers. Rueckgabewert 1.
+   FEHLT, ein übersprungen. Alle vier FEHLT waren **richtig** – nicht
+   gekoppelt, Kiosk läuft nicht, Bridge läuft nicht, Port 8765 tot. Genau der
+   Zustand eines Containers. Rückgabewert 1.
 2. *Gegen eine echte gekoppelte Installation* auf dem Entwicklungsrechner:
    erkennt die Kopplung, erreicht die Hauptdatenbank, meldet die Hash-Sperre
-   als OK, meldet die abgeschaltete Ausweichdatenbank als FEHLT, prueft den
+   als OK, meldet die abgeschaltete Ausweichdatenbank als FEHLT, prüft den
    Health-Endpunkt, respektiert `RFID_VARIANTE="keine"`.
    **Gegenprobe:** Danach dem Terminal-Benutzer von Hand das alte, weite
    `GRANT SELECT ON mitarbeiter` gegeben – der Test meldet daraufhin „Dieses
-   Geraet kann Passwort-Hashes lesen" samt Handlungsanweisung.
+   Gerät kann Passwort-Hashes lesen" samt Handlungsanweisung.
 
-Der Scan-Test wurde ueber ein Pseudoterminal (`script`) in allen drei Wegen
-durchgespielt: sauberer Scan bestaetigt (OK), vertauschte Zeichen verneint
-(FEHLT mit Hinweis auf `localectl status`), beide uebersprungen (`--`).
+Der Scan-Test wurde über ein Pseudoterminal (`script`) in allen drei Wegen
+durchgespielt: sauberer Scan bestätigt (OK), vertauschte Zeichen verneint
+(FEHLT mit Hinweis auf `localectl status`), beide übersprungen (`--`).
 
 `bash -n` fehlerfrei.
 
 ### Gefundene Fehler im eigenen Entwurf
-- Erster Messversuch las den Rueckgabewert hinter einer Pipe (`... | tail`) und
+- Erster Messversuch las den Rückgabewert hinter einer Pipe (`... | tail`) und
   bekam den von `tail`. Ohne Pipe nachgemessen: 1, wie gewollt.
 
 ### Was bewusst nicht erreicht wurde
-- **Der Container konnte die Kopplungspunkte nicht pruefen.** Der
+- **Der Container konnte die Kopplungspunkte nicht prüfen.** Der
   Entwicklungsrechner blockiert Zugriffe aus dem Docker-Netz auf Apache und
   MariaDB. Statt die Firewall des fremden Rechners umzustellen, wurden diese
-  Punkte gegen eine echte gekoppelte Installation auf dem Host geprueft – was
-  aussagekraeftiger ist.
+  Punkte gegen eine echte gekoppelte Installation auf dem Host geprüft – was
+  aussagekräftiger ist.
 - **Kein Test der Buchung selbst.** Ob eine Kommen-Buchung ankommt, zeigt der
-  Selbsttest nicht; er wuerde dafuer Daten schreiben. Das gehoert in die
-  Wartungscheckliste, nicht in ein Werkzeug, das nichts aendern soll.
+  Selbsttest nicht; er würde dafür Daten schreiben. Das gehört in die
+  Wartungscheckliste, nicht in ein Werkzeug, das nichts ändern soll.
 
 ### NEXT
-Der Geraetetest auf einem Bildschirm.
+Der Gerätetest auf einem Bildschirm.
 
 ## P-2026-08-09-17 terminal-peripherie
 
 ### EINGELESEN
 - `docs/spezifikation_terminal_installation.md`, Abschnitt 6 und Abschnitt 9
-  („Was sich bewusst nicht vollautomatisch loesen laesst").
+  („Was sich bewusst nicht vollautomatisch lösen lässt").
 - `docs/terminal/rfid_ws.py`, `rfid-ws.service`, `rfid-ws_rollout.md` – was es
   schon gibt und was davon taugt.
 - `scripts/terminal/install_kiosk.sh` (Aufbau des Startskripts) und
@@ -9252,75 +9358,75 @@ Der Geraetetest auf einem Bildschirm.
 
 ### DATEIEN
 - `scripts/terminal/install_peripherie.sh` (neu)
-- `scripts/terminal/install_kiosk.sh` (eine Zeile: der Einhaengepunkt)
+- `scripts/terminal/install_kiosk.sh` (eine Zeile: der Einhängepunkt)
 - `scripts/terminal/terminal.conf.example`
 - `docs/archiv/DEV_PROMPT_HISTORY.md`
 
 Die Doku zu beiden neuen Stufen liegt im Folgecommit P-2026-08-09-18: Sie
-betrifft dieselben Absaetze (Stufenplan, Zielbild, Installationsanleitung) und
-liesse sich nicht sinnvoll in zwei Haelften schneiden.
+betrifft dieselben Absätze (Stufenplan, Zielbild, Installationsanleitung) und
+ließe sich nicht sinnvoll in zwei Hälften schneiden.
 
 ### AKZEPTANZKRITERIUM
-Ein Lauf richtet die gewaehlte RFID-Betriebsart ein, traegt sie in
-`config/geraet.local.php` ein und bereitet die Drehung von Bild und Beruehrung
+Ein Lauf richtet die gewählte RFID-Betriebsart ein, trägt sie in
+`config/geraet.local.php` ein und bereitet die Drehung von Bild und Berührung
 vor – ohne die Zugangsdaten der Ausweichdatenbank zu verlieren.
 
 ### DONE
-Sechs Schritte, gesteuert ueber `RFID_VARIANTE` (`usb` | `bridge` | `keine`)
+Sechs Schritte, gesteuert über `RFID_VARIANTE` (`usb` | `bridge` | `keine`)
 und `BILDSCHIRM_DREHUNG` (`normal` | `links` | `rechts` | `kopf`).
 
 - **`usb`** – der Normalfall: keine Treiber, kein Dienst, `rfid_ws.enabled`
-  bleibt `false`. Das Skript sagt ausdruecklich, dass es **nicht** feststellen
+  bleibt `false`. Das Skript sagt ausdrücklich, dass es **nicht** feststellen
   kann, ob ein Leser angeschlossen ist: Ein Keyboard-Wedge meldet sich als
   Tastatur. Das steht so in Abschnitt 9 der Spezifikation und wird hier nicht
   weggeschwiegen.
 - **`bridge`** – Python-Umgebung (venv, weil Debian 12 pip auf Systemebene
   verweigert), `rfid_ws.py` mit Anschluss und Baudrate aus der Antwortdatei,
   eigener Dienstbenutzer `rfidws` in `dialout`/`uucp`/`spi`, systemd-Einheit.
-  Auf einem Raspberry Pi wird zusaetzlich `dtparam=spi=on` gesetzt.
+  Auf einem Raspberry Pi wird zusätzlich `dtparam=spi=on` gesetzt.
   Die Einheit wird **nur aktiviert**, nicht gestartet, wenn der Anschluss
-  fehlt – sonst laeuft sie in eine Neustartschleife und das Journal ist voll
+  fehlt – sonst läuft sie in eine Neustartschleife und das Journal ist voll
   mit derselben Zeile.
-- **Drehung.** Unter X11 zur Laufzeit ueber ein eigenes Skript, das der
-  Kioskstart aufruft: `xrandr` fuer das Bild **und** `xinput` fuer die
-  Beruehrung. Nur das Bild zu drehen waere schlimmer als gar nicht – es sieht
+- **Drehung.** Unter X11 zur Laufzeit über ein eigenes Skript, das der
+  Kioskstart aufruft: `xrandr` für das Bild **und** `xinput` für die
+  Berührung. Nur das Bild zu drehen wäre schlimmer als gar nicht – es sieht
   richtig aus, aber der Finger trifft 90 Grad daneben. Unter `cage` gibt es
   keinen Schalter zum Drehen; dort gibt das Skript die Kernel-Startzeile aus
   und **warnt**, statt eine halb gedrehte Anzeige zu hinterlassen.
-- **Ein Einhaengepunkt in Stufe 4.** Das erzeugte Kiosk-Startskript ruft in der
+- **Ein Einhängepunkt in Stufe 4.** Das erzeugte Kiosk-Startskript ruft in der
   X11-Sitzung `/usr/local/bin/zeiterfassung-peripherie-x11` auf, sofern es das
-  gibt. Eine Zeile; die einzige Aenderung an dem bereits geprueften Skript.
+  gibt. Eine Zeile; die einzige Änderung an dem bereits geprüften Skript.
 - **Die Dienstdatei wird neu geschrieben, nicht kopiert.** Die Vorlage in
   `docs/terminal/` nennt feste Pfade und `www-data`. Was hier entsteht, passt
-  zu dem, was dieses Skript tatsaechlich angelegt hat.
+  zu dem, was dieses Skript tatsächlich angelegt hat.
 
 ### TEST
 Debian-12-Container mit systemd, im Anschluss an die Stufen 3 und 4 desselben
 Laufs:
 
-- **`usb`: fuenf von fuenf.**
+- **`usb`: fünf von fünf.**
 - **`bridge`: neun von neun**, Wiederholung ohne Abweichung (idempotent).
 - **Das Passwort der Ausweichdatenbank ist dasselbe geblieben** – vorher und
-  nachher als Pruefsumme verglichen, und danach eine Verbindung damit
-  aufgebaut. Eigens geprueft, weil genau dieser Fehler in P-2026-08-09-05 schon
+  nachher als Prüfsumme verglichen, und danach eine Verbindung damit
+  aufgebaut. Eigens geprüft, weil genau dieser Fehler in P-2026-08-09-05 schon
   einmal auftrat.
-- **Das X11-Drehskript** wurde mit vorgetaeuschten `xrandr`/`xinput` gegen alle
-  vier Drehungen geprueft: `normal` ruft nichts auf, `links`/`rechts`/`kopf`
+- **Das X11-Drehskript** wurde mit vorgetäuschten `xrandr`/`xinput` gegen alle
+  vier Drehungen geprüft: `normal` ruft nichts auf, `links`/`rechts`/`kopf`
   erzeugen den richtigen `--rotate`-Aufruf und die richtige Matrix. Der
   Bildschirmausgang wurde dabei selbst gefunden.
-- Die zwei Warnungen im Containerlauf sind richtig: kein Touchgeraet vorhanden,
+- Die zwei Warnungen im Containerlauf sind richtig: kein Touchgerät vorhanden,
   und unter `cage` wurde nicht gedreht.
 - `bash -n` auf allen vier Skripten fehlerfrei.
 
 ### Was bewusst nicht erreicht wurde
 - **Ob ein Leser wirklich liest, zeigt kein Container.** Weder ein
   angeschlossener USB-Leser noch ein RC522 noch ein Touchscreen war da. Das ist
-  Teil des Geraetetests.
+  Teil des Gerätetests.
 - **Die Drehung unter `cage` wird nicht gesetzt.** Sie braucht die Startzeile
-  des Kernels und einen Neustart; der Ausgangsname ist geraeteabhaengig. Das
+  des Kernels und einen Neustart; der Ausgangsname ist geräteabhängig. Das
   Skript sagt, was einzutragen ist.
 - **Die Distributionserkennung steht jetzt dreimal** (T-104). Bewusst wieder
-  kopiert: Sie zusammenzulegen haette die schon geprueften Skripte der Stufen 3
+  kopiert: Sie zusammenzulegen hätte die schon geprüften Skripte der Stufen 3
   und 4 angefasst.
 
 ### NEXT
@@ -9348,33 +9454,33 @@ Stufe 6 (Selbsttest).
 
 ### AKZEPTANZKRITERIUM
 Der Datenbankbenutzer eines Terminals kann `passwort_hash` nicht mehr lesen,
-und die Monatsuebersicht am Terminal rechnet unveraendert.
+und die Monatsübersicht am Terminal rechnet unverändert.
 
 ### DONE
-`mitarbeiter` war fuer den Terminal-Benutzer als ganze Tabelle lesbar – also
-auch die **Passwort-Hashes**. Auf einem Hallengeraet liegen die Zugangsdaten
-lesbar in `config.local.php`; wer ein Geraet mitnimmt, hatte damit die
+`mitarbeiter` war für den Terminal-Benutzer als ganze Tabelle lesbar – also
+auch die **Passwort-Hashes**. Auf einem Hallengerät liegen die Zugangsdaten
+lesbar in `config.local.php`; wer ein Gerät mitnimmt, hatte damit die
 Grundlage, Hashes offline durchzuprobieren.
 
 - **Spaltenweises Leserecht.** Neue Konstante `SPALTEN_GESPERRT` im
-  `TerminalDbBenutzerService`. Fuer die dort genannten Tabellen wird das
-  Leserecht Spalte fuer Spalte vergeben, aufgeloest aus dem
-  `information_schema` **zur Kopplungszeit**. Eine spaeter hinzugekommene
-  Spalte kommt damit automatisch mit; eine von Hand gepflegte Positivliste waere
-  beim naechsten Schema-Zuwachs still unvollstaendig geworden.
-- **Kein Rateschluss.** Laesst sich die Liste nicht bestimmen, wird **gar kein
-  Zugang** angelegt. Dazu gehoert ausdruecklich der Fall, dass `passwort_hash`
-  nicht mehr existiert: Waere die Spalte umbenannt worden, sperrte die Liste
-  nichts mehr – und niemand haette es gemerkt. `baueGrantAnweisungen()` liefert
-  dafuer jetzt `?array` statt `array`.
+  `TerminalDbBenutzerService`. Für die dort genannten Tabellen wird das
+  Leserecht Spalte für Spalte vergeben, aufgelöst aus dem
+  `information_schema` **zur Kopplungszeit**. Eine später hinzugekommene
+  Spalte kommt damit automatisch mit; eine von Hand gepflegte Positivliste wäre
+  beim nächsten Schema-Zuwachs still unvollständig geworden.
+- **Kein Rateschluss.** Lässt sich die Liste nicht bestimmen, wird **gar kein
+  Zugang** angelegt. Dazu gehört ausdrücklich der Fall, dass `passwort_hash`
+  nicht mehr existiert: Wäre die Spalte umbenannt worden, sperrte die Liste
+  nichts mehr – und niemand hätte es gemerkt. `baueGrantAnweisungen()` liefert
+  dafür jetzt `?array` statt `array`.
 - **Zwei Codestellen angepasst.** `ReportService` holte an zwei Stellen den
   ganzen Mitarbeiterdatensatz (`holeNachId()`, ein `SELECT *`), um genau einen
   Wert zu lesen. Neue Methode `MitarbeiterModel::holeWochenarbeitszeit()`.
-  Die uebrigen fuenf `SELECT *` im `MitarbeiterModel` bleiben – sie laufen nur
+  Die übrigen fünf `SELECT *` im `MitarbeiterModel` bleiben – sie laufen nur
   im Backend.
 
 ### TEST
-**Zwei Testlaeufe, zusammen 40 Punkte, alle bestanden.**
+**Zwei Testläufe, zusammen 40 Punkte, alle bestanden.**
 
 1. *Rechte (29 Punkte)* – Wegwerf-Terminal gekoppelt, dann **mit dessen
    Zugangsdaten** verbunden:
@@ -9382,47 +9488,47 @@ Grundlage, Hashes offline durchzuprobieren.
      gemischte Spaltenliste, `passwort_hash` in `WHERE`, in `ORDER BY`, sowie
      `UPDATE passwort_hash`.
    - Weiterhin erlaubt: alle acht echten `mitarbeiter`-Abfragen aus dem
-     Terminalcode (namentlich mit Fundstelle geprueft), `COUNT(*)`,
+     Terminalcode (namentlich mit Fundstelle geprüft), `COUNT(*)`,
      `UPDATE rfid_code`, und `SELECT *` auf allen anderen Tabellen.
    - `SHOW GRANTS`: 15 Spalten, `passwort_hash` in keinem Grant.
 2. *Ende zu Ende (11 Punkte)* – aus der Kopplung eine **echte
    Terminal-Installation** gebaut (App-Kopie mit `config.local.php`,
-   `installation_typ = terminal`) und dort die Monatsuebersicht rechnen lassen:
+   `installation_typ = terminal`) und dort die Monatsübersicht rechnen lassen:
    **Sollstunden 168,00 – identisch zur Rechnung als Backend-Benutzer.**
    Tageswerte vorhanden, kein Fehler.
 
-Beide Laeufe raeumen hinter sich auf (kein Testterminal, kein `term_zz%`-Benutzer,
-Host-Muster zurueckgestellt). `php -l` auf allen drei geaenderten PHP-Dateien
+Beide Läufe räumen hinter sich auf (kein Testterminal, kein `term_zz%`-Benutzer,
+Host-Muster zurückgestellt). `php -l` auf allen drei geänderten PHP-Dateien
 fehlerfrei.
 
 ### Gefundene Fehler im eigenen Entwurf
 **Der wichtigste Fund dieser Runde, und er widerlegte meine eigene erste
 Analyse.** Ein Durchgang nach direktem SQL ergab: Der Terminalpfad nennt seine
-Spalten ueberall einzeln, ein Codeeingriff sei gar nicht noetig. Das war falsch –
+Spalten überall einzeln, ein Codeeingriff sei gar nicht nötig. Das war falsch –
 gesucht war nach `FROM mitarbeiter`, aber der `ReportService` fasst die Tabelle
-nie selbst an, sondern ueber `MitarbeiterModel`. Der Pfad
+nie selbst an, sondern über `MitarbeiterModel`. Der Pfad
 `TerminalController:780 → holeMonatsdatenFuerMitarbeiter() → holeNachId()`
-war damit uebersehen.
+war damit übersehen.
 
-Haette ich es dabei belassen, waere ein besonders unangenehmer Fehler
+Hätte ich es dabei belassen, wäre ein besonders unangenehmer Fehler
 entstanden: Beide Stellen fangen Ausnahmen ab und rechnen mit **0 Stunden**
-weiter. Am Terminal waere also kein Fehler erschienen, sondern eine **falsche
-Monatsuebersicht** – genau das stille Falschrechnen, vor dem die Begruendung
+weiter. Am Terminal wäre also kein Fehler erschienen, sondern eine **falsche
+Monatsübersicht** – genau das stille Falschrechnen, vor dem die Begründung
 zum `feiertag`-INSERT in derselben Datei warnt. Aufgefallen ist es nur, weil
 die alte Doku das Gegenteil meiner Analyse behauptete und ich nachgesehen habe,
 wer von beiden recht hat.
 
 Der zweite Testlauf (Ende zu Ende) ist die Konsequenz daraus: Rechte allein auf
-SQL-Ebene zu pruefen haette den Fehler nicht gezeigt.
+SQL-Ebene zu prüfen hätte den Fehler nicht gezeigt.
 
 ### Was bewusst nicht erreicht wurde
-- **Bereits gekoppelte Geraete behalten ihr altes, weites Recht.** Rechte
-  werden nur beim Koppeln vergeben. Nachtraeglich alle `term_*`-Benutzer
-  umzuschreiben waere ein Eingriff in laufende Geraete; der vorgesehene Weg ist
-  *Entkoppeln* und neu koppeln. Die Pruefabfrage steht in der Spezifikation.
+- **Bereits gekoppelte Geräte behalten ihr altes, weites Recht.** Rechte
+  werden nur beim Koppeln vergeben. Nachträglich alle `term_*`-Benutzer
+  umzuschreiben wäre ein Eingriff in laufende Geräte; der vorgesehene Weg ist
+  *Entkoppeln* und neu koppeln. Die Prüfabfrage steht in der Spezifikation.
 - **Nur `passwort_hash`.** Andere Spalten (`email`, `geburtsdatum`) bleiben
-  lesbar. Das Terminal zeigt Namen ohnehin an; eine breitere Sperre waere eine
-  eigene Abwaegung und kein Teil dieser Aufgabe.
+  lesbar. Das Terminal zeigt Namen ohnehin an; eine breitere Sperre wäre eine
+  eigene Abwägung und kein Teil dieser Aufgabe.
 
 ### NEXT
 Stufe 5 (Peripherie) und Stufe 6 (Selbsttest) des Installationsskripts.
@@ -9430,10 +9536,10 @@ Stufe 5 (Peripherie) und Stufe 6 (Selbsttest) des Installationsskripts.
 ## P-2026-08-09-15 kaltstart-als-regel
 
 ### EINGELESEN
-- `docs/arbeitsregeln.md` (Abschnitte 6 und 9) – wo die Regel hingehoert und ob
+- `docs/arbeitsregeln.md` (Abschnitte 6 und 9) – wo die Regel hingehört und ob
   sie schon irgendwo steht.
 - `CHATSTART.md`, Abschnitt 5 – dort steht das *Warum* der Aufteilung, aber
-  keine Regel fuers Aufraeumen danach.
+  keine Regel fürs Aufräumen danach.
 
 ### DATEIEN
 - `docs/arbeitsregeln.md`
@@ -9451,22 +9557,22 @@ Regel – nur ihr Ergebnis. Damit war sie an den Auftraggeber gebunden statt an
 das Projekt.
 
 - Neuer **Abschnitt 10**: welche vier Dateien jeder Einstieg liest, Richtwert
-  **unter 20 KB**, und wohin neue Erklaerungen stattdessen gehoeren.
-- Dazu die drei Punkte, die in genau diesen drei Patches noetig waren:
+  **unter 20 KB**, und wohin neue Erklärungen stattdessen gehören.
+- Dazu die drei Punkte, die in genau diesen drei Patches nötig waren:
   Erledigtes aus dem Snapshot entfernen, keine ableitbare Zahl pflegen (der
-  „Grobe Verlauf" aus -12 war so eine), Links nach Verschiebungen gegenpruefen.
+  „Grobe Verlauf" aus -12 war so eine), Links nach Verschiebungen gegenprüfen.
 
 ### TEST
 - Kaltstart-Set: 19.366 → **19.887 B** (~5.500 Token). Unter dem Richtwert.
 - Gegenprobe zur eigenen Regel: Die Angabe „vier von sechs Stufen" aus
-  P-2026-08-09-14 ist eine Zaehlung aus der Liste direkt darueber, keine
+  P-2026-08-09-14 ist eine Zählung aus der Liste direkt darüber, keine
   gepflegte Zahl – der Widerspruch besteht also nicht.
-- `php -l`: keine PHP-Datei geaendert, entfaellt.
+- `php -l`: keine PHP-Datei geändert, entfällt.
 
 ### Gefundene Fehler im eigenen Entwurf
-Der erste Entwurf war 1,1 KB lang – eine Regel ueber Sparsamkeit, die selbst
+Der erste Entwurf war 1,1 KB lang – eine Regel über Sparsamkeit, die selbst
 5 % des Kaltstart-Sets verbraucht und es auf 10 Byte an den eigenen Richtwert
-schiebt. Auf ein Drittel gekuerzt.
+schiebt. Auf ein Drittel gekürzt.
 
 ### NEXT
 T-101 (`passwort_hash` vor dem Terminal verbergen).
@@ -9477,9 +9583,9 @@ T-101 (`passwort_hash` vor dem Terminal verbergen).
 - `docs/admin_handbuch.md`, `docs/wartungscheckliste.md`,
   `docs/fachregeln/terminal_und_offline.md`, `docs/installationsanleitung.md`,
   `README.md`, `docs/README.md` – gegen den neuen Stand gelesen.
-- `views/layout/header.php` (Menueaufbau) – um den Menuepfad im Handbuch nicht
+- `views/layout/header.php` (Menüaufbau) – um den Menüpfad im Handbuch nicht
   zu erfinden: Gruppe *Verwaltung*, Eintrag *Terminals*.
-- Maschinelle Pruefung aller Markdown-Links und aller in Backticks genannten
+- Maschinelle Prüfung aller Markdown-Links und aller in Backticks genannten
   Repo-Pfade.
 
 ### DATEIEN
@@ -9492,49 +9598,49 @@ T-101 (`passwort_hash` vor dem Terminal verbergen).
 
 ### AKZEPTANZKRITERIUM
 Wer ein Terminal ausmustert, findet den richtigen Weg in der Doku, ohne die
-Spezifikation zu lesen – und keine Datei behauptet mehr, das gehe nur ueber
+Spezifikation zu lesen – und keine Datei behauptet mehr, das gehe nur über
 `aktiv = 0`.
 
 ### DONE
 - **Admin-Handbuch, neuer Abschnitt 6** „Ein Terminal ausmustern“ mit dem
-  Menuepfad und der Abgrenzung: *Aktiv = Nein* fuer voruebergehend,
-  *Entkoppeln* fuer endgueltig. Das Handbuch ist die Datei, die ein
+  Menüpfad und der Abgrenzung: *Aktiv = Nein* für vorübergehend,
+  *Entkoppeln* für endgültig. Das Handbuch ist die Datei, die ein
   Administrator liest – die Spezifikation liest er nicht.
-- **Fachregeln Terminal:** Der Satz „Ein verlorenes Geraet wird durch Loeschen
-  dieses einen Benutzers unschaedlich gemacht“ stand da seit der Kopplung, ohne
+- **Fachregeln Terminal:** Der Satz „Ein verlorenes Gerät wird durch Löschen
+  dieses einen Benutzers unschädlich gemacht“ stand da seit der Kopplung, ohne
   zu sagen, wo dieser Knopf ist. Jetzt benannt, mit derselben Abgrenzung – ein
   Satz, keine zweite Beschreibung; die Einzelheiten bleiben in der
   Spezifikation.
-- **Wartungscheckliste:** neuer Block „Nach Aenderungen an der
-  Terminalverwaltung“. Bisher deckte die Liste nur das Geraet ab, nicht die
+- **Wartungscheckliste:** neuer Block „Nach Änderungen an der
+  Terminalverwaltung“. Bisher deckte die Liste nur das Gerät ab, nicht die
   Backend-Maske dazu.
 - **Stufenplan (Spezifikation, Abschnitt 11):** ein Absatz „Wo wir stehen“.
-  Bewusst **ohne Prozentzahl**, sondern als Zaehlung aus der Liste direkt
-  darueber (vier von sechs Stufen, eine von vier Paketfamilien) – eine Zahl
-  waere eine zweite, driftende Angabe, genau der Fehler aus P-2026-08-09-10
+  Bewusst **ohne Prozentzahl**, sondern als Zählung aus der Liste direkt
+  darüber (vier von sechs Stufen, eine von vier Paketfamilien) – eine Zahl
+  wäre eine zweite, driftende Angabe, genau der Fehler aus P-2026-08-09-10
   und -12.
-- **Falscher Pfad korrigiert:** `docs/lokale_entwicklungsumgebung.md` fuehrte
+- **Falscher Pfad korrigiert:** `docs/lokale_entwicklungsumgebung.md` führte
   „Projektregeln“ unter `docs/master_prompt_zeiterfassung_v13.md`, die Datei
   liegt aber seit dem Archivieren unter `docs/archiv/`. Jetzt zeigt der Eintrag
   auf `docs/arbeitsregeln.md`, wo die geltenden Regeln stehen.
 
 ### TEST
-- Alle Markdown-Links im Repo maschinell aufgeloest: **0 tot.**
-- Alle in Backticks genannten Repo-Pfade ausserhalb `docs/archiv/` geprueft.
-  Uebrig bleiben vier, alle erwartet und an Ort und Stelle erklaert:
+- Alle Markdown-Links im Repo maschinell aufgelöst: **0 tot.**
+- Alle in Backticks genannten Repo-Pfade außerhalb `docs/archiv/` geprüft.
+  Übrig bleiben vier, alle erwartet und an Ort und Stelle erklärt:
   `config/geraet.local.php` (legt das Skript zur Laufzeit an),
-  `sql/19_…` und `sql/20_…` (erledigte Migrationen im Rechte-Fahrplan, laengst
+  `sql/19_…` und `sql/20_…` (erledigte Migrationen im Rechte-Fahrplan, längst
   im Schema aufgegangen), `sql/zeiterfassung_aktuell.sql` (Dump, nicht im
   Repository).
-- Menuepfad im Handbuch gegen `views/layout/header.php` geprueft.
-- Kaltstart-Set unveraendert bei 19,1 KB – der Doku-Zuwachs liegt
-  ausschliesslich in Dateien, die nur bei Bedarf gelesen werden.
-- `php -l`: keine PHP-Datei geaendert, entfaellt.
+- Menüpfad im Handbuch gegen `views/layout/header.php` geprüft.
+- Kaltstart-Set unverändert bei 19,1 KB – der Doku-Zuwachs liegt
+  ausschließlich in Dateien, die nur bei Bedarf gelesen werden.
+- `php -l`: keine PHP-Datei geändert, entfällt.
 
 ### Was bewusst nicht erreicht wurde
 - `docs/rechte_prompt.md` nennt in seinem Fahrplan zwei Migrationsdateien, die
   es nicht mehr gibt. Nicht angefasst: Der Abschnitt ist ein Verlaufsprotokoll
-  seiner Zeit, und daran herumzuschreiben waere ein Refactor in der falschen
+  seiner Zeit, und daran herumzuschreiben wäre ein Refactor in der falschen
   Datei. Notiert, nicht mitgemacht.
 
 ### NEXT
@@ -9559,80 +9665,80 @@ T-101 (`passwort_hash` vor dem Terminal verbergen).
 - `docs/archiv/DEV_PROMPT_HISTORY.md`
 
 ### AKZEPTANZKRITERIUM
-Ein gekoppeltes Terminal laesst sich im Backend entkoppeln; danach ist sein
-Datenbankbenutzer geloescht, der Terminal-Datensatz traegt keine
+Ein gekoppeltes Terminal lässt sich im Backend entkoppeln; danach ist sein
+Datenbankbenutzer gelöscht, der Terminal-Datensatz trägt keine
 Kopplungsspuren mehr und offene Kopplungscodes sind entwertet.
 
 ### DONE
 Gefunden beim Gegenlesen der Kopplung: `TerminalDbBenutzerService::entferne()`
 existiert seit P-2026-08-08-35, wurde aber **von keiner Stelle im Backend
-aufgerufen** – nur intern beim Ersetzen und beim Aufraeumen nach einem
-Fehlschlag. Es gab also keinen Weg, ein Geraet abzumelden. Genau das verlangt
+aufgerufen** – nur intern beim Ersetzen und beim Aufräumen nach einem
+Fehlschlag. Es gab also keinen Weg, ein Gerät abzumelden. Genau das verlangt
 Abschnitt 10 der Spezifikation seit P-2026-08-08-33 („Ein ausgemustertes
 Terminal muss im Backend abgemeldet werden") – die Zusicherung stand da, die
 Funktion nicht.
 
-`aktiv = 0` genuegt dafuer nicht und war der stille Irrtum: Das verhindert nur
-eine **neue** Kopplung (geprueft in `TerminalKopplungController`), laesst den
-bestehenden Datenbankbenutzer aber unberuehrt. Wer ein ausgemustertes Geraet
+`aktiv = 0` genügt dafür nicht und war der stille Irrtum: Das verhindert nur
+eine **neue** Kopplung (geprüft in `TerminalKopplungController`), lässt den
+bestehenden Datenbankbenutzer aber unberührt. Wer ein ausgemustertes Gerät
 mitnimmt, liest die Zugangsdaten aus `config.local.php` und kommt weiter an
 alles, was dieses Terminal durfte.
 
-- Neue Route `?seite=terminal_admin_entkoppeln` (POST, CSRF, Rueckfrage) →
+- Neue Route `?seite=terminal_admin_entkoppeln` (POST, CSRF, Rückfrage) →
   `TerminalAdminController::entkoppeln()`.
 - Die Liste zeigt eine Spalte **Kopplung**: Datenbankbenutzer und seit wann,
-  sonst „nicht gekoppelt". Ohne sie waere nicht zu sehen, welches Geraet
-  ueberhaupt einen Zugang hat – und der Knopf haette nichts, worauf er sich
+  sonst „nicht gekoppelt". Ohne sie wäre nicht zu sehen, welches Gerät
+  überhaupt einen Zugang hat – und der Knopf hätte nichts, worauf er sich
   bezieht.
 - Reihenfolge mit Absicht: **erst der Datenbankbenutzer, dann der Vermerk.**
-  Scheitert das Loeschen, bleibt der Vermerk stehen und der Zugang bleibt
-  zuzuordnen. Andersherum bliebe ein gueltiger Benutzer uebrig, von dem niemand
-  mehr weiss, wozu er gehoert – derselbe Grund, aus dem der Endpunkt bei einem
+  Scheitert das Löschen, bleibt der Vermerk stehen und der Zugang bleibt
+  zuzuordnen. Andersherum bliebe ein gültiger Benutzer übrig, von dem niemand
+  mehr weiß, wozu er gehört – derselbe Grund, aus dem der Endpunkt bei einem
   Speicherfehler den frisch angelegten Benutzer wieder entfernt.
 - Offene Kopplungscodes werden **zuerst** entwertet, auch wenn gar kein Zugang
-  besteht: Ein noch gueltiger Code waere sonst der Weg, sich das eben
-  Abgemeldete zurueckzuholen. Dafuer ist
+  besteht: Ein noch gültiger Code wäre sonst der Weg, sich das eben
+  Abgemeldete zurückzuholen. Dafür ist
   `TerminalKopplungService::entwerteOffeneCodes()` von `private` auf `public`
-  gewechselt – dieselbe Entwertung, die schon ein neuer Code ausloest, keine
+  gewechselt – dieselbe Entwertung, die schon ein neuer Code auslöst, keine
   zweite Fassung.
 
 ### TEST
 Testlauf gegen die lokale Datenbank (Wegwerf-Terminal, keine Personendaten
-beruehrt): anlegen → ueber den echten Endpunkt koppeln → entkoppeln →
-aufraeumen. **22 von 22 Punkten.**
+berührt): anlegen → über den echten Endpunkt koppeln → entkoppeln →
+aufräumen. **22 von 22 Punkten.**
 
 - Nach dem Koppeln: `db_benutzer` und `gekoppelt_am` gesetzt, Benutzer in
   `mysql.user` vorhanden, offener Code sichtbar.
 - GET statt POST: keine Wirkung. Falsches CSRF-Token: keine Wirkung.
 - Nach dem Entkoppeln: alle vier Spalten `NULL`, Benutzer aus `mysql.user`
   verschwunden, kein offener Code mehr – und der vorher erzeugte zweite Code
-  laesst sich nicht mehr einloesen.
+  lässt sich nicht mehr einlösen.
 - Zweiter Aufruf meldet „war nicht gekoppelt", unbekannte ID meldet „nicht
   gefunden" – beides ohne Fatal.
-- Liste gerendert (gekoppeltes und nicht gekoppeltes Geraet nebeneinander):
-  Spaltenkopf, Benutzername, Knopf, Rueckfrage und „nicht gekoppelt" sind da,
+- Liste gerendert (gekoppeltes und nicht gekoppeltes Gerät nebeneinander):
+  Spaltenkopf, Benutzername, Knopf, Rückfrage und „nicht gekoppelt" sind da,
   kein PHP-Hinweis im HTML.
-- `php -l` auf allen drei geaenderten PHP-Dateien: fehlerfrei (PHP 8.5.8).
-- Aufgeraeumt: kein Testterminal und kein `term_zz%`-Benutzer geblieben.
+- `php -l` auf allen drei geänderten PHP-Dateien: fehlerfrei (PHP 8.5.8).
+- Aufgeräumt: kein Testterminal und kein `term_zz%`-Benutzer geblieben.
 
 ### Gefundene Fehler im eigenen Entwurf
-- Erster Entwurf setzte den Geraetenamen in den `confirm()`-Text. Das ist ein
+- Erster Entwurf setzte den Gerätenamen in den `confirm()`-Text. Das ist ein
   PHP-Wert in einem JavaScript-String in einem HTML-Attribut – drei
-  Maskierungen uebereinander, und `addslashes` ist dafuer die falsche
-  Zusicherung. Verworfen: Der Name steht in derselben Zeile, die Rueckfrage
+  Maskierungen übereinander, und `addslashes` ist dafür die falsche
+  Zusicherung. Verworfen: Der Name steht in derselben Zeile, die Rückfrage
   braucht ihn nicht.
-- Erster Entwurf verschob beim Oeffentlich-Machen von `entwerteOffeneCodes()`
-  die Trennlinie „Interna" mit, sodass vier private Methoden darueber gestanden
-  haetten. Zurueckgesetzt.
+- Erster Entwurf verschob beim Öffentlich-Machen von `entwerteOffeneCodes()`
+  die Trennlinie „Interna" mit, sodass vier private Methoden darüber gestanden
+  hätten. Zurückgesetzt.
 
 ### Was bewusst nicht erreicht wurde
 - **Kein Zwang beim Stilllegen.** `aktiv = 0` entkoppelt weiterhin **nicht**
-  automatisch. Ein Terminal wird auch voruebergehend stillgelegt (Umbau,
-  Stoerung), und dann waere ein erzwungener Codelauf durch die Halle die
+  automatisch. Ein Terminal wird auch vorübergehend stillgelegt (Umbau,
+  Störung), und dann wäre ein erzwungener Codelauf durch die Halle die
   falsche Antwort. Der Zusammenhang steht jetzt in der Spezifikation.
-- **Kein Sammel-Entkoppeln** und kein Aufraeumen verwaister
+- **Kein Sammel-Entkoppeln** und kein Aufräumen verwaister
   `term_*`-Datenbankbenutzer, die aus Zeiten ohne diese Funktion stammen
-  koennten. Beides erst, wenn es einen Fall dafuer gibt.
+  könnten. Beides erst, wenn es einen Fall dafür gibt.
 
 ### NEXT
 T-101 (`passwort_hash` vor dem Terminal verbergen) – der letzte offene Punkt
@@ -9646,15 +9752,15 @@ mit Sicherheitsbezug an der Kopplung.
   sehen, welche Aussage wo ein zweites Mal steht.
 - `docs/git_wiki_und_beschreibung.md`, `docs/wartungscheckliste.md`,
   `docs/fachregeln/terminal_und_offline.md` – gegengelesen, ob dort etwas
-  ueberholt ist. Ergebnis unten.
+  überholt ist. Ergebnis unten.
 
 ### DATEIEN
 - `docs/STATUS_SNAPSHOT.md`
 - `docs/archiv/DEV_PROMPT_HISTORY.md`
 
 ### AKZEPTANZKRITERIUM
-`docs/STATUS_SNAPSHOT.md` enthaelt nur noch Angaben, die sich aendern –
-Projektziel, Einstiegspunkte und Arbeitsweise stehen ausschliesslich in
+`docs/STATUS_SNAPSHOT.md` enthält nur noch Angaben, die sich ändern –
+Projektziel, Einstiegspunkte und Arbeitsweise stehen ausschließlich in
 `CHATSTART.md`.
 
 ### DONE
@@ -9667,11 +9773,11 @@ Einstieg zweimal gelesen.
 - Die drei Abschnitte sind entfallen; stattdessen ein Zweizeiler, der auf
   `CHATSTART.md` und `arbeitsregeln.md` verweist.
 - **`Projektstatus` bleibt** – „fertig, im Praxis-Test" ist eine Angabe, die
-  sich aendern kann, und gehoert damit hierher. Dass `CHATSTART.md` sie in
+  sich ändern kann, und gehört damit hierher. Dass `CHATSTART.md` sie in
   Abschnitt 1 ebenfalls nennt, ist der gleiche gewollte Fall wie die
   Regel-Kurzfassung dort: Werkzeuge, die nur eine Datei lesen, brauchen sie.
 - **„Grober Verlauf" ist entfallen.** Der Absatz fasste von Hand zusammen, was
-  `git log` genauer sagt – und war bereits ueberholt: Er endete bei
+  `git log` genauer sagt – und war bereits überholt: Er endete bei
   „Kopplung und Einrichtungsseite" und kannte die beiden Installationsskripte
   nicht. Genau der Fall, vor dem Abschnitt 6 der Arbeitsregeln warnt, hier im
   Kleinen eingetreten.
@@ -9680,54 +9786,54 @@ Einstieg zweimal gelesen.
 - Zeilen `docs/STATUS_SNAPSHOT.md`: 104 → 86. Kaltstart-Set (`CHATSTART.md`,
   `arbeitsregeln.md`, `STATUS_SNAPSHOT.md`, `CLAUDE.md`) damit 19,1 KB.
 - Gegenprobe: Projektziel, Einstiegspunkte und Arbeitsweise sind in
-  `CHATSTART.md` vollstaendig vorhanden – nichts davon ist verloren, nur nicht
+  `CHATSTART.md` vollständig vorhanden – nichts davon ist verloren, nur nicht
   mehr doppelt.
-- `php -l`: keine PHP-Datei geaendert, entfaellt.
+- `php -l`: keine PHP-Datei geändert, entfällt.
 
-### Was der Gegendurchgang sonst ergeben hat (bewusst nicht geaendert)
+### Was der Gegendurchgang sonst ergeben hat (bewusst nicht geändert)
 - **`docs/fachregeln/terminal_und_offline.md`** beschreibt ein Terminal als
   „Linux-PC mit Window-Manager". Mit `cage` gibt es keinen Fenstermanager im
   klassischen Sinn. Die Datei behandelt aber die **Fachlogik** des Terminals,
   nicht seine Installation; die genaue Antwort steht in Abschnitt 7 der
-  Terminal-Spezifikation. Umformulieren waere Kosmetik in der falschen Datei.
+  Terminal-Spezifikation. Umformulieren wäre Kosmetik in der falschen Datei.
 - **`docs/wartungscheckliste.md`** kennt keinen Punkt zur Kiosk-Installation –
-  richtig so: Sie prueft Ablaeufe der Anwendung nach Aenderungen, nicht das
-  Aufsetzen eines Geraets. Dafuer hat das Skript seine eigene Ergebnisliste.
+  richtig so: Sie prüft Abläufe der Anwendung nach Änderungen, nicht das
+  Aufsetzen eines Geräts. Dafür hat das Skript seine eigene Ergebnisliste.
 - **`docs/git_wiki_und_beschreibung.md`** wiederholt die Ordnerstruktur aus den
-  Arbeitsregeln. Es ist aber kein Projektdokument, sondern der **Text fuer das
-  GitHub-Wiki** – eine Kopie ausserhalb des Repositories ist dort der Zweck.
+  Arbeitsregeln. Es ist aber kein Projektdokument, sondern der **Text für das
+  GitHub-Wiki** – eine Kopie außerhalb des Repositories ist dort der Zweck.
 - **`docs/rfid_reader_setup.md` und `docs/terminal/rfid-ws_rollout.md`**
-  bleiben unberuehrt, bis Stufe 5 gebaut ist (wie in P-2026-08-09-08 begruendet).
-- **Die Reihenfolge der Startlektuere steht in `README.md` und `CHATSTART.md`.**
-  `README.md` ist die Tuer fuer Menschen nach dem Klonen und verweist mit
+  bleiben unberührt, bis Stufe 5 gebaut ist (wie in P-2026-08-09-08 begruendet).
+- **Die Reihenfolge der Startlektüre steht in `README.md` und `CHATSTART.md`.**
+  `README.md` ist die Tür für Menschen nach dem Klonen und verweist mit
   Punkt 1 auf `CHATSTART.md`; vier Zeilen Wegweiser sind kein zweiter
   Regelsatz.
 
 ### NEXT
-Unveraendert der Kiosk auf einem echten Bildschirm – siehe
+Unverändert der Kiosk auf einem echten Bildschirm – siehe
 `docs/STATUS_SNAPSHOT.md`.
 
 ## P-2026-08-09-11 ein-verzeichnis-statt-zwei
 
 ### EINGELESEN
-- `docs/README.md` und `docs/prompt_uebersicht.md` vollstaendig – beide fuehrten
+- `docs/README.md` und `docs/prompt_uebersicht.md` vollständig – beide führten
   ein Verzeichnis derselben Dateien.
-- `docs/archiv/ALTE_PROMPTS.md` und `docs/archiv/README.md`, um zu pruefen, was
+- `docs/archiv/ALTE_PROMPTS.md` und `docs/archiv/README.md`, um zu prüfen, was
   von `prompt_uebersicht.md` schon anderswo steht.
 - Als offener Punkt aus P-2026-08-09-10 vorgemerkt.
 
 ### DATEIEN
-- `docs/prompt_uebersicht.md` (geloescht)
+- `docs/prompt_uebersicht.md` (gelöscht)
 - `docs/README.md` (neu geschrieben)
 - `README.md`, `docs/admin_handbuch.md`, `docs/archiv/README.md` (Verweise)
 - `docs/archiv/DEV_PROMPT_HISTORY.md`
 
 ### AKZEPTANZKRITERIUM
 Es gibt genau ein Verzeichnis der Dokumentation (`docs/README.md`), und kein
-gueltiges Dokument verweist mehr auf `docs/prompt_uebersicht.md`.
+gültiges Dokument verweist mehr auf `docs/prompt_uebersicht.md`.
 
 ### DONE
-Zwei Dateien fuehrten dieselbe Liste: `docs/README.md` (nach Gruppen) und
+Zwei Dateien führten dieselbe Liste: `docs/README.md` (nach Gruppen) und
 `docs/prompt_uebersicht.md` (als Tabelle). Sie waren bereits auseinander –
 `prompt_uebersicht.md` nannte die Terminal-Spezifikation „Welche Stufe fertig
 ist, steht dort im Kopf", was seit P-2026-08-09-09 nicht mehr stimmt (es steht
@@ -9735,41 +9841,41 @@ im Stufenplan), `docs/README.md` sagte dasselbe anders. Genau der Fall, den
 `CHATSTART.md` Abschnitt 5 beschreibt.
 
 - **`docs/README.md` bleibt** und ist jetzt das einzige Verzeichnis. Es liegt
-  im Ordner, den man oeffnet, wenn man Dokumentation sucht, und wird auf
+  im Ordner, den man öffnet, wenn man Dokumentation sucht, und wird auf
   GitHub von selbst angezeigt.
-- **Gegliedert nach Lesehaeufigkeit** statt nach Herkunft: „Immer" (drei
+- **Gegliedert nach Lesehäufigkeit** statt nach Herkunft: „Immer" (drei
   Dateien), „Nach Thema", „Installation und Betrieb", „Verlauf und Archiv".
   Dieselbe Ordnung wie in `CHATSTART.md` – wer beides liest, sieht kein drittes
   System.
 - **Der Verweis auf die Auswahl nach Aufgabe steht oben:** Wer arbeitet, will
   die Lesekarte in `CHATSTART.md`, nicht ein Dateiverzeichnis. Das Verzeichnis
   ist zum Nachschlagen da, nicht zum Einstieg.
-- **Aus `prompt_uebersicht.md` uebernommen**, was dort einzig war: die
-  Einordnung des Archivs und der Hinweis, dass die History keine Startlektuere
-  ist. Der lange Abschnitt ueber einzelne Archivdateien entfiel – er war eine
-  dritte Fassung dessen, was `archiv/ALTE_PROMPTS.md` pro Datei begruendet.
-- **„Was beim Aufraeumen bewusst nicht getan wurde"** ist als kurzer Absatz in
-  `docs/archiv/README.md` gelandet, wo die Regeln fuer den Archivordner
-  ohnehin stehen: Geloescht wird dort nichts.
+- **Aus `prompt_uebersicht.md` übernommen**, was dort einzig war: die
+  Einordnung des Archivs und der Hinweis, dass die History keine Startlektüre
+  ist. Der lange Abschnitt über einzelne Archivdateien entfiel – er war eine
+  dritte Fassung dessen, was `archiv/ALTE_PROMPTS.md` pro Datei begründet.
+- **„Was beim Aufräumen bewusst nicht getan wurde"** ist als kurzer Absatz in
+  `docs/archiv/README.md` gelandet, wo die Regeln für den Archivordner
+  ohnehin stehen: Gelöscht wird dort nichts.
 - Verweise nachgezogen in `README.md`, `docs/admin_handbuch.md` und
   `docs/archiv/README.md`.
 
 ### TEST
-- Link-Pruefung ueber **alle** `.md`-Dateien ausserhalb von `archiv/`
+- Link-Prüfung über **alle** `.md`-Dateien außerhalb von `archiv/`
   (Python, relative Ziele gegen das Dateisystem): **0 tote Links.**
-- `grep -rn "prompt_uebersicht"` ueber Repo ohne `archiv/`: kein Treffer mehr.
+- `grep -rn "prompt_uebersicht"` über Repo ohne `archiv/`: kein Treffer mehr.
   Die verbliebenen Treffer stehen im archivierten Master-Prompt v13 und in
-  aelteren Verlaufseintraegen – Historie, wird nicht umgeschrieben
+  älteren Verlaufseinträgen – Historie, wird nicht umgeschrieben
   (`docs/archiv/README.md`).
-- `php -l`: keine PHP-Datei geaendert, entfaellt.
+- `php -l`: keine PHP-Datei geändert, entfällt.
 
 ### Was bewusst nicht erreicht wurde
 - **`docs/admin_handbuch.md` und `docs/wartungscheckliste.md` wurden nicht
-  gegengelesen.** Sie beschreiben Bedienung und Pruefablaeufe; von diesem
+  gegengelesen.** Sie beschreiben Bedienung und Prüfabläufe; von diesem
   Patch ist nur je ein Verweis betroffen.
 
 ### NEXT
-Unveraendert der Kiosk auf einem echten Bildschirm – siehe
+Unverändert der Kiosk auf einem echten Bildschirm – siehe
 `docs/STATUS_SNAPSHOT.md`.
 
 ## P-2026-08-09-10 kaltstart-entdoppeln
@@ -9781,71 +9887,71 @@ Unveraendert der Kiosk auf einem echten Bildschirm – siehe
   `docs/archiv/ALTE_PROMPTS.md` – wegen der Verweise auf den Block.
 - Duplicate-Check: `git log --grep="snapshot" -i` – P-2026-08-09-03 hat den
   Block bereits einmal **entschlackt** (die veraltete Patch-Liste entfernt),
-  aber nicht aufgeloest. Kein Duplikat, sondern der naechste Schritt.
+  aber nicht aufgelöst. Kein Duplikat, sondern der nächste Schritt.
 
 ### DATEIEN
 - `docs/archiv/DEV_PROMPT_HISTORY.md` (Kopf ersetzt)
-- `docs/STATUS_SNAPSHOT.md` („Naechster Schritt (konkret)")
+- `docs/STATUS_SNAPSHOT.md` („Nächster Schritt (konkret)")
 - `docs/lokale_entwicklungsumgebung.md` (neuer Abschnitt 6b)
 - `docs/arbeitsregeln.md` (Abschnitte 2 und 6)
 - `CHATSTART.md` (Abschnitt 3)
 - `docs/prompt_uebersicht.md`, `docs/archiv/ALTE_PROMPTS.md`
 
 ### AKZEPTANZKRITERIUM
-Wer einen neuen Chat beginnt, kennt den vollstaendigen Stand nach
+Wer einen neuen Chat beginnt, kennt den vollständigen Stand nach
 `CHATSTART.md`, `docs/arbeitsregeln.md`, `docs/STATUS_SNAPSHOT.md` und
-`git log --oneline` – ohne `DEV_PROMPT_HISTORY.md` zu oeffnen.
+`git log --oneline` – ohne `DEV_PROMPT_HISTORY.md` zu öffnen.
 
 ### DONE
-Der SNAPSHOT-Block am Anfang der History fuehrte Projektziel, Projektstatus,
-Entry Points, Routing, Datenbank, offene Bugs, offene Tasks und „Naechster
+Der SNAPSHOT-Block am Anfang der History führte Projektziel, Projektstatus,
+Entry Points, Routing, Datenbank, offene Bugs, offene Tasks und „Nächster
 Schritt" – **alles davon steht auch in `docs/STATUS_SNAPSHOT.md`**. Genau die
 Dopplung, die `CHATSTART.md` Abschnitt 5 verbietet („Findest du dieselbe
 Aussage zweimal, ist das ein Fehler – melde ihn").
 
 Sie war nicht nur unsauber, sondern teuer: Das Pre-Flight-Gate verlangte, den
-„Naechster Schritt"-Block **in der History** zu lesen. Wer dem folgte, musste
-eine Datei mit ueber 12.000 Zeilen oeffnen, um drei Absaetze zu finden – bei
+„Nächster Schritt"-Block **in der History** zu lesen. Wer dem folgte, musste
+eine Datei mit über 12.000 Zeilen öffnen, um drei Absätze zu finden – bei
 jedem Neustart erneut.
 
 - **Der Block ist weg.** An seiner Stelle steht ein kurzer Kopf: was die Datei
   ist, wie ein Eintrag aufgebaut ist, und der Satz, dass der Stand woanders
   steht.
-- **`docs/STATUS_SNAPSHOT.md` hat den vollstaendigen „Naechster Schritt
-  (konkret)"** uebernommen, samt der fuenf Punkte, die am Geraet zu pruefen
+- **`docs/STATUS_SNAPSHOT.md` hat den vollständigen „Nächster Schritt
+  (konkret)"** übernommen, samt der fünf Punkte, die am Gerät zu prüfen
   sind. Vorher stand dort die Kurzfassung und in der History die lange – die
-  schlechtere der beiden Moeglichkeiten, weil beide gepflegt werden mussten.
+  schlechtere der beiden Möglichkeiten, weil beide gepflegt werden mussten.
 - **Die D-IDs (D-001 bis D-006) bleiben in der History.** Warum etwas so gilt,
   ist Verlauf und kein Statusbericht. D-003 („diese Datei bekommt einen
-  Snapshot oben") ist jetzt wie D-002 durchgestrichen und begruendet – eine
-  entfallene Entscheidung zu loeschen wuerde die Frage aufwerfen, ob sie je
+  Snapshot oben") ist jetzt wie D-002 durchgestrichen und begründet – eine
+  entfallene Entscheidung zu löschen würde die Frage aufwerfen, ob sie je
   galt.
 - **Der Zustand der lokalen Entwicklungsdatenbank** (welche Buchungen
-  kuenstlich sind) stand ebenfalls in der History und gehoert zu
+  künstlich sind) stand ebenfalls in der History und gehört zu
   `docs/lokale_entwicklungsumgebung.md` – dort als Abschnitt 6b, direkt hinter
   dem Einspielen des Server-Dumps.
-- **Abschnitt 6 der Arbeitsregeln heisst jetzt „Zwei Dateien, zwei Aufgaben"**
-  und sagt ausdruecklich, dass **kein** Statusabbild an den Anfang der History
-  gehoert. Ohne diesen Satz baut der Naechste den Block wieder auf.
+- **Abschnitt 6 der Arbeitsregeln heißt jetzt „Zwei Dateien, zwei Aufgaben"**
+  und sagt ausdrücklich, dass **kein** Statusabbild an den Anfang der History
+  gehört. Ohne diesen Satz baut der Nächste den Block wieder auf.
 - Verweise nachgezogen in `CHATSTART.md`, `docs/prompt_uebersicht.md` und
   `docs/archiv/ALTE_PROMPTS.md`.
 
 ### TEST
-- `grep -rn "Naechster Schritt"` ueber `docs/` (ohne die Verlaufseintraege),
-  `README.md`, `CHATSTART.md`: Der Block wird nur noch an einer Stelle gefuehrt
+- `grep -rn "Naechster Schritt"` über `docs/` (ohne die Verlaufseinträge),
+  `README.md`, `CHATSTART.md`: Der Block wird nur noch an einer Stelle geführt
   – in `docs/STATUS_SNAPSHOT.md`.
 - Gegenprobe Kaltstart: `CHATSTART.md` + `docs/arbeitsregeln.md` +
-  `docs/STATUS_SNAPSHOT.md` gelesen und geprueft, ob daraus hervorgeht, was
+  `docs/STATUS_SNAPSHOT.md` gelesen und geprüft, ob daraus hervorgeht, was
   ansteht (Kiosk auf echtem Bildschirm), was offen ist (B-092, B-080,
   T-101 bis T-104) und wie gearbeitet wird. Ja, ohne die History.
-- Zeilenzahl der History: 12.946 → 12.853 (vor dem Einfuegen dieses Eintrags).
-  Der Verlauf selbst ist **nicht** gekuerzt; entfernt wurden ausschliesslich
+- Zeilenzahl der History: 12.946 → 12.853 (vor dem Einfügen dieses Eintrags).
+  Der Verlauf selbst ist **nicht** gekürzt; entfernt wurden ausschließlich
   die 146 Zeilen Statusabbild, ersetzt durch 53 Zeilen Kopf und D-IDs.
 - Kaltstart-Set gemessen: `CHATSTART.md` + `docs/arbeitsregeln.md` +
   `docs/STATUS_SNAPSHOT.md` + `CLAUDE.md` = knapp 20 KB. Die History wird dabei
   nicht mehr angefasst.
-- Alle Verweisziele der geaenderten Stellen von Hand geprueft.
-- `php -l`: keine PHP-Datei geaendert, entfaellt.
+- Alle Verweisziele der geänderten Stellen von Hand geprüft.
+- `php -l`: keine PHP-Datei geändert, entfällt.
 
 ### Gefundene Fehler im eigenen Entwurf
 - Der erste Entwurf wollte auch die D-IDs in den Snapshot verschieben. Falsch:
@@ -9853,28 +9959,28 @@ jedem Neustart erneut.
   aktueller Stand. Sie sind Verlauf und bleiben in der History.
 
 ### Was bewusst nicht erreicht wurde
-- **`docs/README.md` und `docs/prompt_uebersicht.md` fuehren weiterhin beide
-  ein Verzeichnis derselben Dateien** – dieselbe Art Dopplung, nur ausserhalb
-  des Kaltstartpfads. Getrennter Patch, damit dieser eine ein Thema behaelt.
+- **`docs/README.md` und `docs/prompt_uebersicht.md` führen weiterhin beide
+  ein Verzeichnis derselben Dateien** – dieselbe Art Dopplung, nur außerhalb
+  des Kaltstartpfads. Getrennter Patch, damit dieser eine ein Thema behält.
 - Die Kurzfassung der Regeln in `CHATSTART.md` Abschnitt 2 bleibt neben
   `docs/arbeitsregeln.md` bestehen. Sie ist gewollt: Werkzeuge, die nur eine
   Datei lesen, brauchen sie.
 
 ### NEXT
-Unveraendert der Kiosk auf einem echten Bildschirm – siehe
+Unverändert der Kiosk auf einem echten Bildschirm – siehe
 `docs/STATUS_SNAPSHOT.md`.
 
 ## P-2026-08-09-09 kiosk-skript
 
 ### EINGELESEN
 - `CHATSTART.md`, `docs/arbeitsregeln.md`, `docs/STATUS_SNAPSHOT.md`,
-  Snapshot-Teil dieser Datei (inkl. „Naechster Schritt“).
+  Snapshot-Teil dieser Datei (inkl. „Nächster Schritt“).
 - `docs/spezifikation_terminal_installation.md` (Abschnitte 3, 5, 5a, 7, 11).
-- `scripts/terminal/install_terminal.sh` vollstaendig – der Kiosk musste sich
-  in dieselbe Bauweise fuegen (Zuordnungstabelle je Familie, `pruefe`-Liste,
+- `scripts/terminal/install_terminal.sh` vollständig – der Kiosk musste sich
+  in dieselbe Bauweise fügen (Zuordnungstabelle je Familie, `pruefe`-Liste,
   Warnungen sammeln statt abbrechen).
 - Duplicate-Check: `git log -S"kiosk" -i` und `git log --grep="kiosk" -i` –
-  nur Erwaehnungen in der Doku, keine Umsetzung.
+  nur Erwähnungen in der Doku, keine Umsetzung.
 
 ### DATEIEN
 - `scripts/terminal/install_kiosk.sh` (neu)
@@ -9882,49 +9988,49 @@ Unveraendert der Kiosk auf einem echten Bildschirm – siehe
 - `docs/spezifikation_terminal_installation.md` (Kopf, 1, 5, 5a, 7, 11)
 - `docs/installationsanleitung.md` (Abschnitt 7 – zwei Skripte statt einem)
 - `README.md` (Absatz Terminals)
-- `docs/STATUS_SNAPSHOT.md` (Naechster Schritt, T-104)
+- `docs/STATUS_SNAPSHOT.md` (Nächster Schritt, T-104)
 - `docs/archiv/DEV_PROMPT_HISTORY.md`
 
 ### AKZEPTANZKRITERIUM
-`sudo ./scripts/terminal/install_kiosk.sh` richtet auf einem Geraet, auf dem
+`sudo ./scripts/terminal/install_kiosk.sh` richtet auf einem Gerät, auf dem
 Stufe 3 gelaufen ist, einen Dienst ein, der den Browser als Benutzer `terminal`
 im Vollbild auf `terminal.php` startet und ihn nach einem Absturz neu startet.
 
 ### DONE
-Ein **zweites** Skript, wie im „Naechster Schritt“-Block vorgesehen. Es liest
+Ein **zweites** Skript, wie im „Nächster Schritt“-Block vorgesehen. Es liest
 dieselbe `terminal.conf` und legt an: `/etc/zeiterfassung-kiosk.conf`
 (Adresse, Browser, Anzeigeweg), `/usr/local/bin/zeiterfassung-kiosk`
 (Startskript) und `/etc/systemd/system/zeiterfassung-kiosk.service`.
 
 Entscheidungen, die nicht auf der Hand lagen:
 
-- **Systemdienst statt Autologin ueber getty.** Der uebliche Weg
-  (`agetty --autologin` plus Aufruf im Anmeldeprofil) haette den geforderten
+- **Systemdienst statt Autologin über getty.** Der übliche Weg
+  (`agetty --autologin` plus Aufruf im Anmeldeprofil) hätte den geforderten
   Neustart nach einem Absturz als Schleife in `~/.bash_profile` nachbauen
-  muessen. `Restart=always` leistet das ohne eigene Logik, und der Kiosk laesst
-  sich fuer Wartung gezielt anhalten. `PAMName=login` liefert die
+  müssen. `Restart=always` leistet das ohne eigene Logik, und der Kiosk lässt
+  sich für Wartung gezielt anhalten. `PAMName=login` liefert die
   Anmeldesitzung, ohne die weder `cage` noch Xorg an Bildschirm und
-  Eingabegeraete kommen; `Conflicts=getty@tty1.service` verhindert den Streit
+  Eingabegeräte kommen; `Conflicts=getty@tty1.service` verhindert den Streit
   um die Konsole.
-- **Einstellungen in einer eigenen Datei**, nicht im Startskript: Wer am Geraet
-  die Adresse aendert, soll nicht das Installationsskript erneut laufen lassen
-  muessen.
+- **Einstellungen in einer eigenen Datei**, nicht im Startskript: Wer am Gerät
+  die Adresse ändert, soll nicht das Installationsskript erneut laufen lassen
+  müssen.
 - **Der Anzeigeweg entscheidet sich an den vorhandenen Programmen**, nicht an
-  der Rueckmeldung der Paketinstallation. Auf aelteren openSUSE gibt es `cage`
+  der Rückmeldung der Paketinstallation. Auf älteren openSUSE gibt es `cage`
   nicht, und ein „installiert“ ohne Programm hilft niemandem.
-- **Unter X11 ruft sich das Startskript ueber `xinit` selbst noch einmal auf**
+- **Unter X11 ruft sich das Startskript über `xinit` selbst noch einmal auf**
   (`--x11-sitzung`). So bleibt alles in einer Datei, statt eine zweite
-  `.xinitrc` zu pflegen, die beim naechsten Lauf auseinanderlaeuft.
-- **Chromiums Absturzvermerk wird vor jedem Start zurueckgesetzt.** Sonst steht
+  `.xinitrc` zu pflegen, die beim nächsten Lauf auseinanderläuft.
+- **Chromiums Absturzvermerk wird vor jedem Start zurückgesetzt.** Sonst steht
   nach einem Absturz eine Leiste „Wiederherstellen“ im Bild, die auf einem
-  Geraet ohne Tastatur niemand wegbekommt. Dazu Schalter gegen Zoom mit zwei
-  Fingern und gegen „Zurueck“ per Wischgeste.
+  Gerät ohne Tastatur niemand wegbekommt. Dazu Schalter gegen Zoom mit zwei
+  Fingern und gegen „Zurück“ per Wischgeste.
 - **Ein vorhandener Anmeldebildschirm wird abgeschaltet**, weil er den Kiosk
-  verdeckt – abschaltbar ueber `KIOSK_ANMELDESCHIRM="belassen"`, damit niemand
+  verdeckt – abschaltbar über `KIOSK_ANMELDESCHIRM="belassen"`, damit niemand
   versehentlich seinen Arbeitsplatzrechner verliert.
-- **Die Ergebnisliste prueft mit, dass der Kioskbenutzer `config.local.php`
-  nicht lesen kann.** Der Browser ist der Teil des Geraets, der am ehesten
-  uebernommen wird; dass Stufe 3 die Rechte richtig setzt, ist eine Annahme,
+- **Die Ergebnisliste prüft mit, dass der Kioskbenutzer `config.local.php`
+  nicht lesen kann.** Der Browser ist der Teil des Geräts, der am ehesten
+  übernommen wird; dass Stufe 3 die Rechte richtig setzt, ist eine Annahme,
   die nichts kostet zu belegen.
 
 ### TEST
@@ -9932,78 +10038,78 @@ Debian-12-Container mit systemd als PID 1, Aufbau wie in P-2026-08-09-07
 beschrieben (privilegiert, `--cgroupns=host`, Bare-Klon als Codequelle).
 Zuerst Stufe 3 (sechs von sechs OK), danach der Kiosk:
 
-- **Lauf 1:** zehn von zehn Punkten OK, keine Warnung. Gewaehlt wurden `cage`
+- **Lauf 1:** zehn von zehn Punkten OK, keine Warnung. Gewählt wurden `cage`
   und `/usr/bin/chromium`.
 - **Dienst gestartet:** Die Anmeldesitzung kommt zustande (`pam_unix …
-  session opened for user terminal(uid=1000)`), `cage` laeuft an und bricht am
-  Grafikgeraet ab – im Container erwartet. `Restart=always` griff, der
-  Neustartzaehler lief hoch (RestartSec=5, keine Startsperre).
+  session opened for user terminal(uid=1000)`), `cage` läuft an und bricht am
+  Grafikgerät ab – im Container erwartet. `Restart=always` griff, der
+  Neustartzähler lief hoch (RestartSec=5, keine Startsperre).
 - **Lauf 2 und 3 (Wiederholbarkeit):** wieder zehn von zehn OK, keine Warnung;
   der vorhandene Benutzer wird erkannt und nicht erneut angelegt.
-- **X11-Rueckfall erzwungen** (`KIOSK_ANZEIGE="x11"`): Alle sechs apt-Pakete
+- **X11-Rückfall erzwungen** (`KIOSK_ANZEIGE="x11"`): Alle sechs apt-Pakete
   (`xserver-xorg`, `xinit`, `x11-xserver-utils`, `openbox`, `unclutter`,
-  `chromium`) liessen sich installieren, `Xwrapper.config` wurde geschrieben,
+  `chromium`) ließen sich installieren, `Xwrapper.config` wurde geschrieben,
   zehn von zehn OK. Der Startaufruf erreicht `xinit`, Xorg startet und findet
-  erwartungsgemaess keinen Treiber.
-- `systemd-analyze verify` ueber die erzeugte Dienstdatei: keine Beanstandung.
-- `bash -n` ueber Installationsskript und ueber das erzeugte Startskript
-  (letzteres per `awk` aus dem Heredoc geloest, nicht nachgebaut).
-- `php -l`: keine PHP-Datei geaendert, entfaellt.
+  erwartungsgemäß keinen Treiber.
+- `systemd-analyze verify` über die erzeugte Dienstdatei: keine Beanstandung.
+- `bash -n` über Installationsskript und über das erzeugte Startskript
+  (letzteres per `awk` aus dem Heredoc gelöst, nicht nachgebaut).
+- `php -l`: keine PHP-Datei geändert, entfällt.
 
-**Nicht geprueft – und das ist die wichtigste Zeile hier:** Ob tatsaechlich ein
+**Nicht geprüft – und das ist die wichtigste Zeile hier:** Ob tatsächlich ein
 Bild erscheint. Ein Container hat keinen Bildschirm. Vollbild, Bildschirmschoner,
 Mauszeiger und der Neustart nach `pkill` sind Zusicherungen, keine Messwerte.
 
 ### Gefundene Fehler im eigenen Entwurf
-- **`Environment=XDG_RUNTIME_DIR=/run/user/%U` war falsch.** `%U` loest in einer
+- **`Environment=XDG_RUNTIME_DIR=/run/user/%U` war falsch.** `%U` löst in einer
   Systemeinheit auf die Kennung des Dienstverwalters auf (0), nicht auf die aus
   `User=` – im Container nachgewiesen: `systemctl show` meldete
-  `/run/user/0` bei `User=terminal` (uid 1000). Schaden angerichtet haette das
-  nur dort, wo es gebraucht wird: Wo logind eine Sitzung anlegt, ueberschreibt
+  `/run/user/0` bei `User=terminal` (uid 1000). Schaden angerichtet hätte das
+  nur dort, wo es gebraucht wird: Wo logind eine Sitzung anlegt, überschreibt
   `pam_systemd` den Wert ohnehin mit `/run/user/1000` (ebenfalls gemessen); wo
-  logind das nicht schafft, haette der Kiosk auf ein Verzeichnis von root
-  gezeigt und waere schwarz geblieben. Ersetzt durch `RuntimeDirectory=` –
-  systemd legt `/run/zeiterfassung-kiosk` dem Kioskbenutzer gehoerend mit 0700
-  an (geprueft) – plus einer Entscheidung zur Laufzeit im Startskript.
+  logind das nicht schafft, hätte der Kiosk auf ein Verzeichnis von root
+  gezeigt und wäre schwarz geblieben. Ersetzt durch `RuntimeDirectory=` –
+  systemd legt `/run/zeiterfassung-kiosk` dem Kioskbenutzer gehörend mit 0700
+  an (geprüft) – plus einer Entscheidung zur Laufzeit im Startskript.
 - **`journalctl -u zeiterfassung-kiosk` zeigt die Fehler des Browsers nicht.**
   Wegen `PAMName=login` laufen `cage` und Browser in einer eigenen Sitzung;
   unter der Einheit stehen nur Start und Stopp. Der erste Entwurf nannte am
   Ende genau diesen untauglichen Befehl – wer damit sucht, findet eine Einheit,
-  die „nur abstuerzt“, ohne Grund. Richtig ist `journalctl -t`; das Skript sagt
-  es jetzt samt Begruendung.
+  die „nur abstürzt“, ohne Grund. Richtig ist `journalctl -t`; das Skript sagt
+  es jetzt samt Begründung.
 - `setterm` meldete `$TERM is not defined`, wenn das Startskript von Hand
-  gestartet wurde. Behoben ueber einen Standardwert; die Meldungen von `setterm`
+  gestartet wurde. Behoben über einen Standardwert; die Meldungen von `setterm`
   gehen jetzt ins Leere, weil ein fehlgeschlagenes Abdunkeln nichts kostet.
 
 ### Was bewusst nicht erreicht wurde
 - **Die Distributionserkennung steht jetzt zweimal** (T-104). Sie
-  zusammenzulegen haette das im Container gepruefte Skript der Stufe 3
+  zusammenzulegen hätte das im Container geprüfte Skript der Stufe 3
   angefasst – ein Refactor im selben Patch, den Abschnitt 3 der Arbeitsregeln
-  ausschliesst.
-- **Nur `apt` geprueft.** Fuer `pacman`, `dnf` und `zypper` sind die Paketnamen
+  ausschließt.
+- **Nur `apt` geprüft.** Für `pacman`, `dnf` und `zypper` sind die Paketnamen
   aus den Distributionen hergeleitet, aber nicht ausprobiert. `cage` fehlt auf
-  aelteren openSUSE ganz – dafuer gibt es den X11-Rueckfall.
-- **Touchscreen-Drehung (`BILDSCHIRM_DREHUNG`) bleibt unbeachtet.** Sie gehoert
-  zu Stufe 5, weil sie ohne Geraet nicht einzustellen ist.
+  älteren openSUSE ganz – dafür gibt es den X11-Rückfall.
+- **Touchscreen-Drehung (`BILDSCHIRM_DREHUNG`) bleibt unbeachtet.** Sie gehört
+  zu Stufe 5, weil sie ohne Gerät nicht einzustellen ist.
 - **Kein Selbsttest mit Scan-Proben** – Stufe 6.
 
 ### Zwei Querverweise nebenbei richtiggestellt
-Abschnitt 5, Phase 2 verwies auf „Abschnitt 7“ fuer den Touchscreen,
-„Abschnitt 8“ fuer den Kiosk und „Abschnitt 9“ fuer den Selbsttest – alle drei
-um eins verschoben, aus einer aelteren Nummerierung. Richtig sind 6.4, 7 und 8.
+Abschnitt 5, Phase 2 verwies auf „Abschnitt 7“ für den Touchscreen,
+„Abschnitt 8“ für den Kiosk und „Abschnitt 9“ für den Selbsttest – alle drei
+um eins verschoben, aus einer älteren Nummerierung. Richtig sind 6.4, 7 und 8.
 Mitgenommen, weil derselbe Vierzeiler auf den Kiosk zeigt und ein halb
 richtiger Block schlimmer ist als ein ganz falscher: Wer zwei stimmige
-Verweise sieht, prueft den dritten nicht mehr.
+Verweise sieht, prüft den dritten nicht mehr.
 
 ### NEXT
 Den Kiosk auf einem echten Bildschirm sehen (VM oder Hardware), danach Stufe 5
-(Peripherie) – Einzelheiten im Block „Naechster Schritt (konkret)“ oben.
+(Peripherie) – Einzelheiten im Block „Nächster Schritt (konkret)“ oben.
 
 ## P-2026-08-09-08 doku-durchgang-terminal
 
 ### EINGELESEN
 - Alle Dateien unter `docs/` (ohne `archiv/`), `README.md`, `CHATSTART.md` –
-  diesmal der vollstaendige Durchgang, den P-2026-08-09-07 ausdruecklich
+  diesmal der vollständige Durchgang, den P-2026-08-09-07 ausdruecklich
   ausgelassen hatte.
 - `controller/TerminalEinrichtungController.php` (`baueKonfigDatei()`, Zeile
   456) – um zu belegen, dass die Kopplung `installation_typ` selbst setzt.
@@ -10015,63 +10121,63 @@ Den Kiosk auf einem echten Bildschirm sehen (VM oder Hardware), danach Stufe 5
 - `docs/archiv/DEV_PROMPT_HISTORY.md`
 
 ### AKZEPTANZKRITERIUM
-Keine Datei ausserhalb von `docs/archiv/` beschreibt die Terminal-Installation
-noch als nicht umgesetzt oder verlangt, `config/config.local.php` fuer ein
+Keine Datei außerhalb von `docs/archiv/` beschreibt die Terminal-Installation
+noch als nicht umgesetzt oder verlangt, `config/config.local.php` für ein
 Terminal von Hand anzulegen.
 
 ### DONE
-Drei ueberholte Stellen, die der Durchgang gefunden hat:
+Drei überholte Stellen, die der Durchgang gefunden hat:
 
 1. **`docs/installationsanleitung.md`, Abschnitt 7** war der ernsteste Fall. Er
    forderte auf, `installation_typ` von Hand in `config/config.local.php` zu
-   setzen, und erwaehnte das Installationsskript ueberhaupt nicht. Wer dem
+   setzen, und erwähnte das Installationsskript überhaupt nicht. Wer dem
    folgt, legt genau die Datei an, deren **Fehlen** die Einrichtungsseite
-   ausloest: Das Geraet koppelt sich nie, bekommt keinen eigenen
-   Datenbankbenutzer und laesst sich im Verlustfall nicht einzeln sperren.
+   auslöst: Das Gerät koppelt sich nie, bekommt keinen eigenen
+   Datenbankbenutzer und lässt sich im Verlustfall nicht einzeln sperren.
    `installation_typ` schreibt die Kopplung seit P-2026-08-09-01 ohnehin selbst.
-   Der Abschnitt verweist jetzt auf das Skript und sagt ausdruecklich, dass die
+   Der Abschnitt verweist jetzt auf das Skript und sagt ausdrücklich, dass die
    Datei nicht von Hand entsteht.
-2. **`docs/README.md`** fuehrte die Terminal-Spezifikation als „Entwurf …
+2. **`docs/README.md`** führte die Terminal-Spezifikation als „Entwurf …
    (noch nicht umgesetzt)" – falsch, seit Stufe 1 bis 3 fertig sind. Jetzt
    dieselbe Formulierung wie in `docs/prompt_uebersicht.md`, mit Verweis auf
    den Kopf der Spezifikation statt einer eigenen Statusangabe.
 3. **`docs/fachregeln/terminal_und_offline.md`** beschreibt die Queue in einer
-   „lokalen Sekundaerdatenbank", sagte aber nirgends, woher die kommt. Wer nach
+   „lokalen Sekundärdatenbank", sagte aber nirgends, woher die kommt. Wer nach
    der Lesekarte nur diese Datei liest, erfuhr nichts von
-   `config/geraet.local.php`. Ergaenzt ist jetzt: Das Skript legt Datenbank und
-   Benutzer an, die Kopplung uebernimmt die Zugangsdaten von dort – und warum
+   `config/geraet.local.php`. Ergänzt ist jetzt: Das Skript legt Datenbank und
+   Benutzer an, die Kopplung übernimmt die Zugangsdaten von dort – und warum
    das Passwort zuerst in `config.local.php` gesucht wird.
 
 ### TEST
 - `grep -rniE "noch nicht umgesetzt|nicht implementiert|in Planung|geplant|Entwurf|wird noch|kuenftig"`
-  ueber `docs/`, `README.md`, `CHATSTART.md` (ohne `archiv/`): Die vier
+  über `docs/`, `README.md`, `CHATSTART.md` (ohne `archiv/`): Die vier
   verbliebenen Treffer betreffen andere Themen (Sonderurlaub, Rechte-Merge,
   Prosa in den Arbeitsregeln) und nicht die Terminal-Installation.
-- `grep -rn "installation_typ"` ueber dieselben Dateien: keine Stelle verlangt
+- `grep -rn "installation_typ"` über dieselben Dateien: keine Stelle verlangt
   mehr, die Datei von Hand anzulegen.
-- Verweisziele der drei geaenderten Stellen von Hand geprueft
+- Verweisziele der drei geänderten Stellen von Hand geprüft
   (`spezifikation_terminal_installation.md` existiert, Abschnittsnummern
   stimmen).
 - `docs/admin_handbuch.md` und `docs/wartungscheckliste.md` gegengelesen: Beide
   behandeln den **Betrieb** eines Terminals, nicht das Aufsetzen – von diesem
-  Patch nicht beruehrt.
-- `php -l`: keine PHP-Datei geaendert, entfaellt.
+  Patch nicht berührt.
+- `php -l`: keine PHP-Datei geändert, entfällt.
 
 ### Gefundene Fehler im eigenen Entwurf
 - **P-2026-08-09-07 hat den Durchgang ausgelassen und das auch so vermerkt** –
-  die Vermerkung macht die Luecke aber nicht kleiner. Ein „Stufe 3 ist fertig"
-  im Kopf der Spezifikation nuetzt wenig, solange die Installationsanleitung
-  daneben eine Anleitung enthaelt, die das Geraet an der Kopplung vorbeifuehrt.
+  die Vermerkung macht die Lücke aber nicht kleiner. Ein „Stufe 3 ist fertig"
+  im Kopf der Spezifikation nützt wenig, solange die Installationsanleitung
+  daneben eine Anleitung enthält, die das Gerät an der Kopplung vorbeiführt.
   Der ehrliche Vermerk war richtig, das Aufschieben nicht.
 
 ### Was bewusst nicht erreicht wurde
 - **`docs/rfid_reader_setup.md` und `docs/terminal/rfid-ws_rollout.md` wurden
-  nicht angefasst.** Sie gehoeren zu Stufe 5 (Peripherie), die noch nicht
-  gebaut ist; sie jetzt umzuschreiben hiesse, einen Stand zu beschreiben, den
+  nicht angefasst.** Sie gehören zu Stufe 5 (Peripherie), die noch nicht
+  gebaut ist; sie jetzt umzuschreiben hieße, einen Stand zu beschreiben, den
   es noch nicht gibt.
 
 ### NEXT
-Stufe 4 (Kiosk) – Einzelheiten im Block „Naechster Schritt (konkret)“ oben.
+Stufe 4 (Kiosk) – Einzelheiten im Block „Nächster Schritt (konkret)“ oben.
 
 ## P-2026-08-09-07 stufe-3-geprueft
 
@@ -10079,76 +10185,76 @@ Stufe 4 (Kiosk) – Einzelheiten im Block „Naechster Schritt (konkret)“ oben
 - `docs/STATUS_SNAPSHOT.md`, Snapshot-Teil dieser Datei,
   `docs/spezifikation_terminal_installation.md` (Kopf, Abschnitte 5a, 10, 11),
   `docs/arbeitsregeln.md` (Abschnitt 6), `CHATSTART.md` (Abschnitt 5:
-  dieselbe Aussage nicht zweimal fuehren).
+  dieselbe Aussage nicht zweimal führen).
 
 ### DATEIEN
 - `docs/spezifikation_terminal_installation.md` (Kopf, Abschnitt 11)
-- `docs/STATUS_SNAPSHOT.md` (Naechster Schritt, T-103)
-- `docs/archiv/DEV_PROMPT_HISTORY.md` (Naechster Schritt, T-103, dieser Eintrag)
+- `docs/STATUS_SNAPSHOT.md` (Nächster Schritt, T-103)
+- `docs/archiv/DEV_PROMPT_HISTORY.md` (Nächster Schritt, T-103, dieser Eintrag)
 
 ### AKZEPTANZKRITERIUM
-Wer nur `docs/STATUS_SNAPSHOT.md` liest, sieht als naechsten Schritt Stufe 4
+Wer nur `docs/STATUS_SNAPSHOT.md` liest, sieht als nächsten Schritt Stufe 4
 (Kiosk) und nicht mehr den bereits erledigten Container-Lauf.
 
 ### DONE
-- **Stufe 3 steht auf „fertig, im Container geprueft"** – im Kopf der
-  Spezifikation und in ihrem Stufenplan. Beide Stellen nennen die Einschraenkung
-  mit: nur `apt`, nur Container, keine echte Hardware. Ein blosses „fertig"
-  waere die bequemere, aber falsche Aussage.
-- **Der „Naechster Schritt"-Block** nennt jetzt Stufe 4 und haelt fest, was der
-  Lauf ueber die vermuteten Stolpersteine ergeben hat – alle drei waren keine.
-  Das gehoert dokumentiert, sonst prueft der Naechste dieselben Vermutungen
+- **Stufe 3 steht auf „fertig, im Container geprüft"** – im Kopf der
+  Spezifikation und in ihrem Stufenplan. Beide Stellen nennen die Einschränkung
+  mit: nur `apt`, nur Container, keine echte Hardware. Ein bloßes „fertig"
+  wäre die bequemere, aber falsche Aussage.
+- **Der „Nächster Schritt"-Block** nennt jetzt Stufe 4 und hält fest, was der
+  Lauf über die vermuteten Stolpersteine ergeben hat – alle drei waren keine.
+  Das gehört dokumentiert, sonst prüft der Nächste dieselben Vermutungen
   noch einmal.
 - **T-103 aufgenommen** (Backend-Anmeldung auf dem Terminal erreichbar), im
-  Snapshot kurz, in der History mit dem, was geprueft ist und was nicht.
-- **Der Stufenstand steht nicht mehr im Snapshot.** Er fuehrte
-  „Stufe 1 und Stufe 2 sind vollstaendig“ als eigene Aussage – dieselbe
-  Angabe wie im Stufenplan der Spezifikation, nur kuerzer und ohne die
-  Einschraenkungen. Jetzt steht dort ein Verweis. Das ist derselbe Fall, den
+  Snapshot kurz, in der History mit dem, was geprüft ist und was nicht.
+- **Der Stufenstand steht nicht mehr im Snapshot.** Er führte
+  „Stufe 1 und Stufe 2 sind vollständig“ als eigene Aussage – dieselbe
+  Angabe wie im Stufenplan der Spezifikation, nur kürzer und ohne die
+  Einschränkungen. Jetzt steht dort ein Verweis. Das ist derselbe Fall, den
   P-2026-08-09-04 in `docs/prompt_uebersicht.md` beseitigt hat: Wer eine
   Stufenangabe an zwei Stellen pflegt, pflegt sie irgendwann an einer.
 
 ### TEST
-Keine Codeaenderung. Geprueft wurde die Doku selbst:
+Keine Codeänderung. Geprüft wurde die Doku selbst:
 
-- `grep -rniE "stufe [1-6]"` ueber `docs/` (ohne `archiv/`): Danach nennt nur
+- `grep -rniE "stufe [1-6]"` über `docs/` (ohne `archiv/`): Danach nennt nur
   noch die Spezifikation den Stufenstand. Der Snapshot spricht Stufe 3 und 4
-  nur noch dort an, wo es um den naechsten Schritt geht – das ist seine
+  nur noch dort an, wo es um den nächsten Schritt geht – das ist seine
   Aufgabe, keine zweite Statusliste. Genau dieser Grep hat die Dopplung
-  ueberhaupt erst gezeigt; der erste Entwurf dieses Patches haette sie
+  überhaupt erst gezeigt; der erste Entwurf dieses Patches hätte sie
   fortgeschrieben.
-- `grep` ueber `docs/`, `README.md` und `CHATSTART.md` nach „noch nie am
-  Stueck“, „steht aus“ und „nie gelaufen“: kein Treffer mehr, der den Lauf als
-  offen fuehrt.
-- Die Einschraenkung „auf echter Hardware nicht gelaufen“ steht bewusst an
+- `grep` über `docs/`, `README.md` und `CHATSTART.md` nach „noch nie am
+  Stück“, „steht aus“ und „nie gelaufen“: kein Treffer mehr, der den Lauf als
+  offen führt.
+- Die Einschränkung „auf echter Hardware nicht gelaufen“ steht bewusst an
   beiden verbliebenen Stellen (Kopf und Stufenplan der Spezifikation) – ein
-  Kopf ohne sie waere die bequeme Halbwahrheit.
-- `php -l`: keine PHP-Datei geaendert, entfaellt.
+  Kopf ohne sie wäre die bequeme Halbwahrheit.
+- `php -l`: keine PHP-Datei geändert, entfällt.
 
 ### Wie der Container-Lauf aufgebaut war
-Damit der naechste Durchgang nicht bei null anfaengt – die Testumgebung liegt
+Damit der nächste Durchgang nicht bei null anfängt – die Testumgebung liegt
 bewusst **nicht** im Repository (Abschnitt 7 der Arbeitsregeln: keine Container
-in der Produktion; hier waren sie nur Pruefwerkzeug):
+in der Produktion; hier waren sie nur Prüfwerkzeug):
 
 - Abbild: `debian:12` plus `systemd systemd-sysv dbus`, `CMD ["/sbin/init"]`.
   Gestartet mit `--privileged --cgroupns=host -v /sys/fs/cgroup:/sys/fs/cgroup:rw`
   und `--tmpfs /run`.
 - Codequelle: ein **Bare-Klon** des Repos, in den Container kopiert, in
-  `terminal.conf` als `GIT_REPO` eingetragen. So laeuft der Klon-Pfad des
-  Skripts wirklich durch, statt per Bind-Mount uebersprungen zu werden – und
+  `terminal.conf` als `GIT_REPO` eingetragen. So läuft der Klon-Pfad des
+  Skripts wirklich durch, statt per Bind-Mount übersprungen zu werden – und
   der `chown -R root:www-data` aus Schritt 9 fasst die Arbeitskopie auf dem
   Entwicklungsrechner nicht an.
-- Zweiter Container ohne systemd (`debian:12` mit `sleep infinity`) fuer die
+- Zweiter Container ohne systemd (`debian:12` mit `sleep infinity`) für die
   Zusicherung aus Abschnitt 5a.
 
 ### Was bewusst nicht erreicht wurde
-- **Kein vollstaendiger Durchgang durch alle Dateien unter `docs/`** – geprueft
-  wurde dort, wo dieser Patch die Doku beruehrt.
-- **T-103 wurde nur notiert, nicht geloest.** Ob ein Terminal die
-  Backend-Oberflaeche ausliefern soll, ist eine Entscheidung und kein Bug.
+- **Kein vollständiger Durchgang durch alle Dateien unter `docs/`** – geprüft
+  wurde dort, wo dieser Patch die Doku berührt.
+- **T-103 wurde nur notiert, nicht gelöst.** Ob ein Terminal die
+  Backend-Oberfläche ausliefern soll, ist eine Entscheidung und kein Bug.
 
 ### NEXT
-Stufe 4 (Kiosk) – Einzelheiten im Block „Naechster Schritt (konkret)“ oben.
+Stufe 4 (Kiosk) – Einzelheiten im Block „Nächster Schritt (konkret)“ oben.
 
 ## P-2026-08-09-06 netzpruefung-ohne-iproute2
 
@@ -10161,11 +10267,11 @@ Stufe 4 (Kiosk) – Einzelheiten im Block „Naechster Schritt (konkret)“ oben
 - `docs/archiv/DEV_PROMPT_HISTORY.md`
 
 ### AKZEPTANZKRITERIUM
-Auf einem System ohne `iproute2` meldet das Skript „Netzpruefung uebersprungen“
-statt einer Warnung ueber eine fehlende Standardroute.
+Auf einem System ohne `iproute2` meldet das Skript „Netzprüfung übersprungen“
+statt einer Warnung über eine fehlende Standardroute.
 
 ### DONE
-Die Pruefung unterscheidet jetzt zwei Faelle, die vorher zusammenfielen: `ip`
+Die Prüfung unterscheidet jetzt zwei Fälle, die vorher zusammenfielen: `ip`
 fehlt (schlankes Abbild – nur ein Hinweis, keine Warnung) und `ip` ist da, aber
 es gibt keine Standardroute (weiterhin Warnung).
 
@@ -10174,19 +10280,19 @@ Fehlermeldung „command not found“ mit und liefert dann leere Ausgabe – das
 Ergebnis wie bei einer echt fehlenden Route.
 
 ### TEST
-Der Block wurde per `awk` aus dem Skript herausgeloest und in Debian-12-Containern
-ausgefuehrt – herausgeloest, nicht nachgebaut, damit die Pruefung nicht an einer
-Kopie haengt:
+Der Block wurde per `awk` aus dem Skript herausgelöst und in Debian-12-Containern
+ausgeführt – herausgelöst, nicht nachgebaut, damit die Prüfung nicht an einer
+Kopie hängt:
 
-- **ohne `iproute2`, Netz vorhanden:** „Netzpruefung uebersprungen“, keine Warnung.
+- **ohne `iproute2`, Netz vorhanden:** „Netzprüfung übersprungen“, keine Warnung.
 - **mit `iproute2`, Standardroute vorhanden:** keine Ausgabe, keine Warnung.
-- **mit `iproute2`, Standardroute geloescht** (`ip route del default` in einem
+- **mit `iproute2`, Standardroute gelöscht** (`ip route del default` in einem
   privilegierten Container): die Warnung erscheint wie vorgesehen.
 
-`bash -n`: fehlerfrei. `php -l`: keine PHP-Datei geaendert, entfaellt.
+`bash -n`: fehlerfrei. `php -l`: keine PHP-Datei geändert, entfällt.
 
 ### Was bewusst nicht erreicht wurde
-- **`iproute2` wird nicht zur Paketliste ergaenzt.** Auf einem echten Debian ist
+- **`iproute2` wird nicht zur Paketliste ergänzt.** Auf einem echten Debian ist
   es Teil des Standardsystems; nur sehr schlanke Abbilder haben es nicht, und
   dort braucht das Skript es auch nicht.
 
@@ -10198,7 +10304,7 @@ danach Stufe 4 (Kiosk).
 
 ### EINGELESEN
 - `CHATSTART.md`, `docs/arbeitsregeln.md`, `docs/STATUS_SNAPSHOT.md`,
-  Snapshot-Teil dieser Datei (inkl. „Naechster Schritt“ – der Container-Lauf).
+  Snapshot-Teil dieser Datei (inkl. „Nächster Schritt“ – der Container-Lauf).
 - `scripts/terminal/install_terminal.sh` (Schritt 7 und 8),
   `docs/spezifikation_terminal_installation.md` (Abschnitte 5a, 10, 11).
 - `controller/TerminalEinrichtungController.php`, `baueKonfigDatei()` –
@@ -10214,8 +10320,8 @@ danach Stufe 4 (Kiosk).
 - `docs/archiv/DEV_PROMPT_HISTORY.md`
 
 ### AKZEPTANZKRITERIUM
-Wird `config/geraet.local.php` auf einem gekoppelten Terminal geloescht und das
-Skript erneut ausgefuehrt, behaelt der Datenbankbenutzer der Ausweichdatenbank
+Wird `config/geraet.local.php` auf einem gekoppelten Terminal gelöscht und das
+Skript erneut ausgeführt, behält der Datenbankbenutzer der Ausweichdatenbank
 das Passwort aus `config.local.php` – die Offline-Queue verbindet sich danach
 weiterhin.
 
@@ -10223,81 +10329,81 @@ weiterhin.
 Schritt 7 sucht ein vorhandenes Passwort jetzt in **zwei** Dateien, in dieser
 Reihenfolge: `config/config.local.php`, danach `config/geraet.local.php`. Die
 erste ist die Datei, aus der ein gekoppeltes Terminal seine Queue-Zugangsdaten
-tatsaechlich liest; die zweite ist nur die Quelle, aus der die Kopplung sie
-einmal uebernommen hat.
+tatsächlich liest; die zweite ist nur die Quelle, aus der die Kopplung sie
+einmal übernommen hat.
 
-Zusaetzlich steht der Pfad zu `config.local.php` jetzt in `KONFIG_DATEI` –
+Zusätzlich steht der Pfad zu `config.local.php` jetzt in `KONFIG_DATEI` –
 dieselbe Variable nutzt der Hinweis „Terminal ist bereits gekoppelt“ in
 Schritt 8, wo der Pfad vorher ein zweites Mal ausgeschrieben war.
 
 ### TEST
-Erstmals ein **vollstaendiger Lauf**, wie in P-2026-08-09-04 unter NEXT
+Erstmals ein **vollständiger Lauf**, wie in P-2026-08-09-04 unter NEXT
 gefordert: Debian 12 (Bookworm) im Docker-Container mit systemd als PID 1,
 Code aus einem Bare-Klon, damit der Klon-Pfad des Skripts wirklich durchlaufen
 wird. Bookworm, weil das die PHP-Baseline des Projekts ist (PHP 8.2) und
 Raspberry Pi OS darauf beruht.
 
 **Lauf vor dem Patch** – lief auf Anhieb durch, Exitcode 0, alle sechs Punkte
-der Ergebnisliste OK. Geprueft wurde darueber hinaus:
+der Ergebnisliste OK. Geprüft wurde darüber hinaus:
 
 - `terminal.php` liefert HTTP 200 mit `<h1>Terminal einrichten</h1>`,
   `config/geraet.local.php` existiert, `config/config.local.php` **nicht** –
   das Akzeptanzkriterium aus P-2026-08-09-04, jetzt belegt.
 - `apache2/error.log` und `php8.2-fpm.log`: keine Deprecation, keine Warnung.
-- Zweiter Lauf (Idempotenz): keine einzige Warnung, Passwort unveraendert.
-- Die Rechte des Offline-Benutzers gegen die Wirklichkeit geprueft – nicht nur
+- Zweiter Lauf (Idempotenz): keine einzige Warnung, Passwort unverändert.
+- Die Rechte des Offline-Benutzers gegen die Wirklichkeit geprüft – nicht nur
   `SHOW GRANTS`, sondern mit den erzeugten Zugangsdaten INSERT, UPDATE, SELECT,
-  DELETE und `CREATE TABLE` auf `db_injektionsqueue` ausgefuehrt: alles moeglich,
+  DELETE und `CREATE TABLE` auf `db_injektionsqueue` ausgeführt: alles möglich,
   `DROP` verweigert. Genau der Zuschnitt, den `core/OfflineQueueManager.php`
   braucht (dort kommt kein `DROP` vor).
 - Die in Abschnitt 5a zugesicherte Eigenschaft „Ein Lauf ohne systemd bricht
-  nicht ab, sondern warnt“ in einem zweiten Container ohne systemd geprueft:
-  sieben Warnungen, drei FEHLT in der Ergebnisliste, Exitcode 0. Haelt.
+  nicht ab, sondern warnt“ in einem zweiten Container ohne systemd geprüft:
+  sieben Warnungen, drei FEHLT in der Ergebnisliste, Exitcode 0. Hält.
 
-**Der Fehler, den dieser Lauf zutage gefoerdert hat**, nachgestellt statt
+**Der Fehler, den dieser Lauf zutage gefördert hat**, nachgestellt statt
 behauptet: Kopplung simuliert (`config.local.php` mit dem Passwort aus
-`geraet.local.php`), `geraet.local.php` geloescht, Skript erneut gestartet.
+`geraet.local.php`), `geraet.local.php` gelöscht, Skript erneut gestartet.
 Ergebnis vor dem Patch: neues Passwort erzeugt, per `ALTER USER` gesetzt, und
 der Verbindungsversuch mit den Daten aus `config.local.php` endete mit
 `SQLSTATE[HY000] [1045] Access denied`. Das Skript meldete im selben Lauf
 „HINWEIS: config.local.php ist vorhanden – dieses Terminal ist bereits gekoppelt
-und wird nicht angefasst“, waehrend es ihm gerade die Queue gekappt hatte.
+und wird nicht angefasst“, während es ihm gerade die Queue gekappt hatte.
 
 **Nach dem Patch**, gleicher Ablauf: „Vorhandenes Passwort aus config.local.php
-uebernommen“, beide Dateien tragen dasselbe Passwort, Queue-Verbindung OK.
-Dazu die zwei Rueckfaelle: ohne `config.local.php` wird wie bisher
-`geraet.local.php` genommen (Passwort unveraendert), ohne beide Dateien
+übernommen“, beide Dateien tragen dasselbe Passwort, Queue-Verbindung OK.
+Dazu die zwei Rückfälle: ohne `config.local.php` wird wie bisher
+`geraet.local.php` genommen (Passwort unverändert), ohne beide Dateien
 entsteht ein neues (32 Zeichen). Zum Schluss ein Erstlauf des gepatchten
 Skripts auf einem frischen Container: Exitcode 0, sechs von sechs OK,
 Queue erreichbar, keine PHP-Meldungen im Log.
 
-`bash -n` ueber das Skript: fehlerfrei. `php -l`: keine PHP-Datei geaendert,
-entfaellt.
+`bash -n` über das Skript: fehlerfrei. `php -l`: keine PHP-Datei geändert,
+entfällt.
 
 ### Gefundene Fehler im eigenen Entwurf
-- **Der Vorgaenger-Patch hat die Gefahr erkannt und trotzdem die falsche Datei
-  gelesen.** Im Eintrag zu P-2026-08-09-04 steht unter „Gefundene Fehler“ woertlich,
-  ein zweiter Lauf duerfe einem gekoppelten Terminal nicht still die Queue
+- **Der Vorgänger-Patch hat die Gefahr erkannt und trotzdem die falsche Datei
+  gelesen.** Im Eintrag zu P-2026-08-09-04 steht unter „Gefundene Fehler“ wörtlich,
+  ein zweiter Lauf dürfe einem gekoppelten Terminal nicht still die Queue
   kappen – und der Kommentar im Code nannte sogar `config.local.php` als die
-  Datei, in der ein gekoppeltes Terminal die Zugangsdaten traegt. Nachgesehen
+  Datei, in der ein gekoppeltes Terminal die Zugangsdaten trägt. Nachgesehen
   hat der Code dann in `geraet.local.php`. Kommentar und Code auseinander:
   die teuerste Sorte Fehler, weil beim Lesen alles stimmig wirkt.
-- Ausgeloest wird der Fall nicht nur durch eine geloeschte Datei: Das Skript
+- Ausgelöst wird der Fall nicht nur durch eine gelöschte Datei: Das Skript
   **schreibt selbst** ein leeres Passwort nach `geraet.local.php`, wenn die
   Datenbank beim Lauf nicht ansprechbar war (im Container ohne systemd
-  beobachtet). Der naechste Lauf haette danach rotiert.
+  beobachtet). Der nächste Lauf hätte danach rotiert.
 
 ### Was bewusst nicht erreicht wurde
 - **Benutzername und Datenbankname werden weiterhin nur aus der Antwortdatei
-  genommen.** Wer `OFFLINE_DB_USER` nach der Kopplung aendert, zeigt mit
+  genommen.** Wer `OFFLINE_DB_USER` nach der Kopplung ändert, zeigt mit
   `config.local.php` weiter auf den alten Benutzer. Denkbar, aber kein Fall
   aus der Praxis – und ein Thema pro Patch.
 - **Der `geraet.local.php`-Schreibvorgang bei nicht ansprechbarer Datenbank
-  wurde nicht geaendert.** Er hinterlaesst weiterhin `enabled => false` und ein
+  wurde nicht geändert.** Er hinterlässt weiterhin `enabled => false` und ein
   leeres Passwort. Schaden richtet das seit diesem Patch nicht mehr an (der
-  naechste erfolgreiche Lauf stellt beides wieder her), aber schoen ist es
+  nächste erfolgreiche Lauf stellt beides wieder her), aber schön ist es
   nicht. Notiert, nicht mitgemacht.
-- **Die Kopplung selbst ist nach wie vor nicht durchgespielt** – dafuer braucht
+- **Die Kopplung selbst ist nach wie vor nicht durchgespielt** – dafür braucht
   es ein erreichbares Backend. Der Container hat nur belegt, dass die
   Einrichtungsseite erscheint.
 
@@ -10309,15 +10415,15 @@ Stufe 4 (Kiosk).
 
 ### EINGELESEN
 - `CHATSTART.md`, `docs/arbeitsregeln.md`, `docs/STATUS_SNAPSHOT.md`,
-  Snapshot-Teil dieser Datei (inkl. „Naechster Schritt“).
+  Snapshot-Teil dieser Datei (inkl. „Nächster Schritt“).
 - `docs/spezifikation_terminal_installation.md` (Abschnitte 2b, 3 bis 5, 9, 11),
   `docs/fachregeln/terminal_und_offline.md`.
 - `controller/TerminalEinrichtungController.php` (`leseGeraeteEinstellungen()`,
   `baueKonfigDatei()`) – um das Dateiformat nicht zu erraten.
-- `scripts/dev/setup_lokale_umgebung_arch.sh` (Stil und bereits geloeste
+- `scripts/dev/setup_lokale_umgebung_arch.sh` (Stil und bereits gelöste
   Stolpersteine), `sql/offline_db_schema.sql`, `core/OfflineQueueManager.php`
   (welche Rechte die Queue wirklich braucht), `docs/installationsanleitung.md`.
-- Duplicate-Check: `git log -S"install_terminal" --all` und `grep` ueber das
+- Duplicate-Check: `git log -S"install_terminal" --all` und `grep` über das
   Repo – das Skript kam bisher nur in der Doku vor, es gab keinen Code.
 
 ### DATEIEN
@@ -10327,7 +10433,7 @@ Stufe 4 (Kiosk).
 - `docs/spezifikation_terminal_installation.md` (Status, Abschnitt 5a neu,
   Phase-1-Liste, Stufenplan)
 - `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`, `README.md`
-- `docs/prompt_uebersicht.md`: Die Zeile zur Terminal-Spezifikation fuehrte den
+- `docs/prompt_uebersicht.md`: Die Zeile zur Terminal-Spezifikation führte den
   Stufenstand ein zweites Mal mit („Stufe 3–6 offen") und war mit diesem Patch
   sofort falsch. Der Stand steht jetzt nur noch im Kopf der Spezifikation –
   dieselbe Aussage zweimal zu pflegen ist laut CHATSTART.md Abschnitt 5 ein
@@ -10335,53 +10441,53 @@ Stufe 4 (Kiosk).
 
 ### AKZEPTANZKRITERIUM
 Nach `sudo ./scripts/terminal/install_terminal.sh` liefert
-`http://localhost/terminal.php` auf einem frisch aufgesetzten Geraet die
-Einrichtungsseite (HTTP 200) und `config/geraet.local.php` enthaelt die
+`http://localhost/terminal.php` auf einem frisch aufgesetzten Gerät die
+Einrichtungsseite (HTTP 200) und `config/geraet.local.php` enthält die
 Zugangsdaten der lokalen Ausweichdatenbank – **ohne** dass eine
 `config.local.php` entstanden ist.
 
 ### DONE
 Phase 1 der Spezifikation als ein Skript, idempotent und mit Protokoll nach
-`/var/log/zeiterfassung-terminal-setup.log` (Rueckfall `/tmp`, falls `/var/log`
+`/var/log/zeiterfassung-terminal-setup.log` (Rückfall `/tmp`, falls `/var/log`
 nicht beschreibbar ist):
 
-1. **Vorbedingungen** – root, Distributionserkennung ueber `/etc/os-release`,
+1. **Vorbedingungen** – root, Distributionserkennung über `/etc/os-release`,
    Hinweis bei fehlender Standardroute. Unbekannte Distribution bricht ab,
    statt mit falschen Paketnamen weiterzumachen.
 2. **Antwortdatei** `terminal.conf` neben dem Skript (Vorlage
-   `terminal.conf.example`), sonst Rueckfrage – aber nur an einem TTY, damit ein
-   unbeaufsichtigter Lauf nicht haengenbleibt.
-3. **Eine Zuordnungstabelle** fuer alle vier Familien (`apt`, `pacman`, `dnf`,
+   `terminal.conf.example`), sonst Rückfrage – aber nur an einem TTY, damit ein
+   unbeaufsichtigter Lauf nicht hängenbleibt.
+3. **Eine Zuordnungstabelle** für alle vier Familien (`apt`, `pacman`, `dnf`,
    `zypper`): Pakete, Dienstname, Webserver-Benutzer, Ablageort der
    Webserver-Konfiguration.
-4. **PHP am Webserver einheitlich** ueber `php-fpm` + `mod_proxy_fcgi`; der
+4. **PHP am Webserver einheitlich** über `php-fpm` + `mod_proxy_fcgi`; der
    Socketpfad wird gesucht (`/run/php-fpm/*.sock`, `/run/php/*.sock`, …), mit
-   `127.0.0.1:9000` als Rueckfall. Dadurch ist die erzeugte Apache-Datei fuer
+   `127.0.0.1:9000` als Rückfall. Dadurch ist die erzeugte Apache-Datei für
    alle Familien dieselbe.
 5. **Code aus Git** nach `/opt/zeiterfassung` (einstellbar); vorhandene
    Arbeitskopie nur `pull --ff-only`.
 6. **Lokale Ausweichdatenbank** samt eigenem Benutzer, Rechte nur auf dieser
    Datenbank – inklusive `CREATE`/`DELETE`, weil der `OfflineQueueManager` die
-   Tabelle bei Bedarf selbst anlegt und verarbeitete Eintraege entfernt.
+   Tabelle bei Bedarf selbst anlegt und verarbeitete Einträge entfernt.
 7. **`config/geraet.local.php`** im Format aus Abschnitt 2b: erst daneben
    schreiben, mit `php -l` gegenlesen, dann umbenennen.
-8. **Dateirechte**: Code gehoert root, der Webserver darf nur lesen –
-   schreiben ausschliesslich in `config/` (dorthin schreibt die Kopplung) und
-   `public/uploads/`. Unter SELinux zusaetzlich Kontexte und
+8. **Dateirechte**: Code gehört root, der Webserver darf nur lesen –
+   schreiben ausschließlich in `config/` (dorthin schreibt die Kopplung) und
+   `public/uploads/`. Unter SELinux zusätzlich Kontexte und
    `httpd_can_network_connect_db`.
 9. **Tastaturlayout** an drei Stellen (X11, `vconsole`, bei Debian
    `/etc/default/keyboard`) plus Zeitzone.
 10. **Ergebnisliste** OK/FEHLT und gesammelte Warnungen am Ende.
 
 ### TEST
-Ein vollstaendiger Lauf war **nicht** moeglich: Das Skript installiert Pakete
+Ein vollständiger Lauf war **nicht** möglich: Das Skript installiert Pakete
 und schreibt die Webserver-Konfiguration des Rechners – auf dem
-Entwicklungsrechner waere das ein Eingriff in die laufende Umgebung. Geprueft
+Entwicklungsrechner wäre das ein Eingriff in die laufende Umgebung. Geprüft
 wurden stattdessen die Bausteine, jeweils mit dem Code aus dem Skript selbst
-(per `awk` herausgeloest, nicht nachgebaut – eine Kopie waere sofort
+(per `awk` herausgelöst, nicht nachgebaut – eine Kopie wäre sofort
 auseinandergelaufen):
 
-- `bash -n` ueber Skript und Vorlage: fehlerfrei.
+- `bash -n` über Skript und Vorlage: fehlerfrei.
 - **Distributionserkennung** mit 15 echten `ID`/`ID_LIKE`-Kombinationen
   (debian, raspbian, ubuntu, linuxmint, arch, cachyos, manjaro, fedora, rhel,
   rocky, almalinux, opensuse-tumbleweed, opensuse-leap, sles, alpine):
@@ -10392,42 +10498,42 @@ auseinandergelaufen):
   erwartet. Damit ist die Schnittstelle zwischen Stufe 3 und Stufe 2 belegt und
   nicht nur behauptet. Die Testdatei wurde wieder entfernt.
 - **Apache-Konfiguration** aus dem Heredoc erzeugt und mit `httpd -t` gegen eine
-  Minimalkonfiguration geprueft: `Syntax OK` (erwartete Warnung, weil
+  Minimalkonfiguration geprüft: `Syntax OK` (erwartete Warnung, weil
   `/opt/zeiterfassung/public` auf diesem Rechner nicht existiert).
-- `php -l`: keine PHP-Datei geaendert, entfaellt.
+- `php -l`: keine PHP-Datei geändert, entfällt.
 
 ### Gefundene Fehler im eigenen Entwurf
-- Erster Entwurf pruefte `php -m` nur auf Rueckgabewert – das ist immer 0 und
-  haette ein fehlendes `pdo_mysql` als „OK“ gemeldet. Jetzt
+- Erster Entwurf prüfte `php -m` nur auf Rückgabewert – das ist immer 0 und
+  hätte ein fehlendes `pdo_mysql` als „OK“ gemeldet. Jetzt
   `php -r 'exit(extension_loaded("pdo_mysql") ? 0 : 1);'`.
-- Die Pruefung des Schreibrechts auf `config/` lief ueber `sudo`; auf einem
+- Die Prüfung des Schreibrechts auf `config/` lief über `sudo`; auf einem
   frisch aufgesetzten Debian ist `sudo` oft gar nicht installiert. Jetzt
   `runuser` (util-linux).
-- Der Wartelauf auf MariaDB haette ohne `mysqladmin` zehn Sekunden ins Leere
+- Der Wartelauf auf MariaDB hätte ohne `mysqladmin` zehn Sekunden ins Leere
   geschlafen.
-- Nicht offensichtlich, aber gefaehrlich: Ein zweiter Lauf haette das Passwort
+- Nicht offensichtlich, aber gefährlich: Ein zweiter Lauf hätte das Passwort
   der Ausweichdatenbank erneuert und damit einem bereits gekoppelten Terminal
-  still die Offline-Queue gekappt – der Ausfall waere erst beim naechsten
+  still die Offline-Queue gekappt – der Ausfall wäre erst beim nächsten
   Netzausfall aufgefallen. Das Skript liest das vorhandene Passwort deshalb aus
   `geraet.local.php` und verwendet es weiter.
 
 ### Was bewusst nicht erreicht wurde
-- **Grafikstack und Browser werden nicht installiert.** Sie gehoeren zum Kiosk
-  (Stufe 4); ohne ihn waeren sie nur Wartezeit gewesen und im Container nicht
-  pruefbar. In der Spezifikation (Abschnitt 5, Phase 1) entsprechend vermerkt.
-- **Kein Neustart, kein Phase-2-Dienst.** Beides haengt an SPI/RC522 und
-  gehoert zu Stufe 5.
+- **Grafikstack und Browser werden nicht installiert.** Sie gehören zum Kiosk
+  (Stufe 4); ohne ihn wären sie nur Wartezeit gewesen und im Container nicht
+  prüfbar. In der Spezifikation (Abschnitt 5, Phase 1) entsprechend vermerkt.
+- **Kein Neustart, kein Phase-2-Dienst.** Beides hängt an SPI/RC522 und
+  gehört zu Stufe 5.
 - **Der Selbsttest ist die kleine Fassung** – Webserver, PHP-Modul, Datenbank,
   Dateien, HTTP-Antwort. Die Scan-Proben aus Abschnitt 8 brauchen Hardware und
   kommen mit Stufe 6.
 - **openSUSE ist die unsicherste Familie**: Die Paketnamen (`php8`, `php8-fpm`)
-  sind versionsgebunden und aendern sich mit der naechsten PHP-Generation, und
+  sind versionsgebunden und ändern sich mit der nächsten PHP-Generation, und
   php-fpm lauscht dort per Vorgabe auf TCP statt auf einem Socket. Erkannt,
-  abgefangen (Rueckfall auf `127.0.0.1:9000`), aber nicht ausprobiert.
+  abgefangen (Rückfall auf `127.0.0.1:9000`), aber nicht ausprobiert.
 
 ### NEXT
 Skript in einem Debian-Container laufen lassen und nachziehen, was dabei
-auffaellt. Danach Stufe 4 (Kiosk).
+auffällt. Danach Stufe 4 (Kiosk).
 
 ## P-2026-08-09-03 snapshot-entschlacken
 
@@ -10438,29 +10544,29 @@ auffaellt. Danach Stufe 4 (Kiosk).
 - `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
 
 ### AKZEPTANZKRITERIUM
-Der Snapshot beider Dateien zusammen kostet unter 10.000 Token und enthaelt keine Angabe, die `git log` oder der Code schon liefert.
+Der Snapshot beider Dateien zusammen kostet unter 10.000 Token und enthält keine Angabe, die `git log` oder der Code schon liefert.
 
 ### DONE
-- **Die dreifach gepflegte Aenderungsliste ist weg.** „Zuletzt erledigt" in
-  dieser Datei, „Letzte Aenderungen" und die „Letzter Patch"-Kette im
+- **Die dreifach gepflegte Änderungsliste ist weg.** „Zuletzt erledigt" in
+  dieser Datei, „Letzte Änderungen" und die „Letzter Patch"-Kette im
   STATUS_SNAPSHOT sagten dasselbe wie `git log --oneline` – zusammen rund
   32 KB. Beide Stellen verweisen jetzt auf Git.
 - **48 erledigte Bugs sind aus dem Snapshot nach unten gewandert**
   („Erledigte Bugs (Archiv)"). Oben stehen nur noch die **zwei offenen** – die
   waren vorher zwischen den erledigten kaum zu finden.
-- **Die Routenliste entfaellt.** Sie war eine Kopie aus `public/index.php` und
-  wurde als „Stand aus Code" gefuehrt – also genau die Art Angabe, die
+- **Die Routenliste entfällt.** Sie war eine Kopie aus `public/index.php` und
+  wurde als „Stand aus Code" geführt – also genau die Art Angabe, die
   unbemerkt veraltet.
 - **T-101 und T-102 stehen nur noch an einer Stelle** (Offene Tasks) statt
-  zusaetzlich unter „Naechster Schritt".
-- **Ueberholte D-IDs sind als solche gekennzeichnet**, nicht geloescht: D-002
+  zusätzlich unter „Nächster Schritt".
+- **Überholte D-IDs sind als solche gekennzeichnet**, nicht gelöscht: D-002
   (3-Dateien-Limit, ZIP) und der SHA256-Teil von D-005 gelten seit v13 nicht
-  mehr; D-006 behaelt seine Regel, verliert aber die weggefallene Begruendung.
+  mehr; D-006 behält seine Regel, verliert aber die weggefallene Begründung.
 
 ### BEFUND
 Die Liste „Zuletzt erledigt" war zwischen P-2026-08-08-02 und -36 **nicht
-mitgepflegt** worden und lag damit 35 Patches hinter dem Stand, waehrend der
-STATUS_SNAPSHOT aktuell war. Wer beide las, bekam Widersprueche. Genau das ist
+mitgepflegt** worden und lag damit 35 Patches hinter dem Stand, während der
+STATUS_SNAPSHOT aktuell war. Wer beide las, bekam Widersprüche. Genau das ist
 der Grund, doppelte Listen abzuschaffen statt sie besser zu pflegen: Eine
 Kopie, die von Hand nachgezogen werden muss, wird irgendwann nicht nachgezogen.
 
@@ -10470,22 +10576,22 @@ Kopie, die von Hand nachgezogen werden muss, wird irgendwann nicht nachgezogen.
 | Snapshot dieser Datei | 34.257 B | 8.343 B |
 | `STATUS_SNAPSHOT.md` | 16.575 B | ~3.900 B |
 
-Startlektuere insgesamt (`CHATSTART.md` + `arbeitsregeln.md` +
+Startlektüre insgesamt (`CHATSTART.md` + `arbeitsregeln.md` +
 `STATUS_SNAPSHOT.md` + `CLAUDE.md` + History-Snapshot): **~74.000 → ~13.000
 Token.**
 
 ### TEST
-1. Kein Inhalt geloescht, nur verschoben: Die 48 erledigten B-IDs sind
-   vollstaendig im Archivblock derselben Datei, gezaehlt (2 offen + 48 erledigt
+1. Kein Inhalt gelöscht, nur verschoben: Die 48 erledigten B-IDs sind
+   vollständig im Archivblock derselben Datei, gezählt (2 offen + 48 erledigt
    = 50 wie vorher).
-2. Interne Links geprueft, keine toten Verweise.
+2. Interne Links geprüft, keine toten Verweise.
 3. Struktur des Snapshots entspricht weiterhin `docs/arbeitsregeln.md`
    Abschnitt 6 (Source of Truth, Entry Points, offene Bugs, offene Tasks,
-   naechster Schritt).
+   nächster Schritt).
 4. Kein Code angefasst.
 
 ### NEXT
-- Zurueck zur Sacharbeit: Stufe 3 der Terminal-Installation
+- Zurück zur Sacharbeit: Stufe 3 der Terminal-Installation
   (`scripts/terminal/install_terminal.sh`).
 
 
@@ -10495,13 +10601,13 @@ Chronologisch gewachsen, hier nur noch zum Nachschlagen. Die Fachregeln, die
 aus diesen Fehlern folgen, stehen inzwischen in `docs/fachregeln/` – dort
 werden sie auch gelesen.
 
-- **B-091:** Monatsuebersicht brach im laufenden Monat mit einem Fatal ab (`$abschlussOptionMarker` nur im Vergangenheits-Zweig gesetzt). Regression aus P-2026-08-08-19. **DONE in P-2026-08-08-24**.
+- **B-091:** Monatsübersicht brach im laufenden Monat mit einem Fatal ab (`$abschlussOptionMarker` nur im Vergangenheits-Zweig gesetzt). Regression aus P-2026-08-08-19. **DONE in P-2026-08-08-24**.
 - **B-089:** Maschinen-Barcode wurde in der Bearbeitungsmaske nie angezeigt, weil der Controller eine abweichende URL-Logik nutzte und bei leerem `maschinen_qr_url` immer `''` lieferte. **DONE in P-2026-08-08-03**.
 - **B-090:** Mitgelieferte Bibliothek `services/phpqrcode` erzeugte PHP-Deprecations und Datei-Warnungen bei jeder QR-Erzeugung (Pflichtparameter hinter optionalen Parametern, dynamische Eigenschaft `$cmyk`, `ImageDestroy()`, fehlendes Cache-Verzeichnis). **DONE in P-2026-08-08-04**.
 - **B-079:** Monatsreport-PDF: Urlaubsblock nutzte `urlaub_verbleibend` aus Monatswerten und zog BF-Restjahr erneut ab (Doppelabzug/negative Werte). **DONE in P-2026-01-18-02**.
-- **B-081:** Monatsreport-HTML: Urlaubsblock zog BF-Restjahr zusaetzlich ab und konnte so inkonsistent/negativ werden. **DONE in P-2026-01-18-03**.
+- **B-081:** Monatsreport-HTML: Urlaubsblock zog BF-Restjahr zusätzlich ab und konnte so inkonsistent/negativ werden. **DONE in P-2026-01-18-03**.
 - **B-082:** Urlaub: Eintrittsjahr/Anlage im laufenden Jahr wurde bisher nicht anteilig gerechnet (voller Jahresanspruch). Zudem wurde negativer Resturlaub beim Auto-Übertrag auf 0 gekappt → Minusurlaub gleicht sich im Folgejahr nicht aus. **DONE in P-2026-01-18-09**.
-- **B-078:** Monatsuebersicht + Monatsreport-PDF: „Mikro-Buchungen“ (mehrere Rohstempel-Reihen pro Tag) wurden als Detail-Zeilen wieder angezeigt (Regression gegen **P-2026-01-17-12**). Standard ist wieder **aggregiert pro Tag**; Detail-/Mikro-Buchungen nur optional via `?show_micro=1`. **DONE in P-2026-01-17-29**.
+- **B-078:** Monatsübersicht + Monatsreport-PDF: „Mikro-Buchungen“ (mehrere Rohstempel-Reihen pro Tag) wurden als Detail-Zeilen wieder angezeigt (Regression gegen **P-2026-01-17-12**). Standard ist wieder **aggregiert pro Tag**; Detail-/Mikro-Buchungen nur optional via `?show_micro=1`. **DONE in P-2026-01-17-29**.
 - **B-076:** Urlaubssaldo: Betriebsferien (Zwangsurlaub) werden nicht abgezogen, wenn ein aktiver Krankzeitraum (LFZ/KK) den Tag umfasst (ohne Tages-Override in `tageswerte_mitarbeiter`). **DONE in P-2026-01-07-23**.
 - **B-077:** Monatsreport/PDF: Krankzeitraum muss Betriebsferien im Tagesraster übersteuern (kein BF-Kürzel, Urlaub 0, Krank 8.00) – Krank hat Vorrang vor Betriebsferien. **DONE in P-2026-01-08-01**.
 - **B-074:** Urlaub: Kontingent wurde in "Mein Urlaub" ignoriert, weil SQL-Queries im UrlaubService literales `\n` enthielten (Syntaxfehler) → Hinweis "DB-Update fehlt?". **DONE in P-2026-01-07-03**.
@@ -10549,7 +10655,7 @@ werden sie auch gelesen.
 ## P-2026-08-09-02 doku-nach-lesehaeufigkeit
 
 ### EINGELESEN
-- `docs/master_prompt_zeiterfassung_v13.md` (vollstaendig, 1346 Zeilen), `docs/STATUS_SNAPSHOT.md`, `docs/rechte_prompt.md`, `docs/prompt_uebersicht.md`, `docs/README.md`, `README.md`, `docs/archiv/README.md`, `docs/archiv/ALTE_PROMPTS.md`, Snapshot der History.
+- `docs/master_prompt_zeiterfassung_v13.md` (vollständig, 1346 Zeilen), `docs/STATUS_SNAPSHOT.md`, `docs/rechte_prompt.md`, `docs/prompt_uebersicht.md`, `docs/README.md`, `README.md`, `docs/archiv/README.md`, `docs/archiv/ALTE_PROMPTS.md`, Snapshot der History.
 
 ### DATEIEN
 - `CHATSTART.md` (neu), `CLAUDE.md` (neu), `docs/arbeitsregeln.md` (neu)
@@ -10558,7 +10664,7 @@ werden sie auch gelesen.
 - Verweise nachgezogen: `README.md`, `docs/README.md`, `docs/prompt_uebersicht.md`, `docs/archiv/README.md`, `docs/archiv/ALTE_PROMPTS.md`, `docs/STATUS_SNAPSHOT.md`, `docs/installationsanleitung.md`, `docs/lokale_entwicklungsumgebung.md`, `docs/spezifikation_terminal_installation.md`, `docs/spezifikation_auftrag_barcode_laufkarte.md`
 
 ### AKZEPTANZKRITERIUM
-Wer eine neue Sitzung beginnt, liest `CHATSTART.md` + `docs/arbeitsregeln.md` + `docs/STATUS_SNAPSHOT.md` und weiss danach, wie gearbeitet wird und wo die Fachregel zu seinem Thema steht – ohne die ~36.000 Token des Master-Prompts zu lesen.
+Wer eine neue Sitzung beginnt, liest `CHATSTART.md` + `docs/arbeitsregeln.md` + `docs/STATUS_SNAPSHOT.md` und weiß danach, wie gearbeitet wird und wo die Fachregel zu seinem Thema steht – ohne die ~36.000 Token des Master-Prompts zu lesen.
 
 ### ANLASS
 Der Nutzer stellte fest, dass eine frische Sitzung nach „lies die Prompts" rund
@@ -10575,82 +10681,82 @@ ein Viertel des Kontextfensters verbraucht hat. Nachgemessen:
 ### DONE
 - **`CHATSTART.md` als werkzeugneutraler Einstieg.** Projekt in Kurzform, Regeln
   in Kurzform, und vor allem eine **Lesekarte**: „arbeitest du an X, lies Y".
-  Bewusst nicht `CLAUDE.md` als Traeger – die Grundlage soll fuer jede KI und
+  Bewusst nicht `CLAUDE.md` als Träger – die Grundlage soll für jede KI und
   jedes Werkzeug gelten (Cursor, Copilot, Aider, beliebiger Chat).
 - **`CLAUDE.md` ist nur ein Zeiger** (~1 KB) auf `CHATSTART.md` plus wenige
   Claude-Code-Besonderheiten. Sie wird automatisch geladen, spart damit den
-  „lies die Prompts"-Schritt – enthaelt aber **keine** Projektinhalte, damit
+  „lies die Prompts"-Schritt – enthält aber **keine** Projektinhalte, damit
   keine zweite, driftende Fassung entsteht.
-- **`docs/arbeitsregeln.md`** buendelt alles, was bei **jedem** Patch gilt:
+- **`docs/arbeitsregeln.md`** bündelt alles, was bei **jedem** Patch gilt:
   Projektstatus, Pre-Flight-Gate, Zuschnitt, Commit- und Patch-ID-Konvention,
-  Pflichtpruefungen, History-Pflege, Technik und Stil.
-- **`docs/fachregeln/*.md`** teilt die Fachlogik nach Domaene auf. Jede Datei
+  Pflichtprüfungen, History-Pflege, Technik und Stil.
+- **`docs/fachregeln/*.md`** teilt die Fachlogik nach Domäne auf. Jede Datei
   nennt oben ihre Herkunft im Master-Prompt.
-- **Master-Prompt v13 ins Archiv**, in `ALTE_PROMPTS.md` begruendet. Er wird nur
-  noch fuer Abschnitt 1a gebraucht (warum die v12-Regeln entfielen) – diese
-  Begruendung beschreibt eine Arbeitsweise, die es nicht mehr gibt, und wurde
+- **Master-Prompt v13 ins Archiv**, in `ALTE_PROMPTS.md` begründet. Er wird nur
+  noch für Abschnitt 1a gebraucht (warum die v12-Regeln entfielen) – diese
+  Begründung beschreibt eine Arbeitsweise, die es nicht mehr gibt, und wurde
   deshalb bewusst nicht mitgenommen.
 
 ### ABBILDUNG – wohin jeder Abschnitt gewandert ist
-Damit nachpruefbar bleibt, dass nichts verlorenging:
+Damit nachprüfbar bleibt, dass nichts verlorenging:
 
 | Master-Prompt v13 | Neuer Ort |
 | --- | --- |
 | 0 Einstieg, Rolle des Assistenten | `CHATSTART.md` |
 | Projektstatus | `CHATSTART.md` + `docs/arbeitsregeln.md` §1 |
 | 1 Allgemeine Regeln (Punkte 1–9), 18, 19, 20 | `docs/arbeitsregeln.md` |
-| 1a (v12 → v13, Begruendung) | bleibt im archivierten Master-Prompt |
+| 1a (v12 → v13, Begründung) | bleibt im archivierten Master-Prompt |
 | 2.1 Hauptsystem | `CHATSTART.md` §1 + `fachregeln/stammdaten_und_datenbank.md` §6 |
 | 2.2 Terminal, RFID-Anbindung, Offline-Queue | `fachregeln/terminal_und_offline.md` |
 | 3 Rollen/Genehmiger | `fachregeln/rollen_rechte_genehmiger.md` |
 | 4 Abteilungen, 5 Mitarbeiterdaten, 6.1 Maschinen, 17 DB-Design | `fachregeln/stammdaten_und_datenbank.md` |
 | „5. Inbetriebnahme: Kopplung", 6.2 Terminals, 8 Terminal-UI, 15 RFID-Verwaltung | `fachregeln/terminal_und_offline.md` |
-| 7 Auftraege, 11 Auftragszeiten | `fachregeln/auftraege_und_codes.md` |
+| 7 Aufträge, 11 Auftragszeiten | `fachregeln/auftraege_und_codes.md` |
 | 9 Kommen/Gehen, Rundung, Pausen; 10.1 Tageswerte; 10.2 Korrekturmaske | `fachregeln/zeit_rundung_pausen.md` |
-| 10.3 Monatsuebersicht/PDF | `fachregeln/auswertung_und_pdf.md` |
+| 10.3 Monatsübersicht/PDF | `fachregeln/auswertung_und_pdf.md` |
 | 12 Urlaub, 13 Genehmigung, 14 Betriebsferien/Feiertage | `fachregeln/urlaub_abwesenheit_feiertage.md` |
 | 16 Backend-Funktionen | `fachregeln/stammdaten_und_datenbank.md` §6 |
-| v4 A) Rechteverwaltung, B) Self-Approval | `fachregeln/rollen_rechte_genehmiger.md` (B zusaetzlich in `urlaub_…`) |
+| v4 A) Rechteverwaltung, B) Self-Approval | `fachregeln/rollen_rechte_genehmiger.md` (B zusätzlich in `urlaub_…`) |
 | v4 C) Monats-PDF als Chef | `fachregeln/auswertung_und_pdf.md` |
 | v4 D) Audit-Trail | `fachregeln/zeit_rundung_pausen.md` §7 |
 | v7 A–J) Scope-Rechtemodell | `fachregeln/rollen_rechte_genehmiger.md` |
 
 ### KORREKTUR AM EIGENEN PLAN
 Der erste Entwurf sah vor, die Abschnitte **v4 und v7 ins Archiv** zu geben,
-weil sie mit „Legacy / bereits umgesetzt" ueberschrieben sind. Beim Lesen zeigte
+weil sie mit „Legacy / bereits umgesetzt" überschrieben sind. Beim Lesen zeigte
 sich: Sie enthalten **geltende** Regeln – das Scope-Rechtemodell
 (`mitarbeiter_hat_rolle_scope`, `hatRecht()`, deny sticht allow), die
 Self-Approval-Ausnahme und die Audit-Pflicht bei Zeitkorrekturen. Sie sind
-deshalb vollstaendig in die Fachregeln uebernommen worden. „Legacy" bezog sich
-auf das Alter des Textes, nicht auf die Gueltigkeit der Regel.
+deshalb vollständig in die Fachregeln übernommen worden. „Legacy" bezog sich
+auf das Alter des Textes, nicht auf die Gültigkeit der Regel.
 
 ### ERGAENZT, NICHT NUR VERSCHOBEN
 In die Fachregeln sind Regeln eingeflossen, die bisher **nur** in der
 Bug-Historie standen und damit praktisch unauffindbar waren – z. B. Krank hat
-Vorrang vor Betriebsferien (B-077), Betriebsferien zaehlen nicht doppelt, wenn
-gearbeitet wurde (B-024/B-025), Rot-Markierung nur fuer Kommen/Gehen (B-029),
-Terminal-Login haengt nicht an `ist_login_berechtigt` (B-031), die PDF-Fallen
+Vorrang vor Betriebsferien (B-077), Betriebsferien zählen nicht doppelt, wenn
+gearbeitet wurde (B-024/B-025), Rot-Markierung nur für Kommen/Gehen (B-029),
+Terminal-Login hängt nicht an `ist_login_berechtigt` (B-031), die PDF-Fallen
 (literales `\n`, Locale, Output-Buffering).
 
 ### WIRKUNG
-Startlektuere von **~74.000 auf ~15.400 Token** (`CHATSTART.md` +
-`arbeitsregeln.md` + `STATUS_SNAPSHOT.md` + `CLAUDE.md`). Die groesste
+Startlektüre von **~74.000 auf ~15.400 Token** (`CHATSTART.md` +
+`arbeitsregeln.md` + `STATUS_SNAPSHOT.md` + `CLAUDE.md`). Die größte
 Fachregel-Datei kostet ~5.200 Token und wird nur gelesen, wenn man dort
-arbeitet. `STATUS_SNAPSHOT.md` ist mit ~8.300 Token noch der groesste Posten –
+arbeitet. `STATUS_SNAPSHOT.md` ist mit ~8.300 Token noch der größte Posten –
 das entschlackt P-2026-08-09-03.
 
 ### TEST
 1. Alle internen Markdown-Links in Wurzel, `docs/`, `docs/fachregeln/` und den
-   beiden Archiv-Uebersichten maschinell aufgeloest: keine toten Verweise.
+   beiden Archiv-Übersichten maschinell aufgelöst: keine toten Verweise.
 2. Kein Verweis auf `docs/master_prompt_zeiterfassung_v13.md` am alten Ort mehr
-   (ausser in historischen History-Eintraegen, die bewusst unveraendert bleiben).
-3. Abschnitt fuer Abschnitt gegen den Master-Prompt abgeglichen (Tabelle oben);
+   (außer in historischen History-Einträgen, die bewusst unverändert bleiben).
+3. Abschnitt für Abschnitt gegen den Master-Prompt abgeglichen (Tabelle oben);
    kein Abschnitt ohne neuen Ort.
 4. Kein Code angefasst – reine Dokumentation.
 
 ### NEXT
 - P-2026-08-09-03: `STATUS_SNAPSHOT.md` und den History-Snapshot entschlacken
-  (doppelte Aenderungslisten raus, erledigte Bugs in den Verlauf).
+  (doppelte Änderungslisten raus, erledigte Bugs in den Verlauf).
 
 
 ## P-2026-08-09-01 terminal-einrichtungsseite
@@ -10664,41 +10770,41 @@ das entschlackt P-2026-08-09-03.
 - `docs/spezifikation_terminal_installation.md`, `README.md`
 
 ### AKZEPTANZKRITERIUM
-Ein Terminal ohne `config/config.local.php` zeigt statt der Bedienoberflaeche eine Einrichtungsseite; nach Eingabe von Server-Adresse und Kopplungscode schreibt es seine Konfiguration selbst und zeigt beim naechsten Aufruf den normalen RFID-Startbildschirm.
+Ein Terminal ohne `config/config.local.php` zeigt statt der Bedienoberfläche eine Einrichtungsseite; nach Eingabe von Server-Adresse und Kopplungscode schreibt es seine Konfiguration selbst und zeigt beim nächsten Aufruf den normalen RFID-Startbildschirm.
 
-### DONE – Stufe 2 ist damit vollstaendig
-- **Erkennung:** `public/terminal.php` prueft vor allem Datenbank-Kram, ob `config/config.local.php` existiert. Fehlt sie, uebernimmt die Einrichtungsseite – egal welche `?aktion=…` aufgerufen wurde. Ausnahme `?aktion=health`, damit eine Ueberwachung auch ein frisches Geraet abfragen kann.
-- **Bewusst nicht an der Datenbankverbindung festgemacht.** Die Vorgabe nannte „keine `config.local.php` **bzw. keine Datenbankverbindung**“. Das zweite Kriterium waere ein schwerer Fehler: Ein Terminal ohne Netz ist kein unkonfiguriertes Terminal, der Offline-Betrieb mit Queue ist eine gewollte Betriebsart. Bei jeder Netzstoerung stuende sonst die Halle vor einer Maske, die nach einem Kopplungscode fragt – und die zwischengespeicherten Buchungen waeren verloren.
-- **Touch-Bedienung:** zwei grosse Felder mit eigener Bildschirmtastatur. Fuer den Kopplungscode enthaelt sie **nur** die Zeichen, die im Code vorkommen koennen (kein O/0, kein I/1/L) – damit ist das Abtippen vom Zettel praktisch fehlerfrei. Kleinschreibung und Bindestriche bleiben erlaubt, der Server normalisiert.
-- **Adresse ohne Pfadwissen:** Es genuegt `192.168.10.5` oder `server/zeiterfassung`. Probiert werden `…/index.php` und `…/public/index.php`, weil der Webserver je nach Installation auf `public/` oder auf das Projektverzeichnis zeigt. Ein Fehlversuch auf dem falschen Pfad verbraucht den Code nicht – dort laeuft der Endpunkt gar nicht.
+### DONE – Stufe 2 ist damit vollständig
+- **Erkennung:** `public/terminal.php` prüft vor allem Datenbank-Kram, ob `config/config.local.php` existiert. Fehlt sie, übernimmt die Einrichtungsseite – egal welche `?aktion=…` aufgerufen wurde. Ausnahme `?aktion=health`, damit eine Überwachung auch ein frisches Gerät abfragen kann.
+- **Bewusst nicht an der Datenbankverbindung festgemacht.** Die Vorgabe nannte „keine `config.local.php` **bzw. keine Datenbankverbindung**“. Das zweite Kriterium wäre ein schwerer Fehler: Ein Terminal ohne Netz ist kein unkonfiguriertes Terminal, der Offline-Betrieb mit Queue ist eine gewollte Betriebsart. Bei jeder Netzstörung stünde sonst die Halle vor einer Maske, die nach einem Kopplungscode fragt – und die zwischengespeicherten Buchungen wären verloren.
+- **Touch-Bedienung:** zwei große Felder mit eigener Bildschirmtastatur. Für den Kopplungscode enthält sie **nur** die Zeichen, die im Code vorkommen können (kein O/0, kein I/1/L) – damit ist das Abtippen vom Zettel praktisch fehlerfrei. Kleinschreibung und Bindestriche bleiben erlaubt, der Server normalisiert.
+- **Adresse ohne Pfadwissen:** Es genügt `192.168.10.5` oder `server/zeiterfassung`. Probiert werden `…/index.php` und `…/public/index.php`, weil der Webserver je nach Installation auf `public/` oder auf das Projektverzeichnis zeigt. Ein Fehlversuch auf dem falschen Pfad verbraucht den Code nicht – dort läuft der Endpunkt gar nicht.
 - **Weiterleitungen werden angezeigt, nicht verfolgt.** Eine Umleitung kann auf einen anderen Rechner zeigen, und dorthin gehen Zugangsdaten.
-- **Schreiben in zwei Schritten:** erst vollstaendig daneben, gegenlesen, dann umbenennen. Eine halb geschriebene `config.local.php` waere schlimmer als gar keine – sie wuerde eingelesen und koennte das Geraet **dauerhaft** lahmlegen, weil dann auch die Einrichtungsseite nicht mehr erscheint. Rechte 0640, die Datei enthaelt ein Passwort.
-- **Scheitert das Schreiben, wird der Dateiinhalt zum Uebernehmen angezeigt.** Der Code ist zu diesem Zeitpunkt verbraucht; ein blosses „Fehler“ wuerde den Monteur zwingen, im Backend einen neuen zu holen. Fehlende Schreibrechte stehen ausserdem schon vor dem Koppeln als Hinweis auf der Seite.
-- **Eine vorhandene Konfiguration wird nie ueberschrieben** – sonst liesse sich ein laufendes Terminal ueber diese Seite auf einen fremden Server umbiegen.
-- **Die Warnung „lief ueber HTTP“** aus der Antwort wird nach dem Speichern gross angezeigt (Punkt 4 der Vorgabe).
-- **Neue Schnittstelle `config/geraet.local.php`** fuer das, was der **Maschine** gehoert und beim Koppeln gar nicht geliefert werden kann: Zugangsdaten der lokalen Ausweichdatenbank und die RFID-Bridge. Uebernommen werden nur diese beiden Bloecke; die Hauptdatenbank kommt ausschliesslich aus der Kopplung. Fehlt die Datei, koppelt das Terminal trotzdem und sagt ausdruecklich, dass es bei einem Netzausfall nichts zwischenspeichern kann.
+- **Schreiben in zwei Schritten:** erst vollständig daneben, gegenlesen, dann umbenennen. Eine halb geschriebene `config.local.php` wäre schlimmer als gar keine – sie würde eingelesen und könnte das Gerät **dauerhaft** lahmlegen, weil dann auch die Einrichtungsseite nicht mehr erscheint. Rechte 0640, die Datei enthält ein Passwort.
+- **Scheitert das Schreiben, wird der Dateiinhalt zum Übernehmen angezeigt.** Der Code ist zu diesem Zeitpunkt verbraucht; ein bloßes „Fehler“ würde den Monteur zwingen, im Backend einen neuen zu holen. Fehlende Schreibrechte stehen außerdem schon vor dem Koppeln als Hinweis auf der Seite.
+- **Eine vorhandene Konfiguration wird nie überschrieben** – sonst ließe sich ein laufendes Terminal über diese Seite auf einen fremden Server umbiegen.
+- **Die Warnung „lief über HTTP“** aus der Antwort wird nach dem Speichern groß angezeigt (Punkt 4 der Vorgabe).
+- **Neue Schnittstelle `config/geraet.local.php`** für das, was der **Maschine** gehört und beim Koppeln gar nicht geliefert werden kann: Zugangsdaten der lokalen Ausweichdatenbank und die RFID-Bridge. Übernommen werden nur diese beiden Blöcke; die Hauptdatenbank kommt ausschließlich aus der Kopplung. Fehlt die Datei, koppelt das Terminal trotzdem und sagt ausdrücklich, dass es bei einem Netzausfall nichts zwischenspeichern kann.
 
 ### GEFUNDENE FEHLER IM EIGENEN ENTWURF
-- **`curl_close()` ist seit PHP 8.5 veraltet** und erzeugte bei jedem Kopplungsversuch eine Deprecation-Meldung – ein Verstoss gegen die PHP-Baseline aus dem Master-Prompt. Der Aufruf ist seit PHP 8.0 ohnehin wirkungslos und wurde entfernt (auf der Mindestversion 8.2 unbedenklich).
-- **Der realpath-Cache merkt sich auch, dass eine Datei nicht existiert.** Ohne Gegenmassnahme haette ein Arbeitsprozess die gerade geschriebene `config.local.php` bis zu zwei Minuten uebersehen und das frisch gekoppelte Terminal weiter zur Einrichtung geschickt. `config/config.php` leert den Eintrag deshalb jetzt gezielt, bevor es prueft.
+- **`curl_close()` ist seit PHP 8.5 veraltet** und erzeugte bei jedem Kopplungsversuch eine Deprecation-Meldung – ein Verstoß gegen die PHP-Baseline aus dem Master-Prompt. Der Aufruf ist seit PHP 8.0 ohnehin wirkungslos und wurde entfernt (auf der Mindestversion 8.2 unbedenklich).
+- **Der realpath-Cache merkt sich auch, dass eine Datei nicht existiert.** Ohne Gegenmaßnahme hätte ein Arbeitsprozess die gerade geschriebene `config.local.php` bis zu zwei Minuten übersehen und das frisch gekoppelte Terminal weiter zur Einrichtung geschickt. `config/config.php` leert den Eintrag deshalb jetzt gezielt, bevor es prüft.
 
 ### BESTAETIGT: der dokumentierte Stolperstein ist real
 Beim ersten Durchlauf schlug die Anmeldung des Terminal-Benutzers fehl. Ursache war genau das, was in der Spezifikation als Stolperstein steht: Anonyme Konten (`''@'localhost'`) verdecken ein `%`-Konto, wenn Terminal und Datenbank auf demselben Rechner liegen. Mit `terminal_db_host_muster = localhost` lief es sofort. Kein Codefehler – aber der Beleg, dass der Hinweis in der Doku gebraucht wird.
 
-### TEST (zwei getrennte Installationen, ueber echte Webserver)
+### TEST (zwei getrennte Installationen, über echte Webserver)
 Aufbau wie in der Praxis: Backend unter Apache (`http://localhost/zeiterfassung`), das Terminal als **eigene** Installation ohne `config.local.php` auf einem zweiten Webserver.
-1. Unkonfiguriertes Geraet: `start`, `kommen`, `logout`, `auftrag_starten` landen alle auf der Einrichtungsseite; `health` antwortet weiterhin (503, weil keine Datenbank).
+1. Unkonfiguriertes Gerät: `start`, `kommen`, `logout`, `auftrag_starten` landen alle auf der Einrichtungsseite; `health` antwortet weiterhin (503, weil keine Datenbank).
 2. Kopplung mit `localhost/zeiterfassung` (ohne Schema, ohne Pfad zu `index.php`) und Code in Kleinschreibung **mit Bindestrich**: erfolgreich.
 3. **Durchstich:** Direkt danach – derselbe Serverprozess – zeigt `terminal.php` den normalen RFID-Startbildschirm, `health` meldet `hauptdb_verfuegbar: true`.
-4. Echte Anmeldung mit einem vorhandenen RFID-Code: Hauptmenue inklusive rechteabhaengiger Knoepfe wird korrekt aufgebaut – der eingeschraenkte Datenbankbenutzer traegt den gesamten Terminalpfad.
-5. Mit `config/geraet.local.php`: Offline-Block wird uebernommen, `health` meldet `queue_speicherort: offline`. Ohne die Datei: `enabled => false` plus sichtbarer Hinweis.
-6. Fehlerpfade: leere Adresse, leerer Code, unbekannter Code, toter Port, Webserver ohne Zeiterfassung (404), unbrauchbare Adresse, fehlendes CSRF-Token – jeweils verstaendliche Meldung, **keine** Konfiguration angelegt.
+4. Echte Anmeldung mit einem vorhandenen RFID-Code: Hauptmenü inklusive rechteabhängiger Knöpfe wird korrekt aufgebaut – der eingeschränkte Datenbankbenutzer trägt den gesamten Terminalpfad.
+5. Mit `config/geraet.local.php`: Offline-Block wird übernommen, `health` meldet `queue_speicherort: offline`. Ohne die Datei: `enabled => false` plus sichtbarer Hinweis.
+6. Fehlerpfade: leere Adresse, leerer Code, unbekannter Code, toter Port, Webserver ohne Zeiterfassung (404), unbrauchbare Adresse, fehlendes CSRF-Token – jeweils verständliche Meldung, **keine** Konfiguration angelegt.
 7. Weiterleitung (302 von einem Testserver): Zieladresse wird genannt, ihr wird nicht gefolgt.
-8. `config/` schreibgeschuetzt: Hinweis schon vor dem Koppeln; nach dem Koppeln wird der vollstaendige Dateiinhalt inklusive Zugangsdaten zum Abtippen angezeigt.
-9. Bei vorhandener Konfiguration ist die Einrichtungsseite nicht mehr erreichbar (GET wie POST landen auf dem Startbildschirm), die Konfiguration bleibt unveraendert.
-10. Ohne cURL (`disable_functions=curl_init`): Erfolg, Verbindungsfehler und Weiterleitung verhalten sich gleich – die Rueckfallebene ueber Streams traegt.
+8. `config/` schreibgeschützt: Hinweis schon vor dem Koppeln; nach dem Koppeln wird der vollständige Dateiinhalt inklusive Zugangsdaten zum Abtippen angezeigt.
+9. Bei vorhandener Konfiguration ist die Einrichtungsseite nicht mehr erreichbar (GET wie POST landen auf dem Startbildschirm), die Konfiguration bleibt unverändert.
+10. Ohne cURL (`disable_functions=curl_init`): Erfolg, Verbindungsfehler und Weiterleitung verhalten sich gleich – die Rückfallebene über Streams trägt.
 11. Unter `error_reporting=E_ALL` auf PHP 8.5 keine einzige Meldung, weder im Erfolgs- noch in einem Fehlerpfad.
-12. Testdaten wieder entfernt: Terminal, Kopplungen, Datenbankbenutzer und Protokolleintraege geloescht, `terminal_db_host_muster` zurueck auf `%`.
+12. Testdaten wieder entfernt: Terminal, Kopplungen, Datenbankbenutzer und Protokolleinträge gelöscht, `terminal_db_host_muster` zurück auf `%`.
 
 ### NEXT (Stufe 3)
 - Grundsystem-Skript: Pakete, Code, Webserver, lokale Ausweichdatenbank samt `config/geraet.local.php`.
@@ -10715,32 +10821,32 @@ Aufbau wie in der Praxis: Backend unter Apache (`http://localhost/zeiterfassung`
 - `docs/spezifikation_terminal_installation.md`, `docs/rechte_prompt.md`
 
 ### AKZEPTANZKRITERIUM
-Ein Terminal, das den im Backend erzeugten Kopplungscode an `?seite=terminal_kopplung` schickt, bekommt Terminal-ID, funktionierende Zugangsdaten und seine Einstellungen als JSON zurueck – und derselbe Code funktioniert danach nicht mehr.
+Ein Terminal, das den im Backend erzeugten Kopplungscode an `?seite=terminal_kopplung` schickt, bekommt Terminal-ID, funktionierende Zugangsdaten und seine Einstellungen als JSON zurück – und derselbe Code funktioniert danach nicht mehr.
 
-### DONE – Stufe 1 ist damit vollstaendig
-- **Der Endpunkt** (`?seite=terminal_kopplung`, nur POST, JSON) loest den Code ein, legt den Datenbankbenutzer an und haelt in `terminal` fest, welcher Benutzer zu welchem Geraet gehoert. Bewusst **ohne Anmeldung** – ein frisches Geraet hat keinen Benutzer, der Code ist der Nachweis.
+### DONE – Stufe 1 ist damit vollständig
+- **Der Endpunkt** (`?seite=terminal_kopplung`, nur POST, JSON) löst den Code ein, legt den Datenbankbenutzer an und hält in `terminal` fest, welcher Benutzer zu welchem Gerät gehört. Bewusst **ohne Anmeldung** – ein frisches Gerät hat keinen Benutzer, der Code ist der Nachweis.
 - **Ein Fehlschlag sagt nicht, warum.** Unbekannt, abgelaufen oder verbraucht – das steht nur im Serverprotokoll. Alles andere hilft nur beim Durchprobieren.
-- **Fehlversuche werden gebremst** (Standard 10 in 10 Minuten je Absender-IP, gezaehlt ueber `system_log`). Waehrend der Sperre wird auch ein gueltiger Code abgewiesen, **ohne ihn zu verbrauchen** – sonst waere die Bremse selbst eine Moeglichkeit, fremde Codes zu entwerten. `X-Forwarded-For` wird bewusst nicht ausgewertet: den Kopf darf jeder frei setzen.
-- **Kein halber Zustand:** Schlaegt das Speichern fehl, wird der eben angelegte Datenbankbenutzer wieder entfernt. Ein Zugang, von dem das Backend nichts weiss, waere spaeter nicht zuzuordnen und bliebe fuer immer gueltig.
-- **Ein stillgelegtes Terminal koppelt nicht** (`aktiv = 0`) – ein ausgemustertes Geraet soll sich nicht zurueckholen koennen.
-- **Klare Meldung, wenn dem Server die Rechte fehlen** (`CREATE USER`): Das ist ein Einrichtungsfehler und darf beim Monteur nicht als „Code ungueltig“ ankommen – sonst sucht er am falschen Ende.
-- **Ohne HTTPS** enthaelt die Antwort ein Feld `warnung`; die Einrichtungsseite kann es anzeigen. Zugangsdaten gehen bei der Kopplung ueber das Netz.
+- **Fehlversuche werden gebremst** (Standard 10 in 10 Minuten je Absender-IP, gezählt über `system_log`). Während der Sperre wird auch ein gültiger Code abgewiesen, **ohne ihn zu verbrauchen** – sonst wäre die Bremse selbst eine Möglichkeit, fremde Codes zu entwerten. `X-Forwarded-For` wird bewusst nicht ausgewertet: den Kopf darf jeder frei setzen.
+- **Kein halber Zustand:** Schlägt das Speichern fehl, wird der eben angelegte Datenbankbenutzer wieder entfernt. Ein Zugang, von dem das Backend nichts weiß, wäre später nicht zuzuordnen und bliebe für immer gültig.
+- **Ein stillgelegtes Terminal koppelt nicht** (`aktiv = 0`) – ein ausgemustertes Gerät soll sich nicht zurückholen können.
+- **Klare Meldung, wenn dem Server die Rechte fehlen** (`CREATE USER`): Das ist ein Einrichtungsfehler und darf beim Monteur nicht als „Code ungültig“ ankommen – sonst sucht er am falschen Ende.
+- **Ohne HTTPS** enthält die Antwort ein Feld `warnung`; die Einrichtungsseite kann es anzeigen. Zugangsdaten gehen bei der Kopplung über das Netz.
 
 ### GEFUNDENES PROBLEM IM EIGENEN ENTWURF
-- Die erste Fassung haette dem Terminal den Datenbank-Host **aus der Backend-Konfiguration** geschickt. Dort steht ueblicherweise `localhost` – ein Terminal in der Halle haette damit sich selbst angesprochen und die Kopplung waere still nutzlos gewesen. Jetzt: `config: terminal_db_host_extern`, sonst der konfigurierte Host, und wenn der lokal ist, die Adresse, unter der das Terminal das Backend erreicht hat (Portangabe wird entfernt, IPv6 beruecksichtigt).
+- Die erste Fassung hätte dem Terminal den Datenbank-Host **aus der Backend-Konfiguration** geschickt. Dort steht üblicherweise `localhost` – ein Terminal in der Halle hätte damit sich selbst angesprochen und die Kopplung wäre still nutzlos gewesen. Jetzt: `config: terminal_db_host_extern`, sonst der konfigurierte Host, und wenn der lokal ist, die Adresse, unter der das Terminal das Backend erreicht hat (Portangabe wird entfernt, IPv6 berücksichtigt).
 
-### TEST (ueber den laufenden Webserver, nicht nur im Code)
+### TEST (über den laufenden Webserver, nicht nur im Code)
 1. GET wird mit 405 abgewiesen, fehlender Code mit 400, erfundener Code mit 403 – und die Meldung nennt den Grund nicht.
-2. Regulaere Kopplung: 200, richtige Terminal-ID, Name, Auto-Logout (45 s) und beide Offline-Schalter korrekt uebertragen.
+2. Reguläre Kopplung: 200, richtige Terminal-ID, Name, Auto-Logout (45 s) und beide Offline-Schalter korrekt übertragen.
 3. **Durchstich:** Mit den gelieferten Zugangsdaten wurde eine echte Datenbankverbindung aufgebaut, gelesen – und ein `DELETE` wurde weiterhin verweigert.
-4. `db_benutzer`, `db_benutzer_host`, `gekoppelt_am` und die Geraetekennung stehen danach im Terminal-Datensatz.
+4. `db_benutzer`, `db_benutzer_host`, `gekoppelt_am` und die Gerätekennung stehen danach im Terminal-Datensatz.
 5. Derselbe Code ein zweites Mal: 403.
 6. Erneute Kopplung: neues Passwort, altes gilt nicht mehr, genau ein Datenbankbenutzer je Terminal.
 7. Stillgelegtes Terminal: 403 mit nachvollziehbarer Meldung.
-8. Bremse: nach mehreren Fehlversuchen 429, auch fuer einen gueltigen Code – der dabei nicht verbraucht wurde.
-9. Ableitung der Datenbank-Adresse mit `HTTP_HOST` inkl. Portangabe geprueft.
-10. Unter `error_reporting=E_ALL` auf PHP 8.5 keine einzige Meldung; die Antwort ist in allen Faellen gueltiges JSON.
-11. Nachgereicht zu P-35: `INSERT INTO system_log` mit der richtigen Spalte `loglevel` geprueft (die Probe im vorherigen Test hatte einen falschen Spaltennamen und war deshalb nicht aussagekraeftig).
+8. Bremse: nach mehreren Fehlversuchen 429, auch für einen gültigen Code – der dabei nicht verbraucht wurde.
+9. Ableitung der Datenbank-Adresse mit `HTTP_HOST` inkl. Portangabe geprüft.
+10. Unter `error_reporting=E_ALL` auf PHP 8.5 keine einzige Meldung; die Antwort ist in allen Fällen gültiges JSON.
+11. Nachgereicht zu P-35: `INSERT INTO system_log` mit der richtigen Spalte `loglevel` geprüft (die Probe im vorherigen Test hatte einen falschen Spaltennamen und war deshalb nicht aussagekräftig).
 
 ### NEXT (Stufe 2)
 - Einrichtungsseite im Terminal: erkennt fehlende Konfiguration, fragt Adresse und Code ab, schreibt `config.local.php`.
@@ -10757,41 +10863,41 @@ Ein Terminal, das den im Backend erzeugten Kopplungscode an `?seite=terminal_kop
 - `core/DefaultsSeeder.php`, `docs/spezifikation_terminal_installation.md`
 
 ### AKZEPTANZKRITERIUM
-Ein fuer ein Terminal angelegter Datenbankbenutzer kann stempeln, Auftragszeiten buchen und den Monatsstatus anzeigen, aber nichts loeschen, keine Rechte vergeben und nichts am Stundenkonto aendern.
+Ein für ein Terminal angelegter Datenbankbenutzer kann stempeln, Auftragszeiten buchen und den Monatsstatus anzeigen, aber nichts löschen, keine Rechte vergeben und nichts am Stundenkonto ändern.
 
 ### DONE – zweiter Baustein von Stufe 1c
-- **Ein eigener Datenbankbenutzer je Terminal** (`term_<name>_<id>`, 32-stelliges Zufallspasswort) mit eng gefassten Rechten. Bewusst ohne Endpunkt: Dieser Teil ist fuer sich pruefbar, und genau das war noetig – siehe „Befund“.
-- **Die ID haengt hinten an den Namen.** Zwei Terminals duerfen gleich heissen, zwei Datenbankbenutzer nicht.
-- **Erneute Kopplung ersetzt den Benutzer**, statt einen zweiten anzulegen; ein umbenanntes Terminal laesst keinen verwaisten Zugang zurueck.
-- **Kein halber Zustand:** Schlaegt eine der GRANT-Anweisungen fehl, wird der eben angelegte Benutzer wieder entfernt. Ein Zugang mit unvollstaendigen Rechten waere schlimmer als gar keiner, weil das Terminal dann erst spaeter und sporadisch scheitert.
-- **Passwort taucht nirgends auf:** nicht im Protokoll, nicht in der Datenbank des Backends. Es wird einmal geantwortet und ist danach nur noch auf dem Geraet.
-- **Zu den prepared statements:** `CREATE USER` und `GRANT` sind DDL, dort erlaubt MySQL/MariaDB keine Platzhalter. Statt zu escapen wird eingegrenzt – Benutzername, Host und alle Bezeichner werden gegen ein enges Muster geprueft, das Passwort besteht nur aus Buchstaben und Ziffern. Was nicht passt, wird nicht ausgefuehrt.
-- **Host-Muster einstellbar** (`config: terminal_db_host_muster`, Standard `%`). Standard bewusst weit: Terminals bekommen ihre Adresse per DHCP, eine feste Bindung kappt beim naechsten Neustart still den Zugang.
-- Die Rechte des **Backend**-Benutzers (`CREATE USER`, `GRANT OPTION`) kann die Anwendung sich nicht selbst geben – sie stehen als auskommentierte Anweisungen in der Migration und sind dort begruendet.
+- **Ein eigener Datenbankbenutzer je Terminal** (`term_<name>_<id>`, 32-stelliges Zufallspasswort) mit eng gefassten Rechten. Bewusst ohne Endpunkt: Dieser Teil ist für sich prüfbar, und genau das war nötig – siehe „Befund“.
+- **Die ID hängt hinten an den Namen.** Zwei Terminals dürfen gleich heißen, zwei Datenbankbenutzer nicht.
+- **Erneute Kopplung ersetzt den Benutzer**, statt einen zweiten anzulegen; ein umbenanntes Terminal lässt keinen verwaisten Zugang zurück.
+- **Kein halber Zustand:** Schlägt eine der GRANT-Anweisungen fehl, wird der eben angelegte Benutzer wieder entfernt. Ein Zugang mit unvollständigen Rechten wäre schlimmer als gar keiner, weil das Terminal dann erst später und sporadisch scheitert.
+- **Passwort taucht nirgends auf:** nicht im Protokoll, nicht in der Datenbank des Backends. Es wird einmal geantwortet und ist danach nur noch auf dem Gerät.
+- **Zu den prepared statements:** `CREATE USER` und `GRANT` sind DDL, dort erlaubt MySQL/MariaDB keine Platzhalter. Statt zu escapen wird eingegrenzt – Benutzername, Host und alle Bezeichner werden gegen ein enges Muster geprüft, das Passwort besteht nur aus Buchstaben und Ziffern. Was nicht passt, wird nicht ausgeführt.
+- **Host-Muster einstellbar** (`config: terminal_db_host_muster`, Standard `%`). Standard bewusst weit: Terminals bekommen ihre Adresse per DHCP, eine feste Bindung kappt beim nächsten Neustart still den Zugang.
+- Die Rechte des **Backend**-Benutzers (`CREATE USER`, `GRANT OPTION`) kann die Anwendung sich nicht selbst geben – sie stehen als auskommentierte Anweisungen in der Migration und sind dort begründet.
 
 ### BEFUND – die Rechteliste der Spezifikation war zu eng
 Beim Abgleich mit dem Code zeigte sich, dass der Vorschlag aus der Spezifikation
-das Terminal an vier Stellen lahmgelegt haette. Deshalb wurde die Liste aus dem
-Code hergeleitet statt uebernommen, und die Spezifikation nachgezogen:
-- **Rollen und Rechte muessen lesbar sein** – ohne das waere am Terminal jeder Mitarbeiter rechtlos (keine Genehmiger-Knoepfe).
+das Terminal an vier Stellen lahmgelegt hätte. Deshalb wurde die Liste aus dem
+Code hergeleitet statt übernommen, und die Spezifikation nachgezogen:
+- **Rollen und Rechte müssen lesbar sein** – ohne das wäre am Terminal jeder Mitarbeiter rechtlos (keine Genehmiger-Knöpfe).
 - **`stundenkonto_korrektur` muss lesbar sein** – das Terminal zeigt seit P-2026-01-17-19 Gut-/Minusstunden. Schreiben darf es dort nichts; `stundenkonto_batch` bleibt ganz gesperrt.
 - **`urlaubsantrag` braucht UPDATE** – Genehmiger entscheiden laut Master-Prompt (13) auch am Terminal.
-- **`feiertag` braucht INSERT** – der `UrlaubService` generiert Feiertage bei Bedarf nach. Ohne das Recht rechnet ein Terminal im Januar still ohne die Feiertage des neuen Jahres; dieses lautlose Falschrechnen ist gefaehrlicher als das Recht.
+- **`feiertag` braucht INSERT** – der `UrlaubService` generiert Feiertage bei Bedarf nach. Ohne das Recht rechnet ein Terminal im Januar still ohne die Feiertage des neuen Jahres; dieses lautlose Falschrechnen ist gefährlicher als das Recht.
 
 ### NICHT ERREICHT
-- `passwort_hash` laesst sich derzeit **nicht** ausschliessen (Spaltenrechte vertragen kein `SELECT *`, `MitarbeiterModel` arbeitet aber so). Als **T-101** festgehalten, statt es stillschweigend hinzunehmen.
+- `passwort_hash` lässt sich derzeit **nicht** ausschließen (Spaltenrechte vertragen kein `SELECT *`, `MitarbeiterModel` arbeitet aber so). Als **T-101** festgehalten, statt es stillschweigend hinzunehmen.
 
 ### TEST
 1. 22 Proben „muss gehen“: Stempeln, Auftrag anlegen/starten/stoppen, Urlaubsantrag stellen und entscheiden, RFID zuweisen, Monatsstatus, Gut-/Minusstunden, Feiertage nachtragen, Protokoll, Offline-Queue – alle erlaubt.
-2. 13 Proben „darf nicht gehen“: DELETE, Stundenkonto schreiben, `stundenkonto_batch` lesen, Rechte vergeben, Passwort/Namen aendern, Konfiguration aendern, **Kopplungscodes lesen**, `terminal.db_benutzer` aendern, ALTER, DROP, fremdes Schema – alle verweigert.
+2. 13 Proben „darf nicht gehen“: DELETE, Stundenkonto schreiben, `stundenkonto_batch` lesen, Rechte vergeben, Passwort/Namen ändern, Konfiguration ändern, **Kopplungscodes lesen**, `terminal.db_benutzer` ändern, ALTER, DROP, fremdes Schema – alle verweigert.
 3. Erneute Kopplung: gleicher Name, neues Passwort; das alte Passwort funktioniert danach nicht mehr.
-4. Umbenanntes Terminal: alter Benutzer verschwindet, genau einer bleibt uebrig.
-5. Namensableitung geprueft, auch fuer leere Namen, reine Sonderzeichen und ueberlange Namen (immer <= 32 Zeichen, Muster eingehalten).
-6. Neuinstallation aus dem Initialschema: 35 Tabellen, 30 Rechte, alle vier neuen Spalten; alle fuenf Migrationen zweimal hintereinander durchlaufen.
+4. Umbenanntes Terminal: alter Benutzer verschwindet, genau einer bleibt übrig.
+5. Namensableitung geprüft, auch für leere Namen, reine Sonderzeichen und überlange Namen (immer <= 32 Zeichen, Muster eingehalten).
+6. Neuinstallation aus dem Initialschema: 35 Tabellen, 30 Rechte, alle vier neuen Spalten; alle fünf Migrationen zweimal hintereinander durchlaufen.
 7. Keine PHP-Meldungen.
 
 ### NEXT (Stufe 1c, Teil 2)
-- Kopplungs-Endpunkt, der Code-Einloesung, Benutzeranlage und Antwort zusammenfuehrt.
+- Kopplungs-Endpunkt, der Code-Einlösung, Benutzeranlage und Antwort zusammenführt.
 
 
 ## P-2026-08-08-31 terminal-kopplung-backend
@@ -10801,23 +10907,23 @@ Code hergeleitet statt uebernommen, und die Spezifikation nachgezogen:
 
 ### DONE
 - In der **vorhandenen** Terminalverwaltung ein Knopf „Kopplungscode“ je Zeile – keine zweite Maske. Wer ein Terminal anlegt, macht das weiterhin dort, wo er es immer gemacht hat.
-- Der erzeugte Code wird **einmal gross und gut lesbar** angezeigt, mit dem ausdruecklichen Hinweis, dass er danach nicht mehr abrufbar ist und 30 Minuten gilt.
-- Weitergereicht wird er ueber die Sitzung und dort **sofort verbraucht**: Er steht damit nicht in der Adresszeile (und nicht im Browserverlauf) und bleibt auch nicht in der Sitzung liegen. Ein zweiter Aufruf der Liste zeigt ihn nicht mehr.
+- Der erzeugte Code wird **einmal groß und gut lesbar** angezeigt, mit dem ausdrücklichen Hinweis, dass er danach nicht mehr abrufbar ist und 30 Minuten gilt.
+- Weitergereicht wird er über die Sitzung und dort **sofort verbraucht**: Er steht damit nicht in der Adresszeile (und nicht im Browserverlauf) und bleibt auch nicht in der Sitzung liegen. Ein zweiter Aufruf der Liste zeigt ihn nicht mehr.
 - Solange ein Code offen ist, steht in der Zeile „Code offen bis …“ – ohne den Code selbst.
-- Geschuetzt durch das vorhandene Recht `TERMINAL_VERWALTEN` und CSRF-Token.
+- Geschützt durch das vorhandene Recht `TERMINAL_VERWALTEN` und CSRF-Token.
 
 ### GEFUNDENER FEHLER
-- Erster Testlauf scheiterte an `Undefined property: TerminalAdminController::$db` – der Controller heisst seine Datenbank-Eigenschaft `$datenbank`, nicht `$db`. Beim Uebernehmen des Musters aus einem anderen Controller uebersehen; behoben und nachgetestet.
+- Erster Testlauf scheiterte an `Undefined property: TerminalAdminController::$db` – der Controller heißt seine Datenbank-Eigenschaft `$datenbank`, nicht `$db`. Beim Übernehmen des Musters aus einem anderen Controller übersehen; behoben und nachgetestet.
 
 ### TEST
 1. Falsches CSRF-Token und unbekannte Terminal-ID werden mit Meldung abgewiesen.
-2. Regulaerer Aufruf erzeugt den Code (`92HTMC5W`) fuer das richtige Terminal.
+2. Regulärer Aufruf erzeugt den Code (`92HTMC5W`) für das richtige Terminal.
 3. Liste zeigt Code, Einmal-Hinweis und „Code offen bis …“; beim zweiten Aufruf ist der Code verschwunden.
-4. **Durchgaengig geprueft:** Der im Backend erzeugte Code laesst sich anschliessend ueber `TerminalKopplungService::loeseCodeEin()` einloesen und liefert das richtige Terminal – Stufe 1a und 1b greifen also ineinander.
+4. **Durchgängig geprüft:** Der im Backend erzeugte Code lässt sich anschließend über `TerminalKopplungService::loeseCodeEin()` einlösen und liefert das richtige Terminal – Stufe 1a und 1b greifen also ineinander.
 5. Keine PHP-Meldungen.
 
 ### NEXT (Stufe 1c)
-- Kopplungs-Endpunkt fuer das Terminal inkl. Anlage des eingeschraenkten Datenbankbenutzers.
+- Kopplungs-Endpunkt für das Terminal inkl. Anlage des eingeschränkten Datenbankbenutzers.
 
 
 ## P-2026-08-08-30 terminal-kopplung-codes
@@ -10830,68 +10936,68 @@ Code hergeleitet statt uebernommen, und die Spezifikation nachgezogen:
 - `sql/05_migration_terminal_kopplung.sql` (neu), `sql/01_initial_schema.sql`, `sql/README.md`
 
 ### DONE – erster Baustein der Terminal-Kopplung
-- Tabelle `terminal_kopplung` und Dienst zum **Erzeugen und Einloesen** von Kopplungscodes. Bewusst ohne Oberflaeche und ohne Datenbankbenutzer-Anlage – dieser Teil ist fuer sich pruefbar und traegt alles Weitere.
+- Tabelle `terminal_kopplung` und Dienst zum **Erzeugen und Einlösen** von Kopplungscodes. Bewusst ohne Oberfläche und ohne Datenbankbenutzer-Anlage – dieser Teil ist für sich prüfbar und trägt alles Weitere.
 - **Nur der Hash wird gespeichert**, nie der Code. Er wird einmal angezeigt und ist danach nicht rekonstruierbar – wie ein Passwort.
-- **Einmalig und zeitlich begrenzt** (Standard 30 Minuten). Das Verbrauchen laeuft als bedingtes UPDATE, damit auch bei zwei gleichzeitigen Anfragen nur eine gewinnen kann.
-- **Ein gueltiger Code je Geraet:** Eine Neuvergabe entwertet den vorherigen, sonst weiss niemand mehr, welcher Zettel noch zaehlt.
-- **Alphabet ohne Verwechslungen** (kein O/0, kein I/1/L) und Eingabe-Normalisierung, weil der Code an einem Touchscreen in der Halle von einem Zettel abgetippt wird. Bindestriche stoeren nicht.
+- **Einmalig und zeitlich begrenzt** (Standard 30 Minuten). Das Verbrauchen läuft als bedingtes UPDATE, damit auch bei zwei gleichzeitigen Anfragen nur eine gewinnen kann.
+- **Ein gültiger Code je Gerät:** Eine Neuvergabe entwertet den vorherigen, sonst weiß niemand mehr, welcher Zettel noch zählt.
+- **Alphabet ohne Verwechslungen** (kein O/0, kein I/1/L) und Eingabe-Normalisierung, weil der Code an einem Touchscreen in der Halle von einem Zettel abgetippt wird. Bindestriche stören nicht.
 - Fehlversuche werden protokolliert, aber die Meldung nennt **nicht**, ob der Code unbekannt, abgelaufen oder verbraucht war – das hilft nur beim Durchprobieren.
 
 ### GEFUNDENER FEHLER IM EIGENEN ENTWURF
-- Der erste Test schlug fehl: Nach einer Neuvergabe war der **alte** Code weiterhin gueltig. Ursache: Das Entwerten setzte `gueltig_bis = NOW()`, die Pruefung laesst aber `gueltig_bis >= NOW()` gelten – der alte Code blieb also eine Sekunde lang brauchbar. Behoben, indem beim Entwerten eine Sekunde in die Vergangenheit gesetzt wird.
+- Der erste Test schlug fehl: Nach einer Neuvergabe war der **alte** Code weiterhin gültig. Ursache: Das Entwerten setzte `gueltig_bis = NOW()`, die Prüfung lässt aber `gueltig_bis >= NOW()` gelten – der alte Code blieb also eine Sekunde lang brauchbar. Behoben, indem beim Entwerten eine Sekunde in die Vergangenheit gesetzt wird.
 
 ### TEST
 1. Code erzeugt: 8 Zeichen; in der Datenbank ist **kein Klartext** auffindbar, nur der Hash.
-2. Einloesen liefert den Terminal-Datensatz; ein zweites Einloesen desselben Codes wird abgelehnt.
+2. Einlösen liefert den Terminal-Datensatz; ein zweites Einlösen desselben Codes wird abgelehnt.
 3. Erfundener Code, abgelaufener Code und ein durch Neuvergabe entwerteter Code werden abgelehnt.
 4. Eingabe mit Bindestrich wird normalisiert.
-5. `holeOffeneKopplung()` zeigt Gueltigkeit an und enthaelt den Code nicht.
-6. Neuinstallation aus dem Initialschema: 35 Tabellen inkl. `terminal_kopplung`; Migration laeuft idempotent darueber.
+5. `holeOffeneKopplung()` zeigt Gültigkeit an und enthält den Code nicht.
+6. Neuinstallation aus dem Initialschema: 35 Tabellen inkl. `terminal_kopplung`; Migration läuft idempotent darüber.
 7. Keine PHP-Meldungen.
 
 ### NEXT (Stufe 1b)
 - Backend-Maske „Terminal anmelden“: Terminal anlegen, Code erzeugen und einmalig anzeigen.
-- Danach Stufe 1c: Kopplungs-Endpunkt inkl. Anlage des eingeschraenkten Datenbankbenutzers.
+- Danach Stufe 1c: Kopplungs-Endpunkt inkl. Anlage des eingeschränkten Datenbankbenutzers.
 
 
 ## P-2026-08-08-29 terminal-spezifikation-kopplung
 
 ### ANLASS
-- Vorschlag aus der Praxis: Das Terminal soll sich per Handshake am Backend anmelden, statt die Zugangsdaten im Installationsskript mitzuschleppen. Der Vorschlag loest genau die Schwachstelle, die in v1 als offener Sicherheitspunkt markiert war.
+- Vorschlag aus der Praxis: Das Terminal soll sich per Handshake am Backend anmelden, statt die Zugangsdaten im Installationsskript mitzuschleppen. Der Vorschlag löst genau die Schwachstelle, die in v1 als offener Sicherheitspunkt markiert war.
 
 ### DATEIEN
 - `docs/spezifikation_terminal_installation.md` (v1 → v2)
 
-### DONE – Architektur geaendert
-- **Aufgabenteilung neu:** Das Skript macht nur noch Maschine und Betriebssystem (Pakete, Code, Webserver, Kiosk, Peripherie). Server-Adresse, Zugangsdaten und Konfiguration kommen aus der **Kopplung** ueber den Browser. Damit kennt das Skript keine Zugangsdaten mehr, und dasselbe Abbild passt auf beliebig viele Geraete.
-- **Einrichtungsseite im Terminal:** Fehlt die Konfiguration, zeigt das Terminal eine Einrichtungsseite statt der Bedienoberflaeche – dieselbe Mechanik wie die bestehende Maske „Erstinstallation“ des Backends. Nichts Neues zu erfinden, nur zu uebertragen.
-- **Kopplungsablauf festgelegt:** Backend erzeugt einen einmaligen, zeitlich begrenzten Kopplungscode; das Terminal meldet sich damit an und erhaelt Zugangsdaten, Terminal-ID und Einstellungen.
-- **Eigener Datenbankbenutzer je Terminal** (so entschieden): einzeln sperrbar, eingeschraenkte Rechte (kein DELETE, kein DROP, kein Zugriff auf Stundenkonto/Lohn), in den Datenbankprotokollen unterscheidbar. Rechtevorschlag je Tabelle ist in der Spezifikation aufgelistet.
-- **Preis dieser Loesung offen benannt:** Damit das Backend Benutzer anlegen kann, braucht sein eigener Datenbankbenutzer `CREATE USER` und `GRANT OPTION`. Wer die Weboberflaeche uebernimmt, koennte damit Datenbankbenutzer anlegen – begrenzt durch die eigenen Rechte des Backends. Als Ausweichweg ist beschrieben, dass das Backend die SQL-Anweisung stattdessen nur anzeigt und der Administrator sie einmal ausfuehrt. **Diese Entscheidung steht noch aus.**
-- **Sicherheitsabschnitt umgeschrieben:** Der frueher offene Punkt gilt als geloest; was bleibt (Zugangsdaten liegen weiterhin lesbar auf dem Geraet, Kopplung ueber das Netz, Abmeldung ausgemusterter Geraete) ist benannt.
-- **Stufenplan angepasst:** Kopplung im Backend und Einrichtungsseite im Terminal sind jetzt Stufe 1 und 2 – der eigentliche Kern, und beide **ohne ein einziges Geraet** baubar und pruefbar.
+### DONE – Architektur geändert
+- **Aufgabenteilung neu:** Das Skript macht nur noch Maschine und Betriebssystem (Pakete, Code, Webserver, Kiosk, Peripherie). Server-Adresse, Zugangsdaten und Konfiguration kommen aus der **Kopplung** über den Browser. Damit kennt das Skript keine Zugangsdaten mehr, und dasselbe Abbild passt auf beliebig viele Geräte.
+- **Einrichtungsseite im Terminal:** Fehlt die Konfiguration, zeigt das Terminal eine Einrichtungsseite statt der Bedienoberfläche – dieselbe Mechanik wie die bestehende Maske „Erstinstallation“ des Backends. Nichts Neues zu erfinden, nur zu übertragen.
+- **Kopplungsablauf festgelegt:** Backend erzeugt einen einmaligen, zeitlich begrenzten Kopplungscode; das Terminal meldet sich damit an und erhält Zugangsdaten, Terminal-ID und Einstellungen.
+- **Eigener Datenbankbenutzer je Terminal** (so entschieden): einzeln sperrbar, eingeschränkte Rechte (kein DELETE, kein DROP, kein Zugriff auf Stundenkonto/Lohn), in den Datenbankprotokollen unterscheidbar. Rechtevorschlag je Tabelle ist in der Spezifikation aufgelistet.
+- **Preis dieser Lösung offen benannt:** Damit das Backend Benutzer anlegen kann, braucht sein eigener Datenbankbenutzer `CREATE USER` und `GRANT OPTION`. Wer die Weboberfläche übernimmt, könnte damit Datenbankbenutzer anlegen – begrenzt durch die eigenen Rechte des Backends. Als Ausweichweg ist beschrieben, dass das Backend die SQL-Anweisung stattdessen nur anzeigt und der Administrator sie einmal ausführt. **Diese Entscheidung steht noch aus.**
+- **Sicherheitsabschnitt umgeschrieben:** Der früher offene Punkt gilt als gelöst; was bleibt (Zugangsdaten liegen weiterhin lesbar auf dem Gerät, Kopplung über das Netz, Abmeldung ausgemusterter Geräte) ist benannt.
+- **Stufenplan angepasst:** Kopplung im Backend und Einrichtungsseite im Terminal sind jetzt Stufe 1 und 2 – der eigentliche Kern, und beide **ohne ein einziges Gerät** baubar und prüfbar.
 
 ### NEXT
-- Entscheidung zum Anlegen der Datenbankbenutzer (automatisch mit erhoehten Rechten oder SQL zum Selbstausfuehren), danach Stufe 1.
+- Entscheidung zum Anlegen der Datenbankbenutzer (automatisch mit erhöhten Rechten oder SQL zum Selbstausführen), danach Stufe 1.
 
 
 ## P-2026-08-08-28 spezifikation-terminal-installation
 
 ### ANLASS
-- Fuer das Backend gibt es einen dokumentierten Weg vom leeren Server bis zum ersten Admin. Fuer Terminals fehlte das Gegenstueck.
+- Für das Backend gibt es einen dokumentierten Weg vom leeren Server bis zum ersten Admin. Für Terminals fehlte das Gegenstück.
 
 ### DATEIEN
 - `docs/spezifikation_terminal_installation.md` (neu)
 - `docs/prompt_uebersicht.md`, `docs/README.md`
 
 ### DONE – Zielbild festgehalten, noch keine Umsetzung
-- **Warum ein Skript und keine Weboberflaeche:** Ein frisches Geraet hat weder Webserver noch PHP – es gibt nichts, was eine Setup-Seite ausliefern koennte. Nach der Installation uebernimmt wieder das Backend ueber die vorhandene Tabelle `terminal`.
-- **Distributionsunabhaengig** ueber eine Erkennungsschicht fuer die vier Paketmanager-Familien (apt, pacman, dnf, zypper) statt einer Festlegung auf eine Distribution.
-- **Zwei Phasen**, weil das Aktivieren von SPI fuer den RC522-Leser einen Neustart erfordert; Phase 2 laeuft danach ueber einen systemd-Einmaldienst weiter.
+- **Warum ein Skript und keine Weboberfläche:** Ein frisches Gerät hat weder Webserver noch PHP – es gibt nichts, was eine Setup-Seite ausliefern könnte. Nach der Installation übernimmt wieder das Backend über die vorhandene Tabelle `terminal`.
+- **Distributionsunabhängig** über eine Erkennungsschicht für die vier Paketmanager-Familien (apt, pacman, dnf, zypper) statt einer Festlegung auf eine Distribution.
+- **Zwei Phasen**, weil das Aktivieren von SPI für den RC522-Leser einen Neustart erfordert; Phase 2 läuft danach über einen systemd-Einmaldienst weiter.
 - **Beide RFID-Varianten** abgedeckt; die vorhandene Anleitung `docs/terminal/rfid-ws_rollout.md` wird automatisiert, nicht ersetzt.
-- **Der Barcode-Scanner ist als Stolperstein benannt:** Er braucht keine Treiber, tippt aber wie eine Tastatur. Bei falschem Tastaturlayout kommen vertauschte Zeichen im Eingabefeld an, und das Terminal bucht klaglos einen falschen Code. Das Setzen des Layouts ist deshalb Pflichtschritt, und der Selbsttest laesst ausdruecklich einen bekannten Code scannen und vergleicht.
-- **Grenzen offen benannt:** USB-RFID-Leser sind von einer Tastatur nicht unterscheidbar, Touchscreen-Drehung ist geraeteabhaengig, SPI braucht einen Neustart, exotische Distributionen brauchen Handarbeit.
-- **Sicherheitshinweis aufgenommen:** Das Terminal traegt die Zugangsdaten zur Hauptdatenbank auf dem Geraet. Wer physisch an ein Hallenterminal kommt, kommt damit an die gesamte Datenbank samt Personendaten. Empfehlung: eigener, eingeschraenkter Datenbankbenutzer fuer Terminals – zu entscheiden **vor** dem ersten Rollout.
+- **Der Barcode-Scanner ist als Stolperstein benannt:** Er braucht keine Treiber, tippt aber wie eine Tastatur. Bei falschem Tastaturlayout kommen vertauschte Zeichen im Eingabefeld an, und das Terminal bucht klaglos einen falschen Code. Das Setzen des Layouts ist deshalb Pflichtschritt, und der Selbsttest lässt ausdrücklich einen bekannten Code scannen und vergleicht.
+- **Grenzen offen benannt:** USB-RFID-Leser sind von einer Tastatur nicht unterscheidbar, Touchscreen-Drehung ist geräteabhängig, SPI braucht einen Neustart, exotische Distributionen brauchen Handarbeit.
+- **Sicherheitshinweis aufgenommen:** Das Terminal trägt die Zugangsdaten zur Hauptdatenbank auf dem Gerät. Wer physisch an ein Hallenterminal kommt, kommt damit an die gesamte Datenbank samt Personendaten. Empfehlung: eigener, eingeschränkter Datenbankbenutzer für Terminals – zu entscheiden **vor** dem ersten Rollout.
 
 ### UMSETZUNG IN STUFEN (geplant)
 1. Grundsystem (Pakete, Code, Konfiguration, Ausweichdatenbank) – im Container testbar.
@@ -10900,7 +11006,7 @@ Code hergeleitet statt uebernommen, und die Spezifikation nachgezogen:
 4. Selbsttest.
 
 ### NEXT
-- Stufe 1 bauen und im Container gegen mindestens zwei Paketmanager-Familien pruefen.
+- Stufe 1 bauen und im Container gegen mindestens zwei Paketmanager-Familien prüfen.
 
 
 ## P-2026-08-08-26 personalnummer-und-ampelfarben
@@ -10909,20 +11015,20 @@ Code hergeleitet statt uebernommen, und die Spezifikation nachgezogen:
 - `views/report/monatsuebersicht.php`
 
 ### DONE
-1. **Personalnummer statt Datenbank-ID:** In Kopfzeile und Mitarbeiterauswahl steht jetzt `(Nr. 234)` statt `(ID 16)`. Fachlich zaehlt die Personalnummer – die ID ist eine rein technische Groesse und sagt in der Verwaltung niemandem etwas. Ist keine Personalnummer gepflegt, wird ersatzweise die ID gezeigt, damit die Zeile eindeutig zuordenbar bleibt.
-2. **Ampelfarben in der aufgeklappten Liste:** `appearance: none` auf dem Auswahlfeld ergaenzt. Ohne das zeichnet Firefox das aufgeklappte Menue als natives Widget und ignoriert die Farben der einzelnen Optionen – auch die per `style` gesetzten. Erst wenn das Feld als selbst gestaltet gilt, werden sie uebernommen. Der Aufklapp-Pfeil wird deshalb per CSS selbst gezeichnet.
+1. **Personalnummer statt Datenbank-ID:** In Kopfzeile und Mitarbeiterauswahl steht jetzt `(Nr. 234)` statt `(ID 16)`. Fachlich zählt die Personalnummer – die ID ist eine rein technische Größe und sagt in der Verwaltung niemandem etwas. Ist keine Personalnummer gepflegt, wird ersatzweise die ID gezeigt, damit die Zeile eindeutig zuordenbar bleibt.
+2. **Ampelfarben in der aufgeklappten Liste:** `appearance: none` auf dem Auswahlfeld ergänzt. Ohne das zeichnet Firefox das aufgeklappte Menü als natives Widget und ignoriert die Farben der einzelnen Optionen – auch die per `style` gesetzten. Erst wenn das Feld als selbst gestaltet gilt, werden sie übernommen. Der Aufklapp-Pfeil wird deshalb per CSS selbst gezeichnet.
 
 ### NACHGEREICHTE PRUEFUNG (2026-08-08, Chrome 148)
-- Mit einer Testseite, die Markup und CSS 1:1 uebernimmt, in einem Chromium-Browser die berechneten Stile ausgelesen: Der Eintrag „erledigt“ hat `rgb(232,245,233)` auf `rgb(27,94,32)`, der Eintrag „offen“ `rgb(255,235,238)` auf `rgb(183,28,28)` – exakt die Werte aus dem Stylesheet.
-- **Ergebnis:** Das Markup ist korrekt, andere Browser faerben die Eintraege. Dass Firefox unter Linux die aufgeklappte Liste einfarbig laesst, ist eine Eigenheit dieser Kombination: Dort zeichnet GTK das Menue und verwirft die Optionsfarben. `appearance: none` wirkt nur auf das geschlossene Feld, nicht auf das Popup.
-- **Entscheidung:** Bleibt so. Die Textzeichen (`✓` / `● offen`) tragen die Information verlaesslich in jedem Browser. Eine selbstgebaute Auswahlliste waere die einzige Alternative – viel Eigenbau (Tastatur, Fokus, Zusammenspiel mit den Stepper-Knoepfen) fuer einen rein optischen Gewinn in genau einer Browser/Betriebssystem-Kombination.
+- Mit einer Testseite, die Markup und CSS 1:1 übernimmt, in einem Chromium-Browser die berechneten Stile ausgelesen: Der Eintrag „erledigt“ hat `rgb(232,245,233)` auf `rgb(27,94,32)`, der Eintrag „offen“ `rgb(255,235,238)` auf `rgb(183,28,28)` – exakt die Werte aus dem Stylesheet.
+- **Ergebnis:** Das Markup ist korrekt, andere Browser färben die Einträge. Dass Firefox unter Linux die aufgeklappte Liste einfarbig lässt, ist eine Eigenheit dieser Kombination: Dort zeichnet GTK das Menü und verwirft die Optionsfarben. `appearance: none` wirkt nur auf das geschlossene Feld, nicht auf das Popup.
+- **Entscheidung:** Bleibt so. Die Textzeichen (`✓` / `● offen`) tragen die Information verlässlich in jedem Browser. Eine selbstgebaute Auswahlliste wäre die einzige Alternative – viel Eigenbau (Tastatur, Fokus, Zusammenspiel mit den Stepper-Knöpfen) für einen rein optischen Gewinn in genau einer Browser/Betriebssystem-Kombination.
 
 ### FRUEHERE EINSCHAETZUNG
-- Die Farbdarstellung im aufgeklappten Menue laesst sich **nicht automatisiert nachweisen** – sie haengt vom Browser und vom Systemthema ab und ist im HTML nicht erkennbar. Geprueft ist nur, dass Regel und Inline-Stile ausgeliefert werden.
-- Deshalb bleiben die **Textzeichen** (`✓` / `● offen`) die verlaessliche Anzeige: Sie kommen in jedem Browser an und sind auch bei Rot-Gruen-Sehschwaeche eindeutig. Sollte Firefox die Farben weiterhin verschlucken, ist die Information trotzdem vollstaendig ablesbar.
+- Die Farbdarstellung im aufgeklappten Menü lässt sich **nicht automatisiert nachweisen** – sie hängt vom Browser und vom Systemthema ab und ist im HTML nicht erkennbar. Geprüft ist nur, dass Regel und Inline-Stile ausgeliefert werden.
+- Deshalb bleiben die **Textzeichen** (`✓` / `● offen`) die verlässliche Anzeige: Sie kommen in jedem Browser an und sind auch bei Rot-Grün-Sehschwäche eindeutig. Sollte Firefox die Farben weiterhin verschlucken, ist die Information trotzdem vollständig ablesbar.
 
 ### TEST
-- Kopfzeile und Auswahl zeigen `(Nr. 234)` fuer den Mitarbeiter mit gepflegter Personalnummer, sonst die ID.
+- Kopfzeile und Auswahl zeigen `(Nr. 234)` für den Mitarbeiter mit gepflegter Personalnummer, sonst die ID.
 - `appearance: none` und die Inline-Farben sind im ausgelieferten HTML vorhanden.
 - Laufender und vergangener Monat gerendert, keine PHP-Meldungen.
 
@@ -10930,7 +11036,7 @@ Code hergeleitet statt uebernommen, und die Spezifikation nachgezogen:
 ## P-2026-08-08-25 namen-und-doku-nachziehen
 
 ### ANLASS
-- Nach der Umstellung von QR auf Strichcode (P-2026-08-08-15) trugen zwei Namen weiterhin „qr“ im Bezeichner und waren damit irrefuehrend.
+- Nach der Umstellung von QR auf Strichcode (P-2026-08-08-15) trugen zwei Namen weiterhin „qr“ im Bezeichner und waren damit irreführend.
 
 ### DATEIEN
 - `docs/spezifikation_auftrag_qr_laufkarte.md` → `docs/spezifikation_auftrag_barcode_laufkarte.md`
@@ -10939,31 +11045,31 @@ Code hergeleitet statt uebernommen, und die Spezifikation nachgezogen:
 - `README.md`, `docs/README.md`, `docs/prompt_uebersicht.md`, `docs/master_prompt_zeiterfassung_v13.md`, `controller/ArbeitsschrittKatalogController.php`
 
 ### DONE
-- **Spezifikation umbenannt** und auf v2 gehoben: Titel, Status („umgesetzt“) und ein Hinweis, dass die erste Fassung QR-Codes vorsah und wie die Datei vorher hiess. Alle Verweise nachgezogen.
-- **Konfigurationsschluessel** `auftrag_qr_rel_pfad` → `auftrag_code_rel_pfad`, mit idempotenter Migration `sql/04_...`. Der `BarcodeService` liest ersatzweise weiter den alten Schluessel, damit eine Installation ohne eingespielte Migration ihren eingestellten Pfad behaelt statt auf den Standard zu fallen.
-- **Dokumentation auf Stand gebracht:** Root-`README.md` nennt jetzt Auftragsanlage, Arbeitsschritt-Katalog, Strichcodes und die beiden Ausdrucke; `docs/README.md` und die Prompt-Uebersicht verweisen auf die Spezifikation; `sql/README.md` listet die Migrationen 03 und 04.
+- **Spezifikation umbenannt** und auf v2 gehoben: Titel, Status („umgesetzt“) und ein Hinweis, dass die erste Fassung QR-Codes vorsah und wie die Datei vorher hieß. Alle Verweise nachgezogen.
+- **Konfigurationsschlüssel** `auftrag_qr_rel_pfad` → `auftrag_code_rel_pfad`, mit idempotenter Migration `sql/04_...`. Der `BarcodeService` liest ersatzweise weiter den alten Schlüssel, damit eine Installation ohne eingespielte Migration ihren eingestellten Pfad behält statt auf den Standard zu fallen.
+- **Dokumentation auf Stand gebracht:** Root-`README.md` nennt jetzt Auftragsanlage, Arbeitsschritt-Katalog, Strichcodes und die beiden Ausdrucke; `docs/README.md` und die Prompt-Übersicht verweisen auf die Spezifikation; `sql/README.md` listet die Migrationen 03 und 04.
 
 ### TEST
-1. Migration zweimal eingespielt: alter Schluessel entfernt, neuer vorhanden, Wert unveraendert `uploads/auftrag_codes`.
+1. Migration zweimal eingespielt: alter Schlüssel entfernt, neuer vorhanden, Wert unverändert `uploads/auftrag_codes`.
 2. `BarcodeService` liefert danach weiterhin den korrekten Speicherpfad.
-3. Keine Verweise auf den alten Dateinamen ausserhalb der Historie; der alte Schluessel steht nur noch im Rueckfall-Zweig.
+3. Keine Verweise auf den alten Dateinamen außerhalb der Historie; der alte Schlüssel steht nur noch im Rückfall-Zweig.
 
 
 ## P-2026-08-08-24 fix-monatsuebersicht-laufender-monat
 
 ### BUGREPORT (B-091)
 - Schritte: `?seite=report_monat` ohne Parameter aufrufen (= laufender Monat).
-- Erwartung: Monatsuebersicht wie gewohnt.
+- Erwartung: Monatsübersicht wie gewohnt.
 - Ist: Seite bricht mitten in der Mitarbeiter-Auswahlliste ab, im Dropdown steht „…FehlerInterner Fehler…“, darunter bleibt die Seite leer.
 - **Regression aus P-2026-08-08-19 – selbst verursacht.**
 
 ### URSACHE
-- Fuer die Ampel wurde in P-19 ein Textzeichen je Option eingefuehrt (`$abschlussOptionMarker`). Gesetzt wurde die Variable **nur innerhalb** von `if ($istMonatVergangen && $mid > 0)`, aber nicht davor initialisiert – anders als die drei Geschwistervariablen daneben.
-- Im laufenden Monat ist `$istMonatVergangen` false, der Zweig laeuft nie, die Variable bleibt undefiniert. `htmlspecialchars(null)` ist unter PHP 8 ein `TypeError` und damit fatal. Die Ausgabe war zu diesem Zeitpunkt schon mitten im `<option>` – daher die Fehlermeldung im Dropdown.
-- Fachlich ist es richtig, dass im laufenden Monat nichts gefaerbt wird: Ein laufender Monat kann noch nicht abgeschlossen sein.
+- Für die Ampel wurde in P-19 ein Textzeichen je Option eingeführt (`$abschlussOptionMarker`). Gesetzt wurde die Variable **nur innerhalb** von `if ($istMonatVergangen && $mid > 0)`, aber nicht davor initialisiert – anders als die drei Geschwistervariablen daneben.
+- Im laufenden Monat ist `$istMonatVergangen` false, der Zweig läuft nie, die Variable bleibt undefiniert. `htmlspecialchars(null)` ist unter PHP 8 ein `TypeError` und damit fatal. Die Ausgabe war zu diesem Zeitpunkt schon mitten im `<option>` – daher die Fehlermeldung im Dropdown.
+- Fachlich ist es richtig, dass im laufenden Monat nichts gefärbt wird: Ein laufender Monat kann noch nicht abgeschlossen sein.
 
 ### WARUM DER TEST DAS NICHT GEFUNDEN HAT
-- Der Test zu P-19 prueft nur einen **vergangenen** Monat, weil es dort um die Farben ging. Genau der Pfad ohne Faerbung – der haeufigste im Alltag – blieb ungeprueft. Konsequenz: Bei Verzweigungen nach Zeitraum immer beide Seiten pruefen, nicht nur die interessante.
+- Der Test zu P-19 prüft nur einen **vergangenen** Monat, weil es dort um die Farben ging. Genau der Pfad ohne Färbung – der häufigste im Alltag – blieb ungeprüft. Konsequenz: Bei Verzweigungen nach Zeitraum immer beide Seiten prüfen, nicht nur die interessante.
 
 ### DATEIEN
 - `views/report/monatsuebersicht.php`
@@ -10972,8 +11078,8 @@ Code hergeleitet statt uebernommen, und die Spezifikation nachgezogen:
 - `$abschlussOptionMarker` wird jetzt neben den drei anderen Optionsvariablen initialisiert.
 
 ### TEST
-- Vier Faelle gerendert: laufender Monat (2026/08), zwei vergangene (2026/06, 2026/07) und ein zukuenftiger (2027/01). Alle liefern die vollstaendige Seite, **keine PHP-Meldungen**.
-- Faerbung greift nur bei vergangenen Monaten (18 Treffer inkl. CSS-Regeln), bei laufendem und zukuenftigem Monat bleiben nur die 4 CSS-Regeln uebrig – also keine gefaerbte Option.
+- Vier Fälle gerendert: laufender Monat (2026/08), zwei vergangene (2026/06, 2026/07) und ein zukünftiger (2027/01). Alle liefern die vollständige Seite, **keine PHP-Meldungen**.
+- Färbung greift nur bei vergangenen Monaten (18 Treffer inkl. CSS-Regeln), bei laufendem und zukünftigem Monat bleiben nur die 4 CSS-Regeln übrig – also keine gefärbte Option.
 
 
 ## P-2026-08-08-23 zeitwarnungen-bleiben-stehen
@@ -10982,15 +11088,15 @@ Code hergeleitet statt uebernommen, und die Spezifikation nachgezogen:
 - `controller/DashboardController.php`, `views/dashboard/index.php`
 
 ### ANLASS
-- Letzte offene Funktion aus dem Spiegelverzeichnis; vom Nutzer ausdruecklich so beauftragt („wie im Spiegel, die verschwinden nicht“).
+- Letzte offene Funktion aus dem Spiegelverzeichnis; vom Nutzer ausdrücklich so beauftragt („wie im Spiegel, die verschwinden nicht“).
 
 ### DONE
-- Das Dashboard zeigte Zeitwarnungen bisher nur fuer die letzten X Tage (Konfiguration `dashboard_zeitwarnungen_tage`, zuletzt 31). Ein unvollstaendiger Kommen/Gehen-Stempel verschwand damit nach Ablauf der Frist aus dem Blick, **ohne korrigiert worden zu sein**.
-- Jetzt bleibt **jeder vergangene Tag mit unvollstaendigen Stempeln sichtbar, bis er korrigiert ist**. Die Zeitraumangabe im Dashboard lautet entsprechend „alle vergangenen Tage“.
+- Das Dashboard zeigte Zeitwarnungen bisher nur für die letzten X Tage (Konfiguration `dashboard_zeitwarnungen_tage`, zuletzt 31). Ein unvollständiger Kommen/Gehen-Stempel verschwand damit nach Ablauf der Frist aus dem Blick, **ohne korrigiert worden zu sein**.
+- Jetzt bleibt **jeder vergangene Tag mit unvollständigen Stempeln sichtbar, bis er korrigiert ist**. Die Zeitraumangabe im Dashboard lautet entsprechend „alle vergangenen Tage“.
 
 ### ABWAEGUNG
-- Dies ist die einzige der sechs Spiegel-Funktionen, die vorhandene Logik **ersetzt** statt sie zu ergaenzen. Das Risiko war, dass bei grossem Datenbestand schlagartig sehr viele Altwarnungen erscheinen.
-- **Vor der Uebernahme ausgezaehlt:** Im gesamten Bestand (10.031 Zeitbuchungen) gibt es genau **einen** betroffenen Tag – das bekannte offene „kommen“ von Mitarbeiter 15 am 16.07.2026. Die Umstellung ist damit gefahrlos und bewirkt genau das Gewollte: Diese eine Luecke bleibt sichtbar, bis sie jemand schliesst.
+- Dies ist die einzige der sechs Spiegel-Funktionen, die vorhandene Logik **ersetzt** statt sie zu ergänzen. Das Risiko war, dass bei großem Datenbestand schlagartig sehr viele Altwarnungen erscheinen.
+- **Vor der Übernahme ausgezählt:** Im gesamten Bestand (10.031 Zeitbuchungen) gibt es genau **einen** betroffenen Tag – das bekannte offene „kommen“ von Mitarbeiter 15 am 16.07.2026. Die Umstellung ist damit gefahrlos und bewirkt genau das Gewollte: Diese eine Lücke bleibt sichtbar, bis sie jemand schließt.
 
 ### TEST
 1. Dashboard gerendert: keine PHP-Meldungen.
@@ -10998,7 +11104,7 @@ Code hergeleitet statt uebernommen, und die Spezifikation nachgezogen:
 3. Datenbankseitige Gegenprobe der Trefferzahl: genau 1 Tag mit ungerader Stempelzahl in der gesamten Vergangenheit.
 
 ### DAMIT ABGESCHLOSSEN
-- Alle sechs im Spiegelverzeichnis gefundenen Funktionen sind uebernommen (P-2026-08-08-18, -20, -21, -22, -23). Der nicht gepushte Stand der Windows-Arbeitskopie ist damit vollstaendig ins Repository ueberfuehrt.
+- Alle sechs im Spiegelverzeichnis gefundenen Funktionen sind übernommen (P-2026-08-08-18, -20, -21, -22, -23). Der nicht gepushte Stand der Windows-Arbeitskopie ist damit vollständig ins Repository überführt.
 
 
 ## P-2026-08-08-22 inaktive-mitarbeiter
@@ -11007,17 +11113,17 @@ Code hergeleitet statt uebernommen, und die Spezifikation nachgezogen:
 - `modelle/MitarbeiterModel.php`, `controller/MitarbeiterAdminController.php`, `views/mitarbeiter/liste.php`
 
 ### DONE
-- Die Mitarbeiterverwaltung kennt jetzt zwei Ansichten: `?seite=mitarbeiter_admin` (aktive, wie bisher) und `?seite=mitarbeiter_admin&status=inaktiv`. Ausgeschiedene Mitarbeiter waren bisher aus dem Backend heraus nicht mehr erreichbar – ihre Daten (Zeiten, Urlaub, Stundenkonto) bleiben aber erhalten und muessen einsehbar sein.
-- Die Ansicht wechselt Ueberschrift und Leertext entsprechend; die Statuswahl wird serverseitig auf `aktiv`/`inaktiv` begrenzt.
+- Die Mitarbeiterverwaltung kennt jetzt zwei Ansichten: `?seite=mitarbeiter_admin` (aktive, wie bisher) und `?seite=mitarbeiter_admin&status=inaktiv`. Ausgeschiedene Mitarbeiter waren bisher aus dem Backend heraus nicht mehr erreichbar – ihre Daten (Zeiten, Urlaub, Stundenkonto) bleiben aber erhalten und müssen einsehbar sein.
+- Die Ansicht wechselt Überschrift und Leertext entsprechend; die Statuswahl wird serverseitig auf `aktiv`/`inaktiv` begrenzt.
 
 ### TEST
 1. Ohne inaktive Mitarbeiter: aktive Liste 13 Zeilen, inaktive Liste leer.
-2. Einen Mitarbeiter testweise auf `aktiv=0` gesetzt: verschwindet aus der aktiven Liste (13 → 12 Datenzeilen) und erscheint in der inaktiven. Zustand danach zurueckgesetzt.
+2. Einen Mitarbeiter testweise auf `aktiv=0` gesetzt: verschwindet aus der aktiven Liste (13 → 12 Datenzeilen) und erscheint in der inaktiven. Zustand danach zurückgesetzt.
 3. Keine PHP-Meldungen.
 
 ### DAMIT ABGESCHLOSSEN
-- Von den sechs im Spiegelverzeichnis gefundenen Funktionen sind jetzt fuenf uebernommen (P-2026-08-08-18, -20, -21, -22).
-- **Offen bleibt bewusst:** Die Dashboard-Zeitwarnungen ohne Zeitfenster (`DashboardController`, `views/dashboard/index.php`). Das ist die einzige Aenderung, die vorhandene Logik **ersetzt** statt ergaenzt: Bisher zeigt das Dashboard nur die letzten X Tage, im Spiegel bleibt jeder vergangene Tag mit unvollstaendigen Stempeln sichtbar, bis er korrigiert ist. Fachlich richtig – eine Luecke verschwindet nicht dadurch, dass sie alt wird –, aber bei vorhandenem Datenbestand koennen schlagartig sehr viele Warnungen erscheinen. Vor der Uebernahme sollte ausgezaehlt werden, wie viele es konkret waeren.
+- Von den sechs im Spiegelverzeichnis gefundenen Funktionen sind jetzt fünf übernommen (P-2026-08-08-18, -20, -21, -22).
+- **Offen bleibt bewusst:** Die Dashboard-Zeitwarnungen ohne Zeitfenster (`DashboardController`, `views/dashboard/index.php`). Das ist die einzige Änderung, die vorhandene Logik **ersetzt** statt ergänzt: Bisher zeigt das Dashboard nur die letzten X Tage, im Spiegel bleibt jeder vergangene Tag mit unvollständigen Stempeln sichtbar, bis er korrigiert ist. Fachlich richtig – eine Lücke verschwindet nicht dadurch, dass sie alt wird –, aber bei vorhandenem Datenbestand können schlagartig sehr viele Warnungen erscheinen. Vor der Übernahme sollte ausgezählt werden, wie viele es konkret wären.
 
 
 ## P-2026-08-08-21 deutsche-datumsformate
@@ -11026,8 +11132,8 @@ Code hergeleitet statt uebernommen, und die Spezifikation nachgezogen:
 - `views/zeit/tagesansicht.php`, `views/mitarbeiter/stundenkonto.php`, `views/feiertag/liste.php`, `controller/KonfigurationController.php`
 
 ### DONE
-- Datumsangaben erscheinen in der Oberflaeche jetzt als `01.06.2026` statt `2026-06-01`: Tagesansicht, Stundenkonto, Feiertagsliste und die Krankzeitraum-Pflege in der Konfiguration.
-- In der Konfiguration wird die Eingabe zusaetzlich per JavaScript umgesetzt; gespeichert wird unveraendert im ISO-Format – die Aenderung betrifft ausschliesslich die Darstellung.
+- Datumsangaben erscheinen in der Oberfläche jetzt als `01.06.2026` statt `2026-06-01`: Tagesansicht, Stundenkonto, Feiertagsliste und die Krankzeitraum-Pflege in der Konfiguration.
+- In der Konfiguration wird die Eingabe zusätzlich per JavaScript umgesetzt; gespeichert wird unverändert im ISO-Format – die Änderung betrifft ausschließlich die Darstellung.
 
 ### PRUEFUNG VOR DER UEBERNAHME
 - Die wenigen nur bei uns vorhandenen Zeilen waren jeweils die alte, rohe Datumsausgabe genau an den Stellen, die der Spiegel ersetzt hat.
@@ -11045,39 +11151,39 @@ Code hergeleitet statt uebernommen, und die Spezifikation nachgezogen:
 - `controller/UrlaubJahresuebersichtController.php`, `controller/UrlaubController.php`
 - `views/urlaub/jahresuebersicht.php`, `views/urlaub/verwaltung.php`
 
-### DONE – drei Funktionen, alle aus dem Spiegel uebernommen
-1. **Monatsabschluss-Marker in der Urlaubs-Jahresuebersicht:** dieselbe Statusquelle wie in der Monatsuebersicht (manuelle Stundenkonto-Korrektur „Monatsabschluss YYYY-MM“ am Monatsletzten), dazu Urlaubssalden je Mitarbeiter direkt in der Uebersicht.
-2. **„Sonstiger Grund“ in der Urlaubsverwaltung:** Auswahlliste aus der Tabelle `sonstiges_grund` beim direkten Eintragen von Abwesenheiten, inklusive der je Grund hinterlegten Begruendungspflicht.
-3. **Farbige Kalenderzellen** in der Jahresuebersicht (Wochenende, Urlaub, Betriebsferien) – macht die Jahresmatrix ueberhaupt erst lesbar.
+### DONE – drei Funktionen, alle aus dem Spiegel übernommen
+1. **Monatsabschluss-Marker in der Urlaubs-Jahresübersicht:** dieselbe Statusquelle wie in der Monatsübersicht (manuelle Stundenkonto-Korrektur „Monatsabschluss YYYY-MM“ am Monatsletzten), dazu Urlaubssalden je Mitarbeiter direkt in der Übersicht.
+2. **„Sonstiger Grund“ in der Urlaubsverwaltung:** Auswahlliste aus der Tabelle `sonstiges_grund` beim direkten Eintragen von Abwesenheiten, inklusive der je Grund hinterlegten Begründungspflicht.
+3. **Farbige Kalenderzellen** in der Jahresübersicht (Wochenende, Urlaub, Betriebsferien) – macht die Jahresmatrix überhaupt erst lesbar.
 
 ### PRUEFUNG VOR DER UEBERNAHME
 - `UrlaubController` und `views/urlaub/verwaltung.php` waren im Spiegel **reiner Zuwachs** (0 Zeilen nur bei uns).
-- Bei `UrlaubJahresuebersichtController` (2 Zeilen) und `jahresuebersicht.php` (1 Zeile) waren die abweichenden Zeilen jeweils die **aeltere Fassung genau der Stellen**, die der Spiegel ersetzt hat. Es ging nichts verloren.
-- **Keine Schemaabhaengigkeit:** `sonstiges_grund_id` taucht an drei Stellen auf, alle drei nur im Log-Kontext – in keinem INSERT/UPDATE. Die Tabelle `sonstiges_grund` existiert bereits (1 Eintrag: SoU – Sonderurlaub). Es ist keine Migration noetig.
+- Bei `UrlaubJahresuebersichtController` (2 Zeilen) und `jahresuebersicht.php` (1 Zeile) waren die abweichenden Zeilen jeweils die **ältere Fassung genau der Stellen**, die der Spiegel ersetzt hat. Es ging nichts verloren.
+- **Keine Schemaabhängigkeit:** `sonstiges_grund_id` taucht an drei Stellen auf, alle drei nur im Log-Kontext – in keinem INSERT/UPDATE. Die Tabelle `sonstiges_grund` existiert bereits (1 Eintrag: SoU – Sonderurlaub). Es ist keine Migration nötig.
 
 ### TEST
-- Beide Seiten mit simulierter Anmeldung gerendert: Jahresuebersicht (1,16 MB Ausgabe) und Urlaubsverwaltung (34 KB) – **keine PHP-Meldungen**.
+- Beide Seiten mit simulierter Anmeldung gerendert: Jahresübersicht (1,16 MB Ausgabe) und Urlaubsverwaltung (34 KB) – **keine PHP-Meldungen**.
 - `php -l` auf allen vier Dateien fehlerfrei.
 
 
 ## P-2026-08-08-19 ampel-in-der-auswahlliste
 
 ### BUGREPORT
-- Schritte: Monatsuebersicht eines vergangenen Monats oeffnen, Mitarbeiterliste aufklappen.
-- Erwartung: Jeder Name rot oder gruen hinterlegt.
-- Ist: Nur das zugeklappte Feld war gefaerbt, die aufgeklappte Liste blieb einfarbig – obwohl jede `<option>` ihre Farbe im Markup mitbrachte.
-- Ursache: Browser zeichnen die aufgeklappte Liste mit dem Systemthema und ignorieren dabei die Farben der einzelnen Optionen. Erst wenn das `<select>` selbst Vorder- **und** Hintergrundfarbe gesetzt bekommt, uebernimmt der Browser die Darstellung selbst – dann greifen auch die Optionsfarben. Bei einem dunklen Systemthema faellt das besonders auf.
+- Schritte: Monatsübersicht eines vergangenen Monats öffnen, Mitarbeiterliste aufklappen.
+- Erwartung: Jeder Name rot oder grün hinterlegt.
+- Ist: Nur das zugeklappte Feld war gefärbt, die aufgeklappte Liste blieb einfarbig – obwohl jede `<option>` ihre Farbe im Markup mitbrachte.
+- Ursache: Browser zeichnen die aufgeklappte Liste mit dem Systemthema und ignorieren dabei die Farben der einzelnen Optionen. Erst wenn das `<select>` selbst Vorder- **und** Hintergrundfarbe gesetzt bekommt, übernimmt der Browser die Darstellung selbst – dann greifen auch die Optionsfarben. Bei einem dunklen Systemthema fällt das besonders auf.
 
 ### DATEIEN
 - `views/report/monatsuebersicht.php`
 - `docs/archiv/DEV_PROMPT_HISTORY.md`, `docs/STATUS_SNAPSHOT.md`
 
 ### DONE
-- Grundfarbe auf dem `<select>` gesetzt, damit die Optionsfarben ueberhaupt gezeichnet werden; zusaetzlich passende Textfarben (dunkelgruen bzw. dunkelrot) statt nur Hintergrund.
-- **Zusaetzlich ein Textzeichen je Eintrag** – `✓` fuer erledigt, `● offen` fuer offen. Farbe allein ist nicht barrierefrei (Rot-Gruen-Sehschwaeche betrifft rund jeden zwoelften Mann) und haengt vom Browser und Systemthema ab. Das Zeichen kommt immer an.
+- Grundfarbe auf dem `<select>` gesetzt, damit die Optionsfarben überhaupt gezeichnet werden; zusätzlich passende Textfarben (dunkelgrün bzw. dunkelrot) statt nur Hintergrund.
+- **Zusätzlich ein Textzeichen je Eintrag** – `✓` für erledigt, `● offen` für offen. Farbe allein ist nicht barrierefrei (Rot-Grün-Sehschwäche betrifft rund jeden zwölften Mann) und hängt vom Browser und Systemthema ab. Das Zeichen kommt immer an.
 
 ### TEST
-- Vergangener Monat: Optionen tragen Hintergrund- und Textfarbe sowie das passende Zeichen; ein Mitarbeiter mit gebuchtem Abschluss erscheint gruen mit `✓`, die uebrigen rot mit `● offen`.
+- Vergangener Monat: Optionen tragen Hintergrund- und Textfarbe sowie das passende Zeichen; ein Mitarbeiter mit gebuchtem Abschluss erscheint grün mit `✓`, die übrigen rot mit `● offen`.
 
 
 ## P-2026-08-08-18 monatsabschluss-ampel-und-status-auswahl
@@ -11086,28 +11192,28 @@ Code hergeleitet statt uebernommen, und die Spezifikation nachgezogen:
 - Spiegelverzeichnis der Windows-/Codex-Arbeitskopie `/home/manuel/ntfs_platte/xampp1/htdocs/zeiterfassungspiegel` (nicht gepushter Stand), `controller/ReportController.php`, `views/report/monatsuebersicht.php`, `controller/AuftragController.php`.
 
 ### DUPLIKAT-CHECK
-- Die Ampel war im Spiegelverzeichnis bereits fertig umgesetzt, aber nie gepusht. Sie wurde **uebernommen statt neu gebaut** – der dortige Stand ist erprobt.
+- Die Ampel war im Spiegelverzeichnis bereits fertig umgesetzt, aber nie gepusht. Sie wurde **übernommen statt neu gebaut** – der dortige Stand ist erprobt.
 
 ### DATEIEN
-- `controller/ReportController.php`, `views/report/monatsuebersicht.php` (aus dem Spiegel uebernommen)
+- `controller/ReportController.php`, `views/report/monatsuebersicht.php` (aus dem Spiegel übernommen)
 - `controller/AuftragController.php`
 - `docs/archiv/DEV_PROMPT_HISTORY.md`, `docs/STATUS_SNAPSHOT.md`
 
 ### DONE
-- **Monatsabschluss-Ampel:** In der Monatsuebersicht sind die Mitarbeiter in der Auswahlliste rot hinterlegt, solange der Monatsabschluss offen ist, und gruen, sobald er gebucht wurde (`ladeMonatsabschlussStatusMap()` sucht die Abschlussbuchung in `stundenkonto_korrektur`). Nur bei vergangenen Monaten – im laufenden Monat bleibt die Liste neutral.
-- Damit kam auch die **Stepper-Bedienung** fuer Monat/Jahr/Mitarbeiter mit (`< 07 >`), die im Spiegel das alte Filterformular ersetzt hatte.
-- **Status ist jetzt eine Auswahlliste** statt eines Freitextfelds: offen, in Arbeit, wartet, abgeschlossen, storniert. Frei getippte Werte liessen sich nicht auswerten und gingen bei jedem Tippfehler auseinander. Serverseitig geprueft – ein Dropdown im Browser ist keine Sicherung. Vorhandene Altwerte aus der Freitext-Zeit bleiben waehlbar und werden nicht stillschweigend verworfen.
+- **Monatsabschluss-Ampel:** In der Monatsübersicht sind die Mitarbeiter in der Auswahlliste rot hinterlegt, solange der Monatsabschluss offen ist, und grün, sobald er gebucht wurde (`ladeMonatsabschlussStatusMap()` sucht die Abschlussbuchung in `stundenkonto_korrektur`). Nur bei vergangenen Monaten – im laufenden Monat bleibt die Liste neutral.
+- Damit kam auch die **Stepper-Bedienung** für Monat/Jahr/Mitarbeiter mit (`< 07 >`), die im Spiegel das alte Filterformular ersetzt hatte.
+- **Status ist jetzt eine Auswahlliste** statt eines Freitextfelds: offen, in Arbeit, wartet, abgeschlossen, storniert. Frei getippte Werte ließen sich nicht auswerten und gingen bei jedem Tippfehler auseinander. Serverseitig geprüft – ein Dropdown im Browser ist keine Sicherung. Vorhandene Altwerte aus der Freitext-Zeit bleiben wählbar und werden nicht stillschweigend verworfen.
 
 ### PRUEFUNG DER UEBERNAHME
-- `ReportController` war im Spiegel ein **reiner Zuwachs** (79 Zeilen mehr, 0 weniger) – gefahrlos uebernehmbar.
-- Bei `views/report/monatsuebersicht.php` standen 21 Zeilen nur in unserer Fassung; das war das **aeltere** Filterformular, das der Spiegel bewusst durch die Stepper ersetzt hat. Nichts ging verloren.
+- `ReportController` war im Spiegel ein **reiner Zuwachs** (79 Zeilen mehr, 0 weniger) – gefahrlos übernehmbar.
+- Bei `views/report/monatsuebersicht.php` standen 21 Zeilen nur in unserer Fassung; das war das **ältere** Filterformular, das der Spiegel bewusst durch die Stepper ersetzt hat. Nichts ging verloren.
 - Die Ansicht bringt ihr CSS selbst mit; an den Stylesheets war nichts nachzuziehen (CSS-Dateien sind identisch).
 
 ### TEST
 1. Vergangener Monat (2026/06): alle Mitarbeiter „Monatsabschluss offen“ (rot).
-2. Testbuchung fuer einen Mitarbeiter eingespielt: dieser wird „Monatsabschluss erledigt“ (gruen), die uebrigen bleiben rot. Testbuchung wieder entfernt.
-3. Laufender Monat (2026/08): keine Faerbung – korrekt, ein laufender Monat kann nicht abgeschlossen sein.
-4. Status-Auswahl: gueltiger Wert wird gespeichert, erfundener Wert (`hack&drop`) abgelehnt, vorhandener Altwert weiterhin erlaubt.
+2. Testbuchung für einen Mitarbeiter eingespielt: dieser wird „Monatsabschluss erledigt“ (grün), die übrigen bleiben rot. Testbuchung wieder entfernt.
+3. Laufender Monat (2026/08): keine Färbung – korrekt, ein laufender Monat kann nicht abgeschlossen sein.
+4. Status-Auswahl: gültiger Wert wird gespeichert, erfundener Wert (`hack&drop`) abgelehnt, vorhandener Altwert weiterhin erlaubt.
 5. Keine PHP-Meldungen.
 
 ### OFFEN – weiterer nicht gepushter Stand im Spiegelverzeichnis
@@ -11116,7 +11222,7 @@ Beim Vergleich zeigte sich, dass dort noch mehr Arbeit liegt, die nie ins Reposi
 - `controller/DashboardController.php` (45), `views/dashboard/index.php` (26)
 - `views/zeit/tagesansicht.php` (24), `views/mitarbeiter/stundenkonto.php` (22), `views/mitarbeiter/liste.php` (14), `views/feiertag/liste.php` (11)
 - `modelle/MitarbeiterModel.php` (15), `controller/MitarbeiterAdminController.php` (10), `controller/KonfigurationController.php` (6)
-Diese Uebernahme steht noch aus und sollte einzeln geprueft werden – nicht pauschal kopieren.
+Diese Übernahme steht noch aus und sollte einzeln geprüft werden – nicht pauschal kopieren.
 
 
 ## P-2026-08-08-16 katalog-in-auftrag
@@ -11125,28 +11231,28 @@ Diese Uebernahme steht noch aus und sollte einzeln geprueft werden – nicht pau
 - `controller/AuftragController.php`, `services/AuftragszeitService.php` (Buchungspfad), `services/PDFService.php`.
 
 ### DUPLIKAT-CHECK
-- Kein Duplikat: Bisher waren Katalog und Auftrag voellig getrennt.
+- Kein Duplikat: Bisher waren Katalog und Auftrag völlig getrennt.
 
 ### DATEIEN
 - `controller/AuftragController.php`, `public/index.php`
 - `docs/archiv/DEV_PROMPT_HISTORY.md`, `docs/STATUS_SNAPSHOT.md`
 
 ### DONE
-- **Uebernahme aus dem Katalog:** In der Auftrags-Detailansicht lassen sich Standardschritte per Mehrfachauswahl uebernehmen. Angezeigt werden nur Schritte, die es beim Auftrag noch nicht gibt; bereits vorhandene Codes werden uebersprungen und **nicht** ueberschrieben – eine am Auftrag gepflegte Bezeichnung ist die speziellere und gewinnt.
-- **Fehlende Bezeichnungen werden beim Anzeigen aus dem Katalog ergaenzt** (Detailansicht und Laufkarte), gekennzeichnet mit „(aus Katalog)“.
+- **Übernahme aus dem Katalog:** In der Auftrags-Detailansicht lassen sich Standardschritte per Mehrfachauswahl übernehmen. Angezeigt werden nur Schritte, die es beim Auftrag noch nicht gibt; bereits vorhandene Codes werden übersprungen und **nicht** überschrieben – eine am Auftrag gepflegte Bezeichnung ist die speziellere und gewinnt.
+- **Fehlende Bezeichnungen werden beim Anzeigen aus dem Katalog ergänzt** (Detailansicht und Laufkarte), gekennzeichnet mit „(aus Katalog)“.
 
 ### ABWEICHUNG VOM URSPRUENGLICHEN PLAN (bewusst)
-- Geplant war, die Bezeichnung schon beim automatischen Anlegen im Terminal-Buchungspfad zu setzen. **Verworfen**, weil dafuer `AuftragszeitService` bzw. die Offline-Queue-SQL haette angefasst werden muessen: Fehlt auf einer Installation die Katalog-Tabelle (Migration 03 noch nicht eingespielt), waere eine Buchung in der Halle gescheitert. Das ist inakzeptabel – eine Buchung darf nie an Stammdaten haengen.
-- Die Loesung „beim Anzeigen nachschlagen“ ist nicht nur sicherer, sie wirkt auch fuer Buchungen, die ueber die Offline-Queue nachlaufen, und braucht keinerlei Aenderung am Terminal. Faellt der Katalog aus, bleibt es beim nackten Code – wie vorher.
+- Geplant war, die Bezeichnung schon beim automatischen Anlegen im Terminal-Buchungspfad zu setzen. **Verworfen**, weil dafür `AuftragszeitService` bzw. die Offline-Queue-SQL hätte angefasst werden müssen: Fehlt auf einer Installation die Katalog-Tabelle (Migration 03 noch nicht eingespielt), wäre eine Buchung in der Halle gescheitert. Das ist inakzeptabel – eine Buchung darf nie an Stammdaten hängen.
+- Die Lösung „beim Anzeigen nachschlagen“ ist nicht nur sicherer, sie wirkt auch für Buchungen, die über die Offline-Queue nachlaufen, und braucht keinerlei Änderung am Terminal. Fällt der Katalog aus, bleibt es beim nackten Code – wie vorher.
 
 ### AKZEPTANZKRITERIEN
 - Ein am Terminal gescannter Katalog-Code erscheint in Auftrag und Laufkarte mit seiner Klartext-Bezeichnung, ohne dass jemand etwas nachpflegt.
 
 ### TEST
 1. Auftrag mit einem „vom Terminal“ angelegten Schritt `bohren` ohne Bezeichnung: Detailansicht zeigt „Bohren (aus Katalog)“.
-2. Uebernahme von `saegen`, `drehen` und dem bereits vorhandenen `bohren`: Meldung „2 Arbeitsschritte wurden uebernommen. 1 waren bereits vorhanden und blieben unveraendert.“ – `bohren` blieb unveraendert.
+2. Übernahme von `saegen`, `drehen` und dem bereits vorhandenen `bohren`: Meldung „2 Arbeitsschritte wurden übernommen. 1 waren bereits vorhanden und blieben unverändert.“ – `bohren` blieb unverändert.
 3. Leere Auswahl und falsches CSRF-Token werden abgewiesen.
-4. Laufkarte enthaelt alle drei Schritte mit Klartext, alle Strichcodes dekodierbar (`bohren`, `saegen`, `drehen`, `A-KATALOG-TEST`).
+4. Laufkarte enthält alle drei Schritte mit Klartext, alle Strichcodes dekodierbar (`bohren`, `saegen`, `drehen`, `A-KATALOG-TEST`).
 5. Keine PHP-Meldungen.
 
 
@@ -11156,7 +11262,7 @@ Diese Uebernahme steht noch aus und sollte einzeln geprueft werden – nicht pau
 - `services/QrCodeService.php`, `services/MaschineQrCodeService.php` (dort schon Code 128), `services/barcode/Picqer/*`, `services/PDFService.php`, beide Auftrags-Controller.
 
 ### ANLASS
-- Rueckmeldung aus der Praxis: Im Betrieb sind **1D-Handscanner** im Einsatz. QR-Codes waeren ein zweiter Codetyp neben den bereits vorhandenen Maschinen-Strichcodes gewesen.
+- Rückmeldung aus der Praxis: Im Betrieb sind **1D-Handscanner** im Einsatz. QR-Codes wären ein zweiter Codetyp neben den bereits vorhandenen Maschinen-Strichcodes gewesen.
 
 ### DATEIEN
 - `services/QrCodeService.php` → `services/BarcodeService.php` (umbenannt und umgebaut)
@@ -11164,11 +11270,11 @@ Diese Uebernahme steht noch aus und sollte einzeln geprueft werden – nicht pau
 - `docs/spezifikation_auftrag_qr_laufkarte.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`, `docs/STATUS_SNAPSHOT.md`
 
 ### DONE
-- **Alle neuen Codes sind jetzt Code 128** – derselbe Typ wie die vorhandenen Maschinen-Codes. Ein Codetyp, ein Scannertyp, keine Sonderfaelle.
-- **Keine kuenstlichen Nummern noetig:** Code 128 kann Buchstaben und Ziffern, deshalb steht weiterhin der Code selbst im Strichcode (`fraesen`, `A-2026-0999`). Eine generierte Nummer haette alle Auswertungen unleserlich gemacht.
-- `QrCodeService` heisst jetzt `BarcodeService`; `holeModulMatrix()` wurde zu `holeBalken()` (Balkenfolge in Modulen).
+- **Alle neuen Codes sind jetzt Code 128** – derselbe Typ wie die vorhandenen Maschinen-Codes. Ein Codetyp, ein Scannertyp, keine Sonderfälle.
+- **Keine künstlichen Nummern nötig:** Code 128 kann Buchstaben und Ziffern, deshalb steht weiterhin der Code selbst im Strichcode (`fraesen`, `A-2026-0999`). Eine generierte Nummer hätte alle Auswertungen unleserlich gemacht.
+- `QrCodeService` heißt jetzt `BarcodeService`; `holeModulMatrix()` wurde zu `holeBalken()` (Balkenfolge in Modulen).
 - Im PDF ersetzt `pdfBarcode()` die alte `pdfQrMatrix()`; Laufkarte und Kartenblatt sind auf das breite Format umgestellt (Auftragscode 200x46 pt mit Klartext darunter, Schrittcode 150x38 pt, Karte rund 80x25 mm).
-- Anzeige im Backend: Bilder jetzt hoehenbegrenzt statt quadratisch; Beschriftungen durchgaengig „Strichcode“.
+- Anzeige im Backend: Bilder jetzt höhenbegrenzt statt quadratisch; Beschriftungen durchgängig „Strichcode“.
 - Alte QR-Bilddateien unter `public/uploads/auftrag_codes/` entfernt, damit nicht zwei Codetypen nebeneinander liegen.
 
 ### AKZEPTANZKRITERIEN
@@ -11176,12 +11282,12 @@ Diese Uebernahme steht noch aus und sollte einzeln geprueft werden – nicht pau
 
 ### TEST
 1. Laufkarte gerendert und dekodiert: `A-2026-0999`, `saegen`, `drehen`, `fraesen`, `entgraten` – alle als CODE-128 gelesen.
-2. Druckblatt `6x fraesen`: **Achtung, Messfalle** – `zbarimg` unterdrueckt identische Symbole innerhalb eines Bildes und meldete nur einen Treffer. Nach dem Ausschneiden der sechs Karten dekodiert **jede einzelne** als `fraesen`.
+2. Druckblatt `6x fraesen`: **Achtung, Messfalle** – `zbarimg` unterdrückt identische Symbole innerhalb eines Bildes und meldete nur einen Treffer. Nach dem Ausschneiden der sechs Karten dekodiert **jede einzelne** als `fraesen`.
 3. Auftrag ohne Kunde/Beschreibung/Status: Diese Zeilen erscheinen nicht auf der Laufkarte (bewusst optional – das System ist eine Zeiterfassung, keine Warenwirtschaft).
 4. Keine PHP-Meldungen.
 
 ### NEXT
-- Katalogschritte in einen Auftrag uebernehmen.
+- Katalogschritte in einen Auftrag übernehmen.
 
 
 ## P-2026-08-08-14 katalog-druckblatt
@@ -11190,7 +11296,7 @@ Diese Uebernahme steht noch aus und sollte einzeln geprueft werden – nicht pau
 - `services/PDFService.php`, `controller/ArbeitsschrittKatalogController.php`.
 
 ### DUPLIKAT-CHECK
-- Kein Duplikat: Das Laufkarten-PDF ist auftragsbezogen; ein auftragsunabhaengiges Kartenblatt gab es nicht.
+- Kein Duplikat: Das Laufkarten-PDF ist auftragsbezogen; ein auftragsunabhängiges Kartenblatt gab es nicht.
 
 ### DATEIEN
 - `services/PDFService.php`
@@ -11200,25 +11306,25 @@ Diese Uebernahme steht noch aus und sollte einzeln geprueft werden – nicht pau
 
 ### DONE
 - **Neue Route** `?seite=arbeitsschritt_katalog_blatt`:
-  - ohne Parameter alle aktiven Katalogschritte als Uebersicht,
-  - mit `id` und `anzahl` derselbe Schritt mehrfach – der eigentliche Zweck: 20 Karten `fraesen` fuer 20 Fraesmaschinen.
-- **Kartenlayout:** sechs Karten je A4-Seite (2x3) mit gestrichelter Schnittmarkierung, QR-Code rund 45 mm (gross genug fuer einen Handscanner aus Armlaenge), darunter der Code fett, die Bezeichnung und der Hinweis „Erst Auftrag scannen, dann diesen Code“.
-- Stueckzahl wird auf 1..200 begrenzt, damit ein vertippter Wert nicht hunderte Seiten erzeugt.
-- **Bewusst ohne Verwaltungsrecht:** Eine unleserlich gewordene Karte nachzudrucken darf kein Aenderungsrecht erfordern.
+  - ohne Parameter alle aktiven Katalogschritte als Übersicht,
+  - mit `id` und `anzahl` derselbe Schritt mehrfach – der eigentliche Zweck: 20 Karten `fraesen` für 20 Fräsmaschinen.
+- **Kartenlayout:** sechs Karten je A4-Seite (2x3) mit gestrichelter Schnittmarkierung, QR-Code rund 45 mm (groß genug für einen Handscanner aus Armlänge), darunter der Code fett, die Bezeichnung und der Hinweis „Erst Auftrag scannen, dann diesen Code“.
+- Stückzahl wird auf 1..200 begrenzt, damit ein vertippter Wert nicht hunderte Seiten erzeugt.
+- **Bewusst ohne Verwaltungsrecht:** Eine unleserlich gewordene Karte nachzudrucken darf kein Änderungsrecht erfordern.
 
 ### AKZEPTANZKRITERIEN
-- Ein Katalogschritt laesst sich in frei waehlbarer Stueckzahl auf ein Druckblatt bringen, und jede einzelne gedruckte Karte ist mit einem Scanner lesbar.
+- Ein Katalogschritt lässt sich in frei wählbarer Stückzahl auf ein Druckblatt bringen, und jede einzelne gedruckte Karte ist mit einem Scanner lesbar.
 
 ### TEST
 1. `id=3&anzahl=20` -> 4 Seiten A4, strukturell fehlerfrei laut `qpdf --check`.
 2. **Gegenprobe:** Alle Seiten nach PNG gerendert und mit `zbarimg` dekodiert – **20 von 20** Karten ergeben exakt `fraesen`.
-3. Uebersicht ohne Parameter: 2 Seiten, alle acht Katalogschritte dekodierbar.
-4. Ein auf `aktiv=0` gesetzter Schritt (`montage`) verschwindet aus der Uebersicht (nur noch sieben Codes), nach Reaktivierung wieder da.
-5. Grenzfaelle: `anzahl=0` wird auf 1 angehoben, `anzahl=9999` auf 200 gedeckelt (34 Seiten), unbekannte `id` leitet mit Meldung zurueck statt ein leeres PDF zu liefern.
+3. Übersicht ohne Parameter: 2 Seiten, alle acht Katalogschritte dekodierbar.
+4. Ein auf `aktiv=0` gesetzter Schritt (`montage`) verschwindet aus der Übersicht (nur noch sieben Codes), nach Reaktivierung wieder da.
+5. Grenzfälle: `anzahl=0` wird auf 1 angehoben, `anzahl=9999` auf 200 gedeckelt (34 Seiten), unbekannte `id` leitet mit Meldung zurück statt ein leeres PDF zu liefern.
 6. Keine PHP-Meldungen.
 
 ### NEXT
-- P-2026-08-08-15: Katalogschritte in einen Auftrag uebernehmen.
+- P-2026-08-08-15: Katalogschritte in einen Auftrag übernehmen.
 
 
 ## P-2026-08-08-13 katalog-verwaltung
@@ -11235,30 +11341,30 @@ Diese Uebernahme steht noch aus und sollte einzeln geprueft werden – nicht pau
 - `docs/archiv/DEV_PROMPT_HISTORY.md`, `docs/STATUS_SNAPSHOT.md`
 
 ### DONE
-- **Neuer Controller** mit Liste (inkl. QR-Vorschau), Anlegen, Bearbeiten und Deaktivieren. Codes sind betriebsweit eindeutig; doppelte, leere und zu lange Codes werden verstaendlich abgelehnt, CSRF geprueft.
-- **Menue umgebaut:** „Auftraege“ ist jetzt ein Aufklappmenue mit Auftragsuebersicht, Auftrag anlegen und Arbeitsschritt-Katalog. Ohne das Recht bleibt es ein einfacher Link auf die Uebersicht, damit niemand Menuepunkte sieht, die er nicht benutzen darf.
-- Jede Zeile hat ein kleines Formular „x drucken“ mit Stueckzahl – damit ist der Fall „20-mal fraesen fuer 20 Fraesmaschinen“ direkt aus der Liste erreichbar (das PDF folgt im naechsten Patch).
-- Beim Bearbeiten steht ein Warnhinweis: Eine Code-Aenderung erzeugt einen neuen QR-Code und macht bereits an Maschinen haengende Ausdrucke ungueltig.
-- **Kein eigenes Recht** fuer den Katalog: Wer Auftraege pflegen darf, pflegt auch die Vorlagen dafuer. Die Legacy-Rollen-Pruefung folgt dem Hausstil (dasselbe Muster steckt in 15 Controllern) – eine neue Abstraktion nur fuer zwei davon waere inkonsistenter als die Wiederholung.
+- **Neuer Controller** mit Liste (inkl. QR-Vorschau), Anlegen, Bearbeiten und Deaktivieren. Codes sind betriebsweit eindeutig; doppelte, leere und zu lange Codes werden verständlich abgelehnt, CSRF geprüft.
+- **Menü umgebaut:** „Aufträge“ ist jetzt ein Aufklappmenü mit Auftragsübersicht, Auftrag anlegen und Arbeitsschritt-Katalog. Ohne das Recht bleibt es ein einfacher Link auf die Übersicht, damit niemand Menüpunkte sieht, die er nicht benutzen darf.
+- Jede Zeile hat ein kleines Formular „x drucken“ mit Stückzahl – damit ist der Fall „20-mal fräsen für 20 Fräsmaschinen“ direkt aus der Liste erreichbar (das PDF folgt im nächsten Patch).
+- Beim Bearbeiten steht ein Warnhinweis: Eine Code-Änderung erzeugt einen neuen QR-Code und macht bereits an Maschinen hängende Ausdrucke ungültig.
+- **Kein eigenes Recht** für den Katalog: Wer Aufträge pflegen darf, pflegt auch die Vorlagen dafür. Die Legacy-Rollen-Prüfung folgt dem Hausstil (dasselbe Muster steckt in 15 Controllern) – eine neue Abstraktion nur für zwei davon wäre inkonsistenter als die Wiederholung.
 
 ### AKZEPTANZKRITERIEN
-- Ein Katalogschritt `fraesen` laesst sich einmal anlegen, erscheint mit QR-Code in der Liste, und der Code ist mit einem Scanner als `fraesen` lesbar.
+- Ein Katalogschritt `fraesen` lässt sich einmal anlegen, erscheint mit QR-Code in der Liste, und der Code ist mit einem Scanner als `fraesen` lesbar.
 
 ### TEST
-1. Acht Standardschritte angelegt (saegen, drehen, fraesen, bohren, schleifen, entgraten, montage, pruefen) – alle in der Datenbank mit Bezeichnung und Sortierung.
-2. Fehlerfaelle: doppelter Code, leerer Code, 101 Zeichen und falsches CSRF-Token werden abgelehnt.
-3. Liste gerendert: acht Eintraege mit QR-Vorschau, Druckformular und Bearbeiten-Link; keine PHP-Meldungen.
-4. Menue enthaelt Auftragsuebersicht, Auftrag anlegen und Arbeitsschritt-Katalog.
-5. Mit `zbarimg` gegengeprueft: `katalog_3.png` -> `fraesen`, `katalog_8.png` -> `pruefen`.
+1. Acht Standardschritte angelegt (sägen, drehen, fräsen, bohren, schleifen, entgraten, montage, prüfen) – alle in der Datenbank mit Bezeichnung und Sortierung.
+2. Fehlerfälle: doppelter Code, leerer Code, 101 Zeichen und falsches CSRF-Token werden abgelehnt.
+3. Liste gerendert: acht Einträge mit QR-Vorschau, Druckformular und Bearbeiten-Link; keine PHP-Meldungen.
+4. Menü enthält Auftragsübersicht, Auftrag anlegen und Arbeitsschritt-Katalog.
+5. Mit `zbarimg` gegengeprüft: `katalog_3.png` -> `fraesen`, `katalog_8.png` -> `pruefen`.
 
 ### NEXT
-- P-2026-08-08-14: Druckblatt (PDF) mit frei waehlbarer Stueckzahl.
+- P-2026-08-08-14: Druckblatt (PDF) mit frei wählbarer Stückzahl.
 
 
 ## P-2026-08-08-11 laufkarten-pdf
 
 ### EINGELESEN
-- `services/PDFService.php` (Writer-Interna: `baueMinimalPdfMitSeiten`, `pdfTextCmd`, `pdfRectFill`, `pdfLine`, `wrapText`), `controller/AuftragController.php`, `controller/ReportController.php` (Muster fuer die PDF-Auslieferung).
+- `services/PDFService.php` (Writer-Interna: `baueMinimalPdfMitSeiten`, `pdfTextCmd`, `pdfRectFill`, `pdfLine`, `wrapText`), `controller/AuftragController.php`, `controller/ReportController.php` (Muster für die PDF-Auslieferung).
 
 ### DUPLIKAT-CHECK
 - Kein Duplikat: Bisher gab es nur das Monats-PDF; eine Laufkarte existierte nicht.
@@ -11272,24 +11378,24 @@ Diese Uebernahme steht noch aus und sollte einzeln geprueft werden – nicht pau
 ### DONE
 - **Neue Route** `?seite=auftrag_laufkarte&code=…` liefert die Laufkarte als PDF (A4 hoch, `Content-Disposition: inline`, Dateiname aus der Auftragsnummer auf unbedenkliche Zeichen reduziert).
 - **Layout:** Kopf mit Auftragsnummer, Kunde, Kurzbeschreibung, Status, Druckdatum und dem Auftrags-QR rechts oben; darunter je Arbeitsschritt ein Block mit Nummer, Code, Bezeichnung (umbrechend), QR-Code und den handschriftlichen Feldern Datum / Name / Menge / i. O.
-- **QR-Codes als Vektor**: `pdfQrMatrix()` zeichnet die Modulmatrix als gefuellte Rechtecke und fasst dabei waagerecht zusammenhaengende Module zu einem Rechteck zusammen. Das spart Zeichenbefehle (statt bis zu 441 Einzelrechtecken pro Code) und haelt die Datei klein - eine Seite mit fuenf Codes wiegt 19 KB.
-- Nur **aktive** Arbeitsschritte erscheinen; inaktive gehoeren nicht auf einen Ausdruck.
-- Mehrseitig mit verkuerztem Folgekopf (Auftragsnummer + Seitenzahl).
-- **Bewusst ohne Verwaltungsrecht:** Wer in der Werkstatt eine Laufkarte nachdruckt, braucht kein Recht zum Aendern.
+- **QR-Codes als Vektor**: `pdfQrMatrix()` zeichnet die Modulmatrix als gefüllte Rechtecke und fasst dabei waagerecht zusammenhängende Module zu einem Rechteck zusammen. Das spart Zeichenbefehle (statt bis zu 441 Einzelrechtecken pro Code) und hält die Datei klein - eine Seite mit fünf Codes wiegt 19 KB.
+- Nur **aktive** Arbeitsschritte erscheinen; inaktive gehören nicht auf einen Ausdruck.
+- Mehrseitig mit verkürztem Folgekopf (Auftragsnummer + Seitenzahl).
+- **Bewusst ohne Verwaltungsrecht:** Wer in der Werkstatt eine Laufkarte nachdruckt, braucht kein Recht zum Ändern.
 
 ### AKZEPTANZKRITERIEN
-- Die Laufkarte laesst sich als PDF oeffnen und enthaelt den Auftrags-QR sowie je einen QR pro aktivem Arbeitsschritt - und diese Codes sind mit einem Scanner tatsaechlich lesbar.
+- Die Laufkarte lässt sich als PDF öffnen und enthält den Auftrags-QR sowie je einen QR pro aktivem Arbeitsschritt - und diese Codes sind mit einem Scanner tatsächlich lesbar.
 
 ### TEST
 1. PDF erzeugt: 19 KB, A4, strukturell fehlerfrei laut `qpdf --check`.
 2. **Entscheidende Gegenprobe:** PDF mit `pdftoppm` nach PNG gerendert und mit `zbarimg` dekodiert - alle Codes ergeben exakt `A-2026-0999`, `saegen`, `drehen`, `fraesen`, `entgraten`. Die gezeichneten Vektor-QR sind also real scannbar, nicht nur optisch plausibel.
-3. Seitenumbruch mit 15 aktiven Schritten: 3 Seiten, alle 15 Codes plus Auftrags-QR ueber alle Seiten dekodierbar, Folgekopf korrekt.
+3. Seitenumbruch mit 15 aktiven Schritten: 3 Seiten, alle 15 Codes plus Auftrags-QR über alle Seiten dekodierbar, Folgekopf korrekt.
 4. Ein auf `aktiv=0` gesetzter Schritt erscheint nicht im PDF (0 Treffer im extrahierten Text).
-5. Lange Bezeichnung bricht um; Auftrag ohne Schritte erzeugt eine Seite mit Hinweistext; unbekannte Auftragsnummer leitet mit Meldung zurueck statt ein leeres PDF zu liefern.
-6. Keine PHP-Meldungen in allen Faellen.
+5. Lange Bezeichnung bricht um; Auftrag ohne Schritte erzeugt eine Seite mit Hinweistext; unbekannte Auftragsnummer leitet mit Meldung zurück statt ein leeres PDF zu liefern.
+6. Keine PHP-Meldungen in allen Fällen.
 
 ### NEXT
-- Arbeitsschritt-Katalog: zentral gepflegte Standardschritte (z. B. `fraesen`), die auftragsunabhaengig ausgedruckt und an Maschinen gehaengt werden koennen.
+- Arbeitsschritt-Katalog: zentral gepflegte Standardschritte (z. B. `fraesen`), die auftragsunabhängig ausgedruckt und an Maschinen gehängt werden können.
 
 
 ## P-2026-08-08-10 arbeitsschritte-mit-qr-codes
@@ -11308,18 +11414,18 @@ Diese Uebernahme steht noch aus und sollte einzeln geprueft werden – nicht pau
 ### DONE
 - **Auftragsdetail zeigt jetzt Stammdaten:** Kunde, Kurzbeschreibung, Status, Aktiv, dazu den Auftrags-QR-Code mit Downloadlink und Links zum Bearbeiten und zur Laufkarte.
 - **Arbeitsschritte (Stammdaten)** als eigene Tabelle mit Nummer, Code, Bezeichnung, QR-Bild und Aktiv-Kennzeichen – getrennt von der bestehenden Auswertung „Arbeitsschritte (Summe, abgeschlossen)“, die aus Buchungen kommt.
-- **Formular „Arbeitsschritt hinzufuegen“** direkt in der Detailansicht, plus Bearbeiten-Maske (`?seite=auftrag_schritt_bearbeiten&id=…`) mit Aktiv-Schalter. Geloescht wird nicht, damit vorhandene Buchungen zuordenbar bleiben.
-- Die Stammdaten-Bloecke liegen bewusst **ausserhalb** des Buchungs-Zweigs der Detailansicht. Sonst waeren sie bei einem frisch angelegten Auftrag (noch keine Buchung) unsichtbar gewesen.
-- Fuer Auftragsnummern, die nur aus Buchungen stammen und keinen Stammdatensatz haben, erscheint ein Hinweis mit Link zum Anlegen – ohne stillschweigend Datensaetze zu erzeugen.
+- **Formular „Arbeitsschritt hinzufügen“** direkt in der Detailansicht, plus Bearbeiten-Maske (`?seite=auftrag_schritt_bearbeiten&id=…`) mit Aktiv-Schalter. Gelöscht wird nicht, damit vorhandene Buchungen zuordenbar bleiben.
+- Die Stammdaten-Blöcke liegen bewusst **außerhalb** des Buchungs-Zweigs der Detailansicht. Sonst wären sie bei einem frisch angelegten Auftrag (noch keine Buchung) unsichtbar gewesen.
+- Für Auftragsnummern, die nur aus Buchungen stammen und keinen Stammdatensatz haben, erscheint ein Hinweis mit Link zum Anlegen – ohne stillschweigend Datensätze zu erzeugen.
 
 ### AKZEPTANZKRITERIEN
 - Zu einem Auftrag lassen sich `saegen`, `drehen`, `fraesen`, `entgraten` anlegen; jeder erscheint mit eigenem QR-Code, und ein Scanner liest daraus exakt den `arbeitsschritt_code`.
 
 ### TEST
-1. Vier Arbeitsschritte ueber den Controller angelegt; alle in der Datenbank mit Bezeichnung und `aktiv=1`.
-2. Fehlerfaelle: doppelter Code, leerer Code, 101 Zeichen und unbekannte Auftrag-ID werden abgelehnt. Beim unbekannten Auftrag wurde nachgewiesen, dass **nichts** geschrieben wird (0 Zeilen) – wichtig, weil auf `auftrag_id` kein Fremdschluessel liegt und die Pruefung im Code der einzige Schutz ist.
+1. Vier Arbeitsschritte über den Controller angelegt; alle in der Datenbank mit Bezeichnung und `aktiv=1`.
+2. Fehlerfälle: doppelter Code, leerer Code, 101 Zeichen und unbekannte Auftrag-ID werden abgelehnt. Beim unbekannten Auftrag wurde nachgewiesen, dass **nichts** geschrieben wird (0 Zeilen) – wichtig, weil auf `auftrag_id` kein Fremdschlüssel liegt und die Prüfung im Code der einzige Schutz ist.
 3. Detailansicht gerendert: Stammdaten, Auftrags-QR und alle vier Schritte sichtbar, keine PHP-Meldungen.
-4. **Unabhaengige Gegenprobe mit `zbarimg`** (nicht mit der erzeugenden Bibliothek): Die PNG-Dateien dekodieren zu exakt `A-2026-0999`, `saegen`, `drehen`, `fraesen`, `entgraten`. Damit ist belegt, dass ein Scanner am Terminal genau den erwarteten Text liefert.
+4. **Unabhängige Gegenprobe mit `zbarimg`** (nicht mit der erzeugenden Bibliothek): Die PNG-Dateien dekodieren zu exakt `A-2026-0999`, `saegen`, `drehen`, `fraesen`, `entgraten`. Damit ist belegt, dass ein Scanner am Terminal genau den erwarteten Text liefert.
 5. Alle QR-Dateien per HTTP erreichbar (200, image/png).
 
 ### NEXT
@@ -11332,7 +11438,7 @@ Diese Uebernahme steht noch aus und sollte einzeln geprueft werden – nicht pau
 - `controller/AuftragController.php`, `public/index.php` (Routing/Whitelist), `views/layout/header.php`, `core/Database.php`.
 
 ### DUPLIKAT-CHECK
-- Kein Duplikat: Auftraege entstanden bisher ausschliesslich beim Scannen am Terminal; im Backend gab es nur Auswertung.
+- Kein Duplikat: Aufträge entstanden bisher ausschließlich beim Scannen am Terminal; im Backend gab es nur Auswertung.
 
 ### DATEIEN
 - `controller/AuftragController.php`
@@ -11340,23 +11446,23 @@ Diese Uebernahme steht noch aus und sollte einzeln geprueft werden – nicht pau
 - `docs/archiv/DEV_PROMPT_HISTORY.md`, `docs/STATUS_SNAPSHOT.md`
 
 ### DONE
-- **Neue Routen** `?seite=auftrag_neu`, `?seite=auftrag_bearbeiten&id=…`, `?seite=auftrag_speichern` (POST) mit CSRF-Token und Recht `AUFTRAEGE_VERWALTEN` (Legacy-Rollen wie im uebrigen Controller mitgeprueft).
-- **Auftragsliste zeigt jetzt auch buchungslose Auftraege.** Die Abfrage startete bisher bei `auftragszeit`; ein im Backend angelegter Auftrag waere unsichtbar gewesen. Grundmenge ist jetzt eine UNION aus `auftrag.auftragsnummer` und `auftragszeit.auftragscode`, Status `angelegt` bei 0 Buchungen. Alle Spalten sind aggregiert, damit die Abfrage auch unter `ONLY_FULL_GROUP_BY` laeuft.
-- Suche filtert auf der Grundmenge statt auf den verbundenen Buchungen – sonst faende sie einen Auftrag ohne Buchung nicht.
-- Liste um Kunde und Kurzbeschreibung ergaenzt, Knopf „+ Auftrag hinzufuegen“ (nur mit Recht sichtbar).
-- Doppelte Auftragsnummern werden vorher abgefangen und verstaendlich gemeldet, statt in einen SQL-Fehler zu laufen.
+- **Neue Routen** `?seite=auftrag_neu`, `?seite=auftrag_bearbeiten&id=…`, `?seite=auftrag_speichern` (POST) mit CSRF-Token und Recht `AUFTRAEGE_VERWALTEN` (Legacy-Rollen wie im übrigen Controller mitgeprüft).
+- **Auftragsliste zeigt jetzt auch buchungslose Aufträge.** Die Abfrage startete bisher bei `auftragszeit`; ein im Backend angelegter Auftrag wäre unsichtbar gewesen. Grundmenge ist jetzt eine UNION aus `auftrag.auftragsnummer` und `auftragszeit.auftragscode`, Status `angelegt` bei 0 Buchungen. Alle Spalten sind aggregiert, damit die Abfrage auch unter `ONLY_FULL_GROUP_BY` läuft.
+- Suche filtert auf der Grundmenge statt auf den verbundenen Buchungen – sonst fände sie einen Auftrag ohne Buchung nicht.
+- Liste um Kunde und Kurzbeschreibung ergänzt, Knopf „+ Auftrag hinzufügen“ (nur mit Recht sichtbar).
+- Doppelte Auftragsnummern werden vorher abgefangen und verständlich gemeldet, statt in einen SQL-Fehler zu laufen.
 - Flash-Meldungen der Liste werden jetzt auch angezeigt; `auftrag_flash_fehler` wurde zwar gesetzt, aber nirgends ausgegeben.
 
 ### AKZEPTANZKRITERIEN
-- Ein neu angelegter Auftrag ohne jede Buchung erscheint in der Liste mit Status „angelegt“ und laesst sich oeffnen und wieder bearbeiten.
+- Ein neu angelegter Auftrag ohne jede Buchung erscheint in der Liste mit Status „angelegt“ und lässt sich öffnen und wieder bearbeiten.
 
 ### TEST
-1. Listen-Abfrage direkt gegen die Datenbank: Auftrag ohne Buchung erscheint als `angelegt` (0 Buchungen), Auftrag mit Buchung unveraendert als `abgeschlossen`; dieselbe Abfrage laeuft unter `SET sql_mode='ONLY_FULL_GROUP_BY,...'` fehlerfrei.
+1. Listen-Abfrage direkt gegen die Datenbank: Auftrag ohne Buchung erscheint als `angelegt` (0 Buchungen), Auftrag mit Buchung unverändert als `abgeschlossen`; dieselbe Abfrage läuft unter `SET sql_mode='ONLY_FULL_GROUP_BY,...'` fehlerfrei.
 2. Seiten mit simulierter Anmeldung gerendert (Liste, Anlegen, Bearbeiten, Detail): keine PHP-Meldungen, Knopf nur bei vorhandenem Recht sichtbar.
-3. Speichern-Pfade: leere Nummer, 101 Zeichen, bereits vorhandene Nummer und falsches CSRF-Token werden abgelehnt; ein gueltiger Auftrag landet in der Datenbank.
+3. Speichern-Pfade: leere Nummer, 101 Zeichen, bereits vorhandene Nummer und falsches CSRF-Token werden abgelehnt; ein gültiger Auftrag landet in der Datenbank.
 
 ### HINWEIS
-- Beim Testen entstanden die Beispielauftraege `A-2026-0815` und `A-2026-0999` in der lokalen Datenbank. Sie sind reine Testdaten und koennen geloescht werden.
+- Beim Testen entstanden die Beispielaufträge `A-2026-0815` und `A-2026-0999` in der lokalen Datenbank. Sie sind reine Testdaten und können gelöscht werden.
 
 ### NEXT
 - P-2026-08-08-10: Arbeitsschritte je Auftrag verwalten (Tabelle mit QR-Codes + Formular).
@@ -11368,7 +11474,7 @@ Diese Uebernahme steht noch aus und sollte einzeln geprueft werden – nicht pau
 - `docs/rechte_prompt.md`, `sql/01_initial_schema.sql`, `sql/README.md`, `services/AuthService.php` (Superuser-Bypass), Tabellen `recht` / `rolle_hat_recht`.
 
 ### DUPLIKAT-CHECK
-- Kein Duplikat: Im Rechte-Inventar gibt es kein Recht fuer Auftraege; `MASCHINEN_VERWALTEN` ist das naechstliegende, deckt aber nur Maschinen ab.
+- Kein Duplikat: Im Rechte-Inventar gibt es kein Recht für Aufträge; `MASCHINEN_VERWALTEN` ist das nächstliegende, deckt aber nur Maschinen ab.
 
 ### DATEIEN
 - `sql/01_initial_schema.sql`, `sql/02_migration_recht_auftraege_verwalten.sql` (neu), `sql/README.md`
@@ -11377,20 +11483,20 @@ Diese Uebernahme steht noch aus und sollte einzeln geprueft werden – nicht pau
 
 ### DONE
 - Recht `AUFTRAEGE_VERWALTEN` (ID 30) im Initialschema angelegt und der Chef-Rolle zugeordnet.
-- Migration `sql/02_migration_recht_auftraege_verwalten.sql` fuer Bestandsinstallationen: idempotent (`INSERT IGNORE`, `code` ist UNIQUE), ordnet das Recht allen Superuser-Rollen zu.
+- Migration `sql/02_migration_recht_auftraege_verwalten.sql` für Bestandsinstallationen: idempotent (`INSERT IGNORE`, `code` ist UNIQUE), ordnet das Recht allen Superuser-Rollen zu.
 - `sql/README.md` korrigiert: Dort stand, es gebe keine Instanzen, die Migrationen brauchen. Das trifft nicht mehr zu (Produktivinstallation vorhanden); der Abschnitt beschreibt jetzt Nummerierung, Idempotenz und das Einspielen.
-- Im Rechte-Prompt dokumentiert – inklusive der bewussten Abgrenzung: Ansehen der Auftraege und das Laufkarten-PDF bleiben ohne dieses Recht erreichbar, und das automatische Anlegen beim Scannen am Terminal bleibt voellig unberuehrt.
+- Im Rechte-Prompt dokumentiert – inklusive der bewussten Abgrenzung: Ansehen der Aufträge und das Laufkarten-PDF bleiben ohne dieses Recht erreichbar, und das automatische Anlegen beim Scannen am Terminal bleibt völlig unberührt.
 
 ### AKZEPTANZKRITERIEN
-- Eine Neuinstallation aus `01_initial_schema.sql` enthaelt das Recht inklusive Chef-Zuordnung, und die Migration laesst sich anschliessend ohne Doppeleintrag darueber laufen.
+- Eine Neuinstallation aus `01_initial_schema.sql` enthält das Recht inklusive Chef-Zuordnung, und die Migration lässt sich anschließend ohne Doppeleintrag darüber laufen.
 
 ### TEST
 1. Frische Datenbank aus dem Initialschema: 33 Tabellen, 30 Rechte, `AUFTRAEGE_VERWALTEN` vorhanden, Chef-Zuordnung vorhanden.
 2. Migration auf diese frische Datenbank angewendet: weiterhin genau 1 Zeile, keine doppelte Zuordnung.
-3. Migration zweimal auf der lokalen Arbeitsdatenbank ausgefuehrt: unveraendert 1 Recht, 1 Zuordnung.
+3. Migration zweimal auf der lokalen Arbeitsdatenbank ausgeführt: unverändert 1 Recht, 1 Zuordnung.
 
 ### NEXT
-- P-2026-08-08-09: Auftrag im Backend anlegen und bearbeiten (inkl. Liste, die auch buchungslose Auftraege zeigt).
+- P-2026-08-08-09: Auftrag im Backend anlegen und bearbeiten (inkl. Liste, die auch buchungslose Aufträge zeigt).
 
 
 ## P-2026-08-08-07 qrcodeservice-fuer-auftraege
@@ -11399,7 +11505,7 @@ Diese Uebernahme steht noch aus und sollte einzeln geprueft werden – nicht pau
 - `services/MaschineQrCodeService.php`, `core/Helper.php`, `core/DefaultsSeeder.php`, `services/phpqrcode/qrencode.php`.
 
 ### DUPLIKAT-CHECK
-- Kein Duplikat: Es gab bisher nur QR-Erzeugung fuer Maschinen; fuer Auftraege/Arbeitsschritte nichts.
+- Kein Duplikat: Es gab bisher nur QR-Erzeugung für Maschinen; für Aufträge/Arbeitsschritte nichts.
 
 ### DATEIEN
 - `services/QrCodeService.php` (neu)
@@ -11407,20 +11513,20 @@ Diese Uebernahme steht noch aus und sollte einzeln geprueft werden – nicht pau
 - `docs/archiv/DEV_PROMPT_HISTORY.md`, `docs/STATUS_SNAPSHOT.md`
 
 ### DONE
-- **Neuer `QrCodeService`** fuer beliebige Nutzdaten mit zwei Ausgabewegen: `stelleBildBereit()` schreibt eine PNG-Datei unterhalb von `public/` (Anzeige im Backend), `holeModulMatrix()` liefert die reine Modulmatrix (fuer das Laufkarten-PDF, das die Codes als Vektor zeichnet).
-- **Erzeugung nur bei Bedarf:** Neu geschrieben wird nur, wenn die Datei fehlt oder aelter ist als `geaendert_am` des Datensatzes. Ein umbenannter Arbeitsschritt bekommt damit automatisch einen neuen Code, ohne dass bei jedem Seitenaufruf gerechnet wird.
+- **Neuer `QrCodeService`** für beliebige Nutzdaten mit zwei Ausgabewegen: `stelleBildBereit()` schreibt eine PNG-Datei unterhalb von `public/` (Anzeige im Backend), `holeModulMatrix()` liefert die reine Modulmatrix (für das Laufkarten-PDF, das die Codes als Vektor zeichnet).
+- **Erzeugung nur bei Bedarf:** Neu geschrieben wird nur, wenn die Datei fehlt oder älter ist als `geaendert_am` des Datensatzes. Ein umbenannter Arbeitsschritt bekommt damit automatisch einen neuen Code, ohne dass bei jedem Seitenaufruf gerechnet wird.
 - **Web-Basis-Ableitung nach `Helper::ermittleWebBasis()` gezogen** und `MaschineQrCodeService` darauf umgestellt. Zwei Kopien derselben URL-Logik waren die Ursache von B-089 – dieser Fehler wird hier nicht wiederholt.
-- **Konfiguration** `auftrag_qr_rel_pfad` (Default `uploads/auftrag_codes`) im `DefaultsSeeder` ergaenzt.
+- **Konfiguration** `auftrag_qr_rel_pfad` (Default `uploads/auftrag_codes`) im `DefaultsSeeder` ergänzt.
 - **`DefaultsSeeder` robuster gemacht:** Platzhalter und Parameter des INSERT werden jetzt aus der Default-Liste aufgebaut. Vorher waren beide fest verdrahtet (8 Platzhalter, 32 Parameter von Hand), so dass jeder neue Default-Wert an drei Stellen synchron nachgezogen werden musste.
 
 ### AKZEPTANZKRITERIEN
-- Ein Aufruf mit den Nutzdaten `drehen` erzeugt eine lesbare PNG-Datei im konfigurierten Verzeichnis und liefert eine im Browser gueltige URL – ohne dass etwas konfiguriert werden muss.
+- Ein Aufruf mit den Nutzdaten `drehen` erzeugt eine lesbare PNG-Datei im konfigurierten Verzeichnis und liefert eine im Browser gültige URL – ohne dass etwas konfiguriert werden muss.
 
 ### TEST
-1. Mit `error_reporting(E_ALL)`: PNG fuer Auftrag (`auftrag_5.png`) und Arbeitsschritt (`schritt_12.png`) erzeugt, beide 150x150 PNG; URL `/zeiterfassung/uploads/auftrag_codes/auftrag_5.png`; Matrix 21x21; leere Nutzdaten liefern `null` bzw. leeres Array statt Fehler. 0 Meldungen.
-2. Zwischenspeicherung: zweiter Aufruf ohne Aenderung schreibt die Datei nicht neu; mit neuerem `geaendert_am` wird sie neu erzeugt.
-3. `DefaultsSeeder::ensureDefaults()` legt `auftrag_qr_rel_pfad` an (Beleg, dass der dynamische Aufbau mit neun Eintraegen funktioniert).
-4. `MaschineQrCodeService::baueBildUrl()` liefert nach der Umstellung unveraendert `/zeiterfassung/uploads/maschinen_codes/...`.
+1. Mit `error_reporting(E_ALL)`: PNG für Auftrag (`auftrag_5.png`) und Arbeitsschritt (`schritt_12.png`) erzeugt, beide 150x150 PNG; URL `/zeiterfassung/uploads/auftrag_codes/auftrag_5.png`; Matrix 21x21; leere Nutzdaten liefern `null` bzw. leeres Array statt Fehler. 0 Meldungen.
+2. Zwischenspeicherung: zweiter Aufruf ohne Änderung schreibt die Datei nicht neu; mit neuerem `geaendert_am` wird sie neu erzeugt.
+3. `DefaultsSeeder::ensureDefaults()` legt `auftrag_qr_rel_pfad` an (Beleg, dass der dynamische Aufbau mit neun Einträgen funktioniert).
+4. `MaschineQrCodeService::baueBildUrl()` liefert nach der Umstellung unverändert `/zeiterfassung/uploads/maschinen_codes/...`.
 
 ### NEXT
 - P-2026-08-08-08: Recht `AUFTRAEGE_VERWALTEN`.
@@ -11432,24 +11538,24 @@ Diese Uebernahme steht noch aus und sollte einzeln geprueft werden – nicht pau
 - `controller/AuftragController.php`, `controller/TerminalController.php` (Scan-Verarbeitung), `services/AuftragszeitService.php`, `services/PDFService.php`, Tabellen `auftrag` / `auftrag_arbeitsschritt` / `auftragszeit`.
 
 ### DUPLIKAT-CHECK
-- Kein Duplikat: `docs/archiv/auftrags_prompt_v1.md` beschreibt den Scan-Ablauf am Terminal (umgesetzt), aber nicht das Anlegen im Backend, QR-Codes fuer Arbeitsschritte oder eine Laufkarte.
+- Kein Duplikat: `docs/archiv/auftrags_prompt_v1.md` beschreibt den Scan-Ablauf am Terminal (umgesetzt), aber nicht das Anlegen im Backend, QR-Codes für Arbeitsschritte oder eine Laufkarte.
 
 ### DATEIEN
 - `docs/spezifikation_auftrag_qr_laufkarte.md` (neu)
 - `docs/prompt_uebersicht.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`, `docs/STATUS_SNAPSHOT.md`
 
 ### DONE
-- Zielbild und Akzeptanzkriterien fuer die Erweiterung festgehalten, wie es der Master-Prompt fuer neue Funktionsbereiche verlangt.
+- Zielbild und Akzeptanzkriterien für die Erweiterung festgehalten, wie es der Master-Prompt für neue Funktionsbereiche verlangt.
 - **Zwei Vorab-Erkenntnisse aus der Code-Analyse, die den Zuschnitt bestimmen:**
-  1. Das Terminal liest `auftragscode` und `arbeitsschritt_code` als reinen Text und legt fehlende Stammdaten selbst an. Der QR-Code darf deshalb **nur den nackten Code** enthalten – dann funktioniert das Scannen ohne jede Terminal-Aenderung.
-  2. Die Auftragsliste baut ausschliesslich auf `auftragszeit` auf. Ein im Backend angelegter Auftrag ohne Buchung waere unsichtbar; die Abfrage muss erweitert werden.
-- Fuer das Laufkarten-PDF ist der Weg festgelegt: QR-Codes werden als Vektor gezeichnet (`QRcode::text()` liefert die Modulmatrix, jedes dunkle Modul wird ein Rechteck), weil `PDFService` ein handgeschriebener Writer ohne Bildunterstuetzung ist.
+  1. Das Terminal liest `auftragscode` und `arbeitsschritt_code` als reinen Text und legt fehlende Stammdaten selbst an. Der QR-Code darf deshalb **nur den nackten Code** enthalten – dann funktioniert das Scannen ohne jede Terminal-Änderung.
+  2. Die Auftragsliste baut ausschließlich auf `auftragszeit` auf. Ein im Backend angelegter Auftrag ohne Buchung wäre unsichtbar; die Abfrage muss erweitert werden.
+- Für das Laufkarten-PDF ist der Weg festgelegt: QR-Codes werden als Vektor gezeichnet (`QRcode::text()` liefert die Modulmatrix, jedes dunkle Modul wird ein Rechteck), weil `PDFService` ein handgeschriebener Writer ohne Bildunterstützung ist.
 
 ### AKZEPTANZKRITERIEN
-- Die Spezifikation nennt fuer jeden Teil ein pruefbares Ergebnis (Abschnitt 6) und grenzt ab, was bewusst nicht dazugehoert (Abschnitt 7).
+- Die Spezifikation nennt für jeden Teil ein prüfbares Ergebnis (Abschnitt 6) und grenzt ab, was bewusst nicht dazugehört (Abschnitt 7).
 
 ### NEXT
-- P-2026-08-08-07: `QrCodeService` fuer beliebige Nutzdaten (PNG-Datei + Matrix).
+- P-2026-08-08-07: `QrCodeService` für beliebige Nutzdaten (PNG-Datei + Matrix).
 
 
 ## P-2026-08-08-05 erzeugte-dateien-ignorieren-und-rechte
@@ -11458,7 +11564,7 @@ Diese Uebernahme steht noch aus und sollte einzeln geprueft werden – nicht pau
 - `.gitignore`, `scripts/dev/setup_lokale_umgebung_arch.sh`, `docs/lokale_entwicklungsumgebung.md`, ACL-Stand von `public/uploads`.
 
 ### DUPLIKAT-CHECK
-- Kein Duplikat: Die `.gitignore` enthielt bisher nur `config/config.local.php`; eine Regel fuer erzeugte Dateien gab es nicht.
+- Kein Duplikat: Die `.gitignore` enthielt bisher nur `config/config.local.php`; eine Regel für erzeugte Dateien gab es nicht.
 
 ### DATEIEN
 - `.gitignore`
@@ -11467,20 +11573,20 @@ Diese Uebernahme steht noch aus und sollte einzeln geprueft werden – nicht pau
 - `docs/archiv/DEV_PROMPT_HISTORY.md`, `docs/STATUS_SNAPSHOT.md`
 
 ### DONE
-- **Erzeugte Dateien nicht mehr versionieren:** Der Inhalt von `public/uploads/` ist ausgeschlossen, die `.gitkeep`-Dateien bleiben erhalten. Maschinen-QR-Codes und -Barcodes entstehen beim Speichern einer Maschine und gehoeren zur Installation, nicht zum Quellcode. Vorher waren sie nur "noch nicht hinzugefuegt" und waeren beim naechsten `git add .` mitgewandert.
-- **ACL fuer beide Seiten:** Das Setup-Skript traegt jetzt zusaetzlich den Eigentuemer des Projektverzeichnisses ein (ermittelt per `stat -c %U`, funktioniert also unabhaengig vom Benutzernamen). Vorher kannte die ACL nur `http`; vom Webserver erzeugte Dateien gehoerten damit `http:http`, und der eigene Benutzer fiel auf `other` zurueck – lesen ja, ueberschreiben nein. Aufgefallen beim Erzeugen eines Barcodes ausserhalb des Browsers: `file_put_contents(...): Permission denied`.
-- Beides in `docs/lokale_entwicklungsumgebung.md`, Abschnitt 4.5 erklaert – samt Symptom, damit es beim naechsten Mal schneller gefunden wird.
+- **Erzeugte Dateien nicht mehr versionieren:** Der Inhalt von `public/uploads/` ist ausgeschlossen, die `.gitkeep`-Dateien bleiben erhalten. Maschinen-QR-Codes und -Barcodes entstehen beim Speichern einer Maschine und gehören zur Installation, nicht zum Quellcode. Vorher waren sie nur "noch nicht hinzugefügt" und wären beim nächsten `git add .` mitgewandert.
+- **ACL für beide Seiten:** Das Setup-Skript trägt jetzt zusätzlich den Eigentümer des Projektverzeichnisses ein (ermittelt per `stat -c %U`, funktioniert also unabhängig vom Benutzernamen). Vorher kannte die ACL nur `http`; vom Webserver erzeugte Dateien gehörten damit `http:http`, und der eigene Benutzer fiel auf `other` zurück – lesen ja, überschreiben nein. Aufgefallen beim Erzeugen eines Barcodes außerhalb des Browsers: `file_put_contents(...): Permission denied`.
+- Beides in `docs/lokale_entwicklungsumgebung.md`, Abschnitt 4.5 erklärt – samt Symptom, damit es beim nächsten Mal schneller gefunden wird.
 
 ### AKZEPTANZKRITERIEN
 - `git status` bleibt sauber, nachdem im Browser ein Maschinen-Barcode neu erzeugt wurde; die `.gitkeep`-Dateien bleiben versioniert.
 
 ### TEST
-1. `git check-ignore -v` auf beide erzeugten PNG-Dateien: greift ueber `public/uploads/maschinen_codes/*`.
+1. `git check-ignore -v` auf beide erzeugten PNG-Dateien: greift über `public/uploads/maschinen_codes/*`.
 2. `git ls-files public/uploads` zeigt weiterhin `.gitkeep`.
 3. `bash -n` auf dem Setup-Skript fehlerfrei.
 
 ### HINWEIS FUER BESTEHENDE ARBEITSPLAETZE
-- Die erweiterte ACL wirkt fuer neue Dateien automatisch. Bereits vom Webserver erzeugte Dateien einmalig nachziehen:
+- Die erweiterte ACL wirkt für neue Dateien automatisch. Bereits vom Webserver erzeugte Dateien einmalig nachziehen:
   `sudo setfacl -R -m u:http:rwX -m u:$USER:rwX public/uploads public/img`
 
 
@@ -11495,7 +11601,7 @@ Diese Uebernahme steht noch aus und sollte einzeln geprueft werden – nicht pau
 ### BUGREPORT (B-090)
 - Schritte: Eine Seite aufrufen, die `MaschineQrCodeService` instanziiert (z. B. Maschine speichern), Fehlerlog ansehen.
 - Ist: Deprecation-Meldungen und Datei-Warnungen bei jeder QR-Erzeugung.
-- Betroffen war auch der Produktivserver: Die Meldungen gelten ab PHP 8.0 bzw. 8.2, dort laeuft PHP 8.3.
+- Betroffen war auch der Produktivserver: Die Meldungen gelten ab PHP 8.0 bzw. 8.2, dort läuft PHP 8.3.
 
 ### DATEIEN
 - `services/phpqrcode/qrimage.php`
@@ -11505,10 +11611,10 @@ Diese Uebernahme steht noch aus und sollte einzeln geprueft werden – nicht pau
 - `docs/archiv/DEV_PROMPT_HISTORY.md`, `docs/STATUS_SNAPSHOT.md`
 
 ### DONE
-Vier Ursachen in der mitgelieferten Bibliothek behoben, jede Aenderung im Code als **LOKALE ANPASSUNG (P-2026-08-08-04)** kommentiert, damit sie bei einem Bibliotheks-Update nicht verlorengeht:
-1. **Pflichtparameter hinter optionalen Parametern** (`QRimage::png`, `QRvect::svg`): `$back_color`/`$fore_color` haben jetzt dieselben Standardwerte wie im Rest der Bibliothek (`0xFFFFFF`/`0x000000`). Nebeneffekt: `QRtools::buildCache()` ruft `QRimage::png()` mit nur vier Argumenten auf und waere bisher mit einem `ArgumentCountError` gestorben – das ist damit ebenfalls erledigt.
+Vier Ursachen in der mitgelieferten Bibliothek behoben, jede Änderung im Code als **LOKALE ANPASSUNG (P-2026-08-08-04)** kommentiert, damit sie bei einem Bibliotheks-Update nicht verlorengeht:
+1. **Pflichtparameter hinter optionalen Parametern** (`QRimage::png`, `QRvect::svg`): `$back_color`/`$fore_color` haben jetzt dieselben Standardwerte wie im Rest der Bibliothek (`0xFFFFFF`/`0x000000`). Nebeneffekt: `QRtools::buildCache()` ruft `QRimage::png()` mit nur vier Argumenten auf und wäre bisher mit einem `ArgumentCountError` gestorben – das ist damit ebenfalls erledigt.
 2. **Dynamische Eigenschaft** `QRencode::$cmyk` wird in `factory()` gesetzt, war aber nie deklariert (seit PHP 8.2 deprecated) → als `public $cmyk = false;` deklariert.
-3. **`ImageDestroy()`** (3 Stellen in `qrimage.php`) entfernt: seit PHP 8.0 wirkungslos, seit PHP 8.5 zusaetzlich deprecated.
+3. **`ImageDestroy()`** (3 Stellen in `qrimage.php`) entfernt: seit PHP 8.0 wirkungslos, seit PHP 8.5 zusätzlich deprecated.
 4. **Fehlendes Cache-Verzeichnis:** `QR_CACHEABLE` stand auf `true`, das Cache-Verzeichnis liegt im Codebaum und existierte nicht → bei jeder QR-Erzeugung ein Schwall `file_put_contents`-/`mkdir`-Warnungen. Cache abgeschaltet; die Bibliothek rechnet die Masken im Speicher (beide Cache-Stellen haben einen sauberen Else-Zweig). Bei der geringen Zahl erzeugter Codes unerheblich – und der Webserver braucht keine Schreibrechte im Programmverzeichnis.
 
 ### AKZEPTANZKRITERIEN
@@ -11516,8 +11622,8 @@ Vier Ursachen in der mitgelieferten Bibliothek behoben, jede Aenderung im Code a
 
 ### TEST
 1. `MaschineQrCodeService` mit eigenem Basisverzeichnis instanziiert, `erzeugeMaschinenQrCode(5)` und `erzeugeMaschinenBarcode(5, "test")` aufgerufen, `error_reporting(E_ALL)`: 0 Meldungen (vorher 13 verschiedene).
-2. Ergebnisdateien geprueft: QR-Code 150x150 PNG, Barcode 202x60 PNG.
-3. `php -l` auf allen vier geaenderten Bibliotheksdateien fehlerfrei.
+2. Ergebnisdateien geprüft: QR-Code 150x150 PNG, Barcode 202x60 PNG.
+3. `php -l` auf allen vier geänderten Bibliotheksdateien fehlerfrei.
 
 ## P-2026-08-08-03 maschinen-barcode-url-automatisch
 
@@ -11525,13 +11631,13 @@ Vier Ursachen in der mitgelieferten Bibliothek behoben, jede Aenderung im Code a
 - `controller/MaschineAdminController.php`, `services/MaschineQrCodeService.php`, `core/DefaultsSeeder.php`, Konfigurationswerte `maschinen_qr_url` / `maschinen_qr_rel_pfad`.
 
 ### DUPLIKAT-CHECK
-- Kein Duplikat: In der History gibt es Eintraege zur QR-Pfad-Konfiguration (P-2026-01-18-30 Barcode-Generator), aber keinen zur Ableitung der Anzeige-URL.
+- Kein Duplikat: In der History gibt es Einträge zur QR-Pfad-Konfiguration (P-2026-01-18-30 Barcode-Generator), aber keinen zur Ableitung der Anzeige-URL.
 
 ### BUGREPORT (Ausgangslage)
 - Schritte: Verwaltung → Maschinen → Maschine bearbeiten.
 - Erwartung: Der erzeugte Barcode wird angezeigt.
 - Ist: Roter Hinweis „Bitte die Maschinen-QR-URL in der Konfiguration hinterlegen“, obwohl die PNG-Datei korrekt erzeugt wurde und per HTTP erreichbar war.
-- Ursache: `MaschineAdminController` hatte eine **zweite, abweichende** URL-Logik (`holeMaschinenQrUrl()` + `baueQrCodeUrlPfad()`). Sie haengte nur den Dateinamen an `maschinen_qr_url` (statt an den relativen Speicherpfad) und lieferte bei leerem Wert `''` – also nie ein Bild. Die richtige Logik lag als **toter Code** in `MaschineQrCodeService::baueUrlPfad()` und wurde nirgends aufgerufen.
+- Ursache: `MaschineAdminController` hatte eine **zweite, abweichende** URL-Logik (`holeMaschinenQrUrl()` + `baueQrCodeUrlPfad()`). Sie hängte nur den Dateinamen an `maschinen_qr_url` (statt an den relativen Speicherpfad) und lieferte bei leerem Wert `''` – also nie ein Bild. Die richtige Logik lag als **toter Code** in `MaschineQrCodeService::baueUrlPfad()` und wurde nirgends aufgerufen.
 
 ### DATEIEN
 - `services/MaschineQrCodeService.php`
@@ -11541,21 +11647,21 @@ Vier Ursachen in der mitgelieferten Bibliothek behoben, jede Aenderung im Code a
 
 ### DONE
 - **Automatische Ableitung:** Die Bild-URL wird jetzt aus der Web-Basis der Installation plus `maschinen_qr_rel_pfad` gebildet. Die Web-Basis kommt aus `app.base_url` (falls gesetzt), sonst aus dem Verzeichnis des laufenden Skripts (`SCRIPT_NAME`). Damit muss derselbe Pfad nicht mehr doppelt gepflegt werden.
-- **Bedeutung von `maschinen_qr_url` geklaert:** leer = automatisch ableiten (Normalfall), `/` = ausdruecklich Domain-Root, sonst Pfad oder volle URL als Basis (z. B. Bilder auf einem anderen Host). Beschreibungstext im `DefaultsSeeder` entsprechend korrigiert – vorher stand dort „Leer = Domain-Root“, was der Code nie umgesetzt hat.
-- **Doppelte Logik entfernt:** `holeMaschinenQrUrl()`, `baueQrCodeUrlPfad()` und das dadurch ungenutzte `holeKonfigurationService()` sind aus dem Controller raus; er nutzt jetzt `MaschineQrCodeService::baueBildUrl()`. Erzeugung und Anzeige laufen damit ueber dieselbe Logik.
-- **Hinweis in der Maske:** Der rote Text erscheint nicht mehr wegen fehlender Konfiguration, sondern nur noch, wenn tatsaechlich kein Bild hinterlegt ist („Noch kein Barcode gespeichert“).
+- **Bedeutung von `maschinen_qr_url` geklärt:** leer = automatisch ableiten (Normalfall), `/` = ausdrücklich Domain-Root, sonst Pfad oder volle URL als Basis (z. B. Bilder auf einem anderen Host). Beschreibungstext im `DefaultsSeeder` entsprechend korrigiert – vorher stand dort „Leer = Domain-Root“, was der Code nie umgesetzt hat.
+- **Doppelte Logik entfernt:** `holeMaschinenQrUrl()`, `baueQrCodeUrlPfad()` und das dadurch ungenutzte `holeKonfigurationService()` sind aus dem Controller raus; er nutzt jetzt `MaschineQrCodeService::baueBildUrl()`. Erzeugung und Anzeige laufen damit über dieselbe Logik.
+- **Hinweis in der Maske:** Der rote Text erscheint nicht mehr wegen fehlender Konfiguration, sondern nur noch, wenn tatsächlich kein Bild hinterlegt ist („Noch kein Barcode gespeichert“).
 
 ### AKZEPTANZKRITERIEN
 - Ohne jede Konfiguration zeigt die Maske „Maschine bearbeiten“ den Barcode – sowohl bei Installation in einem Unterordner (`/zeiterfassung`) als auch direkt auf der Domain-Wurzel.
 
 ### TEST
-1. Alle Konfigurationsfaelle gegen den gespeicherten Pfad `uploads/maschinen_codes/maschine_5_barcode.png` geprueft: leer → `/zeiterfassung/uploads/...`, `/` → `/uploads/...`, `/zeiterfassung` → `/zeiterfassung/uploads/...`, `https://host/pfad` → `https://host/pfad/uploads/...`, Altlast `zeiterfassung/public` → `/uploads/...`, kein Bild → leerer String.
-2. Ableitung ohne `app.base_url` ueber `SCRIPT_NAME`: `/zeiterfassung/index.php` → `/zeiterfassung/...`, `/index.php` → `/...`, `/zeiterfassung/maschine_code.php` → `/zeiterfassung/...`.
-3. `php -l` auf allen drei geaenderten Dateien fehlerfrei.
+1. Alle Konfigurationsfälle gegen den gespeicherten Pfad `uploads/maschinen_codes/maschine_5_barcode.png` geprüft: leer → `/zeiterfassung/uploads/...`, `/` → `/uploads/...`, `/zeiterfassung` → `/zeiterfassung/uploads/...`, `https://host/pfad` → `https://host/pfad/uploads/...`, Altlast `zeiterfassung/public` → `/uploads/...`, kein Bild → leerer String.
+2. Ableitung ohne `app.base_url` über `SCRIPT_NAME`: `/zeiterfassung/index.php` → `/zeiterfassung/...`, `/index.php` → `/...`, `/zeiterfassung/maschine_code.php` → `/zeiterfassung/...`.
+3. `php -l` auf allen drei geänderten Dateien fehlerfrei.
 
 ### OFFEN / NEUER BUG
-- **B-090 (neu):** Die mitgelieferte Bibliothek `services/phpqrcode` erzeugt PHP-Deprecations („Optional parameter declared before required parameter“ in `qrimage.php:30` und `qrvect.php:140`). Das betrifft **jede** Seite, die `MaschineQrCodeService` instanziiert, und gilt ab PHP 8.0 – also auch auf dem Produktivserver (PHP 8.3), wo es das Fehlerlog fuellt. Noch nicht behoben, weil eigenes Thema (Fremdbibliothek).
-- Bestandsinstallationen behalten den alten Beschreibungstext in der `config`-Tabelle; er wird vom `DefaultsSeeder` nicht ueberschrieben. Bei Bedarf per UPDATE nachziehen.
+- **B-090 (neu):** Die mitgelieferte Bibliothek `services/phpqrcode` erzeugt PHP-Deprecations („Optional parameter declared before required parameter“ in `qrimage.php:30` und `qrvect.php:140`). Das betrifft **jede** Seite, die `MaschineQrCodeService` instanziiert, und gilt ab PHP 8.0 – also auch auf dem Produktivserver (PHP 8.3), wo es das Fehlerlog füllt. Noch nicht behoben, weil eigenes Thema (Fremdbibliothek).
+- Bestandsinstallationen behalten den alten Beschreibungstext in der `config`-Tabelle; er wird vom `DefaultsSeeder` nicht überschrieben. Bei Bedarf per UPDATE nachziehen.
 
 
 ## P-2026-08-08-02 datenbestand-lokal-und-php85-check
@@ -11568,25 +11674,25 @@ Vier Ursachen in der mitgelieferten Bibliothek behoben, jede Aenderung im Code a
 - Kein Duplikat: Ein Abgleich des Produktivschemas gegen `sql/01_initial_schema.sql` ist bisher nirgends dokumentiert.
 
 ### DATEIEN
-- `docs/lokale_entwicklungsumgebung.md` (Abschnitt 6a ergaenzt)
+- `docs/lokale_entwicklungsumgebung.md` (Abschnitt 6a ergänzt)
 - `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md` (aktualisiert)
 
 ### DONE
 - **Schema-Abgleich Produktiv vs. Repo:** Der Serverdump und `sql/01_initial_schema.sql` sind **strukturgleich** – 33 Tabellen, identische Spalten und Spaltentypen, keine Abweichung in beide Richtungen. Das Repo-Schema ist damit nachweislich auf dem Produktivstand.
-- **Produktivumgebung dokumentiert:** Der Server laeuft auf Debian 11 mit MariaDB 11.8.3 und PHP 8.3.26. Das liegt innerhalb der in v13 festgelegten Baseline (min. 8.2).
-- **Datenbestand lokal eingespielt:** 13 Mitarbeiter, 9.671 Zeitbuchungen (2025-01-01 bis 2026-07-17), 669 Stundenkonto-Korrekturen, 241 System-Log-Eintraege. Der Dump bleibt bewusst ausserhalb des Repositories (personenbezogene Daten, oeffentliches Repo) – Begruendung in `docs/lokale_entwicklungsumgebung.md`, Abschnitt 6a.
-- **PHP-8.5-Pruefung der Fachlogik (offener Punkt aus P-2026-08-08-01 erledigt):** `ReportService`, `PDFService`, `UrlaubService`, `StundenkontoService` und `FeiertagService` wurden mit echten Daten direkt aufgerufen (24 Pruefungen ueber mehrere Mitarbeiter und Monate, `error_reporting(E_ALL)`). Ergebnis: **keine Deprecations, Warnings oder Notices**; Monats-PDFs werden mit gueltigem PDF-Kopf erzeugt.
+- **Produktivumgebung dokumentiert:** Der Server läuft auf Debian 11 mit MariaDB 11.8.3 und PHP 8.3.26. Das liegt innerhalb der in v13 festgelegten Baseline (min. 8.2).
+- **Datenbestand lokal eingespielt:** 13 Mitarbeiter, 9.671 Zeitbuchungen (2025-01-01 bis 2026-07-17), 669 Stundenkonto-Korrekturen, 241 System-Log-Einträge. Der Dump bleibt bewusst außerhalb des Repositories (personenbezogene Daten, öffentliches Repo) – Begründung in `docs/lokale_entwicklungsumgebung.md`, Abschnitt 6a.
+- **PHP-8.5-Prüfung der Fachlogik (offener Punkt aus P-2026-08-08-01 erledigt):** `ReportService`, `PDFService`, `UrlaubService`, `StundenkontoService` und `FeiertagService` wurden mit echten Daten direkt aufgerufen (24 Prüfungen über mehrere Mitarbeiter und Monate, `error_reporting(E_ALL)`). Ergebnis: **keine Deprecations, Warnings oder Notices**; Monats-PDFs werden mit gültigem PDF-Kopf erzeugt.
 
 ### AKZEPTANZKRITERIEN
 - Die lokale Anwendung zeigt nach dem Import die normale Login-Maske statt der Erstinstallation, und die Monatsdaten/PDFs mehrerer Mitarbeiter lassen sich ohne PHP-Meldung erzeugen.
 
 ### TEST
-1. Schema-Diff ueber `information_schema` zwischen Dump und Repo-Schema in zwei Wegwerf-Datenbanken → keine Unterschiede.
+1. Schema-Diff über `information_schema` zwischen Dump und Repo-Schema in zwei Wegwerf-Datenbanken → keine Unterschiede.
 2. Import in die lokale DB nach vorherigem Backup → 33 Tabellen, 9.671 Zeitbuchungen.
 3. Direktaufruf der Services unter PHP 8.5.8 → 24x OK, 0 Meldungen.
 
 ### OFFEN
-- QR-/Barcode-Erzeugung (`MaschineQrCodeService`, Picqer/phpqrcode) und die Terminal-Buchungsflows sind noch nicht unter PHP 8.5 geprueft; dafuer ist ein angemeldeter Durchlauf im Browser noetig.
+- QR-/Barcode-Erzeugung (`MaschineQrCodeService`, Picqer/phpqrcode) und die Terminal-Buchungsflows sind noch nicht unter PHP 8.5 geprüft; dafür ist ein angemeldeter Durchlauf im Browser nötig.
 
 
 
@@ -11595,11 +11701,11 @@ Vier Ursachen in der mitgelieferten Bibliothek behoben, jede Aenderung im Code a
 ### EINGELESEN
 - Arbeitsstand: Git-Arbeitskopie auf `main` (Basis: fade6d2 „Erweitere Verwaltung und Urlaubsfunktionen“).
 - Gelesen: `docs/master_prompt_zeiterfassung_v12.md`, `docs/prompt_uebersicht.md`, `docs/STATUS_SNAPSHOT.md`, `docs/README.md`, `docs/archiv/README.md`, `docs/installationsanleitung.md`, `sql/01_initial_schema.sql`, `sql/offline_db_schema.sql`, `config/config.php`.
-- Hinweis: Der frueher vorgeschriebene SHA256-Nachweis entfaellt ab v13 – der gelesene Stand ist durch den Commit eindeutig belegt.
+- Hinweis: Der früher vorgeschriebene SHA256-Nachweis entfällt ab v13 – der gelesene Stand ist durch den Commit eindeutig belegt.
 
 ### DUPLIKAT-CHECK
 - Kein Duplikat: Es gab bisher weder eine dokumentierte lokale Laufumgebung noch eine `README.md` in der Projektwurzel.
-- Bewusst nicht doppelt gemacht: Die Doku-Aufraeumung vom 2026-07-17 (Prompt-Uebersicht, Archiv-README) wurde erweitert, nicht neu erfunden.
+- Bewusst nicht doppelt gemacht: Die Doku-Aufräumung vom 2026-07-17 (Prompt-Übersicht, Archiv-README) wurde erweitert, nicht neu erfunden.
 
 ### DATEIEN
 - `README.md` (neu)
@@ -11611,14 +11717,14 @@ Vier Ursachen in der mitgelieferten Bibliothek behoben, jede Aenderung im Code a
 
 ### DONE
 - **Lokale Umgebung:** Apache 2.4 + php-fpm (PHP 8.5) + MariaDB 11.8 LTS + phpMyAdmin nativ installiert (kein Docker, wie vom Master-Prompt gefordert). App unter `http://localhost/zeiterfassung`, Terminal unter `.../terminal.php`, phpMyAdmin unter `/phpmyadmin`. Apache zeigt per Alias direkt in die Git-Arbeitskopie; Schreibrechte nur per ACL auf `public/uploads` und `public/img`.
-- **Master-Prompt v13:** Fachliche Abschnitte (2–18 sowie v4-/v7-Ergaenzungen) wortgleich aus v12 uebernommen. Neu/geaendert sind ausschliesslich die Meta-Regeln: Arbeit im Git-Workspace statt ZIP, Patch-ID im Commit-Betreff, Pre-Flight-Gate vereinfacht (kein SHA256-Block, kein „DATEIEN (max. 3)“), Zuschnitt-Regel „1 Patch = 1 Thema“ bleibt. Abschnitt 1a listet jede entfallene Regel mit Begruendung – Hintergrund: das frueher genutzte Chat-Werkzeug brach nach etwa fuenf Minuten Bearbeitungszeit ohne Ergebnis ab, daher die kuenstlich kleinen Patches.
+- **Master-Prompt v13:** Fachliche Abschnitte (2–18 sowie v4-/v7-Ergänzungen) wortgleich aus v12 übernommen. Neu/geändert sind ausschließlich die Meta-Regeln: Arbeit im Git-Workspace statt ZIP, Patch-ID im Commit-Betreff, Pre-Flight-Gate vereinfacht (kein SHA256-Block, kein „DATEIEN (max. 3)“), Zuschnitt-Regel „1 Patch = 1 Thema“ bleibt. Abschnitt 1a listet jede entfallene Regel mit Begründung – Hintergrund: das früher genutzte Chat-Werkzeug brach nach etwa fünf Minuten Bearbeitungszeit ohne Ergebnis ab, daher die künstlich kleinen Patches.
 - **PHP-Baseline definiert:** mindestens PHP 8.2 (Debian 12 / Raspberry Pi OS Bookworm), muss zugleich auf aktuellem PHP warnungsfrei laufen (getestet gegen 8.5).
 - **Einstieg nach dem Klonen:** `README.md` in der Projektwurzel mit Lesereihenfolge, Schnellstart und Projektstruktur; Master-Prompt bekommt Abschnitt 0 mit derselben Reihenfolge.
-- **Archiv begruendet:** `docs/archiv/ALTE_PROMPTS.md` erklaert pro Datei, was sie war, wann/warum sie archiviert wurde und was davon noch gilt. Geloescht wurde nichts.
+- **Archiv begründet:** `docs/archiv/ALTE_PROMPTS.md` erklärt pro Datei, was sie war, wann/warum sie archiviert wurde und was davon noch gilt. Gelöscht wurde nichts.
 
 ### AKZEPTANZKRITERIEN
 - `http://localhost/zeiterfassung` liefert im Browser die Anwendung (beim leeren Datenbestand die Maske „Erstinstallation“), `http://localhost/phpmyadmin` den Login – beide ohne PHP-Warnungen im Seiteninhalt.
-- Wer das Repository frisch klont, findet ueber `README.md` → Master-Prompt v13 → Status-Snapshot alle Regeln und weiss, welche Prompts nur noch Referenz sind.
+- Wer das Repository frisch klont, findet über `README.md` → Master-Prompt v13 → Status-Snapshot alle Regeln und weiß, welche Prompts nur noch Referenz sind.
 
 ### TEST
 1. `sudo bash scripts/dev/setup_lokale_umgebung_arch.sh` → Dienste `mariadb`, `php-fpm`, `httpd` aktiv; Schema mit 33 Tabellen importiert.
@@ -11626,7 +11732,7 @@ Vier Ursachen in der mitgelieferten Bibliothek behoben, jede Aenderung im Code a
 3. Seiteninhalt auf `Deprecated|Warning|Fatal` durchsucht → keine Treffer.
 
 ### OFFEN
-- Die tiefer liegenden Flows (Monats-PDF, QR-/Barcode-Erzeugung, Terminal-Buchungen) sind unter PHP 8.5 noch nicht durchgeklickt – siehe „Naechster Schritt“.
+- Die tiefer liegenden Flows (Monats-PDF, QR-/Barcode-Erzeugung, Terminal-Buchungen) sind unter PHP 8.5 noch nicht durchgeklickt – siehe „Nächster Schritt“.
 
 
 ## P-2026-01-25-02_dashboard-zeitwarnungen-derived-table.zip
@@ -11679,13 +11785,13 @@ Vier Ursachen in der mitgelieferten Bibliothek behoben, jede Aenderung im Code a
   - `services/UrlaubService.php`
   - `docs/DEV_PROMPT_HISTORY.md`
 - **DONE:**
-  - Urlaubstage-Gewichtung eingefuehrt: 24.12 und 31.12 zaehlen als 0.5 Urlaubstage.
-  - Gilt konsistent fuer Betriebsferien-Zaehler (Terminal/PDF) und Urlaubsantraege (Arbeitstage-Zaehlung).
+  - Urlaubstage-Gewichtung eingeführt: 24.12 und 31.12 zählen als 0.5 Urlaubstage.
+  - Gilt konsistent für Betriebsferien-Zähler (Terminal/PDF) und Urlaubsanträge (Arbeitstage-Zählung).
 - **AKZEPTANZ:**
-  - Terminal -> Urlaub-Uebersicht: Betriebsferien 18.12-31.12 zeigt bei gesetzlichem Feiertag 25.12 und Halbtagen (24.12/31.12) eine reduzierte Urlaubstage-Zahl (z. B. 8.00 statt 9.00), sodass Summe zur "Genehmigt"-Anzeige passt.
+  - Terminal -> Urlaub-Übersicht: Betriebsferien 18.12-31.12 zeigt bei gesetzlichem Feiertag 25.12 und Halbtagen (24.12/31.12) eine reduzierte Urlaubstage-Zahl (z. B. 8.00 statt 9.00), sodass Summe zur "Genehmigt"-Anzeige passt.
 - **TEST (manuell):**
-  1) Terminal -> Urlaub-Uebersicht oeffnen: Betriebsferien-Block (18.12-31.12) pruefen.
-  2) Optional: Urlaubsantrag ueber 24.12 oder 31.12 anlegen und "Tage"-Berechnung kontrollieren.
+  1) Terminal -> Urlaub-Übersicht öffnen: Betriebsferien-Block (18.12-31.12) prüfen.
+  2) Optional: Urlaubsantrag über 24.12 oder 31.12 anlegen und "Tage"-Berechnung kontrollieren.
 
 
 
@@ -11709,12 +11815,12 @@ Vier Ursachen in der mitgelieferten Bibliothek behoben, jede Aenderung im Code a
   - `views/terminal/start.php`
   - `docs/DEV_PROMPT_HISTORY.md`
 - **DONE:**
-  - Terminal Urlaub-Uebersicht (Betriebsferien): "benoetigte Urlaubstage" wird pro Eintrag ueber `UrlaubService::zaehleBetriebsferienArbeitstageFuerMitarbeiter()` berechnet (inkl. Skip bei Arbeit/Kennzeichen/Krankzeitraum) + Jahr-Schnittmenge.
-  - Terminal Urlaub-Uebersicht (Saldo-Zeile): Reihenfolge umgestellt: Jahresanspruch | Uebertrag | Korrektur | Effektiv.
+  - Terminal Urlaub-Übersicht (Betriebsferien): "benötigte Urlaubstage" wird pro Eintrag über `UrlaubService::zaehleBetriebsferienArbeitstageFuerMitarbeiter()` berechnet (inkl. Skip bei Arbeit/Kennzeichen/Krankzeitraum) + Jahr-Schnittmenge.
+  - Terminal Urlaub-Übersicht (Saldo-Zeile): Reihenfolge umgestellt: Jahresanspruch | Übertrag | Korrektur | Effektiv.
 - **AKZEPTANZ:**
-  - In der Terminal Urlaub-Uebersicht entspricht die Summe der angezeigten Betriebsferien-"benoetigte Urlaubstage" dem Urlaubsabzug, der im Urlaubssaldo unter "Genehmigt" sichtbar ist (wenn sonst kein genehmigter Urlaub existiert).
+  - In der Terminal Urlaub-Übersicht entspricht die Summe der angezeigten Betriebsferien-"benötigte Urlaubstage" dem Urlaubsabzug, der im Urlaubssaldo unter "Genehmigt" sichtbar ist (wenn sonst kein genehmigter Urlaub existiert).
 - **TEST (manuell):**
-  1) Terminal -> Urlaub-Uebersicht oeffnen.
+  1) Terminal -> Urlaub-Übersicht öffnen.
   2) "Genehmigt" mit Summe der Betriebsferien-Tage vergleichen.
 - **NEXT:**
   - Optional: Gleiche Reihenfolge auch in `views/terminal/urlaub_beantragen.php` angleichen (separater Micro-Patch).
@@ -11730,7 +11836,7 @@ Vier Ursachen in der mitgelieferten Bibliothek behoben, jede Aenderung im Code a
   - DB-Schema (SoT): `sql/01_initial_schema.sql` = `70114c586e4f366bdc339efa58bfd4ef7dc85a7a22ac960e21995f604faf985e`
   - SQL Snapshot: `sql/zeiterfassung_aktuell.sql` = `9c62b1709c4729cca8a3b59e7a700c25ef23907592b9cc5256e5d78649e29cee`
   - Offline Schema: `sql/offline_db_schema.sql` = `165bd68e62f4a776d2425d108fbf0775497ade28f5a1e8242069c1cf084177c9`
-  - Report Mehrfachbloecke Prompt v1: `docs/report_mehrfachbloecke_prompt_v1.md` = `86e8c376bdbe962aa838cb113bd004624bf4440835e259c82e8bbe5de8c3655c`
+  - Report Mehrfachblöcke Prompt v1: `docs/report_mehrfachbloecke_prompt_v1.md` = `86e8c376bdbe962aa838cb113bd004624bf4440835e259c82e8bbe5de8c3655c`
   - DEV_PROMPT_HISTORY (Stand vor Patch): `docs/DEV_PROMPT_HISTORY.md` = `86f324cc8fb139462594c0f372625a1bd33fbf7e5ccb47144a220e7d1b48db55`
 - **DUPLICATE-CHECK:**
   - Mikro-Filter war bereits am Rohstempel ausgerichtet (P-2026-01-17-12 / P-2026-01-21-01).
@@ -11740,19 +11846,19 @@ Vier Ursachen in der mitgelieferten Bibliothek behoben, jede Aenderung im Code a
   - `services/PDFService.php`
   - `docs/DEV_PROMPT_HISTORY.md`
 - **DONE:**
-  - Monatsuebersicht: Arbeitsbloecke mit **gehen_korr <= kommen_korr** werden als **Rundung->0** erkannt und wie Mikro behandelt (bei deaktivierter Mikro-Checkbox ausgeblendet).
-  - Monatsuebersicht: Block-IST/Block-Sekunden liefern bei Rundung->0 **0** (kein `abs()` mehr).
-  - Monatsreport-PDF: gleiche Logik (Mikro-Filter + Block-IST + Primaerzeilen-Dauer).
+  - Monatsübersicht: Arbeitsblöcke mit **gehen_korr <= kommen_korr** werden als **Rundung->0** erkannt und wie Mikro behandelt (bei deaktivierter Mikro-Checkbox ausgeblendet).
+  - Monatsübersicht: Block-IST/Block-Sekunden liefern bei Rundung->0 **0** (kein `abs()` mehr).
+  - Monatsreport-PDF: gleiche Logik (Mikro-Filter + Block-IST + Primärzeilen-Dauer).
 - **AKZEPTANZ:**
-  - Bei aktivierten Rundungsregeln (Kommen=auf, Gehen=ab) werden kurze Randbloecke, die nach Rundung zu 0 werden, **nicht mehr** angezeigt (wenn Mikro aus).
-  - Keine „korrigiert unmoegliche“ Zeit-Kombinationen mehr im Report bei deaktivierten Mikro-Buchungen.
+  - Bei aktivierten Rundungsregeln (Kommen=auf, Gehen=ab) werden kurze Randblöcke, die nach Rundung zu 0 werden, **nicht mehr** angezeigt (wenn Mikro aus).
+  - Keine „korrigiert unmögliche“ Zeit-Kombinationen mehr im Report bei deaktivierten Mikro-Buchungen.
 - **TEST (manuell):**
   1) Rundungsregeln aktiv (wie in `zeit_rundungsregel`): Kommen aufrunden, Gehen abrunden.
-  2) Tag mit Roh-Block 11:01–11:05 (korr 11:15–11:00) → Monatsuebersicht: Block **nicht sichtbar**, wenn Mikro aus.
+  2) Tag mit Roh-Block 11:01–11:05 (korr 11:15–11:00) → Monatsübersicht: Block **nicht sichtbar**, wenn Mikro aus.
   3) PDF exportieren → Block ebenfalls nicht sichtbar, wenn Mikro aus.
   4) Optional `?show_micro=1` → Block sichtbar, Block-IST = 0.00.
 - **NEXT:**
-  - Optional: In Monatsuebersicht bei `?show_micro=1` Rundung->0 optisch markieren (Label), um Debugging zu erleichtern.
+  - Optional: In Monatsübersicht bei `?show_micro=1` Rundung->0 optisch markieren (Label), um Debugging zu erleichtern.
 ## P-2026-01-21-03
 - ZIP: `P-2026-01-21-03_pause-meta-primaerzeile.zip`
 - **EINGELESEN (SHA256):**
@@ -11763,7 +11869,7 @@ Vier Ursachen in der mitgelieferten Bibliothek behoben, jede Aenderung im Code a
   - DB-Schema (SoT): `sql/01_initial_schema.sql` = `70114c586e4f366bdc339efa58bfd4ef7dc85a7a22ac960e21995f604faf985e`
   - SQL Snapshot: `sql/zeiterfassung_aktuell.sql` = `9c62b1709c4729cca8a3b59e7a700c25ef23907592b9cc5256e5d78649e29cee`
   - Offline Schema: `sql/offline_db_schema.sql` = `165bd68e62f4a776d2425d108fbf0775497ade28f5a1e8242069c1cf084177c9`
-  - Report Mehrfachbloecke Prompt v1: `docs/report_mehrfachbloecke_prompt_v1.md` = `86e8c376bdbe962aa838cb113bd004624bf4440835e259c82e8bbe5de8c3655c`
+  - Report Mehrfachblöcke Prompt v1: `docs/report_mehrfachbloecke_prompt_v1.md` = `86e8c376bdbe962aa838cb113bd004624bf4440835e259c82e8bbe5de8c3655c`
   - DEV_PROMPT_HISTORY (Stand vor Patch): `docs/DEV_PROMPT_HISTORY.md` = `2836d26841240d4a60a7e5a06c45cf4e71cdf98d4a2a93982dd7e4f9437c4919`
 - **DUPLICATE-CHECK:**
   - P-2026-01-21-02 hat IST je Block sichtbar gemacht. Meta-Felder (Pause/Kurzarbeit/Feiertag/Urlaub) standen aber weiterhin immer in der ersten Zeile → daher **kein Duplicate**, sondern Anzeige-Logik-Fix.
@@ -11772,17 +11878,17 @@ Vier Ursachen in der mitgelieferten Bibliothek behoben, jede Aenderung im Code a
   - `services/PDFService.php`
   - `docs/DEV_PROMPT_HISTORY.md`
 - **DONE:**
-  - Monatsuebersicht: pro Tag wird eine Primaer-Zeile ermittelt (erste sichtbare Blockzeile mit Dauer >= 60 Minuten, sonst die erste sichtbare Blockzeile).
-  - Monatsuebersicht: Pause/Kurzarbeit/Feiertag/Urlaub werden nur in dieser Primaer-Zeile angezeigt.
-  - Monatsreport-PDF: identische Primaer-Zeilen-Logik; Pause/Kurzar./Feiertag/Urlaub werden nur dort angezeigt.
+  - Monatsübersicht: pro Tag wird eine Primär-Zeile ermittelt (erste sichtbare Blockzeile mit Dauer >= 60 Minuten, sonst die erste sichtbare Blockzeile).
+  - Monatsübersicht: Pause/Kurzarbeit/Feiertag/Urlaub werden nur in dieser Primär-Zeile angezeigt.
+  - Monatsreport-PDF: identische Primär-Zeilen-Logik; Pause/Kurzar./Feiertag/Urlaub werden nur dort angezeigt.
 - **AKZEPTANZ:**
-  - Bei Mehrfach-Bloecken mit kurzem Randblock steht Pause nicht mehr im Randblock, sondern beim Hauptblock.
+  - Bei Mehrfach-Blöcken mit kurzem Randblock steht Pause nicht mehr im Randblock, sondern beim Hauptblock.
 - **TEST (manuell):**
-  1) Monatsuebersicht Tag mit 2+ Bloecken (z.B. 08:30-08:45 und 11:30-16:45) → Pause/Meta in der Hauptzeile.
+  1) Monatsübersicht Tag mit 2+ Blöcken (z.B. 08:30-08:45 und 11:30-16:45) → Pause/Meta in der Hauptzeile.
   2) PDF exportieren → Pause/Meta ebenfalls in der Hauptzeile.
-  3) Tag mit nur einem Block bleibt unveraendert.
+  3) Tag mit nur einem Block bleibt unverändert.
 - **NEXT:**
-  - Praxis: Wenn Tages-IST (Summe) ebenfalls auf die Primaer-Zeile wandern soll, als separaten Micro-Patch spezifizieren.
+  - Praxis: Wenn Tages-IST (Summe) ebenfalls auf die Primär-Zeile wandern soll, als separaten Micro-Patch spezifizieren.
 
 
 
@@ -11801,24 +11907,24 @@ Vier Ursachen in der mitgelieferten Bibliothek behoben, jede Aenderung im Code a
   - Offline Schema: `sql/offline_db_schema.sql` = `165bd68e62f4a776d2425d108fbf0775497ade28f5a1e8242069c1cf084177c9`
   - DEV_PROMPT_HISTORY (Stand vor Patch): `docs/DEV_PROMPT_HISTORY.md` = `b274a604bb1de5ae66447561d92121eb964c1df2f4e0785ab428f203bc404b1f`
 - **DUPLICATE-CHECK:**
-  - Bereits vorhanden: Tages-IST korrekt als Summe der Bloecke (P-2026-01-20-06) + Block-Zeilen-Ansicht (P-2026-01-20-07).
-  - Fehlte aber: In Folgezeilen der Mehrfach-Bloecke war die Spalte **Ist** leer → daher **kein Duplicate**, sondern reine Anzeige-Ergaenzung.
+  - Bereits vorhanden: Tages-IST korrekt als Summe der Blöcke (P-2026-01-20-06) + Block-Zeilen-Ansicht (P-2026-01-20-07).
+  - Fehlte aber: In Folgezeilen der Mehrfach-Blöcke war die Spalte **Ist** leer → daher **kein Duplicate**, sondern reine Anzeige-Ergänzung.
 - **DATEIEN (max. 3):**
   - `views/report/monatsuebersicht.php`
   - `services/PDFService.php`
   - `docs/DEV_PROMPT_HISTORY.md`
 - **DONE:**
-  - Monatsuebersicht: Neue Helper-Funktion `report_calc_block_ist_dez2()` berechnet pro Block die Dauer (Roh-Paar bevorzugt, sonst Main-Paar; `abs()` Diff).
-  - Monatsuebersicht: In **Folgezeilen** wird jetzt im Feld **Ist (gesamt)** die Blockdauer angezeigt (nicht mehr leer).
-  - Monatsreport-PDF: In **Folgezeilen** wird in der Spalte **Ist** die Blockdauer angezeigt (Summenblock unten bleibt unveraendert).
+  - Monatsübersicht: Neue Helper-Funktion `report_calc_block_ist_dez2()` berechnet pro Block die Dauer (Roh-Paar bevorzugt, sonst Main-Paar; `abs()` Diff).
+  - Monatsübersicht: In **Folgezeilen** wird jetzt im Feld **Ist (gesamt)** die Blockdauer angezeigt (nicht mehr leer).
+  - Monatsreport-PDF: In **Folgezeilen** wird in der Spalte **Ist** die Blockdauer angezeigt (Summenblock unten bleibt unverändert).
 - **AKZEPTANZ:**
-  - Monatsuebersicht/PDF: Pro sichtbarem Block ist die IST-Spalte befuellt (Folgezeilen nicht leer).
-  - Tages-/Monatssummen bleiben unveraendert (kommen weiter aus `tageswerte`).
+  - Monatsübersicht/PDF: Pro sichtbarem Block ist die IST-Spalte befüllt (Folgezeilen nicht leer).
+  - Tages-/Monatssummen bleiben unverändert (kommen weiter aus `tageswerte`).
 - **TEST (manuell):**
-  1) Monatsuebersicht mit Mehrfach-Bloecken oeffnen → Folgezeilen zeigen IST-Dauer je Block.
-  2) PDF exportieren → Folgezeilen zeigen IST-Dauer je Block; Summen unten unveraendert.
+  1) Monatsübersicht mit Mehrfach-Blöcken öffnen → Folgezeilen zeigen IST-Dauer je Block.
+  2) PDF exportieren → Folgezeilen zeigen IST-Dauer je Block; Summen unten unverändert.
 - **NEXT:**
-  - Patch-P3: Pause pro Block/Gap sinnvoll anzeigen (Mehrfach-Bloecke) in Monatsuebersicht + PDF.
+  - Patch-P3: Pause pro Block/Gap sinnvoll anzeigen (Mehrfach-Blöcke) in Monatsübersicht + PDF.
 
 ## P-2026-01-21-01
 - ZIP: `P-2026-01-21-01_pdf-mikrofilter-angleichen.zip`
@@ -11832,7 +11938,7 @@ Vier Ursachen in der mitgelieferten Bibliothek behoben, jede Aenderung im Code a
   - Offline Schema: `sql/offline_db_schema.sql` = `165bd68e62f4a776d2425d108fbf0775497ade28f5a1e8242069c1cf084177c9`
   - DEV_PROMPT_HISTORY (Stand vor Patch): `docs/DEV_PROMPT_HISTORY.md` = `ba1ee9cec9fde66db0bda2699b59712de1c1880009f751be908b462a0c92d42a`
 - **DUPLICATE-CHECK:**
-  - Es gibt `P-2026-01-13-05` (PDF Mikro-Buchungen ausblenden). Problem blieb: Mikro-Erkennung nutzte bevorzugt `*_korr` und scheiterte bei Rundungs-Ruecksprung (Ende < Start) → Block wurde nicht als Mikro erkannt und blieb sichtbar. Daher **kein Duplicate**, sondern Bugfix/Angleichen an Monatsuebersicht.
+  - Es gibt `P-2026-01-13-05` (PDF Mikro-Buchungen ausblenden). Problem blieb: Mikro-Erkennung nutzte bevorzugt `*_korr` und scheiterte bei Rundungs-Rücksprung (Ende < Start) → Block wurde nicht als Mikro erkannt und blieb sichtbar. Daher **kein Duplicate**, sondern Bugfix/Angleichen an Monatsübersicht.
 - **DATEIEN (max. 3):**
   - `services/PDFService.php`
   - `docs/DEV_PROMPT_HISTORY.md`
@@ -11841,16 +11947,16 @@ Vier Ursachen in der mitgelieferten Bibliothek behoben, jede Aenderung im Code a
     - Zuerst Rohzeiten (`kommen_roh/gehen_roh`) diffen und mit `abs()` bewerten.
     - Fallback auf Main-Paar (korr bevorzugt, sonst roh), ebenfalls `abs()`.
     - Grenzwert kommt aus `config.micro_buchung_max_sekunden` (Default 180s, Range-Guard 30..3600).
-  - Ergebnis: Mikro-Bloecke werden im PDF **wirklich** ausgeblendet, auch wenn Rundung `Ende < Start` erzeugt.
+  - Ergebnis: Mikro-Blöcke werden im PDF **wirklich** ausgeblendet, auch wenn Rundung `Ende < Start` erzeugt.
 - **AKZEPTANZ:**
   - Monats-PDF ohne `show_micro`: keine Mikro-Block-Zeilen (<= Grenzwert).
   - Monats-PDF mit `show_micro=1`: Mikro-Block-Zeilen sind sichtbar.
-  - Verhalten ist bzgl. Mikro identisch zur Monatsuebersicht.
+  - Verhalten ist bzgl. Mikro identisch zur Monatsübersicht.
 - **TEST (manuell):**
-  1) Monatsuebersicht oeffnen (Micro aus) → PDF exportieren → Mikro-Zeilen sind weg.
-  2) Monatsuebersicht oeffnen (Micro an / `show_micro=1`) → PDF exportieren → Mikro-Zeilen sichtbar.
+  1) Monatsübersicht öffnen (Micro aus) → PDF exportieren → Mikro-Zeilen sind weg.
+  2) Monatsübersicht öffnen (Micro an / `show_micro=1`) → PDF exportieren → Mikro-Zeilen sichtbar.
 - **NEXT:**
-  - Patch-P2: IST je Block anzeigen (Folgezeilen nicht leer) in Monatsuebersicht + PDF.
+  - Patch-P2: IST je Block anzeigen (Folgezeilen nicht leer) in Monatsübersicht + PDF.
 
 
 
@@ -11865,19 +11971,19 @@ Vier Ursachen in der mitgelieferten Bibliothek behoben, jede Aenderung im Code a
   - DB-Schema (SoT): `sql/01_initial_schema.sql` = `70114c586e4f366bdc339efa58bfd4ef7dc85a7a22ac960e21995f604faf985e`
   - DEV_PROMPT_HISTORY (Stand vor Patch): `docs/DEV_PROMPT_HISTORY.md` = `72ae2c93a49dfac584be33668cbf9efc8c6c46998f9e8af648738ed59ad8a00f`
 - **DUPLICATE-CHECK:**
-  - SNAPSHOT/LOG geprueft: Kein Eintrag `P-2026-01-20-08` vorhanden → OK
+  - SNAPSHOT/LOG geprüft: Kein Eintrag `P-2026-01-20-08` vorhanden → OK
 - **DATEIEN (max. 3):**
   - `docs/report_mehrfachbloecke_prompt_v1.md`
   - `docs/DEV_PROMPT_HISTORY.md`
 - **DONE:**
-  - Neuer Prompt `report_mehrfachbloecke_prompt_v1.md` dokumentiert die Praxis-Probleme mit Mehrfach-Bloecken:
-    - PDF zeigt Mikro-Bloecke obwohl `show_micro` aus ist.
+  - Neuer Prompt `report_mehrfachbloecke_prompt_v1.md` dokumentiert die Praxis-Probleme mit Mehrfach-Blöcken:
+    - PDF zeigt Mikro-Blöcke obwohl `show_micro` aus ist.
     - IST/Pause wirken in Folgezeilen leer bzw. unlogisch platziert.
-  - Erklaert das beobachtete Verhalten: Mikro-Grenze = `micro_buchung_max_sekunden` (Default 180s) → 3 Min = Mikro, 4 Min = nicht Mikro.
-  - Root-Cause festgehalten: PDF-Mikro-Erkennung bevorzugt `*_korr` und scheitert bei Rundungs-Ruecksprung (Ende < Start) → Block wird nicht als Mikro erkannt.
+  - Erklärt das beobachtete Verhalten: Mikro-Grenze = `micro_buchung_max_sekunden` (Default 180s) → 3 Min = Mikro, 4 Min = nicht Mikro.
+  - Root-Cause festgehalten: PDF-Mikro-Erkennung bevorzugt `*_korr` und scheitert bei Rundungs-Rücksprung (Ende < Start) → Block wird nicht als Mikro erkannt.
   - Fix-Plan als Micro-Patches (P1-P3) beschrieben.
 - **NEXT:**
-  - Patch-P1: PDF Mikro-Filter an Monatsuebersicht angleichen (Rohdiff + abs, Fallback), damit Mikro-Bloecke ohne `show_micro` nie im PDF landen.
+  - Patch-P1: PDF Mikro-Filter an Monatsübersicht angleichen (Rohdiff + abs, Fallback), damit Mikro-Blöcke ohne `show_micro` nie im PDF landen.
 
 
 ## P-2026-01-20-07
@@ -11890,21 +11996,21 @@ Vier Ursachen in der mitgelieferten Bibliothek behoben, jede Aenderung im Code a
   - DB-Schema (SoT): `sql/01_initial_schema.sql` = `70114c586e4f366bdc339efa58bfd4ef7dc85a7a22ac960e21995f604faf985e`
   - DEV_PROMPT_HISTORY (Stand vor Patch): `docs/DEV_PROMPT_HISTORY.md` = `6625e09970d520d71588896031b64e71c4ecec641fb029a3c3c69a0b7fab7a57`
 - **DUPLICATE-CHECK:**
-  - SNAPSHOT/LOG geprueft: Kein Eintrag `P-2026-01-20-07` vorhanden → OK
+  - SNAPSHOT/LOG geprüft: Kein Eintrag `P-2026-01-20-07` vorhanden → OK
 - **DATEIEN (max. 3):**
   - `views/report/monatsuebersicht.php`
   - `services/PDFService.php`
   - `docs/DEV_PROMPT_HISTORY.md`
 - **DONE:**
-  - Monatsuebersicht (HTML): Mehrfach-Kommen/Gehen wird standardmaessig als **mehrere Zeilen pro Tag** angezeigt.
+  - Monatsübersicht (HTML): Mehrfach-Kommen/Gehen wird standardmäßig als **mehrere Zeilen pro Tag** angezeigt.
   - Monatsreport-PDF: Mehrfach-Kommen/Gehen wird ebenfalls als **mehrere Block-Zeilen** ausgegeben.
-  - Mikro-Bloecke (<= 3 Minuten) bleiben standardmaessig ausgeblendet (wie zuvor).
+  - Mikro-Blöcke (<= 3 Minuten) bleiben standardmäßig ausgeblendet (wie zuvor).
 - **Akzeptanz:**
-  - Ein Tag mit 2 Arbeitsbloecken zeigt 2 Zeilen (An/Ab) im HTML-Raster und im PDF.
-  - Tages-IST bleibt die **Summe** der Bloecke (Fix aus P-2026-01-20-06).
+  - Ein Tag mit 2 Arbeitsblöcken zeigt 2 Zeilen (An/Ab) im HTML-Raster und im PDF.
+  - Tages-IST bleibt die **Summe** der Blöcke (Fix aus P-2026-01-20-06).
   - Mikro-Buchungen erscheinen nur bei `?show_micro=1`.
 - **NEXT:**
-  - Warten auf Praxis-Test Feedback; weitere Micro-Patches nur bei Bugs/Wuenschen.
+  - Warten auf Praxis-Test Feedback; weitere Micro-Patches nur bei Bugs/Wünschen.
 
 
 
@@ -11918,21 +12024,21 @@ Vier Ursachen in der mitgelieferten Bibliothek behoben, jede Aenderung im Code a
   - DB-Schema (SoT): `sql/01_initial_schema.sql` = `70114c586e4f366bdc339efa58bfd4ef7dc85a7a22ac960e21995f604faf985e`
   - DEV_PROMPT_HISTORY (Stand vor Patch): `docs/DEV_PROMPT_HISTORY.md` = `75468c0ca2681fd64be2330d360f7573bfbadf20947f3afaebe683a89bafa849`
 - **DUPLICATE-CHECK:**
-  - SNAPSHOT/LOG geprueft: Kein Eintrag `P-2026-01-20-06` vorhanden → OK
+  - SNAPSHOT/LOG geprüft: Kein Eintrag `P-2026-01-20-06` vorhanden → OK
 - **DATEIEN (max. 3):**
   - `services/ReportService.php`
   - `docs/DEV_PROMPT_HISTORY.md`
 - **DONE:**
-  - Monatsuebersicht/PDF: Tages-IST wird nicht mehr als **Min/Max-Spanne** berechnet.
-  - Stattdessen wird die Arbeitszeit als **Summe echter Arbeitsbloecke** (Kommen→Gehen Paare) gewertet.
-  - Mikro-Bloecke (< `MICRO_ARBEITSZEIT_GRENZE_STUNDEN`) werden dabei weiterhin ignoriert.
-  - Ergebnis: Mehrfach-Kommen/Gehen (z. B. 2 Schichten am selben Tag) wird korrekt summiert und Unterbrechungen zaehlen nicht als Arbeitszeit.
+  - Monatsübersicht/PDF: Tages-IST wird nicht mehr als **Min/Max-Spanne** berechnet.
+  - Stattdessen wird die Arbeitszeit als **Summe echter Arbeitsblöcke** (Kommen→Gehen Paare) gewertet.
+  - Mikro-Blöcke (< `MICRO_ARBEITSZEIT_GRENZE_STUNDEN`) werden dabei weiterhin ignoriert.
+  - Ergebnis: Mehrfach-Kommen/Gehen (z. B. 2 Schichten am selben Tag) wird korrekt summiert und Unterbrechungen zählen nicht als Arbeitszeit.
 - **Akzeptanz:**
-  - Ein Tag mit 2 Arbeitsbloecken (z. B. 07:00-15:00 und 19:00-21:00) ergibt IST = Summe beider Bloecke minus Pause (keine Anrechnung der Luecke dazwischen).
+  - Ein Tag mit 2 Arbeitsblöcken (z. B. 07:00-15:00 und 19:00-21:00) ergibt IST = Summe beider Blöcke minus Pause (keine Anrechnung der Lücke dazwischen).
   - Mikro-Buchungen bleiben im Report als "nicht gearbeitet" gewertet.
   - Monats-Istsumme passt zur Summierung der Tageswerte.
 - **NEXT:**
-  - Monatsuebersicht + PDF: Anzeige der Mehrfach-Bloecke im An/Ab-Feld (z. B. als Zeilenumbruch/Liste), ohne das Raster zu sprengen. **DONE in P-2026-01-20-07**.
+  - Monatsübersicht + PDF: Anzeige der Mehrfach-Blöcke im An/Ab-Feld (z. B. als Zeilenumbruch/Liste), ohne das Raster zu sprengen. **DONE in P-2026-01-20-07**.
 
 
 ## P-2026-01-20-05
@@ -11940,7 +12046,7 @@ Vier Ursachen in der mitgelieferten Bibliothek behoben, jede Aenderung im Code a
 - **DATEIEN (max. 3):**
   - `docs/DEV_PROMPT_HISTORY.md`
 - **DONE:**
-  - DEV_PROMPT_HISTORY nachgezogen: Snapshot + Log fuer den Lizenzwechsel auf GNU AGPLv3 (P-2026-01-20-04).
+  - DEV_PROMPT_HISTORY nachgezogen: Snapshot + Log für den Lizenzwechsel auf GNU AGPLv3 (P-2026-01-20-04).
 - **NEXT:**
   - Optional: README/NOTICE + UI-Hinweis "Quellcode erhalten" falls extern ausgerollt.
 
@@ -11967,17 +12073,17 @@ Vier Ursachen in der mitgelieferten Bibliothek behoben, jede Aenderung im Code a
   - Dev-Prompt (SoT): `docs/dev_prompt_zeiterfassung_v12.md` = `2929407f042f95ab15650247a35b9fe5e4cfe0662d4478310d87246c94e2b6c7`
   - DEV_PROMPT_HISTORY (Stand vor Patch): `docs/DEV_PROMPT_HISTORY.md` = `24c5aabb2d185ebd9c143c306c31f606687024b3d8ea8ddbb96cfb0ef2ee8fd9`
 - **DUPLICATE-CHECK:**
-  - SNAPSHOT/LOG geprueft: Kein Eintrag `P-2026-01-20-02` vorhanden → OK
+  - SNAPSHOT/LOG geprüft: Kein Eintrag `P-2026-01-20-02` vorhanden → OK
 - **DATEIEN (max. 3):**
   - `LICENSE`
   - `views/layout/footer.php`
   - `docs/dev_prompt_zeiterfassung_v12.md`
 - **DONE:**
-  - Open Source: MIT-Lizenz hinzugefuegt (Datei `LICENSE`).
+  - Open Source: MIT-Lizenz hinzugefügt (Datei `LICENSE`).
   - UI-Footer: Hinweis "Erdacht von Manuel Kleespies" + "Open Source (MIT License)".
   - Dev-Prompt v12: Lizenz-Hinweis dokumentiert.
 - **NEXT (optional):**
-  - README kurz ergaenzen + ggf. SPDX-Header in Kern-Dateien.
+  - README kurz ergänzen + ggf. SPDX-Header in Kern-Dateien.
 
 
 ## P-2026-01-20-01
@@ -11988,19 +12094,19 @@ Vier Ursachen in der mitgelieferten Bibliothek behoben, jede Aenderung im Code a
   - Dev-Prompt (SoT): `docs/dev_prompt_zeiterfassung_v12.md` = `2929407f042f95ab15650247a35b9fe5e4cfe0662d4478310d87246c94e2b6c7`
   - DEV_PROMPT_HISTORY (Stand vor Patch): `docs/DEV_PROMPT_HISTORY.md` = `e30ec6c7abd8c4fe14084a3695674d8c32e8ad8d66fa8a15b1e5680bf7d97a08`
 - **DUPLICATE-CHECK:**
-  - SNAPSHOT/LOG geprueft: Kein Eintrag `P-2026-01-20-01` vorhanden → OK
+  - SNAPSHOT/LOG geprüft: Kein Eintrag `P-2026-01-20-01` vorhanden → OK
 - **DATEIEN (max. 3):**
   - `controller/TerminalController.php`
   - `views/terminal/start.php`
   - `docs/DEV_PROMPT_HISTORY.md`
 - **DONE:**
-  - Terminal: Nebenauftrag stoppen – Dropdown hat keinen leeren Platzhalter mehr (erster laufender Nebenauftrag ist vorausgewaehlt).
+  - Terminal: Nebenauftrag stoppen – Dropdown hat keinen leeren Platzhalter mehr (erster laufender Nebenauftrag ist vorausgewählt).
   - Terminal: Status-Auswahl entfernt (einfach stoppen; intern wird als `abgeschlossen` gespeichert).
-  - Terminal: Auftragscode-Scan hat Vorrang vor Dropdown-ID (wichtig bei mehreren Nebenauftraegen).
+  - Terminal: Auftragscode-Scan hat Vorrang vor Dropdown-ID (wichtig bei mehreren Nebenaufträgen).
 - **Akzeptanz:**
-  - In `terminal.php?aktion=nebenauftrag_stoppen` ist im Online-Modus der erste laufende Nebenauftrag sofort ausgewaehlt.
+  - In `terminal.php?aktion=nebenauftrag_stoppen` ist im Online-Modus der erste laufende Nebenauftrag sofort ausgewählt.
   - Es gibt keinen Status-Dropdown mehr.
-  - Scan eines Auftragscodes stoppt den passenden Nebenauftrag auch dann, wenn im Dropdown ein Eintrag vorausgewaehlt ist.
+  - Scan eines Auftragscodes stoppt den passenden Nebenauftrag auch dann, wenn im Dropdown ein Eintrag vorausgewählt ist.
 
 
 
@@ -12014,15 +12120,15 @@ Vier Ursachen in der mitgelieferten Bibliothek behoben, jede Aenderung im Code a
   - Dev-Prompt (SoT): `docs/dev_prompt_zeiterfassung_v12.md` = `67db39c5d74b03fad6fec66ec78be13fad316732ce774a6aec75bf249582d83c`
   - DEV_PROMPT_HISTORY (Stand vor Patch): `docs/DEV_PROMPT_HISTORY.md` = `5d2f928afa7283bc7ad75d142eacbe73fdaadd460a97d8cbd80a92fe9a364e61`
 - **DUPLICATE-CHECK:**
-  - SNAPSHOT/LOG geprueft: Kein Eintrag `P-2026-01-19-03` vorhanden → OK
+  - SNAPSHOT/LOG geprüft: Kein Eintrag `P-2026-01-19-03` vorhanden → OK
 - **DATEIEN (max. 3):**
   - `docs/dev_prompt_zeiterfassung_v12.md`
   - `docs/DEV_PROMPT_HISTORY.md`
 - **DONE:**
-  - DEV-Prompt v12: Kiosk-Flow fuer Auftrag (Auto-Logout) + Quick-Stop dokumentiert.
+  - DEV-Prompt v12: Kiosk-Flow für Auftrag (Auto-Logout) + Quick-Stop dokumentiert.
   - DEV_PROMPT_HISTORY: SNAPSHOT aktualisiert und P-2026-01-19-01/02 nachgetragen.
 - **NEXT:**
-  - Optional: Terminal Stop-Detailmaske (Fallback) verschlanken/entfernen, wenn sie noch stoert.
+  - Optional: Terminal Stop-Detailmaske (Fallback) verschlanken/entfernen, wenn sie noch stört.
 
 
 
@@ -12035,16 +12141,16 @@ Vier Ursachen in der mitgelieferten Bibliothek behoben, jede Aenderung im Code a
   - Dev-Prompt (SoT): `docs/dev_prompt_zeiterfassung_v12.md` = `67db39c5d74b03fad6fec66ec78be13fad316732ce774a6aec75bf249582d83c`
   - DEV_PROMPT_HISTORY (Stand vor Patch): `docs/DEV_PROMPT_HISTORY.md` = `5d2f928afa7283bc7ad75d142eacbe73fdaadd460a97d8cbd80a92fe9a364e61`
 - **DUPLICATE-CHECK:**
-  - SNAPSHOT/LOG geprueft: Kein Eintrag `P-2026-01-19-02` vorhanden → OK
+  - SNAPSHOT/LOG geprüft: Kein Eintrag `P-2026-01-19-02` vorhanden → OK
 - **DATEIEN (max. 3):**
   - `views/terminal/start.php`
   - `public/terminal.php`
   - `controller/TerminalController.php`
 - **DONE:**
-  - Terminal: Wenn ein Hauptauftrag laeuft, stoppt der Startscreen-Button jetzt **direkt** (POST+CSRF) ueber `aktion=auftrag_stoppen_quick`.
-  - Kein Zwischenscreen mehr fuer "Hauptauftrag stoppen" im Normalfall (Stop-Detailmaske bleibt nur Fallback).
+  - Terminal: Wenn ein Hauptauftrag läuft, stoppt der Startscreen-Button jetzt **direkt** (POST+CSRF) über `aktion=auftrag_stoppen_quick`.
+  - Kein Zwischenscreen mehr für "Hauptauftrag stoppen" im Normalfall (Stop-Detailmaske bleibt nur Fallback).
 - **NEXT:**
-  - Optional: Stop-Detailmaske (Fallback) UX verschlanken (keine Status-Auswahl, keine "Letzten ... abschliessen"-Buttons).
+  - Optional: Stop-Detailmaske (Fallback) UX verschlanken (keine Status-Auswahl, keine "Letzten ... abschließen"-Buttons).
 
 
 ## P-2026-01-19-01
@@ -12055,7 +12161,7 @@ Vier Ursachen in der mitgelieferten Bibliothek behoben, jede Aenderung im Code a
   - Dev-Prompt (SoT): `docs/dev_prompt_zeiterfassung_v12.md` = `67db39c5d74b03fad6fec66ec78be13fad316732ce774a6aec75bf249582d83c`
   - DEV_PROMPT_HISTORY (Stand vor Patch): `docs/DEV_PROMPT_HISTORY.md` = `5d2f928afa7283bc7ad75d142eacbe73fdaadd460a97d8cbd80a92fe9a364e61`
 - **DUPLICATE-CHECK:**
-  - SNAPSHOT/LOG geprueft: Eintrag `P-2026-01-19-01` fehlte (Patch wurde integriert, aber ohne Log) → jetzt nachgetragen.
+  - SNAPSHOT/LOG geprüft: Eintrag `P-2026-01-19-01` fehlte (Patch wurde integriert, aber ohne Log) → jetzt nachgetragen.
 - **DATEIEN (max. 3):**
   - `controller/TerminalController.php`
 - **DONE:**
@@ -12077,13 +12183,13 @@ Vier Ursachen in der mitgelieferten Bibliothek behoben, jede Aenderung im Code a
   - Zusatz (Offline-Schema): `sql/offline_db_schema.sql` = `165bd68e62f4a776d2425d108fbf0775497ade28f5a1e8242069c1cf084177c9`
   - Zusatz (DB-Dump): `sql/zeiterfassung_aktuell.sql` = `9c62b1709c4729cca8a3b59e7a700c25ef23907592b9cc5256e5d78649e29cee`
 - **DUPLICATE-CHECK:**
-  - SNAPSHOT/LOG geprueft: Kein Eintrag `P-2026-01-18-23` vorhanden → OK
+  - SNAPSHOT/LOG geprüft: Kein Eintrag `P-2026-01-18-23` vorhanden → OK
 - **DATEIEN (max. 3):**
   - `views/terminal/start.php`
   - `docs/DEV_PROMPT_HISTORY.md`
 - **DONE:**
-  - Terminal Startscreen: `Auftrag stoppen` wird nur angezeigt, wenn ein Hauptauftrag laeuft (online via DB, offline via Session-Fallback `terminal_letzter_auftrag`).
-  - Nebenauftrag-Buttons: Werden nur angezeigt, wenn ein Auftrag laeuft (Haupt oder Neben). `Nebenauftrag starten` nur, wenn ein Hauptauftrag laeuft.
+  - Terminal Startscreen: `Auftrag stoppen` wird nur angezeigt, wenn ein Hauptauftrag läuft (online via DB, offline via Session-Fallback `terminal_letzter_auftrag`).
+  - Nebenauftrag-Buttons: Werden nur angezeigt, wenn ein Auftrag läuft (Haupt oder Neben). `Nebenauftrag starten` nur, wenn ein Hauptauftrag läuft.
 - **NEXT:**
   - Backend Auftrag-Detail: `arbeitsschritt_code` anzeigen und optional nach Arbeitsschritt gruppieren (mit Summen je Schritt).
 
@@ -12103,16 +12209,16 @@ Vier Ursachen in der mitgelieferten Bibliothek behoben, jede Aenderung im Code a
   - Zusatz (Offline-Schema): `sql/offline_db_schema.sql` = `165bd68e62f4a776d2425d108fbf0775497ade28f5a1e8242069c1cf084177c9`
   - Zusatz (DB-Dump): `sql/zeiterfassung_aktuell.sql` = `9c62b1709c4729cca8a3b59e7a700c25ef23907592b9cc5256e5d78649e29cee`
 - **DUPLICATE-CHECK:**
-  - SNAPSHOT/LOG geprueft: Kein Eintrag `P-2026-01-18-22` vorhanden → OK
+  - SNAPSHOT/LOG geprüft: Kein Eintrag `P-2026-01-18-22` vorhanden → OK
 - **DATEIEN (max. 3):**
   - `controller/TerminalController.php`
   - `services/AuftragszeitService.php`
   - `views/terminal/auftrag_starten.php`
 - **DONE:**
   - Terminal Auftrag starten: Arbeitsschritt-Code (Scan) ist Pflicht und wird in `auftragszeit.arbeitsschritt_code` gespeichert.
-  - Service/Controller: Start-Insert uebernimmt `arbeitsschritt_code` (ohne bestehende Auftragslogik zu entfernen).
+  - Service/Controller: Start-Insert übernimmt `arbeitsschritt_code` (ohne bestehende Auftragslogik zu entfernen).
 - **NEXT:**
-  - Startscreen: Buttons kontextabhaengig (Stop nur bei laufendem Auftrag, Nebenauftrag erst nach Hauptauftrag).
+  - Startscreen: Buttons kontextabhängig (Stop nur bei laufendem Auftrag, Nebenauftrag erst nach Hauptauftrag).
   - Hinweis: DEV_PROMPT_HISTORY war in diesem Patch nicht enthalten und wird mit P-2026-01-18-23 nachgezogen.
 
 
@@ -12130,15 +12236,15 @@ Vier Ursachen in der mitgelieferten Bibliothek behoben, jede Aenderung im Code a
   - Zusatz (Offline-Schema): `sql/offline_db_schema.sql` = `165bd68e62f4a776d2425d108fbf0775497ade28f5a1e8242069c1cf084177c9`
   - Zusatz (DB-Dump): `sql/zeiterfassung_aktuell.sql` = `d1013e2d5a1a37514b0b9ce14c0a291b0f0b1dfda4125f93952d8054c862049c`
 - **DUPLICATE-CHECK:**
-  - SNAPSHOT/LOG geprueft: Kein Eintrag `P-2026-01-18-21` vorhanden → OK
+  - SNAPSHOT/LOG geprüft: Kein Eintrag `P-2026-01-18-21` vorhanden → OK
 - **DATEIEN (max. 3):**
   - `sql/01_initial_schema.sql`
   - `sql/23_migration_auftragszeit_arbeitsschritt_code.sql`
   - `docs/DEV_PROMPT_HISTORY.md`
 - **DONE:**
-  - DB/Schema: `auftragszeit` ergaenzt um `arbeitsschritt_code` (nullable) als Grundlage fuer Arbeitsschritt-Scan.
-  - Indizes fuer schnellere Auswertung: (`auftrag_id`,`arbeitsschritt_code`) und (`auftragscode`,`arbeitsschritt_code`).
-  - Migration 23 fuer Bestands-DB hinzugefuegt.
+  - DB/Schema: `auftragszeit` ergänzt um `arbeitsschritt_code` (nullable) als Grundlage für Arbeitsschritt-Scan.
+  - Indizes für schnellere Auswertung: (`auftrag_id`,`arbeitsschritt_code`) und (`auftragscode`,`arbeitsschritt_code`).
+  - Migration 23 für Bestands-DB hinzugefügt.
 - **NEXT:**
   - Terminal: Arbeitsschritt-Scan im Auftrag-Start (Auftrag + Arbeitsschritt + optional Maschine), ohne bestehende Buchungslogik zu entfernen.
   - Service: Unbekannten Auftragscode in Tabelle `auftrag` automatisch anlegen (idempotent).
@@ -12149,8 +12255,8 @@ Vier Ursachen in der mitgelieferten Bibliothek behoben, jede Aenderung im Code a
   - `views/layout/header.php`
   - `docs/DEV_PROMPT_HISTORY.md`
 - **DONE:**
-  - Backend: Neuer Menuepunkt "Auftraege" im Header (klickt auf `?seite=auftrag`).
-  - Active-State wird fuer `auftrag` und `auftrag_detail` gesetzt.
+  - Backend: Neuer Menüpunkt "Aufträge" im Header (klickt auf `?seite=auftrag`).
+  - Active-State wird für `auftrag` und `auftrag_detail` gesetzt.
 - **NEXT:**
   - Auftragsmodul v1: Arbeitsschritt-Scan + DB-Design (Auftragcode + Arbeitsschrittcode + optional Maschine) und danach Terminal-Flow in Micro-Schritten.
 
@@ -12170,16 +12276,16 @@ Vier Ursachen in der mitgelieferten Bibliothek behoben, jede Aenderung im Code a
   - Rechte-Prompt: `docs/rechte_prompt.md` = `446da183245ed18087648d9f03e3a2ce4d08db9927d588455b2eeb2e396e4122`
   - Zusatz (DB-Dump): `sql/zeiterfassung_aktuell.sql` = `d1013e2d5a1a37514b0b9ce14c0a291b0f0b1dfda4125f93952d8054c862049c`
 - **DUPLICATE-CHECK:**
-  - SNAPSHOT/LOG geprueft: Kein Eintrag `P-2026-01-18-19` vorhanden → OK
+  - SNAPSHOT/LOG geprüft: Kein Eintrag `P-2026-01-18-19` vorhanden → OK
 - **DATEIEN (max. 3):**
   - `public/index.php`
   - `controller/AuftragController.php`
   - `docs/DEV_PROMPT_HISTORY.md`
 - **DONE:**
   - Backend: Neue Routen `?seite=auftrag` + `?seite=auftrag_detail&code=...` (Login required) zeigen eine erste Auftragsauswertung aus `auftragszeit` (Mitarbeiter/Maschine/Zeiten + Gesamtstunden).
-  - Akzeptanzkriterium: Wenn Buchungen in `auftragszeit` mit `auftragscode` existieren, zeigt `?seite=auftrag` diese Auftraege und `?seite=auftrag_detail&code=...` listet die Einzelbuchungen inkl. Summenstunden.
+  - Akzeptanzkriterium: Wenn Buchungen in `auftragszeit` mit `auftragscode` existieren, zeigt `?seite=auftrag` diese Aufträge und `?seite=auftrag_detail&code=...` listet die Einzelbuchungen inkl. Summenstunden.
 - **NEXT:**
-  - Micro-Patch: Menue-Link "Auftraege" in `views/layout/header.php` ergaenzen.
+  - Micro-Patch: Menü-Link "Aufträge" in `views/layout/header.php` ergänzen.
   - Danach: Arbeitsschritt-Nummern + Scan-Flow (Auftrag + Arbeitsschritt + optional Maschine) inkl. DB-Erweiterung und Terminal-UI.
 ## P-2026-01-18-17
 - ZIP: `P-2026-01-18-17_prompts-v12-auftrag-scope.zip`
@@ -12192,16 +12298,16 @@ Vier Ursachen in der mitgelieferten Bibliothek behoben, jede Aenderung im Code a
   - Zusatz (Offline-Schema): `sql/offline_db_schema.sql` = `165bd68e62f4a776d2425d108fbf0775497ade28f5a1e8242069c1cf084177c9`
   - Zusatz (DB-Dump): `sql/zeiterfassung_aktuell.sql` = `d1013e2d5a1a37514b0b9ce14c0a291b0f0b1dfda4125f93952d8054c862049c`
 - **DUPLICATE-CHECK:**
-  - SNAPSHOT/LOG geprueft: Keine v12-Prompts vorhanden; Auftrags-Scan/Arbeitsschritt-Spezifikation war bisher nicht als eigener Prompt dokumentiert.
+  - SNAPSHOT/LOG geprüft: Keine v12-Prompts vorhanden; Auftrags-Scan/Arbeitsschritt-Spezifikation war bisher nicht als eigener Prompt dokumentiert.
 - **DATEIEN (max. 3):**
   - `docs/master_prompt_zeiterfassung_v12.md`
   - `docs/dev_prompt_zeiterfassung_v12.md`
   - `docs/DEV_PROMPT_HISTORY.md`
 - **DONE:**
-  - Master-Prompt v12: Doku-Regel ergaenzt, dass neue Funktionsbereiche zuerst als separate Prompt-Datei spezifiziert werden (Auftragsmodul geplant).
+  - Master-Prompt v12: Doku-Regel ergänzt, dass neue Funktionsbereiche zuerst als separate Prompt-Datei spezifiziert werden (Auftragsmodul geplant).
   - Dev-Prompt v12: Status beibehalten, Auftragsmodul als Doku-Scope referenziert.
   - DEV_PROMPT_HISTORY: SNAPSHOT aktualisiert + Patch dokumentiert.
-  - Akzeptanzkriterium: In Master- und Dev-Prompt steht, dass das Auftragsmodul zuerst als eigener Prompt spezifiziert wird und die Implementierung nur auf ausdruecklichen Auftrag erfolgt.
+  - Akzeptanzkriterium: In Master- und Dev-Prompt steht, dass das Auftragsmodul zuerst als eigener Prompt spezifiziert wird und die Implementierung nur auf ausdrücklichen Auftrag erfolgt.
 - **NEXT:**
   - Doku-Patch: `docs/archiv/auftrags_prompt_v1.md` erstellen (Auftrag + Arbeitsschritte + optional Maschine/Barcode) ohne bestehende Funktionen anzutasten.
 
@@ -12217,14 +12323,14 @@ Vier Ursachen in der mitgelieferten Bibliothek behoben, jede Aenderung im Code a
   - Zusatz (Offline-Schema): `sql/offline_db_schema.sql` = `165bd68e62f4a776d2425d108fbf0775497ade28f5a1e8242069c1cf084177c9`
   - Zusatz (DB-Dump): `sql/zeiterfassung_aktuell.sql` = `d1013e2d5a1a37514b0b9ce14c0a291b0f0b1dfda4125f93952d8054c862049c`
 - **DUPLICATE-CHECK:**
-  - SNAPSHOT/LOG geprueft: Kein Eintrag, der den Projektstatus explizit auf "FERTIG/Praxis-Test (Bugfix only)" setzt; v11-Prompts fehlten.
+  - SNAPSHOT/LOG geprüft: Kein Eintrag, der den Projektstatus explizit auf "FERTIG/Praxis-Test (Bugfix only)" setzt; v11-Prompts fehlten.
 - **DATEIEN (max. 3):**
   - `docs/master_prompt_zeiterfassung_v11.md`
   - `docs/dev_prompt_zeiterfassung_v11.md`
   - `docs/DEV_PROMPT_HISTORY.md`
 - **DONE:**
   - Master-Prompt v11 erstellt: Projektstatus "FERTIG/Praxis-Test" + Arbeitsmodus (Bugfix/Micro-Patches).
-  - Dev-Prompt v11 (kurz) erstellt: kompakte Uebergabe-Datei; Historie bleibt in `DEV_PROMPT_HISTORY.md`.
+  - Dev-Prompt v11 (kurz) erstellt: kompakte Übergabe-Datei; Historie bleibt in `DEV_PROMPT_HISTORY.md`.
   - DEV_PROMPT_HISTORY: SNAPSHOT aktualisiert (Status/Tasks/Next) + dieser Patch dokumentiert.
   - Akzeptanzkriterium: In beiden Prompts steht klar, dass nur noch Bugfix/Bedarf im Praxis-Test gemacht wird.
 - **NEXT:**
@@ -12242,15 +12348,15 @@ Vier Ursachen in der mitgelieferten Bibliothek behoben, jede Aenderung im Code a
   - Zusatz (Offline-Schema): `sql/offline_db_schema.sql` = `165bd68e62f4a776d2425d108fbf0775497ade28f5a1e8242069c1cf084177c9`
   - Zusatz (DB-Dump): `sql/zeiterfassung_aktuell.sql` = `d1013e2d5a1a37514b0b9ce14c0a291b0f0b1dfda4125f93952d8054c862049c`
 - **DUPLICATE-CHECK:**
-  - SNAPSHOT/LOG geprueft: Backend "Mein Urlaub" sollte `BF (Rest Jahr)` anzeigen; in `views/urlaub/meine_antraege.php` wurde dafuer noch `Auth::getInstanz()` genutzt (Session-Key mismatch) → Micro-Patch erforderlich.
+  - SNAPSHOT/LOG geprüft: Backend "Mein Urlaub" sollte `BF (Rest Jahr)` anzeigen; in `views/urlaub/meine_antraege.php` wurde dafür noch `Auth::getInstanz()` genutzt (Session-Key mismatch) → Micro-Patch erforderlich.
 - **DATEIEN (max. 3):**
   - `views/urlaub/meine_antraege.php`
   - `docs/DEV_PROMPT_HISTORY.md`
 - **DONE:**
   - `BF (Rest Jahr)`-Anzeige nutzt `AuthService->holeAngemeldeteMitarbeiterId()` (korrekte Session-ID) statt Legacy-Auth.
-  - Akzeptanzkriterium: Backend → Mein Urlaub → Meine Urlaubsantraege zeigt `BF (Rest Jahr)` fuer eingeloggten Benutzer (auch `0,00` moeglich).
+  - Akzeptanzkriterium: Backend → Mein Urlaub → Meine Urlaubsanträge zeigt `BF (Rest Jahr)` für eingeloggten Benutzer (auch `0,00` möglich).
 - **NEXT:**
-  - Stabilitaet: Backend weiter klicken (T-069 Teil 2a/2b/2c) und naechste Bugs als Micro-Patches abarbeiten.
+  - Stabilität: Backend weiter klicken (T-069 Teil 2a/2b/2c) und nächste Bugs als Micro-Patches abarbeiten.
 ## P-2026-01-18-13
 - ZIP: `P-2026-01-18-13_backend-report-year-month-clamp.zip`
 - **EINGELESEN (SHA256):**
@@ -12262,15 +12368,15 @@ Vier Ursachen in der mitgelieferten Bibliothek behoben, jede Aenderung im Code a
   - Zusatz (Offline-Schema): `sql/offline_db_schema.sql` = `165bd68e62f4a776d2425d108fbf0775497ade28f5a1e8242069c1cf084177c9`
   - Zusatz (DB-Dump): `sql/zeiterfassung_aktuell.sql` = `d1013e2d5a1a37514b0b9ce14c0a291b0f0b1dfda4125f93952d8054c862049c`
 - **DUPLICATE-CHECK:**
-  - SNAPSHOT/LOG geprueft: Kein Clamp/Guard fuer ungueltige `jahr/monat` Werte in `public/index.php` vorhanden → Micro-Patch erforderlich.
+  - SNAPSHOT/LOG geprüft: Kein Clamp/Guard für ungültige `jahr/monat` Werte in `public/index.php` vorhanden → Micro-Patch erforderlich.
 - **DATEIEN (max. 3):**
   - `public/index.php`
   - `docs/DEV_PROMPT_HISTORY.md`
 - **DONE:**
-  - Router: `normalize_jahr_monat()` eingefuegt und fuer `report_monat`, `report_monat_pdf`, `report_monat_export_all` verwendet (monat 1..12, jahr 2000..2100).
+  - Router: `normalize_jahr_monat()` eingefügt und für `report_monat`, `report_monat_pdf`, `report_monat_export_all` verwendet (monat 1..12, jahr 2000..2100).
   - Akzeptanzkriterium: `?seite=report_monat&jahr=2026&monat=13` zeigt 12/2026 ohne Fehler; `monat=0` zeigt 01/2026.
 - **NEXT:**
-  - Stabilitaet: Backend – Monatsuebersicht/PDF weiter klicken (T-069 Teil 2a/2b) und naechste Bugs als Micro-Patches abarbeiten.
+  - Stabilität: Backend – Monatsübersicht/PDF weiter klicken (T-069 Teil 2a/2b) und nächste Bugs als Micro-Patches abarbeiten.
 
 
 ## P-2026-01-18-10
@@ -12284,13 +12390,13 @@ Vier Ursachen in der mitgelieferten Bibliothek behoben, jede Aenderung im Code a
   - Zusatz (Offline-Schema): `sql/offline_db_schema.sql` = `165bd68e62f4a776d2425d108fbf0775497ade28f5a1e8242069c1cf084177c9`
   - Zusatz (DB-Dump): `sql/zeiterfassung_aktuell.sql` = `742b2d0d00bd86acc8240450e618defbd15d9acd5b788e4da058527af34a0cec`
 - **DUPLICATE-CHECK:**
-  - SNAPSHOT/LOG geprueft: Ein explizites Mitarbeiter-`eintrittsdatum` (Schema + Nutzung im UrlaubService) war noch nicht vorhanden.
+  - SNAPSHOT/LOG geprüft: Ein explizites Mitarbeiter-`eintrittsdatum` (Schema + Nutzung im UrlaubService) war noch nicht vorhanden.
 - **DATEIEN (max. 3):**
   - `sql/22_migration_mitarbeiter_eintrittsdatum.sql`
   - `services/UrlaubService.php`
   - `docs/DEV_PROMPT_HISTORY.md`
 - **DONE:**
-  - DB: Migration 22 fuegt optional `mitarbeiter.eintrittsdatum` (DATE, NULL) hinzu (idempotent).
+  - DB: Migration 22 fügt optional `mitarbeiter.eintrittsdatum` (DATE, NULL) hinzu (idempotent).
   - UrlaubService: Anspruch/Eintrittsjahr-Berechnung nutzt `eintrittsdatum`, falls gepflegt; sonst Fallback auf `erstellt_am`.
 - **NEXT:**
   - Backend: Mitarbeiter anlegen/bearbeiten um Feld **Eintrittsdatum** erweitern (lesen/speichern) + danach `sql/01_initial_schema.sql` (SoT) nachziehen.
@@ -12307,15 +12413,15 @@ Vier Ursachen in der mitgelieferten Bibliothek behoben, jede Aenderung im Code a
   - Zusatz (Offline-Schema): `sql/offline_db_schema.sql` = `165bd68e62f4a776d2425d108fbf0775497ade28f5a1e8242069c1cf084177c9`
   - Zusatz (DB-Dump): `sql/zeiterfassung_aktuell.sql` = `742b2d0d00bd86acc8240450e618defbd15d9acd5b788e4da058527af34a0cec`
 - **DUPLICATE-CHECK:**
-  - SNAPSHOT/LOG geprueft: Eintrittsjahr-Pro-Rata & negativer Auto-Uebertrag waren noch nicht umgesetzt → Micro-Patch erforderlich.
+  - SNAPSHOT/LOG geprüft: Eintrittsjahr-Pro-Rata & negativer Auto-Übertrag waren noch nicht umgesetzt → Micro-Patch erforderlich.
 - **DATEIEN (max. 3):**
   - `services/UrlaubService.php`
   - `docs/DEV_PROMPT_HISTORY.md`
 - **DONE:**
   - UrlaubService: Standard-Anspruch (Monatsanspruch) wird im Eintrittsjahr anteilig ab Eintrittsmonat berechnet (Eintritt = `mitarbeiter.erstellt_am`).
-  - UrlaubService: Auto-Übertrag (Vorjahr) uebernimmt auch negative Restwerte, sodass Minusurlaub ins Folgejahr mitgenommen und dort verrechnet wird.
+  - UrlaubService: Auto-Übertrag (Vorjahr) übernimmt auch negative Restwerte, sodass Minusurlaub ins Folgejahr mitgenommen und dort verrechnet wird.
 - **NEXT:**
-  - **B-080** weiter pruefen: Urlaub-Saldo-Darstellung/Drift ("Meine Urlaubsantraege" vs Monatsreport/PDF) bei Grenzfaellen.
+  - **B-080** weiter prüfen: Urlaub-Saldo-Darstellung/Drift ("Meine Urlaubsanträge" vs Monatsreport/PDF) bei Grenzfällen.
 
 
 ## P-2026-01-18-01
@@ -12329,14 +12435,14 @@ Vier Ursachen in der mitgelieferten Bibliothek behoben, jede Aenderung im Code a
   - Zusatz (Offline-Schema): `sql/offline_db_schema.sql` = `165bd68e62f4a776d2425d108fbf0775497ade28f5a1e8242069c1cf084177c9`
   - Zusatz (DB-Dump): `sql/zeiterfassung_aktuell.sql` = `742b2d0d00bd86acc8240450e618defbd15d9acd5b788e4da058527af34a0cec`
 - **DUPLICATE-CHECK:**
-  - SNAPSHOT/LOG geprueft: `show_micro` war in Monatsuebersicht (Checkbox) und im PDF-Service bereits umgesetzt, aber der "PDF anzeigen"-Link hat den Parameter noch nicht weitergereicht → Micro-Patch erforderlich.
+  - SNAPSHOT/LOG geprüft: `show_micro` war in Monatsübersicht (Checkbox) und im PDF-Service bereits umgesetzt, aber der "PDF anzeigen"-Link hat den Parameter noch nicht weitergereicht → Micro-Patch erforderlich.
 - **DATEIEN (max. 3):**
   - `views/report/monatsuebersicht.php`
   - `docs/DEV_PROMPT_HISTORY.md`
 - **DONE:**
-  - Monatsuebersicht: Wenn "Mikro-Buchungen anzeigen" aktiv ist, oeffnet "PDF anzeigen" das PDF mit `&show_micro=1`.
+  - Monatsübersicht: Wenn "Mikro-Buchungen anzeigen" aktiv ist, öffnet "PDF anzeigen" das PDF mit `&show_micro=1`.
 - **NEXT:**
-  - Stabilitaet: Monatsuebersicht/PDF weiter klicken (T-069 Teil 2a/2b) und naechste Bugs als Micro-Patches abarbeiten.
+  - Stabilität: Monatsübersicht/PDF weiter klicken (T-069 Teil 2a/2b) und nächste Bugs als Micro-Patches abarbeiten.
 
 
 ## P-2026-01-17-29
@@ -12350,16 +12456,16 @@ Vier Ursachen in der mitgelieferten Bibliothek behoben, jede Aenderung im Code a
   - Zusatz (Offline-Schema): `sql/offline_db_schema.sql` = `165bd68e62f4a776d2425d108fbf0775497ade28f5a1e8242069c1cf084177c9`
   - Zusatz (DB-Dump): `sql/zeiterfassung_aktuell.sql` = `742b2d0d00bd86acc8240450e618defbd15d9acd5b788e4da058527af34a0cec`
 - **DUPLICATE-CHECK:**
-  - SNAPSHOT/LOG geprueft: Bug **B-078** war als OFFEN dokumentiert (Regression gegen P-2026-01-17-12) → Fix erforderlich.
+  - SNAPSHOT/LOG geprüft: Bug **B-078** war als OFFEN dokumentiert (Regression gegen P-2026-01-17-12) → Fix erforderlich.
 - **DATEIEN (max. 3):**
   - `views/report/monatsuebersicht.php`
   - `services/PDFService.php`
   - `docs/DEV_PROMPT_HISTORY.md`
 - **DONE:**
-  - Monatsuebersicht: Standard wieder aggregiert (1 Zeile/Tag: erster Start + letzter Endzeit). Detail-/Mikro-Buchungen werden nur mit `?show_micro=1` angezeigt.
+  - Monatsübersicht: Standard wieder aggregiert (1 Zeile/Tag: erster Start + letzter Endzeit). Detail-/Mikro-Buchungen werden nur mit `?show_micro=1` angezeigt.
   - Monatsreport-PDF: Standard wieder aggregiert (1 Zeile/Tag). Detail-/Mikro-Buchungen nur mit `?show_micro=1`.
 - **NEXT:**
-  - Stabilitaet: Monatsuebersicht/PDF weiter klicken (T-069 Teil 2a/2b) und naechste Bugs als Micro-Patches abarbeiten.
+  - Stabilität: Monatsübersicht/PDF weiter klicken (T-069 Teil 2a/2b) und nächste Bugs als Micro-Patches abarbeiten.
 
 
 ## P-2026-01-09-20
@@ -12372,14 +12478,14 @@ Vier Ursachen in der mitgelieferten Bibliothek behoben, jede Aenderung im Code a
   - Zusatz (DB-Dump): `zeiterfassung_aktuell.sql` = `b4ea330490da945616103371dd71fbb9d64c03e557d3dfbae834213af3c11714`
   - Zusatz (Offline-Schema): `offline_db_schema.sql` = `165bd68e62f4a776d2425d108fbf0775497ade28f5a1e8242069c1cf084177c9`
 - **DUPLICATE-CHECK:**
-  - SNAPSHOT/LOG geprueft: Sidequest "RFID-Bridge konfigurierbar" war als **Next Step** offen und noch nicht als DONE markiert → Implementierung erforderlich.
+  - SNAPSHOT/LOG geprüft: Sidequest "RFID-Bridge konfigurierbar" war als **Next Step** offen und noch nicht als DONE markiert → Implementierung erforderlich.
 - **DATEIEN (max. 3):**
   - `config/config.php`
   - `views/terminal/_autologout.php`
   - `docs/DEV_PROMPT_HISTORY.md`
 - **DONE:**
   - Terminal: RFID-Bridge (WebSocket) ist jetzt zentral konfigurierbar (enable + WS-URL) in `config/config.php`; bei `enabled=false` wird das WS-Script nicht eingebunden.
-  - Akzeptanzkriterium: Wenn `terminal.rfid_ws.enabled=false` gesetzt ist, wird im Terminal keine WS-Verbindung aufgebaut; wenn `url` geaendert wird, nutzt der Browser diese URL.
+  - Akzeptanzkriterium: Wenn `terminal.rfid_ws.enabled=false` gesetzt ist, wird im Terminal keine WS-Verbindung aufgebaut; wenn `url` geändert wird, nutzt der Browser diese URL.
 - **NEXT:**
   - Terminal: WS-Bridge Status im Debug-Panel anzeigen (connected/disconnected, letzte UID + Zeit, Reconnect-Counter).
 
@@ -12399,10 +12505,10 @@ Vier Ursachen in der mitgelieferten Bibliothek behoben, jede Aenderung im Code a
   - `public/js/terminal-rfid-ws.js`
   - `docs/DEV_PROMPT_HISTORY.md`
 - **DONE:**
-  - Terminal: WS-Bridge Reconnect ist stabiler: Backoff 1/2/5/10s (gedeckelt) mit Status „Reconnect in Xs – Versuch N“, Reset des Counters bei erfolgreichem Connect sowie defensive Behandlung fuer Browser-Kanten (Error ohne Close) und leichter DOM-Update-Guard gegen Status-Spam.
+  - Terminal: WS-Bridge Reconnect ist stabiler: Backoff 1/2/5/10s (gedeckelt) mit Status „Reconnect in Xs – Versuch N“, Reset des Counters bei erfolgreichem Connect sowie defensive Behandlung für Browser-Kanten (Error ohne Close) und leichter DOM-Update-Guard gegen Status-Spam.
   - Akzeptanzkriterium: Wenn der WS-Dienst neu startet oder die Verbindung kurz weg ist, zeigt das Terminal einen nachvollziehbaren Reconnect-Countdown mit Versuch-Zähler und verbindet sich automatisch wieder.
 - **NEXT:**
-  - Rollout-Standard fuer Terminals: `rfid-ws.service` (Systemd) + Kurz-Checkliste in `docs/`, damit weitere Probe-Terminals reproduzierbar aufgesetzt werden koennen.
+  - Rollout-Standard für Terminals: `rfid-ws.service` (Systemd) + Kurz-Checkliste in `docs/`, damit weitere Probe-Terminals reproduzierbar aufgesetzt werden können.
 
 
 ## P-2026-01-09-23
@@ -12414,16 +12520,16 @@ Vier Ursachen in der mitgelieferten Bibliothek behoben, jede Aenderung im Code a
   - SQL-Schema (SoT): `sql/01_initial_schema.sql` = `b0088149d6f39bd7c0dc6e41dff197fea496ddcb7a3afca838140f6b50fd33de`
   - Zusatz (DB-Dump): `zeiterfassung_aktuell.sql` = `b4ea330490da945616103371dd71fbb9d64c03e557d3dfbae834213af3c11714`
 - **DUPLICATE-CHECK:**
-  - SNAPSHOT/LOG geprüft: Sidequest „Rollout-Standard fuer Terminals“ war als NEXT markiert und noch nicht als DONE umgesetzt.
+  - SNAPSHOT/LOG geprüft: Sidequest „Rollout-Standard für Terminals“ war als NEXT markiert und noch nicht als DONE umgesetzt.
 - **DATEIEN (max. 3):**
   - `docs/terminal/rfid-ws.service`
   - `docs/terminal/rfid-ws_rollout.md`
   - `docs/DEV_PROMPT_HISTORY.md`
 - **DONE:**
-  - Terminal-Rollout: Systemd-Service-Vorlage (`rfid-ws.service`) + Install/Healthcheck-Checkliste in `docs/terminal/` hinzugefuegt.
+  - Terminal-Rollout: Systemd-Service-Vorlage (`rfid-ws.service`) + Install/Healthcheck-Checkliste in `docs/terminal/` hinzugefügt.
   - Akzeptanzkriterium: Ein neues Terminal kann den Dienst reproduzierbar per `systemctl enable --now rfid-ws.service` starten; Port/Healthcheck und Logs sind dokumentiert.
 - **NEXT:**
-  - Offline-Queue End-to-End Feldtest auf dem Probe-Terminal (online → offline → online) und danach ggf. Bugfixes aus realen Kantenfaellen.
+  - Offline-Queue End-to-End Feldtest auf dem Probe-Terminal (online → offline → online) und danach ggf. Bugfixes aus realen Kantenfällen.
 
 
 ## P-2026-01-09-24
@@ -12435,7 +12541,7 @@ Vier Ursachen in der mitgelieferten Bibliothek behoben, jede Aenderung im Code a
   - SQL-Schema (SoT): `sql/01_initial_schema.sql` = `b0088149d6f39bd7c0dc6e41dff197fea496ddcb7a3afca838140f6b50fd33de`
   - Zusatz (DB-Dump): `zeiterfassung_aktuell.sql` = `b4ea330490da945616103371dd71fbb9d64c03e557d3dfbae834213af3c11714`
 - **DUPLICATE-CHECK:**
-  - Vorher wurde die Offline-Queue nur im Debug-Details-Bereich (Top-10 Liste) sichtbar; es fehlte ein sofortiger Hinweis im Normal-Screen bei offenen/fehlerhaften Queue-Eintraegen.
+  - Vorher wurde die Offline-Queue nur im Debug-Details-Bereich (Top-10 Liste) sichtbar; es fehlte ein sofortiger Hinweis im Normal-Screen bei offenen/fehlerhaften Queue-Einträgen.
 - **DATEIEN (max. 3):**
   1) `controller/TerminalController.php`
   2) `views/terminal/start.php`
@@ -12444,12 +12550,12 @@ Vier Ursachen in der mitgelieferten Bibliothek behoben, jede Aenderung im Code a
   - Terminal: Offline-Queue Status wird beim Start gelesen (Counts offen/fehler/verarbeitet; letzter Fehler kurz).
   - UI: Wenn `fehler>0` oder `offen>0`, erscheint automatisch eine Statusbox (warn/error) mit klarer Handlungsinfo.
 - **AKZEPTANZ:**
-  - Wenn im Terminal lokale Queue-Eintraege offen sind oder Fehler haben, sieht man das sofort als Warn-/Fehler-Box ohne Debug-Menue.
+  - Wenn im Terminal lokale Queue-Einträge offen sind oder Fehler haben, sieht man das sofort als Warn-/Fehler-Box ohne Debug-Menü.
 - **TESTS:**
   - `php -l controller/TerminalController.php`
   - `php -l views/terminal/start.php`
 - **NEXT:**
-  - Feldtest: Haupt-DB offline → mehrere Kommen/Gehen buchen → Haupt-DB online → Queue-Replay beobachten; falls Replay nicht automatisch triggert, einen kleinen Trigger im Terminal-Flow ergaenzen.
+  - Feldtest: Haupt-DB offline → mehrere Kommen/Gehen buchen → Haupt-DB online → Queue-Replay beobachten; falls Replay nicht automatisch triggert, einen kleinen Trigger im Terminal-Flow ergänzen.
 
 
 # ARCHIV (unverändert übernommen)
@@ -17373,13 +17479,13 @@ Diesen Block 1:1 in einen neuen Chat mit ChatGPT einfügen, um an genau diesem P
   - DEV_PROMPT_HISTORY: `docs/DEV_PROMPT_HISTORY.md` = `d8ece142e052435954b57a474c3cd9ad7a7601a5769e08df66dc85ad36e2eacd`
   - SQL (SoT): `sql/01_initial_schema.sql` = `a57617c9e51913f32f8d642467a6a1a2218f9199b3a4be1050ee816e051d7888`
   - SQL (aktuell): `sql/zeiterfassung_aktuell.sql` = `6669b868b48b8a438809ded5395a3c93a807e3fafae76d9644592d79e4d507f3`
-- **DUPLICATE-CHECK:** geprüft gegen SNAPSHOT/LOG: kein Patch vorhanden, der einen Smoke-Test fuer Monatsreport-Fallback (Buchungen ohne Tageswerte) abdeckt → **kein Duplicate**.
+- **DUPLICATE-CHECK:** geprüft gegen SNAPSHOT/LOG: kein Patch vorhanden, der einen Smoke-Test für Monatsreport-Fallback (Buchungen ohne Tageswerte) abdeckt → **kein Duplicate**.
 - **DATEIEN (max. 3):**
   1) `controller/SmokeTestController.php`
   2) `docs/DEV_PROMPT_HISTORY.md`
-- **DONE:** Smoke-Test erweitert: neuer Monatsreport-Fallback-Check findet Tage mit Buchungen aber ohne `tageswerte_mitarbeiter` und prueft, ob der Monatsreport diese Tage via Fallback sinnvoll befuellt. Zusaetzlich wurde ein duplizierter `monatsraster_test_run`-POST-Block entfernt.
+- **DONE:** Smoke-Test erweitert: neuer Monatsreport-Fallback-Check findet Tage mit Buchungen aber ohne `tageswerte_mitarbeiter` und prüft, ob der Monatsreport diese Tage via Fallback sinnvoll befüllt. Zusätzlich wurde ein duplizierter `monatsraster_test_run`-POST-Block entfernt.
 - **TESTS:** `php -l controller/SmokeTestController.php`
-- **NEXT:** **T-069 (Fortsetzung):** Smoke-Test Kernflows weiterfuehren (Monatsuebersicht/PDF Randfaelle + Terminal-Online/Offline-Flow) und Bugfixes nach Testergebnis.
+- **NEXT:** **T-069 (Fortsetzung):** Smoke-Test Kernflows weiterführen (Monatsübersicht/PDF Randfälle + Terminal-Online/Offline-Flow) und Bugfixes nach Testergebnis.
 
 
 
@@ -17597,13 +17703,13 @@ Diesen Block 1:1 in einen neuen Chat mit ChatGPT einfügen, um an genau diesem P
   - DEV_PROMPT_HISTORY: `docs/DEV_PROMPT_HISTORY.md` = `ae361e15d98f0c146765d15678eb62317657e1fb0ac1d71d680a1cc47ea7da4f`
   - SQL (SoT): `sql/01_initial_schema.sql` = `a57617c9e51913f32f8d642467a6a1a2218f9199b3a4be1050ee816e051d7888`
   - SQL (aktuell): `sql/zeiterfassung_aktuell.sql` = `6669b868b48b8a438809ded5395a3c93a807e3fafae76d9644592d79e4d507f3`
-- **DUPLICATE-CHECK:** geprüft gegen SNAPSHOT/LOG: kein Patch vorhanden, der die Tabellen-Zeilenhoehe im Monatsreport-PDF reduziert (um 1-Seiten-Faelle bei wenigen Mehrfach-Bloecken zu erhoehen).
+- **DUPLICATE-CHECK:** geprüft gegen SNAPSHOT/LOG: kein Patch vorhanden, der die Tabellen-Zeilenhöhe im Monatsreport-PDF reduziert (um 1-Seiten-Fälle bei wenigen Mehrfach-Blöcken zu erhöhen).
 - **DATEIEN (max. 3):**
   1) `services/PDFService.php`
   2) `docs/DEV_PROMPT_HISTORY.md`
-- **DONE:** Monatsreport-PDF: Tabellen-Zeilenhoehe von 16.0 auf 15.0 reduziert + Text-Baseline leicht angepasst, damit Monate mit wenigen Mehrfach-Kommen/Gehen-Zeilen typischerweise wieder auf **1 Seite** passen (Summen/Bemerkungen bleiben unten).
+- **DONE:** Monatsreport-PDF: Tabellen-Zeilenhöhe von 16.0 auf 15.0 reduziert + Text-Baseline leicht angepasst, damit Monate mit wenigen Mehrfach-Kommen/Gehen-Zeilen typischerweise wieder auf **1 Seite** passen (Summen/Bemerkungen bleiben unten).
 - **TESTS:** `php -l services/PDFService.php`
-- **NEXT:** Browser-Check `report_monat_pdf` bei einem Monat, der bisher wegen 1-2 Mehrfach-Bloecken auf 2 Seiten gesprungen ist: soll jetzt haeufig wieder **1 Seite** sein. Falls weiterhin 2 Seiten (viele Bloecke) → Seitenaufteilung optional optimieren.
+- **NEXT:** Browser-Check `report_monat_pdf` bei einem Monat, der bisher wegen 1-2 Mehrfach-Blöcken auf 2 Seiten gesprungen ist: soll jetzt häufig wieder **1 Seite** sein. Falls weiterhin 2 Seiten (viele Blöcke) → Seitenaufteilung optional optimieren.
 
 ## P-2026-01-05-09
 - ZIP: `P-2026-01-05-09_krankzeitraum-6wochen-vorschlag.zip`
@@ -17617,7 +17723,7 @@ Diesen Block 1:1 in einen neuen Chat mit ChatGPT einfügen, um an genau diesem P
 - **DATEIEN (max. 3):**
   1) `controller/KonfigurationController.php`
   2) `docs/DEV_PROMPT_HISTORY.md`
-- **DONE:** Konfiguration → Krankzeiten (Krankzeitraum): Anzeige eines optionalen „Wechsel nach 6 Wochen“-Hinweises (LFZ bis/KK ab) basierend auf Startdatum; Button setzt das Feld „Bis“ auf das LFZ-Ende; dynamisch aktualisiert beim Aendern von Typ/Startdatum.
+- **DONE:** Konfiguration → Krankzeiten (Krankzeitraum): Anzeige eines optionalen „Wechsel nach 6 Wochen“-Hinweises (LFZ bis/KK ab) basierend auf Startdatum; Button setzt das Feld „Bis“ auf das LFZ-Ende; dynamisch aktualisiert beim Ändern von Typ/Startdatum.
 - **TESTS:** `php -l controller/KonfigurationController.php`
 - **NEXT:** T-069 Browser-/Feldtest der Kernflows (insb. Monatsübersicht + PDF) und Bugfixes nach echten Testergebnissen.
 
@@ -17630,13 +17736,13 @@ Diesen Block 1:1 in einen neuen Chat mit ChatGPT einfügen, um an genau diesem P
   - DEV_PROMPT_HISTORY: `docs/DEV_PROMPT_HISTORY.md` = `57926506b472215edc4a806076f2d9a2d2e0fa17ea387f2cb1c55bba669274e6`
   - SQL (SoT): `sql/01_initial_schema.sql` = `a57617c9e51913f32f8d642467a6a1a2218f9199b3a4be1050ee816e051d7888`
   - SQL (aktuell): `sql/zeiterfassung_aktuell.sql` = `6669b868b48b8a438809ded5395a3c93a807e3fafae76d9644592d79e4d507f3`
-- **DUPLICATE-CHECK:** geprüft gegen SNAPSHOT/LOG: kein Patch vorhanden, der im Monatsreport-PDF bei Grenzfaellen automatisch die Tabellen-Zeilenhoehe minimal reduziert, um 1-Seiten-Ausgabe zu ermoeglichen (wenn Standard sonst knapp 2-seitig waere).
+- **DUPLICATE-CHECK:** geprüft gegen SNAPSHOT/LOG: kein Patch vorhanden, der im Monatsreport-PDF bei Grenzfällen automatisch die Tabellen-Zeilenhöhe minimal reduziert, um 1-Seiten-Ausgabe zu ermöglichen (wenn Standard sonst knapp 2-seitig wäre).
 - **DATEIEN (max. 3):**
   1) `services/PDFService.php`
   2) `docs/DEV_PROMPT_HISTORY.md`
-- **DONE:** Monatsreport-PDF: Auto-Compact eingebaut – wenn die Standard-Zeilenhoehe (15.0) zu genau 2 Seiten fuehrt, wird testweise minimal auf 14.5/14.0 reduziert, falls dadurch wieder **1 Seite** moeglich ist; Text-Baseline nutzt nun die aktuelle Zeilenhoehe (sauber zentriert).
+- **DONE:** Monatsreport-PDF: Auto-Compact eingebaut – wenn die Standard-Zeilenhöhe (15.0) zu genau 2 Seiten führt, wird testweise minimal auf 14.5/14.0 reduziert, falls dadurch wieder **1 Seite** möglich ist; Text-Baseline nutzt nun die aktuelle Zeilenhöhe (sauber zentriert).
 - **TESTS:** `php -l services/PDFService.php`
-- **NEXT:** Browser-Check `report_monat_pdf` bei einem Monat, der bisher *knapp* wegen 1-2 Mehrfach-Bloecken auf 2 Seiten gesprungen ist: soll jetzt haeufig wieder **1 Seite** sein.
+- **NEXT:** Browser-Check `report_monat_pdf` bei einem Monat, der bisher *knapp* wegen 1-2 Mehrfach-Blöcken auf 2 Seiten gesprungen ist: soll jetzt häufig wieder **1 Seite** sein.
 
 
 ## P-2026-01-05-11
@@ -17647,12 +17753,12 @@ Diesen Block 1:1 in einen neuen Chat mit ChatGPT einfügen, um an genau diesem P
   - DEV_PROMPT_HISTORY: `docs/DEV_PROMPT_HISTORY.md` = `2e8dda2c9f2ef59188da5f2f3efc13fffd17429cb75fc24e44003106f1e44558`
   - SQL (SoT): `sql/01_initial_schema.sql` = `a57617c9e51913f32f8d642467a6a1a2218f9199b3a4be1050ee816e051d7888`
   - SQL (aktuell): `sql/zeiterfassung_aktuell.sql` = `6669b868b48b8a438809ded5395a3c93a807e3fafae76d9644592d79e4d507f3`
-- **DUPLICATE-CHECK:** geprüft gegen SNAPSHOT/LOG: kein Patch vorhanden, der die Monatskopf-Werte (Soll/Ist/Differenz) in der Monatsübersicht zuverlässig aus den Tageswerten ableitet, wenn `monatswerte_mitarbeiter` existiert und Abwesenheiten (Urlaub/Betriebsferien/Krank/Feiertag) sonst nicht sauber in IST einfliessen.
+- **DUPLICATE-CHECK:** geprüft gegen SNAPSHOT/LOG: kein Patch vorhanden, der die Monatskopf-Werte (Soll/Ist/Differenz) in der Monatsübersicht zuverlässig aus den Tageswerten ableitet, wenn `monatswerte_mitarbeiter` existiert und Abwesenheiten (Urlaub/Betriebsferien/Krank/Feiertag) sonst nicht sauber in IST einfließen.
 - **DATEIEN (max. 3):**
   1) `services/ReportService.php`
   2) `docs/DEV_PROMPT_HISTORY.md`
   3) `docs/master_prompt_zeiterfassung_v6.md`
-- **DONE:** Monatsübersicht: Monatskopf (Soll/Ist/Differenz) wird fuer die Anzeige aus den berechneten Tageswerten abgeleitet und bei Abweichungen gegenueber `monatswerte_mitarbeiter` korrigiert (Betriebsferien→Urlaub/Krank/Feiertag zaehlen in IST; Kurzarbeit reduziert Soll). Dadurch passen die Werte oben besser zur Tagesliste.
+- **DONE:** Monatsübersicht: Monatskopf (Soll/Ist/Differenz) wird für die Anzeige aus den berechneten Tageswerten abgeleitet und bei Abweichungen gegenüber `monatswerte_mitarbeiter` korrigiert (Betriebsferien→Urlaub/Krank/Feiertag zählen in IST; Kurzarbeit reduziert Soll). Dadurch passen die Werte oben besser zur Tagesliste.
 - **TESTS:** `php -l services/ReportService.php`
 - **NEXT:** Browser-Check Monatsübersicht (Monatskopf vs Tagesliste) in einem Monat mit Betriebsferien/Krank/Feiertag und ggf. Kurzarbeit; danach entscheiden, ob `Ist (gesamt)`/PDF-Summen die Kurzarbeit-Stunden ebenfalls strikt nach MasterPrompt behandeln sollen (Kurzarbeit = Soll-Reduktion, nicht IST).
 
@@ -17665,13 +17771,13 @@ Diesen Block 1:1 in einen neuen Chat mit ChatGPT einfügen, um an genau diesem P
   - DEV_PROMPT_HISTORY: `docs/DEV_PROMPT_HISTORY.md` = `35298538053110324d06ef223cd38de130918b210ff0dd38bf5e08a2c050cc82`
   - SQL (SoT): `sql/01_initial_schema.sql` = `a57617c9e51913f32f8d642467a6a1a2218f9199b3a4be1050ee816e051d7888`
   - SQL (aktuell): `sql/zeiterfassung_aktuell.sql` = `6669b868b48b8a438809ded5395a3c93a807e3fafae76d9644592d79e4d507f3`
-- **DUPLICATE-CHECK:** geprüft gegen SNAPSHOT/LOG: P-2026-01-05-10 hat Auto-Compact nur ueber Zeilenhoehe (rowH) – kein Patch vorhanden, der im Grenzfall zusaetzlich die Bottom-Reserve (Summen/Bemerkungen) dynamisch nach unten verschiebt, um **1 weitere Tabellenzeile** auf Seite 1 zu gewinnen.
+- **DUPLICATE-CHECK:** geprüft gegen SNAPSHOT/LOG: P-2026-01-05-10 hat Auto-Compact nur über Zeilenhöhe (rowH) – kein Patch vorhanden, der im Grenzfall zusätzlich die Bottom-Reserve (Summen/Bemerkungen) dynamisch nach unten verschiebt, um **1 weitere Tabellenzeile** auf Seite 1 zu gewinnen.
 - **DATEIEN (max. 3):**
   1) `services/PDFService.php`
   2) `docs/DEV_PROMPT_HISTORY.md`
-- **DONE:** Monatsreport-PDF: Auto-Compact erweitert – falls trotz minimaler Zeilenhoehen-Reduktion weiterhin genau 2 Seiten entstehen, wird im Grenzfall die Bottom-Reserve stufenweise reduziert (210→195/185/180) und Summen/Bemerkungen entsprechend nach unten geschoben, sofern dadurch wieder **1 Seite** moeglich ist (echte Mehrseiten-Monate bleiben unveraendert).
+- **DONE:** Monatsreport-PDF: Auto-Compact erweitert – falls trotz minimaler Zeilenhöhen-Reduktion weiterhin genau 2 Seiten entstehen, wird im Grenzfall die Bottom-Reserve stufenweise reduziert (210→195/185/180) und Summen/Bemerkungen entsprechend nach unten geschoben, sofern dadurch wieder **1 Seite** möglich ist (echte Mehrseiten-Monate bleiben unverändert).
 - **TESTS:** `php -l services/PDFService.php`
-- **NEXT:** Browser-Check `report_monat_pdf` bei einem Monat, der bisher *knapp* auf 2 Seiten war: sollte jetzt haeufig wieder **1 Seite** sein. Falls weiterhin 2 Seiten (viele Bloecke) → echte Mehrseiten-Ausgabe akzeptieren oder spaeter weitere Kompakt-Optionen (z. B. Notes maxLines/Spacing) pruefen.
+- **NEXT:** Browser-Check `report_monat_pdf` bei einem Monat, der bisher *knapp* auf 2 Seiten war: sollte jetzt häufig wieder **1 Seite** sein. Falls weiterhin 2 Seiten (viele Blöcke) → echte Mehrseiten-Ausgabe akzeptieren oder später weitere Kompakt-Optionen (z. B. Notes maxLines/Spacing) prüfen.
 
 ## P-2026-01-05-13
 - ZIP: `P-2026-01-05-13_ist-gesamt-ohne-kurzarbeit.zip`
@@ -17681,14 +17787,14 @@ Diesen Block 1:1 in einen neuen Chat mit ChatGPT einfügen, um an genau diesem P
   - DEV_PROMPT_HISTORY: `docs/DEV_PROMPT_HISTORY.md` = `2b2243b0bf88c878493ca79bc371a38820dcc202e9f4619761f166622dee3d4b`
   - SQL (SoT): `sql/01_initial_schema.sql` = `a57617c9e51913f32f8d642467a6a1a2218f9199b3a4be1050ee816e051d7888`
   - SQL (aktuell): `sql/zeiterfassung_aktuell.sql` = `6669b868b48b8a438809ded5395a3c93a807e3fafae76d9644592d79e4d507f3`
-- **DUPLICATE-CHECK:** geprüft gegen SNAPSHOT/LOG: P-2026-01-05-07 fuehrte "Ist (gesamt)" ein, zaehlte aber Kurzarbeit mit; kein spaeterer Patch vorhanden, der die IST-Definition in `views/report/monatsuebersicht.php` an MasterPrompt (Kurzarbeit = Soll-Reduktion, nicht IST) angleicht.
+- **DUPLICATE-CHECK:** geprüft gegen SNAPSHOT/LOG: P-2026-01-05-07 fuehrte "Ist (gesamt)" ein, zählte aber Kurzarbeit mit; kein späterer Patch vorhanden, der die IST-Definition in `views/report/monatsuebersicht.php` an MasterPrompt (Kurzarbeit = Soll-Reduktion, nicht IST) angleicht.
 - **DATEIEN (max. 3):**
   1) `views/report/monatsuebersicht.php`
   2) `docs/DEV_PROMPT_HISTORY.md`
 - **DONE:** Monatsübersicht: "Ist (gesamt)" pro Tag summiert jetzt nur Arbeitszeit + bezahlte Abwesenheiten (Arzt/Krank/Feiertag/Urlaub/Sonstiges) und **nicht** mehr Kurzarbeit; Kurzarbeit bleibt als eigene Spalte sichtbar.
-- **AKZEPTANZ:** Ein Tag mit 8.00h Kurzarbeit und 0.00h Arbeitszeit zeigt in "Ist (gesamt)" **0.00**, waehrend die Kurzarbeit-Spalte **8.00** zeigt.
+- **AKZEPTANZ:** Ein Tag mit 8.00h Kurzarbeit und 0.00h Arbeitszeit zeigt in "Ist (gesamt)" **0.00**, während die Kurzarbeit-Spalte **8.00** zeigt.
 - **TESTS:** `php -l views/report/monatsuebersicht.php`
-- **NEXT:** Browser-Check `report_monat` mit einem Kurzarbeit-Tag (ohne Arbeitszeit) und einem Kurzarbeit-Tag (mit Arbeitszeit) – "Ist (gesamt)" darf Kurzarbeit nicht zaehlen, Monatskopf (Soll/Ist/Differenz) muss dazu passen; danach `report_monat_pdf` (1 Seite vs echte Mehrseite) pruefen.
+- **NEXT:** Browser-Check `report_monat` mit einem Kurzarbeit-Tag (ohne Arbeitszeit) und einem Kurzarbeit-Tag (mit Arbeitszeit) – "Ist (gesamt)" darf Kurzarbeit nicht zählen, Monatskopf (Soll/Ist/Differenz) muss dazu passen; danach `report_monat_pdf` (1 Seite vs echte Mehrseite) prüfen.
 
 
 ## P-2026-01-05-14
@@ -17699,14 +17805,14 @@ Diesen Block 1:1 in einen neuen Chat mit ChatGPT einfügen, um an genau diesem P
   - DEV_PROMPT_HISTORY: `docs/DEV_PROMPT_HISTORY.md` = `f7e1075355a094c0d04ceb0da126ed3804e8d6d09accef95b9ed918551b974bc`
   - SQL (SoT): `sql/01_initial_schema.sql` = `a57617c9e51913f32f8d642467a6a1a2218f9199b3a4be1050ee816e051d7888`
   - SQL (aktuell): `sql/zeiterfassung_aktuell.sql` = `6669b868b48b8a438809ded5395a3c93a807e3fafae76d9644592d79e4d507f3`
-- **DUPLICATE-CHECK:** geprüft gegen SNAPSHOT/LOG: kein Patch vorhanden, der bei `report_monat_pdf` eine Seitenanzahl als Response-Header ausgibt (Feldtest-Hilfe fuer Grenzfall-Checks 1 Seite vs 2 Seiten).
+- **DUPLICATE-CHECK:** geprüft gegen SNAPSHOT/LOG: kein Patch vorhanden, der bei `report_monat_pdf` eine Seitenanzahl als Response-Header ausgibt (Feldtest-Hilfe für Grenzfall-Checks 1 Seite vs 2 Seiten).
 - **DATEIEN (max. 3):**
   1) `controller/ReportController.php`
   2) `docs/DEV_PROMPT_HISTORY.md`
-- **DONE:** Monatsreport-PDF (`report_monat_pdf`): Response sendet optional `X-Zeiterfassung-PDF-Pages: N` (aus `/Type /Pages ... /Count N` extrahiert, Fallback: Page-Objekte zaehlen), um im Browser schnell zu sehen, ob ein Monat durch Auto-Compact/Bottom-Shift wieder 1-seitig wurde.
+- **DONE:** Monatsreport-PDF (`report_monat_pdf`): Response sendet optional `X-Zeiterfassung-PDF-Pages: N` (aus `/Type /Pages ... /Count N` extrahiert, Fallback: Page-Objekte zählen), um im Browser schnell zu sehen, ob ein Monat durch Auto-Compact/Bottom-Shift wieder 1-seitig wurde.
 - **AKZEPTANZ:** Beim Aufruf von `?seite=report_monat_pdf&jahr=YYYY&monat=MM` ist im HTTP-Response-Header `X-Zeiterfassung-PDF-Pages` gesetzt (N>0).
 - **TESTS:** `php -l controller/ReportController.php`
-- **NEXT:** T-069 Browser-Check (Monatsübersicht/PDF) – Seitenanzahl kann nun direkt ueber den Response-Header verifiziert werden.
+- **NEXT:** T-069 Browser-Check (Monatsübersicht/PDF) – Seitenanzahl kann nun direkt über den Response-Header verifiziert werden.
 
 
 
@@ -17723,8 +17829,8 @@ Diesen Block 1:1 in einen neuen Chat mit ChatGPT einfügen, um an genau diesem P
   1) `public/css/terminal.css`
   2) `views/terminal/_layout_top.php`
   3) `docs/DEV_PROMPT_HISTORY.md`
-- **DONE:** Terminal-UI: `main` fuellt nun im Kiosk typischerweise ~97% (97vw/97vh) und zeigt oben rechts einen Uhr-Platzhalter (`#terminal-uhr`) als Vorbereitung fuer die laufende Uhr.
-- **AKZEPTANZ:** Beim Öffnen des Terminals ist der Inhalt nahezu vollflaechig (~97%) und oben rechts ist eine Uhr (Platzhalter) sichtbar.
+- **DONE:** Terminal-UI: `main` füllt nun im Kiosk typischerweise ~97% (97vw/97vh) und zeigt oben rechts einen Uhr-Platzhalter (`#terminal-uhr`) als Vorbereitung für die laufende Uhr.
+- **AKZEPTANZ:** Beim Öffnen des Terminals ist der Inhalt nahezu vollflächig (~97%) und oben rechts ist eine Uhr (Platzhalter) sichtbar.
 - **TESTS:** `php -l views/terminal/_layout_top.php`
 - **NEXT:** T-077 (Teil 2): laufende Uhr per JS (Systemzeit, Format `HH:MM:SS DD-MM-YYYY`) implementieren.
 
@@ -17745,7 +17851,7 @@ Diesen Block 1:1 in einen neuen Chat mit ChatGPT einfügen, um an genau diesem P
 - **DONE:** Terminal-UI: Uhr im Kopfbereich (`#terminal-uhr`) wird jetzt per JS jede Sekunde aktualisiert (Format `HH:MM:SS DD-MM-YYYY`); Script wird auch auf dem Login-Screen geladen, Auto-Logout/Countdown bleibt nur bei eingeloggtem Mitarbeiter aktiv.
 - **AKZEPTANZ:** Auf dem Terminal (auch auf `terminal.php?aktion=start`) tickt die Uhr oben rechts sichtbar jede Sekunde im Format `HH:MM:SS DD-MM-YYYY`.
 - **TESTS:** `php -l views/terminal/_autologout.php`
-- **NEXT:** T-077 (Teil 3): Terminal-Startscreen-Text/Label auf **nur RFID** reduzieren (keine Hinweise mehr auf Personalnummer/Mitarbeiter-ID; Funktionalitaet bleibt intern fuer Demo).
+- **NEXT:** T-077 (Teil 3): Terminal-Startscreen-Text/Label auf **nur RFID** reduzieren (keine Hinweise mehr auf Personalnummer/Mitarbeiter-ID; Funktionalität bleibt intern für Demo).
 
 
 ## P-2026-01-05-17
@@ -18222,7 +18328,7 @@ Diesen Block 1:1 in einen neuen Chat mit ChatGPT einfügen, um an genau diesem P
   - Speichern: INSERT nutzt `erlaubt` (konsistent zur Migration 15 und AuthService).
 - **AKZEPTANZ:**
   - In „Mitarbeiter bearbeiten“ funktioniert Laden & Speichern der Overrides ohne SQL-Fehler (Spalte `erlaubt`).
-  - Overrides wirken weiterhin in der effektiven Rechteanzeige (Allow hinzufuegen, Deny entziehen).
+  - Overrides wirken weiterhin in der effektiven Rechteanzeige (Allow hinzufügen, Deny entziehen).
 - **TESTS:**
   - `php -l controller/MitarbeiterAdminController.php`
 - **NEXT:** T-069 (Teil 1a): Feldtest Terminal (Login/Buttons/Offline) weiterführen und Auffälligkeiten via Debug-Notizen (`&debug=1`) sammeln.
@@ -18514,18 +18620,18 @@ Diesen Block 1:1 in einen neuen Chat mit ChatGPT einfügen, um an genau diesem P
   - DEV_PROMPT_HISTORY: `docs/DEV_PROMPT_HISTORY.md` = `41723779a48b76c23483de23ff06bcdef5021f4261b2eb220617f028c36a74dc`
   - SQL (SoT): `sql/01_initial_schema.sql` = `1aedeea4b65f1edaeb6324aa0315fc6df9a9d77a5a27917e045e3565fa925a33`
   - SQL (aktuell): `sql/zeiterfassung_aktuell.sql` = `ee363d47a756ed640cb9f077fd9b9cf3a5ade101a17334e4788e44276895e15e`
-- **DUPLICATE-CHECK:** Im PDF existiert ein BF-Fallback (wenn `kommentar` leer und `ist_betriebsferien=1`). Da `ist_betriebsferien` auch auf Feiertag/Wochenende und bei Arbeitszeit true sein kann, erschien "BF" im PDF an Tagen, die nicht als Betriebsferien-Urlaub zaehlen sollen.
+- **DUPLICATE-CHECK:** Im PDF existiert ein BF-Fallback (wenn `kommentar` leer und `ist_betriebsferien=1`). Da `ist_betriebsferien` auch auf Feiertag/Wochenende und bei Arbeitszeit true sein kann, erschien "BF" im PDF an Tagen, die nicht als Betriebsferien-Urlaub zählen sollen.
 - **DATEIEN (max. 3):**
   1) `services/PDFService.php`
   2) `docs/DEV_PROMPT_HISTORY.md`
 - **DONE:**
-  - Arbeitszeitliste/PDF: BF-Fallback zeigt "BF" nur, wenn Betriebsferien an dem Tag tatsaechlich als Urlaub bewertet wurden (`kennzeichen_urlaub=1` oder `urlaub_stunden>0`).
+  - Arbeitszeitliste/PDF: BF-Fallback zeigt "BF" nur, wenn Betriebsferien an dem Tag tatsächlich als Urlaub bewertet wurden (`kennzeichen_urlaub=1` oder `urlaub_stunden>0`).
   - Dadurch kein "BF" auf Feiertagen/Wochenenden innerhalb Betriebsferien und kein "BF" an BF-Tagen mit echter Arbeitszeit.
 - **AKZEPTANZ:**
-  - Monats-PDF "Arbeitszeitliste": Ein Feiertag innerhalb Betriebsferien zeigt kein "BF" im Kuerzel-Feld; ein echter Betriebsferien-Urlaubstag (Mo-Fr, nicht Feiertag, keine Arbeitszeit) zeigt "BF".
+  - Monats-PDF "Arbeitszeitliste": Ein Feiertag innerhalb Betriebsferien zeigt kein "BF" im Kürzel-Feld; ein echter Betriebsferien-Urlaubstag (Mo-Fr, nicht Feiertag, keine Arbeitszeit) zeigt "BF".
 - **TESTS:**
   - `php -l services/PDFService.php`
-- **NEXT:** T-069 Feldtest weiterführen (weitere PDF/Monatsreport-Kantenfaelle sammeln).
+- **NEXT:** T-069 Feldtest weiterführen (weitere PDF/Monatsreport-Kantenfälle sammeln).
 
 ## P-2026-01-08-04
 - ZIP: `P-2026-01-08-04_b077-status-doku.zip`
@@ -18613,7 +18719,7 @@ Diesen Block 1:1 in einen neuen Chat mit ChatGPT einfügen, um an genau diesem P
   - Beispiel: Arbeitsblock (korr.) 07:00–12:45 und Pausenfenster 12:30–13:00 → dieses Fenster wird nicht abgezogen; nur weitere Fenster (z. B. 09:00–09:15) werden abgezogen.
 - **TESTS:**
   - `php -l services/PausenService.php`
-- **NEXT:** T-081 (Teil 1) – „Entscheidung noetig“ Faelle erkennen (knapp um ~6h) und Default ohne Entscheidung: keine Pause abziehen; danach UI/Dashboard Hinweis (Teil 2).
+- **NEXT:** T-081 (Teil 1) – „Entscheidung nötig“ Fälle erkennen (knapp um ~6h) und Default ohne Entscheidung: keine Pause abziehen; danach UI/Dashboard Hinweis (Teil 2).
 
 
 ## P-2026-01-08-08
@@ -18624,17 +18730,17 @@ Diesen Block 1:1 in einen neuen Chat mit ChatGPT einfügen, um an genau diesem P
   - DEV_PROMPT_HISTORY: `docs/DEV_PROMPT_HISTORY.md` = `d1d8fdd975c97bae498eb1939b243df463e38fcdfeac36d54daf36b13ffa4809`
   - SQL (SoT): `sql/01_initial_schema.sql` = `1aedeea4b65f1edaeb6324aa0315fc6df9a9d77a5a27917e045e3565fa925a33`
   - SQL (aktuell): `sql/zeiterfassung_aktuell.sql` = `ee363d47a756ed640cb9f077fd9b9cf3a5ade101a17334e4788e44276895e15e`
-- **DUPLICATE-CHECK:** Es gab bisher keinen Patch, der Grenzfaelle (~6h) als „Entscheidung noetig“ markiert und bis zur Entscheidung standardmaessig **keine** Pause abzieht.
+- **DUPLICATE-CHECK:** Es gab bisher keinen Patch, der Grenzfälle (~6h) als „Entscheidung nötig“ markiert und bis zur Entscheidung standardmäßig **keine** Pause abzieht.
 - **DATEIEN (max. 3):**
   1) `services/PausenService.php`
   2) `services/ReportService.php`
   3) `docs/DEV_PROMPT_HISTORY.md`
 - **DONE:**
-  - PausenService (T-081 Teil 1): Grenzfaelle um die 1. gesetzliche Schwelle (Default 6h +/- `pause_entscheidung_toleranz_minuten`, Default 30) werden als `entscheidung_noetig` markiert und ziehen bis zur Entscheidung **keine** Pause ab.
-  - ReportService: gibt pro Tag zusaetzlich `pause_entscheidung_noetig` und `pause_entscheidung_auto_minuten` aus (nur Datenfeld, UI folgt in Teil 2).
+  - PausenService (T-081 Teil 1): Grenzfälle um die 1. gesetzliche Schwelle (Default 6h +/- `pause_entscheidung_toleranz_minuten`, Default 30) werden als `entscheidung_noetig` markiert und ziehen bis zur Entscheidung **keine** Pause ab.
+  - ReportService: gibt pro Tag zusätzlich `pause_entscheidung_noetig` und `pause_entscheidung_auto_minuten` aus (nur Datenfeld, UI folgt in Teil 2).
 - **AKZEPTANZ:**
   - Arbeitsblock 07:00–13:15 (nahe 6h) mit Pausenfenstern 09:00–09:15 und 12:30–13:00 → `pausen_stunden` bleibt 0.00 (Default), aber `pause_entscheidung_noetig=1` und `pause_entscheidung_auto_minuten=45`.
-  - Arbeitsblock 07:00–15:00 (deutlich ueber 6h) zieht Pause wie gehabt automatisch ab und `pause_entscheidung_noetig=0`.
+  - Arbeitsblock 07:00–15:00 (deutlich über 6h) zieht Pause wie gehabt automatisch ab und `pause_entscheidung_noetig=0`.
 - **TESTS:**
   - `php -l services/PausenService.php`
   - `php -l services/ReportService.php`
@@ -18667,7 +18773,7 @@ Diesen Block 1:1 in einen neuen Chat mit ChatGPT einfügen, um an genau diesem P
   - `docs/DEV_PROMPT_HISTORY.md`
 - **DONE:**
   - Parse-Error/Rest-Fragment in `ReportService.php` (im Tageswerte-Loop, Pausenentscheidung) entfernt.
-  - Monatsreport/PDF/Monatsübersicht sind wieder lauffaehig (keine PHP-Syntaxfehler).
+  - Monatsreport/PDF/Monatsübersicht sind wieder lauffähig (keine PHP-Syntaxfehler).
 - **NEXT:**
   - **T-069 (Teil 1a):** Terminal-Stabilität testen (RFID Login „nicht anwesend“ → nur „Kommen“ + optional „Urlaub“; Warnboxen/Debug-Dump bei Auffälligkeiten).
 
@@ -18824,7 +18930,7 @@ Diesen Block 1:1 in einen neuen Chat mit ChatGPT einfügen, um an genau diesem P
   - DEV_PROMPT_HISTORY (aus ZIP, Stand vor Patch): `docs/DEV_PROMPT_HISTORY.md` = `3786ece3b637f13a07c99f51bbf7677aa78ecbea65e034c72bca93983dac021d`
   - SQL-Schema (aus ZIP): `sql/zeiterfassung_aktuell.sql` = `b4ea330490da945616103371dd71fbb9d64c03e557d3dfbae834213af3c11714`
 - **DUPLICATE-CHECK:**
-  - P-2026-01-05-17 reduzierte Login-Text/Label in `views/terminal/start.php` auf „nur RFID“, aber Controller-Meldungen enthielten weiterhin „Personalnummer/Mitarbeiter-ID/ID“. Kein spaeterer Patch dokumentiert, der diese Terminal-Fehltexte bereinigt.
+  - P-2026-01-05-17 reduzierte Login-Text/Label in `views/terminal/start.php` auf „nur RFID“, aber Controller-Meldungen enthielten weiterhin „Personalnummer/Mitarbeiter-ID/ID“. Kein späterer Patch dokumentiert, der diese Terminal-Fehltexte bereinigt.
 - **DATEIEN (max. 3):**
   1) `controller/TerminalController.php`
   2) `docs/DEV_PROMPT_HISTORY.md`
@@ -18839,7 +18945,7 @@ Diesen Block 1:1 in einen neuen Chat mit ChatGPT einfügen, um an genau diesem P
 - **TESTS:**
   - `php -l controller/TerminalController.php`
 - **NEXT:**
-  - **T-069 (Teil 1a):** Terminal-Stabilitaet weiter manuell klicken und naechste Auffaelligkeit als Micro-Patch fixen.
+  - **T-069 (Teil 1a):** Terminal-Stabilität weiter manuell klicken und nächste Auffälligkeit als Micro-Patch fixen.
 
 
 ## P-2026-01-09-07
@@ -18856,15 +18962,15 @@ Diesen Block 1:1 in einen neuen Chat mit ChatGPT einfügen, um an genau diesem P
   2) `views/zeit/tagesansicht.php`
   3) `docs/DEV_PROMPT_HISTORY.md`
 - **DONE:**
-  - Tagesansicht: Bei Zeitbuchung **Add** und **Update** wird das Pflichtfeld `begruendung` zusaetzlich in `zeitbuchung.kommentar` gespeichert, damit es direkt in der Tabelle sichtbar ist.
-  - UI: Spaltenheader heisst nun **Begruendung** (statt Kommentar) und es gibt kein separates optionales Kommentar-Feld mehr bei Add/Update.
+  - Tagesansicht: Bei Zeitbuchung **Add** und **Update** wird das Pflichtfeld `begruendung` zusätzlich in `zeitbuchung.kommentar` gespeichert, damit es direkt in der Tabelle sichtbar ist.
+  - UI: Spaltenheader heißt nun **Begründung** (statt Kommentar) und es gibt kein separates optionales Kommentar-Feld mehr bei Add/Update.
 - **AKZEPTANZ:**
-  - Nach Hinzufuegen oder Bearbeiten einer Kommen/Gehen-Buchung ist die eingegebene Begruendung sofort in der Tagesansicht in der Spalte **Begruendung** sichtbar.
+  - Nach Hinzufügen oder Bearbeiten einer Kommen/Gehen-Buchung ist die eingegebene Begründung sofort in der Tagesansicht in der Spalte **Begründung** sichtbar.
 - **TESTS:**
   - `php -l controller/ZeitController.php`
   - `php -l views/zeit/tagesansicht.php`
 - **NEXT:**
-  - Pruefen, ob es weitere UI-Stellen gibt, wo Pflicht-Begruendung existiert, aber im UI nicht direkt sichtbar ist (z. B. andere Korrektur-/Admin-Formulare) und dort konsistent ausgeben.
+  - Prüfen, ob es weitere UI-Stellen gibt, wo Pflicht-Begründung existiert, aber im UI nicht direkt sichtbar ist (z. B. andere Korrektur-/Admin-Formulare) und dort konsistent ausgeben.
 
 ## Patch P-2026-01-09-08_begruendung-tagesfelder-auslesbar
 
@@ -18909,13 +19015,13 @@ Pflicht-Begründungen für Tagesfelder (Kurzarbeit/Krank/Sonstiges) sollen in de
   3) `docs/DEV_PROMPT_HISTORY.md`
 - **DONE:**
   - Terminal-Login: Body-Klasse `terminal-login` gesetzt, wenn kein Mitarbeiter eingeloggt ist.
-  - CSS: Login-Formular als Flex-Layout, sodass die Button-Zeile den restlichen Platz nach unten ausfuellt.
+  - CSS: Login-Formular als Flex-Layout, sodass die Button-Zeile den restlichen Platz nach unten ausfüllt.
 - **AKZEPTANZ:**
-  - Auf dem Terminal-Login-Screen fuellt der Button **„Anmelden“** den verbleibenden Bildschirmbereich nach unten (kein "kleiner" Button mehr).
+  - Auf dem Terminal-Login-Screen füllt der Button **„Anmelden“** den verbleibenden Bildschirmbereich nach unten (kein "kleiner" Button mehr).
 - **TESTS:**
   - `php -l views/terminal/start.php`
 - **NEXT:**
-  - **T-069 (Teil 1a):** Terminal-Stabilitaet weiter manuell klicken und naechste Auffaelligkeit als Micro-Patch fixen.
+  - **T-069 (Teil 1a):** Terminal-Stabilität weiter manuell klicken und nächste Auffälligkeit als Micro-Patch fixen.
 
 
 ## P-2026-01-09-10
@@ -18932,13 +19038,13 @@ Pflicht-Begründungen für Tagesfelder (Kurzarbeit/Krank/Sonstiges) sollen in de
   2) `docs/DEV_PROMPT_HISTORY.md`
 - **DONE:**
   - Terminal-Login: `.terminal-login-buttonrow` wird explizit als Spalte (`flex-direction: column`) gerendert und streckt Inhalte.
-  - Terminal-Login: Button "Anmelden" bekommt `width: 100%` + eigenes Flex-Verhalten, damit er **sicher Fullsize** ist (Breite + verbleibende Hoehe).
+  - Terminal-Login: Button "Anmelden" bekommt `width: 100%` + eigenes Flex-Verhalten, damit er **sicher Fullsize** ist (Breite + verbleibende Höhe).
 - **AKZEPTANZ:**
-  - Login-Screen: Button "Anmelden" fuellt den verbleibenden Bildschirmbereich **nach unten** und ist **vollbreit** (keine 45%-Breite).
+  - Login-Screen: Button "Anmelden" füllt den verbleibenden Bildschirmbereich **nach unten** und ist **vollbreit** (keine 45%-Breite).
 - **TESTS:**
   - n/a (nur CSS/Markdown)
 - **NEXT:**
-  - **T-069 (Teil 1a):** Terminal-Stabilitaet weiter manuell klicken und naechste Auffaelligkeit als Micro-Patch fixen.
+  - **T-069 (Teil 1a):** Terminal-Stabilität weiter manuell klicken und nächste Auffälligkeit als Micro-Patch fixen.
 
 
 ## P-2026-01-09-11
@@ -18955,13 +19061,13 @@ Pflicht-Begründungen für Tagesfelder (Kurzarbeit/Krank/Sonstiges) sollen in de
   2) `docs/DEV_PROMPT_HISTORY.md`
 - **DONE:**
   - Terminal: Aktionen **Kommen** und **Gehen** setzen jetzt nur noch Flash (Nachricht/Fehler) und redirecten dann auf `terminal.php?aktion=start`.
-  - Dadurch wird der Startsreen immer ueber den zentralen `start()`-Flow gerendert (inkl. Urlaubssaldo-Box), statt die View direkt ohne die benoetigten Variablen zu laden.
+  - Dadurch wird der Startsreen immer über den zentralen `start()`-Flow gerendert (inkl. Urlaubssaldo-Box), statt die View direkt ohne die benötigten Variablen zu laden.
 - **AKZEPTANZ:**
-  - Nach Klick auf **Kommen** oder **Gehen** bleibt die **Urlaub verfuegbar**-Box korrekt (kein "Kontingent fuer 2026 nicht gepflegt" mehr).
+  - Nach Klick auf **Kommen** oder **Gehen** bleibt die **Urlaub verfügbar**-Box korrekt (kein "Kontingent für 2026 nicht gepflegt" mehr).
 - **TESTS:**
   - `php -l controller/TerminalController.php`
 - **NEXT:**
-  - **T-069 (Teil 1a):** Terminal weiter manuell klicken (Kommen/Gehen/Auftrag/Urlaub) und naechste Auffaelligkeit als Micro-Patch fixen.
+  - **T-069 (Teil 1a):** Terminal weiter manuell klicken (Kommen/Gehen/Auftrag/Urlaub) und nächste Auffälligkeit als Micro-Patch fixen.
 
 
 ## P-2026-01-09-12
@@ -18972,18 +19078,18 @@ Pflicht-Begründungen für Tagesfelder (Kurzarbeit/Krank/Sonstiges) sollen in de
   - DEV_PROMPT_HISTORY (aus ZIP, Stand vor Patch): `docs/DEV_PROMPT_HISTORY.md` = `5e0a27e2d5d880e2ee48d4ee32c06f66f09bdf7e01a66af1187c028a2d5a2f43`
   - SQL-Schema (aus ZIP): `sql/zeiterfassung_aktuell.sql` = `b4ea330490da945616103371dd71fbb9d64c03e557d3dfbae834213af3c11714`
 - **DUPLICATE-CHECK:**
-  - Kein Patch dokumentiert, der die irrefuehrende Terminal-Urlaubsmeldung **"Kontingent ... nicht gepflegt"** als Fallback ersetzt, wenn `$urlaubSaldo` nicht geladen wurde.
+  - Kein Patch dokumentiert, der die irreführende Terminal-Urlaubsmeldung **"Kontingent ... nicht gepflegt"** als Fallback ersetzt, wenn `$urlaubSaldo` nicht geladen wurde.
 - **DATEIEN (max. 3):**
   1) `views/terminal/start.php`
   2) `docs/DEV_PROMPT_HISTORY.md`
 - **DONE:**
-  - Terminal-Start: Fallback-Text bei fehlenden Urlaubsdaten ist jetzt neutral/korrekt ("Daten aktuell nicht verfuegbar" statt "Kontingent nicht gepflegt").
+  - Terminal-Start: Fallback-Text bei fehlenden Urlaubsdaten ist jetzt neutral/korrekt ("Daten aktuell nicht verfügbar" statt "Kontingent nicht gepflegt").
 - **AKZEPTANZ:**
-  - Falls im Terminal-Startscreen die Urlaubsdaten aus irgendeinem Grund nicht geladen sind, erscheint **keine** irrefuehrende Kontingent-Meldung mehr.
+  - Falls im Terminal-Startscreen die Urlaubsdaten aus irgendeinem Grund nicht geladen sind, erscheint **keine** irreführende Kontingent-Meldung mehr.
 - **TESTS:**
   - `php -l views/terminal/start.php`
 - **NEXT:**
-  - **T-069 (Teil 1a):** Terminal weiter manuell klicken und naechste Auffaelligkeit als Micro-Patch fixen.
+  - **T-069 (Teil 1a):** Terminal weiter manuell klicken und nächste Auffälligkeit als Micro-Patch fixen.
 
 
 ## P-2026-01-09-13
@@ -18994,7 +19100,7 @@ Pflicht-Begründungen für Tagesfelder (Kurzarbeit/Krank/Sonstiges) sollen in de
   - DEV_PROMPT_HISTORY (aus ZIP, Stand vor Patch): `docs/DEV_PROMPT_HISTORY.md` = `f850a2f4c59fc6e4361b96b5ba11012664e39d2221a2978d3e2c7b6d2a8e398e`
   - SQL-Schema (aus ZIP): `sql/zeiterfassung_aktuell.sql` = `b4ea330490da945616103371dd71fbb9d64c03e557d3dfbae834213af3c11714`
 - **DUPLICATE-CHECK:**
-  - Kein Patch dokumentiert, der nach **RFID-Chip zu Mitarbeiter zuweisen → Speichern** automatisch wieder auf den **Kommen/Gehen-Startscreen** zurueckleitet.
+  - Kein Patch dokumentiert, der nach **RFID-Chip zu Mitarbeiter zuweisen → Speichern** automatisch wieder auf den **Kommen/Gehen-Startscreen** zurückleitet.
 - **DATEIEN (max. 3):**
   1) `controller/TerminalController.php`
   2) `docs/DEV_PROMPT_HISTORY.md`
@@ -19002,11 +19108,11 @@ Pflicht-Begründungen für Tagesfelder (Kurzarbeit/Krank/Sonstiges) sollen in de
   - Terminal: Nach erfolgreicher RFID-Zuweisung wird per Redirect wieder `terminal.php?aktion=start` geladen (statt auf dem Zuweisungs-Formular zu bleiben).
   - Flash-Nachricht bleibt erhalten und wird auf dem Startscreen angezeigt.
 - **AKZEPTANZ:**
-  - Nach Klick auf **Speichern** in der RFID-Zuweisung landet man automatisch wieder im Terminal-Hauptmenue (Kommen/Gehen), nicht im Zuweisungsformular.
+  - Nach Klick auf **Speichern** in der RFID-Zuweisung landet man automatisch wieder im Terminal-Hauptmenü (Kommen/Gehen), nicht im Zuweisungsformular.
 - **TESTS:**
   - `php -l controller/TerminalController.php`
 - **NEXT:**
-  - **T-069 (Teil 1a):** Terminal weiter manuell klicken und naechste Auffaelligkeit als Micro-Patch fixen.
+  - **T-069 (Teil 1a):** Terminal weiter manuell klicken und nächste Auffälligkeit als Micro-Patch fixen.
 
 
 ## P-2026-01-09-14
@@ -19029,7 +19135,7 @@ Pflicht-Begründungen für Tagesfelder (Kurzarbeit/Krank/Sonstiges) sollen in de
 - **TESTS:**
   - `php -l controller/TerminalController.php`
 - **NEXT:**
-  - **T-069 (Teil 1a):** Terminal weiter manuell klicken und naechste Auffaelligkeit als Micro-Patch fixen.
+  - **T-069 (Teil 1a):** Terminal weiter manuell klicken und nächste Auffälligkeit als Micro-Patch fixen.
 
 
 ## P-2026-01-09-16
@@ -19040,7 +19146,7 @@ Pflicht-Begründungen für Tagesfelder (Kurzarbeit/Krank/Sonstiges) sollen in de
   - DEV_PROMPT_HISTORY (aus ZIP, Stand vor Patch): `docs/DEV_PROMPT_HISTORY.md` = `0bb7e9c60eba5146ec16a07784ed8a475974b8c28db845c88896202ad77889cf`
   - SQL-Schema (aus ZIP): `sql/zeiterfassung_aktuell.sql` = `b4ea330490da945616103371dd71fbb9d64c03e557d3dfbae834213af3c11714`
 - **DUPLICATE-CHECK:**
-  - Kein Patch dokumentiert, der im **Offline-Modus** (Haupt-DB offline) **Kommen/Gehen per RFID** ohne Mitarbeiter-Login ermoeglicht.
+  - Kein Patch dokumentiert, der im **Offline-Modus** (Haupt-DB offline) **Kommen/Gehen per RFID** ohne Mitarbeiter-Login ermöglicht.
 - **DATEIEN (max. 3):**
   1) `controller/TerminalController.php`
   2) `views/terminal/start.php`
@@ -19048,8 +19154,8 @@ Pflicht-Begründungen für Tagesfelder (Kurzarbeit/Krank/Sonstiges) sollen in de
 - **DONE:**
   - Terminal: Wenn Hauptdatenbank offline ist, wird **kein Login geblockt**, sondern ein **Offline-Modus** angezeigt.
   - Offline-Flow: RFID scannen → Button **Kommen**/**Gehen**.
-  - Offline-Buchung: Es wird ein Queue-Eintrag erstellt, der beim Replay die `mitarbeiter_id` ueber RFID aufloest.
-  - Kiosk-Sicherheit: Nach Kommen/Gehen wird der gemerkte RFID-Code wieder geloescht.
+  - Offline-Buchung: Es wird ein Queue-Eintrag erstellt, der beim Replay die `mitarbeiter_id` über RFID auflöst.
+  - Kiosk-Sicherheit: Nach Kommen/Gehen wird der gemerkte RFID-Code wieder gelöscht.
 - **AKZEPTANZ:**
   - Bei Hauptdatenbank-Offlinemode kann man weiter Kommen/Gehen erfassen (RFID + Zeit + Aktion), ohne dass der Login blockiert.
 - **TESTS:**
@@ -19073,17 +19179,17 @@ Pflicht-Begründungen für Tagesfelder (Kurzarbeit/Krank/Sonstiges) sollen in de
   2) `views/terminal/start.php`
   3) `docs/DEV_PROMPT_HISTORY.md`
 - **DONE:**
-  - Offline-Flow: Nach RFID-Scan wird aus der lokalen Offline-Queue die **letzte Aktion fuer diesen RFID** ermittelt.
+  - Offline-Flow: Nach RFID-Scan wird aus der lokalen Offline-Queue die **letzte Aktion für diesen RFID** ermittelt.
   - Anzeige auf dem Offline-Startscreen: **Letzte Offline-Buchung** (Typ + Zeit) + **Vorschlag** (Kommen/Gehen).
   - UX: Der *nicht* vorgeschlagene Button wird als **secondary** (grau) dargestellt, um Fehlklicks zu reduzieren.
-  - Kiosk: Beim Zuruecksetzen des gemerkten RFID-Codes wird auch der Hint geloescht.
+  - Kiosk: Beim Zurücksetzen des gemerkten RFID-Codes wird auch der Hint gelöscht.
 - **AKZEPTANZ:**
   - Im Offline-Modus sieht man nach dem Scan sofort, was die letzte lokale Aktion war, und bekommt einen klaren Vorschlag, ob **Kommen** oder **Gehen** sinnvoll ist.
 - **TESTS:**
   - `php -l controller/TerminalController.php`
   - `php -l views/terminal/start.php`
 - **NEXT:**
-  - Terminal-Feldtest: Offline mehrfach buchen (selber RFID) und pruefen, ob der Vorschlag korrekt wechselt.
+  - Terminal-Feldtest: Offline mehrfach buchen (selber RFID) und prüfen, ob der Vorschlag korrekt wechselt.
   - Danach: Haupt-DB wieder online → Queue-Replay beobachten (Statusbox offen/fehler).
 ## P-2026-01-09-18
 - ZIP: `P-2026-01-09-18_terminal-debounce-pro-rfid.zip`
@@ -19093,22 +19199,22 @@ Pflicht-Begründungen für Tagesfelder (Kurzarbeit/Krank/Sonstiges) sollen in de
   - DEV_PROMPT_HISTORY (aus ZIP, Stand vor Patch): `docs/DEV_PROMPT_HISTORY.md` = `094b9b5f36c13e48cb43b960debc302b23ec386e03596af02b712c481bb0645e`
   - SQL-Schema (aus ZIP): `sql/zeiterfassung_aktuell.sql` = `b4ea330490da945616103371dd71fbb9d64c03e557d3dfbae834213af3c11714`
 - **DUPLICATE-CHECK:**
-  - De-Bounce (T-069) war bisher **global** (nur Typ + Zeit). Dadurch konnten zwei verschiedene Mitarbeiter, die kurz hintereinander scannen, faelschlich als „Doppelklick/Scan“ erkannt und ignoriert werden.
+  - De-Bounce (T-069) war bisher **global** (nur Typ + Zeit). Dadurch konnten zwei verschiedene Mitarbeiter, die kurz hintereinander scannen, fälschlich als „Doppelklick/Scan“ erkannt und ignoriert werden.
 - **DATEIEN (max. 3):**
   1) `controller/TerminalController.php`
   2) `docs/DEV_PROMPT_HISTORY.md`
 - **DONE:**
   - De-Bounce wurde auf **Person-Kontext** erweitert:
-    - Online: Vergleich ueber `mitarbeiter_id`
-    - Offline: Vergleich ueber `rfid_code`
+    - Online: Vergleich über `mitarbeiter_id`
+    - Offline: Vergleich über `rfid_code`
   - Letzte Buchung in der Session speichert jetzt optional `mitarbeiter_id`/`rfid_code`.
 - **AKZEPTANZ:**
-  - Zwei verschiedene Mitarbeiter koennen innerhalb weniger Sekunden hintereinander buchen, ohne dass die zweite Buchung als „Doppelklick“ verworfen wird.
-  - Derselbe Mitarbeiter/RFID bleibt weiterhin gegen Doppelbuchungen geschuetzt.
+  - Zwei verschiedene Mitarbeiter können innerhalb weniger Sekunden hintereinander buchen, ohne dass die zweite Buchung als „Doppelklick“ verworfen wird.
+  - Derselbe Mitarbeiter/RFID bleibt weiterhin gegen Doppelbuchungen geschützt.
 - **TESTS:**
   - `php -l controller/TerminalController.php`
 - **NEXT:**
-  - Terminal-Feldtest: 2 verschiedene RFID nacheinander schnell buchen (Kommen/Gehen) → beide muessen angenommen werden.
+  - Terminal-Feldtest: 2 verschiedene RFID nacheinander schnell buchen (Kommen/Gehen) → beide müssen angenommen werden.
 
 
 ## P-2026-01-09-21
@@ -19132,7 +19238,7 @@ Pflicht-Begründungen für Tagesfelder (Kurzarbeit/Krank/Sonstiges) sollen in de
 - **TESTS:**
   - `php -l views/terminal/start.php`
 - **NEXT:**
-  - WebSocket-Bridge stabilisieren: Reconnect-Backoff (1s→2s→5s→10s) + Spam-Protection fuer Statusmeldungen.
+  - WebSocket-Bridge stabilisieren: Reconnect-Backoff (1s→2s→5s→10s) + Spam-Protection für Statusmeldungen.
 
 ## P-2026-01-09-26
 - **EINGELESEN (SHA256):**
@@ -19141,7 +19247,7 @@ Pflicht-Begründungen für Tagesfelder (Kurzarbeit/Krank/Sonstiges) sollen in de
   - `DEV_PROMPT_HISTORY.md` = `8535d4bef8337ab02309fb531084105e989b9d5a6fc25f2ecc9e8f28626da61a`
   - `zeiterfassung_aktuell.sql` = `b4ea330490da945616103371dd71fbb9d64c03e557d3dfbae834213af3c11714`
   - `offline_db_schema.sql` = `165bd68e62f4a776d2425d108fbf0775497ade28f5a1e8242069c1cf084177c9`
-- **DUPLICATE-CHECK:** Kein bestehender roter Banner/Prefill-Flow fuer „unbekannte RFID“ in Terminal-Statusbox gefunden.
+- **DUPLICATE-CHECK:** Kein bestehender roter Banner/Prefill-Flow für „unbekannte RFID“ in Terminal-Statusbox gefunden.
 - **DATEIEN (max. 3):**
   - `controller/TerminalController.php`
   - `views/terminal/_statusbox.php`
@@ -19149,10 +19255,10 @@ Pflicht-Begründungen für Tagesfelder (Kurzarbeit/Krank/Sonstiges) sollen in de
 - **DONE:**
   - Terminal merkt die letzte unbekannte RFID (Session) bei fehlgeschlagenem Login (RFID vorhanden, keine Mehrdeutigkeits-Meldung).
   - Terminal-Statusbox zeigt roten Banner „RFID unbekannt“ (inkl. Zeitstempel).
-  - Wenn Adminrecht + Haupt-DB online: Button „RFID jetzt Mitarbeiter zuweisen“ fuehrt in das Zuweisen-Formular (Prefill via GET/Session).
-  - Nach erfolgreicher RFID-Zuweisung wird der gespeicherte Hinweis geloescht.
+  - Wenn Adminrecht + Haupt-DB online: Button „RFID jetzt Mitarbeiter zuweisen“ führt in das Zuweisen-Formular (Prefill via GET/Session).
+  - Nach erfolgreicher RFID-Zuweisung wird der gespeicherte Hinweis gelöscht.
 - **NEXT:**
-  - Optional: „Hinweis loeschen“ Button am Terminal + kleine Audit-Anzeige (wer/ wann zugewiesen) direkt im Zuweisen-Formular.
+  - Optional: „Hinweis löschen“ Button am Terminal + kleine Audit-Anzeige (wer/ wann zugewiesen) direkt im Zuweisen-Formular.
 ## P-2026-01-09-27
 - ZIP: `P-2026-01-09-27_terminal-unknown-rfid-clear.zip`
 - **EINGELESEN (SHA256):**
@@ -20035,26 +20141,26 @@ Pflicht-Begründungen für Tagesfelder (Kurzarbeit/Krank/Sonstiges) sollen in de
   - DEV_PROMPT_HISTORY (Upload): `DEV_PROMPT_HISTORY.md` = `c6d097f30d1b5422444f82d578907f6dae9ce9320f5955949e299f4c41798b76`
   - SQL-Snapshot (Upload): `zeiterfassung_aktuell.sql` = `1273069981d1c5fbcb5978d0105dd37385874a5b52fba445d9951c37e5277552`
 - **DUPLICATE-CHECK:**
-  - SNAPSHOT/LOG geprueft: „Passwort-Feldset zwischen Login/Rollen“ war noch nicht als DONE dokumentiert → **nicht DONE**.
+  - SNAPSHOT/LOG geprüft: „Passwort-Feldset zwischen Login/Rollen“ war noch nicht als DONE dokumentiert → **nicht DONE**.
 - **DATEIEN (max. 3):**
   1) `views/mitarbeiter/formular.php`
   2) `docs/DEV_PROMPT_HISTORY.md`
 - **DONE:**
   - Backend: Mitarbeiter anlegen/bearbeiten – Passwort-Feldset im Formular nach oben verschoben (zwischen „Login / Zugang“ und „Rollen (Berechtigungen)“).
-  - Analyse (noch kein Patch): Mitarbeiter→Abteilung-Zuweisung ist aktuell nicht implementiert; im Formular existiert nur „Abteilungs-Rollen (Phase 1)“ (Role-Scope). Echte Zuweisung waere ueber `mitarbeiter_hat_abteilung` (M:N).
+  - Analyse (noch kein Patch): Mitarbeiter→Abteilung-Zuweisung ist aktuell nicht implementiert; im Formular existiert nur „Abteilungs-Rollen (Phase 1)“ (Role-Scope). Echte Zuweisung wäre über `mitarbeiter_hat_abteilung` (M:N).
 - **AKZEPTANZ:**
   - „Mitarbeiter anlegen“ und „Mitarbeiter bearbeiten“ zeigen den Passwort-Block direkt nach „Login / Zugang“.
 - **TESTS:**
   - Manuell:
-    1) Backend → Mitarbeiter → Neuen Mitarbeiter anlegen: Passwort-Block-Position pruefen.
-    2) Backend → Mitarbeiter → Mitarbeiter bearbeiten: Passwort-Block-Position pruefen.
+    1) Backend → Mitarbeiter → Neuen Mitarbeiter anlegen: Passwort-Block-Position prüfen.
+    2) Backend → Mitarbeiter → Mitarbeiter bearbeiten: Passwort-Block-Position prüfen.
 - **NEXT:**
   - T-090: Mitarbeiter-Abteilungszuweisung UI/Save implementieren (M:N `mitarbeiter_hat_abteilung`, optional „Stammabteilung“).
-  - Haupt-Roadmap: Offline-Queue Feldtest End-to-End (online → offline stempeln → online → Replay-Report pruefen) und ggf. gezielter Bugfix.
+  - Haupt-Roadmap: Offline-Queue Feldtest End-to-End (online → offline stempeln → online → Replay-Report prüfen) und ggf. gezielter Bugfix.
 
 ### Aktueller Status (2026-01-11)
 - **Zuletzt erledigt:** P-2026-01-11-16 – Mitarbeiter-Formular: Passwort-Block nach oben (unter Login) verschoben.
-- **Naechster geplanter Schritt:** Feldtest: Nachtschicht + echte Fehlfaelle (vergessenes Gehen) unterscheiden und Beispiele sammeln.
+- **Nächster geplanter Schritt:** Feldtest: Nachtschicht + echte Fehlfälle (vergessenes Gehen) unterscheiden und Beispiele sammeln.
 
 
 ## P-2026-01-11-17
@@ -20065,29 +20171,29 @@ Pflicht-Begründungen für Tagesfelder (Kurzarbeit/Krank/Sonstiges) sollen in de
   - DEV_PROMPT_HISTORY (Upload): `DEV_PROMPT_HISTORY.md` = `c6d097f30d1b5422444f82d578907f6dae9ce9320f5955949e299f4c41798b76`
   - SQL-Snapshot (Upload): `zeiterfassung_aktuell.sql` = `1273069981d1c5fbcb5978d0105dd37385874a5b52fba445d9951c37e5277552`
 - **DUPLICATE-CHECK:**
-  - SNAPSHOT/LOG geprueft: T-090 (Mitarbeiter-Abteilungszuweisung) war noch offen → **nicht DONE**.
+  - SNAPSHOT/LOG geprüft: T-090 (Mitarbeiter-Abteilungszuweisung) war noch offen → **nicht DONE**.
 - **DATEIEN (max. 3):**
   1) `controller/MitarbeiterAdminController.php`
   2) `views/mitarbeiter/formular.php`
   3) `docs/DEV_PROMPT_HISTORY.md`
 - **DONE:**
-  - Backend: Mitarbeiter anlegen/bearbeiten – neue Auswahl **Stammabteilung** (Dropdown aus aktiven Abteilungen) inkl. Save/Load ueber `mitarbeiter_hat_abteilung.ist_stammabteilung`.
+  - Backend: Mitarbeiter anlegen/bearbeiten – neue Auswahl **Stammabteilung** (Dropdown aus aktiven Abteilungen) inkl. Save/Load über `mitarbeiter_hat_abteilung.ist_stammabteilung`.
   - Fix: Abteilungs-Rollen (Phase 1) – Abteilungen-Liste + gespeicherte Scopes werden im Formular wieder korrekt geladen (Controller: `alleAbteilungen` + `rollenScopesAbteilung`), zudem `renderFormMitFehler` nutzt jetzt sauber die Mitarbeiter-ID.
 - **AKZEPTANZ:**
-  - In Mitarbeiter anlegen/bearbeiten ist das Dropdown „Stammabteilung“ sichtbar und nach Speichern bei erneutem Oeffnen vorbelegt.
-  - In „Abteilungs-Rollen (Phase 1)“ ist das Abteilungs-Dropdown befuellt (nicht leer) und vorhandene Eintraege werden gelistet.
+  - In Mitarbeiter anlegen/bearbeiten ist das Dropdown „Stammabteilung“ sichtbar und nach Speichern bei erneutem Öffnen vorbelegt.
+  - In „Abteilungs-Rollen (Phase 1)“ ist das Abteilungs-Dropdown befüllt (nicht leer) und vorhandene Einträge werden gelistet.
 - **TESTS:**
   - Manuell:
-    1) Backend → Mitarbeiter → Bearbeiten: Stammabteilung auswaehlen → speichern → Seite neu oeffnen → Auswahl bleibt.
+    1) Backend → Mitarbeiter → Bearbeiten: Stammabteilung auswählen → speichern → Seite neu öffnen → Auswahl bleibt.
     2) DB-Check: `SELECT * FROM mitarbeiter_hat_abteilung WHERE mitarbeiter_id = X;` → eine Zeile mit `ist_stammabteilung=1` (bei Auswahl).
-    3) Backend → Mitarbeiter → Bearbeiten: Bereich „Abteilungs-Rollen (Phase 1)“ → Abteilung-Dropdown hat Eintraege.
+    3) Backend → Mitarbeiter → Bearbeiten: Bereich „Abteilungs-Rollen (Phase 1)“ → Abteilung-Dropdown hat Einträge.
 - **NEXT:**
   - Optional: T-091 (Mehrfach-Abteilungszuweisung im UI) oder Report-Filter/Default-Abteilung auf Basis der Stammabteilung.
-  - Haupt-Roadmap: Offline-Queue Feldtest End-to-End (online → offline stempeln → online → Replay-Report pruefen) und ggf. gezielter Bugfix.
+  - Haupt-Roadmap: Offline-Queue Feldtest End-to-End (online → offline stempeln → online → Replay-Report prüfen) und ggf. gezielter Bugfix.
 
 ### Aktueller Status (2026-01-11)
-- **Zuletzt erledigt:** P-2026-01-11-17 – Mitarbeiter: Stammabteilung Dropdown + Save/Load; Abteilungs-Rollen Dropdowns wieder befuellt.
-- **Naechster geplanter Schritt:** Feldtest: Nachtschicht + echte Fehlfaelle (vergessenes Gehen) unterscheiden und Beispiele sammeln.
+- **Zuletzt erledigt:** P-2026-01-11-17 – Mitarbeiter: Stammabteilung Dropdown + Save/Load; Abteilungs-Rollen Dropdowns wieder befüllt.
+- **Nächster geplanter Schritt:** Feldtest: Nachtschicht + echte Fehlfälle (vergessenes Gehen) unterscheiden und Beispiele sammeln.
 
 
 ## P-2026-01-11-18
@@ -20099,29 +20205,29 @@ Pflicht-Begründungen für Tagesfelder (Kurzarbeit/Krank/Sonstiges) sollen in de
   - Rechte-Prompt (Projekt): `docs/rechte_prompt.md` = `5d8a5925bc2cf0dff364e500996c42fdeefe5f0b953cead7807ae642b70e7fc1`
   - SQL-Snapshot (Projekt): `sql/zeiterfassung_aktuell.sql` = `1273069981d1c5fbcb5978d0105dd37385874a5b52fba445d9951c37e5277552`
 - **DUPLICATE-CHECK:**
-  - SNAPSHOT/LOG geprueft: T-091 (Mehrfach-Abteilungszuweisung im UI) war offen → wird hier umgesetzt.
+  - SNAPSHOT/LOG geprüft: T-091 (Mehrfach-Abteilungszuweisung im UI) war offen → wird hier umgesetzt.
 - **DATEIEN (max. 3):**
   1) `controller/MitarbeiterAdminController.php`
   2) `views/mitarbeiter/formular.php`
   3) `docs/DEV_PROMPT_HISTORY.md`
 - **DONE:**
   - Mitarbeiter anlegen/bearbeiten: neue Checkbox-Liste „Abteilungen (Mitgliedschaft)“ (0..n, optional) im Stammdaten-Block.
-  - Save/Load: Mitgliedschaften werden in `mitarbeiter_hat_abteilung` gespeichert; optional kann eine Stammabteilung gesetzt werden (`ist_stammabteilung=1`), Stammabteilung wird beim Speichern automatisch als Mitgliedschaft uebernommen.
+  - Save/Load: Mitgliedschaften werden in `mitarbeiter_hat_abteilung` gespeichert; optional kann eine Stammabteilung gesetzt werden (`ist_stammabteilung=1`), Stammabteilung wird beim Speichern automatisch als Mitgliedschaft übernommen.
 - **AKZEPTANZ:**
-  - In Mitarbeiter anlegen/bearbeiten koennen 0..n Abteilungen angehakt werden; nach Speichern sind die Haken beim erneuten Oeffnen identisch.
+  - In Mitarbeiter anlegen/bearbeiten können 0..n Abteilungen angehakt werden; nach Speichern sind die Haken beim erneuten Öffnen identisch.
   - Wenn eine Stammabteilung gesetzt ist, ist diese Abteilung auch als Mitgliedschaft gespeichert.
 - **TESTS:**
   - Manuell:
-    1) Mitarbeiter bearbeiten → 2 Abteilungen anhaken → speichern → erneut oeffnen → beide Haken gesetzt.
+    1) Mitarbeiter bearbeiten → 2 Abteilungen anhaken → speichern → erneut öffnen → beide Haken gesetzt.
     2) Stammabteilung setzen (eine der Abteilungen) → speichern → DB: genau eine Zeile hat `ist_stammabteilung=1`.
-    3) Alle Haken entfernen + Stammabteilung „keine“ → speichern → DB: keine Zeilen in `mitarbeiter_hat_abteilung` fuer den Mitarbeiter.
+    3) Alle Haken entfernen + Stammabteilung „keine“ → speichern → DB: keine Zeilen in `mitarbeiter_hat_abteilung` für den Mitarbeiter.
 - **NEXT:**
   - UI-Feinschliff: Stammabteilung ggf. als Radio in der Abteilungs-Liste (statt separatem Dropdown) oder Auto-Sync (Dropdown-Auswahl setzt Checkbox).
   - Haupt-Roadmap: Offline-Queue Feldtest End-to-End und ggf. gezielter Bugfix.
 
 ### Aktueller Status (2026-01-11)
 - **Zuletzt erledigt:** P-2026-01-11-18 – Mitarbeiter: Abteilungen (Mitgliedschaften) als Multi-Select (0..n) inkl. Save/Load.
-- **Naechster geplanter Schritt:** Feldtest: Nachtschicht + echte Fehlfaelle (vergessenes Gehen) unterscheiden und Beispiele sammeln.
+- **Nächster geplanter Schritt:** Feldtest: Nachtschicht + echte Fehlfälle (vergessenes Gehen) unterscheiden und Beispiele sammeln.
 
 
 ## P-2026-01-11-19
@@ -20133,7 +20239,7 @@ Pflicht-Begründungen für Tagesfelder (Kurzarbeit/Krank/Sonstiges) sollen in de
   - Rechte-Prompt (Projekt): `docs/rechte_prompt.md` = `5d8a5925bc2cf0dff364e500996c42fdeefe5f0b953cead7807ae642b70e7fc1`
   - SQL-Snapshot (Projekt): `sql/zeiterfassung_aktuell.sql` = `1273069981d1c5fbcb5978d0105dd37385874a5b52fba445d9951c37e5277552`
 - **DUPLICATE-CHECK:**
-  - SNAPSHOT/LOG geprueft: UI-Feinschliff „Stammabteilung als Radio/Auto-Sync“ war als NEXT offen → **nicht DONE**.
+  - SNAPSHOT/LOG geprüft: UI-Feinschliff „Stammabteilung als Radio/Auto-Sync“ war als NEXT offen → **nicht DONE**.
 - **DATEIEN (max. 3):**
   1) `views/mitarbeiter/formular.php`
   2) `docs/DEV_PROMPT_HISTORY.md`
@@ -20153,7 +20259,7 @@ Pflicht-Begründungen für Tagesfelder (Kurzarbeit/Krank/Sonstiges) sollen in de
 
 ### Aktueller Status (2026-01-11)
 - **Zuletzt erledigt:** P-2026-01-11-19 – Mitarbeiter: Stammabteilung als Radio in Abteilungs-Liste (Auto-Sync).
-- **Naechster geplanter Schritt:** Feldtest: Nachtschicht + echte Fehlfaelle (vergessenes Gehen) unterscheiden und Beispiele sammeln.
+- **Nächster geplanter Schritt:** Feldtest: Nachtschicht + echte Fehlfälle (vergessenes Gehen) unterscheiden und Beispiele sammeln.
 
 
 ## P-2026-01-11-20
@@ -20165,13 +20271,13 @@ Pflicht-Begründungen für Tagesfelder (Kurzarbeit/Krank/Sonstiges) sollen in de
   - Rechte-Prompt (Projekt): `docs/rechte_prompt.md` = `5d8a5925bc2cf0dff364e500996c42fdeefe5f0b953cead7807ae642b70e7fc1`
   - SQL-Snapshot (Projekt): `sql/zeiterfassung_aktuell.sql` = `1273069981d1c5fbcb5978d0105dd37385874a5b52fba445d9951c37e5277552`
 - **DUPLICATE-CHECK:**
-  - SNAPSHOT/LOG geprueft: Abteilungen-UI war als „unschön bei vielen Abteilungen“ neu gemeldet → **nicht DONE**.
+  - SNAPSHOT/LOG geprüft: Abteilungen-UI war als „unschön bei vielen Abteilungen“ neu gemeldet → **nicht DONE**.
 - **DATEIEN (max. 3):**
   1) `views/mitarbeiter/formular.php`
   2) `docs/DEV_PROMPT_HISTORY.md`
 - **DONE:**
   - Mitarbeiter anlegen/bearbeiten: Abteilungen werden jetzt als **scrollbare Tabelle** dargestellt (kein Zeilen-Wrap mit Checkbox/Radio pro Abteilung).
-  - Suchfilter: Abteilungen koennen per Suchfeld gefiltert werden (praktisch bei 100+ Abteilungen).
+  - Suchfilter: Abteilungen können per Suchfeld gefiltert werden (praktisch bei 100+ Abteilungen).
   - Stammabteilung bleibt optional („keine“), Auto-Sync (Stamm setzt Mitgliedschaft; Mitgliedschaft aus → Stamm wird auf „keine“ gesetzt) bleibt erhalten.
 - **AKZEPTANZ:**
   - Bei vielen Abteilungen bleibt das Formular nutzbar (scrollbarer Block, keine unleserliche Mehrzeilen-Checkbox-Wolke).
@@ -20188,7 +20294,7 @@ Pflicht-Begründungen für Tagesfelder (Kurzarbeit/Krank/Sonstiges) sollen in de
 
 ### Aktueller Status (2026-01-11)
 - **Zuletzt erledigt:** P-2026-01-11-20 – Mitarbeiter: Abteilungen-UI skaliert (Tabelle + Suchfilter).
-- **Naechster geplanter Schritt:** Feldtest: Nachtschicht + echte Fehlfaelle (vergessenes Gehen) unterscheiden und Beispiele sammeln.
+- **Nächster geplanter Schritt:** Feldtest: Nachtschicht + echte Fehlfälle (vergessenes Gehen) unterscheiden und Beispiele sammeln.
 
 
 
@@ -20201,7 +20307,7 @@ Pflicht-Begründungen für Tagesfelder (Kurzarbeit/Krank/Sonstiges) sollen in de
   - Rechte-Prompt (Projekt): `docs/rechte_prompt.md` = `5d8a5925bc2cf0dff364e500996c42fdeefe5f0b953cead7807ae642b70e7fc1`
   - SQL-Snapshot (Projekt): `sql/zeiterfassung_aktuell.sql` = `6ffbe22edafbe20bf6d8c95deaf442cc4e35ceec497531ed4ee8a3fbb561c138`
 - **DUPLICATE-CHECK:**
-  - SNAPSHOT/LOG geprueft: Startscreen „Übersicht (heute)“ unter „Abbrechen“ + Statusbox-Optik war noch nicht umgesetzt → **nicht DONE**.
+  - SNAPSHOT/LOG geprüft: Startscreen „Übersicht (heute)“ unter „Abbrechen“ + Statusbox-Optik war noch nicht umgesetzt → **nicht DONE**.
 - **DATEIEN (max. 3):**
   1) `views/terminal/start.php`
   2) `public/css/terminal.css`
@@ -20220,7 +20326,7 @@ Pflicht-Begründungen für Tagesfelder (Kurzarbeit/Krank/Sonstiges) sollen in de
 
 ### Aktueller Status (2026-01-11)
 - **Zuletzt erledigt:** P-2026-01-11-21 – Terminal: Übersicht (heute) unter Abbrechen + Statusbox.
-- **Naechster geplanter Schritt:** Feldtest: Nachtschicht + echte Fehlfaelle (vergessenes Gehen) unterscheiden und Beispiele sammeln.
+- **Nächster geplanter Schritt:** Feldtest: Nachtschicht + echte Fehlfälle (vergessenes Gehen) unterscheiden und Beispiele sammeln.
 
 ## P-2026-01-11-22
 - ZIP: `P-2026-01-11-22_terminal-monatsstatus-iststunden.zip`
@@ -20231,7 +20337,7 @@ Pflicht-Begründungen für Tagesfelder (Kurzarbeit/Krank/Sonstiges) sollen in de
   - Rechte-Prompt (Projekt): `docs/rechte_prompt.md` = `5d8a5925bc2cf0dff364e500996c42fdeefe5f0b953cead7807ae642b70e7fc1`
   - SQL-Snapshot (Projekt): `sql/zeiterfassung_aktuell.sql` = `6ffbe22edafbe20bf6d8c95deaf442cc4e35ceec497531ed4ee8a3fbb561c138`
 - **DUPLICATE-CHECK:**
-  - SNAPSHOT/LOG geprueft: T-092 (Monatsstunden-Status im Terminal) war offen, Monatsstatus-Block existierte noch nicht → **nicht DONE**.
+  - SNAPSHOT/LOG geprüft: T-092 (Monatsstunden-Status im Terminal) war offen, Monatsstatus-Block existierte noch nicht → **nicht DONE**.
 - **DATEIEN (max. 3):**
   1) `controller/TerminalController.php`
   2) `views/terminal/start.php`
@@ -20251,7 +20357,7 @@ Pflicht-Begründungen für Tagesfelder (Kurzarbeit/Krank/Sonstiges) sollen in de
 
 ### Aktueller Status (2026-01-11)
 - **Zuletzt erledigt:** P-2026-01-11-22 – Terminal: Monatsstatus zeigt IST (bisher).
-- **Naechster geplanter Schritt:** Feldtest: Nachtschicht + echte Fehlfaelle (vergessenes Gehen) unterscheiden und Beispiele sammeln.
+- **Nächster geplanter Schritt:** Feldtest: Nachtschicht + echte Fehlfälle (vergessenes Gehen) unterscheiden und Beispiele sammeln.
 
 ## P-2026-01-11-23
 - ZIP: `P-2026-01-11-23_terminal-monatsstatus-soll-bis-heute.zip`
@@ -20262,7 +20368,7 @@ Pflicht-Begründungen für Tagesfelder (Kurzarbeit/Krank/Sonstiges) sollen in de
   - Rechte-Prompt (Projekt): `docs/rechte_prompt.md` = `5d8a5925bc2cf0dff364e500996c42fdeefe5f0b953cead7807ae642b70e7fc1`
   - SQL-Snapshot (Projekt): `sql/zeiterfassung_aktuell.sql` = `6ffbe22edafbe20bf6d8c95deaf442cc4e35ceec497531ed4ee8a3fbb561c138`
 - **DUPLICATE-CHECK:**
-  - SNAPSHOT/LOG geprueft: T-092 Micro-Patch 2 „Soll bis jetzt“ war offen (P-2026-01-11-22 hatte nur IST) → **nicht DONE**.
+  - SNAPSHOT/LOG geprüft: T-092 Micro-Patch 2 „Soll bis jetzt“ war offen (P-2026-01-11-22 hatte nur IST) → **nicht DONE**.
 - **DATEIEN (max. 3):**
   1) `controller/TerminalController.php`
   2) `views/terminal/start.php`
@@ -20283,7 +20389,7 @@ Pflicht-Begründungen für Tagesfelder (Kurzarbeit/Krank/Sonstiges) sollen in de
 
 ### Aktueller Status (2026-01-11)
 - **Zuletzt erledigt:** P-2026-01-11-23 – Terminal: Monatsstatus zeigt Soll bis heute + IST.
-- **Naechster geplanter Schritt:** Feldtest: Nachtschicht + echte Fehlfaelle (vergessenes Gehen) unterscheiden und Beispiele sammeln.
+- **Nächster geplanter Schritt:** Feldtest: Nachtschicht + echte Fehlfälle (vergessenes Gehen) unterscheiden und Beispiele sammeln.
 
 ## P-2026-01-11-24
 - ZIP: `P-2026-01-11-24_terminal-monatsstatus-rest-soll.zip`
@@ -20294,7 +20400,7 @@ Pflicht-Begründungen für Tagesfelder (Kurzarbeit/Krank/Sonstiges) sollen in de
   - Rechte-Prompt (Projekt): `docs/rechte_prompt.md` = `5d8a5925bc2cf0dff364e500996c42fdeefe5f0b953cead7807ae642b70e7fc1`
   - SQL-Snapshot (Projekt): `sql/zeiterfassung_aktuell.sql` = `6ffbe22edafbe20bf6d8c95deaf442cc4e35ceec497531ed4ee8a3fbb561c138`
 - **DUPLICATE-CHECK:**
-  - SNAPSHOT/LOG geprueft: T-092 Micro-Patch 3 „Rest-Soll“ war offen → **nicht DONE**.
+  - SNAPSHOT/LOG geprüft: T-092 Micro-Patch 3 „Rest-Soll“ war offen → **nicht DONE**.
 - **DATEIEN (max. 3):**
   1) `controller/TerminalController.php`
   2) `views/terminal/start.php`
@@ -20314,7 +20420,7 @@ Pflicht-Begründungen für Tagesfelder (Kurzarbeit/Krank/Sonstiges) sollen in de
 
 ### Aktueller Status (2026-01-11)
 - **Zuletzt erledigt:** P-2026-01-11-24 – Terminal: Monatsstatus zeigt Rest-Soll bis Monatsende.
-- **Naechster geplanter Schritt:** Feldtest: Nachtschicht + echte Fehlfaelle (vergessenes Gehen) unterscheiden und Beispiele sammeln.
+- **Nächster geplanter Schritt:** Feldtest: Nachtschicht + echte Fehlfälle (vergessenes Gehen) unterscheiden und Beispiele sammeln.
 
 ## P-2026-01-11-25
 - ZIP: `P-2026-01-11-25_terminal-monatsstatus-saldo-ampel.zip`
@@ -20325,7 +20431,7 @@ Pflicht-Begründungen für Tagesfelder (Kurzarbeit/Krank/Sonstiges) sollen in de
   - Rechte-Prompt (Projekt): `docs/rechte_prompt.md` = `5d8a5925bc2cf0dff364e500996c42fdeefe5f0b953cead7807ae642b70e7fc1`
   - SQL-Snapshot (Projekt): `sql/zeiterfassung_aktuell.sql` = `6ffbe22edafbe20bf6d8c95deaf442cc4e35ceec497531ed4ee8a3fbb561c138`
 - **DUPLICATE-CHECK:**
-  - SNAPSHOT/LOG geprueft: T-092 Micro-Patch 4 „Delta/Ampel“ war offen → **nicht DONE**.
+  - SNAPSHOT/LOG geprüft: T-092 Micro-Patch 4 „Delta/Ampel“ war offen → **nicht DONE**.
 - **DATEIEN (max. 3):**
   1) `controller/TerminalController.php`
   2) `views/terminal/start.php`
@@ -20344,7 +20450,7 @@ Pflicht-Begründungen für Tagesfelder (Kurzarbeit/Krank/Sonstiges) sollen in de
 
 ### Aktueller Status (2026-01-11)
 - **Zuletzt erledigt:** P-2026-01-11-25 – Terminal: Monatsstatus zeigt Saldo/Ampel.
-- **Naechster geplanter Schritt:** Feldtest: Nachtschicht + echte Fehlfaelle (vergessenes Gehen) unterscheiden und Beispiele sammeln.
+- **Nächster geplanter Schritt:** Feldtest: Nachtschicht + echte Fehlfälle (vergessenes Gehen) unterscheiden und Beispiele sammeln.
 
 ## P-2026-01-11-26
 - ZIP: `P-2026-01-11-26_monatsuebersicht-mitarbeiterwechsel-internal-error.zip`
@@ -20355,7 +20461,7 @@ Pflicht-Begründungen für Tagesfelder (Kurzarbeit/Krank/Sonstiges) sollen in de
   - Rechte-Prompt (Projekt): `docs/rechte_prompt.md` = `5d8a5925bc2cf0dff364e500996c42fdeefe5f0b953cead7807ae642b70e7fc1`
   - SQL-Snapshot (Projekt): `sql/zeiterfassung_aktuell.sql` = `6ffbe22edafbe20bf6d8c95deaf442cc4e35ceec497531ed4ee8a3fbb561c138`
 - **DUPLICATE-CHECK:**
-  - SNAPSHOT/LOG geprueft: Bug „Monatsübersicht → Mitarbeiter wechseln (Chef) → interner Fehler“ war **nicht** als DONE dokumentiert.
+  - SNAPSHOT/LOG geprüft: Bug „Monatsübersicht → Mitarbeiter wechseln (Chef) → interner Fehler“ war **nicht** als DONE dokumentiert.
 - **DATEIEN (max. 3):**
   1) `views/report/monatsuebersicht.php`
   2) `docs/DEV_PROMPT_HISTORY.md`
@@ -20373,7 +20479,7 @@ Pflicht-Begründungen für Tagesfelder (Kurzarbeit/Krank/Sonstiges) sollen in de
 
 ### Aktueller Status (2026-01-11)
 - **Zuletzt erledigt:** P-2026-01-11-26 – Monatsübersicht: Mitarbeiterwechsel crasht nicht mehr.
-- **Naechster geplanter Schritt:** Feldtest: Nachtschicht + echte Fehlfaelle (vergessenes Gehen) unterscheiden und Beispiele sammeln.
+- **Nächster geplanter Schritt:** Feldtest: Nachtschicht + echte Fehlfälle (vergessenes Gehen) unterscheiden und Beispiele sammeln.
 
 ## P-2026-01-11-27
 - ZIP: `P-2026-01-11-27_monatsreport-reportservice-return-fix.zip`
@@ -20384,21 +20490,21 @@ Pflicht-Begründungen für Tagesfelder (Kurzarbeit/Krank/Sonstiges) sollen in de
   - Rechte-Prompt (Projekt): `docs/rechte_prompt.md` = `5d8a5925bc2cf0dff364e500996c42fdeefe5f0b953cead7807ae642b70e7fc1`
   - SQL-Snapshot (Projekt): `sql/zeiterfassung_aktuell.sql` = `abc41004bdfbca6744fa86f8e106a0ca4775d3f870f772ff041c7161a6ea6fcc`
 - **DUPLICATE-CHECK:**
-  - SNAPSHOT/LOG geprueft: Patch 26 fixte nur die View (Arbeitsblock-Normalisierung). Der TypeError "Return value must be of type array, none returned" war **nicht** als DONE dokumentiert.
+  - SNAPSHOT/LOG geprüft: Patch 26 fixte nur die View (Arbeitsblock-Normalisierung). Der TypeError "Return value must be of type array, none returned" war **nicht** als DONE dokumentiert.
 - **DATEIEN (max. 3):**
   1) `services/ReportService.php`
   2) `docs/DEV_PROMPT_HISTORY.md`
 - **DONE:**
-  - Monatsreport/Backend: `ReportService::holeMonatsdatenFuerMitarbeiter()` liefert jetzt **immer** ein Array zurueck, auch wenn `tageswerte_mitarbeiter` fuer den Monat leer ist (fehlende Klammer geschlossen).
+  - Monatsreport/Backend: `ReportService::holeMonatsdatenFuerMitarbeiter()` liefert jetzt **immer** ein Array zurück, auch wenn `tageswerte_mitarbeiter` für den Monat leer ist (fehlende Klammer geschlossen).
 - **AKZEPTANZ:**
-  - Als Chef kann man im Monatsreport einen neu angelegten Mitarbeiter auswaehlen (ohne Tageswerte-Datensaetze) ohne „Interner Fehler“.
+  - Als Chef kann man im Monatsreport einen neu angelegten Mitarbeiter auswählen (ohne Tageswerte-Datensätze) ohne „Interner Fehler“.
 - **TESTS:**
   - Manuell:
     1) Backend-Login als Chef.
     2) Monatsübersicht öffnen.
     3) Neuen Mitarbeiter (ohne Tageswerte im Monat) auswählen → Seite lädt.
 - **NEXT:**
-  - Feldtest: Monatsreport fuer mehrere neue Mitarbeiter (mit/ohne Zeitbuchungen) + `system_log` kontrollieren.
+  - Feldtest: Monatsreport für mehrere neue Mitarbeiter (mit/ohne Zeitbuchungen) + `system_log` kontrollieren.
 
 ## P-2026-01-11-28
 - ZIP: `P-2026-01-11-28_monatsreport-mikrobuchungen-ignorieren.zip`
@@ -20409,12 +20515,12 @@ Pflicht-Begründungen für Tagesfelder (Kurzarbeit/Krank/Sonstiges) sollen in de
   - Rechte-Prompt (Projekt): `docs/rechte_prompt.md` = `5d8a5925bc2cf0dff364e500996c42fdeefe5f0b953cead7807ae642b70e7fc1`
   - SQL-Snapshot (Projekt): `sql/zeiterfassung_aktuell.sql` = `abc41004bdfbca6744fa86f8e106a0ca4775d3f870f772ff041c7161a6ea6fcc`
 - **DUPLICATE-CHECK:**
-  - SNAPSHOT/LOG geprueft: Es gibt noch keinen Patch, der Mikro-Arbeitszeiten im Monatsreport bewusst ausfiltert (0,01h durch Doppel-Stempel).
+  - SNAPSHOT/LOG geprüft: Es gibt noch keinen Patch, der Mikro-Arbeitszeiten im Monatsreport bewusst ausfiltert (0,01h durch Doppel-Stempel).
 - **DATEIEN (max. 3):**
   1) `services/ReportService.php`
   2) `docs/DEV_PROMPT_HISTORY.md`
 - **DONE:**
-  - Monatsreport: Mikro-Arbeitszeiten < 0,05h (3 Minuten) werden vor dem Monatsraster neutralisiert (Arbeitszeit=0,00; Kommen/Gehen leer), damit sie weder in Summen noch in Sonderlogiken (Betriebsferien/Feiertage) als „gearbeitet“ zaehlen.
+  - Monatsreport: Mikro-Arbeitszeiten < 0,05h (3 Minuten) werden vor dem Monatsraster neutralisiert (Arbeitszeit=0,00; Kommen/Gehen leer), damit sie weder in Summen noch in Sonderlogiken (Betriebsferien/Feiertage) als „gearbeitet“ zählen.
 - **AKZEPTANZ:**
   - Eine versehentliche Mini-Buchung (Kommen/Gehen fast gleich) erzeugt im Monatsreport keine 0,01h mehr und beeinflusst keine Monats-Summen.
 - **TESTS:**
@@ -20422,11 +20528,11 @@ Pflicht-Begründungen für Tagesfelder (Kurzarbeit/Krank/Sonstiges) sollen in de
     1) Mitarbeiter mit Mini-Buchung (z. B. 20–60 Sekunden) im Monat öffnen.
     2) Monatsreport (PDF/HTML) zeigt an dem Tag 0,00 bei IST und keine Kommen/Gehen-Zeiten.
 - **NEXT:**
-  - Optional: Grenzwert konfigurierbar machen (Config-Key) + Hinweis/Markierung im Tages-Detail (nur wenn gewuenscht).
+  - Optional: Grenzwert konfigurierbar machen (Config-Key) + Hinweis/Markierung im Tages-Detail (nur wenn gewünscht).
 
 ### Aktueller Status (2026-01-11)
 - **Zuletzt erledigt:** P-2026-01-11-28 – Monatsreport: Mikro-Buchungen werden im Report ignoriert.
-- **Naechster geplanter Schritt:** Feldtest: Nachtschicht + echte Fehlfaelle (vergessenes Gehen) unterscheiden und Beispiele sammeln.
+- **Nächster geplanter Schritt:** Feldtest: Nachtschicht + echte Fehlfälle (vergessenes Gehen) unterscheiden und Beispiele sammeln.
 
 ## P-2026-01-12-01
 - ZIP: `P-2026-01-12-01_monatsuebersicht-mikrobuchungen-als-strich.zip`
@@ -20437,23 +20543,23 @@ Pflicht-Begründungen für Tagesfelder (Kurzarbeit/Krank/Sonstiges) sollen in de
   - Rechte-Prompt (Projekt): `docs/rechte_prompt.md` = `5d8a5925bc2cf0dff364e500996c42fdeefe5f0b953cead7807ae642b70e7fc1`
   - SQL-Snapshot (Projekt): `sql/zeiterfassung_aktuell.sql` = `6ffbe22edafbe20bf6d8c95deaf442cc4e35ceec497531ed4ee8a3fbb561c138`
 - **DUPLICATE-CHECK:**
-  - SNAPSHOT/LOG geprueft: Mikro-Buchungen wurden zwar im Monatsreport neutralisiert (P-2026-01-11-28), aber in der HTML-Monatsuebersicht tauchten sie noch als „0,00“ auf. Keine bestehende Loesung dokumentiert.
+  - SNAPSHOT/LOG geprüft: Mikro-Buchungen wurden zwar im Monatsreport neutralisiert (P-2026-01-11-28), aber in der HTML-Monatsübersicht tauchten sie noch als „0,00“ auf. Keine bestehende Lösung dokumentiert.
 - **DATEIEN (max. 3):**
   1) `services/ReportService.php`
   2) `views/report/monatsuebersicht.php`
   3) `docs/DEV_PROMPT_HISTORY.md`
 - **DONE:**
   - ReportService markiert neutralisierte Mikro-Buchungen mit `micro_arbeitszeit_ignoriert=1`.
-  - Monatsuebersicht (HTML): Wenn Flag gesetzt ist, werden „Ist (gesamt)“ und „Pausen“ als „-” angezeigt (statt 0,00).
+  - Monatsübersicht (HTML): Wenn Flag gesetzt ist, werden „Ist (gesamt)“ und „Pausen“ als „-” angezeigt (statt 0,00).
 - **AKZEPTANZ:**
-  - In der HTML-Monatsuebersicht erzeugt eine versehentliche Mini-Buchung keinen sichtbaren 0,00-Eintrag mehr (Ist/Pausen = „-”).
+  - In der HTML-Monatsübersicht erzeugt eine versehentliche Mini-Buchung keinen sichtbaren 0,00-Eintrag mehr (Ist/Pausen = „-”).
 - **TESTS:**
   - Manuell:
     1) Backend-Login als Chef.
-    2) Monatsuebersicht oeffnen und Mitarbeiter mit Mikro-Buchung waehlen.
+    2) Monatsübersicht öffnen und Mitarbeiter mit Mikro-Buchung wählen.
     3) Der betroffene Tag zeigt Ist/Pausen als „-” und keine Zeiten.
 - **NEXT:**
-  - Feldtest: Monatsreport (HTML+PDF) fuer mehrere Mitarbeiter, speziell Randfaelle mit Mini-Buchungen.
+  - Feldtest: Monatsreport (HTML+PDF) für mehrere Mitarbeiter, speziell Randfälle mit Mini-Buchungen.
 
 
 
@@ -20466,21 +20572,21 @@ Pflicht-Begründungen für Tagesfelder (Kurzarbeit/Krank/Sonstiges) sollen in de
   - Rechte-Prompt (Projekt): `docs/rechte_prompt.md` = `5d8a5925bc2cf0dff364e500996c42fdeefe5f0b953cead7807ae642b70e7fc1`
   - SQL-Snapshot (Projekt): `sql/zeiterfassung_aktuell.sql` = `6ffbe22edafbe20bf6d8c95deaf442cc4e35ceec497531ed4ee8a3fbb561c138`
 - **DUPLICATE-CHECK:**
-  - SNAPSHOT/LOG geprueft: Monatsuebersicht markiert unvollstaendige Stempel generell als ⚠/FEHLT; es gibt noch keinen Patch, der "heute" explizit ausnimmt. Dashboard/Terminal nutzen bereits eine "heute"-Heuristik (nicht identisch) → **kein Duplicate**.
+  - SNAPSHOT/LOG geprüft: Monatsübersicht markiert unvollständige Stempel generell als ⚠/FEHLT; es gibt noch keinen Patch, der "heute" explizit ausnimmt. Dashboard/Terminal nutzen bereits eine "heute"-Heuristik (nicht identisch) → **kein Duplicate**.
 - **DATEIEN (max. 3):**
   1) `views/report/monatsuebersicht.php`
   2) `docs/DEV_PROMPT_HISTORY.md`
 - **DONE:**
-  - Monatsuebersicht: ⚠/FEHLT-Markierung nur fuer vergangene Tage (`datum < heute`, Europe/Berlin). "Heute" und zukuenftige Tage zeigen bei fehlendem Gegenstempel "-" statt "FEHLT".
+  - Monatsübersicht: ⚠/FEHLT-Markierung nur für vergangene Tage (`datum < heute`, Europe/Berlin). "Heute" und zukünftige Tage zeigen bei fehlendem Gegenstempel "-" statt "FEHLT".
 - **AKZEPTANZ:**
   - Am aktuellen Tag wird ein fehlender Gehen-/Kommen-Stempel **nicht** als ⚠/FEHLT markiert; ab dem Folgetag erscheint die Markierung.
 - **TESTS:**
   - Manuell:
-    1) Monatsuebersicht im aktuellen Monat oeffnen.
+    1) Monatsübersicht im aktuellen Monat öffnen.
     2) Heute: nur "Kommen" gestempelt → kein ⚠ und kein "FEHLT" (stattdessen "-" in Ab).
     3) Gestern: nur "Kommen" gestempelt → ⚠ + "FEHLT" sichtbar.
 - **NEXT:**
-  - Optional: Alternative Heuristik wie Dashboard (z. B. erst warnen, wenn letzter Stempel > X Stunden alt ist), falls gewuenscht.
+  - Optional: Alternative Heuristik wie Dashboard (z. B. erst warnen, wenn letzter Stempel > X Stunden alt ist), falls gewünscht.
 
 
 
@@ -20493,7 +20599,7 @@ Pflicht-Begründungen für Tagesfelder (Kurzarbeit/Krank/Sonstiges) sollen in de
   - Rechte-Prompt (Projekt): `docs/rechte_prompt.md` = `5d8a5925bc2cf0dff364e500996c42fdeefe5f0b953cead7807ae642b70e7fc1`
   - SQL-Snapshot (Projekt): `sql/zeiterfassung_aktuell.sql` = `6ffbe22edafbe20bf6d8c95deaf442cc4e35ceec497531ed4ee8a3fbb561c138`
 - **DUPLICATE-CHECK:**
-  - SNAPSHOT/LOG geprueft: Dashboard-Zeitwarnungen hatten eine 10h-Heuristik fuer „heute“. Gewuenscht ist jetzt: Warnungen erst ab Folgetag (heute komplett ignorieren) → **kein Duplicate**.
+  - SNAPSHOT/LOG geprüft: Dashboard-Zeitwarnungen hatten eine 10h-Heuristik für „heute“. Gewünscht ist jetzt: Warnungen erst ab Folgetag (heute komplett ignorieren) → **kein Duplicate**.
 - **DATEIEN (max. 3):**
   1) `controller/DashboardController.php`
   2) `docs/DEV_PROMPT_HISTORY.md`
@@ -20504,10 +20610,10 @@ Pflicht-Begründungen für Tagesfelder (Kurzarbeit/Krank/Sonstiges) sollen in de
 - **TESTS:**
   - Manuell:
     1) Heute nur „Kommen“ stempeln.
-    2) Dashboard oeffnen: keine Zeitwarnung fuer heute.
+    2) Dashboard öffnen: keine Zeitwarnung für heute.
     3) Datum auf morgen (oder Testdaten von gestern) → Zeitwarnung erscheint.
 - **NEXT:**
-  - Feldtest (T-069 Teil 2a): Monatsuebersicht + Dashboard-Zeitwarnungen mit mehreren Mitarbeitern durchklicken (Randfaelle sammeln).
+  - Feldtest (T-069 Teil 2a): Monatsübersicht + Dashboard-Zeitwarnungen mit mehreren Mitarbeitern durchklicken (Randfälle sammeln).
 
 
 ## P-2026-01-12-04
@@ -20519,7 +20625,7 @@ Pflicht-Begründungen für Tagesfelder (Kurzarbeit/Krank/Sonstiges) sollen in de
   - Rechte-Prompt (Projekt): `docs/rechte_prompt.md` = `5d8a5925bc2cf0dff364e500996c42fdeefe5f0b953cead7807ae642b70e7fc1`
   - SQL-Snapshot (Projekt): `sql/zeiterfassung_aktuell.sql` = `6ffbe22edafbe20bf6d8c95deaf442cc4e35ceec497531ed4ee8a3fbb561c138`
 - **DUPLICATE-CHECK:**
-  - SNAPSHOT/LOG geprueft: Terminal warnte "heute" bisher per 10h-Heuristik. Gewuenscht ist jetzt: Warnungen erst ab Folgetag (heute komplett ignorieren) → **kein Duplicate**.
+  - SNAPSHOT/LOG geprüft: Terminal warnte "heute" bisher per 10h-Heuristik. Gewünscht ist jetzt: Warnungen erst ab Folgetag (heute komplett ignorieren) → **kein Duplicate**.
 - **DATEIEN (max. 3):**
   1) `controller/TerminalController.php`
   2) `docs/DEV_PROMPT_HISTORY.md`
@@ -20531,10 +20637,10 @@ Pflicht-Begründungen für Tagesfelder (Kurzarbeit/Krank/Sonstiges) sollen in de
   - Manuell:
     1) Terminal-Login als Mitarbeiter.
     2) Heute nur „Kommen“ stempeln.
-    3) Terminal-Startscreen: keine Zeitwarnung fuer heute.
+    3) Terminal-Startscreen: keine Zeitwarnung für heute.
     4) Testdaten von gestern (oder Datum umstellen) → Zeitwarnung erscheint.
 - **NEXT:**
-  - Feldtest (T-069 Teil 2a): Monatsuebersicht + Dashboard + Terminal Zeitwarnungen mit mehreren Mitarbeitern durchklicken (Randfaelle sammeln).
+  - Feldtest (T-069 Teil 2a): Monatsübersicht + Dashboard + Terminal Zeitwarnungen mit mehreren Mitarbeitern durchklicken (Randfälle sammeln).
 
 
 ## P-2026-01-12-05
@@ -20546,32 +20652,32 @@ Pflicht-Begründungen für Tagesfelder (Kurzarbeit/Krank/Sonstiges) sollen in de
   - Rechte-Prompt (Projekt): `docs/rechte_prompt.md` = `5d8a5925bc2cf0dff364e500996c42fdeefe5f0b953cead7807ae642b70e7fc1`
   - SQL-Snapshot (Projekt): `sql/zeiterfassung_aktuell.sql` = `6ffbe22edafbe20bf6d8c95deaf442cc4e35ceec497531ed4ee8a3fbb561c138`
 - **DUPLICATE-CHECK:**
-  - SNAPSHOT/LOG geprueft: Monatsuebersicht ignoriert "heute" bereits, aber Dateivergleich kann fehlschlagen, wenn `datum` als `DD.MM.YYYY` geliefert wird → **kein Duplicate**.
+  - SNAPSHOT/LOG geprüft: Monatsübersicht ignoriert "heute" bereits, aber Dateivergleich kann fehlschlagen, wenn `datum` als `DD.MM.YYYY` geliefert wird → **kein Duplicate**.
 - **DATEIEN (max. 3):**
   1) `views/report/monatsuebersicht.php`
   2) `docs/DEV_PROMPT_HISTORY.md`
 - **DONE:**
-  - Monatsuebersicht: `datum` wird vor allen Vergleichen nach ISO (`YYYY-MM-DD`) normalisiert.
+  - Monatsübersicht: `datum` wird vor allen Vergleichen nach ISO (`YYYY-MM-DD`) normalisiert.
   - Dadurch gilt "heute" sicher als nicht vergangen, auch wenn `datum` als `DD.MM.YYYY` geliefert wird.
 - **AKZEPTANZ:**
   - Ein offener Kommen/Gehen-Block am heutigen Datum wird nicht als ⚠/FEHLT markiert; ab dem Folgetag erscheint die Markierung.
 - **TESTS:**
   - Manuell:
     1) Sicherstellen, dass in den gelieferten Tageswerten `datum` als `DD.MM.YYYY` vorkommt.
-    2) Monatsuebersicht oeffnen: heutiger Tag darf nicht ⚠/FEHLT anzeigen.
+    2) Monatsübersicht öffnen: heutiger Tag darf nicht ⚠/FEHLT anzeigen.
     3) Testdaten von gestern: zeigt weiterhin ⚠/FEHLT.
 - **NEXT:**
-  - OPTIONAL Micro-Patch: Nacht-Schicht ueber Mitternacht (Kommen gestern, Gehen heute) fuer definierbares Zeitfenster nicht als FEHLT markieren.
+  - OPTIONAL Micro-Patch: Nacht-Schicht über Mitternacht (Kommen gestern, Gehen heute) für definierbares Zeitfenster nicht als FEHLT markieren.
 
 ### Aktueller Status (2026-01-12)
 - **Zuletzt erledigt:** P-2026-01-12-07 – Dashboard+Terminal: Zeitwarnungen Nachtschicht-Grenzfall gefiltert (kein Fehlalarm).
-- **Naechster geplanter Schritt:** Feldtest: Nachtschicht + echte Fehlfaelle (vergessenes Gehen) unterscheiden und Beispiele sammeln.
+- **Nächster geplanter Schritt:** Feldtest: Nachtschicht + echte Fehlfälle (vergessenes Gehen) unterscheiden und Beispiele sammeln.
 
-## Patch P-2026-01-12-06: Monatsuebersicht Nachtschicht ueber Mitternacht
+## Patch P-2026-01-12-06: Monatsübersicht Nachtschicht über Mitternacht
 
 ### Ziel
-- Wenn eine Schicht ueber Mitternacht geht (Kommen am Vortag, Gehen am Folgetag frueh), soll der Vortag nicht als FEHLT/⚠ erscheinen.
-- Ebenso soll das fruehe Gehen am Folgetag nicht als FEHLT (Kommen fehlt) markiert werden.
+- Wenn eine Schicht über Mitternacht geht (Kommen am Vortag, Gehen am Folgetag früh), soll der Vortag nicht als FEHLT/⚠ erscheinen.
+- Ebenso soll das frühe Gehen am Folgetag nicht als FEHLT (Kommen fehlt) markiert werden.
 
 ### EINGELESEN (SHA256)
 - **Projekt-ZIP:** 191902_gesammt.zip — `670234f9c9a735f59cf012d6ac0dd82d16b671f429ecbf6dfd96a9e7a990a7f5`
@@ -20581,20 +20687,20 @@ Pflicht-Begründungen für Tagesfelder (Kurzarbeit/Krank/Sonstiges) sollen in de
 - **DEV_HISTORY vorher:** docs/DEV_PROMPT_HISTORY.md — `d265fc805a43371df5b717159cf7ba8bfd514d657f3ad3f88da794101894efac`
 
 ### DUPLICATE-CHECK
-- Suche (History/Code): "Nachtschicht", "ueber Mitternacht", "overnight" → keine bestehende Ausnahme in der Monatsuebersicht gefunden.
+- Suche (History/Code): "Nachtschicht", "über Mitternacht", "overnight" → keine bestehende Ausnahme in der Monatsübersicht gefunden.
 
 ### DATEIEN (max. 3)
 - `views/report/monatsuebersicht.php`
 - `docs/DEV_PROMPT_HISTORY.md`
 
 ### TECHNISCHE AENDERUNGEN
-1) Monatsuebersicht: Precompute `reportOvernightClosingGoByDatum` (fruehes Gehen vor erstem Kommen am Tag) + Zeitfenster `12h`.
-2) Tageswarnflag (⚠): Wenn Vortag Kommen aber kein Gehen und Folgetag hat fruehes Gehen innerhalb 12h → kein ⚠.
+1) Monatsübersicht: Precompute `reportOvernightClosingGoByDatum` (frühes Gehen vor erstem Kommen am Tag) + Zeitfenster `12h`.
+2) Tageswarnflag (⚠): Wenn Vortag Kommen aber kein Gehen und Folgetag hat frühes Gehen innerhalb 12h → kein ⚠.
 3) Block-FEHLT: Gleiches gilt pro Block (Kommen/Gehen) → Anzeige zeigt dann `-` statt FEHLT.
 
 ### TEST (manuell)
 - Fall: 22:00 Kommen (Tag D), 06:00 Gehen (Tag D+1) → Tag D nicht ⚠/FEHLT, Tag D+1 zeigt im ersten Block Kommen `-` und Gehen `06:00` ohne ⚠.
-- Normalfall: Kommen 08:00 (D), Gehen fehlt, kein fruehes Gehen (D+1) → weiterhin ⚠/FEHLT.
+- Normalfall: Kommen 08:00 (D), Gehen fehlt, kein frühes Gehen (D+1) → weiterhin ⚠/FEHLT.
 
 ---
 
@@ -20603,8 +20709,8 @@ Pflicht-Begründungen für Tagesfelder (Kurzarbeit/Krank/Sonstiges) sollen in de
 - **ZIP:** P-2026-01-12-07_dashboard-terminal-zeitwarnungen-nachtschicht-grenzfall.zip
 
 ### Ziel
-- Zeitwarnungen (Dashboard + Terminal) sollen bei echter Nachtschicht ueber Mitternacht keinen Fehlalarm erzeugen.
-- Wir behandeln nur den sicheren Fall: **genau 1 Stempel pro Tag** (nur Kommen am Abend / nur Gehen frueh am Folgetag).
+- Zeitwarnungen (Dashboard + Terminal) sollen bei echter Nachtschicht über Mitternacht keinen Fehlalarm erzeugen.
+- Wir behandeln nur den sicheren Fall: **genau 1 Stempel pro Tag** (nur Kommen am Abend / nur Gehen früh am Folgetag).
 
 ### EINGELESEN (SHA256)
 - **Projekt-ZIP:** 194211_gesammt.zip — `a7a4d566a202b6191c5d3376c0fd8ca4d0b1e1375a9cdd2596656fab85a80c9c`
@@ -20614,7 +20720,7 @@ Pflicht-Begründungen für Tagesfelder (Kurzarbeit/Krank/Sonstiges) sollen in de
 - **DEV_HISTORY vorher:** docs/DEV_PROMPT_HISTORY.md — `83b80db42f2a1bc3e8d0714b0496a514e53df044e4ba7e747c2ef6c57cbbbf2a`
 
 ### DUPLICATE-CHECK
-- Suche (History/Code): "zeitwarnungen", "Nachtschicht", "ueber Mitternacht" → Ausnahme existiert bereits in der Monatsuebersicht, aber **nicht** in Dashboard/Terminal-Warnungen → **kein Duplicate**.
+- Suche (History/Code): "zeitwarnungen", "Nachtschicht", "über Mitternacht" → Ausnahme existiert bereits in der Monatsübersicht, aber **nicht** in Dashboard/Terminal-Warnungen → **kein Duplicate**.
 
 ### DATEIEN (max. 3)
 - `controller/DashboardController.php`
@@ -20626,22 +20732,22 @@ Pflicht-Begründungen für Tagesfelder (Kurzarbeit/Krank/Sonstiges) sollen in de
 2) Terminal: Gleiches Filter-Verhalten in der Warnbox (letzte 14 Tage, max. 3 Zeilen).
 
 ### AKZEPTANZ
-- Nachtschicht-Beispiel (Kommen spaet am Tag D, Gehen frueh am Tag D+1) erscheint **weder** im Dashboard-Warnblock **noch** in der Terminal-Warnbox als Fehler.
+- Nachtschicht-Beispiel (Kommen spät am Tag D, Gehen früh am Tag D+1) erscheint **weder** im Dashboard-Warnblock **noch** in der Terminal-Warnbox als Fehler.
 
 ### TEST (manuell)
 1) Mitarbeiter: Kommen 23:00 (Tag D), Gehen 05:00 (Tag D+1) → keine Zeitwarnung.
 2) Echter Fehler: Kommen 08:00 (Tag D), kein Gehen bis Folgetag → Warnung ab Folgetag weiterhin vorhanden.
 
 ### NEXT
-- OPTIONAL Micro-Patch: Zeitfenster (18–06) als DB-Config-Key machen oder Heuristik erweitern (z. B. 2–3 Stempel-Faelle), **ohne** echte Fehler zu maskieren.
+- OPTIONAL Micro-Patch: Zeitfenster (18–06) als DB-Config-Key machen oder Heuristik erweitern (z. B. 2–3 Stempel-Fälle), **ohne** echte Fehler zu maskieren.
 
 
-## Patch P-2026-01-12-08: Monatsuebersicht Mikro-Buchungen komplett ausblenden
+## Patch P-2026-01-12-08: Monatsübersicht Mikro-Buchungen komplett ausblenden
 
 - **ZIP:** P-2026-01-12-08_monatsuebersicht-mikrobuchungen-ausblenden.zip
 
 ### Ziel
-- Mikro-Buchungen sollen in der Monatsuebersicht vollstaendig wie "ignoriert" wirken: keine An/Ab-Uhrzeiten, kein FEHLT/⚠, Anzeige als "-".
+- Mikro-Buchungen sollen in der Monatsübersicht vollständig wie "ignoriert" wirken: keine An/Ab-Uhrzeiten, kein FEHLT/⚠, Anzeige als "-".
 
 ### EINGELESEN (SHA256)
 - **Projekt-ZIP:** 195740_gesammt.zip — `40895d11027cb5f7287155111b1b974ef2979c1e7f620131033ad55bf7098253`
@@ -20651,21 +20757,21 @@ Pflicht-Begründungen für Tagesfelder (Kurzarbeit/Krank/Sonstiges) sollen in de
 - **DEV_HISTORY vorher:** docs/DEV_PROMPT_HISTORY.md — `19dd12f3fb4a7e630f7b5cce2a5f737160f12b6ed5f2f4759b926dba56b2a810`
 
 ### DUPLICATE-CHECK
-- Suche (History/Code): "Mikro", "0.01", "Strich" → Patch P-2026-01-12-01 zeigt Mikro-IST als Strich, aber An/Ab/FEHLT konnten noch sichtbar sein → Erweiterung noetig → **kein Duplicate**.
+- Suche (History/Code): "Mikro", "0.01", "Strich" → Patch P-2026-01-12-01 zeigt Mikro-IST als Strich, aber An/Ab/FEHLT konnten noch sichtbar sein → Erweiterung nötig → **kein Duplicate**.
 
 ### DATEIEN (max. 3)
 - `views/report/monatsuebersicht.php`
 - `docs/DEV_PROMPT_HISTORY.md`
 
 ### TECHNISCHE AENDERUNGEN
-1) Monatsuebersicht: Wenn ein Tag als `micro_ignoriert` markiert ist, werden An/Ab-Stempel pro Block bewusst als leer behandelt (`hatStempel=false`) → Anzeige '-' statt Uhrzeiten und keine FEHLT/⚠-Markierung.
+1) Monatsübersicht: Wenn ein Tag als `micro_ignoriert` markiert ist, werden An/Ab-Stempel pro Block bewusst als leer behandelt (`hatStempel=false`) → Anzeige '-' statt Uhrzeiten und keine FEHLT/⚠-Markierung.
 
 ### AKZEPTANZ
-- Ein Tag, der nur aus einer Mikro-Buchung besteht (z. B. 20 Sekunden), erscheint in der Monatsuebersicht ohne Uhrzeiten ('-') und ohne FEHLT/⚠.
+- Ein Tag, der nur aus einer Mikro-Buchung besteht (z. B. 20 Sekunden), erscheint in der Monatsübersicht ohne Uhrzeiten ('-') und ohne FEHLT/⚠.
 
 ### TEST (manuell)
-1) Fall: Kommen 08:00, Gehen 08:00:20 → Monatsuebersicht: An/Ab '-' und keine FEHLT/⚠.
-2) Normaler Tag bleibt unveraendert.
+1) Fall: Kommen 08:00, Gehen 08:00:20 → Monatsübersicht: An/Ab '-' und keine FEHLT/⚠.
+2) Normaler Tag bleibt unverändert.
 
 ### NEXT
 - OPTIONAL: gleiche Mikro-Ausblendung auch in Tagesansicht/Exportlisten, falls dort noch Mikro-Zeiten auftauchen.
@@ -20685,7 +20791,7 @@ Pflicht-Begründungen für Tagesfelder (Kurzarbeit/Krank/Sonstiges) sollen in de
 - **DEV_HISTORY vorher:** docs/DEV_PROMPT_HISTORY.md — `71af33241aee6e5e7cf19b7a5c470fd954f05b287caa80f7deeef44b016f53ab`
 
 ### DUPLICATE-CHECK
-- Suche (History/Code): "tagesansicht" + "Mikro" + "show_micro" → bisher nur Monatsreport/Monatsuebersicht behandelt; NEXT von P-2026-01-12-08 nennt Tagesansicht explizit als optionalen naechsten Schritt → **kein Duplicate**.
+- Suche (History/Code): "tagesansicht" + "Mikro" + "show_micro" → bisher nur Monatsreport/Monatsübersicht behandelt; NEXT von P-2026-01-12-08 nennt Tagesansicht explizit als optionalen nächsten Schritt → **kein Duplicate**.
 
 ### DATEIEN (max. 3)
 - `controller/ZeitController.php`
@@ -20693,27 +20799,27 @@ Pflicht-Begründungen für Tagesfelder (Kurzarbeit/Krank/Sonstiges) sollen in de
 - `docs/DEV_PROMPT_HISTORY.md`
 
 ### TECHNISCHE AENDERUNGEN
-1) ZeitController: filtert in der Tagesansicht standardmäßig aufeinanderfolgende Kommen/Gehen-Stempelpaare mit Delta <= 180 Sekunden aus der Anzeige-Liste (DB bleibt unveraendert).
-2) Tagesansicht-View: zeigt einen Hinweis + Link zum Einblenden (Parameter `show_micro=1`) und traegt den Toggle in GET-Formulare weiter.
+1) ZeitController: filtert in der Tagesansicht standardmäßig aufeinanderfolgende Kommen/Gehen-Stempelpaare mit Delta <= 180 Sekunden aus der Anzeige-Liste (DB bleibt unverändert).
+2) Tagesansicht-View: zeigt einen Hinweis + Link zum Einblenden (Parameter `show_micro=1`) und trägt den Toggle in GET-Formulare weiter.
 
 ### AKZEPTANZ
 - Ein Tag mit Kommen 08:00:00 und Gehen 08:00:20 zeigt in der Tagesansicht standardmäßig keine Buchungen (aber einen Hinweis mit "Mikro-Buchungen anzeigen"); mit `&show_micro=1` werden die Stempel sichtbar.
 
 ### TEST (manuell)
 1) Zwei Stempel setzen: Kommen 08:00:00, Gehen 08:00:20.
-2) `?seite=zeit_heute&datum=...&mitarbeiter_id=...` → Hinweis + keine Tabelleintraege fuer diese Mikro-Paare.
+2) `?seite=zeit_heute&datum=...&mitarbeiter_id=...` → Hinweis + keine Tabelleinträge für diese Mikro-Paare.
 3) Klick "Mikro-Buchungen anzeigen" (oder `&show_micro=1`) → beide Stempel erscheinen wieder in der Tabelle.
 
 ### NEXT
-- OPTIONAL Micro-Patch: gleiche Mikro-Ausblendung auch in weiteren Listen/Exports (z. B. Tages-/Wochen-Export), ohne Korrektur-Moeglichkeiten fuer Admin zu verlieren.
+- OPTIONAL Micro-Patch: gleiche Mikro-Ausblendung auch in weiteren Listen/Exports (z. B. Tages-/Wochen-Export), ohne Korrektur-Möglichkeiten für Admin zu verlieren.
 
 
-## Patch P-2026-01-13-02: Monatsuebersicht Mikro-Buchungen einblendbar
+## Patch P-2026-01-13-02: Monatsübersicht Mikro-Buchungen einblendbar
 
 - **ZIP:** P-2026-01-13-02_monatsuebersicht-mikrobuchungen-toggle.zip
 
 ### Ziel
-- In der Monatsuebersicht sollen Mikro-Stempelpaare (Kommen/Gehen innerhalb von <= 3 Minuten) standardmaessig weiterhin **nicht** in der Liste auftauchen, aber bei Bedarf per Checkbox/GET-Parameter sichtbar gemacht werden koennen, ohne dass sie in IST/SOLL oder Warnungen einlaufen.
+- In der Monatsübersicht sollen Mikro-Stempelpaare (Kommen/Gehen innerhalb von <= 3 Minuten) standardmäßig weiterhin **nicht** in der Liste auftauchen, aber bei Bedarf per Checkbox/GET-Parameter sichtbar gemacht werden können, ohne dass sie in IST/SOLL oder Warnungen einlaufen.
 
 ### EINGELESEN (SHA256)
 - **Projekt-ZIP:** 173015_gesammt.zip — `905ee34303cf0c6837636fa7d90215fb92acb8898ac1a9908ad2d27978304453`
@@ -20724,7 +20830,7 @@ Pflicht-Begründungen für Tagesfelder (Kurzarbeit/Krank/Sonstiges) sollen in de
 - **DEV_HISTORY vorher:** docs/DEV_PROMPT_HISTORY.md — `aef9a09a7001642012bfe8073ee74aabf3fd97964518aac7c0a78aa7ebc4abaa`
 
 ### DUPLICATE-CHECK
-- Suche (History/Code): "Monatsuebersicht" + "show_micro" → bisher nur Tagesansicht hatte Toggle; Monatsuebersicht blendet Mikro-Buchungen ohne Toggle komplett aus → **kein Duplicate**.
+- Suche (History/Code): "Monatsübersicht" + "show_micro" → bisher nur Tagesansicht hatte Toggle; Monatsübersicht blendet Mikro-Buchungen ohne Toggle komplett aus → **kein Duplicate**.
 
 ### DATEIEN (max. 3)
 - `controller/ReportController.php`
@@ -20733,7 +20839,7 @@ Pflicht-Begründungen für Tagesfelder (Kurzarbeit/Krank/Sonstiges) sollen in de
 
 ### TECHNISCHE AENDERUNGEN
 1) ReportController: nimmt `show_micro=1` an und stellt `$showMicro` im View bereit.
-2) Monatsuebersicht-View: Checkbox "Mikro-Buchungen anzeigen"; bei aktivem Toggle werden Zeitstempel angezeigt (mit "micro"-Hinweis), aber Mikro-Buchungen bleiben aus IST/Pause/Markierungen ausgeschlossen (kein FEHLT/⚠ durch Mikro-Buchungen).
+2) Monatsübersicht-View: Checkbox "Mikro-Buchungen anzeigen"; bei aktivem Toggle werden Zeitstempel angezeigt (mit "micro"-Hinweis), aber Mikro-Buchungen bleiben aus IST/Pause/Markierungen ausgeschlossen (kein FEHLT/⚠ durch Mikro-Buchungen).
 
 ### AKZEPTANZ
 - Ohne Checkbox erscheinen Mikro-Buchungen wie bisher als "-"/ausgeblendet.
@@ -20741,19 +20847,19 @@ Pflicht-Begründungen für Tagesfelder (Kurzarbeit/Krank/Sonstiges) sollen in de
 
 ### TEST (manuell)
 1) Tag mit Mikro-Paar (z. B. Kommen 08:00:00, Gehen 08:00:20) erzeugen.
-2) `?seite=report_monat&jahr=YYYY&monat=MM` → keine sichtbaren Zeiten fuer dieses Paar.
-3) Checkbox aktivieren oder `&show_micro=1` → Zeiten sichtbar, als Mikro markiert; Summen/Warnungen unveraendert.
+2) `?seite=report_monat&jahr=YYYY&monat=MM` → keine sichtbaren Zeiten für dieses Paar.
+3) Checkbox aktivieren oder `&show_micro=1` → Zeiten sichtbar, als Mikro markiert; Summen/Warnungen unverändert.
 
 ### NEXT
-- DONE in P-2026-01-13-03: Toggle-Status beim Klick "Bearbeiten" (Tagesansicht) als GET weiterreichen, damit Mikro-Analyse ohne erneutes Umschalten moeglich ist.
+- DONE in P-2026-01-13-03: Toggle-Status beim Klick "Bearbeiten" (Tagesansicht) als GET weiterreichen, damit Mikro-Analyse ohne erneutes Umschalten möglich ist.
 
 
-## Patch P-2026-01-13-03: Monatsuebersicht show_micro an Tagesansicht weiterreichen
+## Patch P-2026-01-13-03: Monatsübersicht show_micro an Tagesansicht weiterreichen
 
 - **ZIP:** P-2026-01-13-03_monatsuebersicht-show-micro-weiterreichen.zip
 
 ### Ziel
-- Wenn in der Monatsuebersicht Mikro-Buchungen eingeblendet sind (`show_micro=1`), soll der Klick auf „Bearbeiten“ (Tagesansicht) den Toggle automatisch mitnehmen, damit die Mikro-Analyse ohne erneutes Umschalten moeglich ist.
+- Wenn in der Monatsübersicht Mikro-Buchungen eingeblendet sind (`show_micro=1`), soll der Klick auf „Bearbeiten“ (Tagesansicht) den Toggle automatisch mitnehmen, damit die Mikro-Analyse ohne erneutes Umschalten möglich ist.
 
 ### EINGELESEN (SHA256)
 - **Projekt-ZIP:** 182841_gesammt.zip — `db03863dfe49eb4f4a047f9d9237b115fb3bba65c30281b37890a112d8ba3744`
@@ -20771,25 +20877,25 @@ Pflicht-Begründungen für Tagesfelder (Kurzarbeit/Krank/Sonstiges) sollen in de
 - `docs/DEV_PROMPT_HISTORY.md`
 
 ### TECHNISCHE AENDERUNGEN
-1) Monatsuebersicht-View: haengt bei aktivem `$showMicro` an den „Bearbeiten“-Link `&show_micro=1` an.
+1) Monatsübersicht-View: hängt bei aktivem `$showMicro` an den „Bearbeiten“-Link `&show_micro=1` an.
 
 ### AKZEPTANZ
-- Wenn Monatsuebersicht mit `&show_micro=1` geoeffnet ist, enthaelt der „Bearbeiten“-Link ebenfalls `show_micro=1` und die Tagesansicht zeigt Mikro-Buchungen direkt an.
+- Wenn Monatsübersicht mit `&show_micro=1` geöffnet ist, enthält der „Bearbeiten“-Link ebenfalls `show_micro=1` und die Tagesansicht zeigt Mikro-Buchungen direkt an.
 
 ### TEST (manuell)
-1) Monatsuebersicht oeffnen: `?seite=report_monat&jahr=YYYY&monat=MM&mitarbeiter_id=...&show_micro=1`.
+1) Monatsübersicht öffnen: `?seite=report_monat&jahr=YYYY&monat=MM&mitarbeiter_id=...&show_micro=1`.
 2) In einem Tag auf „Bearbeiten“ klicken.
-3) URL enthaelt `show_micro=1` und die Tagesansicht zeigt Mikro-Buchungen (Hinweis "Mikro-Buchungen werden angezeigt.").
+3) URL enthält `show_micro=1` und die Tagesansicht zeigt Mikro-Buchungen (Hinweis "Mikro-Buchungen werden angezeigt.").
 
 ### NEXT
-- Zurueck zum Feldtest (T-069): Terminal/Backend weiter klicken, naechster Bugfix wieder als Micro-Patch.
+- Zurück zum Feldtest (T-069): Terminal/Backend weiter klicken, nächster Bugfix wieder als Micro-Patch.
 
 ## Patch P-2026-01-13-04: Tagesansicht show_micro Toggle bei Bearbeiten/Abbrechen behalten
 
 - **ZIP:** P-2026-01-13-04_tagesansicht-show-micro-links.zip
 
 ### Ziel
-- Wenn in der Tagesansicht Mikro-Buchungen angezeigt werden (`show_micro=1`), soll der Toggle beim Klick auf „Bearbeiten“ (Einzelbuchung) sowie „Abbrechen“ erhalten bleiben, damit die Mikro-Analyse ohne erneutes Umschalten moeglich ist.
+- Wenn in der Tagesansicht Mikro-Buchungen angezeigt werden (`show_micro=1`), soll der Toggle beim Klick auf „Bearbeiten“ (Einzelbuchung) sowie „Abbrechen“ erhalten bleiben, damit die Mikro-Analyse ohne erneutes Umschalten möglich ist.
 
 ### EINGELESEN (SHA256)
 - **Projekt-ZIP:** 184055_gesammt.zip — `7f6e67f224d5bc9fcb8b04467193be37266d78bbe60cc794142d04db0c8167b3`
@@ -20808,23 +20914,23 @@ Pflicht-Begründungen für Tagesfelder (Kurzarbeit/Krank/Sonstiges) sollen in de
 - `docs/DEV_PROMPT_HISTORY.md`
 
 ### TECHNISCHE AENDERUNGEN
-1) ZeitController: `buildTagesansichtUrl()` haengt bei vorhandenem `show_micro=1` (GET/POST) den Parameter an Redirect-URLs an.
-2) Tagesansicht-View: Haengt bei aktivem `$zeigeMicroBuchungen` an Bearbeiten-Links `&show_micro=1` an.
-3) Tagesansicht-View: „Abbrechen“-Link im Bearbeiten-Block behaelt `show_micro=1`.
-4) Tagesansicht-View: Delete-Formular traegt `show_micro=1` als Hidden mit, damit Redirects den Toggle behalten.
+1) ZeitController: `buildTagesansichtUrl()` hängt bei vorhandenem `show_micro=1` (GET/POST) den Parameter an Redirect-URLs an.
+2) Tagesansicht-View: Hängt bei aktivem `$zeigeMicroBuchungen` an Bearbeiten-Links `&show_micro=1` an.
+3) Tagesansicht-View: „Abbrechen“-Link im Bearbeiten-Block behält `show_micro=1`.
+4) Tagesansicht-View: Delete-Formular trägt `show_micro=1` als Hidden mit, damit Redirects den Toggle behalten.
 
 ### AKZEPTANZ
-- Tagesansicht mit `&show_micro=1`: Klick „Bearbeiten“ → URL enthaelt weiterhin `show_micro=1`.
-- Im Bearbeiten-Block „Abbrechen“ → Zurueck zur Tagesansicht mit `show_micro=1`.
-- Nach Speichern/Loeschen (POST) bleibt der Redirect in der Tagesansicht bei aktivem Toggle auf `show_micro=1`.
+- Tagesansicht mit `&show_micro=1`: Klick „Bearbeiten“ → URL enthält weiterhin `show_micro=1`.
+- Im Bearbeiten-Block „Abbrechen“ → Zurück zur Tagesansicht mit `show_micro=1`.
+- Nach Speichern/Löschen (POST) bleibt der Redirect in der Tagesansicht bei aktivem Toggle auf `show_micro=1`.
 
 ### TEST (manuell)
-1) Tagesansicht oeffnen: `?seite=zeit_heute&datum=YYYY-MM-DD&mitarbeiter_id=X&show_micro=1`.
-2) Auf „Bearbeiten“ bei einer Buchung klicken → URL enthaelt `show_micro=1`.
-3) „Abbrechen“ klicken → URL enthaelt `show_micro=1`.
+1) Tagesansicht öffnen: `?seite=zeit_heute&datum=YYYY-MM-DD&mitarbeiter_id=X&show_micro=1`.
+2) Auf „Bearbeiten“ bei einer Buchung klicken → URL enthält `show_micro=1`.
+3) „Abbrechen“ klicken → URL enthält `show_micro=1`.
 
 ### NEXT
-- Zurueck zum Feldtest (T-069): Backend/Terminal weiter klicken, naechster Bugfix wieder als Micro-Patch.
+- Zurück zum Feldtest (T-069): Backend/Terminal weiter klicken, nächster Bugfix wieder als Micro-Patch.
 
 ## Patch P-2026-01-13-05: Monats-PDF Mikro-Buchungen ausblenden
 
@@ -20864,7 +20970,7 @@ Pflicht-Begründungen für Tagesfelder (Kurzarbeit/Krank/Sonstiges) sollen in de
 3) Mit `&show_micro=1` erneut öffnen → Mikro-Zeilen sichtbar.
 
 ### NEXT
-- Zurueck zum Feldtest (T-069 Teil 2b): Monats-PDF weiter klicken (Mehrseiten/Grenzfaelle) und naechsten Bugfix als Micro-Patch.
+- Zurück zum Feldtest (T-069 Teil 2b): Monats-PDF weiter klicken (Mehrseiten/Grenzfälle) und nächsten Bugfix als Micro-Patch.
 
 
 
@@ -21220,22 +21326,22 @@ Pflicht-Begründungen für Tagesfelder (Kurzarbeit/Krank/Sonstiges) sollen in de
   - Rechte-Prompt (aus ZIP): `docs/rechte_prompt.md` = `5d8a5925bc2cf0dff364e500996c42fdeefe5f0b953cead7807ae642b70e7fc1`
   - SQL-Schema (aus ZIP): `sql/zeiterfassung_aktuell.sql` = `6ffbe22edafbe20bf6d8c95deaf442cc4e35ceec497531ed4ee8a3fbb561c138`
 - **DUPLICATE-CHECK:**
-  - SNAPSHOT/LOG geprueft: Stoerungsmodus existierte bereits, aber auf `aktion=stoerung` konnte man nach Admin-Fix haengen bleiben.
+  - SNAPSHOT/LOG geprüft: Störungsmodus existierte bereits, aber auf `aktion=stoerung` konnte man nach Admin-Fix hängen bleiben.
 - **DATEIEN (max. 3):**
   1) `controller/TerminalController.php`
   2) `views/terminal/stoerung.php`
   3) `docs/DEV_PROMPT_HISTORY.md`
 - **DONE:**
-  - `TerminalController::stoerung()` leitet jetzt auf `aktion=start` um, wenn kein Queue-Fehler-Eintrag mehr existiert (ausser fatal: Haupt-DB & Offline-Queue beide offline).
-  - `views/terminal/stoerung.php` zeigt einen Button „Neu pruefen / Start“.
+  - `TerminalController::stoerung()` leitet jetzt auf `aktion=start` um, wenn kein Queue-Fehler-Eintrag mehr existiert (außer fatal: Haupt-DB & Offline-Queue beide offline).
+  - `views/terminal/stoerung.php` zeigt einen Button „Neu prüfen / Start“.
 - **AKZEPTANZ:**
-  - Wenn der letzte Fehler im Backend geloescht/behoben wurde, fuehrt Reload von `terminal.php?aktion=stoerung` zurueck zum Startscreen.
-  - Im fatalen Fall (Haupt-DB und Offline-Queue beide offline) bleibt die Stoerungsseite bestehen.
+  - Wenn der letzte Fehler im Backend gelöscht/behoben wurde, führt Reload von `terminal.php?aktion=stoerung` zurück zum Startscreen.
+  - Im fatalen Fall (Haupt-DB und Offline-Queue beide offline) bleibt die Störungsseite bestehen.
 - **TESTS:**
   - `php -l controller/TerminalController.php`
   - `php -l views/terminal/stoerung.php`
 - **NEXT:**
-  - Zurueck zu **T-069 Feldtest** und diese neue „Neu pruefen“-Logik in echten Stoerungsfaellen testen.
+  - Zurück zu **T-069 Feldtest** und diese neue „Neu prüfen“-Logik in echten Störungsfällen testen.
 
 
 ## P-2026-01-17-01
@@ -21247,15 +21353,15 @@ Pflicht-Begründungen für Tagesfelder (Kurzarbeit/Krank/Sonstiges) sollen in de
   - Rechte-Prompt (aus ZIP): `docs/rechte_prompt.md` = `5d8a5925bc2cf0dff364e500996c42fdeefe5f0b953cead7807ae642b70e7fc1`
   - SQL-Schema (aus ZIP): `sql/zeiterfassung_aktuell.sql` = `6ffbe22edafbe20bf6d8c95deaf442cc4e35ceec497531ed4ee8a3fbb561c138`
 - **DUPLICATE-CHECK:**
-  - `TerminalController::start()` enthielt direkt nach `$terminalTimeoutSekunden` einen ueberzaehligen Monatsstatus-Block (Copy/Paste aus Logout), der `$mitarbeiter` zu diesem Zeitpunkt noch nicht gesetzt hatte.
+  - `TerminalController::start()` enthielt direkt nach `$terminalTimeoutSekunden` einen überzähligen Monatsstatus-Block (Copy/Paste aus Logout), der `$mitarbeiter` zu diesem Zeitpunkt noch nicht gesetzt hatte.
 - **DATEIEN (max. 3):**
   1) `controller/TerminalController.php`
   2) `docs/DEV_PROMPT_HISTORY.md`
 - **DONE:**
-  - Entfernt: der ueberzaehlige Monatsstatus-Block am Anfang von `TerminalController::start()`.
+  - Entfernt: der überzählige Monatsstatus-Block am Anfang von `TerminalController::start()`.
 - **AKZEPTANZ:**
   - `terminal.php?aktion=start` wirft keine PHP-Warnung mehr wegen undefiniertem `$mitarbeiter`.
-  - Monatsstatus im Mitarbeiterpanel bleibt unveraendert (wird weiterhin spaeter im Start-Flow berechnet).
+  - Monatsstatus im Mitarbeiterpanel bleibt unverändert (wird weiterhin später im Start-Flow berechnet).
 - **TESTS:**
   - `php -l controller/TerminalController.php`
 - **NEXT:**
@@ -21271,7 +21377,7 @@ Pflicht-Begründungen für Tagesfelder (Kurzarbeit/Krank/Sonstiges) sollen in de
   - Rechte-Prompt (aus ZIP): `docs/rechte_prompt.md` = `5d8a5925bc2cf0dff364e500996c42fdeefe5f0b953cead7807ae642b70e7fc1`
   - SQL-Schema (aus ZIP): `sql/zeiterfassung_aktuell.sql` = `6ffbe22edafbe20bf6d8c95deaf442cc4e35ceec497531ed4ee8a3fbb561c138`
 - **DUPLICATE-CHECK:**
-  - In `views/terminal/start.php` waren im Block "Monatsstatus" ("Übersicht (heute)") noch alte Label (Soll/Ist-Formulierung), waehrend das Mitarbeiterpanel bereits die Wunsch-Labels nutzt.
+  - In `views/terminal/start.php` waren im Block "Monatsstatus" ("Übersicht (heute)") noch alte Label (Soll/Ist-Formulierung), während das Mitarbeiterpanel bereits die Wunsch-Labels nutzt.
 - **DATEIEN (max. 3):**
   1) `views/terminal/start.php`
   2) `docs/DEV_PROMPT_HISTORY.md`
@@ -21297,18 +21403,18 @@ Pflicht-Begründungen für Tagesfelder (Kurzarbeit/Krank/Sonstiges) sollen in de
   - SQL-Schema (SoT, aus ZIP): `sql/01_initial_schema.sql` = `b0088149d6f39bd7c0dc6e41dff197fea496ddcb7a3afca838140f6b50fd33de`
   - Zusatz (DB-Dump, aus ZIP): `sql/zeiterfassung_aktuell.sql` = `6ffbe22edafbe20bf6d8c95deaf442cc4e35ceec497531ed4ee8a3fbb561c138`
 - **DUPLICATE-CHECK:**
-  - SNAPSHOT/LOG geprueft: Monatsstatus/Arbeitszeit-Übersicht war bereits integriert, aber `ist_bisher` zaehlte bislang auch Urlaub/Krank/Feiertag/sonstiges mit.
+  - SNAPSHOT/LOG geprüft: Monatsstatus/Arbeitszeit-Übersicht war bereits integriert, aber `ist_bisher` zählte bislang auch Urlaub/Krank/Feiertag/sonstiges mit.
 - **DATEIEN (max. 3):**
   1) `controller/TerminalController.php`
   2) `docs/DEV_PROMPT_HISTORY.md`
 - **DONE:**
-  - Terminal: In allen Monatsstatus-Berechnungen im `TerminalController` zaehlt `ist_bisher` jetzt **nur** `arbeitszeit_stunden` (echte geleistete Arbeitszeit).
+  - Terminal: In allen Monatsstatus-Berechnungen im `TerminalController` zählt `ist_bisher` jetzt **nur** `arbeitszeit_stunden` (echte geleistete Arbeitszeit).
 - **AKZEPTANZ:**
   - Label "Geleistete Arbeitsstunden bis heute" entspricht der Summe der **Arbeitszeit** im Monatsreport (ohne Urlaub/Krank/Feiertag).
 - **TESTS:**
   - `php -l controller/TerminalController.php`
 - **NEXT:**
-  - Feldtest: Werte im Terminal mit Monatsreport gegenpruefen (ein Monat mit Urlaub/Krank/Feiertag, damit der Unterschied sichtbar ist).
+  - Feldtest: Werte im Terminal mit Monatsreport gegenprüfen (ein Monat mit Urlaub/Krank/Feiertag, damit der Unterschied sichtbar ist).
 
 ## P-2026-01-17-04
 - ZIP: `P-2026-01-17-04_terminal-monatsstatus-live-heute-helper.zip`
@@ -21323,15 +21429,15 @@ Pflicht-Begründungen für Tagesfelder (Kurzarbeit/Krank/Sonstiges) sollen in de
   1) `controller/TerminalController.php`
   2) `docs/DEV_PROMPT_HISTORY.md`
 - **DONE:**
-  - Terminal: Monatsstatus (`ist_bisher`) beruecksichtigt jetzt den **laufenden heutigen Arbeitstag** (wenn "Kommen" ohne "Gehen"), damit die Anzeige dem aktuellen Moment entspricht.
+  - Terminal: Monatsstatus (`ist_bisher`) berücksichtigt jetzt den **laufenden heutigen Arbeitstag** (wenn "Kommen" ohne "Gehen"), damit die Anzeige dem aktuellen Moment entspricht.
   - Terminal: Monatsstatus-Berechnung als Helper zentralisiert (`berechneMonatsStatusFuerMitarbeiter`) und in allen Terminal-Flows konsistent genutzt.
 - **AKZEPTANZ:**
   - Wenn ein Mitarbeiter gerade anwesend ist, steigt "Geleistete Arbeitsstunden bis heute" live an, ohne dass erst "Gehen" gebucht werden muss.
-  - Anzeige bleibt im Offline-Modus unveraendert (Monatsstatus bleibt leer/ohne Werte).
+  - Anzeige bleibt im Offline-Modus unverändert (Monatsstatus bleibt leer/ohne Werte).
 - **TESTS:**
   - `php -l controller/TerminalController.php`
 - **NEXT:**
-  - Optional: Live-Heute noch mit Rundung/Pausenlogik angleichen (derzeit bewusst als Live-Schaetzung).
+  - Optional: Live-Heute noch mit Rundung/Pausenlogik angleichen (derzeit bewusst als Live-Schätzung).
 
 ## P-2026-01-17-05
 - ZIP: `P-2026-01-17-05_terminal-arbeitszeit-uebersicht-seite.zip`
@@ -21343,16 +21449,16 @@ Pflicht-Begründungen für Tagesfelder (Kurzarbeit/Krank/Sonstiges) sollen in de
   - SQL-Schema (SoT, aus ZIP): `sql/01_initial_schema.sql` = `b0088149d6f39bd7c0dc6e41dff197fea496ddcb7a3afca838140f6b50fd33de`
   - Zusatz (DB-Dump, aus ZIP): `sql/zeiterfassung_aktuell.sql` = `6ffbe22edafbe20bf6d8c95deaf442cc4e35ceec497531ed4ee8a3fbb561c138`
 - **DUPLICATE-CHECK:**
-  - SNAPSHOT/LOG geprueft: Arbeitszeit-Übersicht im Mitarbeiterpanel existierte bereits, aber UX war zu platzintensiv/unklar.
+  - SNAPSHOT/LOG geprüft: Arbeitszeit-Übersicht im Mitarbeiterpanel existierte bereits, aber UX war zu platzintensiv/unklar.
 - **DATEIEN (max. 3):**
   1) `controller/TerminalController.php`
   2) `views/terminal/start.php`
   3) `docs/DEV_PROMPT_HISTORY.md`
 - **DONE:**
-  - Terminal: Klick auf Mitarbeitername unten oeffnet eine **separate Arbeitszeit-Übersicht-Seite** (Start-Subview `?aktion=start&view=arbeitszeit`) mit den drei Kennzahlen.
+  - Terminal: Klick auf Mitarbeitername unten öffnet eine **separate Arbeitszeit-Übersicht-Seite** (Start-Subview `?aktion=start&view=arbeitszeit`) mit den drei Kennzahlen.
   - Terminal: Mitarbeiterpanel zeigt nur noch den Namen + Hinweis "Arbeitszeit" (kein ausklappender Textblock mehr).
 - **AKZEPTANZ:**
-  - Startscreen bleibt uebersichtlich; Arbeitszeitdaten werden auf eigener Seite angezeigt; Rueckkehr per "Zurück" zum Hauptmenue.
+  - Startscreen bleibt übersichtlich; Arbeitszeitdaten werden auf eigener Seite angezeigt; Rückkehr per "Zurück" zum Hauptmenü.
 - **TESTS:**
   - `php -l controller/TerminalController.php`
   - `php -l views/terminal/start.php`
@@ -21370,14 +21476,14 @@ Pflicht-Begründungen für Tagesfelder (Kurzarbeit/Krank/Sonstiges) sollen in de
   - SQL-Schema (SoT, aus ZIP): `sql/01_initial_schema.sql` = `b0088149d6f39bd7c0dc6e41dff197fea496ddcb7a3afca838140f6b50fd33de`
   - Zusatz (DB-Dump, aus ZIP): `sql/zeiterfassung_aktuell.sql` = `6ffbe22edafbe20bf6d8c95deaf442cc4e35ceec497531ed4ee8a3fbb561c138`
 - **DUPLICATE-CHECK:**
-  - Geprueft: Arbeitszeit-Übersicht existiert als Start-Subview; hier nur UX-Angleichung auf einer weiteren Terminal-Seite.
+  - Geprüft: Arbeitszeit-Übersicht existiert als Start-Subview; hier nur UX-Angleichung auf einer weiteren Terminal-Seite.
 - **DATEIEN (max. 3):**
   1) `views/terminal/auftrag_starten.php`
   2) `docs/DEV_PROMPT_HISTORY.md`
 - **DONE:**
-  - Terminal: Seite "Auftrag starten" zeigt im unteren Mitarbeiterpanel nur noch den Namen + Link "Arbeitszeit" (kein Textblock mehr). Klick oeffnet `?aktion=start&view=arbeitszeit`.
+  - Terminal: Seite "Auftrag starten" zeigt im unteren Mitarbeiterpanel nur noch den Namen + Link "Arbeitszeit" (kein Textblock mehr). Klick öffnet `?aktion=start&view=arbeitszeit`.
 - **AKZEPTANZ:**
-  - Auf "Auftrag starten" ist der Startscreen wieder uebersichtlich; Arbeitszeitdaten sind ueber den Link erreichbar.
+  - Auf "Auftrag starten" ist der Startscreen wieder übersichtlich; Arbeitszeitdaten sind über den Link erreichbar.
 - **TESTS:**
   - `php -l views/terminal/auftrag_starten.php`
 - **NEXT:**
@@ -21395,14 +21501,14 @@ Pflicht-Begründungen für Tagesfelder (Kurzarbeit/Krank/Sonstiges) sollen in de
   - SQL-Schema (SoT, aus ZIP): `sql/01_initial_schema.sql` = `b0088149d6f39bd7c0dc6e41dff197fea496ddcb7a3afca838140f6b50fd33de`
   - Zusatz (DB-Dump, aus ZIP): `sql/zeiterfassung_aktuell.sql` = `6ffbe22edafbe20bf6d8c95deaf442cc4e35ceec497531ed4ee8a3fbb561c138`
 - **DUPLICATE-CHECK:**
-  - Geprueft: Arbeitszeit-Übersicht existiert als Start-Subview; hier nur UX-Angleichung auf einer weiteren Terminal-Seite.
+  - Geprüft: Arbeitszeit-Übersicht existiert als Start-Subview; hier nur UX-Angleichung auf einer weiteren Terminal-Seite.
 - **DATEIEN (max. 3):**
   1) `views/terminal/auftrag_stoppen.php`
   2) `docs/DEV_PROMPT_HISTORY.md`
 - **DONE:**
-  - Terminal: Seite "Hauptauftrag stoppen" zeigt im unteren Mitarbeiterpanel nur noch den Namen + Link "Arbeitszeit" (kein Textblock mehr). Klick oeffnet `?aktion=start&view=arbeitszeit`.
+  - Terminal: Seite "Hauptauftrag stoppen" zeigt im unteren Mitarbeiterpanel nur noch den Namen + Link "Arbeitszeit" (kein Textblock mehr). Klick öffnet `?aktion=start&view=arbeitszeit`.
 - **AKZEPTANZ:**
-  - Auf "Hauptauftrag stoppen" bleibt der Screen uebersichtlich; Arbeitszeitdaten sind ueber den Link erreichbar.
+  - Auf "Hauptauftrag stoppen" bleibt der Screen übersichtlich; Arbeitszeitdaten sind über den Link erreichbar.
 - **TESTS:**
   - `php -l views/terminal/auftrag_stoppen.php`
 - **NEXT:**
@@ -21419,15 +21525,15 @@ Pflicht-Begründungen für Tagesfelder (Kurzarbeit/Krank/Sonstiges) sollen in de
   - SQL-Schema (SoT, aus ZIP): `sql/01_initial_schema.sql` = `b0088149d6f39bd7c0dc6e41dff197fea496ddcb7a3afca838140f6b50fd33de`
   - Zusatz (DB-Dump, aus ZIP): `sql/zeiterfassung_aktuell.sql` = `6ffbe22edafbe20bf6d8c95deaf442cc4e35ceec497531ed4ee8a3fbb561c138`
 - **DUPLICATE-CHECK:**
-  - Geprueft: Arbeitszeit-Übersicht existiert als Start-Subview; hier nur UX-Angleichung auf weiteren Terminal-Seiten.
+  - Geprüft: Arbeitszeit-Übersicht existiert als Start-Subview; hier nur UX-Angleichung auf weiteren Terminal-Seiten.
 - **DATEIEN (max. 3):**
   1) `views/terminal/urlaub_beantragen.php`
   2) `views/terminal/stoerung.php`
   3) `docs/DEV_PROMPT_HISTORY.md`
 - **DONE:**
-  - Terminal: Seiten "Urlaub beantragen" und "Stoerung" zeigen im unteren Mitarbeiterpanel nur noch den Namen + Link "Arbeitszeit" (kein Textblock mehr). Klick oeffnet `?aktion=start&view=arbeitszeit`.
+  - Terminal: Seiten "Urlaub beantragen" und "Störung" zeigen im unteren Mitarbeiterpanel nur noch den Namen + Link "Arbeitszeit" (kein Textblock mehr). Klick öffnet `?aktion=start&view=arbeitszeit`.
 - **AKZEPTANZ:**
-  - Screens bleiben uebersichtlich; Arbeitszeitdaten sind konsistent ueber den Link erreichbar.
+  - Screens bleiben übersichtlich; Arbeitszeitdaten sind konsistent über den Link erreichbar.
 - **TESTS:**
   - `php -l views/terminal/urlaub_beantragen.php`
   - `php -l views/terminal/stoerung.php`
@@ -21445,14 +21551,14 @@ Pflicht-Begründungen für Tagesfelder (Kurzarbeit/Krank/Sonstiges) sollen in de
   - SQL-Schema (SoT, aus ZIP): `sql/01_initial_schema.sql` = `b0088149d6f39bd7c0dc6e41dff197fea496ddcb7a3afca838140f6b50fd33de`
   - Zusatz (DB-Dump, aus ZIP): `sql/zeiterfassung_aktuell.sql` = `6ffbe22edafbe20bf6d8c95deaf442cc4e35ceec497531ed4ee8a3fbb561c138`
 - **DUPLICATE-CHECK:**
-  - Geprueft: Arbeitszeit-Übersicht existiert als Start-Subview; hier nur UX-Angleichung auf einer weiteren Terminal-Seite.
+  - Geprüft: Arbeitszeit-Übersicht existiert als Start-Subview; hier nur UX-Angleichung auf einer weiteren Terminal-Seite.
 - **DATEIEN (max. 3):**
   1) `views/terminal/logout.php`
   2) `docs/DEV_PROMPT_HISTORY.md`
 - **DONE:**
-  - Terminal: Seite "Abmelden" zeigt im unteren Mitarbeiterpanel nur noch den Namen + Link "Arbeitszeit" (kein Textblock mehr). Klick oeffnet `?aktion=start&view=arbeitszeit`.
+  - Terminal: Seite "Abmelden" zeigt im unteren Mitarbeiterpanel nur noch den Namen + Link "Arbeitszeit" (kein Textblock mehr). Klick öffnet `?aktion=start&view=arbeitszeit`.
 - **AKZEPTANZ:**
-  - Logout-Screen bleibt uebersichtlich; Arbeitszeitdaten sind ueber den Link erreichbar.
+  - Logout-Screen bleibt übersichtlich; Arbeitszeitdaten sind über den Link erreichbar.
 - **TESTS:**
   - `php -l views/terminal/logout.php`
 - **NEXT:**
@@ -21468,18 +21574,18 @@ Pflicht-Begründungen für Tagesfelder (Kurzarbeit/Krank/Sonstiges) sollen in de
   - Rechte-Prompt (aus ZIP): `docs/rechte_prompt.md` = `5d8a5925bc2cf0dff364e500996c42fdeefe5f0b953cead7807ae642b70e7fc1`
   - SQL-Schema (SoT, aus ZIP): `sql/01_initial_schema.sql` = `b0088149d6f39bd7c0dc6e41dff197fea496ddcb7a3afca838140f6b50fd33de`
   - Zusatz (DB-Dump, aus ZIP): `sql/zeiterfassung_aktuell.sql` = `6ffbe22edafbe20bf6d8c95deaf442cc4e35ceec497531ed4ee8a3fbb561c138`
-- **BUG:** Monatsuebersicht zeigt Mikro-Buchungen auch dann in den An/Ab-Spalten, wenn "Mikro-Buchungen anzeigen" **nicht** aktiviert ist (weil Mikro-Flag bisher nur auf Tagesebene greift).
+- **BUG:** Monatsübersicht zeigt Mikro-Buchungen auch dann in den An/Ab-Spalten, wenn "Mikro-Buchungen anzeigen" **nicht** aktiviert ist (weil Mikro-Flag bisher nur auf Tagesebene greift).
 - **DATEIEN (max. 3):**
   1) `controller/ReportController.php`
   2) `views/report/monatsuebersicht.php`
   3) `docs/DEV_PROMPT_HISTORY.md`
 - **DONE:**
-  - Monatsuebersicht: Mikro-Bloecke werden jetzt **pro Block** erkannt (Kommen/Gehen innerhalb `config.micro_buchung_max_sekunden`, Default 180s).
-  - Wenn `show_micro` aus ist, werden diese Mikro-Bloecke komplett aus der Darstellung entfernt (statt als extra Zeilen/Zeitschnipsel zu erscheinen).
-  - Warn-/FEHLT-Pruefung ignoriert Mikro-Bloecke (auch wenn `show_micro` aktiv ist), damit keine falschen ⚠-Marker entstehen.
+  - Monatsübersicht: Mikro-Blöcke werden jetzt **pro Block** erkannt (Kommen/Gehen innerhalb `config.micro_buchung_max_sekunden`, Default 180s).
+  - Wenn `show_micro` aus ist, werden diese Mikro-Blöcke komplett aus der Darstellung entfernt (statt als extra Zeilen/Zeitschnipsel zu erscheinen).
+  - Warn-/FEHLT-Prüfung ignoriert Mikro-Blöcke (auch wenn `show_micro` aktiv ist), damit keine falschen ⚠-Marker entstehen.
 - **AKZEPTANZ:**
-  - Checkbox aus: Keine Mikro-Buchungen in der Monatsuebersicht sichtbar (auch nicht als "roh:"-Zeilen).
-  - Checkbox an: Mikro-Buchungen koennen sichtbar sein, beeinflussen aber keine FEHLT/⚠-Logik.
+  - Checkbox aus: Keine Mikro-Buchungen in der Monatsübersicht sichtbar (auch nicht als "roh:"-Zeilen).
+  - Checkbox an: Mikro-Buchungen können sichtbar sein, beeinflussen aber keine FEHLT/⚠-Logik.
 - **TESTS:**
   - `php -l controller/ReportController.php`
   - `php -l views/report/monatsuebersicht.php`
@@ -21496,16 +21602,16 @@ Pflicht-Begründungen für Tagesfelder (Kurzarbeit/Krank/Sonstiges) sollen in de
   - Rechte-Prompt (aus ZIP): `docs/rechte_prompt.md` = `5d8a5925bc2cf0dff364e500996c42fdeefe5f0b953cead7807ae642b70e7fc1`
   - SQL-Schema (SoT, aus ZIP): `sql/01_initial_schema.sql` = `b0088149d6f39bd7c0dc6e41dff197fea496ddcb7a3afca838140f6b50fd33de`
   - Zusatz (DB-Dump, aus ZIP): `sql/zeiterfassung_aktuell.sql` = `6ffbe22edafbe20bf6d8c95deaf442cc4e35ceec497531ed4ee8a3fbb561c138`
-- **BUG:** Monatsuebersicht zeigt weiterhin "Mikro-Buchungen" trotz deaktivierter Checkbox, wenn Rundung aus einer Roh-Mikro-Buchung scheinbar laengere korrigierte Zeiten macht.
+- **BUG:** Monatsübersicht zeigt weiterhin "Mikro-Buchungen" trotz deaktivierter Checkbox, wenn Rundung aus einer Roh-Mikro-Buchung scheinbar längere korrigierte Zeiten macht.
 - **DATEIEN (max. 3):**
   1) `views/report/monatsuebersicht.php`
   2) `docs/DEV_PROMPT_HISTORY.md`
 - **DONE:**
   - Mikro-Erkennung basiert jetzt zuerst auf **Rohzeiten** (`kommen_roh/gehen_roh`). Wenn Roh-Diff <= `micro_buchung_max_sekunden`, wird der Block als Mikro erkannt.
-  - Rundung kann Mikro-Buchungen damit nicht mehr "aufblaehen" – bei deaktivierter Checkbox werden diese Bloecke wirklich ausgeblendet.
+  - Rundung kann Mikro-Buchungen damit nicht mehr "aufblähen" – bei deaktivierter Checkbox werden diese Blöcke wirklich ausgeblendet.
 - **AKZEPTANZ:**
   - Checkbox aus: Keine Roh-Mikro-Buchungen sichtbar (auch nicht als aufgeblasene korrigierte Zeiten/Extra-Zeilen).
-  - Checkbox an: Mikro-Buchungen koennen sichtbar sein.
+  - Checkbox an: Mikro-Buchungen können sichtbar sein.
 - **TESTS:**
   - `php -l views/report/monatsuebersicht.php`
 - **NEXT:**
@@ -21523,18 +21629,18 @@ Pflicht-Begründungen für Tagesfelder (Kurzarbeit/Krank/Sonstiges) sollen in de
   - Zusatz (DB-Dump, aus ZIP): `sql/zeiterfassung_aktuell.sql` = `6ffbe22edafbe20bf6d8c95deaf442cc4e35ceec497531ed4ee8a3fbb561c138`
   - Zusatz 1 (Scope alt, aus ZIP): `docs/archiv/zusatzpromt.md` = `1d80dc1a3718e7b495fbae5615840448ada0ad7a14281bb57618f11dc8bf4f58`
 - **DUPLICATE-CHECK:**
-  - Geprueft: `docs/archiv/zusatz2promt.md` existierte noch nicht.
+  - Geprüft: `docs/archiv/zusatz2promt.md` existierte noch nicht.
 - **DATEIEN (max. 3):**
   1) `docs/archiv/zusatz2promt.md`
   2) `docs/DEV_PROMPT_HISTORY.md`
 - **DONE:**
   - Neuer Zusatz-Prompt 2 erstellt: Stundenkonto (Gutstunden/Minusstunden) inkl. Strategie (Monatsaggregation), Datenmodell (Korrektur-Ledger + Batch), Backend/Terminal/PDF-Anforderungen und Micro-Patch-Plan.
 - **AKZEPTANZ:**
-  - `docs/archiv/zusatz2promt.md` ist im Projekt vorhanden und beschreibt die Stundenkonto-Umsetzung inkl. rueckwirkender Verteilungen so, dass eine LLM direkt danach implementieren kann.
+  - `docs/archiv/zusatz2promt.md` ist im Projekt vorhanden und beschreibt die Stundenkonto-Umsetzung inkl. rückwirkender Verteilungen so, dass eine LLM direkt danach implementieren kann.
 - **TESTS:**
   - `sha256sum docs/archiv/zusatz2promt.md`
 - **NEXT:**
-  - Naechster Patch: DB-Migration fuer `stundenkonto_korrektur` + `stundenkonto_batch` und neues Recht `STUNDENKONTO_VERWALTEN` (danach Service + Terminal-Anzeige).
+  - Nächster Patch: DB-Migration für `stundenkonto_korrektur` + `stundenkonto_batch` und neues Recht `STUNDENKONTO_VERWALTEN` (danach Service + Terminal-Anzeige).
 
 
 
@@ -21548,8 +21654,8 @@ Pflicht-Begründungen für Tagesfelder (Kurzarbeit/Krank/Sonstiges) sollen in de
   - SQL-Schema (SoT, aus ZIP): `sql/01_initial_schema.sql` = `b0088149d6f39bd7c0dc6e41dff197fea496ddcb7a3afca838140f6b50fd33de`
   - Zusatz (DB-Dump, aus ZIP): `sql/zeiterfassung_aktuell.sql` = `6ffbe22edafbe20bf6d8c95deaf442cc4e35ceec497531ed4ee8a3fbb561c138`
 - **DUPLICATE-CHECK:**
-  - Geprueft: Keine vorhandenen Tabellen/SQL-Migrationen fuer `stundenkonto_batch`/`stundenkonto_korrektur`.
-  - Geprueft: Recht `STUNDENKONTO_VERWALTEN` existierte in `docs/rechte_prompt.md` noch nicht.
+  - Geprüft: Keine vorhandenen Tabellen/SQL-Migrationen für `stundenkonto_batch`/`stundenkonto_korrektur`.
+  - Geprüft: Recht `STUNDENKONTO_VERWALTEN` existierte in `docs/rechte_prompt.md` noch nicht.
 - **DATEIEN (max. 3):**
   1) `sql/13_migration_stundenkonto.sql`
   2) `docs/rechte_prompt.md`
@@ -21559,14 +21665,14 @@ Pflicht-Begründungen für Tagesfelder (Kurzarbeit/Krank/Sonstiges) sollen in de
     - legt Tabellen `stundenkonto_batch` und `stundenkonto_korrektur` an (idempotent),
     - seeded Recht `STUNDENKONTO_VERWALTEN` in `recht`,
     - weist das Recht der Rolle `Chef` zu (idempotent).
-  - `docs/rechte_prompt.md` erweitert: neues Recht dokumentiert + Feature-Matrix um Stundenkonto ergaenzt.
+  - `docs/rechte_prompt.md` erweitert: neues Recht dokumentiert + Feature-Matrix um Stundenkonto ergänzt.
 - **AKZEPTANZ:**
-  - Migration laeuft ohne Fehler durch und erzeugt die beiden Tabellen inkl. FKs/Indizes.
+  - Migration läuft ohne Fehler durch und erzeugt die beiden Tabellen inkl. FKs/Indizes.
   - Recht `STUNDENKONTO_VERWALTEN` ist nach Migration vorhanden und bei Rolle `Chef` zugewiesen.
 - **TESTS:**
   - `grep -R "stundenkonto_" -n sql/13_migration_stundenkonto.sql docs/rechte_prompt.md`
 - **NEXT:**
-  - Micro-Patch: `sql/01_initial_schema.sql` (SoT) um die beiden neuen Tabellen ergaenzen (damit Neuinstallationen konsistent sind).
+  - Micro-Patch: `sql/01_initial_schema.sql` (SoT) um die beiden neuen Tabellen ergänzen (damit Neuinstallationen konsistent sind).
 
 
 
@@ -21580,14 +21686,14 @@ Pflicht-Begründungen für Tagesfelder (Kurzarbeit/Krank/Sonstiges) sollen in de
   - SQL-Schema (SoT, aus ZIP): `sql/01_initial_schema.sql` = `b0088149d6f39bd7c0dc6e41dff197fea496ddcb7a3afca838140f6b50fd33de`
   - Zusatz (DB-Dump, aus ZIP): `sql/zeiterfassung_aktuell.sql` = `64bba2e060402795cebddbf8c63a6bf8833aa10e71675c9ddac49a8f414c7e4f`
 - **DUPLICATE-CHECK:**
-  - Geprueft: `sql/21_migration_stundenkonto.sql` existierte noch nicht.
-  - Geprueft: `sql/13_migration_stundenkonto.sql` kollidiert im Nummernschema (es gibt bereits Migrationen bis 20) → daher Kanonisch-File nachgezogen.
+  - Geprüft: `sql/21_migration_stundenkonto.sql` existierte noch nicht.
+  - Geprüft: `sql/13_migration_stundenkonto.sql` kollidiert im Nummernschema (es gibt bereits Migrationen bis 20) → daher Kanonisch-File nachgezogen.
 - **DATEIEN (max. 3):**
   1) `sql/21_migration_stundenkonto.sql`
   2) `sql/13_migration_stundenkonto.sql`
   3) `docs/DEV_PROMPT_HISTORY.md`
 - **DONE:**
-  - Stundenkonto-Migration zusaetzlich als `sql/21_migration_stundenkonto.sql` abgelegt (korrekte Reihenfolge/Nummerierung).
+  - Stundenkonto-Migration zusätzlich als `sql/21_migration_stundenkonto.sql` abgelegt (korrekte Reihenfolge/Nummerierung).
   - `sql/13_migration_stundenkonto.sql` als Legacy-Alias markiert (Inhalt bleibt identisch), damit alte Rollouts nicht brechen.
 - **AKZEPTANZ:**
   - Im `sql/`-Ordner existiert die kanonische Migration `21_migration_stundenkonto.sql` und `13_migration_stundenkonto.sql` ist sichtbar als Legacy-Alias gekennzeichnet.
@@ -21595,7 +21701,7 @@ Pflicht-Begründungen für Tagesfelder (Kurzarbeit/Krank/Sonstiges) sollen in de
   - `ls -1 sql/*stundenkonto*.sql`
   - `grep -n "Migration: 21" -n sql/21_migration_stundenkonto.sql`
 - **NEXT:**
-  - Micro-Patch: `sql/01_initial_schema.sql` (SoT) um `stundenkonto_batch` + `stundenkonto_korrektur` ergaenzen (Neuinstallation konsistent).
+  - Micro-Patch: `sql/01_initial_schema.sql` (SoT) um `stundenkonto_batch` + `stundenkonto_korrektur` ergänzen (Neuinstallation konsistent).
 
 
 
@@ -21609,18 +21715,18 @@ Pflicht-Begründungen für Tagesfelder (Kurzarbeit/Krank/Sonstiges) sollen in de
   - SQL-Schema (SoT, aus ZIP): `sql/01_initial_schema.sql` = `b0088149d6f39bd7c0dc6e41dff197fea496ddcb7a3afca838140f6b50fd33de`
   - Zusatz (DB-Dump, aus ZIP): `sql/zeiterfassung_aktuell.sql` = `742b2d0d00bd86acc8240450e618defbd15d9acd5b788e4da058527af34a0cec`
 - **DUPLICATE-CHECK:**
-  - Geprueft: `sql/01_initial_schema.sql` enthielt vor dem Patch keine Tabellen `stundenkonto_batch`/`stundenkonto_korrektur`.
+  - Geprüft: `sql/01_initial_schema.sql` enthielt vor dem Patch keine Tabellen `stundenkonto_batch`/`stundenkonto_korrektur`.
 - **DATEIEN (max. 3):**
   1) `sql/01_initial_schema.sql`
   2) `docs/DEV_PROMPT_HISTORY.md`
 - **DONE:**
   - `sql/01_initial_schema.sql` (SoT) um `stundenkonto_batch` + `stundenkonto_korrektur` erweitert (FKs/Indizes analog zur Migration `sql/21_migration_stundenkonto.sql`).
 - **AKZEPTANZ:**
-  - Neuinstallation (Import von `sql/01_initial_schema.sql`) enthaelt die beiden Stundenkonto-Tabellen ohne weitere Migration.
+  - Neuinstallation (Import von `sql/01_initial_schema.sql`) enthält die beiden Stundenkonto-Tabellen ohne weitere Migration.
 - **TESTS:**
   - `grep -n "stundenkonto_" -n sql/01_initial_schema.sql`
 - **NEXT:**
-  - Micro-Patch: `services/StundenkontoService.php` (read-only) zum Berechnen von "Saldo bis Ende Vormonat" (Monatswerte + Korrekturen), damit Terminal/Report/PDF darauf aufbauen koennen.
+  - Micro-Patch: `services/StundenkontoService.php` (read-only) zum Berechnen von "Saldo bis Ende Vormonat" (Monatswerte + Korrekturen), damit Terminal/Report/PDF darauf aufbauen können.
 
 
 
@@ -21634,7 +21740,7 @@ Pflicht-Begründungen für Tagesfelder (Kurzarbeit/Krank/Sonstiges) sollen in de
   - SQL-Schema (SoT, aus ZIP): `sql/01_initial_schema.sql` = `9c43bd846fe5ab0aa58c543809db3683f4a4bed8b73879f437c1163d53757787`
   - Zusatz (DB-Dump, aus ZIP): `sql/zeiterfassung_aktuell.sql` = `742b2d0d00bd86acc8240450e618defbd15d9acd5b788e4da058527af34a0cec`
 - **DUPLICATE-CHECK:**
-  - Geprueft: `services/StundenkontoService.php` existierte vor dem Patch nicht.
+  - Geprüft: `services/StundenkontoService.php` existierte vor dem Patch nicht.
 - **DATEIEN (max. 3):**
   1) `services/StundenkontoService.php`
   2) `docs/DEV_PROMPT_HISTORY.md`
@@ -21645,7 +21751,7 @@ Pflicht-Begründungen für Tagesfelder (Kurzarbeit/Krank/Sonstiges) sollen in de
     - `formatMinutenAlsStundenString(minuten, mitVorzeichen)` -> Ausgabe als `+12.50` / `-3.25`.
   - Defensive Fehlerbehandlung: Wenn die Tabelle (Migration) noch fehlt, liefert das Service **0** und loggt eine Warnung (kein Fatal Error).
 - **AKZEPTANZ:**
-  - Controller/Views koennen das Service verwenden, ohne dass fehlende Stundenkonto-Tabellen einen 500er verursachen.
+  - Controller/Views können das Service verwenden, ohne dass fehlende Stundenkonto-Tabellen einen 500er verursachen.
 - **TESTS:**
   - `php -l services/StundenkontoService.php`
 - **NEXT:**
@@ -21662,12 +21768,12 @@ Pflicht-Begründungen für Tagesfelder (Kurzarbeit/Krank/Sonstiges) sollen in de
   - SQL-Schema (SoT, aus ZIP): `sql/01_initial_schema.sql` = `9c43bd846fe5ab0aa58c543809db3683f4a4bed8b73879f437c1163d53757787`
   - Zusatz (DB-Dump, aus ZIP): `sql/zeiterfassung_aktuell.sql` = `742b2d0d00bd86acc8240450e618defbd15d9acd5b788e4da058527af34a0cec`
 - **DUPLICATE-CHECK:**
-  - Geprueft: `views/report/monatsuebersicht.php` enthielt vor dem Patch keine Stundenkonto-Anzeige und keinen Zugriff auf `StundenkontoService`.
+  - Geprüft: `views/report/monatsuebersicht.php` enthielt vor dem Patch keine Stundenkonto-Anzeige und keinen Zugriff auf `StundenkontoService`.
 - **DATEIEN (max. 3):**
   1) `views/report/monatsuebersicht.php`
   2) `docs/DEV_PROMPT_HISTORY.md`
 - **DONE:**
-  - `views/report/monatsuebersicht.php`: Stundenkonto-Saldo bis Ende Vormonat wird ueber `StundenkontoService::holeSaldoMinutenBisVormonat()` berechnet.
+  - `views/report/monatsuebersicht.php`: Stundenkonto-Saldo bis Ende Vormonat wird über `StundenkontoService::holeSaldoMinutenBisVormonat()` berechnet.
   - Anzeige im Kopfbereich unter Soll/Ist/Differenz:
     - Label: `Gutstunden (Stand bis Vormonat)` oder `Minusstunden (Stand bis Vormonat)`
     - Wert: formatierte Stunden (z. B. `+12.50 h` / `-3.25 h`)
@@ -21676,7 +21782,7 @@ Pflicht-Begründungen für Tagesfelder (Kurzarbeit/Krank/Sonstiges) sollen in de
 - **TESTS:**
   - `php -l views/report/monatsuebersicht.php`
 - **NEXT:**
-  - Micro-Patch: Terminal – Arbeitszeit-Uebersicht (`views/terminal/info_uebersicht.php`) zeigt Stundenkonto-Saldo (Stand bis Vormonat) an.
+  - Micro-Patch: Terminal – Arbeitszeit-Übersicht (`views/terminal/info_uebersicht.php`) zeigt Stundenkonto-Saldo (Stand bis Vormonat) an.
   - Danach: Monatsreport-PDF (`report_monat_pdf`) Summenblock um Stundenkonto erweitern.
 
 
@@ -21691,17 +21797,17 @@ Pflicht-Begründungen für Tagesfelder (Kurzarbeit/Krank/Sonstiges) sollen in de
   - SQL-Schema (SoT, aus ZIP): `sql/01_initial_schema.sql` = `9c43bd846fe5ab0aa58c543809db3683f4a4bed8b73879f437c1163d53757787`
   - Zusatz (DB-Dump, aus ZIP): `sql/zeiterfassung_aktuell.sql` = `742b2d0d00bd86acc8240450e618defbd15d9acd5b788e4da058527af34a0cec`
 - **DUPLICATE-CHECK:**
-  - Geprueft: Terminal-Arbeitszeit-Uebersicht (`views/terminal/start.php` View `?aktion=start&view=arbeitszeit`) hatte vor dem Patch keine Stundenkonto-Zeile.
+  - Geprüft: Terminal-Arbeitszeit-Übersicht (`views/terminal/start.php` View `?aktion=start&view=arbeitszeit`) hatte vor dem Patch keine Stundenkonto-Zeile.
   - Hinweis: `views/terminal/info_uebersicht.php` ist laut Kommentar nicht aktiv genutzt; Anzeige erfolgt im Start-View.
 - **DATEIEN (max. 3):**
   1) `controller/TerminalController.php`
   2) `views/terminal/start.php`
   3) `docs/DEV_PROMPT_HISTORY.md`
 - **DONE:**
-  - TerminalController: berechnet Stundenkonto-Saldo *Stand bis Vormonat* via `StundenkontoService->holeSaldoMinutenBisVormonat()` und uebergibt an View.
+  - TerminalController: berechnet Stundenkonto-Saldo *Stand bis Vormonat* via `StundenkontoService->holeSaldoMinutenBisVormonat()` und übergibt an View.
   - Terminal Arbeitszeit-Übersicht-Seite: zeigt neue Zeile `Gutstunden/Minusstunden (Stand bis Vormonat)` inkl. Fehleranzeige.
 - **AKZEPTANZ:**
-  - In Terminal-UI (online) erscheint in der Arbeitszeit-Übersicht zusaetzlich zur Soll/Ist-Anzeige eine Zeile mit Gut-/Minusstunden (Stand bis Vormonat).
+  - In Terminal-UI (online) erscheint in der Arbeitszeit-Übersicht zusätzlich zur Soll/Ist-Anzeige eine Zeile mit Gut-/Minusstunden (Stand bis Vormonat).
 - **TESTS:**
   - `php -l controller/TerminalController.php`
   - `php -l views/terminal/start.php`
@@ -21719,19 +21825,19 @@ Pflicht-Begründungen für Tagesfelder (Kurzarbeit/Krank/Sonstiges) sollen in de
   - SQL-Schema (SoT, aus ZIP): `sql/01_initial_schema.sql` = `9c43bd846fe5ab0aa58c543809db3683f4a4bed8b73879f437c1163d53757787`
   - Zusatz (DB-Dump, aus ZIP): `sql/zeiterfassung_aktuell.sql` = `742b2d0d00bd86acc8240450e618defbd15d9acd5b788e4da058527af34a0cec`
 - **DUPLICATE-CHECK:**
-  - Geprueft: `services/PDFService.php` enthielt vor dem Patch keinen Zugriff auf `StundenkontoService` und keine Stundenkonto-Zeile im Summenblock.
+  - Geprüft: `services/PDFService.php` enthielt vor dem Patch keinen Zugriff auf `StundenkontoService` und keine Stundenkonto-Zeile im Summenblock.
 - **DATEIEN (max. 3):**
   1) `services/PDFService.php`
   2) `docs/DEV_PROMPT_HISTORY.md`
 - **DONE:**
-  - Monatsreport-PDF: Summenblock zeigt zusaetzliche Zeile `Stundenkonto (bis Vormonat)`.
-  - Wert wird ueber `StundenkontoService->holeSaldoMinutenBisVormonat(mitarbeiterId, jahr, monat)` berechnet und als `+/-XX.XX` Stunden ausgegeben.
+  - Monatsreport-PDF: Summenblock zeigt zusätzliche Zeile `Stundenkonto (bis Vormonat)`.
+  - Wert wird über `StundenkontoService->holeSaldoMinutenBisVormonat(mitarbeiterId, jahr, monat)` berechnet und als `+/-XX.XX` Stunden ausgegeben.
 - **AKZEPTANZ:**
   - Im PDF `report_monat_pdf` erscheint unten im Summenblock eine Zeile `Stundenkonto (bis Vormonat)` mit formatiertem Saldo.
 - **TESTS:**
   - `php -l services/PDFService.php`
 - **NEXT:**
-  - Backend-Admin UI: Stundenkonto verwalten (minimal) – manuelle Korrektur (+/- Minuten) mit Begruendung erfassen (Recht `STUNDENKONTO_VERWALTEN`).
+  - Backend-Admin UI: Stundenkonto verwalten (minimal) – manuelle Korrektur (+/- Minuten) mit Begründung erfassen (Recht `STUNDENKONTO_VERWALTEN`).
 
 ## P-2026-01-17-21
 - ZIP: `P-2026-01-17-21_stundenkonto-backend-korrektur.zip`
@@ -21743,7 +21849,7 @@ Pflicht-Begründungen für Tagesfelder (Kurzarbeit/Krank/Sonstiges) sollen in de
   - SQL-Schema (SoT): `sql/01_initial_schema.sql` = `9c43bd846fe5ab0aa58c543809db3683f4a4bed8b73879f437c1163d53757787`
   - Zusatz (DB-Dump): `zeiterfassung_aktuell.sql` = `6ffbe22edafbe20bf6d8c95deaf442cc4e35ceec497531ed4ee8a3fbb561c138`
 - **DUPLICATE-CHECK:**
-  - Geprueft: `MitarbeiterAdminController` + `views/mitarbeiter/formular.php` enthielten vor dem Patch keine Stundenkonto-Anzeige und kein separates Mini-Formular fuer Korrekturen.
+  - Geprüft: `MitarbeiterAdminController` + `views/mitarbeiter/formular.php` enthielten vor dem Patch keine Stundenkonto-Anzeige und kein separates Mini-Formular für Korrekturen.
 - **DATEIEN (max. 3):**
   1) `controller/MitarbeiterAdminController.php`
   2) `views/mitarbeiter/formular.php`
@@ -21751,7 +21857,7 @@ Pflicht-Begründungen für Tagesfelder (Kurzarbeit/Krank/Sonstiges) sollen in de
 - **DONE:**
   - Backend Mitarbeiter-Formular: Neuer Abschnitt **Stundenkonto** (nur bei bestehendem Mitarbeiter):
     - Anzeige `Saldo Stand heute` (Summe aller `stundenkonto_korrektur` bis < morgen).
-    - Tabelle der letzten 10 Korrekturen (wirksam, delta, typ, begruendung, erstellt, von).
+    - Tabelle der letzten 10 Korrekturen (wirksam, delta, typ, begründung, erstellt, von).
   - Manuelle Korrektur buchen (separates Mini-Formular):
     - POST auf `?seite=mitarbeiter_admin_speichern` mit Flag `stundenkonto_only=1`.
     - Zugriff nur mit Recht `STUNDENKONTO_VERWALTEN`.
@@ -21759,19 +21865,19 @@ Pflicht-Begründungen für Tagesfelder (Kurzarbeit/Krank/Sonstiges) sollen in de
     - Flash-Feedback: Erfolg/Fehler im Formular.
 - **AKZEPTANZ:**
   - In `mitarbeiter_admin_bearbeiten` ist der Abschnitt **Stundenkonto** sichtbar und zeigt Saldo + Korrektur-Historie.
-  - Mit Recht `STUNDENKONTO_VERWALTEN` kann eine Korrektur gebucht werden; danach erscheint sie in der Liste und der Saldo aendert sich.
+  - Mit Recht `STUNDENKONTO_VERWALTEN` kann eine Korrektur gebucht werden; danach erscheint sie in der Liste und der Saldo ändert sich.
 - **TESTS:**
   - `php -l controller/MitarbeiterAdminController.php`
   - `php -l views/mitarbeiter/formular.php`
 - **NEXT:**
-  - Batch-/Verteilbuchung (Stunden auf X Arbeitstage verteilen): DB-Logik ueber `stundenkonto_batch` + auto-generierte `stundenkonto_korrektur`-Zeilen (UI + Service) – als eigener Micro-Patch.
+  - Batch-/Verteilbuchung (Stunden auf X Arbeitstage verteilen): DB-Logik über `stundenkonto_batch` + auto-generierte `stundenkonto_korrektur`-Zeilen (UI + Service) – als eigener Micro-Patch.
 
 
 
 ## P-2026-01-17-23_stundenkonto-monatsabschluss-buchen
 
-- Monatsuebersicht: Button "Monatsabschluss buchen" (nur fuer vergangene Monate, Recht `STUNDENKONTO_VERWALTEN`).
-- Bucht/aktualisiert die Monats-Differenz (Soll/Ist) als Eintrag in `stundenkonto_korrektur` (typ `manuell`, Begruendung `Monatsabschluss YYYY-MM`, Wirksamkeitsdatum = letzter Tag des Monats).
+- Monatsübersicht: Button "Monatsabschluss buchen" (nur für vergangene Monate, Recht `STUNDENKONTO_VERWALTEN`).
+- Bucht/aktualisiert die Monats-Differenz (Soll/Ist) als Eintrag in `stundenkonto_korrektur` (typ `manuell`, Begründung `Monatsabschluss YYYY-MM`, Wirksamkeitsdatum = letzter Tag des Monats).
 - Anzeige: berechnete Differenz, ggf. bereits gebuchte Differenz + Statusmeldungen (CSRF).
 
 - **EINGELESEN (SHA256):**
@@ -21794,13 +21900,13 @@ Pflicht-Begründungen für Tagesfelder (Kurzarbeit/Krank/Sonstiges) sollen in de
   - `php -l controller/ReportController.php`
   - `php -l views/report/monatsuebersicht.php`
 - **NEXT:**
-  - Optional: Quick-Flow fuer Vormonat (Dashboard/Report) – Hinweis, wenn Monatsabschluss fuer einen vergangenen Monat noch nicht gebucht ist (Button direkt ausloesen).
+  - Optional: Quick-Flow für Vormonat (Dashboard/Report) – Hinweis, wenn Monatsabschluss für einen vergangenen Monat noch nicht gebucht ist (Button direkt auslösen).
 
 
 ## P-2026-01-17-24_stundenkonto-audit-logs
 
 - Stundenkonto: Erfolgs- und Fehler-Aktionen schreiben nachvollziehbar nach `system_log` (Kategorie `stundenkonto`).
-- Logging erfolgt **zusätzlich** zu Flash/Redirect, ohne UI-Aenderung.
+- Logging erfolgt **zusätzlich** zu Flash/Redirect, ohne UI-Änderung.
 
 - **EINGELESEN (SHA256):**
   - `/mnt/data/193233_gesammt.zip`: `85b1daa9208f4bb5e1c6ebea75415177c66c845c0ee9e60f364ba1b491e9f897`
@@ -21811,7 +21917,7 @@ Pflicht-Begründungen für Tagesfelder (Kurzarbeit/Krank/Sonstiges) sollen in de
   - `sql/zeiterfassung_aktuell.sql`: `742b2d0d00bd86acc8240450e618defbd15d9acd5b788e4da058527af34a0cec`
 
 - **DUPLICATE-CHECK:**
-  - Geprueft: In den Stundenkonto-POST-Flows gab es bislang nur Error-Logs; Success-Logs fehlten.
+  - Geprüft: In den Stundenkonto-POST-Flows gab es bislang nur Error-Logs; Success-Logs fehlten.
 
 - **DATEIEN (max. 3):**
   1) `controller/MitarbeiterAdminController.php`
@@ -21819,9 +21925,9 @@ Pflicht-Begründungen für Tagesfelder (Kurzarbeit/Krank/Sonstiges) sollen in de
   3) `docs/DEV_PROMPT_HISTORY.md`
 
 - **DONE:**
-  - Backend-Admin: Manuelle Stundenkonto-Korrektur schreibt bei Erfolg `Logger::info(...)` inkl. Korrektur-ID, Delta, Datum, Begruendung, Actor.
+  - Backend-Admin: Manuelle Stundenkonto-Korrektur schreibt bei Erfolg `Logger::info(...)` inkl. Korrektur-ID, Delta, Datum, Begründung, Actor.
   - Backend-Admin: Verteilbuchung (Batch) schreibt bei Erfolg `Logger::info(...)` inkl. Batch-ID, Zeitraum, Modus, Summe/Anzahl Tage, Actor.
-  - Monatsuebersicht: Monatsabschluss buchen schreibt bei Erfolg `Logger::info(...)` (Insert + Update) und bei Fehler `Logger::error(...)`.
+  - Monatsübersicht: Monatsabschluss buchen schreibt bei Erfolg `Logger::info(...)` (Insert + Update) und bei Fehler `Logger::error(...)`.
 
 - **AKZEPTANZ:**
   - Nach erfolgreicher Korrektur/Batch/Monatsabschluss existiert ein Eintrag in `system_log` (Kategorie `stundenkonto`) mit den Meta-Daten.
@@ -21832,13 +21938,13 @@ Pflicht-Begründungen für Tagesfelder (Kurzarbeit/Krank/Sonstiges) sollen in de
   - `php -l controller/ReportController.php`
 
 - **NEXT:**
-  - Doku-Patch: `docs/rechte_prompt.md` – `STUNDENKONTO_VERWALTEN` von "geplant" auf aktiv (Pruefpunkte aktualisieren).
+  - Doku-Patch: `docs/rechte_prompt.md` – `STUNDENKONTO_VERWALTEN` von "geplant" auf aktiv (Prüfpunkte aktualisieren).
 
 
 
 ## P-2026-01-17-25_rechteprompt-stundenkonto-aktiv
 
-- Doku: Recht `STUNDENKONTO_VERWALTEN` ist jetzt als **aktiv** dokumentiert (Inventar: "Im Code geprueft = JA") inkl. realer Pruefpunkte in Controller/Views.
+- Doku: Recht `STUNDENKONTO_VERWALTEN` ist jetzt als **aktiv** dokumentiert (Inventar: "Im Code geprüft = JA") inkl. realer Prüfpunkte in Controller/Views.
 
 - **EINGELESEN (SHA256):**
   - Projekt-ZIP: `194757_gesammt.zip` = `8f57e2dcb0ba3976a50a3c229ce56e584efff65a15bbff3b787258eb68ca42dd`
@@ -21850,29 +21956,29 @@ Pflicht-Begründungen für Tagesfelder (Kurzarbeit/Krank/Sonstiges) sollen in de
   - Zusatz (DB-Dump): `zeiterfassung_aktuell.sql` = `6ffbe22edafbe20bf6d8c95deaf442cc4e35ceec497531ed4ee8a3fbb561c138`
 
 - **DUPLICATE-CHECK:**
-  - Geprueft: In `docs/rechte_prompt.md` war `STUNDENKONTO_VERWALTEN` noch als "NEIN" markiert und die Sektion als "(geplant)" gefuehrt → Doku-Patch erforderlich.
+  - Geprüft: In `docs/rechte_prompt.md` war `STUNDENKONTO_VERWALTEN` noch als "NEIN" markiert und die Sektion als "(geplant)" geführt → Doku-Patch erforderlich.
 
 - **DATEIEN (max. 3):**
   1) `docs/rechte_prompt.md`
   2) `docs/DEV_PROMPT_HISTORY.md`
 
 - **DONE:**
-  - `docs/rechte_prompt.md`: `STUNDENKONTO_VERWALTEN` ist als kanonisches Recht dokumentiert (Inventar: JA) inkl. realer Pruefpunkte (MitarbeiterAdminController/ReportController/View).
+  - `docs/rechte_prompt.md`: `STUNDENKONTO_VERWALTEN` ist als kanonisches Recht dokumentiert (Inventar: JA) inkl. realer Prüfpunkte (MitarbeiterAdminController/ReportController/View).
 
 - **AKZEPTANZ:**
-  - Rechte-Prompt zeigt `STUNDENKONTO_VERWALTEN` im Inventar als "Im Code geprueft: JA" und enthaelt reale Pruefpunkte/Dateien.
+  - Rechte-Prompt zeigt `STUNDENKONTO_VERWALTEN` im Inventar als "Im Code geprüft: JA" und enthält reale Prüfpunkte/Dateien.
 
 - **TESTS:**
   - (Docs-only)
 
 - **NEXT:**
-  - Monatsreport HTML/PDF: Block "Urlaubstage abzueglich geplante Betriebsferien" neben dem Stundenkonto-Block ergaenzen.
+  - Monatsreport HTML/PDF: Block "Urlaubstage abzüglich geplante Betriebsferien" neben dem Stundenkonto-Block ergänzen.
 
 
 
 ## P-2026-01-17-26_pdf-urlaub-betriebsferien-block
 
-- Monatsreport-PDF: Summenbereich zeigt rechts Zusatzwerte fuer Urlaubstage (abzgl. geplante Betriebsferien) im Rest des Jahres.
+- Monatsreport-PDF: Summenbereich zeigt rechts Zusatzwerte für Urlaubstage (abzgl. geplante Betriebsferien) im Rest des Jahres.
 
 - **EINGELESEN (SHA256):**
   - Projekt-ZIP: `200035_gesammt.zip` = `6d302230d6483e85d443d76bb32480c3e63b1e9396e34c8759235550d8cdad6a`
@@ -21882,7 +21988,7 @@ Pflicht-Begründungen für Tagesfelder (Kurzarbeit/Krank/Sonstiges) sollen in de
   - Zusatz (DB-Dump): `sql/zeiterfassung_aktuell.sql` = `742b2d0d00bd86acc8240450e618defbd15d9acd5b788e4da058527af34a0cec`
 
 - **DUPLICATE-CHECK:**
-  - SNAPSHOT/LOG geprueft: Der Urlaub-Betriebsferien-Block war als NEXT offen (Patch 25) und noch nicht DONE → Implementierung erforderlich.
+  - SNAPSHOT/LOG geprüft: Der Urlaub-Betriebsferien-Block war als NEXT offen (Patch 25) und noch nicht DONE → Implementierung erforderlich.
 
 - **DATEIEN (max. 3):**
   1) `services/UrlaubService.php`
@@ -21890,14 +21996,14 @@ Pflicht-Begründungen für Tagesfelder (Kurzarbeit/Krank/Sonstiges) sollen in de
   3) `docs/DEV_PROMPT_HISTORY.md`
 
 - **DONE:**
-  - `UrlaubService`: Neue Methode `zaehleBetriebsferienArbeitstageFuerMitarbeiter()` zaehlt Betriebsferien als Arbeitstage (Mo-Fr, ohne betriebsfreie Feiertage) fuer einen Zeitraum.
+  - `UrlaubService`: Neue Methode `zaehleBetriebsferienArbeitstageFuerMitarbeiter()` zählt Betriebsferien als Arbeitstage (Mo-Fr, ohne betriebsfreie Feiertage) für einen Zeitraum.
   - `PDFService`: Summenblock unten wurde leicht nach links verschoben; rechts daneben neuer Zusatzblock:
     - "Urlaubtage (abzgl. BF)" = `urlaub_verbleibend` minus Betriebsferien-Arbeitstage im Rest des Jahres (nach Monatsende bis 31.12.).
     - "BF (Rest Jahr)" = Anzahl der Betriebsferien-Arbeitstage im Rest des Jahres.
 
 - **AKZEPTANZ:**
   - Monatsreport-PDF zeigt rechts neben den Summen die beiden Werte; Anzeige ist leer, wenn keine Monatswerte vorliegen.
-  - Betriebsferien-Zaehler ignoriert Wochenenden und betriebsfreie Feiertage.
+  - Betriebsferien-Zähler ignoriert Wochenenden und betriebsfreie Feiertage.
 
 - **TESTS:**
   - `php -l services/UrlaubService.php`
@@ -21921,7 +22027,7 @@ Pflicht-Begründungen für Tagesfelder (Kurzarbeit/Krank/Sonstiges) sollen in de
   - Zusatz (DB-Dump): `sql/zeiterfassung_aktuell.sql` = `742b2d0d00bd86acc8240450e618defbd15d9acd5b788e4da058527af34a0cec`
 
 - **DUPLICATE-CHECK:**
-  - SNAPSHOT/LOG geprueft: Monatsreport (HTML) Urlaub/BF-Block war als **NEXT** (Patch 26) offen und noch nicht DONE → Implementierung erforderlich.
+  - SNAPSHOT/LOG geprüft: Monatsreport (HTML) Urlaub/BF-Block war als **NEXT** (Patch 26) offen und noch nicht DONE → Implementierung erforderlich.
 
 - **DATEIEN (max. 3):**
   1) `views/report/monatsuebersicht.php`
@@ -21931,7 +22037,7 @@ Pflicht-Begründungen für Tagesfelder (Kurzarbeit/Krank/Sonstiges) sollen in de
   - `views/report/monatsuebersicht.php`: Berechnet und zeigt (nur wenn Monatswerte vorliegen):
     - „Urlaubtage (abzgl. BF)“ = `urlaub_verbleibend` minus Betriebsferien-Arbeitstage im Rest des Jahres (nach Monatsende bis 31.12.).
     - „BF (Rest Jahr)“ = Anzahl der Betriebsferien-Arbeitstage im Rest des Jahres.
-  - Berechnung defensiv (try/catch), damit es keine 500er gibt, wenn die Berechnung fehlschlaegt.
+  - Berechnung defensiv (try/catch), damit es keine 500er gibt, wenn die Berechnung fehlschlägt.
 
 - **AKZEPTANZ:**
   - Monatsreport (HTML) zeigt die Werte im Summenbereich unter Soll/Ist/Differenz + Stundenkonto.
@@ -21941,12 +22047,12 @@ Pflicht-Begründungen für Tagesfelder (Kurzarbeit/Krank/Sonstiges) sollen in de
   - `php -l views/report/monatsuebersicht.php`
 
 - **NEXT:**
-  - Stabilitaet: Backend – Monatsuebersicht + Monats-PDF klicken (T-069 Teil 2a/2b) und Bugs/Anomalien sammeln (danach Micro-Bugfix-Patches).
+  - Stabilität: Backend – Monatsübersicht + Monats-PDF klicken (T-069 Teil 2a/2b) und Bugs/Anomalien sammeln (danach Micro-Bugfix-Patches).
 
 
 ## P-2026-01-17-28_stabilitaet-microbuchungen-regression-note
 
-- Stabilitaet: Regression „Mikro-Buchungen“ in Monatsuebersicht/PDF als Bug (B-078) dokumentiert, Fix folgt als Micro-Patch.
+- Stabilität: Regression „Mikro-Buchungen“ in Monatsübersicht/PDF als Bug (B-078) dokumentiert, Fix folgt als Micro-Patch.
 
 - **EINGELESEN (SHA256):**
   - Projekt-ZIP: `202608_gesammt.zip` = `af5f7b232bdb71de30cd61723d0cc875914cd551d54c0e83ba7913ce7f62adb3`
@@ -21957,23 +22063,23 @@ Pflicht-Begründungen für Tagesfelder (Kurzarbeit/Krank/Sonstiges) sollen in de
   - Zusatz (DB-Dump): `sql/zeiterfassung_aktuell.sql` = `742b2d0d00bd86acc8240450e618defbd15d9acd5b788e4da058527af34a0cec`
 
 - **DUPLICATE-CHECK:**
-  - SNAPSHOT/LOG geprueft: Mikro-Buchungen wurden bereits in **P-2026-01-17-12** als ausgeblendet dokumentiert, sind aktuell aber wieder sichtbar (User-Screenshot). Es gab noch keinen B-ID-Eintrag fuer diese Regression → Dokumentation erforderlich.
+  - SNAPSHOT/LOG geprüft: Mikro-Buchungen wurden bereits in **P-2026-01-17-12** als ausgeblendet dokumentiert, sind aktuell aber wieder sichtbar (User-Screenshot). Es gab noch keinen B-ID-Eintrag für diese Regression → Dokumentation erforderlich.
 
 - **DATEIEN (max. 3):**
   1) `docs/DEV_PROMPT_HISTORY.md`
 
 - **DONE:**
-  - SNAPSHOT: Neuer Bug **B-078** (Regression Mikro-Buchungen in Monatsuebersicht/PDF) aufgenommen.
-  - NEXT konkretisiert: Nach Stabilitaets-Clickthrough ist **B-078** als erster Micro-Bugfix einzuplanen.
+  - SNAPSHOT: Neuer Bug **B-078** (Regression Mikro-Buchungen in Monatsübersicht/PDF) aufgenommen.
+  - NEXT konkretisiert: Nach Stabilitäts-Clickthrough ist **B-078** als erster Micro-Bugfix einzuplanen.
 
 - **AKZEPTANZ:**
-  - Im SNAPSHOT ist B-078 als OFFEN gelistet und der naechste Micro-Bugfix-Schritt referenziert diesen Bug.
+  - Im SNAPSHOT ist B-078 als OFFEN gelistet und der nächste Micro-Bugfix-Schritt referenziert diesen Bug.
 
 - **TESTS:**
   - (Docs-only)
 
 - **NEXT:**
-  - Micro-Patch: Ursache finden (wo das Ausblenden wieder verloren ging) und Mikro-Buchungen in Monatsuebersicht + PDF wieder wie vorgesehen ausblenden.
+  - Micro-Patch: Ursache finden (wo das Ausblenden wieder verloren ging) und Mikro-Buchungen in Monatsübersicht + PDF wieder wie vorgesehen ausblenden.
 
 ---
 
@@ -21988,23 +22094,23 @@ Pflicht-Begründungen für Tagesfelder (Kurzarbeit/Krank/Sonstiges) sollen in de
 - sql/01_initial_schema.sql = 9c43bd846fe5ab0aa58c543809db3683f4a4bed8b73879f437c1163d53757787
 
 **Duplicate-Check:**
-- SNAPSHOT/LOG enthaelt keine `P-2026-01-18-02` → OK
+- SNAPSHOT/LOG enthält keine `P-2026-01-18-02` → OK
 
 ### Dateien (max 3)
 1) `services/PDFService.php`
 2) `docs/DEV_PROMPT_HISTORY.md`
 
 ### Ziel
-Monatsreport-PDF: Urlaubsblock konsistent zum UrlaubService (Jahres-Resturlaub inkl. Betriebsferien), keine Doppel-Abzuege/negativen Werte.
+Monatsreport-PDF: Urlaubsblock konsistent zum UrlaubService (Jahres-Resturlaub inkl. Betriebsferien), keine Doppel-Abzüge/negativen Werte.
 
 ### Umsetzung
 - `PDFService.php`: `Urlaubtage (abzgl. BF)` = `UrlaubService->berechneUrlaubssaldoFuerJahr(...)[verbleibend]` (inkl. BF). `BF (Rest Jahr)` bleibt separat als Info.
 
 ### Test
-- Backend → Monatsuebersicht → PDF erzeugen: Urlaubsblock rechts muss plausible positive Werte zeigen.
+- Backend → Monatsübersicht → PDF erzeugen: Urlaubsblock rechts muss plausible positive Werte zeigen.
 
 ### Next
-- T-069 Teil 2b: Backend-PDF weiter klicken, naechsten Bug als Micro-Patch.
+- T-069 Teil 2b: Backend-PDF weiter klicken, nächsten Bug als Micro-Patch.
 
 ---
 
@@ -22019,7 +22125,7 @@ Monatsreport-PDF: Urlaubsblock konsistent zum UrlaubService (Jahres-Resturlaub i
 - sql/zeiterfassung_aktuell.sql = 742b2d0d00bd86acc8240450e618defbd15d9acd5b788e4da058527af34a0cec
 
 **Duplicate-Check:**
-- SNAPSHOT/LOG enthaelt keine `P-2026-01-18-03` → OK
+- SNAPSHOT/LOG enthält keine `P-2026-01-18-03` → OK
 
 ### Dateien (max 3)
 1) `views/report/monatsuebersicht.php`
@@ -22033,11 +22139,11 @@ Monatsreport-HTML: Urlaubsblock konsistent zum PDF (UrlaubService-Jahres-Resturl
 - `views/report/monatsuebersicht.php`: `Urlaubtage (abzgl. BF)` = `UrlaubService->berechneUrlaubssaldoFuerJahr(...)[verbleibend]` (inkl. BF). `BF (Rest Jahr)` bleibt separat via `zaehleBetriebsferienArbeitstageFuerMitarbeiter(...)` nach Monatsende bis 31.12.
 
 ### Test
-- Backend → Monatsuebersicht: Urlaubsblock muss plausibel sein (kein negativer Urlaub) und zu PDF passen.
+- Backend → Monatsübersicht: Urlaubsblock muss plausibel sein (kein negativer Urlaub) und zu PDF passen.
 
 ### Next
-- T-069 Teil 2a/2b weiter: Monatsuebersicht + Monats-PDF klicken und naechste Bugs als Micro-Patches.
-- Bei Gelegenheit: B-080 Urlaubsberechnung/Anzeige „Mein Urlaub“ nochmal pruefen (BF/Feiertag/Workday).
+- T-069 Teil 2a/2b weiter: Monatsübersicht + Monats-PDF klicken und nächste Bugs als Micro-Patches.
+- Bei Gelegenheit: B-080 Urlaubsberechnung/Anzeige „Mein Urlaub“ nochmal prüfen (BF/Feiertag/Workday).
 
 
 ---
@@ -22053,7 +22159,7 @@ Monatsreport-HTML: Urlaubsblock konsistent zum PDF (UrlaubService-Jahres-Resturl
 - sql/zeiterfassung_aktuell.sql = 742b2d0d00bd86acc8240450e618defbd15d9acd5b788e4da058527af34a0cec
 
 **Duplicate-Check:**
-- SNAPSHOT/LOG enthaelt keine `P-2026-01-18-04_urlaub-meine-bf-restjahr-label` → OK
+- SNAPSHOT/LOG enthält keine `P-2026-01-18-04_urlaub-meine-bf-restjahr-label` → OK
 
 ### Dateien (max 3)
 1) `views/urlaub/meine_antraege.php`
@@ -22068,10 +22174,10 @@ Urlaub-UI ("Mein Urlaub"): Anzeige transparent machen, weil Betriebsferien autom
   - Zusatzinfo: `BF (Rest Jahr)` wird aus `UrlaubService->zaehleBetriebsferienArbeitstageFuerMitarbeiter(...)` (ab heute bis 31.12.) berechnet und angezeigt.
 
 ### Test
-- Backend → Mein Urlaub: Kopfbox muss `BF (Rest Jahr)` anzeigen und die Labels muessen klar sein.
+- Backend → Mein Urlaub: Kopfbox muss `BF (Rest Jahr)` anzeigen und die Labels müssen klar sein.
 
 ### Next
-- T-069 weiter: Monatsuebersicht + Monats-PDF weiter klicken und naechste Bugs als Micro-Patches.
+- T-069 weiter: Monatsübersicht + Monats-PDF weiter klicken und nächste Bugs als Micro-Patches.
 
 ---
 
@@ -22086,7 +22192,7 @@ Urlaub-UI ("Mein Urlaub"): Anzeige transparent machen, weil Betriebsferien autom
 - sql/zeiterfassung_aktuell.sql = 742b2d0d00bd86acc8240450e618defbd15d9acd5b788e4da058527af34a0cec
 
 **Duplicate-Check:**
-- SNAPSHOT/LOG enthaelt keine `P-2026-01-18-05` → OK
+- SNAPSHOT/LOG enthält keine `P-2026-01-18-05` → OK
 
 ### Dateien (max 3)
 1) `services/PDFService.php`
@@ -22101,10 +22207,10 @@ Monatsreport (PDF + HTML): Im Urlaubsblock darf "Urlaubtage (abzgl. BF)" nie neg
 - `views/report/monatsuebersicht.php`: Anzeige clamped auf Minimum 0.00.
 
 ### Test
-- Backend → Monatsuebersicht (HTML) + Monatsreport-PDF: "Urlaubtage (abzgl. BF)" darf nicht negativ erscheinen.
+- Backend → Monatsübersicht (HTML) + Monatsreport-PDF: "Urlaubtage (abzgl. BF)" darf nicht negativ erscheinen.
 
 ### Next
-- Bei Gelegenheit: Ursache fuer negative Salden pruefen (haeufig: Urlaubsanspruch=0 bei neuem Mitarbeiter) und ggf. Hinweis/Link zur Stammdatenpflege ergaenzen.
+- Bei Gelegenheit: Ursache für negative Salden prüfen (häufig: Urlaubsanspruch=0 bei neuem Mitarbeiter) und ggf. Hinweis/Link zur Stammdatenpflege ergänzen.
 - Urlaubsberechnung/Anzeige weiter beobachten (User-Hinweis: wirkt teils unplausibel) und als eigenen Micro-Bug aufnehmen, sobald reproduzierbar.
 
 
@@ -22121,37 +22227,37 @@ Monatsreport (PDF + HTML): Im Urlaubsblock darf "Urlaubtage (abzgl. BF)" nie neg
 - sql/zeiterfassung_aktuell.sql = 742b2d0d00bd86acc8240450e618defbd15d9acd5b788e4da058527af34a0cec
 
 **Duplicate-Check:**
-- SNAPSHOT/LOG enthaelt keine `P-2026-01-18-07` → OK
+- SNAPSHOT/LOG enthält keine `P-2026-01-18-07` → OK
 
 ### Dateien (max 3)
 1) `services/UrlaubService.php`
 2) `docs/DEV_PROMPT_HISTORY.md`
 
 ### Ziel
-B-080 (Teilfix): Urlaubs-/Betriebsferien-Saldo war unplausibel, weil die Skip-Logik fuer Betriebsferien in `UrlaubService` teilweise nicht griff.
+B-080 (Teilfix): Urlaubs-/Betriebsferien-Saldo war unplausibel, weil die Skip-Logik für Betriebsferien in `UrlaubService` teilweise nicht griff.
 
 Hauptursache:
 - Query auf `tageswerte_mitarbeiter` nutzte die Spalte `arbeitszeit_stunden`, die im Schema/SoT nicht existiert (`ist_stunden` ist korrekt) → Skip-Set blieb leer, BF wurde zu oft als Urlaub gezählt.
 
-Zusaetzlich:
-- Der Zaehler `zaehleBetriebsferienArbeitstageFuerMitarbeiter()` (BF Rest Jahr) soll **dieselbe** Skip-Logik verwenden (Arbeit/Kennzeichen/Krankzeitraum).
+Zusätzlich:
+- Der Zähler `zaehleBetriebsferienArbeitstageFuerMitarbeiter()` (BF Rest Jahr) soll **dieselbe** Skip-Logik verwenden (Arbeit/Kennzeichen/Krankzeitraum).
 
 ### Umsetzung
 - `UrlaubService.php`:
   - `tageswerte_mitarbeiter`: nutzt `ist_stunden AS arbeitszeit_stunden` (kompatibel zur bestehenden Logik) und erweitert die Kennzeichen um `kennzeichen_urlaub`.
   - `zaehleBetriebsferienArbeitstageFuerMitarbeiter()` bekommt ein Skip-Set aus:
     - Tageswerten (hat gearbeitet oder andere Kennzeichen)
-    - aktiven Krankzeitraeumen (LFZ/KK) fuer BF-Arbeitstage
+    - aktiven Krankzeiträumen (LFZ/KK) für BF-Arbeitstage
 
 ### Test
 - Backend → Mein Urlaub:
   - Keine SQL-Fehler (Logger) rund um `tageswerte_mitarbeiter`.
   - `BF (Rest Jahr)` wirkt plausibel (BF-Tage mit Arbeit/Kennzeichen/Krankzeitraum werden nicht abgezogen).
-- Monatsuebersicht/PDF:
+- Monatsübersicht/PDF:
   - Urlaubssaldo (abzgl. BF) konsistenter zu „Mein Urlaub“ (kein systematischer Drift durch leeres Skip-Set).
 
 ### Next
-- B-080 weiter: Wenn noch Abweichungen auftreten, konkret mit Screenshot + DB-Daten (Urlaubsantraege, Tageswerte, Krankzeitraum) reproduzieren und als Micro-Bug fixen.
+- B-080 weiter: Wenn noch Abweichungen auftreten, konkret mit Screenshot + DB-Daten (Urlaubsanträge, Tageswerte, Krankzeitraum) reproduzieren und als Micro-Bug fixen.
 
 ---
 
@@ -22170,10 +22276,10 @@ Eintrittsdatum im Mitarbeiter-Admin pflegbar machen, damit die Urlaubslogik (Ein
 - Save: `MitarbeiterAdminController::speichern()` liest `eintrittsdatum` aus POST und speichert es separat per `UPDATE mitarbeiter SET eintrittsdatum = :dt` (soft-fail, falls Spalte noch nicht existiert).
 
 ### Test
-- Mitarbeiter bearbeiten/anlegen: Datum setzen → speichern → erneut oeffnen → Datum bleibt erhalten.
+- Mitarbeiter bearbeiten/anlegen: Datum setzen → speichern → erneut öffnen → Datum bleibt erhalten.
 
 ### Next
-- SoT: `sql/01_initial_schema.sql` um `mitarbeiter.eintrittsdatum` ergaenzen.
+- SoT: `sql/01_initial_schema.sql` um `mitarbeiter.eintrittsdatum` ergänzen.
 
 ---
 
@@ -22188,15 +22294,15 @@ Eintrittsdatum im Mitarbeiter-Admin pflegbar machen, damit die Urlaubslogik (Ein
   - Zusatz (Offline-Schema): `sql/offline_db_schema.sql` = `165bd68e62f4a776d2425d108fbf0775497ade28f5a1e8242069c1cf084177c9`
   - Zusatz (DB-Dump): `sql/zeiterfassung_aktuell.sql` = `d1013e2d5a1a37514b0b9ce14c0a291b0f0b1dfda4125f93952d8054c862049c`
 - **DUPLICATE-CHECK:**
-  - SNAPSHOT/LOG geprueft: Migration 22 existiert, aber SoT `sql/01_initial_schema.sql` enthaelt `mitarbeiter.eintrittsdatum` noch nicht.
+  - SNAPSHOT/LOG geprüft: Migration 22 existiert, aber SoT `sql/01_initial_schema.sql` enthält `mitarbeiter.eintrittsdatum` noch nicht.
 - **DATEIEN (max. 3):**
   - `sql/01_initial_schema.sql`
   - `docs/DEV_PROMPT_HISTORY.md`
 - **DONE:**
   - SoT: `mitarbeiter.eintrittsdatum` (DATE NULL) im Initialschema aufgenommen (nach `geburtsdatum`).
-  - Akzeptanz: Eine Neuinstallation per `sql/01_initial_schema.sql` enthaelt die Spalte `mitarbeiter.eintrittsdatum`.
+  - Akzeptanz: Eine Neuinstallation per `sql/01_initial_schema.sql` enthält die Spalte `mitarbeiter.eintrittsdatum`.
 - **NEXT:**
-  - Stabilitaet: Backend – Monatsuebersicht + Monats-PDF klicken und naechste Bugs als Micro-Patches.
+  - Stabilität: Backend – Monatsübersicht + Monats-PDF klicken und nächste Bugs als Micro-Patches.
 
 ---
 
@@ -22210,12 +22316,12 @@ Eintrittsdatum im Mitarbeiter-Admin pflegbar machen, damit die Urlaubslogik (Ein
   - Backend: Zusatz-Tabelle "Arbeitsschritte (Summe, abgeschlossen)" inkl. Buchungsanzahl + Stunden-Summe pro Arbeitsschritt.
   - Hinweistext angepasst (Arbeitsschritt-Code wird bereits angezeigt, wenn beim Auftrag-Start erfasst).
 - **NEXT:**
-  - Terminal-UX: "Auftrag starten" ausblenden, wenn bereits ein Hauptauftrag laeuft (nur "Auftrag stoppen" anzeigen), um Doppelstarts zu vermeiden.
+  - Terminal-UX: "Auftrag starten" ausblenden, wenn bereits ein Hauptauftrag läuft (nur "Auftrag stoppen" anzeigen), um Doppelstarts zu vermeiden.
   - Maschine: Barcode/QR-Generator (JPG/PNG) pro Maschine + Anzeige/Download im Backend.
 
 ## P-2026-01-18-25
 - ZIP: `P-2026-01-18-25_terminal-nebenauftrag-arbeitsschritt.zip`
-- Terminal: **Nebenauftrag starten** unterstuetzt jetzt optional `arbeitsschritt_code`.
+- Terminal: **Nebenauftrag starten** unterstützt jetzt optional `arbeitsschritt_code`.
   - Neues Feld in `views/terminal/start.php` (Nebenauftrag-Startformular).
   - Speicherung in `auftragszeit.arbeitsschritt_code` (online via UPDATE nach Insert, offline direkt im INSERT).
 - Akzeptanz:
@@ -22235,14 +22341,14 @@ Eintrittsdatum im Mitarbeiter-Admin pflegbar machen, damit die Urlaubslogik (Ein
   - Zusatz (DB-Dump): `sql/zeiterfassung_aktuell.sql` = `9c62b1709c4729cca8a3b59e7a700c25ef23907592b9cc5256e5d78649e29cee`
   - Zusatz (Auftrags-Scope): `docs/docs/archiv/auftrags_prompt_v1.md` = `35142adf8d89ca7df88472aa50186da5c659a29928754ffc3354259ce54467cc`
 - **DUPLICATE-CHECK:**
-  - SNAPSHOT/LOG geprueft: Kein Eintrag `P-2026-01-18-26` vorhanden → OK
+  - SNAPSHOT/LOG geprüft: Kein Eintrag `P-2026-01-18-26` vorhanden → OK
 - **DATEIEN (max. 3):**
   - `controller/TerminalController.php`
 - **DONE:**
-  - Terminal (Nebenauftrag starten): Im Offline-Queue-Pfad wird jetzt **vor** dem `nebenauftrag_start` ein idempotentes `auftrag_ensure` in die Queue geschrieben, das `auftrag(auftragsnummer)` anlegt (oder bestaetigt).
+  - Terminal (Nebenauftrag starten): Im Offline-Queue-Pfad wird jetzt **vor** dem `nebenauftrag_start` ein idempotentes `auftrag_ensure` in die Queue geschrieben, das `auftrag(auftragsnummer)` anlegt (oder bestätigt).
   - Terminal (Nebenauftrag starten, online): Wenn `auftrag` noch nicht existiert, wird ein Minimaldatensatz idempotent angelegt und `auftrag_id` nachgeladen.
 - **NEXT:**
-  - Terminal-UX: Hauptauftrag-Start-Button ausblenden, wenn bereits ein Hauptauftrag laeuft (nur Stop zeigen) – Doppelstarts vermeiden.
+  - Terminal-UX: Hauptauftrag-Start-Button ausblenden, wenn bereits ein Hauptauftrag läuft (nur Stop zeigen) – Doppelstarts vermeiden.
 
 
 
@@ -22257,16 +22363,16 @@ Eintrittsdatum im Mitarbeiter-Admin pflegbar machen, damit die Urlaubslogik (Ein
   - Dev-Prompt (Stand vor Patch): `docs/dev_prompt_zeiterfassung_v12.md` = `67db39c5d74b03fad6fec66ec78be13fad316732ce774a6aec75bf249582d83c`
   - DEV_PROMPT_HISTORY (Stand vor Patch): `docs/DEV_PROMPT_HISTORY.md` = `50658e26e033c4f96991f69892014e7e4d95b8e4f1b1cb1b195d8aada8d571fe`
 - **DUPLICATE-CHECK:**
-  - SNAPSHOT/LOG geprueft: Kein Eintrag `P-2026-01-18-36` vorhanden → OK
+  - SNAPSHOT/LOG geprüft: Kein Eintrag `P-2026-01-18-36` vorhanden → OK
 - **DATEIEN (max. 3):**
   - `services/AuftragszeitService.php`
   - `controller/TerminalController.php`
   - `docs/DEV_PROMPT_HISTORY.md`
 - **DONE:**
-  - Praxis-Fix: **Hauptauftrag Start/Stop** beendet **keine Nebenauftraege automatisch** mehr.
+  - Praxis-Fix: **Hauptauftrag Start/Stop** beendet **keine Nebenaufträge automatisch** mehr.
     - Online: Auto-Close Calls entfernt.
-    - Offline: Queue-Updates fuer Nebenauftraege entfernt.
-    - Terminal: Session-State fuer Nebenauftrag wird beim Hauptauftrag-Start/Stop nicht mehr zurueckgesetzt.
+    - Offline: Queue-Updates für Nebenaufträge entfernt.
+    - Terminal: Session-State für Nebenauftrag wird beim Hauptauftrag-Start/Stop nicht mehr zurückgesetzt.
   - Text/UX: „Auftrag wurde gestoppt.“ (statt „beendet“).
 - **NEXT:**
   - Praxis-Test: Wenn Start/Stop-Logik bei gleichzeitigen Buchungen unklar wird → UX-Regel festziehen (nur nach Bedarf).
@@ -22276,7 +22382,7 @@ Eintrittsdatum im Mitarbeiter-Admin pflegbar machen, damit die Urlaubslogik (Ein
 - ZIP: `P-2026-01-18-35_auto-stop-nebenauftrag.zip`
 - **DONE (kurz):**
   - Auto-Stop Nebenauftrag beim Hauptauftrag-Stop/Wechsel.
-  - Praxis-Test zeigte: unerwuenscht → Rueckgaengig in **P-2026-01-18-36**.
+  - Praxis-Test zeigte: unerwünscht → Rückgängig in **P-2026-01-18-36**.
 
 
 ## P-2026-01-18-34
@@ -22287,15 +22393,15 @@ Eintrittsdatum im Mitarbeiter-Admin pflegbar machen, damit die Urlaubslogik (Ein
   - Dev-Prompt (Stand vor Patch): `docs/dev_prompt_zeiterfassung_v12.md` = `1782b82ef69728b8a50acd5d1c74820e2678c2c44dbed4ddb17ff646b2b604dc`
   - DEV_PROMPT_HISTORY (Stand vor Patch): `docs/DEV_PROMPT_HISTORY.md` = `88f821a6d625786b590ee4f588b77aa9590844698fdb5ed3fe3ae32cd8120534`
 - **DUPLICATE-CHECK:**
-  - SNAPSHOT/LOG geprueft: Kein Eintrag `P-2026-01-18-34` vorhanden → OK
+  - SNAPSHOT/LOG geprüft: Kein Eintrag `P-2026-01-18-34` vorhanden → OK
 - **DATEIEN (max. 3):**
   - `controller/TerminalController.php`
   - `docs/dev_prompt_zeiterfassung_v12.md`
   - `docs/DEV_PROMPT_HISTORY.md`
 - **DONE:**
-  - Terminal: **Nebenauftrag starten** ist jetzt **serverseitig** geblockt, wenn **kein Hauptauftrag** laeuft.
-    - Online: Pruefung ueber laufende `auftragszeit` (typ='haupt').
-    - Offline: Fallback ueber Session-Merker `terminal_letzter_auftrag`.
+  - Terminal: **Nebenauftrag starten** ist jetzt **serverseitig** geblockt, wenn **kein Hauptauftrag** läuft.
+    - Online: Prüfung über laufende `auftragszeit` (typ='haupt').
+    - Offline: Fallback über Session-Merker `terminal_letzter_auftrag`.
 - **NEXT:**
   - Praxis-Test: Edgecases/UX nur bei Bedarf/Bug.
 
@@ -22313,7 +22419,7 @@ Eintrittsdatum im Mitarbeiter-Admin pflegbar machen, damit die Urlaubslogik (Ein
   - Zusatz (DB-Dump): `sql/zeiterfassung_aktuell.sql` = `9c62b1709c4729cca8a3b59e7a700c25ef23907592b9cc5256e5d78649e29cee`
   - Zusatz (Auftrags-Prompt): `docs/archiv/auftrags_prompt_v1.md` = `35142adf8d89ca7df88472aa50186da5c659a29928754ffc3354259ce54467cc`
 - **DUPLICATE-CHECK:**
-  - SNAPSHOT/LOG geprueft: Kein Eintrag `P-2026-01-18-33` vorhanden → OK
+  - SNAPSHOT/LOG geprüft: Kein Eintrag `P-2026-01-18-33` vorhanden → OK
 - **DATEIEN (max. 3):**
   - `docs/archiv/auftrags_prompt_v1.md`
   - `docs/dev_prompt_zeiterfassung_v12.md`
@@ -22334,7 +22440,7 @@ Eintrittsdatum im Mitarbeiter-Admin pflegbar machen, damit die Urlaubslogik (Ein
   - Dev-Prompt (SoT): `docs/dev_prompt_zeiterfassung_v12.md` = `174ff61fea61d90690bdccfa105e1a1a0c95698f4d6912626fbf0f0f1c3c902a`
   - DEV_PROMPT_HISTORY (Stand vor Patch): `docs/DEV_PROMPT_HISTORY.md` = `7ac1db1943b5701671f32296484e75e7fa1fbc98b6ab832fdd937485c7341a81`
 - **DUPLICATE-CHECK:**
-  - SNAPSHOT/LOG geprueft: Kein Eintrag `P-2026-01-18-32` vorhanden → OK (nachgetragen; Patch wurde ohne History ausgeliefert)
+  - SNAPSHOT/LOG geprüft: Kein Eintrag `P-2026-01-18-32` vorhanden → OK (nachgetragen; Patch wurde ohne History ausgeliefert)
 - **DATEIEN (max. 3):**
   - `views/terminal/auftrag_starten.php`
   - `views/terminal/start.php`
@@ -22353,13 +22459,13 @@ Eintrittsdatum im Mitarbeiter-Admin pflegbar machen, damit die Urlaubslogik (Ein
   - Dev-Prompt (SoT): `docs/dev_prompt_zeiterfassung_v12.md` = `174ff61fea61d90690bdccfa105e1a1a0c95698f4d6912626fbf0f0f1c3c902a`
   - DEV_PROMPT_HISTORY (Stand vor Patch): `docs/DEV_PROMPT_HISTORY.md` = `7ac1db1943b5701671f32296484e75e7fa1fbc98b6ab832fdd937485c7341a81`
 - **DUPLICATE-CHECK:**
-  - SNAPSHOT/LOG geprueft: Kein Eintrag `P-2026-01-18-31` vorhanden → OK (nachgetragen; Patch wurde ohne History ausgeliefert)
+  - SNAPSHOT/LOG geprüft: Kein Eintrag `P-2026-01-18-31` vorhanden → OK (nachgetragen; Patch wurde ohne History ausgeliefert)
 - **DATEIEN (max. 3):**
   - `controller/TerminalController.php`
   - `views/terminal/auftrag_starten.php`
   - `views/terminal/start.php`
 - **DONE:**
-  - Terminal: Maschinenfeld ist scanfreundlich (Textfeld). Es wird tolerant die **erste Zifferngruppe** aus dem Scan als `maschine_id` uebernommen.
+  - Terminal: Maschinenfeld ist scanfreundlich (Textfeld). Es wird tolerant die **erste Zifferngruppe** aus dem Scan als `maschine_id` übernommen.
   - Maschine bleibt optional; reine ID reicht, Scan mit Prefix funktioniert trotzdem.
 - **NEXT:**
   - Scan-Flow: Enter im Maschinenfeld = Submit (P-2026-01-18-32).
@@ -22375,18 +22481,18 @@ Eintrittsdatum im Mitarbeiter-Admin pflegbar machen, damit die Urlaubslogik (Ein
   - Zusatz (Offline-Schema): `sql/offline_db_schema.sql` = `165bd68e62f4a776d2425d108fbf0775497ade28f5a1e8242069c1cf084177c9`
   - Zusatz (DB-Dump): `sql/zeiterfassung_aktuell.sql` = `9c62b1709c4729cca8a3b59e7a700c25ef23907592b9cc5256e5d78649e29cee`
 - **DUPLICATE-CHECK:**
-  - SNAPSHOT/LOG geprueft: Kein Eintrag `P-2026-01-18-30` vorhanden → OK
+  - SNAPSHOT/LOG geprüft: Kein Eintrag `P-2026-01-18-30` vorhanden → OK
 - **DATEIEN (max. 3):**
   - `public/maschine_code.php`
   - `controller/MaschineAdminController.php`
   - `docs/DEV_PROMPT_HISTORY.md`
 - **DONE:**
-  - Maschinen-Backend: Pro Maschine wird ein druck-/scanbarer **Code-39 Barcode** fuer die Maschinen-ID generiert (SVG, optional PNG via GD).
-  - Maschinen-Formular: Anzeige + Downloadlinks (SVG/PNG) fuer die Maschinen-ID.
+  - Maschinen-Backend: Pro Maschine wird ein druck-/scanbarer **Code-39 Barcode** für die Maschinen-ID generiert (SVG, optional PNG via GD).
+  - Maschinen-Formular: Anzeige + Downloadlinks (SVG/PNG) für die Maschinen-ID.
 - **Akzeptanz:**
   - Im Maschinen-Edit-Formular (nur wenn ID vorhanden) erscheint ein Barcode-Bereich mit Bild + Downloadlinks.
 - **NEXT:**
-  - Terminal (optional): Maschine scannen/auswaehlen beim Auftragstart (nur wenn wirklich benoetigt).
+  - Terminal (optional): Maschine scannen/auswählen beim Auftragstart (nur wenn wirklich benötigt).
 
 
 ## P-2026-01-18-29
@@ -22401,7 +22507,7 @@ Eintrittsdatum im Mitarbeiter-Admin pflegbar machen, damit die Urlaubslogik (Ein
   - Zusatz (Offline-Schema): `sql/offline_db_schema.sql` = `165bd68e62f4a776d2425d108fbf0775497ade28f5a1e8242069c1cf084177c9`
   - Zusatz (DB-Dump): `sql/zeiterfassung_aktuell.sql` = `9c62b1709c4729cca8a3b59e7a700c25ef23907592b9cc5256e5d78649e29cee`
 - **DUPLICATE-CHECK:**
-  - SNAPSHOT/LOG geprueft: Kein Eintrag `P-2026-01-18-29` vorhanden → OK (nachgetragen; Patch wurde bereits integriert, aber ohne Log-Eintrag)
+  - SNAPSHOT/LOG geprüft: Kein Eintrag `P-2026-01-18-29` vorhanden → OK (nachgetragen; Patch wurde bereits integriert, aber ohne Log-Eintrag)
 - **DATEIEN (max. 3):**
   - `controller/TerminalController.php`
   - `views/terminal/auftrag_starten.php`
@@ -22423,21 +22529,21 @@ Eintrittsdatum im Mitarbeiter-Admin pflegbar machen, damit die Urlaubslogik (Ein
   - Rechte-Prompt: `docs/rechte_prompt.md` = `446da183245ed18087648d9f03e3a2ce4d08db9927d588455b2eeb2e396e4122`
   - SQL-Schema (SoT): `sql/zeiterfassung_aktuell.sql` = `9c62b1709c4729cca8a3b59e7a700c25ef23907592b9cc5256e5d78649e29cee`
 - **DUPLICATE-CHECK:**
-  - SNAPSHOT/LOG geprueft: Kein Eintrag `P-2026-01-24-01` vorhanden → OK
+  - SNAPSHOT/LOG geprüft: Kein Eintrag `P-2026-01-24-01` vorhanden → OK
 - **ZIEL:**
-  - Dashboard: Hinweis „Unvollstaendige Zeitbuchungen“ soll nicht einfach verschwinden, nur weil die betroffenen Tage etwas aelter als 14 Tage sind.
+  - Dashboard: Hinweis „Unvollständige Zeitbuchungen“ soll nicht einfach verschwinden, nur weil die betroffenen Tage etwas älter als 14 Tage sind.
 - **DATEIEN (max. 3):**
   - `controller/DashboardController.php`
   - `views/dashboard/index.php`
   - `docs/DEV_PROMPT_HISTORY.md`
 - **DONE:**
-  - Dashboard-Pruefzeitraum ist jetzt **konfigurierbar** (Config-Key `dashboard_zeitwarnungen_tage`) und hat Default **31 Tage**.
+  - Dashboard-Prüfzeitraum ist jetzt **konfigurierbar** (Config-Key `dashboard_zeitwarnungen_tage`) und hat Default **31 Tage**.
   - SQL nutzt Startdatum-Param (statt fixe `DATE_SUB(..., 14 DAY)`).
   - UI-Label zeigt dynamisch „letzte X Tage“.
 - **TEST:**
   - Backend: `?seite=dashboard` → Hinweis erscheint wieder, wenn Unstimmigkeiten im Zeitraum existieren.
 - **NEXT:**
-  - Optional: Config-Key in `Konfiguration` UI als Default vorbefuellen/anzeigen (separater Micro-Patch, falls gewuenscht).
+  - Optional: Config-Key in `Konfiguration` UI als Default vorbefüllen/anzeigen (separater Micro-Patch, falls gewünscht).
 
 ## P-2026-01-24-02
 - ZIP: `P-2026-01-24-02_dashboard-zeitwarnungen-db-tzfix.zip`
@@ -22447,7 +22553,7 @@ Eintrittsdatum im Mitarbeiter-Admin pflegbar machen, damit die Urlaubslogik (Ein
   - Dev-Prompt (SoT): `docs/dev_prompt_zeiterfassung_v12.md` = `8d424e3bc18d9db2bc6402cfe8bc54e1fc8bbf937d169343b6f52904e499497e`
   - DEV_PROMPT_HISTORY (Stand vor Patch): `docs/DEV_PROMPT_HISTORY.md` = `655297cd25fed82f79365dbc583bc31ff02ac529bab4baa22bc689dc2c685095`
 - **DUPLICATE-CHECK:**
-  - SNAPSHOT/LOG geprueft: Kein Eintrag `P-2026-01-24-02` vorhanden → OK.
+  - SNAPSHOT/LOG geprüft: Kein Eintrag `P-2026-01-24-02` vorhanden → OK.
 - **ZIEL:**
   - Dashboard-Zeitwarnung muss "gestern" sicher finden, auch wenn die DB-Session/Server-Zeitzone (z. B. UTC) von PHP abweicht.
 - **DONE:**
@@ -22456,9 +22562,9 @@ Eintrittsdatum im Mitarbeiter-Admin pflegbar machen, damit die Urlaubslogik (Ein
   - `controller/DashboardController.php`
   - `docs/DEV_PROMPT_HISTORY.md`
 - **TEST:**
-  - Backend: `?seite=dashboard` → Unstimmigkeit von "gestern" erscheint auch dann, wenn MySQL `CURDATE()` noch "gestern" liefern wuerde.
+  - Backend: `?seite=dashboard` → Unstimmigkeit von "gestern" erscheint auch dann, wenn MySQL `CURDATE()` noch "gestern" liefern würde.
 - **NEXT:**
-  - Optional: Aehnliche CURDATE()/NOW()-Abhaengigkeiten in weiteren Admin-Checks vermeiden (nur wenn nochmal auffaellig).
+  - Optional: Ähnliche CURDATE()/NOW()-Abhängigkeiten in weiteren Admin-Checks vermeiden (nur wenn nochmal auffällig).
 
 
 ## P-2026-01-24-04
@@ -22471,13 +22577,13 @@ Eintrittsdatum im Mitarbeiter-Admin pflegbar machen, damit die Urlaubslogik (Ein
   - Rechte-Prompt: `docs/rechte_prompt.md` = `446da183245ed18087648d9f03e3a2ce4d08db9927d588455b2eeb2e396e4122`
   - SQL-Schema (SoT): `sql/zeiterfassung_aktuell.sql` = `9c62b1709c4729cca8a3b59e7a700c25ef23907592b9cc5256e5d78649e29cee`
 - **DUPLICATE-CHECK:**
-  - SNAPSHOT/LOG geprueft: Kein Eintrag `P-2026-01-24-04` vorhanden → OK.
+  - SNAPSHOT/LOG geprüft: Kein Eintrag `P-2026-01-24-04` vorhanden → OK.
 - **ZIEL:**
   - Dashboard-Zeitwarnungen sollen auch dann anschlagen, wenn die Anzahl **Kommen != Gehen** ist, obwohl die Gesamtanzahl der Stempel **gerade** ist (z. B. doppelt „Kommen“ ohne „Gehen“).
 - **DONE:**
-  - `controller/DashboardController.php`: SQL-HAVING prueft jetzt `anzahl_kommen <> anzahl_gehen` (statt nur `COUNT(*) % 2 = 1`).
+  - `controller/DashboardController.php`: SQL-HAVING prüft jetzt `anzahl_kommen <> anzahl_gehen` (statt nur `COUNT(*) % 2 = 1`).
   - `views/dashboard/index.php`: Hinweistext von „ungerade Anzahl“ auf „ungleiche Anzahl“ angepasst.
-  - Nacht-/Schicht-Heuristik bleibt aktiv (Grenzfaelle um Mitternacht werden weiter gefiltert).
+  - Nacht-/Schicht-Heuristik bleibt aktiv (Grenzfälle um Mitternacht werden weiter gefiltert).
 - **DATEIEN (max. 3):**
   - `controller/DashboardController.php`
   - `views/dashboard/index.php`
@@ -22485,7 +22591,7 @@ Eintrittsdatum im Mitarbeiter-Admin pflegbar machen, damit die Urlaubslogik (Ein
 - **TEST:**
   - Beispiel: 2x „Kommen“ und 0x „Gehen“ am gleichen Tag → Dashboard zeigt den Hinweis.
 - **NEXT:**
-  - Optional: Im Dashboard-Dropdown (Details) die Roh-Stempelanzahlen mit ausgeben (nur falls zur Diagnose gewuenscht).
+  - Optional: Im Dashboard-Dropdown (Details) die Roh-Stempelanzahlen mit ausgeben (nur falls zur Diagnose gewünscht).
 ## P-2026-01-24-08
 - ZIP: `P-2026-01-24-08_dashboard-zeitwarnungen-sql-no-placeholders.zip`
 - Input: `gesammt.zip` (sha256: `cc9976fedce101d4a8f0248f9a8354a42f9f6c8e9c2d19b481bdc2b8c8232109`)
@@ -22500,14 +22606,14 @@ Eintrittsdatum im Mitarbeiter-Admin pflegbar machen, damit die Urlaubslogik (Ein
 - In der Praxis lieferte die per PDO vorbereitete Query (mit `:start_date`/`:today_date`) auf MariaDB teils leere Resultsets, obwohl dieselbe Query ohne Placeholder Daten liefert.
 
 ### Fix
-- Dashboard: Zeitwarnungen-Query wird nun ohne PDO-Placeholder ausgefuehrt (Inline ISO-Datum-Strings aus PHP), orientiert am funktionierenden phpMyAdmin-Test.
+- Dashboard: Zeitwarnungen-Query wird nun ohne PDO-Placeholder ausgeführt (Inline ISO-Datum-Strings aus PHP), orientiert am funktionierenden phpMyAdmin-Test.
 
-### Geaenderte Dateien
+### Geänderte Dateien
 - `controller/DashboardController.php`
 - `docs/DEV_PROMPT_HISTORY.md`
 
 ### Tests
-- Dashboard aufrufen als Chef/Admin: Zeitwarnungen-Box muss erscheinen, sobald ein Tag in der Vergangenheit unvollstaendige Kommen/Gehen-Stempel hat.
+- Dashboard aufrufen als Chef/Admin: Zeitwarnungen-Box muss erscheinen, sobald ein Tag in der Vergangenheit unvollständige Kommen/Gehen-Stempel hat.
 
 ---
 
@@ -22515,14 +22621,14 @@ Eintrittsdatum im Mitarbeiter-Admin pflegbar machen, damit die Urlaubslogik (Ein
 - ZIP: `P-2026-01-25-01_dashboard-zeitwarnungen-groupby-sqlmode-log.zip`
 - Problem: Dashboard zeigt keine Zeitwarnungen, obwohl die Abfrage in phpMyAdmin Treffer liefert.
 - Fix:
-  - Zeitwarnungen-Query: `GROUP BY` erweitert (`m.vorname`, `m.nachname`) und `ORDER BY` auf Nachname/Vorname umgestellt, damit sie auch unter `ONLY_FULL_GROUP_BY`/strikten SQL-Modes laeuft.
+  - Zeitwarnungen-Query: `GROUP BY` erweitert (`m.vorname`, `m.nachname`) und `ORDER BY` auf Nachname/Vorname umgestellt, damit sie auch unter `ONLY_FULL_GROUP_BY`/strikten SQL-Modes läuft.
   - Wenn dennoch ein SQL-Fehler auftritt, wird er ins `error_log` geschrieben und im Dashboard als roter Hinweis angezeigt.
-- Geaenderte Dateien:
+- Geänderte Dateien:
   - `controller/DashboardController.php`
   - `views/dashboard/index.php`
   - `docs/DEV_PROMPT_HISTORY.md`
 - Tests:
-  - `?seite=dashboard` (Chef/Admin): Zeitwarnungen muessen erscheinen, sobald es einen Tag < heute mit ungleichen Kommen/Gehen-Stempeln gibt.
+  - `?seite=dashboard` (Chef/Admin): Zeitwarnungen müssen erscheinen, sobald es einen Tag < heute mit ungleichen Kommen/Gehen-Stempeln gibt.
   - Bei SQL-Fehler: roter Hinweis im Dashboard + `error_log` Eintrag.
 
 ---
@@ -22535,11 +22641,11 @@ Eintrittsdatum im Mitarbeiter-Admin pflegbar machen, damit die Urlaubslogik (Ein
   - Dev-Prompt (SoT): `docs/dev_prompt_zeiterfassung_v12.md` = `8d424e3bc18d9db2bc6402cfe8bc54e1fc8bbf937d169343b6f52904e499497e`
   - DEV_PROMPT_HISTORY (Stand vor Patch): `docs/DEV_PROMPT_HISTORY.md` = `ac206376944d77b8c370589678d2eee4908750115c5bb60f654b942bbf045748`
 - **DUPLICATE-CHECK:**
-  - SNAPSHOT/LOG geprueft: Kein Eintrag `P-2026-01-24-07` vorhanden → OK.
+  - SNAPSHOT/LOG geprüft: Kein Eintrag `P-2026-01-24-07` vorhanden → OK.
 - **URSACHE:**
   - Dashboard-Zeitwarnungen wurden nicht angezeigt, weil in `DashboardController` versehentlich `Database::fetchEinzel(...)` aufgerufen wurde (Methode existiert nicht). Der Fehler wurde im `try/catch` geschluckt → Ergebnis: `$zeitUnstimmigkeiten` blieb leer.
 - **DONE:**
-  - `controller/DashboardController.php`: `fetchEinzel(...)` → `fetchEine(...)` (DB-Wrapper-Methode existiert) in der Nachtschicht-Grenzfall-Pruefung.
+  - `controller/DashboardController.php`: `fetchEinzel(...)` → `fetchEine(...)` (DB-Wrapper-Methode existiert) in der Nachtschicht-Grenzfall-Prüfung.
 - **DATEIEN (max. 3):**
   - `controller/DashboardController.php`
   - `docs/DEV_PROMPT_HISTORY.md`
@@ -22547,7 +22653,7 @@ Eintrittsdatum im Mitarbeiter-Admin pflegbar machen, damit die Urlaubslogik (Ein
   - `php -l controller/DashboardController.php`
   - `?seite=dashboard` → Bei einem Tag mit FEHLT (Kommen/Gehen unausgeglichen, nicht heute) muss der Warnblock wieder sichtbar sein.
 - **NEXT:**
-  - Optional: Im Catch der Zeitwarnungs-Query ein `error_log(...)` schreiben (nur Diagnose), falls es nochmal „still“ ausfaellt.
+  - Optional: Im Catch der Zeitwarnungs-Query ein `error_log(...)` schreiben (nur Diagnose), falls es nochmal „still“ ausfällt.
 
 ## P-2026-01-24-05
 - ZIP: `P-2026-01-24-05_dashboard-zeitwarnungen-nachtschicht-nicht-ausfiltern.zip`
@@ -22559,17 +22665,17 @@ Eintrittsdatum im Mitarbeiter-Admin pflegbar machen, damit die Urlaubslogik (Ein
   - Rechte-Prompt: `docs/rechte_prompt.md` = `446da183245ed18087648d9f03e3a2ce4d08db9927d588455b2eeb2e396e4122`
   - SQL-Schema (SoT): `sql/zeiterfassung_aktuell.sql` = `9c62b1709c4729cca8a3b59e7a700c25ef23907592b9cc5256e5d78649e29cee`
 - **DUPLICATE-CHECK:**
-  - SNAPSHOT/LOG geprueft: Kein Eintrag `P-2026-01-24-05` vorhanden → OK.
+  - SNAPSHOT/LOG geprüft: Kein Eintrag `P-2026-01-24-05` vorhanden → OK.
 - **URSACHE:**
-  - Zeitwarnungen wurden im Dashboard als moeglicher Nachtschicht-Grenzfall erkannt und dadurch komplett unterdrueckt → dadurch kein Hinweis, obwohl im Monatsreport „FEHLT“ sichtbar ist.
+  - Zeitwarnungen wurden im Dashboard als möglicher Nachtschicht-Grenzfall erkannt und dadurch komplett unterdrückt → dadurch kein Hinweis, obwohl im Monatsreport „FEHLT“ sichtbar ist.
 - **DONE:**
-  - `controller/DashboardController.php`: Nachtschicht-Grenzfaelle werden nicht mehr per `continue` ausgefiltert; Eintraege bleiben im Warn-Block und bekommen ein Flag `nachtshift_grenzfall` (optional fuer spaetere UI-Label).
+  - `controller/DashboardController.php`: Nachtschicht-Grenzfälle werden nicht mehr per `continue` ausgefiltert; Einträge bleiben im Warn-Block und bekommen ein Flag `nachtshift_grenzfall` (optional für spätere UI-Label).
 - **DATEIEN (max. 3):**
   - `controller/DashboardController.php`
   - `docs/DEV_PROMPT_HISTORY.md`
 - **TEST:**
   - `php -l controller/DashboardController.php`
-  - `?seite=dashboard` → Warnhinweis erscheint auch bei Kommen spaet / Gehen frueh Grenzfall.
+  - `?seite=dashboard` → Warnhinweis erscheint auch bei Kommen spät / Gehen früh Grenzfall.
 - **NEXT:**
   - Optional: Im Dashboard ein kleines Label „(Nachtschicht?)“ anzeigen, wenn `nachtshift_grenzfall=1`.
 
@@ -22581,19 +22687,19 @@ Eintrittsdatum im Mitarbeiter-Admin pflegbar machen, damit die Urlaubslogik (Ein
   - Dev-Prompt (SoT): `docs/dev_prompt_zeiterfassung_v12.md` = `fbd76757a86b9a74ad19a34b5b6d93285d8a8a41e9b2b660135c15ce65c40c63`
   - DEV_PROMPT_HISTORY (Stand vor Patch): `docs/DEV_PROMPT_HISTORY.md` = `8cd0bdff5e6aa29217d66f3252b8184d8a54265e7f4cafb7a33a75e7cf63ff0b`
 - **DUPLICATE-CHECK:**
-  - SNAPSHOT/LOG geprueft: Kein Eintrag `P-2026-01-23-02` vorhanden → OK.
+  - SNAPSHOT/LOG geprüft: Kein Eintrag `P-2026-01-23-02` vorhanden → OK.
   - Hinweis: Einige bereits erstellte Urlaubs-/Report-Patches (u. a. `P-2026-01-23-01`) sind im Projektstand enthalten, aber in diesem History-File noch nicht nachgetragen.
 - **ZIEL:**
-  - Urlaubssaldo: **Genehmigt/Verfuegbar** darf nicht von den **Betriebsferien-„benoetigte Urlaubstage“** abweichen (z. B. 9.50 vs 10.00).
+  - Urlaubssaldo: **Genehmigt/Verfügbar** darf nicht von den **Betriebsferien-„benötigte Urlaubstage“** abweichen (z. B. 9.50 vs 10.00).
 - **DONE:**
-  - `services/UrlaubService.php`: Betriebsferien-Abzug im Urlaubs-Saldo wird jetzt ueber die zentrale Funktion `zaehleBetriebsferienArbeitstageFuerMitarbeiter(...)` berechnet (gleiche Logik wie die Anzeige pro Betriebsferien-Block).
+  - `services/UrlaubService.php`: Betriebsferien-Abzug im Urlaubs-Saldo wird jetzt über die zentrale Funktion `zaehleBetriebsferienArbeitstageFuerMitarbeiter(...)` berechnet (gleiche Logik wie die Anzeige pro Betriebsferien-Block).
 - **DATEIEN (max. 3):**
   - `services/UrlaubService.php`
   - `docs/DEV_PROMPT_HISTORY.md`
 - **TEST:**
   - `php -l services/UrlaubService.php`
 - **NEXT:**
-  - Optional: Unbenutzte/duplizierte Betriebsferien-Skip-Berechnung in `berechneUrlaubssaldoFuerJahr()` aufraeumen (Performance, keine Logikaenderung).
+  - Optional: Unbenutzte/duplizierte Betriebsferien-Skip-Berechnung in `berechneUrlaubssaldoFuerJahr()` aufräumen (Performance, keine Logikänderung).
 
 
 ## P-2026-01-18-28
@@ -22608,14 +22714,14 @@ Eintrittsdatum im Mitarbeiter-Admin pflegbar machen, damit die Urlaubslogik (Ein
   - Zusatz (Offline-Schema): `sql/offline_db_schema.sql` = `165bd68e62f4a776d2425d108fbf0775497ade28f5a1e8242069c1cf084177c9`
   - Zusatz (DB-Dump): `sql/zeiterfassung_aktuell.sql` = `9c62b1709c4729cca8a3b59e7a700c25ef23907592b9cc5256e5d78649e29cee`
 - **DUPLICATE-CHECK:**
-  - SNAPSHOT/LOG geprueft: Kein Eintrag `P-2026-01-18-28` vorhanden → OK
+  - SNAPSHOT/LOG geprüft: Kein Eintrag `P-2026-01-18-28` vorhanden → OK
 - **DATEIEN (max. 3):**
   - `controller/TerminalController.php`
   - `views/terminal/start.php`
   - `docs/DEV_PROMPT_HISTORY.md`
 - **DONE:**
-  - Terminal: Nebenauftrag Start/Stop setzt einen Session-Zaehler `terminal_nebenauftrag_laufend_count` + `terminal_letzter_nebenauftrag` (fuer Offline-UI).
-  - Terminal: Startscreen nutzt im Offline-Betrieb den Session-Zaehler, um „Nebenauftrag stoppen“ korrekt anzuzeigen.
+  - Terminal: Nebenauftrag Start/Stop setzt einen Session-Zähler `terminal_nebenauftrag_laufend_count` + `terminal_letzter_nebenauftrag` (für Offline-UI).
+  - Terminal: Startscreen nutzt im Offline-Betrieb den Session-Zähler, um „Nebenauftrag stoppen“ korrekt anzuzeigen.
 - **NEXT:**
   - Maschinen-Backend: Barcode/QR-Generator (PNG) pro Maschine + Anzeige/Download im Maschinenformular.
 
@@ -22633,14 +22739,14 @@ Eintrittsdatum im Mitarbeiter-Admin pflegbar machen, damit die Urlaubslogik (Ein
   - Zusatz (DB-Dump): `sql/zeiterfassung_aktuell.sql` = `9c62b1709c4729cca8a3b59e7a700c25ef23907592b9cc5256e5d78649e29cee`
   - Zusatz (Auftrags-Scope): `docs/docs/archiv/auftrags_prompt_v1.md` = `35142adf8d89ca7df88472aa50186da5c659a29928754ffc3354259ce54467cc`
 - **DUPLICATE-CHECK:**
-  - SNAPSHOT/LOG geprueft: Task „Auftrag starten ausblenden wenn Hauptauftrag laeuft“ war nur als NEXT in P-2026-01-18-24 dokumentiert → noch nicht umgesetzt → OK.
+  - SNAPSHOT/LOG geprüft: Task „Auftrag starten ausblenden wenn Hauptauftrag läuft“ war nur als NEXT in P-2026-01-18-24 dokumentiert → noch nicht umgesetzt → OK.
 - **DATEIEN (max. 3):**
   - `views/terminal/start.php`
   - `docs/DEV_PROMPT_HISTORY.md`
 - **DONE:**
-  - Terminal Startscreen (anwesend): Der Hauptauftrag-Bereich ist jetzt eine **Primaeraktion** – entweder **„Auftrag starten“** (wenn kein Hauptauftrag laeuft) **oder** **„Auftrag stoppen“** (wenn ein Hauptauftrag laeuft).
+  - Terminal Startscreen (anwesend): Der Hauptauftrag-Bereich ist jetzt eine **Primäraktion** – entweder **„Auftrag starten“** (wenn kein Hauptauftrag läuft) **oder** **„Auftrag stoppen“** (wenn ein Hauptauftrag läuft).
   - Ziel: Doppelstarts vermeiden; der Operator hat pro Zustand genau eine klare Hauptaktion.
 - **Akzeptanz:**
-  - Wenn ein Hauptauftrag laeuft, ist auf dem Startscreen kein „Auftrag starten“-Button sichtbar, sondern nur „Auftrag stoppen“ als grosse Primaeraktion.
+  - Wenn ein Hauptauftrag läuft, ist auf dem Startscreen kein „Auftrag starten“-Button sichtbar, sondern nur „Auftrag stoppen“ als große Primäraktion.
 - **NEXT:**
   - Maschinen-Backend: Barcode/QR-Generator (PNG/JPG) pro Maschine + Anzeige/Download (separater Micro-Patch).

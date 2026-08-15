@@ -4,9 +4,9 @@
 
 ## Lokale Klarstellung (2026-07-17)
 
-- In diesem Projektstand liegt der volle Verlauf unter `docs/archiv/DEV_PROMPT_HISTORY.md`. Aeltere Verweise auf `docs/DEV_PROMPT_HISTORY.md` meinen diesen archivierten Verlauf.
-- Die aktuelle DB-Struktur fuer Neuinstallationen ist `sql/01_initial_schema.sql`. Aeltere Verweise auf `sql/zeiterfassung_aktuell.sql` sind historische Dump-/Archivverweise.
-- In dieser lokalen Codex-Arbeitsweise werden Aenderungen direkt im Workspace vorgenommen und geprueft. ZIP-Pakete werden nur erstellt, wenn der Nutzer sie ausdruecklich anfordert.
+- In diesem Projektstand liegt der volle Verlauf unter `docs/archiv/DEV_PROMPT_HISTORY.md`. Ältere Verweise auf `docs/DEV_PROMPT_HISTORY.md` meinen diesen archivierten Verlauf.
+- Die aktuelle DB-Struktur für Neuinstallationen ist `sql/01_initial_schema.sql`. Ältere Verweise auf `sql/zeiterfassung_aktuell.sql` sind historische Dump-/Archivverweise.
+- In dieser lokalen Codex-Arbeitsweise werden Änderungen direkt im Workspace vorgenommen und geprüft. ZIP-Pakete werden nur erstellt, wenn der Nutzer sie ausdrücklich anfordert.
 
 ## Rolle von ChatGPT in diesem Projekt
 
@@ -23,7 +23,7 @@ Die folgenden Regeln und Anforderungen gelten für **alle** zukünftigen Antwort
 - Weiterentwicklung: Es wird **nur** noch gearbeitet, wenn **Bugs gefunden** werden oder wenn der Nutzer **ausdrücklich** eine Erweiterung beauftragt.
 - Arbeitsmodus: Erst **reproduzierbarer Bugreport** (Schritte/Erwartung/Ist), dann **Micro-Patch** nach den Patch-Regeln.
 - Erweiterungen: Neue Funktionsbereiche werden zuerst in separaten Prompt-Dateien spezifiziert (z. B. Auftrags-Scan/Arbeitsschritte), bevor implementiert wird.
-  - Hinweis: Aeltere Spezifikationen liegen im Archiv (`docs/archiv`).
+  - Hinweis: Ältere Spezifikationen liegen im Archiv (`docs/archiv`).
 
 ---
 

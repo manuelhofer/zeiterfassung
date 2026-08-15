@@ -18,7 +18,7 @@ Seit 2026-08-08 können Aufträge **zusätzlich** im Backend angelegt werden
 (`?seite=auftrag_neu`) – als Ergänzung, nicht als Ersatz. Wer seine Aufträge
 weiterhin nur scannt, merkt davon nichts.
 
-Ausser der Auftragsnummer ist **alles freiwillig**. Dies ist ein
+Außer der Auftragsnummer ist **alles freiwillig**. Dies ist ein
 Zeiterfassungssystem, keine Warenwirtschaft: Leere Felder erscheinen auch nicht
 auf dem Ausdruck.
 
@@ -55,7 +55,7 @@ Maschinenfeld ist ein Textfeld und die Maschine ist optional.
 Diese Felder werden **nicht** am Terminal gepflegt (Touch, keine Tastatur),
 sondern nur im Backend oder über Importe.
 
-Die **Zeichnungsnummer** ist wie alles ausser der Auftragsnummer freiwillig. Sie
+Die **Zeichnungsnummer** ist wie alles außer der Auftragsnummer freiwillig. Sie
 steht in der Auftragsliste, wird von der Suche mitgefunden und erscheint auf der
 Laufkarte – leer bleibt sie auch dort unsichtbar.
 
@@ -68,11 +68,11 @@ Die Liste zeigt **25 Aufträge je Seite**. Seitenzahlen stehen immer darunter,
 die Sprungpfeile (Anfang, zurück, vor, Ende) ab fünf Seiten. Suche, Ansicht und
 Seitenzahl bleiben beim Blättern und beim Umschalten erhalten.
 
-**`aktiv = 0` heisst „aus dem Weg", nicht „weg".** Die Auftragsliste zeigt nur
+**`aktiv = 0` heißt „aus dem Weg", nicht „weg".** Die Auftragsliste zeigt nur
 aktive Aufträge; die inaktiven stehen unter `?seite=auftrag&ansicht=inaktiv` und
 sind von dort mit einem Klick zurückzuholen. Umgestellt wird direkt in der
 Liste (Recht `AUFTRAEGE_VERWALTEN`). Eine Auftragsnummer, die nur aus Buchungen
-stammt, bekommt dabei ihren Stammdatensatz – sonst liesse sich genau die Zeile
+stammt, bekommt dabei ihren Stammdatensatz – sonst ließe sich genau die Zeile
 nicht ausblenden, die stört.
 
 **Gelöscht wird nur, was noch nichts erlebt hat.** Ein Auftrag lässt sich in der
@@ -86,7 +86,7 @@ Halle ein Scan dazwischenkommen. Jede Löschung geht mit Mitarbeiter-ID nach
 **Gesucht wird im ganzen Bestand.** Das Ausblenden gilt für das *Blättern*, nicht
 für das *Suchen*: Wer eine Nummer eintippt, will sie finden, auch wenn der
 Auftrag längst abgelegt ist. Inaktive Treffer stehen grau in der Liste und sind
-von dort direkt wieder zu aktivieren. Das Häkchen „Auch inaktive Auftraege
+von dort direkt wieder zu aktivieren. Das Häkchen „Auch inaktive Aufträge
 durchsuchen" ist gesetzt und lässt sich abwählen; ohne Suchbegriff hat es keine
 Wirkung.
 
@@ -133,9 +133,9 @@ im Praxis-Test als unerwünscht erwiesen (P-2026-01-18-35 → -36).
 Der Arbeitsschritt-Code ist beim Start eines Hauptauftrags **Pflicht**
 (Server-Validierung, nicht nur im Formular).
 
-Im Startbildschirm sind die Auftrags-Knoepfe kontextabhängig: Laeuft ein
+Im Startbildschirm sind die Auftrags-Knöpfe kontextabhängig: Läuft ein
 Hauptauftrag, wird „Auftrag starten" ausgeblendet und „Auftrag stoppen" als
-Primaeraktion gezeigt – das verhindert Doppelstarts.
+Primäraktion gezeigt – das verhindert Doppelstarts.
 
 ## 6. Strichcodes und Ausdrucke
 

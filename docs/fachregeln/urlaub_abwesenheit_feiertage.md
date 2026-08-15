@@ -87,10 +87,10 @@ daraus −5,00. Behoben in P-2026-08-10-28.
 
 **Verbrauchsreihenfolge (Pflicht):**
 
-1. zuerst der **Übertrag** (aeltester Rest zuerst),
+1. zuerst der **Übertrag** (ältester Rest zuerst),
 2. danach das **Kontingent des aktuellen Jahres**.
 
-**Anzeige** (Terminal und Übersicht): aufgeschluesselt nach
+**Anzeige** (Terminal und Übersicht): aufgeschlüsselt nach
 `Uebertrag (YYYY-1)` und `Jahr YYYY`.
 
 **Negativer Rest wird nicht gekappt.** Minusurlaub muss sich im Folgejahr
@@ -150,12 +150,12 @@ Urlaubsansicht und Monatswerten.
   Feiertag bzw. Wochenende und zählen **nicht** als Urlaub.
 - Betriebsferien reduzieren das **Soll nicht** (wie ein normaler Arbeitstag);
   die Stunden laufen über „Urlaub".
-- Im Urlaubssaldo werden sie als **genommener Urlaub** beruecksichtigt (nur
+- Im Urlaubssaldo werden sie als **genommener Urlaub** berücksichtigt (nur
   Arbeitstage). Urlaubsanträge zählen diese Tage **nicht doppelt**.
 
 **Abgrenzung – wann Betriebsferien *nicht* als Urlaub zählen:**
 
-- Wenn an dem Tag tatsaechlich gearbeitet wurde (B-024, B-025),
+- Wenn an dem Tag tatsächlich gearbeitet wurde (B-024, B-025),
 - wenn bereits ein anderes Kennzeichen gesetzt ist (z. B. krank),
 - wenn ein aktiver Krankzeitraum (LFZ/KK) den Tag umfasst – **Krank hat Vorrang
   vor Betriebsferien** (B-076, B-077): kein BF-Kürzel, Urlaub 0, Krank 8,00.
@@ -168,13 +168,13 @@ driften beide auseinander (B-080, P-2026-01-23-02).
 Tabelle `feiertag`: `datum`, `name`, optional `bundesland`, `ist_gesetzlich`,
 `ist_betriebsfrei`, Timestamps.
 
-Ein Service generiert die gesetzlichen deutschen Feiertage jaehrlich. Das
+Ein Service generiert die gesetzlichen deutschen Feiertage jährlich. Das
 Backend erlaubt manuelle Korrektur, Ergänzung und Anpassung des
 Betriebsfrei-Flags.
 
 **Idempotentes Nachseeden:** Ein Jahr gilt **nicht** schon dann als fertig, wenn
 irgendein Feiertag dafür existiert. Fehlende bundeseinheitliche Feiertage
-werden nachtraeglich ergänzt – sonst fehlt z. B. der 01.01. unbemerkt (B-071).
+werden nachträglich ergänzt – sonst fehlt z. B. der 01.01. unbemerkt (B-071).
 
 **Im Monatsreport:** Kalender-Feiertage werden in der Tagesliste als Feiertag
 geführt und bei **keiner** Arbeitszeit mit Tagesstunden befüllt (Fallback

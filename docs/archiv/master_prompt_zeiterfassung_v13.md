@@ -494,10 +494,10 @@ Für jeden Mitarbeiter müssen mindestens gespeichert werden:
 ---
 
 5. **Inbetriebnahme eines Terminals: Kopplung statt Zugangsdaten (ab 2026-08-08)**
-   - Ein neues Terminal bekommt seine Konfiguration **nicht** aus einer Datei, die jemand von Hand anlegt, sondern ueber eine **Kopplung** am Backend.
-   - Ablauf: In der Terminalverwaltung wird zum Geraet ein **Kopplungscode** erzeugt (einmalig gueltig, 30 Minuten, nur als Hash gespeichert). Am Terminal werden Server-Adresse und Code eingegeben; das Terminal holt sich daraufhin Terminal-ID, Zugangsdaten und Einstellungen selbst.
-   - **Jedes Terminal erhaelt einen eigenen Datenbankbenutzer** mit eingeschraenkten Rechten (kein `DELETE`, kein `DROP`, kein Zugriff auf Stundenkonto/Lohn). Ein verlorenes Geraet wird durch Loeschen dieses einen Benutzers unschaedlich gemacht – ohne alle anderen Terminals anzufassen.
-   - Damit kennt das Installationsskript eines Terminals **keine** Zugangsdaten; dasselbe Abbild passt auf beliebig viele Geraete.
+   - Ein neues Terminal bekommt seine Konfiguration **nicht** aus einer Datei, die jemand von Hand anlegt, sondern über eine **Kopplung** am Backend.
+   - Ablauf: In der Terminalverwaltung wird zum Gerät ein **Kopplungscode** erzeugt (einmalig gültig, 30 Minuten, nur als Hash gespeichert). Am Terminal werden Server-Adresse und Code eingegeben; das Terminal holt sich daraufhin Terminal-ID, Zugangsdaten und Einstellungen selbst.
+   - **Jedes Terminal erhält einen eigenen Datenbankbenutzer** mit eingeschränkten Rechten (kein `DELETE`, kein `DROP`, kein Zugriff auf Stundenkonto/Lohn). Ein verlorenes Gerät wird durch Löschen dieses einen Benutzers unschädlich gemacht – ohne alle anderen Terminals anzufassen.
+   - Damit kennt das Installationsskript eines Terminals **keine** Zugangsdaten; dasselbe Abbild passt auf beliebig viele Geräte.
    - Recht: `TERMINAL_VERWALTEN` (Erzeugen des Codes). Der Kopplungs-Endpunkt selbst ist bewusst ohne Anmeldung erreichbar – der Code **ist** der Nachweis.
    - Einzelheiten: `docs/spezifikation_terminal_installation.md`.
 
@@ -523,7 +523,7 @@ Für jeden Mitarbeiter müssen mindestens gespeichert werden:
 
 4. **Backend-Pflege, Strichcodes und Laufkarte (ab 2026-08-08)**
    - Aufträge können **zusätzlich** im Backend angelegt werden (`?seite=auftrag_neu`) – als Ergänzung, nicht als Ersatz für Punkt 1. Wer seine Aufträge weiterhin nur scannt, merkt davon nichts.
-   - Ausser der Auftragsnummer ist **alles freiwillig**. Dies ist ein Zeiterfassungssystem, keine Warenwirtschaft: Leere Felder erscheinen auch nicht auf dem Ausdruck.
+   - Außer der Auftragsnummer ist **alles freiwillig**. Dies ist ein Zeiterfassungssystem, keine Warenwirtschaft: Leere Felder erscheinen auch nicht auf dem Ausdruck.
    - Je Auftrag lassen sich **Arbeitsschritte** pflegen; zusätzlich gibt es einen betriebsweiten **Arbeitsschritt-Katalog** (`arbeitsschritt_katalog`) für wiederkehrende Tätigkeiten wie `fraesen`.
    - Für Auftrag und Arbeitsschritte werden **Strichcodes (Code 128)** erzeugt – derselbe Codetyp wie bei den Maschinen. Der Code enthält **nur den nackten Wert**, damit das Terminal ihn unverändert übernimmt.
    - Ausdrucke: **Laufkarte** je Auftrag (`?seite=auftrag_laufkarte`) und **Kartenblatt** je Katalogschritt (`?seite=arbeitsschritt_katalog_blatt`, mit Stückzahl – z. B. 20 Karten `fraesen` für 20 Fräsmaschinen).

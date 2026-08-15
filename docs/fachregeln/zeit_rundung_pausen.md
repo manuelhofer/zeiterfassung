@@ -13,7 +13,7 @@ Rundung. Tabelle `zeitbuchung`: `mitarbeiter_id`, `typ` (`kommen`/`gehen`),
 `zeitstempel`, `quelle` (`terminal`/`web`), `manuell_geaendert`, optional
 `kommentar`.
 
-Rohdaten bleiben unverändert, ausser ein Berechtigter korrigiert sie im
+Rohdaten bleiben unverändert, außer ein Berechtigter korrigiert sie im
 Backend bewusst (z. B. vergessene Buchung nachtragen). Dann wird
 `manuell_geaendert` gesetzt und optional ein Kommentar gespeichert.
 
@@ -79,7 +79,7 @@ Zwei Arten, beide **konfigurierbar**:
 
    Schwellen und Minuten müssen in der Anwendung einstellbar sein.
 
-Berechnet wird **pro Arbeitsblock**, nicht pro Kalendertag – sonst bekaeme ein
+Berechnet wird **pro Arbeitsblock**, nicht pro Kalendertag – sonst bekäme ein
 zweiter langer Block keine Mindestpause.
 
 Algorithmus je Block (nach Rundung von Kommen/Gehen):
@@ -124,10 +124,10 @@ Korrektur- und Auswertungsfelder:
     i. d. R. 8,00 h/Tag)
   - `kurzarbeit_stunden` + `kennzeichen_kurzarbeit`
   - `sonstige_stunden` + `kennzeichen_sonstiges` (reine Stundenzahl; Kürzel
-    bzw. Begruendung steht im Feld `kommentar`, z. B. `BF`, `SoU`,
+    bzw. Begründung steht im Feld `kommentar`, z. B. `BF`, `SoU`,
     `SoU: <Text>`)
   - **Geplant:** `sonderurlaub_stunden` + `kennzeichen_sonderurlaub` +
-    `sonderurlaub_begruendung` (Migration noetig; bis dahin ueber
+    `sonderurlaub_begruendung` (Migration nötig; bis dahin über
     `sonstige_stunden` abbilden)
 
 ### Fachregeln zu den Abwesenheiten
@@ -172,7 +172,7 @@ Mitarbeiter und Datum:
 
 1. die aggregierten Rohzeiten einsehen,
 2. die zugrunde liegenden `zeitbuchung`-Einträge sehen,
-3. Einträge hinzufuegen, ändern, löschen.
+3. Einträge hinzufügen, ändern, löschen.
 
 Zusätzlich gibt es **Tages-Checkboxen mit Stundenfeldern**:
 
@@ -202,18 +202,18 @@ Wert (z. B. 4,00 h oder 50 %), Kommentar. Der Recalc-Service wendet den Plan auf
 Tage **ohne** Tages-Override an und befüllt `kurzarbeit_stunden` /
 `kennzeichen_kurzarbeit`.
 
-**Krankheits-Zeitraeume (LFZ/KK) pro Mitarbeiter:** Zeitraum, Phase `LFZ` oder
-`KK` (bei Wechsel zwei Zeitraeume), Stunden pro Tag (Default 8,00 bzw.
+**Krankheits-Zeiträume (LFZ/KK) pro Mitarbeiter:** Zeitraum, Phase `LFZ` oder
+`KK` (bei Wechsel zwei Zeiträume), Stunden pro Tag (Default 8,00 bzw.
 Tages-Soll), optionaler Vorschlag „Wechsel nach 6 Wochen" (endgültig manuell).
 Der Recalc-Service befüllt je Tag entweder `krank_lfz_*` oder `krank_kk_*`.
 
-**Sonstiges-Zeitraeume** (z. B. Sonderurlaub): Zeitraum + Grund-Code aus der
+**Sonstiges-Zeiträume** (z. B. Sonderurlaub): Zeitraum + Grund-Code aus der
 Konfiguration + Default-Stunden → schreibt `sonstige_stunden`,
 `kennzeichen_sonstiges` und `kommentar`.
 
-### Konfiguration „Sonstiges-Gruende"
+### Konfiguration „Sonstiges-Gründe"
 
-Damit später weitere Fälle ohne Codeaenderung dazukommen, gibt es eine
+Damit später weitere Fälle ohne Codeänderung dazukommen, gibt es eine
 konfigurierbare Liste (Tabelle z. B. `sonstiges_grund`): `code` (kurz, z. B.
 `SoU`), `titel`, `default_stunden`, `requires_begruendung` (0/1), `aktiv` (0/1),
 Sortierung. Sie steuert die Schnell-Haken und Dropdowns in der Tagesmaske und

@@ -75,6 +75,21 @@ Funktions- und Variablennamen bleiben ASCII, in PHP wie in JavaScript:
 grep -rInE '(function|const|let|var)\s+[A-Za-z_$]*[äöüßÄÖÜ]|\$[a-zA-Z_]*[äöüßÄÖÜ][a-zA-Z_]*\s*=' --include='*.php' --include='*.js' controller views services core modelle public
 ```
 
+Wird **Dokumentation** flächig umgeschrieben, kommt ein vierter Suchlauf dazu.
+Im Fließtext stehen Bezeichner oft ohne Backticks – Commit-Betreffe in
+Überschriften, Routennamen in einer Aufzählung. Sie sehen aus wie Text und
+sind keiner. Der Vergleich gegen den Git-Verlauf findet es:
+
+```bash
+git log --format='%s' | sed -E 's/^P-[0-9-]{13} //' \
+  | grep -E '^[a-z0-9]+(-[a-z0-9]+)+$' | sort -u \
+  | while read -r s; do grep -qF "$s" docs/archiv/DEV_PROMPT_HISTORY.md \
+      || echo "Betreff nicht mehr wörtlich im Verlauf: $s"; done
+```
+
+Vor der Änderung einmal laufen lassen und die Ausgabe aufheben – ein paar
+Betreffe fehlen seit jeher. Danach darf **kein neuer** dazukommen.
+
 **Was diese Suchläufe nicht finden:** Attribute und Werte, die erst zur
 Laufzeit entstehen. Die Bildschirmtastatur des Terminals baut ihre Tasten in
 JavaScript zusammen – `data-taste-wert="löschen"` stand in keinem Suchlauf und
