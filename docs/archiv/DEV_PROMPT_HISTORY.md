@@ -99,6 +99,90 @@ in den Statusbericht.
   D-002 entfallen; die Regel selbst gilt weiter.)
 
 
+## P-2026-08-15-23 t-104-terminalformular-in-views
+
+### EINGELESEN
+- `docs/STATUS_SNAPSHOT.md` (T-104), `docs/arbeitsregeln.md`.
+- `controller/TerminalAdminController.php`, `renderFormular()` und alle **vier**
+  Aufrufstellen.
+- `views/terminal_admin/liste.php` als Muster (P-2026-08-15-21).
+- `core/Csrf.php`, `token()` und `istGueltig()`.
+
+### DATEIEN
+- `views/terminal_admin/formular.php` (neu)
+- `controller/TerminalAdminController.php`
+- `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Das Terminal-Formular erzeugt dasselbe HTML wie vorher – bis auf die Einrueckung
+und die eine `Csrf::feld()`-Stelle –, obwohl das Markup jetzt in
+`views/terminal_admin/formular.php` liegt.
+
+### DONE
+Zweite und letzte Maske des `TerminalAdminController`; **der Controller ist
+damit fertig** (T-104 zaehlt noch fuenf Masken, alle in `AuftragController` und
+`SmokeTestController`). 717 → 638 Zeilen Controller plus 111 Zeilen View.
+
+`renderFormular()` rechnet weiterhin die Anzeigewerte vor (Standardwerte,
+`modus` auf die erlaubten zwei begrenzt, `timeout` mindestens 60) und bindet
+danach die View ein.
+
+**Der Parameter `$csrfToken` faellt weg.** Er existierte nur, um das
+handgeschriebene versteckte Feld zu fuellen; die View ruft jetzt
+`Csrf::feld($csrfBereich)` auf, wie alle migrierten Formulare. Die Signatur hat
+damit drei statt vier Parameter, angepasst an allen vier Aufrufstellen. Das ist
+kein Refactor nebenbei, sondern das Ende desselben Fadens: Das Argument hatte
+nach dem Umzug keinen Empfaenger mehr.
+
+Zwei `$csrfToken = Csrf::token(...)`-Zeilen sind dadurch verwaist und
+entfernt. Das ist gefahrlos, weil `Csrf::feld()` den Token selbst anlegt, falls
+er fehlt – die Methode ruft `token()` auf.
+
+### TEST
+Wegwerf-Umgebung aus P-2026-08-15-08, HEAD-Kopie vom Skript aktualisiert.
+
+| Lage | Abweichende Zeilen | erwartet |
+| --- | --- | --- |
+| Anlegen (ohne `id`) | 3 | 3 (1 × `Csrf::feld`) |
+| Bearbeiten (`id` eines Terminals) | 3 | 3 |
+| `id=999999` (gibt es nicht) | 3 | 3 |
+
+Speichern-Wege auf dem neuen Stand:
+
+| Weg | Ergebnis |
+| --- | --- |
+| Neues Terminal anlegen | 302 auf die Liste, Zeile mit allen Werten (`Halle C`, `terminal`, 90 s) |
+| Bearbeiten-Formular | Felder gefuellt (`value="Probe-Terminal"`, `value="Halle C"`, `value="90"`) |
+| Aendern (Name, Standort, Modus, Timeout) | 302, alle vier Werte in der Datenbank geaendert |
+| Checkbox `aktiv` **nicht** gesendet | `aktiv = 0`, ebenso die beiden Offline-Flags |
+| Leerer Name | „Bitte geben Sie einen Namen für das Terminal ein." |
+| Falsches CSRF-Token | HTTP 400, Formular kommt **gefuellt** zurueck (`value="Boeser Versuch"`), nichts gespeichert |
+
+Die vorletzte Zeile ist der Grund, aus dem die Maske ueberhaupt ein Formular
+zurueckgibt statt einer nackten Fehlerseite: Nach einem abgelehnten POST soll
+die Eingabe nicht verloren sein. Genau das haette ein unachtsamer Umzug
+zerstoert.
+
+22 Backend-Aufrufe HTTP 200, Serverlog ohne Meldung, `php -l` ueber beide
+Dateien, Umlaut-Suchlauf ohne Treffer.
+
+### Gefundene Fehler im eigenen Entwurf
+Beim Test stand zuerst `aktiv=0` im POST, und das Terminal war danach trotzdem
+aktiv. Kein Fehler der Anwendung: `leseTerminalAusPost()` liest Checkboxen mit
+`isset()`, und ein Browser sendet ein nicht angehaktes Kaestchen gar nicht.
+`aktiv=0` **ist** also „angehakt". Der Test prueft jetzt richtig, naemlich ohne
+den Parameter.
+
+### Was bewusst nicht erreicht wurde
+Drei weitere `$csrfToken = Csrf::token(...)` im Controller (in `toggleFlag()`,
+`kopplung()`, `entkoppeln()`) sind ebenfalls ungenutzt – das waren sie aber
+schon **vor** diesem Patch (nachgesehen in `git show HEAD:`). Sie gehoeren in
+einen eigenen kleinen Patch, nicht in diesen: Hier faellt nur weg, was dieser
+Patch verwaist hat. Notiert als **T-116**.
+
+### NEXT
+T-116 (drei ungenutzte Token-Zeilen), danach T-104 mit dem `AuftragController`.
+
 ## P-2026-08-15-22 t-115-terminalliste-ohne-eigene-knopfgroessen
 
 ### EINGELESEN

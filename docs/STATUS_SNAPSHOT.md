@@ -34,10 +34,12 @@ Keine bekannten.
   `services/`. Falsch ist es nur dort, wo es die Fehlermeldung des Aufrufers
   unerreichbar macht (B-097, T-110). Durchsehen, nicht pauschal ändern;
   Suchlauf in P-2026-08-15-10.
-- **T-104** Drei Controller erzeugen HTML selbst, statt `views/` zu benutzen –
-  **6 Masken**: `AuftragController` (4), `TerminalAdminController` (1),
-  `SmokeTestController` (1). Eine Maske je Patch; Muster und Prüfweg:
-  P-2026-08-11-09, zuletzt P-2026-08-15-21.
+- **T-104** Zwei Controller erzeugen HTML selbst, statt `views/` zu benutzen –
+  **5 Masken**: `AuftragController` (4), `SmokeTestController` (1). Eine Maske
+  je Patch; Muster und Prüfweg: P-2026-08-11-09, zuletzt P-2026-08-15-23.
+- **T-116** In `TerminalAdminController` stehen drei ungenutzte
+  `$csrfToken = Csrf::token(...)` (in `toggleFlag()`, `kopplung()`,
+  `entkoppeln()`) – tote Zuweisungen, schon vor P-2026-08-15-23.
 
   Achtung: Der `grep` nach dem Header-Require zählt zu hoch – er findet auch
   „Keine Berechtigung"-Blöcke in längst fertigen Controllern.
