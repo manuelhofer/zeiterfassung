@@ -28,26 +28,24 @@ Abschnitt 12 – dort und bewusst nicht hier ein zweites Mal. Dasselbe gilt für
 den Stufenplan (Abschnitt 11).
 
 ## Offene Bugs
-
-Keine bekannten.
+- **B-096** Die System-Log-Maske zeigt bei unlesbarer Tabelle die Fehlermeldung
+  **und** darunter „keine Log-Einträge vorhanden." – die falsche Auskunft, die
+  P-2026-08-14-14 für die Konfigurations-Übersicht schon abgestellt hat.
 
 ## Offene Tasks
 - **T-104** Vier Controller erzeugen HTML selbst, statt `views/` zu benutzen –
-  **11 Masken**: `KonfigurationController` (4), `AuftragController` (4),
+  **10 Masken**: `KonfigurationController` (3), `AuftragController` (4),
   `TerminalAdminController` (2), `SmokeTestController` (1). Eine Maske je
   Patch; Muster und Prüfweg: P-2026-08-11-09.
 
-  `grep -rn "require __DIR__ . '/../views/layout/header.php'" controller/`
-  liefert mehr Treffer als offene Masken: 5 davon sind dreizeilige „Keine
-  Berechtigung"-Blöcke (Urlaub 3, AuditLog 1, Auftrag 1), eine ist eine fertig
-  migrierte Maske (`views/auftragszeit/bearbeiten.php`). `UrlaubController` und
-  `AuditLogController` sind deshalb **fertig** – zählen, ohne aufzuschlagen,
-  hat sie in P-2026-08-14-03 zu Unrecht auf die Liste gebracht.
+  Der naheliegende `grep` nach dem Header-Require zählt zu hoch: Er findet auch
+  „Keine Berechtigung"-Blöcke und fertige Masken. `UrlaubController` und
+  `AuditLogController` sind deshalb **fertig** (nachgezählt: P-2026-08-14-06).
 
   Beim Bauen einer Maske erst in `views/layout/header.php` nachsehen, was es
   schon gibt, und **keine eigenen Grössen auf Knöpfe schreiben** – warum, steht
   dort als Kommentar.
-- **T-105** `SmokeTestController::index()` ist eine Methode mit ~3.700 Zeilen.
+- **T-105** `SmokeTestController::index()` ist eine einzige, riesige Methode.
   Diagnosewerkzeug, keine Fachlogik – aber praktisch nicht mehr änderbar. Es ist
   nur *eine* Maske aus T-104 und trotzdem der grösste Brocken darin.
 - **Jahreswechsel beobachten:** Die Urlaubs-Übertragskette rechnet über
@@ -58,5 +56,5 @@ Keine bekannten.
 - Offen aus P-2026-08-08-02: Terminal-Buchungsflows sind unter PHP 8.5 noch
   nicht **im Browser** mit angemeldetem Mitarbeiter durchgeklickt. Die
   Buchungslogik selbst ist seit P-2026-08-10-22 geprüft, online wie offline.
-- Auftragsmodul: Scan-Flow/UX nur bei Bedarf verfeinern.
-- Terminal (Auftrag): Stop-Detailmaske (Fallback) UX vereinfachen.
+- Nur bei Bedarf: Scan-Flow/UX im Auftragsmodul verfeinern, Stop-Detailmaske
+  (Fallback) am Terminal vereinfachen.

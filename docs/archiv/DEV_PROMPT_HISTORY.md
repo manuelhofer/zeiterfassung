@@ -99,6 +99,135 @@ in den Statusbericht.
   D-002 entfallen; die Regel selbst gilt weiter.)
 
 
+## P-2026-08-15-08 t-104-systemlog-in-views
+
+### EINGELESEN
+- `docs/STATUS_SNAPSHOT.md` (T-104), `docs/arbeitsregeln.md`, `git log --oneline -20`.
+- `views/konfiguration/liste.php` und `views/konfiguration/bearbeiten.php` als
+  Muster (P-2026-08-14-12, P-2026-08-15-06).
+- `core/Csrf.php`, `feld()`.
+- `views/layout/header.php`, Block `button` / `.button-link` und
+  `.table-actions`.
+- `controller/KonfigurationController.php`, `indexSystemlog()` vollstaendig.
+- P-2026-08-14-14 (T-110) – wegen des Fehlerpfads, der hier wieder vorkommt.
+
+### DATEIEN
+- `views/konfiguration/systemlog.php` (neu)
+- `controller/KonfigurationController.php`
+- `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Die System-Log-Maske erzeugt dasselbe HTML wie vorher – bis auf die Einrueckung
+und die zwei unten benannten Absichten –, obwohl das Markup jetzt in
+`views/konfiguration/systemlog.php` liegt.
+
+### DONE
+Dritte der sechs Masken des `KonfigurationController` und die erste dieser Reihe
+**mit JavaScript** (das Aufklappen der Detailzeile). Das Skript ist reine
+Darstellung – es haengt an `[data-detail-toggle]` und kennt keine Fachlogik –,
+also wandert es mit in die View und nicht in eine eigene Datei.
+
+Der Controller behaelt Zugriffspruefung, die beiden POST-Wege (einzelnen
+Eintrag loeschen, Log leeren) und die Abfrage; er reicht fuenf Werte an die
+View: `$eintraege`, `$limit`, `$ok`, `$fehlermeldung`, `$csrfBereich`.
+2.023 → 1.897 Zeilen Controller plus 146 Zeilen View.
+
+**Zwei bewusste Abweichungen** vom bisherigen HTML, beide aus dem Muster:
+
+1. Statt der handgeschriebenen `csrf_token`-Zeile steht `Csrf::feld()` – hier an
+   **sieben** Stellen (Leeren-Formular plus ein Loeschen-Formular je Zeile).
+   Gleiche Ausgabe bis auf einen fehlenden Zeilenumbruch.
+2. Der Entwicklerhinweis zum Wert `loeschen` war ein **HTML**-Kommentar und
+   stand damit im ausgelieferten Quelltext jeder Zeile. Er ist jetzt ein
+   PHP-Kommentar: Der Hinweis gilt dem, der die Datei aendert, nicht dem
+   Browser. Sein „weiter oben" stimmte ausserdem nicht mehr – der Vergleichswert
+   steht jetzt im Controller, nicht mehr eine Bildschirmseite hoeher.
+
+Der Knopf-Regel aus T-104 („keine eigenen Groessen") war nichts hinzuzufuegen:
+Diese Maske schreibt keine Groessen auf ihre Knoepfe.
+
+### TEST
+Wegwerf-Umgebung wie in P-2026-08-14-12: zwei Kopien des Repos unter `/tmp`
+(HEAD und Arbeitsstand), eigene `config.local.php`, frische Datenbank
+`zeit_probe_t104c` aus `sql/01_initial_schema.sql`, **erfundener** Pruefbenutzer
+„Probe Pruefer", beide Server mit `-d opcache.enable=0 -d opcache.enable_cli=0`.
+Entwicklungsdatenbank nicht angefasst, Probe-Datenbank am Ende geloescht.
+
+Acht erfundene Log-Eintraege, gebaut fuer die Kanten der Maske: Sonderzeichen in
+Nachricht, Kategorie und Daten (`<script>`, `&`, `"`, `äöüß`), Daten laenger als
+120 Zeichen, Kuerzung genau auf einer Umlautgrenze, `mitarbeiter_id` ohne
+Datensatz (→ „Mitarbeiter #99"), leere Kategorie mit leeren Daten, dazu je ein
+`info`- und ein `debug`-Eintrag, die der Filter der Abfrage **nicht** zeigen
+darf.
+
+HTML beider Staende normalisiert (Leerraum zusammengefasst, Token maskiert) und
+verglichen:
+
+| Lage | Abweichende Zeilen | davon erwartet |
+| --- | --- | --- |
+| Liste mit sechs Eintraegen | 33 | 33 (7 × `Csrf::feld`, 6 × Kommentar) |
+| Liste mit `ok=1` | 33 | 33 |
+| Leere Liste | 3 | 3 (nur das Leeren-Formular ist da) |
+| Tabelle unlesbar (`RENAME TABLE`) | 3 | 3 |
+
+Kein anderer Unterschied – auch nicht in der Maskierung des `<script>`-Textes,
+in der Kuerzung auf der Umlautgrenze oder in `info`/`debug`, die auf beiden
+Staenden fehlen.
+
+Danach die Wege, die kein HTML-Vergleich zeigt, auf dem neuen Stand:
+
+| Weg | Ergebnis |
+| --- | --- |
+| Einzelnen Eintrag loeschen | 302 `&ok=1`, Zeile aus `system_log` weg, Rest unveraendert |
+| Log leeren | 302 `&ok=1`, Tabelle leer |
+| Falsches CSRF-Token | „CSRF-Check fehlgeschlagen. Bitte Seite neu laden.", nichts geloescht |
+| `id=0` | „Ungültige Log-ID.", nichts geloescht |
+| `ok=1` | „Aktion abgeschlossen." |
+
+22 Backend-Aufrufe HTTP 200 (Dashboard, Mitarbeiter, Rollen, Monatsreport,
+Urlaub eigene Liste, Genehmigungsliste, alle fuenf Konfigurations-Masken,
+Terminalverwaltung, Queue, Audit-Log, Tagesansicht, Maschinen, Abteilungen,
+Feiertage, Betriebsferien, Katalog, Auftraege), Serverlog ohne Deprecation oder
+Warnung, `php -l` ueber beide Dateien. Die beiden Suchlaeufe der
+Wartungscheckliste zu Umlauten in Werten und Bezeichnern: keine Treffer.
+
+**Kaltstart gekuerzt statt angebaut**, wie §9 es ab 16.000 Bytes verlangt: Der
+neue Bug B-096 im Snapshot kostet Platz, also ist an drei Stellen weggefallen,
+was ableitbar oder Verlauf ist – die Aufschluesselung der `grep`-Fehltreffer bei
+T-104 (steht in P-2026-08-14-06), die Zeilenzahl in T-105 (driftet, §9 nennt
+genau das) und zwei UX-Notizen, die jetzt eine Zeile teilen.
+
+| Stand | Bytes |
+| --- | --- |
+| vor diesem Patch | 15.986 |
+| mit B-096, ungekuerzt | 16.274 – **ueber der Marke** |
+| nach den drei Kuerzungen | 15.980 |
+
+### Gefundene Fehler im eigenen Entwurf
+Der Klicktest lief zuerst gegen vier erfundene Routennamen (`seite=report`,
+`urlaub`, `audit_log`, `zeit`). Alle vier gibt es nicht; `public/index.php`
+leitet unbekannte Seiten auf das Dashboard um – **HTTP 302, keine Fehlerseite**.
+Ein Skript, das nur „nicht 200" meldet, haette hier stumm vier Ablaeufe als
+geprueft gezaehlt, die nie aufgerufen wurden. Richtig heissen sie
+`report_monat`, `urlaub_meine`, `audit_logs`, `zeit_heute`. Wer Klicktests
+skriptet, prueft die Routennamen gegen `public/index.php`, nicht gegen das
+Gedaechtnis.
+
+### Was bewusst nicht erreicht wurde
+Der Fehlerpfad zeigt weiterhin **beides**: „Das System-Log konnte nicht geladen
+werden." und direkt darunter „Es sind derzeit keine Log-Einträge vorhanden." –
+genau die falsche Auskunft, die P-2026-08-14-14 fuer die Konfigurations-
+Uebersicht abgestellt hat. Hier nicht mitgemacht, weil dieser Patch das HTML
+gleich lassen muss, um vergleichbar zu bleiben. Als eigener Patch direkt danach.
+
+Die drei restlichen Masken des Controllers (Krankzeitraum, Pausenregeln,
+Sonstiges-Gruende) bleiben, wie sie sind – eine Maske je Patch. Das gemeinsame
+Teil-Template fuer die Tab-Zeile bleibt offen bis zur letzten Maske.
+
+### NEXT
+Der Fehlerpfad dieser Maske (siehe oben), dann die naechste Maske aus T-104:
+`indexSonstigesGruende()` (362 Zeilen).
+
 ## P-2026-08-15-07 regeln-sind-verhandelbar
 
 ### EINGELESEN
