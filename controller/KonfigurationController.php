@@ -1328,8 +1328,11 @@ class KonfigurationController
 
                         header('Location: ?seite=konfiguration_admin&tab=pausen&ok=1');
                         return;
-                    } catch (Throwable) {
+                    } catch (Throwable $e) {
                         $fehlermeldung = 'Speichern fehlgeschlagen.';
+                        Logger::error('Fehler beim Speichern der gesetzlichen Pausenregeln', [
+                            'exception' => $e->getMessage(),
+                        ], $this->authService->holeAngemeldeteMitarbeiterId(), null, 'config');
                     }
                 }
             }

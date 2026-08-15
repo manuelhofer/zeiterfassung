@@ -129,6 +129,14 @@ class KonfigurationService
     /**
      * Schreibt oder aktualisiert einen Konfigurationswert.
      *
+     * Wirft weiter, wenn das Schreiben scheitert – wie `getAlle()` und anders
+     * als `get()`. Beim Lesen gibt es einen Standardwert, auf den
+     * zurückgefallen werden kann; beim Schreiben gibt es keinen Ersatz für
+     * „ist nicht angekommen". Ein verschluckter Schreibfehler meldet dem
+     * Benutzer „Gespeichert." und lässt ihn mit dem alten Wert weiterarbeiten,
+     * ohne es zu wissen – der teuerste Fehler von allen, weil ihn niemand
+     * bemerkt.
+     *
      * @param string      $schluessel   Eindeutiger Schlüssel
      * @param string|null $wert         Rohwert (TEXT)
      * @param string|null $typ          Optionaler Typ-Hinweis (z. B. 'string', 'int', 'bool')
@@ -148,22 +156,15 @@ class KonfigurationService
                     typ = VALUES(typ),
                     beschreibung = VALUES(beschreibung)';
 
-        try {
-            $this->datenbank->ausfuehren($sql, [
-                'schluessel'   => $schluessel,
-                'wert'         => $wert,
-                'typ'          => $typ,
-                'beschreibung' => $beschreibung,
-            ]);
+        $this->datenbank->ausfuehren($sql, [
+            'schluessel'   => $schluessel,
+            'wert'         => $wert,
+            'typ'          => $typ,
+            'beschreibung' => $beschreibung,
+        ]);
 
-            // Cache aktualisieren
-            $this->cache[$schluessel] = $wert;
-        } catch (\Throwable $e) {
-            Logger::error('Fehler beim Schreiben eines Konfigurationswertes', [
-                'schluessel' => $schluessel,
-                'exception'  => $e->getMessage(),
-            ], null, null, 'config');
-        }
+        // Cache erst aktualisieren, wenn das Schreiben durch ist.
+        $this->cache[$schluessel] = $wert;
     }
 
     /**

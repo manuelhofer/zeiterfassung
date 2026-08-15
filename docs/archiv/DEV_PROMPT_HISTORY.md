@@ -99,6 +99,101 @@ in den Statusbericht.
   D-002 entfallen; die Regel selbst gilt weiter.)
 
 
+## P-2026-08-15-05 set-meldet-schreibfehler
+
+### EINGELESEN
+- P-2026-08-14-14, Abschnitt „Was bewusst nicht erreicht wurde" – dort steht
+  dieser Punkt als offen.
+- `services/KonfigurationService.php` vollstaendig.
+- `grep -rn "KonfigurationService" controller services core views modelle public`
+  – `set()` hat genau zwei Aufrufer, beide in `KonfigurationController`.
+- Beide Aufrufstellen mit ihrem `try`/`catch`.
+
+### DATEIEN
+- `services/KonfigurationService.php`
+- `controller/KonfigurationController.php`
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Ist die Tabelle `config` nicht beschreibbar, zeigt die Bearbeiten-Maske „Der
+Eintrag konnte nicht gespeichert werden." – vorher meldete sie „gespeichert"
+und liess den alten Wert stehen.
+
+### DONE
+Derselbe Bau wie T-110, nur beim Schreiben: `set()` hat seinen Fehler selbst
+abgefangen, geloggt und `void` zurueckgegeben. Beide Aufrufer haben einen
+passenden `try`/`catch` – der nie greifen konnte. Also lief der Ablauf
+weiter bis zum `header('Location: …&ok=1')`.
+
+Was der Benutzer davon sah: „Gespeichert.", die Uebersicht, und darin den
+**alten** Wert. Kein Fehler, keine Warnung, nichts zum Nachschlagen. Der
+Log-Eintrag stand da, aber niemand sieht in ein Log, wenn ihm gerade Erfolg
+gemeldet wurde.
+
+`set()` faengt nicht mehr ab; die Begruendung steht als Kommentar an der
+Methode, parallel zu dem an `getAlle()`: Beim Lesen gibt es einen
+Standardwert, auf den man zurueckfallen kann, beim Schreiben gibt es keinen
+Ersatz fuer „ist nicht angekommen". Die Cache-Zeile steht jetzt hinter dem
+Schreiben – vorher haette sie den nicht geschriebenen Wert fuer den Rest des
+Requests als gueltig ausgegeben.
+
+**Ein Log-Eintrag waere dabei verlorengegangen.** Von den zwei Aufrufern loggt
+nur `bearbeiten()` im `catch`; der Pausenregel-Zweig setzte bloss
+„Speichern fehlgeschlagen." und schwieg im Log. Solange `set()` selbst geloggt
+hat, fiel das nicht auf. Also bekommt der Zweig sein eigenes
+`Logger::error(… , 'config')` – sonst haette dieser Patch die Sichtbarkeit an
+einer Stelle verbessert und an der anderen verschlechtert.
+
+### TEST
+Zwei Server auf **derselben** Probe-Datenbank: der neue Stand und eine Kopie
+von `7fa0d8f`. So sieht man den Unterschied am selben Datenbestand statt in
+zwei Laeufen.
+
+Die Schreibsperre kam nicht ueber Rechte, sondern ueber zwei Trigger auf
+`config` (`BEFORE INSERT`/`BEFORE UPDATE` mit `SIGNAL SQLSTATE '45000'`). Das
+trifft genau die Frage: **Lesen bleibt moeglich, Schreiben scheitert.** Mit
+entzogenen Rechten waere auch das Laden der Maske gescheitert, und dann prueft
+man einen anderen Fehler.
+
+| Maske | Stand | Antwort | Datenbank | Meldung |
+| --- | --- | --- | --- | --- |
+| Bearbeiten | `7fa0d8f` | 302 `&ok=1` | unveraendert | keine |
+| Bearbeiten | neu | 200, kein Redirect | unveraendert | „Der Eintrag konnte nicht gespeichert werden." |
+| Pausenregeln | `7fa0d8f` | 302 `&ok=1` | unveraendert | keine |
+| Pausenregeln | neu | 200, kein Redirect | unveraendert | „Speichern fehlgeschlagen." |
+
+`system_log` zeigt den Wechsel der Zustaendigkeit: neu steht dort
+`error | config | Fehler beim Speichern eines Config-Eintrags` (Controller)
+bzw. `… Fehler beim Speichern der gesetzlichen Pausenregeln`; die
+Servicemeldung „Fehler beim Schreiben eines Konfigurationswertes" kommt nur
+noch aus der alten Kopie.
+
+Danach Trigger geloescht und der Normalfall geprueft: Bearbeiten speichert
+(`probe.schreibtest` = `NEUER-WERT`, 302 `&ok=1`), Pausenregeln speichern alle
+vier Werte (7/35/10/50). 29 Backend-Aufrufe HTTP 200, Serverlog ohne
+PHP-Meldung. `php -l` ueber beide Dateien. Probe-Eintrag und Trigger entfernt,
+Entwicklungsdatenbank nicht angefasst.
+
+### Gefundene Fehler im eigenen Entwurf
+Der erste Plan war, die Schreibsperre mit `RENAME TABLE config` zu erzeugen –
+so wie in P-2026-08-14-14 fuer den Lesefehler. Das haette hier den falschen
+Fall geprueft: Ohne Tabelle scheitert schon das Laden der Maske, und die
+Fehlermeldung, die man dann sieht, kommt aus einem ganz anderen `catch`. Der
+Trigger trennt Lesen und Schreiben sauber.
+
+### Was bewusst nicht erreicht wurde
+Ein leerer Schluessel laesst `set()` weiterhin stillschweigend nichts tun
+(`return;` ganz oben). Das ist kein Datenbankfehler, sondern ein
+Programmierfehler beim Aufrufer, und beide Aufrufer pruefen vorher. Eine
+Ausnahme daraus zu machen, waere eine eigene Entscheidung.
+
+`get()` faengt weiter ab – dort ist es richtig, dafuer gibt es den
+Standardwert.
+
+### NEXT
+T-104: `bearbeiten()` des `KonfigurationController` nach
+`views/konfiguration/bearbeiten.php`.
+
 ## P-2026-08-15-04 pruefgriff-fuer-flaechige-textaenderungen
 
 ### EINGELESEN
