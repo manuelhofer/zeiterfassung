@@ -99,6 +99,79 @@ in den Statusbericht.
   D-002 entfallen; die Regel selbst gilt weiter.)
 
 
+## P-2026-08-15-38 b-102-sequenz-check-sql
+
+### EINGELESEN
+- `docs/STATUS_SNAPSHOT.md` (B-102), P-2026-08-15-37 – dort ist der Fund
+  entstanden.
+- Der Sequenz-Check in `SmokeTestController::index()` vollstaendig, dazu die
+  benachbarten SQL-Stellen im selben Controller als Stilvergleich.
+
+### DATEIEN
+- `controller/SmokeTestController.php`
+- `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Der Kommen/Gehen-Sequenz-Check fuer Mitarbeiter 15 im Juli 2026 zeigt statt
+„Sequenz-Check Fehler: SQLSTATE[42000] …" seinen Ergebnisblock mit „Tage mit
+Buchungen: 9" und drei auffaelligen Tagen.
+
+### DONE
+Vier Teilstuecke in **einfachen** Anfuehrungszeichen endeten auf `\n` – dort ist
+das kein Zeilenumbruch, sondern ein Backslash und ein `n` mitten im Statement.
+Das Statement war damit von der ersten Zeile an unsyntaktisch; der Check hat
+**nie** ein Ergebnis geliefert, sondern immer nur die Fehlermeldung der
+Datenbank angezeigt.
+
+Ersetzt durch **eine** Zeichenkette in doppelten Anfuehrungszeichen ueber vier
+Zeilen – so wie die Mehrzahl der Abfragen in dieser Datei geschrieben ist
+(z. B. der Zaehl-Query des PDF-DB-Checks). Die Alternative waere gewesen, es
+dem Monatsfallback-Check gleichzutun, der dieselbe Konstruktion mit einem
+echten Zeilenumbruch **innerhalb** der einfachen Anfuehrungszeichen loest: Das
+laeuft zwar, sieht aber im Editor wie ein Versehen aus und ist genau die
+Schreibweise, aus der dieser Fehler entstanden ist.
+
+Der Suchlauf aus P-2026-08-15-37 ueber das ganze Projekt hatte nur diese eine
+Stelle gefunden; nach der Aenderung findet er keine mehr.
+
+### TEST
+Wegwerf-Umgebung und Daten aus P-2026-08-15-37 weiterverwendet (zwei Server,
+eigene Datenbank, erfundene Buchungen im Juli 2026).
+
+Der Ergebnisblock zeigt jetzt genau die Tage, die als Kanten angelegt wurden:
+
+| Tag | Anomalien laut Anzeige | Sequenz |
+| --- | --- | --- |
+| 2026-07-03 | `start!=gehen, odd, gehen_ohne_kommen` | `G` |
+| 2026-07-06 | `odd, doppelt:kommen, kommen_ohne_gehen` | `K K G` |
+| 2026-07-07 | `odd, offen` | `K` |
+
+Dazu ein Mehrblock-Tag (2026-07-02, 2 Paare aus 4 Buchungen) und „Tage mit
+Buchungen: 9". Der Check zaehlt also nicht nur, er trifft auch.
+
+Weitere Lagen auf dem neuen Stand: Monat ohne jede Buchung → „OK", 0 Tage;
+Mitarbeiter-ID 999999 → 0 Tage, keine Fehlermeldung. In keiner der drei Lagen
+steht noch „Sequenz-Check Fehler" auf der Seite.
+
+Dass **nur** dieser Block anders wird, ist gepruefte Aussage und keine
+Annahme: Die Seite wurde an der Ueberschrift des Sequenz-Checks und an der des
+naechsten Abschnitts geteilt und die beiden Aussenteile gegen HEAD verglichen –
+0 Abweichungen davor, 0 danach.
+
+26 Backend-Routen HTTP 200 auf beiden Staenden, `php -l`, Serverlog ohne neue
+PHP-Meldung.
+
+### Was bewusst nicht erreicht wurde
+Die zehn Warnungen des PDF-DB-Auto-Multipage-Checks (B-103) bleiben – anderes
+Thema, eigener Patch.
+
+Der Ergebnisrahmen ist rot, die Ueberschrift daneben sagt aber „HINWEIS" statt
+„FAIL". Das ist so gewollt: Ein auffaelliger Tag ist ein Fund, den jemand
+ansehen soll, kein Fehler des Systems. Nicht angefasst.
+
+### NEXT
+B-103, danach T-105.
+
 ## P-2026-08-15-37 t-104-smoketest-in-views
 
 ### EINGELESEN

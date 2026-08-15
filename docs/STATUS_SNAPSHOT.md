@@ -29,9 +29,6 @@ zweites Mal.
 
 Ein Satz je Bug – die Begründung steht im Verlauf, nicht hier.
 
-- **B-102** Der Kommen/Gehen-Sequenz-Check im Smoke-Test setzt sein SQL mit
-  `'\n'` in einfachen Anführungszeichen zusammen und scheitert deshalb immer am
-  Syntaxfehler; gefunden in P-2026-08-15-37.
 - **B-103** Der PDF-DB-Auto-Multipage-Check liest neun `$reportHtml…`-Werte, die
   nur im PDF-Quick-Check entstehen – zehn PHP-Warnungen je Lauf und ein
   HTML-Render-Check, der immer „SKIP" meldet; gefunden in P-2026-08-15-37.

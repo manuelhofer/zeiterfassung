@@ -3050,10 +3050,10 @@ class SmokeTestController
                     $today = (new DateTimeImmutable('today'))->format('Y-m-d');
 
                     $rows = $this->db->fetchAlle(
-                        'SELECT id, typ, zeitstempel\n'
-                        . 'FROM zeitbuchung\n'
-                        . 'WHERE mitarbeiter_id = :mid AND zeitstempel >= :von AND zeitstempel < :bis\n'
-                        . 'ORDER BY zeitstempel ASC, id ASC',
+                        "SELECT id, typ, zeitstempel
+                         FROM zeitbuchung
+                         WHERE mitarbeiter_id = :mid AND zeitstempel >= :von AND zeitstempel < :bis
+                         ORDER BY zeitstempel ASC, id ASC",
                         [
                             'mid' => $buchungssequenzTestMitarbeiterId,
                             'von' => $start->format('Y-m-d H:i:s'),
