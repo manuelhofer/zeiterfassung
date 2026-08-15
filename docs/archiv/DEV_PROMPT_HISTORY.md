@@ -99,6 +99,79 @@ in den Statusbericht.
   D-002 entfallen; die Regel selbst gilt weiter.)
 
 
+## P-2026-08-15-13 gefundenes-wird-abgearbeitet
+
+### EINGELESEN
+- `docs/arbeitsregeln.md`, §3 und §9.
+- `README.md`, Abschnitt „Mitarbeiten".
+- `docs/STATUS_SNAPSHOT.md` (fuer die Kuerzung).
+- Ansage von Manuel im Chat: „arbeite auch mal fehler ab nicht nur immer
+  beischreiben was so auffällt auch mal lösen".
+- Die eigenen Eintraege P-2026-08-15-09 bis -12 – dort ist genau das passiert.
+
+### DATEIEN
+- `docs/arbeitsregeln.md`, `README.md`
+- `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+§3 sagt nicht mehr nur, dass Gefundenes notiert wird, sondern auch, dass es
+abgearbeitet wird – und der Kaltstart bleibt unter 16.000 Bytes.
+
+### DONE
+Die Regel „Keine Refactors nebenbei" hatte nur eine Haelfte: notieren statt
+mitmachen. Was danach mit der Notiz passiert, stand nirgends. Wer die Regel
+woertlich nimmt, schreibt Zettel und legt sie ab – und weil ein Fund immer aus
+einer anderen Aufgabe faellt, ist der naechste Patch nie „dafuer zustaendig".
+So waechst eine Liste, die niemand abarbeitet, und der Code bleibt, wie er war.
+
+Die zweite Haelfte steht jetzt daneben: **abgearbeitet, moeglichst gleich
+danach, als eigener Patch.** Mit der Begruendung, die den Unterschied macht –
+wer den Fehler gefunden hat, weiss am meisten ueber ihn. Eine Woche spaeter
+liest jemand denselben Satz und faengt bei null an.
+
+Der Zuschnitt bleibt unangetastet: Ein Fund wird **nicht** in den laufenden
+Patch gezogen. Genau deshalb ist die Ergaenzung vertraeglich mit dem Rest von
+§3 – sie sagt nicht „doch mitmachen", sondern „nicht liegenlassen".
+
+Diese Sitzung hat es vorgemacht: B-096 fiel in P-2026-08-15-08 auf und war in
+-09 behoben, T-111 in -09 und in -10 abgearbeitet, B-097 und B-098 in -10
+gefunden, in -11 und -12 behoben. Kein Fund lag laenger als einen Patch.
+
+`README.md` bekommt denselben Halbsatz in der Kurzfassung. Es zaehlt nicht zum
+Kaltstart, kostet also keine Bytes.
+
+### TEST
+Keine Codeaenderung, also nichts zu klicken. Gemessen wurde, was §9 verlangt:
+
+| Stand | Bytes |
+| --- | --- |
+| vorher | 15.930 |
+| mit der neuen Regel | 16.076 – **ueber der Marke** |
+| nach Kuerzung im Snapshot | 15.980 |
+
+Gekuerzt wurde in T-104 (die `grep`-Warnung und der Knopf-Hinweis sagen dasselbe
+in weniger Worten) und in der Terminal-Zeile („mit angemeldetem Mitarbeiter"
+stand schon in „im Browser"). Kein Inhalt ist weggefallen, nur Wortlaenge.
+
+Verweise auf Abschnittsnummern gegengeprueft: `docs/installationsanleitung.md`
+(§7) und `docs/spezifikation_abteilungsrechte.md` (§1) stimmen weiterhin – es
+kam kein Abschnitt dazu, nur Text in einen bestehenden.
+
+### Was bewusst nicht erreicht wurde
+`CHATSTART.md` bleibt unveraendert. Dort stehen nur die vier Regeln, bei denen
+ein Verstoss nicht mehr zu reparieren ist; ein liegengebliebener Fund ist
+aergerlich, aber reparierbar.
+
+**Der Kaltstart ist strukturell am Anschlag.** Dieser Patch ist der dritte in
+Folge, der kuerzen musste, um etwas hinzufuegen zu duerfen, und die Kuerzungen
+werden kleinlicher. Der Grund ist nicht der Text der Regeln, sondern der
+Snapshot: Er zaehlt voll mit, und wenn eine Sitzung Bugs findet, waechst er.
+Das ist keine Frage, die ein Patch nebenbei entscheidet – Vorschlaege stehen im
+Chat, entscheiden muss es Manuel.
+
+### NEXT
+Zurueck zu T-104: `indexSonstigesGruende()` des `KonfigurationController`.
+
 ## P-2026-08-15-12 b-098-feiertagsliste-meldet-lesefehler
 
 ### EINGELESEN

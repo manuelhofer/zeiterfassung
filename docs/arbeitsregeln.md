@@ -42,8 +42,10 @@ Ziel: verhindern, dass bereits Erledigtes ein zweites Mal gebaut wird.
 - Jeder Patch braucht **ein Akzeptanzkriterium in genau einem Satz** – ein
   konkretes Beispiel mit Erwartung – und dokumentiert es im History-Eintrag.
 - **Keine Refactors nebenbei.** Geändert wird nur, was für das
-  Akzeptanzkriterium nötig ist. Fällt dabei etwas anderes auf, wird es als
-  offener Punkt notiert, nicht sofort mitgemacht.
+  Akzeptanzkriterium nötig ist. Fällt dabei etwas anderes auf, wird es notiert
+  statt mitgemacht – und als eigener Patch **abgearbeitet**, möglichst gleich
+  danach. Die Notiz ist ein Aufschub, keine Ablage: Wer den Fehler gefunden
+  hat, weiss am meisten über ihn.
 - Es gibt **kein hartes Dateilimit**. Aber: Wenn ein Patch auffällig viele
   Dateien anfasst, ist das ein Warnsignal – dann prüfen, ob zwei Themen
   vermischt werden, und aufteilen.

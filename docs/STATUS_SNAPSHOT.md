@@ -39,13 +39,12 @@ Keine bekannten.
   `TerminalAdminController` (2), `SmokeTestController` (1). Eine Maske je
   Patch; Muster und Prüfweg: P-2026-08-11-09.
 
-  Der naheliegende `grep` nach dem Header-Require zählt zu hoch: Er findet auch
-  „Keine Berechtigung"-Blöcke und fertige Masken. `UrlaubController` und
-  `AuditLogController` sind deshalb **fertig** (nachgezählt: P-2026-08-14-06).
+  Der `grep` nach dem Header-Require zählt zu hoch – er findet auch „Keine
+  Berechtigung"-Blöcke. `UrlaubController` und `AuditLogController` sind
+  **fertig**, nachgezählt in P-2026-08-14-06.
 
-  Beim Bauen einer Maske erst in `views/layout/header.php` nachsehen, was es
-  schon gibt, und **keine eigenen Grössen auf Knöpfe schreiben** – warum, steht
-  dort als Kommentar.
+  Beim Bauen einer Maske erst in `views/layout/header.php` nachsehen und
+  **keine eigenen Grössen auf Knöpfe schreiben** – Begründung steht dort.
 - **T-105** `SmokeTestController::index()` ist eine einzige, riesige Methode.
   Diagnosewerkzeug, keine Fachlogik – aber praktisch nicht mehr änderbar. Es ist
   nur *eine* Maske aus T-104 und trotzdem der grösste Brocken darin.
@@ -55,7 +54,7 @@ Keine bekannten.
   noch aus – dann prüfen, ob die Salden plausibel bleiben.
 - Praxis-Test: Bugs und Anomalien sammeln, als Micro-Patches beheben.
 - Offen aus P-2026-08-08-02: Terminal-Buchungsflows sind unter PHP 8.5 noch
-  nicht **im Browser** mit angemeldetem Mitarbeiter durchgeklickt. Die
-  Buchungslogik selbst ist seit P-2026-08-10-22 geprüft, online wie offline.
+  nicht **im Browser** durchgeklickt. Die Buchungslogik selbst ist seit
+  P-2026-08-10-22 geprüft, online wie offline.
 - Nur bei Bedarf: Scan-Flow/UX im Auftragsmodul verfeinern, Stop-Detailmaske
   (Fallback) am Terminal vereinfachen.

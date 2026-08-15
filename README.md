@@ -112,7 +112,8 @@ das eine Frage wert und keine stille Ausnahme.
   `P-2026-08-08-01 report-kommen-gehen`.
 - [`docs/archiv/DEV_PROMPT_HISTORY.md`](docs/archiv/DEV_PROMPT_HISTORY.md) im
   **selben Commit** pflegen.
-- **Keine Refactors nebenbei.** Was auffällt, wird notiert, nicht mitgemacht.
+- **Keine Refactors nebenbei.** Was auffällt, wird notiert statt mitgemacht –
+  und als eigener Patch abgearbeitet, nicht auf Halde gelegt.
 - **Gepusht wird nur auf ausdrückliche Ansage.** Lokal committen ist frei.
 - Vor dem Start prüfen, ob die Sache nicht längst erledigt ist (History +
   `git log`).
