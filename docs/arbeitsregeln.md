@@ -169,14 +169,11 @@ Hotfixes, Prüf-Queries). Strukturänderungen gehören trotzdem **immer** nach
 Jeder neue Chat liest `CLAUDE.md`, `CHATSTART.md`, diese Datei und den Snapshot,
 **bevor** er irgendetwas tun kann – auch bei der kleinsten Frage. Was hier
 steht, kostet jedes Mal: **so kurz wie möglich, aber nicht kürzer.** Braucht
-eine Sache ein paar Zeilen mehr, bekommt sie die. Neue Erklärungen gehören
-ohnehin in die Dateien, die nur bei Bedarf gelesen werden (Fachregeln,
-Spezifikation, Handbuch).
-
-Eine feste Byte-Grenze gibt es **nicht** – sie hat zuletzt dazu geführt, an
-Wortlängen zu sparen, statt zu entscheiden, was überhaupt hineingehört. Was
-von Natur aus wächst, ist der Snapshot: **ein Satz je Bug und Task**, die
-Begründung steht im Verlauf. Wer dort diszipliniert bleibt, braucht keine Zahl.
+eine Sache ein paar Zeilen mehr, bekommt sie die. Eine Byte-Grenze gibt es
+**nicht** (warum nicht: P-2026-08-15-25). Neue Erklärungen gehören in die
+Dateien, die nur bei Bedarf gelesen werden (Fachregeln, Spezifikation,
+Handbuch); was von Natur aus wächst, ist der Snapshot – **ein Satz je Bug und
+Task**, die Begründung steht im Verlauf.
 
 Zum Abschluss einer Sitzung: Erledigtes aus dem Snapshot **entfernen**, keine
 ableitbare Zahl pflegen (Prozente, Patch-Listen, Verlaufsabrisse, Zeilenzahlen

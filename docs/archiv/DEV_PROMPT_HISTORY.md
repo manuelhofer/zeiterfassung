@@ -99,6 +99,52 @@ in den Statusbericht.
   D-002 entfallen; die Regel selbst gilt weiter.)
 
 
+## P-2026-08-15-27 t-117-kaltstart-begruendung-in-den-verlauf
+
+### EINGELESEN
+- `docs/arbeitsregeln.md` §9 in der Fassung aus P-2026-08-15-25.
+- `docs/STATUS_SNAPSHOT.md` (T-117).
+- Den eigenen Eintrag P-2026-08-15-26, „Was bewusst nicht erreicht wurde" –
+  dort ist T-117 entstanden.
+
+### DATEIEN
+- `docs/arbeitsregeln.md`
+- `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+§9 sagt „eine Byte-Grenze gibt es nicht" mit Verweis auf P-2026-08-15-25, statt
+die Begruendung auszuschreiben – der Kaltstart faellt von 16.252 auf 16.108
+Bytes.
+
+### DONE
+T-117 aus P-2026-08-15-26. Der Absatz „sie hat zuletzt dazu gefuehrt, an
+Wortlaengen zu sparen …" erklaerte eine Entscheidung, die schon getroffen ist.
+Wer §9 liest, muss wissen, dass es keine Grenze gibt; warum es sie mal gab und
+warum sie weg ist, braucht nur, wer sie wieder einfuehren will – und der findet
+es ueber die Patch-ID. Genau der Fall, den §9 selbst beschreibt: Erklaerungen
+gehoeren dorthin, wo sie bei Bedarf gelesen werden.
+
+Aus zwei Absaetzen ist einer geworden, die Regel und die Snapshot-Disziplin
+stehen unveraendert darin.
+
+### TEST
+Keine Codeaenderung. `cat CLAUDE.md CHATSTART.md docs/arbeitsregeln.md
+docs/STATUS_SNAPSHOT.md | wc -c` gibt **16.108** (vorher 16.252, vor der ganzen
+Reihe 15.803). Die Patch-ID im Verweis existiert: `git log --grep=P-2026-08-15-25`
+findet den Commit, und der Eintrag steht in dieser Datei. §9 nennt weiterhin
+keine Zahl.
+
+### Was bewusst nicht erreicht wurde
+Der Rest der 305 Bytes, die die Reihe gekostet hat, bleibt stehen: Er steckt in
+§0 (der neue Absatz) und ist der eigentliche Inhalt von P-2026-08-15-26, nicht
+Beiwerk.
+
+Der Snapshot ist weiterhin nicht auf „ein Satz je Eintrag" gebracht – dieselbe
+Ansage wie in P-2026-08-15-25, sie gilt unveraendert.
+
+### NEXT
+T-104, erste der vier Masken im `AuftragController`.
+
 ## P-2026-08-15-26 arbeitsweg-ansprechen
 
 ### EINGELESEN

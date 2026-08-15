@@ -30,9 +30,6 @@ zweites Mal.
 Keine bekannten.
 
 ## Offene Tasks
-- **T-117** `arbeitsregeln.md` §9 erklärt im Regeltext, *warum* es keine
-  Byte-Grenze gibt. Das ist Verlauf (P-2026-08-15-25) und kostet jeden
-  Kaltstart – auf die Regel selbst kürzen.
 - **T-112** „`catch` → `return []`" steckt an 26 Stellen in `modelle/` und
   `services/`. Falsch ist es nur dort, wo es die Fehlermeldung des Aufrufers
   unerreichbar macht (B-097, T-110). Durchsehen, nicht pauschal ändern;
