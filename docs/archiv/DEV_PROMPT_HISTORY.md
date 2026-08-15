@@ -99,6 +99,57 @@ in den Statusbericht.
   D-002 entfallen; die Regel selbst gilt weiter.)
 
 
+## P-2026-08-15-36 snapshot-ein-satz-je-task
+
+### EINGELESEN
+- `docs/arbeitsregeln.md` §9 in der Fassung aus P-2026-08-15-27.
+- `docs/STATUS_SNAPSHOT.md` vollstaendig.
+- Die eigenen Eintraege P-2026-08-15-25 und -27, „Was bewusst nicht erreicht
+  wurde" – dort ist diese Aufraeumarbeit zweimal angekuendigt.
+
+### DATEIEN
+- `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Jeder Punkt unter „Offene Tasks" ist ein Satz, und T-104 und T-105 stehen als
+**ein** Punkt statt als zwei, die dasselbe meinen.
+
+### DONE
+Der Sitzungsabschluss aus §9, jetzt mit der Regel, die -25 dort hingeschrieben
+hat: ein Satz je Task, die Begruendung im Verlauf.
+
+**T-104 und T-105 sind zusammengelegt.** Sie beschrieben seit dieser Sitzung
+dieselbe Sache: Seit P-2026-08-15-33 ist der `SmokeTestController` der einzige
+verbliebene Fall von T-104 – und genau der ist T-105. Zwei Punkte fuer eine
+Aufgabe lassen den Rueckstand groesser aussehen, als er ist. Beide IDs stehen
+weiter im Text, damit aeltere Verlaufseintraege auffindbar bleiben.
+
+Gestrichen, weil ableitbar oder Verlauf: die Zaehlung der Masken (steht im
+Verlauf und driftet mit jedem Patch), die Aufzaehlung der Muster-Patches bis auf
+den letzten, der Knopf-Groessen-Hinweis (steht in `views/layout/header.php`, wo
+er beim Bauen ohnehin gelesen wird) und die drei Verweise auf B-097/T-110 bei
+T-112 – ein Verweis reicht.
+
+Der Block „Projektstatus" bleibt unangetastet: Er ist keine Task, sondern die
+Abgrenzung gegen Dringlichkeit, die es nicht gibt.
+
+Kaltstart 16.108 → **15.406 Bytes**, ohne dass eine Regel oder ein offener Punkt
+weggefallen waere.
+
+### TEST
+Keine Codeaenderung. Geprueft: Jeder Listenpunkt unter „Offene Tasks" ist ein
+Satz; die Anzahl offener Aufgaben ist gleich geblieben (T-104/T-105
+zusammengelegt, sechs Punkte statt sieben); die drei Links im Snapshot zeigen
+auf vorhandene Dateien (`ls`); `wc -c` ueber die vier Kaltstart-Dateien gibt
+15.406.
+
+### Was bewusst nicht erreicht wurde
+Der Verlauf selbst bleibt lang – er soll es. §6 sagt, er wird nie geloescht;
+gekuerzt wird der Snapshot, nicht die Geschichte.
+
+### NEXT
+T-104/T-105: `SmokeTestController::index()` – die letzte Maske mit eigenem HTML.
+
 ## P-2026-08-15-35 t-120-katalog-auswahl-bleibt-zweimal
 
 ### EINGELESEN

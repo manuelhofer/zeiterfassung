@@ -30,23 +30,19 @@ zweites Mal.
 Keine bekannten.
 
 ## Offene Tasks
-- **T-112** „`catch` → `return []`" steckt an 26 Stellen in `modelle/` und
-  `services/`. Falsch ist es nur dort, wo es die Fehlermeldung des Aufrufers
-  unerreichbar macht (B-097, T-110). Durchsehen, nicht pauschal ändern;
-  Suchlauf in P-2026-08-15-10.
-- **T-104** Noch **eine** Maske erzeugt ihr HTML selbst statt in `views/`:
-  `SmokeTestController` (siehe T-105). Muster und Prüfweg: P-2026-08-11-09,
-  zuletzt P-2026-08-15-33; keine eigenen Grössen auf Knöpfe (Begründung in
-  `views/layout/header.php`).
-- **T-105** `SmokeTestController::index()` ist eine einzige, riesige Methode:
-  Diagnosewerkzeug ohne Fachlogik, praktisch nicht mehr änderbar – nur *eine*
-  Maske aus T-104 und trotzdem der grösste Brocken darin.
-- **Jahreswechsel beobachten:** Die Urlaubs-Übertragskette schreibt ihr Ergebnis
-  in `urlaub_kontingent_jahr` fest (B-080). Beim ersten echten Jahreswechsel
-  prüfen, ob die Salden plausibel bleiben.
+
+Ein Satz je Task – die Begründung steht im Verlauf, nicht hier.
+
+- **T-104/T-105** `SmokeTestController::index()` ist die letzte Maske mit
+  eigenem HTML und zugleich eine einzige riesige Methode; Muster und Prüfweg:
+  P-2026-08-15-33.
+- **T-112** „`catch` → `return []`" an 26 Stellen in `modelle/` und `services/`
+  durchsehen – falsch nur dort, wo es die Fehlermeldung des Aufrufers
+  unerreichbar macht; Suchlauf in P-2026-08-15-10.
+- **Jahreswechsel beobachten:** Beim ersten echten Jahreswechsel prüfen, ob die
+  festgeschriebenen Urlaubssalden plausibel bleiben (B-080).
+- **Terminal im Browser:** Die Buchungsflows sind unter PHP 8.5 noch nicht
+  durchgeklickt (offen aus P-2026-08-08-02).
 - Praxis-Test: Bugs und Anomalien sammeln, als Micro-Patches beheben.
-- Offen aus P-2026-08-08-02: Terminal-Buchungsflows sind unter PHP 8.5 noch
-  nicht **im Browser** durchgeklickt. Die Buchungslogik selbst ist seit
-  P-2026-08-10-22 geprüft, online wie offline.
 - Nur bei Bedarf: Scan-Flow/UX im Auftragsmodul verfeinern, Stop-Detailmaske
   (Fallback) am Terminal vereinfachen.
