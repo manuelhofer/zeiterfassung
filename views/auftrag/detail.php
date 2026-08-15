@@ -17,6 +17,7 @@ declare(strict_types=1);
  * - $auftragCodeUrl (string) – Bild-URL des Auftrags-Strichcodes, '' wenn keiner
  * - $darfVerwalten (bool)
  * - optional: $flashOk, $flashFehler, $fehlermeldung (string|null)
+ * - optional: $ladefehler (bool) – true, wenn die Buchungen nicht lesbar waren
  * - $csrfBereich (string) – Bereichsname für `Csrf`, kommt aus dem Controller
  */
 require __DIR__ . '/../layout/header.php';
@@ -40,6 +41,7 @@ $darfVerwalten       = (bool)($darfVerwalten ?? false);
 $flashOk             = $flashOk ?? null;
 $flashFehler         = $flashFehler ?? null;
 $fehlermeldung       = $fehlermeldung ?? null;
+$ladefehler          = (bool)($ladefehler ?? false);
 
 $escD = static function ($wert): string {
     return htmlspecialchars((string)$wert, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
@@ -66,8 +68,12 @@ $escD = static function ($wert): string {
         </div>
     <?php endif; ?>
 
+    <?php /* „Keine Buchungen" nur, wenn auch wirklich nachgesehen wurde – bei
+             einem Ladefehler steht die Fehlermeldung schon darüber (B-096). */ ?>
     <?php if (count($buchungen) === 0): ?>
-        <p>Keine Buchungen gefunden.</p>
+        <?php if (!$ladefehler): ?>
+            <p>Keine Buchungen gefunden.</p>
+        <?php endif; ?>
     <?php else: ?>
         <table>
             <thead>

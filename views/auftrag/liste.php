@@ -10,6 +10,7 @@ declare(strict_types=1);
  * - $darfVerwalten (bool)
  * - $blaetterdaten (array<string,mixed>) – für `blaetternavigation.php`
  * - optional: $fehlermeldung, $flashOk, $flashFehler (string|null)
+ * - optional: $ladefehler (bool) – true, wenn die Liste nicht gelesen werden konnte
  * - $csrfBereich (string) – Bereichsname für `Csrf`, kommt aus dem Controller
  */
 require __DIR__ . '/../layout/header.php';
@@ -26,6 +27,7 @@ $darfVerwalten  = (bool)($darfVerwalten ?? false);
 /** @var array<string,mixed> $blaetterdaten */
 $blaetterdaten  = $blaetterdaten ?? [];
 $fehlermeldung  = $fehlermeldung ?? null;
+$ladefehler     = (bool)($ladefehler ?? false);
 $flashOk        = (string)($flashOk ?? '');
 $flashFehler    = (string)($flashFehler ?? '');
 ?>
@@ -101,8 +103,13 @@ $flashFehler    = (string)($flashFehler ?? '');
         </div>
     <?php endif; ?>
 
+    <?php /* Der Leer-Hinweis nur, wenn die Liste auch wirklich gelesen wurde:
+             Bei einem Ladefehler steht die Fehlermeldung schon da, und „keine
+             Aufträge vorhanden" wäre daneben die falsche Auskunft (B-096). */ ?>
     <?php if (count($auftraege) === 0): ?>
-        <?php if ($q !== ''): ?>
+        <?php if ($ladefehler): ?>
+            <?php /* nichts - die Fehlermeldung steht darüber */ ?>
+        <?php elseif ($q !== ''): ?>
             <p>Keine Aufträge zu &bdquo;<?php echo htmlspecialchars($q, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>&ldquo; gefunden.</p>
             <p><small>Gesucht wurde in Auftragsnummer, Kunde, Zeichnungsnummer und Kurzbeschreibung.</small></p>
         <?php elseif ($nurInaktive): ?>

@@ -152,6 +152,7 @@ class AuftragController
         }
 
         $fehlermeldung = null;
+        $ladefehler = false;
         $auftraege = [];
         $anzahlInaktive = $this->zaehleInaktiveAuftraege();
         $treffer = 0;
@@ -273,6 +274,11 @@ class AuftragController
             $auftraege = $this->db->fetchAlle($sql, $params);
         } catch (\Throwable $e) {
             $fehlermeldung = 'Die Aufträge konnten nicht geladen werden.';
+            // Eigener Merker statt `$fehlermeldung`: Eine leere Liste heisst
+            // "nichts da", ein Ladefehler heisst "nicht nachgesehen" - und die
+            // Flash-Meldung einer misslungenen Aktion sagt über den Bestand
+            // gar nichts (B-096, P-2026-08-15-09).
+            $ladefehler = true;
             Logger::error('Fehler beim Laden der Auftragsliste', [
                 'exception' => $e->getMessage(),
                 'q' => $q,
@@ -615,6 +621,7 @@ class AuftragController
         }
 
         $fehlermeldung = null;
+        $ladefehler = false;
         $flashOk = isset($_SESSION['auftrag_detail_flash_ok']) ? (string)$_SESSION['auftrag_detail_flash_ok'] : null;
         $flashFehler = isset($_SESSION['auftrag_detail_flash_fehler']) ? (string)$_SESSION['auftrag_detail_flash_fehler'] : null;
         unset($_SESSION['auftrag_detail_flash_ok'], $_SESSION['auftrag_detail_flash_fehler']);
@@ -686,6 +693,9 @@ class AuftragController
             }
         } catch (\Throwable $e) {
             $fehlermeldung = 'Die Auftragsdetails konnten nicht geladen werden.';
+            // Siehe `index()`: "keine Buchungen" und "nicht nachgesehen" sind
+            // zwei verschiedene Auskünfte (B-096).
+            $ladefehler = true;
             Logger::error('Fehler beim Laden der Auftragsdetails', [
                 'exception' => $e->getMessage(),
                 'code' => $code,

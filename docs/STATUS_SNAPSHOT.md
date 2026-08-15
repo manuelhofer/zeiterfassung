@@ -27,9 +27,7 @@ zweites Mal.
 
 ## Offene Bugs
 
-- **B-101** Die Auftragsliste zeigt bei einem Ladefehler beides: „Die Aufträge
-  konnten nicht geladen werden." und „Keine Aufträge vorhanden." – derselbe
-  Fehler, den P-2026-08-15-09 (B-096) für sechs andere Listen behoben hat.
+Keine bekannten.
 
 ## Offene Tasks
 - **T-112** „`catch` → `return []`" steckt an 26 Stellen in `modelle/` und

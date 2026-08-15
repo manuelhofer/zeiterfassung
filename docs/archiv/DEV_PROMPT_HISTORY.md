@@ -99,6 +99,77 @@ in den Statusbericht.
   D-002 entfallen; die Regel selbst gilt weiter.)
 
 
+## P-2026-08-15-34 b-101-leerhinweis-nur-ohne-ladefehler
+
+### EINGELESEN
+- `docs/STATUS_SNAPSHOT.md` (B-101), P-2026-08-15-09 (B-096) und
+  P-2026-08-15-10 (T-111) – dort ist dasselbe fuer neun andere Listen passiert.
+- `views/konfiguration/liste.php` als Muster.
+- `AuftragController::index()` und `detail()`, beide `catch`-Zweige.
+
+### DATEIEN
+- `controller/AuftragController.php`
+- `views/auftrag/liste.php`, `views/auftrag/detail.php`
+- `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Ist die Tabelle `auftrag` unlesbar, zeigt die Auftragsliste nur noch „Die
+Aufträge konnten nicht geladen werden." – der Satz „Keine Aufträge vorhanden."
+darunter faellt weg.
+
+### DONE
+B-101 aus P-2026-08-15-33. Beide Masken haengen ihren Leer-Hinweis jetzt an
+einem eigenen Merker `$ladefehler`, den nur der `catch`-Zweig setzt. Eine leere
+Liste heisst „nichts da", ein Ladefehler heisst „nicht nachgesehen" – das sind
+zwei verschiedene Auskuenfte, und die zweite darf die erste nicht behaupten.
+
+**Zwei Masken statt einer:** Die Detailansicht hatte denselben Fehler
+(„Die Auftragsdetails konnten nicht geladen werden." + „Keine Buchungen
+gefunden."), gefunden beim Nachstellen von B-101. Dasselbe Thema, dieselbe
+Zeile Logik, direkt nebenan – deshalb im selben Patch und nicht als zweite
+B-Nummer.
+
+Der Merker haengt bewusst **nicht** an `$fehlermeldung`: Eine misslungene
+POST-Aktion setzt eine Flash-Meldung und sagt ueber den Bestand gar nichts.
+Damit ist die Bauart im ganzen Projekt einheitlich – 16 Views nutzen jetzt
+`$ladefehler`, `grep` findet keine Stelle mehr, die den Leer-Hinweis an einer
+Fehlermeldung festmacht.
+
+### TEST
+Wegwerf-Umgebung aus P-2026-08-15-28.
+
+| Lage | Ausgabe |
+| --- | --- |
+| `auftrag` unlesbar (`RENAME TABLE`), Normalansicht | nur „Die Aufträge konnten nicht geladen werden." |
+| dieselbe Lage mit `ansicht=inaktiv` | nur die Fehlermeldung |
+| dieselbe Lage mit Suchbegriff | nur die Fehlermeldung |
+| Liste wirklich leer | „Keine Aufträge vorhanden." |
+| Suche ohne Treffer | „Keine Aufträge zu „gibtsnicht" gefunden." |
+| Ablage leer (`ansicht=inaktiv`) | „Kein Auftrag ist auf inaktiv gesetzt." |
+| **Flash-Fehler bei leerer Liste** | beides – „Die Sitzung ist abgelaufen." **und** „Keine Aufträge vorhanden." |
+| `auftragszeit` unlesbar, Detailansicht | nur „Die Auftragsdetails konnten nicht geladen werden." |
+| Auftrag ohne Buchungen | „Keine Buchungen gefunden." |
+| Auftrag mit Buchungen | Tabelle und „Gesamtstunden (abgeschlossen)" |
+
+Die vorletzte Zeile ist der Punkt, an dem die alte Bauart falsch lag: Der
+Leer-Hinweis muss dort **bleiben** – die Sitzung ist abgelaufen, die Liste
+trotzdem gelesen und wirklich leer.
+
+25 Backend-Routen HTTP 200, Serverlog ohne Meldung, `php -l` ueber drei Dateien.
+Die Testdaten (323 Auftraege, 4 Buchungen) sind nach den `RENAME`- und
+`DELETE`-Laeufen wieder vollstaendig.
+
+### Was bewusst nicht erreicht wurde
+Der `catch`-Zweig in `detail()` faengt nur die Buchungsabfrage. Faellt das
+zweite `try` aus (Stammdaten, Arbeitsschritte, Strichcodes), zeigt die Maske
+weiterhin die Stammdaten-Zeile „Zu dieser Auftragsnummer gibt es noch keinen
+Stammdatensatz", obwohl es ihn geben koennte. Das ist derselbe Gedanke, aber ein
+anderer Pfad mit eigener Meldung – gehoert zu T-112 (`catch` → `return []`) und
+nicht in diesen Patch.
+
+### NEXT
+T-105/T-104: die letzte Maske, `SmokeTestController::index()`.
+
 ## P-2026-08-15-33 t-104-auftragsliste-in-views
 
 ### EINGELESEN
