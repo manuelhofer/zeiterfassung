@@ -27,15 +27,22 @@ zweites Mal.
 
 ## Offene Bugs
 
-Keine bekannten.
+Ein Satz je Bug – die Begründung steht im Verlauf, nicht hier.
+
+- **B-102** Der Kommen/Gehen-Sequenz-Check im Smoke-Test setzt sein SQL mit
+  `'\n'` in einfachen Anführungszeichen zusammen und scheitert deshalb immer am
+  Syntaxfehler; gefunden in P-2026-08-15-37.
+- **B-103** Der PDF-DB-Auto-Multipage-Check liest neun `$reportHtml…`-Werte, die
+  nur im PDF-Quick-Check entstehen – zehn PHP-Warnungen je Lauf und ein
+  HTML-Render-Check, der immer „SKIP" meldet; gefunden in P-2026-08-15-37.
 
 ## Offene Tasks
 
 Ein Satz je Task – die Begründung steht im Verlauf, nicht hier.
 
-- **T-104/T-105** `SmokeTestController::index()` ist die letzte Maske mit
-  eigenem HTML und zugleich eine einzige riesige Methode; Muster und Prüfweg:
-  P-2026-08-15-33.
+- **T-105** `SmokeTestController::index()` ist weiterhin eine einzige Methode;
+  das Markup ist raus (P-2026-08-15-37), die fünfzehn Check-Blöcke gehören in
+  eigene Methoden.
 - **T-112** „`catch` → `return []`" an 26 Stellen in `modelle/` und `services/`
   durchsehen – falsch nur dort, wo es die Fehlermeldung des Aufrufers
   unerreichbar macht; Suchlauf in P-2026-08-15-10.

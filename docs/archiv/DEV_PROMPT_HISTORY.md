@@ -99,6 +99,172 @@ in den Statusbericht.
   D-002 entfallen; die Regel selbst gilt weiter.)
 
 
+## P-2026-08-15-37 t-104-smoketest-in-views
+
+### EINGELESEN
+- `docs/STATUS_SNAPSHOT.md` (T-104/T-105), `docs/arbeitsregeln.md`,
+  `git log --oneline -20`.
+- `views/auftrag/liste.php` als Muster (P-2026-08-15-33),
+  `views/report/monatsuebersicht.php` als Muster fuer eine **grosse** View.
+- `core/Csrf.php` vollstaendig (`token()`, `feld()`, `const FELD`).
+- `SmokeTestController::index()` vollstaendig, dazu `pruefeZugriff()` und
+  `public/index.php` (Routennamen).
+
+### DATEIEN
+- `views/smoke_test/index.php` (neu)
+- `controller/SmokeTestController.php`
+- `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Die Smoke-Test-Seite erzeugt in allen Lagen dasselbe HTML wie vorher – bis auf
+die Einrueckung und die fuenf `Csrf::feld()`-Stellen –, obwohl das Markup jetzt
+in `views/smoke_test/index.php` liegt.
+
+### DONE
+**T-104 ist erledigt: kein Controller im Projekt schreibt mehr HTML.** Das
+Markup der letzten Maske ist eins zu eins in `views/smoke_test/index.php`
+gewandert; der Controller bindet es am Ende von `index()` ein.
+
+Wie im Muster faellt das handgeschriebene versteckte Feld weg: Die View ruft
+**fuenfmal** `Csrf::feld($csrfBereich)` auf und bekommt dafuer den
+Bereichsnamen statt eines fertigen Tokens. Die Zuweisung
+`$csrfToken = Csrf::token(self::CSRF_BEREICH)` am Anfang der Methode ist damit
+tot und entfaellt – dasselbe Muster wie T-116 und T-118. Auf die
+CSRF-**Pruefung** wirkt das nicht: `Csrf::istGueltig()` liest die Session
+selbst, und ein Token, das erst beim Rendern entsteht, kann zu keinem schon
+abgeschickten Formular passen.
+
+**Eine View, nicht fuenfzehn Teil-Templates.** Die Seite besteht aus fuenfzehn
+unabhaengigen Check-Bloecken, und jeder waere ein eigenes Teil-Template wert.
+Dagegen steht, wie die Daten heute liegen: Die Bloecke teilen sich rund sechzig
+lose Variablen aus einer einzigen Methode. Ein Teil-Template wuerde sie
+stillschweigend aus der Umgebung erben – genau das, was P-2026-08-15-33 fuer
+die Blaetternavigation vermieden hat, indem es **ein** Buendel uebergibt.
+Buendel gibt es hier erst, wenn T-105 die Check-Bloecke in eigene Methoden
+zerlegt hat. Der Schnitt gehoert also hinter T-105, nicht davor; sonst wird
+zweimal geschnitten und zweimal verglichen.
+
+**Keine `?? null`-Vorbelegung am Kopf der View**, anders als in den kleinen
+Masken. Der Controller setzt alle diese Variablen ausnahmslos, bevor er die
+View einbindet. Eine Vorbelegung waeren knapp sechzig Zeilen zum Mitpflegen –
+und sie wuerde einen Controller, der eine davon vergisst, in eine still leere
+Kachel verwandeln statt in eine Meldung im Log. Stattdessen steht der Vertrag
+als Liste im Kopfkommentar, mit dieser Begruendung daneben.
+
+### TEST
+Wegwerf-Umgebung nach dem Muster aus P-2026-08-15-28, komplett neu aufgesetzt:
+zwei Kopien des Repos im Sitzungsordner (HEAD und Arbeitsstand), eigene
+`config.local.php`, frische Datenbanken `zeit_probe_t105` und
+`zeit_probe_t105_off` aus `sql/01_initial_schema.sql` bzw.
+`sql/offline_db_schema.sql`, **erfundener** Pruefbenutzer „Probe Pruefer",
+beide Server mit `-d opcache.enable=0`. Entwicklungsdatenbank nicht angefasst.
+
+Erfundene Daten fuer die Kanten der Maske: Juli 2026 mit normalem Tag,
+Mehrblock-Tag, „gehen ohne kommen", doppeltem „kommen", offenem Block und einem
+Tag ohne Tageswerte; Betriebsferien und Kurzarbeit-Volltag jeweils auf einen Tag
+mit Arbeitszeit; ein Feiertag mit gleichzeitiger Arbeitszeit; RFID-Code
+`RFID-PRÜF-001`; ein zweiter Mitarbeiter, dessen Personalnummer die ID des
+ersten ist (macht den numerischen Code mehrdeutig); Terminal-Config einmal
+gueltig, einmal ungueltig, einer geloescht; Queue-Eintraege in allen drei
+Zustaenden.
+
+Verglichen wurde **leerraum-unabhaengig** (ganzes Dokument zu einem Strom,
+Umbruch nach jedem `>`, Token maskiert). Damit faellt auch der fehlende
+Zeilenumbruch von `Csrf::feld()` weg, den frueher jede Tabelle als „3 Zeilen
+je Stelle" mitfuehren musste – uebrig bleibt nur, was wirklich anders ist.
+
+| Lage | Echte Abweichungen |
+| --- | --- |
+| Seite ohne Aktion | 0 |
+| Terminal-Login per RFID / leer / mehrdeutig / unbekannt (`<script>`) | 0 |
+| PDF-Quick-Check mit und ohne Daten im Monat | 0 |
+| PDF-Synth-Check | 0 |
+| PDF-DB-Multipage: Top-1, Kandidatenliste, Liste mit PDF-Pruefung | 0 |
+| Feiertag-Quick-Check, gueltiges und unsinniges Datum | 0 |
+| Monatsraster-, Fallback-, Doppelzaehlung-, Feiertag+Arbeitszeit-Check | 0 |
+| Kommen/Gehen-Sequenz-Check (Ergebnisblock, s. u.) | 0 |
+| Feiertag-Seed-Check, seedend und mit blockiertem Schreiben („Fehlend"-Liste) | 0 |
+| `config` unlesbar (`RENAME TABLE`) | 0 |
+| Queue mit Eintraegen / Queue-Tabelle der Offline-DB unlesbar | 0 |
+| Falsches CSRF-Token | 0 |
+| Benutzer ohne Recht (403) | 0 |
+
+Die Kandidatenliste belegt die fuenfte `Csrf::feld()`-Stelle: Sie steht in der
+Tabellenzeile und entsteht nur, wenn die Liste Treffer hat.
+
+Zusaetzlich der Weg, den kein HTML-Vergleich zeigt:
+
+| Weg | Ergebnis auf beiden Staenden |
+| --- | --- |
+| Queue-Roundtrip (`DO 1`) mit gueltigem Token | 302 auf `?seite=smoke_test`, Flash „Queue-Roundtrip OK (…, Offline-DB).", Eintrag in der Offline-DB auf `verarbeitet` |
+
+Die einzigen Unterschiede dieses Laufs sind die laufende Queue-ID und der
+Zufallsmarker – zwei Laeufe legen zwangslaeufig zwei verschiedene Eintraege an.
+
+26 Backend-Routen HTTP 200 auf beiden Staenden (Routennamen aus
+`public/index.php` gelesen, nicht aus dem Gedaechtnis – die Falle aus
+P-2026-08-15-28), `php -l` ueber beide Dateien, die drei Umlaut-Suchlaeufe der
+Wartungscheckliste ohne Treffer.
+
+**Serverlogs:** beide Staende melden dieselben **zehn** PHP-Warnungen, siehe
+B-103. Neue Meldungen bringt dieser Patch keine, weggenommen hat er auch keine.
+
+### Gefundene Fehler im eigenen Entwurf
+**Der Queue-Test hat zuerst nichts gemessen.** Um den Fehlerpfad zu erreichen,
+habe ich `db_injektionsqueue` in der **Haupt**-Datenbank umbenannt – die Seite
+zeigte weiter eine Queue mit „Gesamt 0" und ich haette das beinahe als
+„Ersatztext nicht erreichbar" notiert. Gelesen wird die Queue aber aus der
+**Offline**-Datenbank; die Umbenennung betraf eine Tabelle, die dieser Check gar
+nicht anfasst. Erst der Blick auf die Zeile „Queue-DB: Offline-DB" hat es
+gezeigt. Dieselbe Sorte Fehler wie die gleichen Zeitstempel in P-2026-08-15-33:
+ein Test, der laeuft, aber am Gegenstand vorbei.
+
+**Schwache Suchmuster im Inhaltsnachweis.** Der Nachweis, dass ein Fall seinen
+Block wirklich gebaut hat, lief zuerst ueber `grep` auf Textstellen wie
+„Terminal würde den Mitarbeiter per <strong>rfid" – null Treffer, obwohl der
+Block da war: Im HTML steht hinter `<strong>` ein Zeilenumbruch. Ein Muster,
+das ueber eine Zeilengrenze laeuft, beweist nichts; die Marke gehoert innerhalb
+einer Zeile gewaehlt.
+
+### Zwei Fehler in fremdem Code, beide vorher schon da
+**B-102 – der Kommen/Gehen-Sequenz-Check lief noch nie.** Sein SQL wird aus
+Teilstuecken in **einfachen** Anfuehrungszeichen zusammengesetzt, die auf `\n`
+enden – dort ist das kein Zeilenumbruch, sondern ein Backslash und ein `n`
+mitten im Statement. Die Seite zeigt darum immer „Sequenz-Check Fehler:
+SQLSTATE[42000] … near '\nFROM zeitbuchung …". Ein Suchlauf ueber das ganze
+Projekt findet genau diese eine Stelle. Fuer den HTML-Vergleich habe ich sie in
+**beiden Wegwerf-Kopien** vorruebergehend repariert, damit der Ergebnisblock
+ueberhaupt entsteht – mit 3 auffaelligen Tagen und 1 Mehrblock-Tag, beide
+Staende gleich –, und danach beide Kopien wieder auf ihren Ausgangsstand
+gesetzt. Im Repository ist nichts geaendert.
+
+**B-103 – der HTML-Render-Check im PDF-DB-Auto-Multipage-Check ist blind.** Er
+liest neun `$reportHtml…`-Werte, die nur im **PDF-Quick-Check** entstehen. Bei
+seinem eigenen POST gibt es sie nicht: zehn Warnungen „Undefined variable" je
+Lauf, und die Anzeige meldet „HTML-Render-Check: SKIP" mit lauter Nullen.
+
+Beide sind aelter als dieser Patch und in beiden Staenden identisch. Nicht
+mitgemacht, weil dieser Patch HTML-gleich bleiben muss – als B-102 und B-103
+notiert und direkt danach faellig.
+
+### Was bewusst nicht erreicht wurde
+**T-105 bleibt offen.** `index()` ist ohne Markup deutlich kuerzer, aber
+weiterhin eine einzige Methode mit fuenfzehn Check-Bloecken. Das ist der
+naechste Schnitt, und er gehoert vor den Schnitt der View in Teil-Templates
+(Begruendung oben).
+
+Eine Lage ist unerreicht geblieben: die Meldung, wenn **gar keine**
+Datenbankverbindung steht. Dorthin fuehrt kein Weg, der nicht schon am Login
+scheitert – der Vergleich haette beide Male dieselbe Loginmaske verglichen.
+
+Zwei Testserver aus einer frueheren Sitzung liefen noch auf 8801 und 8802,
+obwohl P-2026-08-15-33 sie als beendet gemeldet hat. Sie sind gestoppt; ihre
+Datenbank war schon geloescht. Wer eine Wegwerf-Umgebung abraeumt, prueft es
+mit `ss -ltnp`, statt es zu glauben.
+
+### NEXT
+B-102 und B-103 beheben, danach T-105.
+
 ## P-2026-08-15-36 snapshot-ein-satz-je-task
 
 ### EINGELESEN
