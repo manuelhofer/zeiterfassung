@@ -128,6 +128,19 @@ class KonfigurationController
     }
 
     /**
+     * Prüft eine Uhrzeit aus einem Formular auf `HH:MM` **im gültigen Bereich**
+     * (00:00 bis 23:59).
+     *
+     * Der Browser liefert über `<input type="time">` nur gültige Werte; ein
+     * POST von Hand nicht. Ohne Bereichsprüfung kommt `25:99` durch und wird
+     * beim Vergleich zweier Uhrzeiten als späte Zeit gelesen (B-099).
+     */
+    private static function istUhrzeit(string $wert): bool
+    {
+        return preg_match('/^([01]\d|2[0-3]):[0-5]\d$/', $wert) === 1;
+    }
+
+    /**
      * @return array<int,array{id:int,name:string,aktiv:int}>
      */
     private function holeMitarbeiterListe(int $includeId = 0): array
@@ -1145,11 +1158,16 @@ class KonfigurationController
                         'aktiv' => $aktiv,
                     ];
 
-                    if (!preg_match('/^\d{2}:\d{2}$/', $von)) {
+                    // Bereich mitprüfen, nicht nur die Form: `\d{2}:\d{2}` lässt
+                    // `25:99` durch. Der Vergleich unten hielte das für eine
+                    // späte Uhrzeit, und die Meldung zeigte auf das falsche Feld.
+                    if (!self::istUhrzeit($von)) {
                         $fehlermeldung = 'Bitte eine gültige Von-Uhrzeit angeben (HH:MM).';
-                    } elseif (!preg_match('/^\d{2}:\d{2}$/', $bis)) {
+                    } elseif (!self::istUhrzeit($bis)) {
                         $fehlermeldung = 'Bitte eine gültige Bis-Uhrzeit angeben (HH:MM).';
                     } elseif ($bis <= $von) {
+                        // Zeichenvergleich reicht, weil beide Werte hier
+                        // zweistellig und geprüft sind.
                         $fehlermeldung = 'Bis-Uhrzeit muss nach der Von-Uhrzeit liegen.';
                     }
 

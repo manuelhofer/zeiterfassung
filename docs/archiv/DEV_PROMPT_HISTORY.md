@@ -99,6 +99,78 @@ in den Statusbericht.
   D-002 entfallen; die Regel selbst gilt weiter.)
 
 
+## P-2026-08-15-17 b-099-uhrzeit-mit-bereich-pruefen
+
+### EINGELESEN
+- `docs/STATUS_SNAPSHOT.md` (B-099), `docs/arbeitsregeln.md` §3.
+- `controller/KonfigurationController.php`, POST-Zweig `speichern` der
+  Pausenregeln.
+- `grep -rn 'preg_match.*\d{2}:\d{2}'` ueber `controller services core modelle
+  views public` – die uebrigen Treffer formatieren Werte **aus der Datenbank**
+  (Audit-Log, PDF, Urlaubsansichten); geprueft wird Benutzereingabe nur hier.
+
+### DATEIEN
+- `controller/KonfigurationController.php`
+- `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Ein Pausenfenster mit `von=30:00` und `bis=32:00` wird abgelehnt („Bitte eine
+gültige Von-Uhrzeit angeben (HH:MM).") und landet nicht in der Datenbank.
+
+### DONE
+B-099 aus P-2026-08-15-16, und beim Nachmessen groesser als notiert: Die
+Pruefung sah nur die **Form** (`\d{2}:\d{2}`), nicht den Bereich. Notiert war
+„zwei irrefuehrende Meldungen" – der Test auf dem alten Stand zeigt zusaetzlich,
+dass Unsinn **gespeichert** wird:
+
+| Eingabe | HEAD |
+| --- | --- |
+| `10:00` bis `24:00` | gespeichert als `24:00:00` |
+| `30:00` bis `32:00` | gespeichert als `30:00:00` / `32:00:00` |
+
+MySQL/MariaDB nimmt in einer `time`-Spalte alles von `-838:59:59` bis
+`838:59:59` an – ein Wert wie `30:00:00` ist dort eine **Dauer**, keine
+Uhrzeit. Nur die Minuten (`:99`) sprengen den Bereich, deshalb fiel bisher
+ueberhaupt etwas auf.
+
+Neue private Methode `istUhrzeit()` mit `^([01]\d|2[0-3]):[0-5]\d$`, benutzt an
+beiden Stellen. Sie steht als `static` bei den anderen Helfern oben im
+Controller und traegt die Begruendung im Kommentar: Der Browser liefert ueber
+`<input type="time">` nur Gueltiges, ein POST von Hand nicht.
+
+Der Vergleich `$bis <= $von` bleibt ein Zeichenvergleich – jetzt zu Recht, weil
+beide Werte hier geprueft und zweistellig sind. Ein Kommentar sagt das, damit
+niemand ihn spaeter fuer eine Schlamperei haelt.
+
+### TEST
+Wegwerf-Umgebung aus P-2026-08-15-08, sieben Eingaben gegen beide Staende, dazu
+nach jedem Versuch die Zeilenzahl in `pausenfenster`:
+
+| Eingabe | HEAD | neu |
+| --- | --- | --- |
+| `25:99` – `13:00` | „Bis-Uhrzeit muss nach der Von-Uhrzeit liegen." | „Bitte eine gültige Von-Uhrzeit angeben (HH:MM)." |
+| `10:00` – `24:00` | **gespeichert** | „Bitte eine gültige Bis-Uhrzeit angeben (HH:MM)." |
+| `09:60` – `10:00` | „Speichern fehlgeschlagen." | „Bitte eine gültige Von-Uhrzeit angeben (HH:MM)." |
+| `abc` – `10:00` | richtige Meldung | richtige Meldung |
+| `10:00` – `10:00` | „Bis-Uhrzeit muss nach…" | gleich |
+| `23:59` – `23:59` | „Bis-Uhrzeit muss nach…" | gleich |
+| `00:00` – `23:59` | gespeichert | gespeichert |
+
+Die beiden Randfaelle `00:00` und `23:59` stehen absichtlich dabei: Ein zu
+strenger Ausdruck haette sie mitgenommen, und das waere schlimmer als der
+Fehler, um den es geht. Die Belegzeilen aus dem HEAD-Lauf wurden geloescht.
+
+22 Backend-Aufrufe HTTP 200, Serverlog ohne Meldung, `php -l`.
+
+### Was bewusst nicht erreicht wurde
+Die Krankzeitraum-Maske prueft **Daten**, nicht Uhrzeiten, und hat dafuer eigene
+Normalisierer (`normalisiereKrankDatumEingabe`). Ob die denselben Fehler machen,
+ist ungeprueft – das ist die naechste Maske aus T-104, dort faellt es beim Lesen
+ohnehin an.
+
+### NEXT
+`indexKrankzeitraum()` als letzte Maske des `KonfigurationController`.
+
 ## P-2026-08-15-16 t-104-pausenregeln-in-views
 
 ### EINGELESEN
