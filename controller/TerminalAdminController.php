@@ -91,6 +91,9 @@ class TerminalAdminController
 
         $fehlermeldung = null;
         $terminals = [];
+        // Nur ein Lesefehler erklärt die leere Liste; die Meldungen der
+        // Kopplungsaktionen sagen über den Bestand nichts.
+        $ladefehler = false;
 
         // CSRF-Token wird in der Liste für Quick-Toggle-POSTs benötigt.
         $csrfToken = Csrf::token(self::CSRF_BEREICH);
@@ -104,6 +107,7 @@ class TerminalAdminController
             $terminals = $this->datenbank->fetchAlle($sql);
         } catch (\Throwable $e) {
             $fehlermeldung = 'Die Terminals konnten nicht geladen werden.';
+            $ladefehler = true;
             Logger::error('Fehler beim Laden der Terminals im Admin-Bereich', [
                 'exception' => $e->getMessage(),
             ], null, null, 'terminal');
@@ -158,8 +162,12 @@ class TerminalAdminController
                 </div>
             <?php endif; ?>
 
+            <?php /* Bei einem Lesefehler ist die Liste ebenfalls leer – dann
+                     steht schon die Fehlermeldung da. */ ?>
             <?php if (count($terminals) === 0): ?>
-                <p>Es sind derzeit keine Terminals hinterlegt.</p>
+                <?php if (!$ladefehler): ?>
+                    <p>Es sind derzeit keine Terminals hinterlegt.</p>
+                <?php endif; ?>
             <?php else: ?>
                 <table>
                     <thead>

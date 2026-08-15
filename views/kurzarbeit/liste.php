@@ -8,6 +8,7 @@ declare(strict_types=1);
  *   `wochentage_text`, weil das Ausschreiben der Bitmaske im Controller sitzt
  * - $csrfToken (string)
  * - optional: $flash (array{ok?:string,err?:string}), $fehlermeldung (string|null)
+ * - optional: $ladefehler (bool) – true, wenn die Liste nicht gelesen werden konnte
  */
 require __DIR__ . '/../layout/header.php';
 
@@ -16,6 +17,7 @@ $plaene        = $plaene ?? [];
 $csrfToken     = (string)($csrfToken ?? '');
 $flash         = $flash ?? [];
 $fehlermeldung = $fehlermeldung ?? null;
+$ladefehler    = (bool)($ladefehler ?? false);
 ?>
 <section>
     <h2>Kurzarbeit (Planung)</h2>
@@ -51,7 +53,11 @@ $fehlermeldung = $fehlermeldung ?? null;
         </thead>
         <tbody>
         <?php if ($plaene === []): ?>
-            <tr><td colspan="10">Keine Einträge.</td></tr>
+            <?php /* Nach einem Lesefehler steht die Fehlermeldung schon oben –
+                     „Keine Einträge." wäre daneben die falsche Auskunft. */ ?>
+            <?php if (!$ladefehler): ?>
+                <tr><td colspan="10">Keine Einträge.</td></tr>
+            <?php endif; ?>
         <?php else: ?>
             <?php foreach ($plaene as $p): ?>
                 <?php

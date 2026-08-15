@@ -270,6 +270,8 @@ class MitarbeiterAdminController
 
         $fehlermeldung    = null;
         $mitarbeiterListe = [];
+        // Nur ein Lesefehler erklärt die leere Liste.
+        $ladefehler       = false;
         $listenStatus = (string)($_GET['status'] ?? 'aktiv');
         if ($listenStatus !== 'inaktiv') {
             $listenStatus = 'aktiv';
@@ -303,6 +305,7 @@ class MitarbeiterAdminController
             unset($eintrag);
         } catch (\Throwable $e) {
             $fehlermeldung = 'Die Mitarbeiterliste konnte nicht geladen werden.';
+            $ladefehler    = true;
             Logger::error('Fehler beim Laden der Mitarbeiterliste im Admin', [
                 'exception' => $e->getMessage(),
             ], null, null, 'mitarbeiter');

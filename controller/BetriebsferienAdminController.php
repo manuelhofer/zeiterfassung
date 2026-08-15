@@ -73,6 +73,9 @@ class BetriebsferienAdminController
 
         $fehlermeldung = null;
         $eintraege     = [];
+        // Nur ein Lesefehler erklärt die leere Liste; die Rückmeldungen aus
+        // toggleAktiv() unten sagen über den Bestand nichts.
+        $ladefehler    = false;
 
         // Rückmeldungen aus toggleAktiv() – der leitet hierher zurück, damit
         // ein Neuladen die Aktion nicht wiederholt.
@@ -94,6 +97,7 @@ class BetriebsferienAdminController
             $eintraege = $this->datenbank->fetchAlle($sql);
         } catch (\Throwable $e) {
             $fehlermeldung = 'Die Betriebsferien konnten nicht geladen werden.';
+            $ladefehler    = true;
             Logger::error('Fehler beim Laden der Betriebsferien im Admin-Bereich', [
                 'exception' => $e->getMessage(),
             ], null, null, 'betriebsferien');

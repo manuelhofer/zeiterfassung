@@ -18,23 +18,25 @@ nichts.
 
 ## Nächster Schritt (konkret)
 
-**Der Gerätetest.** Voraussetzung erfüllt seit dem 09.08.2026: Kopplung und
-Skripte sind fertig, alle sechs Stufen gebaut und im Container geprüft. Was ein
-Container nicht zeigen kann, braucht jetzt einen Bildschirm.
-
-Die sieben Prüfpunkte stehen als Protokoll in
+**Der Gerätetest.** Kopplung und Skripte sind fertig und im Container geprüft;
+was ein Container nicht zeigen kann, braucht jetzt einen Bildschirm. Die sieben
+Prüfpunkte stehen als Protokoll in
 [`spezifikation_terminal_installation.md`](spezifikation_terminal_installation.md),
-Abschnitt 12 – dort und bewusst nicht hier ein zweites Mal. Dasselbe gilt für
-den Stufenplan (Abschnitt 11).
+Abschnitt 12, der Stufenplan in Abschnitt 11 – dort und bewusst nicht hier ein
+zweites Mal.
 
 ## Offene Bugs
-
-Keine bekannten.
+- **B-097** Abteilungsliste: Ist `abteilung` nicht lesbar, erscheint **keine**
+  Fehlermeldung, sondern „keine aktiven Abteilungen hinterlegt". Ursache wie
+  T-110: `AbteilungModel::holeAlleAktiven()` fängt selbst ab.
+- **B-098** Feiertagsliste: gleiches Bild, andere Ursache – der `catch` im
+  `FeiertagController` loggt nur.
 
 ## Offene Tasks
-- **T-111** Zeigen die Listen ausserhalb der Konfiguration ihren Leer-Hinweis
-  auch neben einer Fehlermeldung? Erst prüfen, ob ein Ladefehler dort überhaupt
-  zur leeren Liste führt. Muster: P-2026-08-15-09.
+- **T-112** „`catch` → `return []`" steckt an 26 Stellen in `modelle/` und
+  `services/`. Falsch ist es nur dort, wo es die Fehlermeldung des Aufrufers
+  unerreichbar macht (B-097, T-110). Durchsehen, nicht pauschal ändern;
+  Suchlauf in P-2026-08-15-10.
 - **T-104** Vier Controller erzeugen HTML selbst, statt `views/` zu benutzen –
   **10 Masken**: `KonfigurationController` (3), `AuftragController` (4),
   `TerminalAdminController` (2), `SmokeTestController` (1). Eine Maske je

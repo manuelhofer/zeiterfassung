@@ -8,11 +8,13 @@ declare(strict_types=1);
  * - $fehlermeldung (string|null)
  * - $meldung (string|null)
  * - $csrfToken (string)
+ * - optional: $ladefehler (bool) – true, wenn die Liste nicht gelesen werden konnte
  */
 require __DIR__ . '/../layout/header.php';
 
 $regeln        = $regeln ?? [];
 $fehlermeldung = $fehlermeldung ?? null;
+$ladefehler    = (bool)($ladefehler ?? false);
 $meldung       = $meldung ?? null;
 $csrfToken     = (string)($csrfToken ?? '');
 
@@ -61,8 +63,13 @@ function rr_fmt_time(?string $time): string
         </div>
     <?php endif; ?>
 
+    <?php /* Bei einem Lesefehler ist die Liste ebenfalls leer – dann steht schon
+             die Fehlermeldung da, und „keine Rundungsregeln hinterlegt" wäre
+             daneben die falsche Auskunft. */ ?>
     <?php if (count($regeln) === 0): ?>
-        <p>Es sind derzeit keine Rundungsregeln hinterlegt.</p>
+        <?php if (!$ladefehler): ?>
+            <p>Es sind derzeit keine Rundungsregeln hinterlegt.</p>
+        <?php endif; ?>
     <?php else: ?>
         <table>
             <thead>

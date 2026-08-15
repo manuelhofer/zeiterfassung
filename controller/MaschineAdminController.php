@@ -72,6 +72,9 @@ class MaschineAdminController
         }
 
         $maschinen     = [];
+        // Nur ein Lesefehler erklärt die leere Liste; eine Flash-Meldung aus
+        // einer vorherigen Aktion sagt über den Bestand nichts.
+        $ladefehler    = false;
 
         try {
             $sql = 'SELECT m.*, a.name AS abteilung_name
@@ -82,6 +85,7 @@ class MaschineAdminController
             $maschinen = $this->datenbank->fetchAlle($sql);
         } catch (\Throwable $e) {
             $fehlermeldung = 'Die Maschinen konnten nicht geladen werden.';
+            $ladefehler    = true;
             Logger::error('Fehler beim Laden der Maschinen im Admin-Bereich', [
                 'exception' => $e->getMessage(),
             ], null, null, 'maschine');

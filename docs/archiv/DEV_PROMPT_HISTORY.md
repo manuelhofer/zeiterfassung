@@ -99,6 +99,98 @@ in den Statusbericht.
   D-002 entfallen; die Regel selbst gilt weiter.)
 
 
+## P-2026-08-15-10 t-111-leerhinweis-in-sechs-listen
+
+### EINGELESEN
+- `docs/STATUS_SNAPSHOT.md` (T-111), `docs/arbeitsregeln.md`.
+- P-2026-08-15-09 – dasselbe Thema, dort fuer die Konfiguration.
+- Die acht Listen ausserhalb der Konfiguration, je Controller der `catch` und
+  je View die Bedingung um den Leer-Hinweis.
+- `modelle/AbteilungModel.php`, `holeAlleAktiven()` (zum Befund unten).
+
+### DATEIEN
+- `controller/MaschineAdminController.php`, `views/maschine/liste.php`
+- `controller/BetriebsferienAdminController.php`, `views/betriebsferien/liste.php`
+- `controller/ZeitRundungsregelAdminController.php`, `views/zeit_rundungsregel/liste.php`
+- `controller/KurzarbeitAdminController.php`, `views/kurzarbeit/liste.php`
+- `controller/MitarbeiterAdminController.php`, `views/mitarbeiter/liste.php`
+- `controller/TerminalAdminController.php` (Maske noch im Controller, T-104)
+- `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Ist `maschine` nicht lesbar, steht unter „Die Maschinen konnten nicht geladen
+werden." **nicht** mehr „Es sind derzeit keine Maschinen hinterlegt." – und in
+den fuenf anderen Listen dieses Patches ebenso wenig der jeweils eigene Hinweis.
+
+### DONE
+T-111, gefunden in P-2026-08-15-09. Gemessen statt vermutet: Alle acht Listen
+ausserhalb der Konfiguration zeigen bei unlesbarer Tabelle ihren Leer-Hinweis.
+Sechs davon melden immerhin den Fehler daneben – die sind hier dran, mit
+demselben Merker `$ladefehler` wie in P-2026-08-15-09.
+
+**Zwei bleiben offen, weil sie einen anderen Fehler haben**: Abteilungen und
+Feiertage zeigen ueberhaupt **keine** Fehlermeldung. Die Seite sieht aus wie
+immer und behauptet, es sei nichts da.
+
+- Abteilungen: `AbteilungModel::holeAlleAktiven()` faengt selbst ab und gibt
+  `[]` zurueck – der `catch` im Controller ist unerreichbarer Code. Das ist
+  Zeile fuer Zeile T-110 (P-2026-08-14-14), nur in einem anderen Modell.
+- Feiertage: Der `catch` im Controller **loggt nur**, er setzt gar keine
+  Meldung; die View kennt keine.
+
+Beide brauchen mehr als drei Zeilen und je einen eigenen Test – deshalb je ein
+eigener Patch, notiert als **B-097** und **B-098**.
+
+**Sechs Listen in einem Patch**, mit derselben Begruendung wie in -09: ein
+Thema, ein Satz Ursache, in jeder Liste dieselben drei Zeilen. Elf Dateien sind
+fuer dieses Projekt viel (Arbeitsregel 3 nennt das ein Warnsignal), deshalb
+nachgeprueft: Es sind sechs Paare aus Controller und View, kein zweites Thema
+dazwischen – kein Umbau, keine neue Meldung, kein geaendertes Verhalten im
+Normalfall.
+
+### TEST
+Wegwerf-Umgebung aus P-2026-08-15-08 weiterbenutzt. Je Liste zwei Lagen,
+jeweils auf **beiden** Staenden: Tabelle unlesbar (`RENAME TABLE`) und Tabelle
+lesbar, aber leer (`DELETE`).
+
+| Liste | unlesbar HEAD | unlesbar neu | leer HEAD | leer neu |
+| --- | --- | --- | --- | --- |
+| Maschinen | Hinweis **und** Fehler | nur Fehler | Hinweis | Hinweis |
+| Betriebsferien | Hinweis **und** Fehler | nur Fehler | Hinweis | Hinweis |
+| Rundungsregeln | Hinweis **und** Fehler | nur Fehler | – | – |
+| Kurzarbeit | Hinweis **und** Fehler | nur Fehler | Hinweis | Hinweis |
+| Terminals | Hinweis **und** Fehler | nur Fehler | Hinweis | Hinweis |
+| Mitarbeiter | Hinweis **und** Fehler | nur Fehler | Hinweis | Hinweis |
+| Abteilungen | Hinweis, **kein** Fehler | unveraendert | – | – |
+| Feiertage | Hinweis, **kein** Fehler | unveraendert | – | – |
+
+Alle Aufrufe HTTP 200. Die leere Lage der Rundungsregeln laesst sich nicht
+herstellen: `RundungsService::seedDefaultRegelnWennLeer()` legt die Standards
+sofort wieder an (nach dem `DELETE` gemessen: 2 Eintraege) – dieselbe Bauart wie
+`DefaultsSeeder` bei der Konfiguration, kein Befund. Fuer die Mitarbeiterliste
+diente die Liste der **inaktiven** als leere Probe, statt die Tabelle zu leeren –
+darin haengt der angemeldete Pruefbenutzer.
+
+22 Backend-Aufrufe HTTP 200, Serverlog ohne Deprecation oder Warnung, `php -l`
+ueber alle elf geaenderten Dateien.
+
+### Gefundene Fehler im eigenen Entwurf
+Der erste Durchgang haette die Terminalverwaltung fast uebersehen: Ihre Maske
+steht noch im Controller (T-104), also findet sie kein Suchlauf ueber `views/`.
+Gefunden wurde sie nur, weil der Test ueber die **Routen** lief und nicht ueber
+die Dateien. Wer in diesem Projekt „alle Listen" sucht, sucht in zwei
+Verzeichnissen.
+
+### Was bewusst nicht erreicht wurde
+Das Muster „`catch` → `return []`" steckt an 26 Stellen in `modelle/` und
+`services/`. Nicht jede ist falsch – bei einem Standardwert ist Abfangen
+richtig, das steht schon in P-2026-08-14-14. Falsch ist es dort, wo es die
+Fehlermeldung des Aufrufers unerreichbar macht. Nicht durchgesehen, nicht
+angefasst: als **T-112** notiert, mit dem Suchlauf, der die 26 Stellen findet.
+
+### NEXT
+B-097 (Abteilungen) und B-098 (Feiertage), dann zurueck zu T-104.
+
 ## P-2026-08-15-09 b-096-leerhinweis-nur-ohne-ladefehler
 
 ### EINGELESEN

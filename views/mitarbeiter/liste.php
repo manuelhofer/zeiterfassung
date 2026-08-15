@@ -7,11 +7,13 @@ declare(strict_types=1);
  * - $mitarbeiterListe (array<int,array<string,mixed>>)
  * - $fehlermeldung (string|null)
  * - $listenStatus (string)
+ * - optional: $ladefehler (bool) – true, wenn die Liste nicht gelesen werden konnte
  */
 require __DIR__ . '/../layout/header.php';
 
 $mitarbeiterListe = $mitarbeiterListe ?? [];
 $fehlermeldung    = $fehlermeldung ?? null;
+$ladefehler       = (bool)($ladefehler ?? false);
 $listenStatus     = ($listenStatus ?? 'aktiv') === 'inaktiv' ? 'inaktiv' : 'aktiv';
 $zeigtInaktive    = $listenStatus === 'inaktiv';
 ?>
@@ -36,8 +38,13 @@ $zeigtInaktive    = $listenStatus === 'inaktiv';
         <p class="error"><?php echo htmlspecialchars($fehlermeldung, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></p>
     <?php endif; ?>
 
+    <?php /* Bei einem Lesefehler ist die Liste ebenfalls leer – dann steht schon
+             die Fehlermeldung da, und „keine Mitarbeiter erfasst" wäre daneben
+             die falsche Auskunft. */ ?>
     <?php if (count($mitarbeiterListe) === 0): ?>
-        <p>Es sind derzeit keine <?php echo $zeigtInaktive ? 'inaktiven' : 'aktiven'; ?> Mitarbeiter erfasst.</p>
+        <?php if (!$ladefehler): ?>
+            <p>Es sind derzeit keine <?php echo $zeigtInaktive ? 'inaktiven' : 'aktiven'; ?> Mitarbeiter erfasst.</p>
+        <?php endif; ?>
     <?php else: ?>
         <div class="table-wrap">
         <table>

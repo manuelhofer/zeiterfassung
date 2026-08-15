@@ -193,6 +193,9 @@ class KurzarbeitAdminController
 
         $plaene = [];
         $fehlermeldung = null;
+        // Nur ein Lesefehler erklärt die leere Liste; eine Flash-Meldung aus
+        // einer vorherigen Aktion sagt über den Bestand nichts.
+        $ladefehler = false;
 
         try {
             $plaene = $this->datenbank->fetchAlle(
@@ -203,6 +206,7 @@ class KurzarbeitAdminController
             );
         } catch (Throwable $e) {
             $fehlermeldung = 'Die Kurzarbeit-Pläne konnten nicht geladen werden.';
+            $ladefehler = true;
             Logger::error('Fehler beim Laden der Kurzarbeit-Pläne (Admin)', [
                 'exception' => $e->getMessage(),
             ], null, null, 'kurzarbeit');

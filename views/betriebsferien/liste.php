@@ -8,12 +8,14 @@ declare(strict_types=1);
  * - $csrfBereich (string) – Bereichsname für `Csrf`, kommt aus dem Controller,
  *   damit der Name an genau einer Stelle steht.
  * - optional: $fehlermeldung (string|null)
+ * - optional: $ladefehler (bool) – true, wenn die Liste nicht gelesen werden konnte
  */
 require __DIR__ . '/../layout/header.php';
 
 /** @var array<int,array<string,mixed>> $eintraege */
 $eintraege     = $eintraege ?? [];
 $fehlermeldung = $fehlermeldung ?? null;
+$ladefehler    = (bool)($ladefehler ?? false);
 $csrfBereich   = (string)($csrfBereich ?? '');
 ?>
 <section>
@@ -28,8 +30,13 @@ $csrfBereich   = (string)($csrfBereich ?? '');
         </div>
     <?php endif; ?>
 
+    <?php /* Bei einem Lesefehler ist die Liste ebenfalls leer – dann steht schon
+             die Fehlermeldung da, und „keine Betriebsferien hinterlegt" wäre
+             daneben die falsche Auskunft. */ ?>
     <?php if (count($eintraege) === 0): ?>
-        <p>Es sind derzeit keine Betriebsferien hinterlegt.</p>
+        <?php if (!$ladefehler): ?>
+            <p>Es sind derzeit keine Betriebsferien hinterlegt.</p>
+        <?php endif; ?>
     <?php else: ?>
         <table>
             <thead>

@@ -170,6 +170,9 @@ class ZeitRundungsregelAdminController
 
         $fehlermeldung = null;
         $meldung       = null;
+        // Nur ein Lesefehler erklärt die leere Liste; die Meldungen aus den
+        // Aktionen weiter unten sagen über den Bestand nichts.
+        $ladefehler    = false;
 
         if (!empty($_GET['ok'])) {
             $meldung = 'Die Rundungsregeln wurden aktualisiert.';
@@ -224,6 +227,7 @@ class ZeitRundungsregelAdminController
         } catch (\Throwable $e) {
             $regeln = [];
             $fehlermeldung = 'Fehler beim Laden der Rundungsregeln.';
+            $ladefehler = true;
 
             Logger::error('Fehler beim Laden der Rundungsregeln (Admin)', [
                 'exception' => $e->getMessage(),
