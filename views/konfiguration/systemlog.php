@@ -24,13 +24,7 @@ $ladefehler    = (bool)($ladefehler ?? false);
 <section>
     <h2>System-Log</h2>
 
-    <p style="margin-top:0.25rem;">
-        <a href="?seite=konfiguration_admin">Konfiguration</a>
-        | <a href="?seite=konfiguration_admin&amp;tab=krankzeitraum">Krank (LFZ/KK)</a>
-        | <a href="?seite=konfiguration_admin&amp;tab=pausen">Pausenregeln</a>
-        | <a href="?seite=konfiguration_admin&amp;tab=sonstiges">Sonstiges-Gründe</a>
-        | <a href="?seite=konfiguration_admin&amp;tab=systemlog">System-Log</a>
-    </p>
+<?php require __DIR__ . '/_tabzeile.php'; ?>
 
     <p class="muted" style="max-width:60rem;">
         Angezeigt werden die letzten <?php echo (int)$limit; ?> Einträge (Warnung, Fehler).

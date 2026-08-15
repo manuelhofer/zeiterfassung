@@ -44,8 +44,6 @@ Keine bekannten.
 
   Beim Bauen einer Maske erst in `views/layout/header.php` nachsehen und
   **keine eigenen Grössen auf Knöpfe schreiben** – Begründung steht dort.
-- **T-114** Die Tab-Zeile der Konfiguration steht sechsmal identisch in
-  `views/konfiguration/` – jetzt lohnt ein gemeinsames Teil-Template.
 - **T-105** `SmokeTestController::index()` ist eine einzige, riesige Methode:
   Diagnosewerkzeug ohne Fachlogik, praktisch nicht mehr änderbar – nur *eine*
   Maske aus T-104 und trotzdem der grösste Brocken darin.

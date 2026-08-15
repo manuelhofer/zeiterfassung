@@ -99,6 +99,83 @@ in den Statusbericht.
   D-002 entfallen; die Regel selbst gilt weiter.)
 
 
+## P-2026-08-15-20 t-114-tabzeile-als-teil-template
+
+### EINGELESEN
+- `docs/STATUS_SNAPSHOT.md` (T-114), `docs/arbeitsregeln.md`.
+- P-2026-08-14-12 – dort wurde dieser Patch angekuendigt („beim Migrieren der
+  letzten der sechs Masken lohnt der Blick darauf").
+- Alle sechs Dateien in `views/konfiguration/`.
+- `grep -rn 'tab=krankzeitraum">Krank (LFZ/KK)</a>' views/ controller/` – fuenf
+  Treffer, alle in `views/konfiguration/`.
+
+### DATEIEN
+- `views/konfiguration/_tabzeile.php` (neu)
+- `views/konfiguration/liste.php`, `systemlog.php`, `sonstiges_gruende.php`,
+  `pausenregeln.php`, `krankzeitraum.php`
+- `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Alle sechs Konfigurations-Masken liefern **zeichengleiches** HTML wie vorher,
+obwohl die Tab-Zeile nur noch in einer Datei steht.
+
+### DONE
+T-114, angekuendigt in P-2026-08-14-12 und erst jetzt faellig: Vorher stand die
+Zeile teils im Controller, teils in Views – ein gemeinsames Stueck haette den
+Umzug der Masken behindert. Seit P-2026-08-15-18 liegen alle sechs in
+`views/konfiguration/`, fuenf davon mit identischer Tab-Zeile (die Bearbeiten-
+Maske hat keine, sie verlinkt „Zurück zur Übersicht").
+
+Neue Datei `_tabzeile.php`, eingebunden mit `require __DIR__ . '/_tabzeile.php';`.
+35 Zeilen weg, 5 dazu.
+
+**Der Unterstrich im Namen** trennt Teil von Maske. Ohne ihn stuende die Datei
+zwischen `liste.php` und `systemlog.php` und saehe aus wie eine sechste Seite –
+die Verzeichnisliste ist die einzige Uebersicht, die es hier gibt.
+
+**Die `require`-Zeile bleibt ohne Einrueckung.** Das faellt im Quelltext auf,
+ist aber Absicht: Das Teil-Template bringt seine vier Leerzeichen selbst mit.
+Eingerueckt stuenden acht im HTML – kein Fehler, aber dann waere das
+Akzeptanzkriterium (zeichengleich) nicht mehr zu halten, und genau daran haengt
+der Nachweis, dass nur verschoben wurde. Beide Dateien sagen das im Kommentar.
+
+Die aktuelle Maske wird **nicht** hervorgehoben. Das waere eine sichtbare
+Aenderung an fuenf Masken, also ein eigenes Thema – hier steht die Bewegung des
+Codes, nicht die Gestaltung.
+
+### TEST
+Wegwerf-Umgebung aus P-2026-08-15-08, HEAD-Kopie auf P-2026-08-15-19.
+Verglichen wurde diesmal **roh**, nicht normalisiert (nur die CSRF-Token
+maskiert), weil ein Teil-Template genau an der Einrueckung schiefgehen kann:
+
+| Maske | abweichende Zeilen |
+| --- | --- |
+| Konfiguration (Uebersicht) | 0 |
+| System-Log | 0 |
+| Sonstiges-Gruende | 0 |
+| Pausenregeln | 0 |
+| Krankzeiten | 0 |
+| Bearbeiten (ohne Tab-Zeile) | 0 |
+
+Der erste Lauf meldete 240 und 378 Abweichungen bei Pausen und Krankzeiten – die
+HEAD-Kopie war vier Commits alt und zeigte die Masken noch aus dem Controller.
+Zweiter Fehler derselben Art wie in P-2026-08-15-14; seitdem wird die Kopie vor
+jeder Messreihe erneuert. Beim dritten Mal gehoert das in ein Skript, nicht in
+einen Verlaufseintrag.
+
+22 Backend-Aufrufe HTTP 200, Serverlog ohne Meldung, `php -l` ueber alle sechs
+Dateien.
+
+### Was bewusst nicht erreicht wurde
+Andere Masken haben aehnliche Wiederholungen (die Kopfzeile der Urlaubsansichten,
+die Blaetterleisten). Nicht angefasst: Dieser Patch raeumt ein Verzeichnis auf,
+das gerade fertig geworden ist, und keine Sammelstelle fuer alle Doppelungen.
+
+### NEXT
+T-104 geht weiter mit `TerminalAdminController` (2 Masken) oder
+`AuftragController` (4). Naheliegend ist die Terminalliste – sie ist die
+kleinere und wurde in P-2026-08-15-10 ohnehin schon angefasst.
+
 ## P-2026-08-15-19 b-100-datum-muss-es-geben
 
 ### EINGELESEN
