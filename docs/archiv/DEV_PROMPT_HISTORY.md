@@ -99,6 +99,102 @@ in den Statusbericht.
   D-002 entfallen; die Regel selbst gilt weiter.)
 
 
+## P-2026-08-15-03 terminal-js-bezeichner-wieder-ascii
+
+### EINGELESEN
+- Eigene Eintraege P-2026-08-15-01 und -02.
+- P-2026-08-10-19, Abschnitt „Gefundene Fehler im eigenen Entwurf" – dort steht
+  der Fall „vier JavaScript-Funktionsnamen umbenannt, zufaellig konsistent".
+- `views/terminal/start.php`, der Urlaub-Wizard und die Bildschirmtastatur.
+- `views/terminal/einrichtung.php`, die Bildschirmtastatur der Einrichtungsseite.
+
+### DATEIEN
+- `views/terminal/start.php`
+- `views/terminal/einrichtung.php`
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Die „Löschen"-Taste der Bildschirmtastatur loescht weiterhin ein Zeichen, aber
+ihr Wert heisst wieder `loeschen` statt `löschen` – die Beschriftung bleibt
+„Löschen".
+
+### DONE
+Der dritte und letzte Rest aus P-2026-08-14-08, diesmal **nicht kaputt, aber
+gefaehrlich**: Elf Stellen, an denen der Umlaut-Patch einen Bezeichner oder
+einen Sentinelwert im Terminal-JavaScript uebersetzt hat – Definition *und*
+Verwendung, also zufaellig konsistent und deshalb unauffaellig.
+
+| Stelle | war | ist |
+| --- | --- | --- |
+| `start.php`, Tastaturtaste | `'löschen'` (2x) | `'loeschen'` |
+| `start.php`, Wizard-Knopf | `data-nav="zurück"` (3x) | `data-nav="zurueck"` |
+| `start.php`, Fehlermeldungen | `data-fehler-für` (4x) | `data-fehler-fuer` |
+| `start.php`, Hinweis | `data-hinweis-für` (2x) | `data-hinweis-fuer` |
+| `einrichtung.php`, Funktion | `function lösche()` + Aufruf | `loesche()` |
+| `einrichtung.php`, Tasten | `'#löschen'`, `'#groß'` (je 2x) | `'#loeschen'`, `'#gross'` |
+
+Warum das trotzdem weg muss: `data-fehler-für` ist ein **Attributname** mit
+Umlaut, `lösche()` ein Funktionsname. Beides funktioniert nur, solange
+Definition und Verwendung in derselben Datei stehen. Genau davor warnt
+P-2026-08-10-19 („ein Aufruf aus einer anderen Datei haette das Terminal
+zerlegt"). Wer dieses JavaScript spaeter in eine eigene `.js`-Datei zieht – was
+bei `views/terminal/start.php` naheliegt –, zerlegt es dabei, und `php -l` sagt
+nichts dazu.
+
+Die Beschriftungen bleiben, wie sie sind: `erstelleTaste('Löschen',
+'loeschen', …)` – sichtbarer Text mit Umlaut, Wert ohne.
+
+### TEST
+Zum ersten Mal in dieser Serie **im Browser**, nicht per `curl`: Ein Terminal
+laesst sich nicht sinnvoll mit Formular-POSTs pruefen, wenn die Frage lautet, ob
+eine Taste ein Zeichen loescht.
+
+Probe-Umgebung wie zuvor, dazu eine zweite Kopie **ohne** `config.local.php` auf
+einem eigenen Port – so zeigt `terminal.php` die Einrichtungsseite. Erfundene
+Anmeldung: Der Probe-Benutzer bekam den RFID-Code `PROBE12345`.
+
+Vorher gemessen, damit die Gegenprobe etwas wert ist: Auf dem alten Stand
+tippte die Bildschirmtastatur `abc`, die Taste mit `data-taste-wert="löschen"`
+machte daraus `ab`, „Zurück" sprang von Schritt 2 auf Schritt 1.
+
+Nach der Aenderung, dieselben Handgriffe:
+
+| Handgriff | Ergebnis |
+| --- | --- |
+| Urlaub-Wizard Schritt 1 → 2 → „Zurück" | wieder Schritt 1 |
+| Tastatur `a`,`b`,`c`, dann „Löschen" | `abc` → `ab` |
+| Tastatur „Leerzeichen" | `ab` → `"ab "` |
+| Enddatum vor Startdatum, „Weiter" | „Das Enddatum darf nicht vor dem Startdatum liegen.", bleibt auf Schritt 2 |
+| Einrichtungsseite, Kopplungscode `ABC` + „Löschen" | `ABC` → `AB` |
+| Einrichtungsseite, Serveradresse: `a`, Umschalttaste, `B` | `aB`, danach „Löschen" → `a` |
+
+Zusaetzlich abgefragt, dass die alten Werte wirklich weg sind: In der Seite gibt
+es weder `[data-taste-wert="löschen"]` noch `[data-wert="#löschen"]` oder
+`[data-wert="#groß"]` – sonst haette die Gegenprobe nur bewiesen, dass beide
+Fassungen nebeneinander existieren.
+
+Danach die 29 Backend-Aufrufe wie in P-2026-08-15-02: alle HTTP 200. `php -l`
+ueber beide Dateien.
+
+### Gefundene Fehler im eigenen Entwurf
+Der Suchlauf nach `data-…="…"` mit Umlaut hat `data-taste-wert="löschen"`
+**nicht** gefunden – dieses Attribut entsteht erst zur Laufzeit in
+`erstelleTaste()` und steht nirgends im Quelltext. Aufgefallen ist es nur, weil
+die fertige Seite im Browser danach abgefragt wurde. Ein Scan ueber Quelltext
+findet generierte Attribute grundsaetzlich nicht; wer nur greppt, haelt die
+Stelle fuer sauber.
+
+### Was bewusst nicht erreicht wurde
+Der Kommentar-Fliesstext und alle sichtbaren Beschriftungen behalten ihre
+Umlaute – das ist die Regel, nicht die Ausnahme. Auch `'verfügbar'` in
+`start.php` bleibt: Das ist Anzeigetext, kein Schluessel.
+
+Die Zeichenvorraete der Tastatur (`'ä'`, `'ö'`, `'ü'`, `'ß'`) bleiben
+selbstverstaendlich – sie sind die Zeichen, die getippt werden sollen.
+
+### NEXT
+Der Handgriff in `docs/wartungscheckliste.md`.
+
 ## P-2026-08-15-02 zitierte-schluessel-mit-umlaut
 
 ### EINGELESEN

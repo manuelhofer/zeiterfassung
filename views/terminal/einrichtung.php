@@ -338,12 +338,12 @@ $cssRelPfad = 'css/terminal.css';
 
         if (aktivesFeld.getAttribute('data-tastatur') !== 'code') {
             steuerZeile.appendChild(
-                erstelleTaste(grossModus ? 'abc' : 'ABC', '#groß', 'terminal-osk-taste-breit')
+                erstelleTaste(grossModus ? 'abc' : 'ABC', '#gross', 'terminal-osk-taste-breit')
             );
         }
 
         steuerZeile.appendChild(
-            erstelleTaste('Löschen', '#löschen', 'terminal-osk-taste-breit terminal-osk-taste-extra-breit')
+            erstelleTaste('Löschen', '#loeschen', 'terminal-osk-taste-breit terminal-osk-taste-extra-breit')
         );
         behaelter.appendChild(steuerZeile);
     }
@@ -383,7 +383,7 @@ $cssRelPfad = 'css/terminal.css';
         aktivesFeld.focus();
     }
 
-    function lösche() {
+    function loesche() {
         if (!aktivesFeld) {
             return;
         }
@@ -408,9 +408,9 @@ $cssRelPfad = 'css/terminal.css';
         }
 
         var wert = ziel.getAttribute('data-wert');
-        if (wert === '#löschen') {
-            lösche();
-        } else if (wert === '#groß') {
+        if (wert === '#loeschen') {
+            loesche();
+        } else if (wert === '#gross') {
             grossModus = !grossModus;
             zeichnen();
         } else {
