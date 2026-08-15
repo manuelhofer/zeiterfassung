@@ -20,13 +20,13 @@ Auftrags-/Maschinenchips) oder einen Barcode-Scanner.
 
 Früher stand hier „mit Window-Manager". Das trifft es seit dem Kiosk-Skript
 nicht mehr: Auf dem Standardweg (Wayland, `cage`) gibt es keinen
-Fenstermanager im herkoemmlichen Sinn – `cage` **ist** der Compositor und zeigt
+Fenstermanager im herkömmlichen Sinn – `cage` **ist** der Compositor und zeigt
 genau ein Fenster. Nur der X11-Rückfall startet zusätzlich `openbox`, und
 zwar aus genau diesem Grund: Ohne Fenstermanager bekommt der Browser dort sein
 Vollbild nicht zuverlässig. Wie das Gerät aufgesetzt wird, steht in
 `docs/spezifikation_terminal_installation.md`, Abschnitt 7.
 
-Das Terminal spricht **primaer** mit der Hauptdatenbank.
+Das Terminal spricht **primär** mit der Hauptdatenbank.
 
 **Der Kontext der UI bestimmt, was ein eingelesener Code bedeutet:**
 
@@ -53,7 +53,7 @@ je Terminal konfiguriert.
 
 ## 3. Tabelle `terminal` und Einstellungen
 
-`id`, `name` (z. B. „Halle 1 – Fraeserei Terminal links"),
+`id`, `name` (z. B. „Halle 1 – Fräserei Terminal links"),
 `standort_beschreibung`, `abteilung_id` (für den Maschinenfilter), `modus`
 (`terminal` oder `backend`), `aktiv`, Timestamps.
 
@@ -89,10 +89,10 @@ angelegten Datei, sondern über eine **Kopplung** am Backend:
 3. Das Terminal holt sich Terminal-ID, Zugangsdaten und Einstellungen selbst und
    schreibt seine `config.local.php`.
 
-**Jedes Terminal erhält einen eigenen Datenbankbenutzer** mit eingeschraenkten
+**Jedes Terminal erhält einen eigenen Datenbankbenutzer** mit eingeschränkten
 Rechten: kein `DELETE`, kein `DROP`, kein Zugriff auf Stundenkonto und
 Lohnkorrekturen. Ein verlorenes Gerät wird durch Löschen dieses einen
-Benutzers unschaedlich gemacht – ohne alle anderen Terminals anzufassen; in der
+Benutzers unschädlich gemacht – ohne alle anderen Terminals anzufassen; in der
 Terminalverwaltung ist das der Knopf **Entkoppeln**. Ein Gerät nur stillzulegen
 (`aktiv = 0`) reicht dafür **nicht**: Das verhindert nur eine neue Kopplung,
 der vorhandene Zugang bleibt gültig.
@@ -153,7 +153,7 @@ zuweisen oder den Eintrag verwerfen.
 
 ### Die Queue
 
-Geschrieben wird in eine **lokale Sekundaerdatenbank** (Tabelle
+Geschrieben wird in eine **lokale Sekundärdatenbank** (Tabelle
 `db_injektionsqueue`): `id`, `erstellt_am`, `status` (`offen` | `verarbeitet` |
 `fehler`), **roher SQL-Befehl** zur späteren 1:1-Ausführung gegen die
 Hauptdatenbank, sowie Metadaten (Mitarbeiter-ID, Art der Aktion).
@@ -161,7 +161,7 @@ Hauptdatenbank, sowie Metadaten (Mitarbeiter-ID, Art der Aktion).
 Auf allen Terminalseiten wird in diesem Zustand gut sichtbar angezeigt:
 **„Hauptdatenbank nicht aktiv – Admin anfordern"**.
 
-**Wo die Queue liegt, weiss genau eine Stelle:** der `OfflineQueueManager` mit
+**Wo die Queue liegt, weiß genau eine Stelle:** der `OfflineQueueManager` mit
 `holeQueueVerbindungOderNull()` und `holeQueueSpeicherort()`. Wer neu auf
 `db_injektionsqueue` zugreift, nimmt diese beiden – **nicht** `Database`
 direkt, sonst entsteht eine zweite Meinung darüber, welche Datenbank gemeint
@@ -185,10 +185,10 @@ Bei einem Fehler:
 
 ## 6. Terminal-UI: Layout, Uhr, Texte
 
-- **Bildschirmausnutzung:** ca. **97 %** der verfügbaren Flaeche (Breite und
-  Höhe), minimale Aussenraender, responsiv über den Viewport.
+- **Bildschirmausnutzung:** ca. **97 %** der verfügbaren Fläche (Breite und
+  Höhe), minimale Außenränder, responsiv über den Viewport.
 - **Laufende Uhr** im Header, synchron zur Systemzeit: Start-Sync beim Laden,
-  dann sekuendlich; optional periodische Resyncs.
+  dann sekündlich; optional periodische Resyncs.
 - **Datum/Zeitformat überall in der UI:** `HH:MM:SS DD-MM-YYYY`
   (Beispiel `12:04:10 05-01-2026`).
 - **Keine doppelte Zeitanzeige:** Es bleibt **nur** die Uhr im Header. Weitere
@@ -199,9 +199,9 @@ Bei einem Fehler:
   nur RFID – keine Personalnummer, keine Mitarbeiter-ID. Die alternative
   Login-Möglichkeit darf intern weiter existieren, wird aber nicht beworben.
 
-## 7. Startbildschirm und Hauptmenue
+## 7. Startbildschirm und Hauptmenü
 
-**Startbildschirm:** grosse Aufforderung „Bitte RFID-Chip an das Lesegerät
+**Startbildschirm:** große Aufforderung „Bitte RFID-Chip an das Lesegerät
 halten", Eingabezeile, in die der Leser die Nummer schreibt (kurz sichtbar).
 Nach ca. 50–100 ms wird automatisch ENTER ausgelöst. Keine Bearbeitung des
 Codes nötig; optional ein „Abbrechen"-Knopf.
@@ -217,14 +217,14 @@ Codes nötig; optional ein „Abbrechen"-Knopf.
 
 **Heute noch nicht anwesend** (kein „Kommen" gebucht):
 
-- sichtbar: **nur** der grosse Knopf **„Kommen"** (doppelte Höhe), optional
+- sichtbar: **nur** der große Knopf **„Kommen"** (doppelte Höhe), optional
   darunter „Urlaub beantragen"
 - **nicht** sichtbar: Gehen, Auftrag starten/stoppen, Nebenauftrag, Übersicht
 - auch **keine** Status-/Urlaubssaldo-Box
 
 **Anwesend** (mindestens ein „Kommen" ohne abschließendes „Gehen"):
 
-- erste Zeile: grosser Knopf **„Gehen"** (doppelte Höhe)
+- erste Zeile: großer Knopf **„Gehen"** (doppelte Höhe)
 - „Kommen" ist nicht sichtbar oder klar deaktiviert, um Fehlbuchungen zu
   verhindern
 - danach die restlichen Aktionen, rollenbasiert
@@ -259,7 +259,7 @@ oder „Urlaub beantragen" sind linear und möglichst kurz.
 **Auto-Logout:** Passiert nach der Anmeldung eine bestimmte Zeit nichts, wird
 die Terminal-Session beendet und das Terminal kehrt zur Startseite zurück.
 
-- Normalfaelle (Kommen/Gehen, Auftrag, Übersicht): 30–60 Sekunden
+- Normalfälle (Kommen/Gehen, Auftrag, Übersicht): 30–60 Sekunden
 - „Urlaub beantragen": deutlich länger (2–3 Minuten), weil die Datumsauswahl
   Zeit braucht
 

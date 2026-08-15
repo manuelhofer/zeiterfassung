@@ -2,7 +2,7 @@
 
 *Version:* v3 (2026-08-09)
 *Status:* alle sechs Stufen gebaut; offen ist der Test auf einem Gerät mit
-Bildschirm und Peripherie. Stand und Einschraenkungen je Stufe stehen im
+Bildschirm und Peripherie. Stand und Einschränkungen je Stufe stehen im
 **Stufenplan (Abschnitt 11)**.
 *Grundlage:* `docs/fachregeln/terminal_und_offline.md`;
 `docs/rfid_reader_setup.md`; `docs/terminal/rfid-ws_rollout.md`
@@ -25,12 +25,12 @@ Getrennt statt in einem Skript, weil die vier Teile Unterschiedliches
 voraussetzen: Das Grundsystem lässt sich im Container prüfen, der Kiosk
 braucht einen Bildschirm, die Peripherie braucht angeschlossene Geräte, und
 der Selbsttest will einen Menschen, der einmal scannt. Wer nur den Kiosk neu
-aufsetzt, faehrt nicht die ganze Installation noch einmal.
+aufsetzt, fährt nicht die ganze Installation noch einmal.
 
 Alle vier lesen dieselbe Antwortdatei (`terminal.conf`) und sind idempotent:
 Ein zweiter Lauf schadet nicht und repariert einen halbfertigen Stand.
 
-Danach startet das Gerät von selbst in die Terminal-Oberflaeche, der
+Danach startet das Gerät von selbst in die Terminal-Oberfläche, der
 RFID-Leser funktioniert, der Barcode-Scanner liefert saubere Codes, und der
 Touchscreen ist bedienbar. Kein manuelles Nacharbeiten.
 
@@ -51,7 +51,7 @@ nichts Fachliches ab, und dasselbe Abbild lässt sich auf zwanzig Geräte
 spielen.
 
 Das Terminal verhält sich dabei genauso wie das Backend beim ersten Start:
-Fehlt die Konfiguration, erscheint statt der Terminal-Oberflaeche eine
+Fehlt die Konfiguration, erscheint statt der Terminal-Oberfläche eine
 **Einrichtungsseite** – dieselbe Mechanik wie die vorhandene Maske
 „Erstinstallation“ (`views/login/initial_admin.php`).
 
@@ -68,7 +68,7 @@ Nur an der **fehlenden Datei**, nicht an einer fehlgeschlagenen
 Datenbankverbindung. Ein Terminal ohne Netz ist kein unkonfiguriertes Terminal:
 Der Offline-Betrieb mit Queue ist eine gewollte Betriebsart
 (`docs/fachregeln/terminal_und_offline.md`, Abschnitt 5).
-Würde ein Netzausfall die Einrichtungsseite hervorholen, stuende die Halle bei
+Würde ein Netzausfall die Einrichtungsseite hervorholen, stünde die Halle bei
 jeder Störung vor einer Maske, die nach einem Kopplungscode fragt – und die
 Buchungen wären weg.
 
@@ -78,7 +78,7 @@ die Tastatur **nur** die Zeichen, die im Code vorkommen können (kein O/0, kein
 I/1/L); Kleinschreibung und Bindestriche sind erlaubt und werden serverseitig
 normalisiert.
 
-**Adresse:** Es genuegt der Rechnername (`192.168.10.5`,
+**Adresse:** Es genügt der Rechnername (`192.168.10.5`,
 `server/zeiterfassung`). Fehlt das Schema, wird `http://` ergänzt; probiert
 werden `…/index.php` und `…/public/index.php`, weil der Webserver je nach
 Installation auf `public/` oder auf das Projektverzeichnis zeigt. Ein
@@ -96,16 +96,16 @@ erscheint.
 
 **Wenn das Schreiben scheitert** (Verzeichnis nicht beschreibbar), zeigt die
 Seite den vollständigen Dateiinhalt zum Übernehmen an. Grund: Der
-Kopplungscode ist zu diesem Zeitpunkt verbraucht; ein blosses „Fehler“ würde
+Kopplungscode ist zu diesem Zeitpunkt verbraucht; ein bloßes „Fehler“ würde
 den Monteur zwingen, im Backend einen neuen Code zu holen. Fehlende
-Schreibrechte werden ausserdem schon **vor** dem Koppeln als Hinweis angezeigt.
+Schreibrechte werden außerdem schon **vor** dem Koppeln als Hinweis angezeigt.
 
-**Eine vorhandene Konfiguration wird nie überschrieben.** Sonst liesse sich ein
+**Eine vorhandene Konfiguration wird nie überschrieben.** Sonst ließe sich ein
 laufendes Terminal über diese Seite auf einen fremden Server umbiegen. Ein
 Gerät neu koppeln heißt deshalb: `config.local.php` löschen.
 
 **Die Warnung aus der Antwort** (Kopplung lief über HTTP) wird nach dem
-Speichern gross angezeigt. Sonst merkt niemand, dass die Zugangsdaten im Netz
+Speichern groß angezeigt. Sonst merkt niemand, dass die Zugangsdaten im Netz
 mitlesbar waren.
 
 ### Was das Skript hinterlässt: `config/geraet.local.php`
@@ -146,7 +146,7 @@ als eine Ausweichdatenbank zu behaupten, die es nicht gibt.
 
 ### Ablauf
 
-1. **Backend**, Menue Verwaltung → *Terminal anmelden*: Name und Standort
+1. **Backend**, Menü Verwaltung → *Terminal anmelden*: Name und Standort
    eingeben. Das Backend legt den Eintrag in `terminal` an und zeigt einen
    **Kopplungscode** – kurz genug zum Abtippen, zeitlich begrenzt (Vorschlag:
    30 Minuten) und **einmalig** gültig.
@@ -210,7 +210,7 @@ Festgelegtes Verhalten:
 - **`db.host` ist die Adresse aus Sicht des Terminals**, nicht die des Backends:
   `config: terminal_db_host_extern`, sonst der konfigurierte Datenbank-Host,
   und wenn der lokal ist, die Adresse, unter der das Terminal das Backend
-  erreicht hat. Sonst bekaeme das Terminal `localhost` und spraeche sich selbst
+  erreicht hat. Sonst bekäme das Terminal `localhost` und spräche sich selbst
   an.
 - **Ohne HTTPS** enthält die Antwort ein Feld `warnung`, damit die
   Einrichtungsseite es anzeigen kann. Die Zugangsdaten waren dann im Netz
@@ -227,7 +227,7 @@ Der Knopf löscht den Datenbankbenutzer, leert `db_benutzer`,
 und entwertet offene Kopplungscodes. Danach braucht das Gerät einen neuen
 Code.
 
-Warum es das geben muss: **`aktiv = 0` genuegt nicht.** Das verhindert nur eine
+Warum es das geben muss: **`aktiv = 0` genügt nicht.** Das verhindert nur eine
 neue Kopplung – der bestehende Datenbankbenutzer bleibt gültig. Wer ein
 ausgemustertes Gerät mitnimmt, liest die Zugangsdaten aus `config.local.php`
 und kommt weiter an alles, was dieses Terminal durfte.
@@ -247,7 +247,7 @@ Festgelegtes Verhalten:
 
 - **Einzeln sperrbar:** Gerät verloren oder ausgetauscht → `DROP USER`, fertig.
   Kein Passwortwechsel auf allen anderen Terminals.
-- **Eingeschraenkte Rechte:** Ein Terminal braucht nur Stempeln, Auftragszeiten
+- **Eingeschränkte Rechte:** Ein Terminal braucht nur Stempeln, Auftragszeiten
   und Urlaubsanträge. Es braucht **kein** `DELETE`, kein `DROP`, keinen Zugriff
   auf Stundenkonto und Lohnkorrekturen.
 - **Nachvollziehbar:** In den Datenbank-Protokollen ist erkennbar, welches
@@ -278,7 +278,7 @@ Kein `DELETE`, kein `DROP`, kein `ALTER`, kein `CREATE` – nirgends.
 
 **Warum es vom Vorschlag abweicht:**
 
-- **Rollen und Rechte müssen lesbar sein.** Das Terminal blendet Knoepfe je
+- **Rollen und Rechte müssen lesbar sein.** Das Terminal blendet Knöpfe je
   nach Berechtigung ein (z. B. „Urlaubsanträge“ für Genehmiger). Ohne
   Lesezugriff auf die Rechtetabellen wäre jeder Mitarbeiter am Terminal
   rechtlos.
@@ -292,21 +292,21 @@ Kein `DELETE`, kein `DROP`, kein `ALTER`, kein `CREATE` – nirgends.
 - **`feiertag` braucht INSERT.** Der `UrlaubService` generiert die Feiertage
   eines Jahres bei Bedarf nach. Ohne dieses Recht rechnet ein Terminal im
   Januar ohne die Feiertage des neuen Jahres – und das fällt niemandem auf.
-  Dieses stille Falschrechnen wäre gefaehrlicher als das Recht selbst.
+  Dieses stille Falschrechnen wäre gefährlicher als das Recht selbst.
 - **`db_injektionsqueue` als Rückfallebene.** Normalerweise liegt die
   Offline-Queue in der lokalen Ausweichdatenbank des Terminals; fehlt die,
   greift der `OfflineQueueManager` auf die Hauptdatenbank zurück. Kein
-  `DELETE`: hängengebliebene Einträge raeumt ein Admin im Backend weg.
+  `DELETE`: hängengebliebene Einträge räumt ein Admin im Backend weg.
 
 **`passwort_hash` – gelöst (P-2026-08-09-16).** Früher stand hier, das gehe
-nicht ohne Codeaenderung. Das stimmte zur Haelfte: Spaltenrechte verbieten
-tatsaechlich `SELECT *`, aber im gesamten Terminalpfad gab es dafür **genau
+nicht ohne Codeänderung. Das stimmte zur Hälfte: Spaltenrechte verbieten
+tatsächlich `SELECT *`, aber im gesamten Terminalpfad gab es dafür **genau
 zwei** Stellen, beide im `ReportService` und beide nur an einem einzigen Wert
 interessiert (`wochenarbeitszeit`). Sie holen ihn jetzt über
 `MitarbeiterModel::holeWochenarbeitszeit()`.
 
 Damit wird das Leserecht auf `mitarbeiter` **spaltenweise** vergeben: alle
-Spalten ausser `passwort_hash`, zur Kopplungszeit aus dem `information_schema`
+Spalten außer `passwort_hash`, zur Kopplungszeit aus dem `information_schema`
 aufgelöst. Eine später hinzugekommene Spalte ist damit automatisch dabei,
 sobald ein Gerät neu koppelt – eine von Hand gepflegte Positivliste wäre beim
 nächsten Schema-Zuwachs still unvollständig.
@@ -316,8 +316,8 @@ Zwei Dinge sind bewusst so gebaut:
 - **Ist die Spaltenliste nicht bestimmbar, entsteht gar kein Zugang.** Auch
   dann nicht, wenn `passwort_hash` gar nicht mehr existierte: Wäre die Spalte
   umbenannt worden, sperrte die Liste nichts mehr, und niemand hätte es
-  gemerkt. Die Kopplung schlaegt in dem Fall mit Protokolleintrag fehl.
-- **`SELECT *` auf `mitarbeiter` schlaegt am Terminal fehl** – gewollt. Wer den
+  gemerkt. Die Kopplung schlägt in dem Fall mit Protokolleintrag fehl.
+- **`SELECT *` auf `mitarbeiter` schlägt am Terminal fehl** – gewollt. Wer den
   Terminalpfad erweitert, merkt das sofort. `MitarbeiterModel` darf sein
   `SELECT *` behalten, denn es läuft nur noch im Backend.
 
@@ -336,12 +336,12 @@ Spaltenliste in Klammern, ist es ein Zugang von vor P-2026-08-09-16.
 ### Von welchem Rechner darf sich das Terminal verbinden
 
 Der Benutzer wird standardmäßig für `%` angelegt (beliebiger Rechner),
-einstellbar über den Konfigurationsschluessel `terminal_db_host_muster`
+einstellbar über den Konfigurationsschlüssel `terminal_db_host_muster`
 (z. B. `192.168.10.%`). Grund für den weiten Standard: Terminals bekommen ihre
 Adresse per DHCP – eine feste Bindung kappt beim nächsten Neustart still den
 Zugang.
 
-**Stolperstein:** Laeuft ein Terminal ausnahmsweise auf demselben Rechner wie
+**Stolperstein:** Läuft ein Terminal ausnahmsweise auf demselben Rechner wie
 die Datenbank, kann ein `%`-Konto von **anonymen Konten** (`''@'localhost'`)
 verdeckt werden – MariaDB wählt den spezifischeren Host-Eintrag. In diesem Fall
 entweder die anonymen Konten entfernen (`mariadb-secure-installation`) oder
@@ -358,10 +358,10 @@ dafür nötigen Anweisungen stehen in
 einmal ausgeführt werden – die Anwendung kann sich diese Rechte nicht selbst
 geben. Fehlen sie, läuft alles Übrige normal weiter; nur die Kopplung bricht
 mit einer verständlichen Meldung ab. Das ist kein Nebeneffekt, sondern eine
-bewusste Abwaegung:
+bewusste Abwägung:
 
 - **Vorteil:** Die Kopplung läuft ohne Handarbeit, auch für zwanzig Geräte.
-- **Nachteil:** Wer die Weboberflaeche übernimmt, kann Datenbankbenutzer
+- **Nachteil:** Wer die Weboberfläche übernimmt, kann Datenbankbenutzer
   anlegen. Begrenzt wird das dadurch, dass `GRANT OPTION` nie mehr vergeben
   kann, als der Vergebende selbst hat – die Rechte des Backends sind also die
   Obergrenze.
@@ -374,9 +374,9 @@ bewusste Abwaegung:
 
 - Kopplungscode: einmalig, zeitlich begrenzt, nach wenigen Fehlversuchen
   gesperrt (sonst lässt er sich durchprobieren).
-- **Verschluesselte Verbindung dringend empfohlen:** Bei der Kopplung gehen
+- **Verschlüsselte Verbindung dringend empfohlen:** Bei der Kopplung gehen
   Zugangsdaten über das Netz. Ohne HTTPS liest sie jeder mit, der im
-  Hallennetz mithoert. Ist HTTPS nicht möglich, sollte die Kopplung wenigstens
+  Hallennetz mithört. Ist HTTPS nicht möglich, sollte die Kopplung wenigstens
   nur in einem abgesicherten Netzsegment erfolgen.
 - Kopplung protokollieren (`system_log`): wer, wann, welches Gerät.
 - Erneute Kopplung eines vorhandenen Terminals ersetzt den alten
@@ -403,9 +403,9 @@ bewusste Abwaegung:
 - **Datenbankzugriff:** Das Terminal verbindet sich **direkt über das Netz**
   auf die MariaDB des Hauptsystems (so ist `config.local.php` heute gebaut:
   `db` = Hauptdatenbank, `offline_db` = lokale Ausweichdatenbank).
-- **Beide RFID-Varianten** müssen unterstuetzt werden – USB-Keyboard-Wedge und
+- **Beide RFID-Varianten** müssen unterstützt werden – USB-Keyboard-Wedge und
   RC522 über SPI mit WebSocket-Bridge.
-- **Idempotent:** Mehrfaches Ausführen ist unschaedlich und repariert einen
+- **Idempotent:** Mehrfaches Ausführen ist unschädlich und repariert einen
   halbfertigen Stand.
 - **Protokolliert:** Alles nach `/var/log/zeiterfassung-terminal-setup.log`,
   damit bei einem Fehlschlag nachvollziehbar bleibt, was passiert ist.
@@ -441,7 +441,7 @@ deaktiviert). Phase 3 ist die Kopplung am Gerät und braucht kein Skript.
 2. Pakete installieren: Webserver, PHP mit `pdo_mysql`/`mbstring`/`gd`,
    MariaDB (nur für die lokale Ausweichdatenbank), Git. **Grafikstack und
    Browser** gehören zum Kiosk und werden dort installiert (Stufe 4) – sie
-   ohne den Kiosk mitzunehmen brachte nur Wartezeit und liess sich im Container
+   ohne den Kiosk mitzunehmen brachte nur Wartezeit und ließ sich im Container
    nicht prüfen. Python nur bei RC522 (Stufe 5).
 3. Code aus Git holen, Webserver auf `public/` zeigen lassen.
 4. **Keine** `config.local.php` schreiben – das Terminal startet bewusst
@@ -479,7 +479,7 @@ einer Eingabeaufforderung hängenbleiben.
 **Alles Distributionsabhängige steht in einer einzigen Tabelle** im Skript:
 Paketliste, Dienstname, Webserver-Benutzer und Ablageort der
 Webserver-Konfiguration je Familie (`apt`, `pacman`, `dnf`, `zypper`). Verstreute
-Sonderfaelle waren der übliche Grund, warum solche Skripte nach der zweiten
+Sonderfälle waren der übliche Grund, warum solche Skripte nach der zweiten
 Distribution unwartbar werden.
 
 **PHP hängt überall gleich am Webserver:** `php-fpm` plus `mod_proxy_fcgi`,
@@ -489,7 +489,7 @@ und den sucht das Skript (`/run/php-fpm/*.sock`, `/run/php/*.sock`, …), mit
 alle vier Familien dieselbe Datei.
 
 **Das Passwort der Ausweichdatenbank wird bei einem zweiten Lauf
-wiederverwendet**, nicht erneuert. Ein bereits gekoppeltes Terminal traegt es in
+wiederverwendet**, nicht erneuert. Ein bereits gekoppeltes Terminal trägt es in
 seiner `config.local.php`; ein frisches Passwort würde ihm stillschweigend die
 Offline-Queue kappen – der Ausfall fällt dann erst beim nächsten Netzausfall
 auf, also genau dann, wenn er am meisten schadet. Gesucht wird deshalb **zuerst
@@ -550,7 +550,7 @@ installieren, `docs/terminal/rfid_ws.py` und `rfid-ws.service` einrichten,
 `docs/terminal/rfid-ws_rollout.md` – das Skript automatisiert genau diese
 Schritte.
 
-### 6.3 Barcode-Scanner – der unterschaetzte Teil
+### 6.3 Barcode-Scanner – der unterschätzte Teil
 Der Scanner braucht **keine Treiber**, er tippt wie eine Tastatur. Genau darin
 liegt die Falle: Steht das System auf US-Layout und der Code enthält
 Sonderzeichen oder `y`/`z`, kommt im Eingabefeld etwas anderes an, als auf dem
@@ -562,7 +562,7 @@ und vergleicht das Ergebnis.
 
 ### 6.4 Touchscreen
 Vorhandensein über `libinput list-devices` erkennen: gesucht wird das erste
-Gerät, dessen Faehigkeiten `touch` nennen – ein Touchpad meldet `pointer` und
+Gerät, dessen Fähigkeiten `touch` nennen – ein Touchpad meldet `pointer` und
 fällt damit heraus. Drehung und Zuordnung zum richtigen Bildschirm sind
 geräteabhängig und werden aus `BILDSCHIRM_DREHUNG` gesetzt; automatisch
 erraten lässt sich das nicht zuverlässig.
@@ -591,7 +591,7 @@ Anforderung:
 - Autologin für einen eigenen Benutzer `terminal` (nicht root).
 - Browser im Vollbild auf `…/public/terminal.php`, ohne Bedienelemente.
 - Bildschirmschoner und Energiesparen aus, Mauszeiger ausblenden.
-- Neustart des Browsers, falls er abstuerzt.
+- Neustart des Browsers, falls er abstürzt.
 - Wayland oder X11 je nachdem, was die Distribution mitbringt: bevorzugt ein
   schlanker Wayland-Kiosk (`cage`), sonst X11 mit minimalem Fenstermanager.
 
@@ -610,7 +610,7 @@ Es liest dieselbe `terminal.conf` wie Stufe 3 und legt drei Dinge an:
 (`agetty --autologin` und ein Aufruf im Anmeldeprofil) hätte den geforderten
 Neustart nach einem Absturz in einer Schleife in `~/.bash_profile` nachbauen
 müssen. Der Dienst bekommt ihn mit `Restart=always` geschenkt und lässt sich
-ausserdem gezielt anhalten, wenn jemand am Gerät arbeiten will.
+außerdem gezielt anhalten, wenn jemand am Gerät arbeiten will.
 `PAMName=login` erzeugt dabei eine echte Anmeldesitzung – ohne die gibt es
 keinen Seat, und weder `cage` noch Xorg bekommen Bildschirm und
 Eingabegeräte. `Conflicts=getty@tty1.service` verhindert, dass sich
@@ -625,7 +625,7 @@ Dienstes. Der Weg zu den Fehlern des Browsers ist
 Spur hinterlässt.
 
 **Der Anzeigeweg entscheidet sich am Gerät, nicht in der Tabelle:** Zuerst
-wird `cage` installiert; liegt danach kein `cage` vor (auf aelteren openSUSE
+wird `cage` installiert; liegt danach kein `cage` vor (auf älteren openSUSE
 gibt es das Paket nicht), kommen Xorg, `openbox` und `unclutter` dazu.
 `KIOSK_ANZEIGE` in der Antwortdatei erzwingt einen der beiden Wege. Unter X11
 ruft sich das Startskript über `xinit` selbst noch einmal auf – so bleibt
@@ -633,14 +633,14 @@ alles in **einer** Datei, statt eine zweite `.xinitrc` zu pflegen.
 
 **Bildschirmschoner und Mauszeiger:** Unter X11 übernehmen das `xset` und
 `unclutter`. Unter Wayland gibt es beides nicht – `cage` dunkelt von sich aus
-nicht ab, und einen Mauszeiger zeigt es nur, wenn tatsaechlich eine Maus
+nicht ab, und einen Mauszeiger zeigt es nur, wenn tatsächlich eine Maus
 angeschlossen ist. Zusätzlich wird die Abdunkelung der Textkonsole
-abgeschaltet (`setterm --blank 0`), die sonst unter `cage` durchschlaegt.
+abgeschaltet (`setterm --blank 0`), die sonst unter `cage` durchschlägt.
 
 **Der Absturzvermerk von Chromium wird vor jedem Start zurückgesetzt.** Sonst
 erscheint nach einem Absturz eine Leiste „Wiederherstellen“, die auf einem
 Gerät ohne Tastatur niemand wegbekommt. Dazu Schalter gegen Zoom durch zwei
-Finger und gegen „Zurück“ per Wischgeste – beides loest am Touchscreen sonst
+Finger und gegen „Zurück“ per Wischgeste – beides löst am Touchscreen sonst
 laufend versehentliche Navigation aus.
 
 **Ein vorhandener Anmeldebildschirm wird abgeschaltet** (`display-manager`
@@ -662,12 +662,12 @@ Vollbildbrowser mit Netzzugang ist der Teil des Geräts, der am ehesten
 4. `?aktion=health` des Terminals antwortet.
 5. Bei RC522: Dienst läuft, Port erreichbar.
 6. Interaktiv: einmal RFID-Chip scannen, einmal Barcode scannen – das Skript
-   zeigt an, was tatsaechlich angekommen ist.
+   zeigt an, was tatsächlich angekommen ist.
 
 Ergebnis als Liste mit OK/FEHLT, damit man vor dem Verlassen des Geräts weiß,
 ob es einsatzbereit ist.
 
-`scripts/terminal/selbsttest.sh`. **Aendert nichts** – es wird nur gelesen und
+`scripts/terminal/selbsttest.sh`. **Ändert nichts** – es wird nur gelesen und
 gefragt. Der Rückgabewert ist 0, wenn nichts fehlt, sonst 1; damit lässt er
 sich auch aus einer Überwachung heraus aufrufen.
 
@@ -684,13 +684,13 @@ aufschreiben wollte.
 Zwei Punkte über die Liste oben hinaus:
 
 - **Passwort-Hashes.** Der Test verbindet sich mit den Zugangsdaten des Geräts
-  und versucht, `passwort_hash` zu lesen. Gelingt es, traegt dieses Terminal
+  und versucht, `passwort_hash` zu lesen. Gelingt es, trägt dieses Terminal
   einen Zugang von vor P-2026-08-09-16 und gehört neu gekoppelt (siehe 2a).
 - **Fehlerhafte Queue-Einträge** aus dem Health-Endpunkt. Sie bedeuten, dass
   schon gebucht wurde und etwas davon nicht angekommen ist.
 
 Der **Scan-Test** ist der einzige Teil, der einen Menschen braucht – und der
-wichtigste. Er zeigt an, was tatsaechlich angekommen ist, und fragt beim
+wichtigste. Er zeigt an, was tatsächlich angekommen ist, und fragt beim
 Barcode ausdrücklich nach, ob es mit dem Etikett übereinstimmt. Grund steht
 in 6.3: Ein falsches Tastaturlayout fällt sonst **nirgends** auf. Ohne
 Bediener (kein Terminal an der Eingabe) oder mit `--ohne-scan` wird der
@@ -705,7 +705,7 @@ Ehrlich vorab, damit niemand es später als Fehler meldet:
 - **Touchscreen-Drehung** ist geräteabhängig und wird abgefragt.
 - **SPI braucht einen Neustart.** Daher die zwei Phasen.
 - **Paketnamen** unterscheiden sich je Distribution; die Zuordnungstabelle deckt
-  die vier grossen Familien ab. Exoten müssen von Hand nacharbeiten.
+  die vier großen Familien ab. Exoten müssen von Hand nacharbeiten.
 
 ## 10. Sicherheit – gelöst durch die Kopplung
 
@@ -714,8 +714,8 @@ zur Hauptdatenbank auf dem Gerät, und zwar dieselben wie alle anderen. Wer
 physisch an ein Hallenterminal kam, kam an die gesamte Datenbank samt aller
 Personendaten.
 
-Die Kopplung loest das: Jedes Terminal bekommt **einen eigenen Benutzer mit
-eingeschraenkten Rechten**, einzeln sperrbar. Auf dem Gerät liegt damit nur
+Die Kopplung löst das: Jedes Terminal bekommt **einen eigenen Benutzer mit
+eingeschränkten Rechten**, einzeln sperrbar. Auf dem Gerät liegt damit nur
 noch, was dieses eine Terminal ohnehin darf.
 
 ### Das Backend läuft auf einem Terminal nicht mit (P-2026-08-09-19)
@@ -733,7 +733,7 @@ und leitet auf `terminal.php` um, wenn eines von beiden zutrifft:
   `config.local.php` ausdrücklich `backend`, gewinnt diese Entscheidung.
 
 **Ohne Ausnahme für den Kopplungs-Endpunkt.** Der läuft auf dem Backend; ein
-Terminal, das ihn selbst anboete, verteilte Datenbankbenutzer – genau das, was
+Terminal, das ihn selbst anböte, verteilte Datenbankbenutzer – genau das, was
 die Kopplung verhindern soll.
 
 **Was das nicht ist: ein Datenschutz.** Es ist **dieselbe Datenbank** wie die
@@ -748,12 +748,12 @@ Daten. An einem gekoppelten Testgerät nachgemessen:
 | Urlaubsanträge, Stundenkonto-Korrekturen, Rollen und Rechte | |
 
 Wer das Gerät aufschraubt, liest die Zugangsdaten aus `config.local.php` und
-kommt an die linke Spalte – mit oder ohne Backend-Oberflaeche. Diese Sperre
-verkleinert die Angriffsflaeche; der Schutz der Daten liegt bei der Rechteliste
+kommt an die linke Spalte – mit oder ohne Backend-Oberfläche. Diese Sperre
+verkleinert die Angriffsfläche; der Schutz der Daten liegt bei der Rechteliste
 weiter oben. Der Selbsttest (Abschnitt 8) prüft die Sperre mit.
 
 Rückweg für die Fernwartung: `installation_typ` in `config.local.php` auf
-`backend` setzen. Das braucht Zugriff auf die Datei – die richtige Huerde.
+`backend` setzen. Das braucht Zugriff auf die Datei – die richtige Hürde.
 
 ### Was weiterhin gilt
 
@@ -798,17 +798,17 @@ Rückweg für die Fernwartung: `installation_typ` in `config.local.php` auf
 5. **Peripherie** – RFID, Touchscreen, Drehung.
    **Fertig** (P-2026-08-09-17): `scripts/terminal/install_peripherie.sh`, siehe
    Abschnitt 6. Am 09.08.2026 im selben Debian-12-Container gelaufen, beide
-   RFID-Betriebsarten durchgespielt: `usb` fuenf von fuenf, `bridge` neun von
+   RFID-Betriebsarten durchgespielt: `usb` fünf von fünf, `bridge` neun von
    neun, Wiederholung ohne Abweichung. Das Passwort der Ausweichdatenbank
    überlebt die Fortschreibung von `geraet.local.php` – eigens geprüft, weil
    genau das in P-2026-08-09-05 schon einmal schiefging. Das X11-Drehskript
-   wurde mit vorgetaeuschten `xrandr`/`xinput` gegen alle vier Drehungen
+   wurde mit vorgetäuschten `xrandr`/`xinput` gegen alle vier Drehungen
    geprüft. **Nicht geprüft, weil dafür Hardware nötig ist:** ob ein
-   angeschlossener Leser tatsaechlich Zeichen liefert und ob ein gedrehter
+   angeschlossener Leser tatsächlich Zeichen liefert und ob ein gedrehter
    Touchscreen richtig trifft.
 6. **Selbsttest** – rundet ab und macht das Ergebnis prüfbar.
    **Fertig** (P-2026-08-09-18): `scripts/terminal/selbsttest.sh`, siehe
-   Abschnitt 8. Am 09.08.2026 gegen zwei Staende geprüft: im Container
+   Abschnitt 8. Am 09.08.2026 gegen zwei Stände geprüft: im Container
    (ungekoppelt) und gegen eine echte gekoppelte Installation auf dem
    Entwicklungsrechner – zehn von zehn, einschließlich der Gegenprobe, dass
    ein Gerät mit altem, weitem Datenbankrecht als Fund gemeldet wird. Die drei

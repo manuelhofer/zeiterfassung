@@ -50,7 +50,7 @@ Ziel: verhindern, dass bereits Erledigtes ein zweites Mal gebaut wird.
   Akzeptanzkriterium nötig ist. Fällt dabei etwas anderes auf, wird es notiert
   statt mitgemacht – und als eigener Patch **abgearbeitet**, möglichst gleich
   danach. Die Notiz ist ein Aufschub, keine Ablage: Wer den Fehler gefunden
-  hat, weiss am meisten über ihn.
+  hat, weiß am meisten über ihn.
 - Es gibt **kein hartes Dateilimit**. Aber: Wenn ein Patch auffällig viele
   Dateien anfasst, ist das ein Warnsignal – dann prüfen, ob zwei Themen
   vermischt werden, und aufteilen.

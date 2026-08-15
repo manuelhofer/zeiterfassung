@@ -89,7 +89,7 @@ Dieser Ablauf ist optional. Wer Aufträge wie bisher nur am Terminal scannt,
 muss hier nichts tun – das Terminal legt fehlende Datensätze weiterhin selbst
 an.
 
-**1. Arbeitsschritt-Katalog einmalig anlegen** (Menue *Aufträge →
+**1. Arbeitsschritt-Katalog einmalig anlegen** (Menü *Aufträge →
 Arbeitsschritt-Katalog*)
 
 Hier stehen die wiederkehrenden Tätigkeiten: `saegen`, `drehen`, `fraesen`,
@@ -99,7 +99,7 @@ Hier stehen die wiederkehrenden Tätigkeiten: `saegen`, `drehen`, `fraesen`,
 Kartenblatt ausgeben. Bei mehreren Fräsmaschinen also z. B. 20 Karten
 `fraesen` – ausschneiden und an jede Maschine hängen.
 
-**2. Auftrag anlegen** (Menue *Aufträge → Auftrag anlegen*)
+**2. Auftrag anlegen** (Menü *Aufträge → Auftrag anlegen*)
 
 Pflicht ist nur die Auftragsnummer. Kunde, Kurzbeschreibung und Status sind
 freiwillig; was leer bleibt, erscheint auch nicht auf dem Ausdruck.
@@ -111,7 +111,7 @@ ist damit in einem Schritt erledigt.
 **3. Arbeitsschritte ergänzen** (in der Auftrags-Detailansicht)
 
 Für alles, was beim Anlegen noch nicht feststand: frei eintippen (für
-werkstückspezifische Schritte wie „Aussendurchmesser auf 40 mm drehen“) oder
+werkstückspezifische Schritte wie „Außendurchmesser auf 40 mm drehen“) oder
 nachträglich aus dem Katalog übernehmen. Angeboten werden dort nur die
 Schritte, die dem Auftrag noch fehlen.
 
@@ -125,7 +125,7 @@ Felder für Datum, Name, Menge und i. O. Die Karte begleitet das Werkstück.
 Erst den Auftrag scannen (von der Laufkarte), dann den Arbeitsschritt –
 entweder von der Laufkarte oder von der Karte an der Maschine.
 
-**Wichtig beim Aendern:** Wird ein Code umbenannt, entsteht ein neuer
+**Wichtig beim Ändern:** Wird ein Code umbenannt, entsteht ein neuer
 Strichcode. Bereits gedruckte Laufkarten und Maschinenkarten werden dadurch
 ungültig und müssen neu gedruckt werden.
 

@@ -5,7 +5,7 @@
 
 ## Migrationen (Updates bestehender Installationen)
 Migrationen sind fortlaufend nummeriert und **idempotent**: Mehrfaches
-Ausführen ist unschaedlich. Sie werden nur für bestehende Installationen
+Ausführen ist unschädlich. Sie werden nur für bestehende Installationen
 gebraucht - Neuinstallationen bekommen alles über `01_initial_schema.sql`.
 
 - `02_migration_recht_auftraege_verwalten.sql`: legt das Recht
@@ -16,7 +16,7 @@ gebraucht - Neuinstallationen bekommen alles über `01_initial_schema.sql`.
   (Patch P-2026-08-08-12).
 - `05_migration_terminal_kopplung.sql`: legt die Tabelle `terminal_kopplung`
   für die Terminal-Anmeldung per Kopplungscode an (Patch P-2026-08-08-30).
-- `04_migration_auftrag_code_rel_pfad.sql`: benennt den Konfigurationsschluessel
+- `04_migration_auftrag_code_rel_pfad.sql`: benennt den Konfigurationsschlüssel
   `auftrag_qr_rel_pfad` in `auftrag_code_rel_pfad` um, nachdem die Codes von QR
   auf Strichcode umgestellt wurden (Patch P-2026-08-08-24). Rein kosmetisch -
   ohne die Migration liest die Anwendung ersatzweise den alten Schlüssel.

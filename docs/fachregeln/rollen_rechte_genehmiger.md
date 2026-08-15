@@ -12,7 +12,7 @@ v7 komplett.
 ## 1. Grundmodell
 
 - **Rolle:** Bündel von Rechten (z. B. `Schichtleiter`, `Personalbuero`).
-- **Recht:** konkrete Faehigkeit (z. B. „Urlaub genehmigen").
+- **Recht:** konkrete Fähigkeit (z. B. „Urlaub genehmigen").
 - **Scope/Bereich:** *wofür* ein Recht gilt (global oder Abteilung, optional
   inklusive Unterabteilungen).
 
@@ -66,18 +66,18 @@ Recht** (`URLAUB_GENEHMIGEN`, siehe
 [`spezifikation_abteilungsrechte.md`](../spezifikation_abteilungsrechte.md)):
 
 - `scope = global` passt immer, für **jedes** Recht.
-- `scope = abteilung` wird ausschliesslich für `URLAUB_GENEHMIGEN`
+- `scope = abteilung` wird ausschließlich für `URLAUB_GENEHMIGEN`
   ausgewertet, und zwar in `UrlaubGenehmigungService` – nicht in
   `hatRecht()`. Alle übrigen Rechte einer so zugewiesenen Rolle greifen
   **nicht**.
-- `gilt_unterbereiche = 1` schliesst den Unterbaum von `abteilung.parent_id`
+- `gilt_unterbereiche = 1` schließt den Unterbaum von `abteilung.parent_id`
   ein – ebenfalls nur für dieses eine Recht.
 
 Für ein allgemeines Bereichsmodell (jedes Recht, jede Maske) müsste
 `hatRecht()` ein Ziel bekommen und jede der rund 84 Prüfstellen entscheiden,
 worauf sie sich bezieht. Das ist bewusst **nicht** gebaut.
 
-Für sehr grosse Baeume könnte später eine Materialized-Path-Spalte oder eine
+Für sehr große Bäume könnte später eine Materialized-Path-Spalte oder eine
 Closure-Tabelle ergänzt werden; für den aktuellen Umfang reicht rekursives
 Traversieren.
 
@@ -93,8 +93,8 @@ hatRecht(string $rechtCode): bool
 
 **Das ist der Ist-Zustand, und er ist bewusst kleiner als das Bereichsmodell
 aus Abschnitt 3.** Bis P-2026-08-10-09 stand hier eine Signatur mit
-`$zielMitarbeiterId`/`$zielAbteilungId` und eine Scope-Aufloesung, die es im
-Code nie gab – wer sich darauf verliess, übergab Argumente, die stillschweigend
+`$zielMitarbeiterId`/`$zielAbteilungId` und eine Scope-Auflösung, die es im
+Code nie gab – wer sich darauf verließ, übergab Argumente, die stillschweigend
 ignoriert wurden. Was der Code wirklich tut:
 
 Ablauf von `hatRecht()`:
@@ -157,7 +157,7 @@ reale Vorgesetztenstrukturen ab.
 **Genehmiger**
 
 - Liste aller Mitarbeiter, Klick auf einen zeigt seine Genehmiger-Einträge
-  (Name, Prioritaet, ggf. Kommentar), mit „Genehmiger hinzufuegen" und
+  (Name, Priorität, ggf. Kommentar), mit „Genehmiger hinzufügen" und
   „Entfernen".
 - Optional die umgekehrte Ansicht „Wen darf dieser Mitarbeiter genehmigen?".
 
@@ -183,11 +183,11 @@ reale Vorgesetztenstrukturen ab.
 - `REPORT_MONAT_ALLE` ist ein Legacy-Kürzel für global.
 - Bevorzugt `REPORT_MONAT_VIEW` / `REPORT_MONAT_EXPORT`, scoped.
 
-## 8. Kompatibilitaet und Migration
+## 8. Kompatibilität und Migration
 
 - Bestehende Tabellen und Funktionen dürfen nicht hart brechen.
 - Legacy-Rechte mit Suffix `_ALLE` bleiben bestehen und werden bis zur
-  vollständigen Umstellung parallel unterstuetzt.
+  vollständigen Umstellung parallel unterstützt.
 - **Neue Features werden immer über `hatRecht()` abgesichert** und nutzen
   Scope, statt neue Rollen zu erfinden.
 - Ein neues Recht wird **immer** in `docs/rechte_prompt.md` dokumentiert

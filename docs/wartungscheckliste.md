@@ -1,8 +1,8 @@
 # Wartungscheckliste
 
 Diese Checkliste dient als sichere Basis vor und nach Änderungen. Sie ersetzt
-keine fachliche Abnahme, hilft aber dabei, bestehende Funktionalitaet bewusst
-zu schuetzen.
+keine fachliche Abnahme, hilft aber dabei, bestehende Funktionalität bewusst
+zu schützen.
 
 ## Grundsatz
 
@@ -10,7 +10,7 @@ zu schuetzen.
   verbessert werden sollen.
 - Vor größeren Änderungen zuerst den aktuellen Stand sichern.
 - Nach jeder Änderung mindestens Syntaxcheck und die passenden manuellen
-  Kernablaeufe prüfen.
+  Kernabläufe prüfen.
 
 ## Technischer Schnellcheck
 
@@ -94,9 +94,9 @@ Betreffe fehlen seit jeher. Danach darf **kein neuer** dazukommen.
 Laufzeit entstehen. Die Bildschirmtastatur des Terminals baut ihre Tasten in
 JavaScript zusammen – `data-taste-wert="löschen"` stand in keinem Suchlauf und
 war trotzdem da. Wer Terminal-Dateien angefasst hat, öffnet die Seite und
-prüft die Tasten von Hand (siehe *Manuelle Kernablaeufe*).
+prüft die Tasten von Hand (siehe *Manuelle Kernabläufe*).
 
-## Manuelle Kernablaeufe
+## Manuelle Kernabläufe
 
 Nach Änderungen an Backend, Auth, Session, Rechten oder Layout:
 
@@ -157,5 +157,5 @@ Nach Änderungen an Offline-Queue oder Datenbankverbindung:
 - `views/layout/header.php`
 - Monatsreport/PDF-Services
 
-Diese Bereiche funktionieren aktuell, sind aber zentral für viele Ablaeufe.
+Diese Bereiche funktionieren aktuell, sind aber zentral für viele Abläufe.
 Hier nur kleine, gut prüfbare Schritte machen.

@@ -23,7 +23,7 @@ dort stehen die aktuellen Spalten.
 
 Diese Dateien entstanden aus dem Master-Prompt v13
 (`docs/archiv/master_prompt_zeiterfassung_v13.md`), der als ein einziges
-Dokument zu gross geworden war. Jede Datei nennt oben, aus welchen Abschnitten
+Dokument zu groß geworden war. Jede Datei nennt oben, aus welchen Abschnitten
 sie stammt. Inhaltlich wurde nichts weggelassen; ergänzt wurden Regeln, die
 sich aus der Fehlerhistorie ergeben hatten und bisher nur dort standen.
 

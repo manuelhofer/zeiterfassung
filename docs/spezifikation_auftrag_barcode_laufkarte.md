@@ -3,7 +3,7 @@
 *Version:* v2 (2026-08-08)
 *Status:* umgesetzt (P-2026-08-08-06 bis -16, -24)
 *Hinweis:* Die erste Fassung sah QR-Codes vor; umgestellt auf Code 128, weil im
-Betrieb 1D-Handscanner im Einsatz sind. Der Dateiname hiess bis P-2026-08-08-24
+Betrieb 1D-Handscanner im Einsatz sind. Der Dateiname hieß bis P-2026-08-08-24
 `spezifikation_auftrag_qr_laufkarte.md`.
 *Grundlage:* `docs/fachregeln/auftraege_und_codes.md`
 
@@ -34,7 +34,7 @@ Zusätzlich soll es möglich sein, Aufträge **vorher im Backend anzulegen**:
 
 Im Betrieb sind **1D-Handscanner** im Einsatz, und die Maschinen-Codes des
 Projekts sind bereits Code 128. Ein einziger Codetyp bedeutet: ein Scannertyp,
-keine Sonderfaelle, keine Schulung. Code 128 kann Buchstaben, Ziffern und
+keine Sonderfälle, keine Schulung. Code 128 kann Buchstaben, Ziffern und
 Sonderzeichen – deshalb steht im Strichcode weiterhin **der Code selbst**
 (z. B. `fraesen`); eine künstliche Nummer wäre unnötig und würde die
 Auswertungen unleserlich machen.
@@ -44,7 +44,7 @@ Auswertungen unleserlich machen.
 
 ### Was der Code enthält
 
-**Nur den nackten Code – kein Praefix, keine URL, kein JSON.**
+**Nur den nackten Code – kein Präfix, keine URL, kein JSON.**
 
 | Code | Inhalt | Beispiel |
 | --- | --- | --- |
@@ -65,7 +65,7 @@ Auftrag gehört.
 
 ## 3. Datenbank
 
-Die vorhandenen Tabellen reichen aus, es sind **keine Strukturaenderungen**
+Die vorhandenen Tabellen reichen aus, es sind **keine Strukturänderungen**
 nötig:
 
 - `auftrag` – `auftragsnummer` (unique), `kurzbeschreibung`, `kunde`, `status`,
@@ -82,17 +82,17 @@ Pfad-Feld wäre nur eine weitere Stelle, die aus dem Tritt geraten kann.
 
 ### 4.1 Auftragsliste (`?seite=auftrag`)
 
-- Neuer Button **„Auftrag hinzufuegen“**.
+- Neuer Button **„Auftrag hinzufügen“**.
 - **Wichtig:** Die Liste baut heute ausschließlich auf `auftragszeit` auf. Ein
   frisch angelegter Auftrag ohne Buchung wäre unsichtbar. Die Abfrage muss
-  daher auch Aufträge aus der Tabelle `auftrag` beruecksichtigen, die noch
+  daher auch Aufträge aus der Tabelle `auftrag` berücksichtigen, die noch
   keine Buchung haben (Buchungen = 0, Status „angelegt“).
 
 ### 4.2 Auftrag anlegen / bearbeiten (`?seite=auftrag_neu`, `?seite=auftrag_bearbeiten`)
 
 - Felder: Auftragsnummer (Pflicht, eindeutig), Kurzbeschreibung, Kunde, Status,
   Aktiv.
-- **Alles ausser der Auftragsnummer ist freiwillig.** Das hier ist ein
+- **Alles außer der Auftragsnummer ist freiwillig.** Das hier ist ein
   Zeiterfassungssystem, keine Warenwirtschaft: Wer Kunde oder Beschreibung
   pflegen will, kann es; wer nicht, dem fehlt nichts. Leere Felder erscheinen
   auch nicht auf der Laufkarte.
@@ -109,15 +109,15 @@ Bestehende Blöcke (Buchungen, Summen) bleiben unverändert. Neu darunter:
 - **Arbeitsschritte (Stammdaten)** als Tabelle: Code, Bezeichnung, QR-Code,
   Aktiv, Aktionen. Das ist bewusst getrennt von der bestehenden Auswertung
   „Arbeitsschritte (Summe, abgeschlossen)“, die aus Buchungen kommt.
-- Formular **„Arbeitsschritt hinzufuegen“** (Code + Bezeichnung).
+- Formular **„Arbeitsschritt hinzufügen“** (Code + Bezeichnung).
 - Bearbeiten und Deaktivieren vorhandener Schritte. Gelöscht wird nicht,
-  solange Buchungen daran hängen können – `aktiv = 0` genuegt.
+  solange Buchungen daran hängen können – `aktiv = 0` genügt.
 
 ### 4.4 Laufkarte (`?seite=auftrag_laufkarte&code=…`)
 
 PDF im Format A4 hoch:
 
-- Kopf: Auftragsnummer gross, Kunde, Kurzbeschreibung, Druckdatum, daneben der
+- Kopf: Auftragsnummer groß, Kunde, Kurzbeschreibung, Druckdatum, daneben der
   Auftrags-Strichcode.
 - Danach je Arbeitsschritt ein Block: laufende Nummer, Code, Bezeichnung,
   Strichcode sowie freie Felder zum handschriftlichen Eintragen (Datum, Name,
@@ -125,9 +125,9 @@ PDF im Format A4 hoch:
 - Mehrere Seiten, wenn die Schritte nicht auf eine Seite passen.
 
 **Technischer Hinweis:** `PDFService` ist ein handgeschriebener PDF-Writer ohne
-Bildunterstuetzung. Die Strichcodes werden deshalb **als Vektor gezeichnet**: Die
+Bildunterstützung. Die Strichcodes werden deshalb **als Vektor gezeichnet**: Die
 Bibliothek liefert die Balkenfolge, jeder Balken wird ein gefülltes Rechteck
-(`pdfRectFill`). Das ist beim Drucken schaerfer als ein
+(`pdfRectFill`). Das ist beim Drucken schärfer als ein
 eingebettetes Pixelbild, erzeugt kleinere Dateien und erspart eine
 XObject-Implementierung im PDF-Writer.
 
@@ -136,7 +136,7 @@ XObject-Implementierung im PDF-Writer.
 ### Das Problem
 
 Arbeitsschritte je Auftrag zu pflegen ist richtig, wenn der Schritt zum
-Werkstück gehört („Aussendurchmesser auf 40 mm drehen“). Für die
+Werkstück gehört („Außendurchmesser auf 40 mm drehen“). Für die
 **wiederkehrenden Tätigkeiten** ist es aber unnötige Arbeit: `fraesen` ist
 bei jedem Auftrag dasselbe `fraesen`. Es wäre absurd, das für jeden neuen
 Auftrag erneut anzulegen.
@@ -175,7 +175,7 @@ Code muss betriebsweit dasselbe bedeuten.
 
 ### Funktionen
 
-- **Katalogverwaltung** unter `?seite=arbeitsschritt_katalog` (Menue
+- **Katalogverwaltung** unter `?seite=arbeitsschritt_katalog` (Menü
   „Aufträge“): Liste mit Strichcode-Vorschau, Anlegen, Bearbeiten, Deaktivieren.
 - **Druckblatt** `?seite=arbeitsschritt_katalog_blatt`:
   - ohne Parameter: alle aktiven Katalogschritte als Übersicht (eine Karte je
@@ -183,7 +183,7 @@ Code muss betriebsweit dasselbe bedeuten.
   - mit `id` und `anzahl`: derselbe Schritt in frei wählbarer Stückzahl –
     genau der Fall „20-mal `fraesen`“.
   - Karten mit Schnittmarkierung, damit sie sich ausschneiden und an die
-    Maschine haengen lassen.
+    Maschine hängen lassen.
 - **Übernahme in einen Auftrag – zwei Stellen, eine Regel:** Schon im Formular
   *Auftrag anlegen* stehen die **aktiven** Katalogschritte zum Anhaken; sie
   hängen unmittelbar nach dem Speichern am neuen Auftrag (seit 2026-08-14).
@@ -194,7 +194,7 @@ Code muss betriebsweit dasselbe bedeuten.
   werden übersprungen, nicht doppelt angelegt und nicht überschrieben.
 - **Bezeichnung beim Scannen:** Legt das Terminal einen Arbeitsschritt
   automatisch an und der Code steht im Katalog, wird die Bezeichnung von dort
-  übernommen. Sonst stuenden in der Auswertung nur nackte Codes. Streng
+  übernommen. Sonst stünden in der Auswertung nur nackte Codes. Streng
   defensiv: nie eine vorhandene Bezeichnung überschreiben, und ein Fehler
   dabei darf eine Buchung niemals verhindern.
 

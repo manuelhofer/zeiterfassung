@@ -99,6 +99,95 @@ in den Statusbericht.
   D-002 entfallen; die Regel selbst gilt weiter.)
 
 
+## P-2026-08-15-42 umlaute-auch-in-den-uebrigen-dokumenten
+
+### EINGELESEN
+- P-2026-08-15-41 (der erste Durchgang) und die dort beschriebene Auswahl der
+  Dateien.
+- `sql/01_initial_schema.sql` (ENUM- und Startwerte), `public/index.php`,
+  `public/terminal.php` (Routennamen) – für die Liste der Bezeichner, die nicht
+  angefasst werden dürfen.
+- `docs/lokale_entwicklungsumgebung.md`, Abschnitt 6b, und der
+  Arbeitsschritt-Katalog der Entwicklungsdatenbank.
+
+### DATEIEN
+- 11 Dateien unter `docs/` und `sql/`
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Der Suchlauf über **alle** 37 Markdown-Dateien des Projekts findet im Fließtext
+keine einzige Umschreibung mehr – und `stoerung`, `saegen`, `fraesen` stehen
+unverändert da, wo sie Bezeichner sind.
+
+### DONE
+**Der erste Durchgang hat 11 Dateien übersehen.** Ich hatte die Dateiliste mit
+`grep -rl 'fuer|ueber|waere|koennen|muessen|naechst|Aenderung'` gebaut – sieben
+Wörter, die mir eingefallen sind. Wer `Kernablaeufe` schreibt, aber keines
+dieser sieben, war nicht dabei: `wartungscheckliste.md`,
+`spezifikation_terminal_installation.md`, vier Fachregeln, das Admin-Handbuch,
+`sql/README.md` und – am peinlichsten – `arbeitsregeln.md` selbst, wo in §3
+„weiss" statt „weiß" stand.
+
+Jetzt läuft der Suchlauf über **alle** Markdown-Dateien, die es gibt
+(`find . -name '*.md'`), statt über eine Vorauswahl. 132 Ersetzungen in 11
+Dateien.
+
+**Bezeichner, die bar im Fließtext stehen, sind jetzt als Code ausgezeichnet.**
+Zwei Stellen liefen dem Verfahren immer wieder vor die Füße, weil sie wie
+Fließtext aussehen und keiner sind:
+
+- `docs/lokale_entwicklungsumgebung.md` zählte die acht Codes des
+  Arbeitsschritt-Katalogs auf – als normalen Text. Sie stehen jetzt in
+  Backticks. Dabei ist aufgefallen, dass die Liste den achten Code als
+  „prüfen" führte; in der Datenbank heißt er `pruefen`. Nachgesehen und
+  berichtigt.
+- Der Verlauf zählte an einer Stelle Terminal-Seiten auf, darunter `stoerung`.
+  Ebenfalls in Backticks.
+
+Damit muss kein künftiger Durchgang mehr wissen, dass an diesen Stellen
+Ausnahmen stehen – man sieht es.
+
+Zusätzlich hat das Verfahren eine **Sperrliste** bekommen: Routennamen,
+Methodennamen, ENUM- und Startwerte aus dem Schema und die Katalog-Codes werden
+aus dem Plan geworfen, bevor er läuft. Sie hat genau die drei Wörter gefangen,
+um die es geht: `stoerung`, `saegen`, `fraesen`.
+
+### TEST
+- Codeblöcke, Code-Spans und Linkziele aller 37 Dateien vorher und nachher
+  verglichen: **Byte für Byte identisch** (16.712 Stellen).
+- Alle vier Suchläufe der Wartungscheckliste: die ersten drei ohne Treffer, der
+  vierte meldet dieselben sechs Betreffe wie vor der Änderung, keinen neuen.
+- Der Umstell-Suchlauf über alle 37 Dateien meldet **0 verbleibende Wörter**.
+- Die drei Bezeichner stehen noch: `stoerung` in einer Datei, `fraesen` in
+  acht, `saegen` in vier, `naechstgelegen` in sechs.
+- Die acht Katalog-Codes gegen die Entwicklungsdatenbank geprüft
+  (`SELECT code FROM arbeitsschritt_katalog`): `saegen drehen fraesen bohren
+  schleifen entgraten montage pruefen` – die Doku nennt jetzt dieselben.
+- Kaltstart unverändert 15.611 Bytes (`weiss` → `weiß` ist gleich lang).
+
+Kein Code angefasst, also kein `php -l` und kein Klickweg.
+
+### Gefundene Fehler im eigenen Entwurf
+Der Fehler dieses Patches ist der Patch davor: **eine Vorauswahl per
+Stichwortliste ist keine Auswahl, sondern eine Wette.** Sieben Suchwörter aus
+dem Kopf decken eine Sprache nicht ab. Wenn eine Änderung „alle Dateien einer
+Art" betrifft, ist die Dateiliste `find`, nicht `grep` – gefiltert wird danach,
+nicht davor.
+
+Zwischendurch hätte ich mich beinahe selbst getäuscht: Eine Zwischenauswertung
+zählte, wie viele Wörter je Datei im Plan stehen, **ohne** die Maske für
+Codeblöcke anzuwenden – und meldete 80 offene Stellen im Verlauf, der längst
+umgestellt war. Wer misst, muss dieselben Regeln anwenden wie der, der ändert;
+sonst misst er eine andere Datei.
+
+### Was bewusst nicht erreicht wurde
+Sechs Commit-Betreffe stehen weiterhin nicht wörtlich im Verlauf. Sie fehlten
+schon vorher (geprüft gegen HEAD), gehören zur bekannten Lücke der fünf Patches
+vom 08.08.2026 und werden nicht nacherfunden.
+
+### NEXT
+Die Wegwerf-Umgebung in der Wartungscheckliste verankern, danach T-105.
+
 ## P-2026-08-15-41 eine-schreibweise-fuer-umlaute
 
 ### EINGELESEN
@@ -167,9 +256,9 @@ meldete. Alles zurückgesetzt, Maske um kebab-case und um „Patch-ID plus
 folgendes Wort" erweitert, neu gelaufen.
 
 **Und ein Routenname im Fließtext.** Eine Zeile zählt Terminal-Seiten auf:
-„auftrag_starten/stoppen, nebenauftrag, urlaub, logout, stoerung" – ohne
-Backticks. `auftrag_starten` war durch den Unterstrich geschützt, `stoerung`
-nicht. Der Vergleich der geänderten Wörter gegen die echten Bezeichner aus
+`auftrag_starten`/`stoppen`, `nebenauftrag`, `urlaub`, `logout`, `stoerung` –
+im Original ohne Backticks. `auftrag_starten` war durch den Unterstrich
+geschützt, `stoerung` nicht. Der Vergleich der geänderten Wörter gegen die echten Bezeichner aus
 `public/index.php`, `public/terminal.php` und den Methodennamen hat es
 gefunden; von 16 verdächtigen Stellen war es die einzige echte, die übrigen
 waren gewöhnliche Verben („Eintrag löschen").
@@ -21463,7 +21552,7 @@ Pflicht-Begründungen für Tagesfelder (Kurzarbeit/Krank/Sonstiges) sollen in de
   - `php -l controller/TerminalController.php`
   - `php -l views/terminal/start.php`
 - **NEXT:**
-  - Gleiche Name-Click/Arbeitszeit-Seite auch in den anderen Terminal-Seiten (auftrag_starten/stoppen, nebenauftrag, urlaub, logout, stoerung) angleichen (micro-patches).
+  - Gleiche Name-Click/Arbeitszeit-Seite auch in den anderen Terminal-Seiten (`auftrag_starten`/`stoppen`, `nebenauftrag`, `urlaub`, `logout`, `stoerung`) angleichen (micro-patches).
 
 
 ## P-2026-01-17-06

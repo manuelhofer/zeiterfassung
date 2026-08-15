@@ -62,7 +62,7 @@ identisch, nur Paketnamen und Pfade unterscheiden sich (siehe Abschnitt 4).
 | Webserver | `apache` | `apache2` |
 | PHP | `php php-fpm php-gd` | `php php-fpm php-mysql php-gd php-mbstring` |
 | Datenbank | `mariadb-lts` | `mariadb-server` |
-| DB-Oberflaeche | `phpmyadmin` | `phpmyadmin` |
+| DB-Oberfläche | `phpmyadmin` | `phpmyadmin` |
 
 Unter Arch sind PHP-Erweiterungen zwar mitinstalliert, aber in der `php.ini`
 deaktiviert. Statt in der `php.ini` zu editieren, legt das Skript eine eigene
@@ -127,7 +127,7 @@ Vorlage: `config/config.php.example`.
 ### 4.5 Dateirechte
 
 Der Code gehört dem angemeldeten Benutzer – das muss so bleiben, sonst wird
-das Arbeiten mit Git muehsam. Der Webserver bekommt deshalb **nur** per ACL
+das Arbeiten mit Git mühsam. Der Webserver bekommt deshalb **nur** per ACL
 Schreibrechte auf die Verzeichnisse, in die er wirklich schreibt:
 
 ```bash
@@ -141,7 +141,7 @@ passende Rechte bekommen.
 **Beide Benutzer eintragen, nicht nur `http`.** Sonst gehören die vom
 Webserver erzeugten Dateien dem Benutzer `http`, und der eigene Benutzer fällt
 auf `other` zurück – Lesen ja, Überschreiben nein. Das fällt erst auf, wenn
-man dieselbe Datei einmal ausserhalb des Browsers erzeugen will:
+man dieselbe Datei einmal außerhalb des Browsers erzeugen will:
 
 ```
 file_put_contents(.../maschine_5_barcode.png): Failed to open stream: Permission denied
@@ -165,7 +165,7 @@ because search permissions are missing on a component of the path
 
 Lösung: systemd-Drop-in mit `ProtectHome=false` für beide Dienste
 (macht das Setup-Skript). Alternative wäre, das Projekt nach `/srv/http` zu
-legen – dann liegt die Git-Arbeitskopie aber ausserhalb des Home-Verzeichnisses.
+legen – dann liegt die Git-Arbeitskopie aber außerhalb des Home-Verzeichnisses.
 
 **Paketkonflikt `mariadb-libs` vs. `mariadb-lts-libs`.**
 Wenn `mariadb-libs` (Nicht-LTS) schon installiert ist, bricht die Installation
@@ -174,7 +174,7 @@ es gefahrlos entfernt werden; sonst stattdessen das Paket `mariadb` verwenden.
 
 **phpMyAdmin meldet ein fehlendes `blowfish_secret`.**
 Ohne gesetztes Secret verweigert phpMyAdmin den Cookie-Login. Das Skript
-erzeugt eines und traegt es in `/etc/webapps/phpmyadmin/config.inc.php` ein.
+erzeugt eines und trägt es in `/etc/webapps/phpmyadmin/config.inc.php` ein.
 
 **Eine geänderte PHP-Datei wirkt bis zu drei Minuten lang nicht.**
 Der OPcache prüft den Zeitstempel einer bereits übersetzten Datei nur alle
@@ -227,7 +227,7 @@ mariadb -h 127.0.0.1 -u zeiterfassung -pzeiterfassung -e \
 mariadb -h 127.0.0.1 -u zeiterfassung -pzeiterfassung zeiterfassung < dump.sql
 ```
 
-Dasselbe geht in phpMyAdmin unter *Importieren*; bei grossen Dumps ist die
+Dasselbe geht in phpMyAdmin unter *Importieren*; bei großen Dumps ist die
 Kommandozeile schneller und läuft nicht in Upload-Limits.
 
 **Vorher prüfen, ob das Schema auseinanderläuft.** Ein Server-Dump zeigt den
@@ -256,7 +256,7 @@ mariadb -h 127.0.0.1 -u zeiterfassung -pzeiterfassung -e \
 
 **Solche Dumps gehören niemals ins Repository.** Sie enthalten
 personenbezogene Daten – Klarnamen, E-Mail-Adressen, Geburtsdaten,
-RFID-Codes und Passwort-Hashes –, und das Repository ist oeffentlich. Der
+RFID-Codes und Passwort-Hashes –, und das Repository ist öffentlich. Der
 Datenbestand bleibt lokal; im Repo steht ausschließlich das Schema mit den
 technischen Startwerten (Rollen, Rechte, Pausenfenster).
 
@@ -270,13 +270,14 @@ Damit sich niemand über Daten wundert, die nicht aus dem Betrieb stammen:
   entfernbar.
 - **Aufträge:** 3, davon 2 Testaufträge (`A-2026-0815`, `A-2026-0999`) mit
   Arbeitsschritten – reine Anschauungsdaten.
-- **Arbeitsschritt-Katalog:** 8 Beispieleinträge (saegen, drehen, fraesen,
-  bohren, schleifen, entgraten, montage, prüfen). Als Startbestand brauchbar.
+- **Arbeitsschritt-Katalog:** 8 Beispieleinträge – die Codes `saegen`,
+  `drehen`, `fraesen`, `bohren`, `schleifen`, `entgraten`, `montage`,
+  `pruefen`. Als Startbestand brauchbar.
 - **Terminals:** keine; keine offenen Kopplungen (Testdaten entfernt).
 - Der eigentliche Datenbestand stammt aus dem Serverdump vom 2026-08-08 und
   enthält echte Personendaten – deshalb liegt er **nicht** im Repository.
 
-## 7. Taeglicher Betrieb
+## 7. Täglicher Betrieb
 
 ```bash
 # Dienste

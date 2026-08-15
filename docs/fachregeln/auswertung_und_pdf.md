@@ -15,7 +15,7 @@ Auswahl Mitarbeiter + Monat/Jahr, dann eine Liste aller Tage mit:
 - Arzt, Krank (LFZ/KK), Feiertag, Kurzarbeit, Urlaub, Sonstiges
 
 **Layout-Hinweis:** Spaltenüberschriften müssen kurz sein (z. B. **An/Ab**
-statt „Kommen/Gehen"), damit die Texte in die Tabellenkoepfe passen.
+statt „Kommen/Gehen"), damit die Texte in die Tabellenköpfe passen.
 
 Summenzeilen: Sollstunden, Iststunden, Arztstunden, Krankstunden (LFZ/KK),
 Feiertagsstunden, Urlaubsstunden, Kurzarbeitsstunden, sonstige Stunden,
@@ -31,7 +31,7 @@ eine Zeile. Dabei gilt:
   ersten Zeile des Tages** gefüllt, die weiteren bleiben leer – keine optische
   Doppelzählung.
 - **IST wird je Block** angezeigt, auch in den Folgezeilen.
-- Pause und Meta-Angaben stehen an der **Primaerzeile** (Block ≥ 60 min), nicht
+- Pause und Meta-Angaben stehen an der **Primärzeile** (Block ≥ 60 min), nicht
   automatisch in der ersten Zeile.
 - Summen bleiben tages- und monatsweise korrekt.
 
@@ -42,7 +42,7 @@ Das Feld `kommentar` ist die Kürzel-/Begründungsspalte (z. B. `BF`, `SoU`,
 
 Standard ist **aggregiert pro Tag**. Detail- bzw. Mikro-Buchungen erscheinen nur
 mit `?show_micro=1` (B-078). Erkannt werden sie am **Rohstempel**, damit die
-Rundung sie nicht künstlich aufblaeht; Schwelle über
+Rundung sie nicht künstlich aufbläht; Schwelle über
 `config:micro_buchung_max_sekunden`.
 
 Blöcke, die durch die Rundung auf 0 zusammenfallen (`gehen_korr <=
@@ -83,7 +83,7 @@ Im PDF muss sichtbar sein, wo von Hand eingegriffen wurde:
 - **Kurzarbeit-Volltag wirkt wie Betriebsferien** (i. d. R. Tages-Soll bzw.
   8 h), aber **nicht zusätzlich**, wenn am selben Tag gearbeitet wurde (B-030).
 - **Betriebsferien nicht zusätzlich zur Arbeitszeit zählen**, wenn an einem
-  BF-Tag tatsaechlich gearbeitet wurde (B-024).
+  BF-Tag tatsächlich gearbeitet wurde (B-024).
 - **Krank hat Vorrang vor Betriebsferien** (B-077).
 - **Urlaubsblock nicht doppelt abziehen:** Der Block nutzt den
   Jahressaldo des `UrlaubService` (inkl. BF); „BF (Rest Jahr)" ist reine Info
@@ -107,11 +107,11 @@ als Pflichtfeld**, protokolliert in `system_log`:
   Stundenkonto-Buchung – idempotent bzw. aktualisierbar und nur für
   **vergangene** Monate,
 - **Sammelumbuchung:** eigene Maske aus dem Stundenkonto heraus, zeigt die
-  Tageswerte eines Monats und verschiebt eingegebene Abzuege gesammelt auf einen
+  Tageswerte eines Monats und verschiebt eingegebene Abzüge gesammelt auf einen
   Zieltag (netto 0).
 
 In der Monatsübersicht markiert eine **Ampel** je Mitarbeiter, ob der
-Monatsabschluss offen (rot) oder gebucht (gruen) ist – auch in der aufgeklappten
+Monatsabschluss offen (rot) oder gebucht (grün) ist – auch in der aufgeklappten
 Auswahlliste, und dort zusätzlich mit Textzeichen (`✓` / `● offen`), weil Farbe
 allein je nach Browser und Systemthema nicht ankommt und nicht barrierefrei ist.
 
@@ -138,12 +138,12 @@ Erfahrungswerte, die mehrfach Fehler verursacht haben:
   verwenden (B-013).
 - Locale-sichere Zahlenformatierung: Bei `LC_NUMERIC=de_DE` bricht ein
   Dezimalkomma den PDF-Stream (B-015).
-- Output-Buffering aufraeumen, Fehler abfangen, `no-gzip`/`no-transform`-Header
-  setzen; PDF-Kopf mit Binaermarkierung, WinAnsiEncoding, `/ProcSet` und sauberer
+- Output-Buffering aufräumen, Fehler abfangen, `no-gzip`/`no-transform`-Header
+  setzen; PDF-Kopf mit Binärmarkierung, WinAnsiEncoding, `/ProcSet` und sauberer
   Stream-Terminierung (B-014, B-016).
 - Summenblock-Positionen **vor** dem Bemerkungsblock definieren (B-037).
 - `jahr`/`monat` in Report-Routen defensiv begrenzen, damit `monat=0` oder `13`
-  keine DateTime-Fehler ausloest.
+  keine DateTime-Fehler auslöst.
 
 ## 8. Datumsformate
 
