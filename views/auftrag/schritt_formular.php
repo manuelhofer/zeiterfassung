@@ -44,7 +44,7 @@ $esc = static function ($wert): string {
             <label for="arbeitsschritt_code"><strong>Code</strong></label><br>
             <input type="text" id="arbeitsschritt_code" name="arbeitsschritt_code" required maxlength="100"
                    value="<?php echo $esc($code); ?>" style="width:100%;max-width:260px;">
-            <br><small>Aenderungen erzeugen automatisch einen neuen Strichcode. Bereits gedruckte Laufkarten werden dadurch ungültig.</small>
+            <br><small>Änderungen erzeugen automatisch einen neuen Strichcode. Bereits gedruckte Laufkarten werden dadurch ungültig.</small>
         </div>
 
         <div style="margin-bottom:0.75rem;">

@@ -1242,7 +1242,7 @@ class AuftragController
                         <div class="admin-card" style="margin-top:1rem;max-width:640px;">
                             <strong>Aus dem Arbeitsschritt-Katalog übernehmen</strong>
                             <p style="margin:0.4rem 0;"><small>
-                                Standardschritte, die es bei diesem Auftrag noch nicht gibt. Uebernommene
+                                Standardschritte, die es bei diesem Auftrag noch nicht gibt. Übernommene
                                 Schritte erscheinen auf der Laufkarte.
                                 <a href="?seite=arbeitsschritt_katalog">Katalog pflegen</a>
                             </small></p>
@@ -1814,7 +1814,7 @@ class AuftragController
      * Route: ?seite=auftrag_laufkarte&code=...
      *
      * Bewusst ohne Verwaltungsrecht: Wer in der Werkstatt eine Laufkarte
-     * nachdrucken muss, soll dafür kein Recht zum Aendern brauchen.
+     * nachdrucken muss, soll dafür kein Recht zum Ändern brauchen.
      */
     public function laufkarte(): void
     {

@@ -47,10 +47,6 @@ Keine bekannten.
 - **T-118** Drei ungenutzte `Csrf::token()`-Zuweisungen im `AuftragController`
   (`speichern()`, `schrittSpeichern()`, `schritteAusKatalog()`) – dasselbe
   Muster wie T-116, gefunden in P-2026-08-15-28.
-- **T-119** Drei Stellen schreiben „Aenderung" statt „Änderung": zwei
-  Oberflächentexte (`views/auftrag/schritt_formular.php`,
-  `views/arbeitsschritt_katalog/formular.php`) und ein Kommentar
-  (`AuftragController` bei `laufkarte()`) – gegen die Umlautregel in §7.
 - **T-105** `SmokeTestController::index()` ist eine einzige, riesige Methode:
   Diagnosewerkzeug ohne Fachlogik, praktisch nicht mehr änderbar – nur *eine*
   Maske aus T-104 und trotzdem der grösste Brocken darin.

@@ -99,6 +99,86 @@ in den Statusbericht.
   D-002 entfallen; die Regel selbst gilt weiter.)
 
 
+## P-2026-08-15-29 t-119-umlaute-in-texten-und-kommentaren
+
+### EINGELESEN
+- `docs/arbeitsregeln.md` §7, Absatz „Umlaute schreiben, nicht umschreiben".
+- `docs/wartungscheckliste.md`, die drei Umlaut-Suchlaeufe.
+- `docs/STATUS_SNAPSHOT.md` (T-119).
+
+### DATEIEN
+- `views/auftrag/schritt_formular.php`, `views/arbeitsschritt_katalog/formular.php`
+- `views/layout/header.php`, `services/TerminalDbBenutzerService.php`
+- `controller/AuftragController.php`
+- `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Die Maske „Arbeitsschritt bearbeiten" zeigt „Änderungen erzeugen automatisch
+einen neuen Strichcode." statt „Aenderungen …" – und der Suchlauf nach
+`Aender`/`Ueber` ausserhalb von Bezeichnern meldet nichts mehr.
+
+### DONE
+T-119 aus P-2026-08-15-28. Aus drei notierten Stellen sind beim Suchlauf **acht**
+geworden, verteilt auf fuenf Dateien:
+
+| Stelle | vorher | Art |
+| --- | --- | --- |
+| `views/auftrag/schritt_formular.php` | „Aenderungen erzeugen" | Oberflaechentext |
+| `views/arbeitsschritt_katalog/formular.php` | „Eine Aenderung erzeugt" | Oberflaechentext |
+| `controller/AuftragController.php` (Detailmaske) | „Uebernommene Schritte" | Oberflaechentext |
+| `controller/AuftragController.php` (`laufkarte()`) | „Recht zum Aendern" | Kommentar |
+| `views/layout/header.php` (4 ×) | „Ueberschrift", „Uebersichten" | CSS-Kommentar |
+| `services/TerminalDbBenutzerService.php` | „Aendern und Löschen" | Kommentar |
+
+Die dritte notierte Stelle war ein Kommentar, nicht wie vermutet ein zweiter
+Oberflaechentext – der Snapshot-Eintrag hat da danebengelegen; gefunden hat ihn
+erst der Suchlauf.
+
+**Was bewusst ASCII bleibt:** Spaltennamen (`gueltig_bis`, `uebertrag_tage`),
+Methodennamen (`loescheEintrag()`, `pruefeHauptdatenbank()`), Variablen
+(`$ueberschrift`), Formularwerte (`naechstgelegen`) und `data-`-Attribute. §7
+nennt sie ausdruecklich – der Suchlauf zeigt sie trotzdem an, deshalb ist jede
+Fundstelle einzeln angesehen worden, nicht per Ersetzung ueber alles.
+
+### TEST
+Wegwerf-Umgebung aus P-2026-08-15-28 weiterbenutzt, Arbeitsstand neu
+hineingespiegelt. Die drei geaenderten Oberflaechentexte im HTML nachgesehen:
+
+| Maske | Ausgabe |
+| --- | --- |
+| Arbeitsschritt bearbeiten | „Änderungen erzeugen automatisch einen neuen Strichcode." |
+| Katalog bearbeiten (`id` gesetzt) | „Eine Änderung erzeugt einen neuen Strichcode." |
+| Auftragsdetail, Katalog-Kasten | „Übernommene" |
+
+Alle drei mit korrektem Umlaut, kein Mojibake. Die vier CSS-Kommentare stehen im
+ausgelieferten `<style>`-Block und sind dort ebenfalls richtig (zwei per `grep`
+in der Dashboard-Antwort gezaehlt); sechs Masken weiterhin HTTP 200, Serverlog
+ohne Meldung, `php -l` ueber alle fuenf geaenderten Dateien.
+
+Der Suchlauf, der die acht Stellen gefunden hat, meldet jetzt nichts mehr:
+
+```bash
+grep -rnE '(^|[^$_[:alnum:]-])(Aender|Ueber|Uebersicht)' --include='*.php' \
+  views/ controller/ services/ core/ modelle/ public/ | grep -vE "\$|'|\"|->"
+```
+
+Die Katalogmaske brauchte fuer den Test einen erfundenen Katalogeintrag
+(`fraesen` / „Fräsen") – ihr Hinweis erscheint nur beim Bearbeiten, nicht beim
+Anlegen.
+
+### Gefundene Fehler im eigenen Entwurf
+Der erste Suchlauf lief nur ueber Zeilen, die **mit** `*`, `//` oder `/*`
+beginnen. Damit fehlten die Folgezeilen mehrzeiliger Kommentare – zwei der vier
+Fundstellen in `header.php` stehen genau dort und waeren durchgerutscht.
+
+### Was bewusst nicht erreicht wurde
+JavaScript-Bezeichner in `views/terminal/*.php` bleiben ASCII (`loesche()`,
+`pruefUrl`) – §7 will das so. Der Hinweis der Wartungscheckliste, dass zur
+Laufzeit gebaute Attribute in keinem Suchlauf auftauchen, gilt unveraendert.
+
+### NEXT
+T-118 (drei ungenutzte `Csrf::token()`-Zuweisungen im `AuftragController`).
+
 ## P-2026-08-15-28 t-104-schrittformular-in-views
 
 ### EINGELESEN

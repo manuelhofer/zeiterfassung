@@ -48,7 +48,7 @@ $esc = static function ($wert): string {
                 Steht im Strichcode und wird am Terminal gescannt, z. B. <code>fräsen</code>.
                 Kurz und eindeutig halten – der Code taucht in allen Auswertungen auf.
                 <?php if ($id > 0): ?>
-                    <br><strong>Achtung:</strong> Eine Aenderung erzeugt einen neuen Strichcode.
+                    <br><strong>Achtung:</strong> Eine Änderung erzeugt einen neuen Strichcode.
                     Bereits an Maschinen hängende Ausdrucke werden dadurch ungültig.
                 <?php endif; ?>
             </small>

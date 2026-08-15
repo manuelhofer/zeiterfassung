@@ -88,7 +88,7 @@ class TerminalDbBenutzerService
         'stundenkonto_korrektur'      => 'SELECT',
 
         // --- Lesen und Schreiben ---------------------------------------
-        // Kommen/Gehen. Aendern und Löschen von Stempeln ist Korrekturarbeit
+        // Kommen/Gehen. Ändern und Löschen von Stempeln ist Korrekturarbeit
         // im Backend, nicht Aufgabe des Terminals.
         'zeitbuchung'                 => 'SELECT, INSERT',
         // Das Terminal legt fehlende Stammdaten selbst an - eine Buchung darf

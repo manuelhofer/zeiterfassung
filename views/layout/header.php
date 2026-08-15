@@ -721,7 +721,7 @@ if ($hatKonfigurationAdminRecht) {
             padding: 0.85rem 0.95rem;
         }
 
-        /* Nur die Ueberschrift der Karte steht auf eigener Zeile. Galt früher
+        /* Nur die Überschrift der Karte steht auf eigener Zeile. Galt früher
            für jedes `strong` in der Karte - seit die Statuskacheln des
            Dashboards `.admin-card` benutzen, zerriss das dort jeden Wert
            ("Aktiv: 0" auf zwei Zeilen). */
@@ -795,9 +795,9 @@ if ($hatKonfigurationAdminRecht) {
             background: #fff7f7;
         }
 
-        /* Nur die Ueberschrift des Kastens ist rot, nicht jedes fette Wort im
+        /* Nur die Überschrift des Kastens ist rot, nicht jedes fette Wort im
            Text darunter. `.panel-titel` gibt es für die Fälle, in denen die
-           Ueberschrift zwecks Layout in einem Zwischen-div steckt und deshalb
+           Überschrift zwecks Layout in einem Zwischen-div steckt und deshalb
            kein direktes Kind mehr ist. */
         .warning-panel > strong,
         .warning-panel > h3,
@@ -938,7 +938,7 @@ if ($hatKonfigurationAdminRecht) {
         }
 
         /* Statuskachel: eine `.admin-card`, deren Hintergrund die Lage anzeigt.
-           Für Uebersichten wie den Systemstatus im Dashboard. */
+           Für Übersichten wie den Systemstatus im Dashboard. */
         .admin-card.zustand-ok {
             background: var(--backend-success-bg);
             border-color: #9ac8aa;
