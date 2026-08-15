@@ -2083,57 +2083,12 @@ class AuftragController
         $code           = (string)($schritt['arbeitsschritt_code'] ?? '');
         $bezeichnung    = (string)($schritt['bezeichnung'] ?? '');
         $aktiv          = (int)($schritt['aktiv'] ?? 1) === 1;
-        $csrfToken      = Csrf::token(self::CSRF_BEREICH_STAMM);
 
-        $esc = static function ($wert): string {
-            return htmlspecialchars((string)$wert, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
-        };
+        // Die View baut ihr CSRF-Feld selbst; sie bekommt dafür den
+        // Bereichsnamen statt eines fertigen Tokens.
+        $csrfBereich = self::CSRF_BEREICH_STAMM;
 
-        require __DIR__ . '/../views/layout/header.php';
-        ?>
-        <section>
-            <h2>Arbeitsschritt bearbeiten</h2>
-
-            <p><a class="button-link quiet" href="?seite=auftrag_detail&amp;code=<?php echo urlencode($auftragsnummer); ?>">&laquo; Zurück zum Auftrag <?php echo $esc($auftragsnummer); ?></a></p>
-
-            <?php if (is_string($fehlermeldung) && $fehlermeldung !== ''): ?>
-                <div class="error"><?php echo $esc($fehlermeldung); ?></div>
-            <?php endif; ?>
-
-            <form method="post" action="?seite=auftrag_schritt_speichern">
-                <input type="hidden" name="csrf_token" value="<?php echo $esc($csrfToken); ?>">
-                <input type="hidden" name="schritt_id" value="<?php echo $id; ?>">
-                <input type="hidden" name="auftrag_id" value="<?php echo $auftragId; ?>">
-
-                <div style="margin-bottom:0.75rem;">
-                    <label for="arbeitsschritt_code"><strong>Code</strong></label><br>
-                    <input type="text" id="arbeitsschritt_code" name="arbeitsschritt_code" required maxlength="100"
-                           value="<?php echo $esc($code); ?>" style="width:100%;max-width:260px;">
-                    <br><small>Aenderungen erzeugen automatisch einen neuen Strichcode. Bereits gedruckte Laufkarten werden dadurch ungültig.</small>
-                </div>
-
-                <div style="margin-bottom:0.75rem;">
-                    <label for="bezeichnung"><strong>Bezeichnung</strong></label><br>
-                    <input type="text" id="bezeichnung" name="bezeichnung" maxlength="255"
-                           value="<?php echo $esc($bezeichnung); ?>" style="width:100%;max-width:480px;">
-                </div>
-
-                <div style="margin-bottom:1rem;">
-                    <label>
-                        <input type="checkbox" name="aktiv" value="1" <?php echo $aktiv ? 'checked' : ''; ?>>
-                        Aktiv
-                    </label>
-                    <br><small>Inaktive Schritte erscheinen nicht auf der Laufkarte. Gelöscht wird nicht, damit vorhandene Buchungen zuordenbar bleiben.</small>
-                </div>
-
-                <div class="form-actions">
-                    <button type="submit">Speichern</button>
-                    <a class="button-link quiet" href="?seite=auftrag_detail&amp;code=<?php echo urlencode($auftragsnummer); ?>">Abbrechen</a>
-                </div>
-            </form>
-        </section>
-        <?php
-        require __DIR__ . '/../views/layout/footer.php';
+        require __DIR__ . '/../views/auftrag/schritt_formular.php';
     }
 
     /**

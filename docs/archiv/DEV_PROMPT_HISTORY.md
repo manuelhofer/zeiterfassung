@@ -99,6 +99,118 @@ in den Statusbericht.
   D-002 entfallen; die Regel selbst gilt weiter.)
 
 
+## P-2026-08-15-28 t-104-schrittformular-in-views
+
+### EINGELESEN
+- `docs/STATUS_SNAPSHOT.md` (T-104), `docs/arbeitsregeln.md`, `git log --oneline -20`.
+- `views/terminal_admin/formular.php` als Muster (P-2026-08-15-23), dazu
+  `TerminalAdminController::renderFormular()`.
+- `core/Csrf.php`: `token()`, `feld()`, `istGueltig()`, `const FELD`.
+- `views/layout/header.php`, Block `button` / `.button-link`.
+- `AuftragController::renderSchrittFormular()` und `schrittSpeichern()`
+  vollstaendig.
+
+### DATEIEN
+- `views/auftrag/schritt_formular.php` (neu)
+- `controller/AuftragController.php`
+- `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Die Maske „Arbeitsschritt bearbeiten" erzeugt dasselbe HTML wie vorher – bis auf
+die Einrueckung und die eine `Csrf::feld()`-Stelle –, obwohl das Markup jetzt in
+`views/auftrag/schritt_formular.php` liegt.
+
+### DONE
+Erste der vier Masken des `AuftragController` und die kleinste; bewusst als
+Einstieg gewaehlt, weil dieser Controller mit 2.505 Zeilen der groesste der
+Reihe ist und das Muster hier ohne Nebenwirkungen sitzt. 2.505 → 2.460 Zeilen
+Controller plus 71 Zeilen View. Neues Verzeichnis `views/auftrag/`.
+
+`renderSchrittFormular()` rechnet weiterhin die Anzeigewerte vor und bindet dann
+die View ein. Wie im Muster faellt das handgeschriebene versteckte Feld weg: Die
+View ruft `Csrf::feld($csrfBereich)` auf und bekommt dafuer den Bereichsnamen
+statt eines fertigen Tokens. Die lokale `$esc`-Hilfsfunktion ist mit in die View
+gewandert – sie gehoert zur Darstellung.
+
+Der Knopf-Regel aus T-104 („keine eigenen Groessen") war nichts hinzuzufuegen:
+Diese Maske schreibt keine Groessen auf ihre Knoepfe. Die drei `style`-Angaben
+an `div` und `input` sind 1:1 uebernommen, damit der HTML-Vergleich aussagekraeftig
+bleibt.
+
+### TEST
+Wegwerf-Umgebung nach dem Muster aus P-2026-08-15-08, komplett neu aufgesetzt
+(die Kopien frueherer Sitzungen sind weg): zwei Kopien des Repos im
+Sitzungsordner (HEAD und Arbeitsstand), eigene `config.local.php`, frische
+Datenbank `zeit_probe_t104d` aus `sql/01_initial_schema.sql`, **erfundener**
+Pruefbenutzer „Probe Pruefer", beide Server mit `-d opcache.enable=0`.
+Entwicklungsdatenbank nicht angefasst.
+
+Ein erfundener Auftrag `A&"100"<x>` mit drei Arbeitsschritten fuer die Kanten
+der Maske: ein normaler, einer mit `<script>`, `&`, `"` und `äöüß` in Code und
+Bezeichnung, einer ohne Bezeichnung und inaktiv.
+
+HTML beider Staende normalisiert (Leerraum zusammengefasst, Token maskiert) und
+verglichen:
+
+| Lage | Abweichende Zeilen | erwartet |
+| --- | --- | --- |
+| Schritt normal (`id=1`) | 3 | 3 (1 × `Csrf::feld`) |
+| Schritt mit Sonderzeichen (`id=2`) | 3 | 3 |
+| Schritt inaktiv, ohne Bezeichnung (`id=3`) | 3 | 3 |
+| `id=999999` (gibt es nicht) | 0 | 0 – beide 302 auf `?seite=auftrag` |
+| `id=0` | 0 | 0 – beide 302 auf `?seite=auftrag` |
+| POST, leerer Code | 3 | 3 |
+| POST, Code schon vergeben | 3 | 3 |
+| POST, Code laenger als 100 Zeichen | 3 | 3 |
+
+Die drei Zeilen sind immer dieselbe Stelle: `Csrf::feld()` gibt sein `input`
+ohne Zeilenumbruch aus, deshalb faellt es nach der Normalisierung mit der
+naechsten Zeile zusammen. Kein anderer Unterschied – auch nicht bei der
+Maskierung des `<script>`-Codes oder bei der fehlenden Bezeichnung.
+
+Danach die Wege, die kein HTML-Vergleich zeigt, auf dem neuen Stand:
+
+| Weg | Ergebnis |
+| --- | --- |
+| Speichern mit gueltigem Token | 302 auf `auftrag_detail`, `SCHRITT-NEU-Ä` und `Fräsen fein` in der Datenbank |
+| Falsches CSRF-Token | 302 auf `?seite=auftrag`, Flash „Die Sitzung ist abgelaufen. Bitte erneut versuchen.", nichts geaendert |
+| Fehlermeldung im Formular | „Bitte einen Code für den Arbeitsschritt angeben.", „Der Code &quot;OHNE-BEZ&quot; ist bei diesem Auftrag schon vergeben.", „Der Code darf höchstens 100 Zeichen lang sein." |
+
+25 Backend-Aufrufe HTTP 200 (Dashboard, Mitarbeiter, Rollen, Monatsreport, vier
+Urlaubsmasken, Kontingente, Konfiguration, Terminalverwaltung, Queue,
+Audit-Log, Tagesansicht, Rundungsregeln, Maschinen, Abteilungen, Feiertage,
+Betriebsferien, Kurzarbeit, Katalog, Smoke-Test, Auftragsliste, Auftrag anlegen,
+Auftragsdetail, Laufkarte), Serverlogs beider Staende ohne Deprecation, Warning
+oder Notice, `php -l` ueber beide Dateien. Die drei Suchlaeufe der
+Wartungscheckliste zu Umlauten in `value`-Attributen, Bezeichnern und
+Variablennamen: keine Treffer.
+
+### Gefundene Fehler im eigenen Entwurf
+Der Klicktest lief zuerst gegen sechs Routennamen, die es nicht gibt
+(`mitarbeiter`, `rollen`, `queue`, `maschine`, `abteilung`, `feiertag`,
+`betriebsferien`) – genau die Falle aus P-2026-08-15-08: `public/index.php`
+leitet Unbekanntes auf das Dashboard um, also **302 statt Fehlerseite**. Weil
+hier der HTTP-Code mitprotokolliert wurde, ist es aufgefallen; ein Skript, das
+nur „nicht 200" zaehlt, haette sechs nie besuchte Masken als geprueft gemeldet.
+Richtig heissen sie alle `…_admin`. Die Warnung steht seit -08 im Verlauf und
+war trotzdem wieder faellig: Routennamen gehoeren gegen `public/index.php`
+geprueft, nicht gegen das Gedaechtnis.
+
+### Was bewusst nicht erreicht wurde
+Der Hinweistext der Maske schreibt „Aenderungen" statt „Änderungen" – ein
+Verstoss gegen §7, der schon vorher da war. Nicht mitgeaendert, weil dieser
+Patch HTML-gleich bleiben muss, um vergleichbar zu sein. Mit zwei weiteren
+Fundstellen als **T-119** notiert.
+
+Drei ungenutzte `Csrf::token()`-Zuweisungen im selben Controller
+(`speichern()`, `schrittSpeichern()`, `schritteAusKatalog()`) sind dasselbe
+Muster, das T-116 im `TerminalAdminController` beseitigt hat. Sie stehen in
+Methoden, die diese Maske nicht baut, also nicht in diesem Patch – als
+**T-118** notiert.
+
+### NEXT
+T-119 und T-118 abarbeiten, dann T-104, naechste Maske: `renderAuftragFormular()`.
+
 ## P-2026-08-15-27 t-117-kaltstart-begruendung-in-den-verlauf
 
 ### EINGELESEN

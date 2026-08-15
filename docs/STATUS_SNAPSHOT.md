@@ -35,14 +35,22 @@ Keine bekannten.
   unerreichbar macht (B-097, T-110). Durchsehen, nicht pauschal ändern;
   Suchlauf in P-2026-08-15-10.
 - **T-104** Zwei Controller erzeugen HTML selbst, statt `views/` zu benutzen –
-  **5 Masken**: `AuftragController` (4), `SmokeTestController` (1). Eine Maske
-  je Patch; Muster und Prüfweg: P-2026-08-11-09, zuletzt P-2026-08-15-23.
+  **4 Masken**: `AuftragController` (3: Liste, Detail, Auftragsformular),
+  `SmokeTestController` (1). Eine Maske je Patch; Muster und Prüfweg:
+  P-2026-08-11-09, zuletzt P-2026-08-15-28.
 
   Achtung: Der `grep` nach dem Header-Require zählt zu hoch – er findet auch
   „Keine Berechtigung"-Blöcke in längst fertigen Controllern.
 
   Beim Bauen einer Maske erst in `views/layout/header.php` nachsehen und
   **keine eigenen Grössen auf Knöpfe schreiben** – Begründung steht dort.
+- **T-118** Drei ungenutzte `Csrf::token()`-Zuweisungen im `AuftragController`
+  (`speichern()`, `schrittSpeichern()`, `schritteAusKatalog()`) – dasselbe
+  Muster wie T-116, gefunden in P-2026-08-15-28.
+- **T-119** Drei Stellen schreiben „Aenderung" statt „Änderung": zwei
+  Oberflächentexte (`views/auftrag/schritt_formular.php`,
+  `views/arbeitsschritt_katalog/formular.php`) und ein Kommentar
+  (`AuftragController` bei `laufkarte()`) – gegen die Umlautregel in §7.
 - **T-105** `SmokeTestController::index()` ist eine einzige, riesige Methode:
   Diagnosewerkzeug ohne Fachlogik, praktisch nicht mehr änderbar – nur *eine*
   Maske aus T-104 und trotzdem der grösste Brocken darin.
