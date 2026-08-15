@@ -99,6 +99,83 @@ in den Statusbericht.
   D-002 entfallen; die Regel selbst gilt weiter.)
 
 
+## P-2026-08-15-45 t-105-restliche-checks-als-methoden
+
+### EINGELESEN
+- `docs/STATUS_SNAPSHOT.md` (T-105), P-2026-08-15-44 – dort steht das Muster.
+- Die sechs verbliebenen Blöcke in `index()` vollständig, dazu die Stellen, an
+  denen ihre Hilfsvariablen außerhalb initialisiert wurden.
+
+### DATEIEN
+- `controller/SmokeTestController.php`
+- `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Die Kandidatenliste zeigt für ein Suchfenster von 24 Monaten dieselbe Tabelle
+wie vorher, obwohl ihr Rumpf jetzt in `sucheMultipageKandidaten()` steht – und
+`index()` ist unter 600 Zeilen.
+
+### DONE
+Die sechs verbliebenen Blöcke sind eigene Methoden: `pruefeTerminalLogin()`,
+`pruefePdfQuick()`, `pruefePdfSynth()`, `sucheMultipageKandidaten()`,
+`pruefePdfDbMultipage()` und `pruefeFeiertagSeed()`. Damit ist die Zerlegung
+vollständig: **`index()` geht von ursprünglich 3.673 über 1.701 auf 570
+Zeilen** und besteht nur noch aus Vorbereitung, zwölf Aufrufen und dem
+Einbinden der View.
+
+Zwei Sammler sind mitgewandert, weil sie außerhalb initialisiert wurden, aber
+nur innerhalb eines Blocks vorkommen und die View sie nicht liest: die drei
+`$pdfKommentar…`-Werte des PDF-Quick-Checks und der Schalter
+`$pdfDbMultiListDoEval` der Kandidatenliste. Sie sind jetzt lokale Variablen
+ihrer Methode; die toten Zeilen in `index()` sind weg.
+
+### TEST
+Wegwerf-Umgebung und Daten aus P-2026-08-15-44 weiterverwendet.
+
+| Lage | Echte Abweichungen |
+| --- | --- |
+| die fünfzehn Grundfälle (Login, PDF, Feiertag, Raster, Fallback, …) | 0 |
+| PDF-DB: Top-1, Kandidatenliste, Kandidatenliste mit PDF-Prüfung | 0 |
+| Feiertag-Seed, seedend und mit blockiertem Schreiben | 0 |
+| `config` unlesbar, Queue mit Einträgen, Queue-Tabelle unlesbar | 0 |
+| falsches CSRF-Token, Benutzer ohne Recht (403) | 0 |
+| Queue-Roundtrip | nur laufende Queue-ID und Zufallsmarker |
+
+26 Backend-Routen HTTP 200 auf beiden Ständen, `php -l`, beide Serverlogs ohne
+eine einzige PHP-Meldung.
+
+Vor dem Schnitt wieder geprüft, dass keine Methode eine Variable von außen
+liest. Die Prüfung meldete `$m`, `$mm`, `$m2` – alle drei sind entweder
+Rückgabeparameter von `preg_match()` oder werden zwei Zeilen vorher zugewiesen;
+nachgesehen statt geglaubt.
+
+### Gefundene Fehler im eigenen Entwurf
+**Ein Namensschema, das für einen Block nicht galt.** Die Zerlegung lief über
+eine Regel: Zu jedem Präfix gehört `…Ergebnis` und `…Hinweis`. Bei der
+Kandidatenliste heißt das Ergebnis aber `$pdfDbMultiListe` – kein
+`$pdfDbMultiListErgebnis`. Die Methode gab folglich eine Variable zurück, die
+es nur in ihr selbst gab, immer `null`; die Liste verschwand von der Seite.
+Der Vergleich hat es mit 50 abweichenden Zeilen sofort gezeigt.
+
+Die Lehre ist nicht „Regel war falsch", sondern: **Wer eine Umformung über ein
+Namensschema laufen lässt, muss für jeden Fall nachsehen, ob die Namen wirklich
+so heißen.** Fünf von sechs stimmten – und genau deshalb wäre es ohne den
+Vergleich durchgerutscht.
+
+### Was bewusst nicht erreicht wurde
+Die Variablennamen sind weiterhin lang (`$pdfDbMultiWindowMonate` als Parameter
+von `pruefePdfDbMultipage()`). Kürzen bleibt der eigene, kleine Patch nach der
+Zerlegung – zusammen mit den Bündeln, die dann bis in die View durchgereicht
+werden.
+
+Zwei Blöcke laufen weiterhin bei **jedem** Aufruf mitten in `index()`: die
+Queue-Übersicht und die Terminal-Konfiguration. Sie sind kein POST-Check und
+brauchen deshalb einen eigenen Schnitt mit eigener Begründung.
+
+### NEXT
+`views/smoke_test/index.php` in Teil-Templates zerlegen, jedes mit dem Bündel
+seines Checks.
+
 ## P-2026-08-15-44 t-105-monatsreport-checks-als-methoden
 
 ### EINGELESEN

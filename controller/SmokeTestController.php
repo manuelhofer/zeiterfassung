@@ -1714,6 +1714,1295 @@ class SmokeTestController
         ];
     }
 
+    /**
+     * Terminal-Login-Check: löst ein Code zu einem aktiven Mitarbeiter auf?
+     *
+     * Herausgelöst aus `index()` (T-105); der Rumpf ist unverändert.
+     *
+     * @return array{code:string, ergebnis:?array<string,mixed>, hinweis:?string}
+     */
+    private function pruefeTerminalLogin(string $terminalLoginCode): array
+    {
+        $terminalLoginErgebnis = null;
+        $terminalLoginHinweis = null;
+
+        $terminalLoginCode = trim((string)($_POST['terminal_login_code'] ?? ''));
+
+        if ($terminalLoginCode === '') {
+            $terminalLoginHinweis = 'Bitte einen Code eingeben.';
+        } elseif ($this->db === null) {
+            $terminalLoginHinweis = 'Database::getInstanz() ist nicht verfügbar.';
+        } else {
+            try {
+                $pdo = $this->db->getVerbindung();
+
+                $fetchOne = static function (PDO $pdo, string $sql, array $params): ?array {
+                    $stmt = $pdo->prepare($sql);
+                    $stmt->execute($params);
+                    $row = $stmt->fetch(PDO::FETCH_ASSOC);
+                    return is_array($row) ? $row : null;
+                };
+
+                $match = null;
+                $matchTyp = null;
+                $warnungen = [];
+                $fehlerCode = null;
+
+                // 1) RFID (aktiv)
+                $match = $fetchOne(
+                    $pdo,
+                    'SELECT id, vorname, nachname, personalnummer, rfid_code, aktiv
+                     FROM mitarbeiter
+                     WHERE rfid_code = :code AND aktiv = 1
+                     LIMIT 1',
+                    ['code' => $terminalLoginCode]
+                );
+                if (is_array($match) && isset($match['id'])) {
+                    $matchTyp = 'RFID';
+                } else {
+                    $inactive = $fetchOne(
+                        $pdo,
+                        'SELECT id, vorname, nachname, personalnummer, rfid_code, aktiv
+                         FROM mitarbeiter
+                         WHERE rfid_code = :code
+                         LIMIT 1',
+                        ['code' => $terminalLoginCode]
+                    );
+                    if (is_array($inactive) && isset($inactive['id']) && (int)($inactive['aktiv'] ?? 0) !== 1) {
+                        $warnungen[] = 'RFID-Code gehört zu einem inaktiven Mitarbeiter (ID ' . (int)$inactive['id'] . ').';
+                    }
+                }
+
+                // 2) Personalnummer (nur numerisch, aktiv)
+                if ($matchTyp === null && ctype_digit($terminalLoginCode)) {
+                    $match = $fetchOne(
+                        $pdo,
+                        'SELECT id, vorname, nachname, personalnummer, rfid_code, aktiv
+                         FROM mitarbeiter
+                         WHERE personalnummer = :pn AND aktiv = 1
+                         LIMIT 1',
+                        ['pn' => $terminalLoginCode]
+                    );
+                    if (is_array($match) && isset($match['id'])) {
+                        $matchTyp = 'Personalnummer';
+                    } else {
+                        $inactive = $fetchOne(
+                            $pdo,
+                            'SELECT id, vorname, nachname, personalnummer, rfid_code, aktiv
+                             FROM mitarbeiter
+                             WHERE personalnummer = :pn
+                             LIMIT 1',
+                            ['pn' => $terminalLoginCode]
+                        );
+                        if (is_array($inactive) && isset($inactive['id']) && (int)($inactive['aktiv'] ?? 0) !== 1) {
+                            $warnungen[] = 'Personalnummer gehört zu einem inaktiven Mitarbeiter (ID ' . (int)$inactive['id'] . ').';
+                        }
+                    }
+                }
+
+                // 3) ID (nur numerisch, aktiv)
+                if ($matchTyp === null && ctype_digit($terminalLoginCode)) {
+                    $match = $fetchOne(
+                        $pdo,
+                        'SELECT id, vorname, nachname, personalnummer, rfid_code, aktiv
+                         FROM mitarbeiter
+                         WHERE id = :id AND aktiv = 1
+                         LIMIT 1',
+                        ['id' => (int)$terminalLoginCode]
+                    );
+                    if (is_array($match) && isset($match['id'])) {
+                        $matchTyp = 'Mitarbeiter-ID';
+                    } else {
+                        $inactive = $fetchOne(
+                            $pdo,
+                            'SELECT id, vorname, nachname, personalnummer, rfid_code, aktiv
+                             FROM mitarbeiter
+                             WHERE id = :id
+                             LIMIT 1',
+                            ['id' => (int)$terminalLoginCode]
+                        );
+                        if (is_array($inactive) && isset($inactive['id']) && (int)($inactive['aktiv'] ?? 0) !== 1) {
+                            $warnungen[] = 'Mitarbeiter-ID existiert, ist aber inaktiv (ID ' . (int)$inactive['id'] . ').';
+                        }
+                    }
+                }
+
+
+                // Zusatz (T-069): Mehrdeutigkeits-Check für numerische Codes
+                // - In der Praxis können Personalnummern versehentlich mit Mitarbeiter-IDs kollidieren.
+                // - Terminal-Logik (B-036): RFID → Personalnummer → ID, ABER:
+                //   Wenn RFID nicht passt und sowohl Personalnummer als auch ID auf verschiedene aktive Mitarbeiter zeigen,
+                //   wird der Login abgebrochen (kein stilles „falsches Einloggen“).
+                $alternativeTreffer = [];
+                if (ctype_digit($terminalLoginCode)) {
+                    $cInt = (int)$terminalLoginCode;
+
+                    $byRfid = $fetchOne(
+                        $pdo,
+                        'SELECT id, vorname, nachname, personalnummer, rfid_code, aktiv
+                         FROM mitarbeiter
+                         WHERE rfid_code = :code AND aktiv = 1
+                         LIMIT 1',
+                        ['code' => $terminalLoginCode]
+                    );
+
+                    $byPn = $fetchOne(
+                        $pdo,
+                        'SELECT id, vorname, nachname, personalnummer, rfid_code, aktiv
+                         FROM mitarbeiter
+                         WHERE personalnummer = :pn AND aktiv = 1
+                         LIMIT 1',
+                        ['pn' => $terminalLoginCode]
+                    );
+
+                    $byId = $fetchOne(
+                        $pdo,
+                        'SELECT id, vorname, nachname, personalnummer, rfid_code, aktiv
+                         FROM mitarbeiter
+                         WHERE id = :id AND aktiv = 1
+                         LIMIT 1',
+                        ['id' => $cInt]
+                    );
+
+                    // Alternativen sammeln (für Diagnose-Ausgabe)
+                    $alts = [
+                        'RFID'          => $byRfid,
+                        'Personalnummer' => $byPn,
+                        'Mitarbeiter-ID' => $byId,
+                    ];
+                    foreach ($alts as $t => $rowAlt) {
+                        if (!is_array($rowAlt) || !isset($rowAlt['id'])) {
+                            continue;
+                        }
+                        $alternativeTreffer[$t] = $rowAlt;
+                    }
+
+                    // Terminal-Verhalten emulieren: Mehrdeutigkeits-Abbruch nur wenn RFID nicht passt.
+                    if (!is_array($byRfid) && is_array($byPn) && is_array($byId)) {
+                        $idPn = (int)($byPn['id'] ?? 0);
+                        $idId = (int)($byId['id'] ?? 0);
+                        if ($idPn > 0 && $idId > 0 && $idPn !== $idId) {
+                            $fehlerCode = 'MEHRDEUTIG';
+                            $terminalLoginHinweis = 'Mehrdeutiger numerischer Code: Terminal würde den Login abbrechen (Personalnummer vs Mitarbeiter-ID).';
+                            $match = null;
+                            $matchTyp = null;
+                        }
+                    }
+
+                    // Zusatzhinweis: Code kollidiert zwar, Terminal würde aber gemäß Reihenfolge eindeutig wählen.
+                    if ($fehlerCode === null && $matchTyp !== null && is_array($match) && isset($match['id'])) {
+                        $primId = (int)$match['id'];
+                        $teile = [];
+                        foreach ($alternativeTreffer as $t => $rowAlt) {
+                            $altId = (int)($rowAlt['id'] ?? 0);
+                            if ($altId === $primId) {
+                                continue;
+                            }
+                            $name = trim((string)($rowAlt['vorname'] ?? '') . ' ' . (string)($rowAlt['nachname'] ?? ''));
+                            $teile[] = $t . ' → ID ' . $altId . ($name !== '' ? ' (' . $name . ')' : '');
+                        }
+                        if (count($teile) > 0) {
+                            $warnungen[] = 'Achtung: numerischer Code kollidiert auch mit ' . implode(', ', $teile) . '. Terminal-Reihenfolge: RFID → Personalnummer → ID.';
+                        }
+                    }
+                }
+
+                // Zusatz (T-069): Anwesenheit heute (rein lesend)
+                // - hilft beim Debuggen der Terminal-Menülogik (Kommen/Gehen-Buttons).
+                $anwesenheit = null;
+                if ($matchTyp !== null && is_array($match) && isset($match['id'])) {
+                    try {
+                        $mid = (int)$match['id'];
+
+                        $start = (new DateTimeImmutable('today'))->format('Y-m-d 00:00:00');
+                        $ende  = (new DateTimeImmutable('tomorrow'))->format('Y-m-d 00:00:00');
+
+                        $stmt = $pdo->prepare(
+                            "SELECT
+                                SUM(CASE WHEN typ = 'kommen' THEN 1 ELSE 0 END) AS kommen,
+                                SUM(CASE WHEN typ = 'gehen' THEN 1 ELSE 0 END)  AS gehen
+                             FROM zeitbuchung
+                             WHERE mitarbeiter_id = :mid
+                               AND zeitstempel >= :s
+                               AND zeitstempel < :e"
+                        );
+                        $stmt->execute(['mid' => $mid, 's' => $start, 'e' => $ende]);
+                        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+
+                        $k = is_array($row) && isset($row['kommen']) ? (int)$row['kommen'] : 0;
+                        $g = is_array($row) && isset($row['gehen']) ? (int)$row['gehen'] : 0;
+
+                        $letzte = null;
+                        $stmt2 = $pdo->prepare(
+                            "SELECT typ, zeitstempel, quelle, manuell_geaendert
+                             FROM zeitbuchung
+                             WHERE mitarbeiter_id = :mid
+                             ORDER BY zeitstempel DESC, id DESC
+                             LIMIT 1"
+                        );
+                        $stmt2->execute(['mid' => $mid]);
+                        $r2 = $stmt2->fetch(PDO::FETCH_ASSOC);
+                        if (is_array($r2) && isset($r2['typ']) && isset($r2['zeitstempel'])) {
+                            $letzte = $r2;
+                        }
+
+                        $anwesenheit = [
+                            'datum' => (new DateTimeImmutable('today'))->format('Y-m-d'),
+                            'kommen' => $k,
+                            'gehen' => $g,
+                            'ist_anwesend' => ($k > $g),
+                            'kommen_erlaubt' => ($k <= $g),
+                            'gehen_erlaubt' => ($k > $g),
+                            'auftrag_erlaubt' => ($k > $g),
+                            'letzte_buchung' => $letzte,
+                        ];
+
+                        if ($g > $k) {
+                            $warnungen[] = 'Auffälligkeit: Heute mehr "Gehen" als "Kommen" (K=' . $k . ', G=' . $g . ').';
+                        }
+                    } catch (Throwable $e) {
+                        $anwesenheit = [
+                            'fehler' => $e->getMessage(),
+                        ];
+                    }
+                }
+
+
+
+                if ($matchTyp === null || !is_array($match) || !isset($match['id'])) {
+                    if ($fehlerCode !== 'MEHRDEUTIG') {
+                        $terminalLoginHinweis = 'Kein aktiver Mitarbeiter für diesen Code gefunden.';
+                    }
+                    $terminalLoginErgebnis = [
+                        'typ' => null,
+                        'mitarbeiter' => null,
+                        'warnungen' => $warnungen,
+                        'alternativen' => $alternativeTreffer,
+                        'anwesenheit' => $anwesenheit,
+                        'fehler_code' => $fehlerCode,
+                    ];
+                } else {
+                    $terminalLoginErgebnis = [
+                        'typ' => $matchTyp,
+                        'mitarbeiter' => $match,
+                        'warnungen' => $warnungen,
+                        'alternativen' => $alternativeTreffer,
+                        'anwesenheit' => $anwesenheit,
+                        'fehler_code' => $fehlerCode,
+                    ];
+                }
+            } catch (Throwable $e) {
+                $terminalLoginHinweis = 'DB-Fehler beim Terminal-Login-Check: ' . $e->getMessage();
+            }
+        }
+
+        return [
+            'code' => $terminalLoginCode,
+            'ergebnis' => $terminalLoginErgebnis,
+            'hinweis' => $terminalLoginHinweis,
+        ];
+    }
+
+    /**
+     * PDF-Quick-Check: Monats-PDF im Speicher erzeugen und Header/EOF/Seiten prüfen.
+     *
+     * Herausgelöst aus `index()` (T-105); der Rumpf ist unverändert.
+     *
+     * @return array{mitarbeiter_id:int, jahr:int, monat:int, ergebnis:?array<string,mixed>, hinweis:?string}
+     */
+    private function pruefePdfQuick(int $pdfTestMitarbeiterId, int $pdfTestJahr, int $pdfTestMonat): array
+    {
+        $pdfTestErgebnis = null;
+        $pdfTestHinweis = null;
+        $pdfKommentarSamples = [];
+        $pdfKommentarCheck = [];
+        $pdfKommentarHinweis = null;
+
+        $pdfTestJahr = (int)($_POST['pdf_test_jahr'] ?? $pdfTestJahr);
+        $pdfTestMonat = (int)($_POST['pdf_test_monat'] ?? $pdfTestMonat);
+        $rawMid = trim((string)($_POST['pdf_test_mitarbeiter_id'] ?? ''));
+        if ($rawMid !== '') {
+            $pdfTestMitarbeiterId = (int)$rawMid;
+        }
+
+        if ($pdfTestMitarbeiterId <= 0) {
+            $pdfTestHinweis = 'Keine gültige Mitarbeiter-ID für den PDF-Check (auch kein angemeldeter Mitarbeiter gefunden).';
+        } elseif ($pdfTestJahr < 2000 || $pdfTestJahr > 2100) {
+            $pdfTestHinweis = 'Bitte ein gültiges Jahr (2000–2100) angeben.';
+        } elseif ($pdfTestMonat < 1 || $pdfTestMonat > 12) {
+            $pdfTestHinweis = 'Bitte einen gültigen Monat (1–12) angeben.';
+        } elseif (!class_exists('PDFService')) {
+            $pdfTestHinweis = 'PDFService ist nicht verfügbar (Klasse fehlt).';
+        } else {
+            $pdfInhalt = '';
+
+            $errorHandlerAktiv = false;
+            try {
+                set_error_handler(function (int $severity, string $message, string $file, int $line) use ($pdfTestJahr, $pdfTestMonat, $pdfTestMitarbeiterId): bool {
+                    Logger::warn('PHP-Warnung/Notice während SmokeTest-PDF-Quick-Check', [
+                        'severity' => $severity,
+                        'message'  => $message,
+                        'file'     => $file,
+                        'line'     => $line,
+                        'jahr'     => $pdfTestJahr,
+                        'monat'    => $pdfTestMonat,
+                        'mitarbeiter_id' => $pdfTestMitarbeiterId,
+                    ], null, null, 'smoke_test');
+                    return true; // Ausgabe unterdrücken
+                });
+                $errorHandlerAktiv = true;
+            } catch (Throwable $e) {
+                $errorHandlerAktiv = false;
+            }
+
+            $obStartLevel = ob_get_level();
+            @ob_start();
+
+            try {
+                $pdfService = PDFService::getInstanz();
+                $pdfInhalt = (string)$pdfService->erzeugeMonatsPdfFuerMitarbeiter($pdfTestMitarbeiterId, $pdfTestJahr, $pdfTestMonat);
+            } catch (Throwable $e) {
+                $pdfTestHinweis = 'PDF-Fehler beim Erzeugen: ' . $e->getMessage();
+            }
+
+            // Buffer leeren (Warnungen/Notices), Handler zurücksetzen
+            while (ob_get_level() > $obStartLevel) {
+                @ob_end_clean();
+            }
+            if ($errorHandlerAktiv) {
+                try {
+                    restore_error_handler();
+                } catch (Throwable $e) {
+                    // ignore
+                }
+            }
+
+            if ($pdfTestHinweis === null) {
+                $bytes = strlen($pdfInhalt);
+                $headerOk = ($bytes >= 5 && substr($pdfInhalt, 0, 5) === '%PDF-');
+                $eofOk = (strpos($pdfInhalt, '%%EOF') !== false);
+
+                $pageObjCount = substr_count($pdfInhalt, '/Type /Page /Parent');
+                $declaredPages = null;
+                if (preg_match('/\/Type\s*\/Pages\b.*?\/Count\s+(\d+)/s', $pdfInhalt, $m)) {
+                    $declaredPages = (int)$m[1];
+                }
+
+                $pagesMatch = null;
+                if ($declaredPages !== null) {
+                    $pagesMatch = ($declaredPages === $pageObjCount);
+                }
+
+                $footerSeite1 = (strpos($pdfInhalt, '(Seite 1/') !== false);
+                $footerSeite2 = null;
+                if ($pageObjCount >= 2) {
+                    $footerSeite2 = (strpos($pdfInhalt, '(Seite 2/') !== false);
+                }
+
+                $headerArbeitszeitliste = (strpos($pdfInhalt, '(Arbeitszeitliste)') !== false);
+                $headerTagKw = (strpos($pdfInhalt, '(Tag / KW)') !== false);
+
+                $okErweitert = ($bytes > 0 && $headerOk && $eofOk);
+                if ($pagesMatch === false) {
+                    $okErweitert = false;
+                }
+                if (!$footerSeite1) {
+                    $okErweitert = false;
+                }
+                if ($pageObjCount >= 2 && $footerSeite2 !== true) {
+                    $okErweitert = false;
+                }
+                if (!$headerArbeitszeitliste || !$headerTagKw) {
+                    $okErweitert = false;
+                }
+
+                $pdfTestErgebnis = [
+                    'ok' => $okErweitert,
+                    'bytes' => $bytes,
+                    'header_ok' => $headerOk,
+                    'eof_ok' => $eofOk,
+                    'pages_count_declared' => $declaredPages,
+                    'pages_count_objects' => $pageObjCount,
+                    'pages_count_match' => $pagesMatch,
+                    'footer_seite1' => $footerSeite1,
+                    'footer_seite2' => $footerSeite2,
+                    'header_arbeitszeitliste' => $headerArbeitszeitliste,
+                    'header_tag_kw' => $headerTagKw,
+                ];
+
+                // Optional: Tageswerte-Kommentar (Kürzel) im PDF wiederfinden (nur Diagnose)
+                $pdfKommentarSamples = [];
+                $pdfKommentarCheck = [];
+                $pdfKommentarHinweis = null;
+
+                if ($this->db === null) {
+                    $pdfKommentarHinweis = 'Kommentar-Check übersprungen: keine DB-Verbindung im Smoke-Test.';
+                } else {
+                    try {
+                        $startDt = new \DateTimeImmutable(sprintf('%04d-%02d-01', $pdfTestJahr, $pdfTestMonat));
+                        $bisDt   = $startDt->modify('+1 month');
+
+                        $sql = 'SELECT datum, kommentar
+                                FROM tageswerte_mitarbeiter
+                                WHERE mitarbeiter_id = :mid
+                                  AND datum >= :von
+                                  AND datum < :bis
+                                  AND kommentar IS NOT NULL
+                                  AND TRIM(kommentar) <> \'\'
+                                ORDER BY datum ASC
+                                LIMIT 10';
+
+                        $rows = $this->db->fetchAlle($sql, [
+                            'mid' => $pdfTestMitarbeiterId,
+                            'von' => $startDt->format('Y-m-d'),
+                            'bis' => $bisDt->format('Y-m-d'),
+                        ]);
+
+                        foreach ($rows as $r) {
+                            if (!is_array($r)) {
+                                continue;
+                            }
+                            $d = trim((string)($r['datum'] ?? ''));
+                            $k = trim((string)($r['kommentar'] ?? ''));
+                            if ($k === '') {
+                                continue;
+                            }
+
+                            // Wie im PDF: auf 6 Zeichen kürzen (UTF-8 safe, falls möglich)
+                            $short = $k;
+                            if (function_exists('mb_strlen') && function_exists('mb_substr')) {
+                                if (mb_strlen($short, 'UTF-8') > 6) {
+                                    $short = mb_substr($short, 0, 6, 'UTF-8');
+                                }
+                            } else {
+                                if (strlen($short) > 6) {
+                                    $short = substr($short, 0, 6);
+                                }
+                            }
+
+                            $pdfKommentarSamples[] = [
+                                'datum' => $d,
+                                'kommentar' => $short,
+                            ];
+                        }
+                    } catch (Throwable $e) {
+                        $pdfKommentarHinweis = 'Kommentar-Check DB-Fehler: ' . $e->getMessage();
+                    }
+                }
+
+                if ($pdfKommentarSamples !== []) {
+                    foreach ($pdfKommentarSamples as $smp) {
+                        if (!is_array($smp)) {
+                            continue;
+                        }
+                        $k = (string)($smp['kommentar'] ?? '');
+                        $d = (string)($smp['datum'] ?? '');
+                        if ($k === '') {
+                            continue;
+                        }
+                        // PDF-Stream enthält Texte als (...). Tj – für Kürzel sollte eine simple Substring-Suche reichen.
+                        $found = (strpos($pdfInhalt, '(' . $k . ')') !== false);
+                        $pdfKommentarCheck[] = [
+                            'datum' => $d,
+                            'kommentar' => $k,
+                            'found_in_pdf' => $found ? 1 : 0,
+                        ];
+                    }
+                }
+
+                $pdfTestErgebnis['kommentar_samples'] = $pdfKommentarSamples;
+                $pdfTestErgebnis['kommentar_check'] = $pdfKommentarCheck;
+                $pdfTestErgebnis['kommentar_hinweis'] = $pdfKommentarHinweis;
+
+                if ($bytes <= 0) {
+                    $pdfTestHinweis = 'PDF-Inhalt ist leer.';
+                } elseif (!$headerOk) {
+                    $pdfTestHinweis = 'PDF-Header fehlt (erwartet: %PDF-...).';
+                } elseif (!$eofOk) {
+                    $pdfTestHinweis = 'PDF-EOF Marker (%%EOF) fehlt.';
+                } elseif ($pagesMatch === false) {
+                    $pdfTestHinweis = 'PDF-Seitenanzahl inkonsistent: /Pages /Count=' . (int)$declaredPages . ' aber Page-Objekte=' . (int)$pageObjCount . '.';
+                } elseif (!$footerSeite1) {
+                    $pdfTestHinweis = 'PDF-Footer "Seite 1/..." fehlt im Stream.';
+                } elseif ($pageObjCount >= 2 && $footerSeite2 !== true) {
+                    $pdfTestHinweis = 'PDF-Footer "Seite 2/..." fehlt, obwohl mehrere Seiten erkannt wurden.';
+                } elseif (!$headerArbeitszeitliste || !$headerTagKw) {
+                    $pdfTestHinweis = 'PDF-Headertexte (Arbeitszeitliste / Tag / KW) wurden im Stream nicht gefunden.';
+                }
+            }
+        }
+
+        return [
+            'mitarbeiter_id' => $pdfTestMitarbeiterId,
+            'jahr' => $pdfTestJahr,
+            'monat' => $pdfTestMonat,
+            'ergebnis' => $pdfTestErgebnis,
+            'hinweis' => $pdfTestHinweis,
+        ];
+    }
+
+    /**
+     * PDF-Synth-Check: Mehrseiten-Umbruch aus synthetischen Daten, ohne Datenbank.
+     *
+     * Herausgelöst aus `index()` (T-105); der Rumpf ist unverändert.
+     *
+     * @return array{jahr:int, monat:int, ergebnis:?array<string,mixed>, hinweis:?string}
+     */
+    private function pruefePdfSynth(int $pdfSynthJahr, int $pdfSynthMonat): array
+    {
+        $pdfSynthErgebnis = null;
+        $pdfSynthHinweis = null;
+
+        $rawJ = trim((string)($_POST['pdf_synth_jahr'] ?? ''));
+        $rawM = trim((string)($_POST['pdf_synth_monat'] ?? ''));
+
+        if ($rawJ !== '') {
+            $pdfSynthJahr = (int)$rawJ;
+        }
+        if ($rawM !== '') {
+            $pdfSynthMonat = (int)$rawM;
+        }
+
+        if ($pdfSynthJahr < 1970 || $pdfSynthJahr > 2100) {
+            $pdfSynthHinweis = 'Ungültiges Jahr (1970..2100).';
+        } elseif ($pdfSynthMonat < 1 || $pdfSynthMonat > 12) {
+            $pdfSynthHinweis = 'Ungültiger Monat (1..12).';
+        } elseif (!class_exists('PDFService')) {
+            $pdfSynthHinweis = 'PDFService ist nicht verfügbar (Klasse fehlt).';
+        } else {
+            try {
+                $startDt = new DateTimeImmutable(sprintf('%04d-%02d-01', $pdfSynthJahr, $pdfSynthMonat));
+                $daysInMonth = (int)$startDt->modify('last day of this month')->format('j');
+
+                $tageswerte = [];
+                $blocksPerDay = 3;
+
+                for ($day = 1; $day <= $daysInMonth; $day++) {
+                    $ymd = sprintf('%04d-%02d-%02d', $pdfSynthJahr, $pdfSynthMonat, $day);
+
+                    $arbeitsbloecke = [
+                        [
+                            'kommen_roh'  => $ymd . ' 05:30:00',
+                            'gehen_roh'   => $ymd . ' 09:00:00',
+                            'kommen_korr' => $ymd . ' 05:30:00',
+                            'gehen_korr'  => $ymd . ' 09:00:00',
+                        ],
+                        [
+                            'kommen_roh'  => $ymd . ' 09:15:00',
+                            'gehen_roh'   => $ymd . ' 12:30:00',
+                            'kommen_korr' => $ymd . ' 09:15:00',
+                            'gehen_korr'  => $ymd . ' 12:30:00',
+                        ],
+                        [
+                            'kommen_roh'  => $ymd . ' 13:00:00',
+                            'gehen_roh'   => $ymd . ' 16:00:00',
+                            'kommen_korr' => $ymd . ' 13:00:00',
+                            'gehen_korr'  => $ymd . ' 16:00:00',
+                        ],
+                    ];
+
+                    $tageswerte[] = [
+                        'datum' => $ymd,
+                        'pausen_stunden' => '0.75',
+                        'arbeitszeit_stunden' => '8.00',
+                        'arzt_stunden' => '0.00',
+                        'krank_lfz_stunden' => '0.00',
+                        'krank_kk_stunden' => '0.00',
+                        'feiertag_stunden' => '0.00',
+                        'kurzarbeit_stunden' => '0.00',
+                        'urlaub_stunden' => '0.00',
+                        'sonstige_stunden' => '0.00',
+                        'kommentar' => ($day === 1 ? 'SoU: SmokeTest' : ''),
+                        'zeit_manuell_geaendert' => (($day % 7) === 0 ? 1 : 0),
+                        'arbeitsbloecke' => $arbeitsbloecke,
+                    ];
+                }
+
+                $sollstunden = (float)$daysInMonth * 8.0;
+                $monatswerte = [
+                    'sollstunden' => number_format($sollstunden, 2, '.', ''),
+                ];
+
+                $pdfService = PDFService::getInstanz();
+                if (!method_exists($pdfService, 'erzeugeMonatsPdfAusDaten')) {
+                    throw new Exception('PDFService::erzeugeMonatsPdfAusDaten() fehlt (ältere Version).');
+                }
+
+                $pdfInhalt = $pdfService->erzeugeMonatsPdfAusDaten(9999, 'SMOKE TEST', $pdfSynthJahr, $pdfSynthMonat, $tageswerte, $monatswerte);
+
+                $bytes = (int)strlen($pdfInhalt);
+                $headerOk = ($bytes >= 5 && substr($pdfInhalt, 0, 5) === '%PDF-');
+                $eofOk = (strpos($pdfInhalt, '%%EOF') !== false);
+
+                $declaredPages = null;
+                if (preg_match('/\/Count\s+(\d+)/', $pdfInhalt, $m) === 1) {
+                    $declaredPages = (int)$m[1];
+                }
+                $pageObjCount = 0;
+                if (preg_match_all('/\/Type\s*\/Page\b/', $pdfInhalt, $mm) !== false) {
+                    $pageObjCount = is_array($mm[0] ?? null) ? count($mm[0]) : 0;
+                }
+                $pagesMatch = null;
+                if ($declaredPages !== null) {
+                    $pagesMatch = ($declaredPages === $pageObjCount);
+                }
+
+                $footerSeite1 = (strpos($pdfInhalt, '(Seite 1/') !== false);
+                $footerSeite2 = (strpos($pdfInhalt, '(Seite 2/') !== false);
+
+                $headerArbeitszeitliste = (strpos($pdfInhalt, '(Arbeitszeitliste)') !== false);
+                $headerTagKw = (strpos($pdfInhalt, '(Tag / KW)') !== false);
+
+                $pagesAtLeast2 = ($pageObjCount >= 2);
+
+                $okSynth = ($bytes > 0 && $headerOk && $eofOk && $pagesMatch === true && $pagesAtLeast2 && $footerSeite1 && $footerSeite2 && $headerArbeitszeitliste && $headerTagKw);
+
+                $pdfSynthErgebnis = [
+                    'ok' => $okSynth,
+                    'bytes' => $bytes,
+                    'blocks_per_day' => $blocksPerDay,
+                    'days_in_month' => $daysInMonth,
+                    'rows_expected' => ($daysInMonth * $blocksPerDay) + 2, // + Header + Abschluss "/"
+                    'header_ok' => $headerOk,
+                    'eof_ok' => $eofOk,
+                    'pages_count_declared' => $declaredPages,
+                    'pages_count_objects' => $pageObjCount,
+                    'pages_count_match' => $pagesMatch,
+                    'pages_at_least2' => $pagesAtLeast2,
+                    'footer_seite1' => $footerSeite1,
+                    'footer_seite2' => $footerSeite2,
+                    'header_arbeitszeitliste' => $headerArbeitszeitliste,
+                    'header_tag_kw' => $headerTagKw,
+                ];
+
+                if ($bytes <= 0) {
+                    $pdfSynthHinweis = 'PDF-Inhalt ist leer.';
+                } elseif (!$headerOk) {
+                    $pdfSynthHinweis = 'PDF-Header fehlt (erwartet: %PDF-...).';
+                } elseif (!$eofOk) {
+                    $pdfSynthHinweis = 'PDF-EOF Marker (%%EOF) fehlt.';
+                } elseif ($pagesAtLeast2 !== true) {
+                    $pdfSynthHinweis = 'Erwartet mind. 2 Seiten, erkannt: ' . (int)$pageObjCount . '.';
+                } elseif ($pagesMatch !== true) {
+                    $pdfSynthHinweis = 'PDF-Seitenanzahl inkonsistent: /Pages /Count=' . (int)$declaredPages . ' aber Page-Objekte=' . (int)$pageObjCount . '.';
+                } elseif (!$footerSeite1 || !$footerSeite2) {
+                    $pdfSynthHinweis = 'PDF-Footer "Seite 1/..." oder "Seite 2/..." fehlt im Stream.';
+                } elseif (!$headerArbeitszeitliste || !$headerTagKw) {
+                    $pdfSynthHinweis = 'PDF-Headertexte (Arbeitszeitliste / Tag / KW) wurden im Stream nicht gefunden.';
+                }
+            } catch (Throwable $e) {
+                $pdfSynthHinweis = 'PDF-Synth-Check fehlgeschlagen: ' . $e->getMessage();
+            }
+        }
+
+        return [
+            'jahr' => $pdfSynthJahr,
+            'monat' => $pdfSynthMonat,
+            'ergebnis' => $pdfSynthErgebnis,
+            'hinweis' => $pdfSynthHinweis,
+        ];
+    }
+
+    /**
+     * PDF-DB-Kandidatenliste: die Monate mit den meisten Kommen/Gehen-Buchungen.
+     *
+     * Herausgelöst aus `index()` (T-105); der Rumpf ist unverändert.
+     *
+     * @return array{window_monate:int, limit:int, ergebnis:?array<string,mixed>, hinweis:?string}
+     */
+    private function sucheMultipageKandidaten(int $pdfDbMultiWindowMonate, int $pdfDbMultiListLimit): array
+    {
+        $pdfDbMultiListe = null;
+        $pdfDbMultiListHinweis = null;
+        $pdfDbMultiListDoEval = false;
+
+        $pdfDbMultiListDoEval = isset($_POST['pdf_db_multipage_list_eval']);
+        $rawW = trim((string)($_POST['pdf_db_multipage_window'] ?? ''));
+        if ($rawW !== '' && ctype_digit($rawW)) {
+            $pdfDbMultiWindowMonate = (int)$rawW;
+        }
+
+        if ($pdfDbMultiWindowMonate < 1) {
+            $pdfDbMultiWindowMonate = 1;
+        }
+        if ($pdfDbMultiWindowMonate > 24) {
+            $pdfDbMultiWindowMonate = 24;
+        }
+
+        $rawL = trim((string)($_POST['pdf_db_multipage_list_limit'] ?? ''));
+        if ($rawL !== '' && ctype_digit($rawL)) {
+            $pdfDbMultiListLimit = (int)$rawL;
+        }
+        if ($pdfDbMultiListLimit < 1) {
+            $pdfDbMultiListLimit = 1;
+        }
+        if ($pdfDbMultiListLimit > 20) {
+            $pdfDbMultiListLimit = 20;
+        }
+
+        if (!Csrf::istGueltig(self::CSRF_BEREICH)) {
+            $pdfDbMultiListHinweis = 'CSRF-Token ungültig – Aktion abgebrochen.';
+        } elseif ($this->db === null) {
+            $pdfDbMultiListHinweis = 'Database::getInstanz() ist nicht verfügbar.';
+        } else {
+            try {
+                $pdo = $this->db->getVerbindung();
+                $window = (int)$pdfDbMultiWindowMonate;
+                $limit = (int)$pdfDbMultiListLimit;
+
+                $sql = "
+                    SELECT mitarbeiter_id, YEAR(zeitstempel) AS jahr, MONTH(zeitstempel) AS monat, COUNT(*) AS c
+                    FROM zeitbuchung
+                    WHERE typ IN ('kommen','gehen')
+                      AND zeitstempel >= DATE_SUB(CURDATE(), INTERVAL {$window} MONTH)
+                    GROUP BY mitarbeiter_id, YEAR(zeitstempel), MONTH(zeitstempel)
+                    ORDER BY c DESC
+                    LIMIT {$limit}
+                ";
+
+                $stmt = $pdo->query($sql);
+                $rows = $stmt ? $stmt->fetchAll(PDO::FETCH_ASSOC) : [];
+
+                if (!is_array($rows) || $rows === []) {
+                    $pdfDbMultiListHinweis = 'Keine Kandidaten gefunden (keine Kommen/Gehen-Buchungen in den letzten ' . (int)$window . ' Monaten).';
+                } else {
+                    $liste = [];
+
+                    foreach ($rows as $cand) {
+                        if (!is_array($cand)) {
+                            continue;
+                        }
+
+                        $mid = (int)($cand['mitarbeiter_id'] ?? 0);
+                        $jahr = (int)($cand['jahr'] ?? 0);
+                        $monat = (int)($cand['monat'] ?? 0);
+                        $count = (int)($cand['c'] ?? 0);
+
+                        if ($mid <= 0 || $jahr <= 0 || $monat < 1 || $monat > 12) {
+                            continue;
+                        }
+
+                        $maxDayCount = 0;
+                        $maxDayDatum = '';
+                        try {
+                            $stmt2 = $pdo->prepare(
+                                "SELECT DATE(zeitstempel) AS d, COUNT(*) AS c
+                                 FROM zeitbuchung
+                                 WHERE mitarbeiter_id = :mid
+                                   AND typ IN ('kommen','gehen')
+                                   AND YEAR(zeitstempel) = :j
+                                   AND MONTH(zeitstempel) = :m
+                                 GROUP BY DATE(zeitstempel)
+                                 ORDER BY c DESC
+                                 LIMIT 1"
+                            );
+                            $stmt2->execute(['mid' => $mid, 'j' => $jahr, 'm' => $monat]);
+                            $row2 = $stmt2->fetch(PDO::FETCH_ASSOC);
+                            if (is_array($row2)) {
+                                $maxDayCount = (int)($row2['c'] ?? 0);
+                                $maxDayDatum = (string)($row2['d'] ?? '');
+                            }
+                        } catch (Throwable $e) {
+                            // ignore
+                        }
+
+                        $name = 'Mitarbeiter #' . (int)$mid;
+                        try {
+                            $mm = new MitarbeiterModel();
+                            $mrow = $mm->holeNachId($mid);
+                            if (is_array($mrow)) {
+                                $vn = trim((string)($mrow['vorname'] ?? ''));
+                                $nn = trim((string)($mrow['nachname'] ?? ''));
+                                $full = trim($vn . ' ' . $nn);
+                                if ($full !== '') {
+                                    $name = $full;
+                                }
+                            }
+                        } catch (Throwable $e) {
+                            // ignore
+                        }
+
+                        $liste[] = [
+                            'mitarbeiter_id' => $mid,
+                            'name' => $name,
+                            'jahr' => $jahr,
+                            'monat' => $monat,
+                            'buchungen_kommen_gehen' => $count,
+                            'max_day_datum' => $maxDayDatum,
+                            'max_day_buchungen' => $maxDayCount,
+                            'link_report' => '?seite=report_monat&jahr=' . (int)$jahr . '&monat=' . (int)$monat . '&mitarbeiter_id=' . (int)$mid,
+                            'link_pdf' => '?seite=report_monat_pdf&jahr=' . (int)$jahr . '&monat=' . (int)$monat . '&mitarbeiter_id=' . (int)$mid,
+                        ];
+                    }
+
+                    if ($liste === []) {
+                        $pdfDbMultiListHinweis = 'Kandidatenliste ist leer (Filter/Parsing).';
+                    } else {
+                        if ($pdfDbMultiListDoEval) {
+                            if (!class_exists('PDFService')) {
+                                $pdfDbMultiListHinweis = 'Batch-Check nicht möglich: PDFService fehlt.';
+                            } else {
+                                $pdfService = PDFService::getInstanz();
+                                $okCount = 0;
+                                $total = is_array($liste) ? count($liste) : 0;
+
+                                for ($i = 0; $i < $total; $i++) {
+                                    $entry = $liste[$i] ?? null;
+                                    if (!is_array($entry)) {
+                                        continue;
+                                    }
+
+                                    $midE = (int)($entry['mitarbeiter_id'] ?? 0);
+                                    $jahrE = (int)($entry['jahr'] ?? 0);
+                                    $monatE = (int)($entry['monat'] ?? 0);
+
+                                    $evalOk = null;
+                                    $evalReason = '';
+                                    $pagesObj = 0;
+                                    $bytes = 0;
+
+                                    if ($midE > 0 && $jahrE > 0 && $monatE >= 1 && $monatE <= 12) {
+                                        try {
+                                            $pdf = (string)$pdfService->erzeugeMonatsPdfFuerMitarbeiter($midE, $jahrE, $monatE);
+                                            $bytes = strlen($pdf);
+                                            $headerOk = ($bytes >= 5 && substr($pdf, 0, 5) === '%PDF-');
+                                            $eofOk = (strpos($pdf, '%%EOF') !== false);
+
+                                            $pagesObj = 0;
+                                            if (preg_match_all('/\/Type\s*\/Page\b/', $pdf, $mm) !== false) {
+                                                $pagesObj = is_array($mm[0] ?? null) ? count($mm[0]) : 0;
+                                            }
+
+                                            $declared = null;
+                                            if (preg_match('/\/Type\s*\/Pages\b.*?\/Count\s+(\d+)/s', $pdf, $m2)) {
+                                                $declared = (int)$m2[1];
+                                            }
+
+                                            $pagesMatch = null;
+                                            if ($declared !== null) {
+                                                $pagesMatch = ($declared === $pagesObj);
+                                            }
+
+                                            $footer1 = (strpos($pdf, '(Seite 1/') !== false);
+                                            $footer2 = (strpos($pdf, '(Seite 2/') !== false);
+
+                                            $evalOk = ($bytes > 0 && $headerOk && $eofOk && $pagesObj >= 2 && $footer1 && $footer2);
+                                            if ($pagesMatch === false) {
+                                                $evalOk = false;
+                                            }
+
+                                            if ($evalOk !== true) {
+                                                if ($bytes <= 0) {
+                                                    $evalReason = 'leer';
+                                                } elseif (!$headerOk) {
+                                                    $evalReason = 'header';
+                                                } elseif (!$eofOk) {
+                                                    $evalReason = 'eof';
+                                                } elseif ($pagesObj < 2) {
+                                                    $evalReason = 'seiten<' . (int)$pagesObj . '>';
+                                                } elseif ($pagesMatch === false) {
+                                                    $evalReason = 'count mismatch';
+                                                } elseif (!$footer1 || !$footer2) {
+                                                    $evalReason = 'footer';
+                                                }
+                                            }
+                                        } catch (Throwable $e) {
+                                            $evalOk = false;
+                                            $evalReason = 'fehler: ' . $e->getMessage();
+                                        }
+                                    } else {
+                                        $evalOk = false;
+                                        $evalReason = 'invalid';
+                                    }
+
+                                    $liste[$i]['eval_ok'] = $evalOk;
+                                    $liste[$i]['eval_reason'] = $evalReason;
+                                    $liste[$i]['eval_pages'] = $pagesObj;
+                                    $liste[$i]['eval_bytes'] = $bytes;
+
+                                    if ($evalOk === true) {
+                                        $okCount++;
+                                    }
+                                }
+
+                                $prefix = ($pdfDbMultiListHinweis !== null && $pdfDbMultiListHinweis !== '') ? ($pdfDbMultiListHinweis . ' ') : '';
+                                $pdfDbMultiListHinweis = $prefix . 'Batch-Check: ' . (int)$okCount . ' von ' . (int)$total . ' Kandidaten liefern >=2 Seiten.';
+                            }
+                        }
+
+                        $pdfDbMultiListe = $liste;
+                    }
+                }
+            } catch (Throwable $e) {
+                $pdfDbMultiListHinweis = 'Kandidatenliste fehlgeschlagen: ' . $e->getMessage();
+            }
+        }
+
+        return [
+            'window_monate' => $pdfDbMultiWindowMonate,
+            'limit' => $pdfDbMultiListLimit,
+            'ergebnis' => $pdfDbMultiListe,
+            'hinweis' => $pdfDbMultiListHinweis,
+        ];
+    }
+
+    /**
+     * PDF-DB-Auto-Multipage-Check: besten Kandidaten suchen und sein PDF prüfen.
+     *
+     * Herausgelöst aus `index()` (T-105); der Rumpf ist unverändert.
+     *
+     * @return array{window_monate:int, ergebnis:?array<string,mixed>, hinweis:?string}
+     */
+    private function pruefePdfDbMultipage(int $pdfDbMultiWindowMonate): array
+    {
+        $pdfDbMultiErgebnis = null;
+        $pdfDbMultiHinweis = null;
+
+        $rawW = trim((string)($_POST['pdf_db_multipage_window'] ?? ''));
+        if ($rawW !== '' && ctype_digit($rawW)) {
+            $pdfDbMultiWindowMonate = (int)$rawW;
+        }
+
+        if ($pdfDbMultiWindowMonate < 1) {
+            $pdfDbMultiWindowMonate = 1;
+        }
+        if ($pdfDbMultiWindowMonate > 24) {
+            $pdfDbMultiWindowMonate = 24;
+        }
+
+        if (!Csrf::istGueltig(self::CSRF_BEREICH)) {
+            $pdfDbMultiHinweis = 'CSRF-Token ungültig – Aktion abgebrochen.';
+        } elseif ($this->db === null) {
+            $pdfDbMultiHinweis = 'Database::getInstanz() ist nicht verfügbar.';
+        } elseif (!class_exists('PDFService')) {
+            $pdfDbMultiHinweis = 'PDFService ist nicht verfügbar (Klasse fehlt).';
+        } else {
+            try {
+                $pdo = $this->db->getVerbindung();
+                $window = (int)$pdfDbMultiWindowMonate;
+
+                                    $midSel = (int)($_POST['pdf_db_multipage_mid'] ?? 0);
+                $jahrSel = (int)($_POST['pdf_db_multipage_year'] ?? 0);
+                $monatSel = (int)($_POST['pdf_db_multipage_month'] ?? 0);
+
+                $mid = 0;
+                $jahr = 0;
+                $monat = 0;
+                $count = 0;
+                $gefundenVia = 'auto';
+
+                if ($midSel > 0 && $jahrSel > 0 && $monatSel >= 1 && $monatSel <= 12) {
+                    $mid = $midSel;
+                    $jahr = $jahrSel;
+                    $monat = $monatSel;
+                    $gefundenVia = 'liste';
+
+                    // Anzahl Kommen/Gehen für die gewählte Kombination
+                    try {
+                        $stmtC = $pdo->prepare(
+                            "SELECT COUNT(*) AS c
+                             FROM zeitbuchung
+                             WHERE mitarbeiter_id = :mid
+                               AND typ IN ('kommen','gehen')
+                               AND YEAR(zeitstempel) = :j
+                               AND MONTH(zeitstempel) = :m"
+                        );
+                        $stmtC->execute(['mid' => $mid, 'j' => $jahr, 'm' => $monat]);
+                        $rowC = $stmtC->fetch(PDO::FETCH_ASSOC);
+                        if (is_array($rowC)) {
+                            $count = (int)($rowC['c'] ?? 0);
+                        }
+                    } catch (Throwable $e) {
+                        // ignore
+                    }
+                } else {
+                    $sql = "
+                        SELECT mitarbeiter_id, YEAR(zeitstempel) AS jahr, MONTH(zeitstempel) AS monat, COUNT(*) AS c
+                        FROM zeitbuchung
+                        WHERE typ IN ('kommen','gehen')
+                          AND zeitstempel >= DATE_SUB(CURDATE(), INTERVAL {$window} MONTH)
+                        GROUP BY mitarbeiter_id, YEAR(zeitstempel), MONTH(zeitstempel)
+                        ORDER BY c DESC
+                        LIMIT 1
+                    ";
+
+                    $stmt = $pdo->query($sql);
+                    $cand = $stmt ? $stmt->fetch(PDO::FETCH_ASSOC) : false;
+
+                    if (!is_array($cand) || (int)($cand['mitarbeiter_id'] ?? 0) <= 0) {
+                        $pdfDbMultiHinweis = 'Kein Kandidat gefunden (keine Kommen/Gehen-Buchungen in den letzten ' . (int)$window . ' Monaten).';
+                    } else {
+                        $mid = (int)($cand['mitarbeiter_id'] ?? 0);
+                        $jahr = (int)($cand['jahr'] ?? 0);
+                        $monat = (int)($cand['monat'] ?? 0);
+                        $count = (int)($cand['c'] ?? 0);
+                    }
+                }
+
+                if ($mid <= 0 || $jahr <= 0 || $monat < 1 || $monat > 12) {
+                    // Hinweis wurde bereits gesetzt (Auto) oder wir haben keine valide Auswahl.
+                } else {
+// Max. Buchungen an einem Tag (Indikator für Mehrfach-Kommen/Gehen)
+                    $maxDayCount = 0;
+                    $maxDayDatum = '';
+                    try {
+                        $stmt2 = $pdo->prepare(
+                            "SELECT DATE(zeitstempel) AS d, COUNT(*) AS c\n                                 FROM zeitbuchung\n                                 WHERE mitarbeiter_id = :mid\n                                   AND typ IN ('kommen','gehen')\n                                   AND YEAR(zeitstempel) = :j\n                                   AND MONTH(zeitstempel) = :m\n                                 GROUP BY DATE(zeitstempel)\n                                 ORDER BY c DESC\n                                 LIMIT 1"
+                        );
+                        $stmt2->execute(['mid' => $mid, 'j' => $jahr, 'm' => $monat]);
+                        $row2 = $stmt2->fetch(PDO::FETCH_ASSOC);
+                        if (is_array($row2)) {
+                            $maxDayCount = (int)($row2['c'] ?? 0);
+                            $maxDayDatum = (string)($row2['d'] ?? '');
+                        }
+                    } catch (Throwable $e) {
+                        // ignore
+                    }
+
+                    // Name (optional)
+                    $name = 'Mitarbeiter #' . (int)$mid;
+                    try {
+                        $mm = new MitarbeiterModel();
+                        $mrow = $mm->holeNachId($mid);
+                        if (is_array($mrow)) {
+                            $vn = trim((string)($mrow['vorname'] ?? ''));
+                            $nn = trim((string)($mrow['nachname'] ?? ''));
+                            $full = trim($vn . ' ' . $nn);
+                            if ($full !== '') {
+                                $name = $full;
+                            }
+                        }
+                    } catch (Throwable $e) {
+                        // ignore
+                    }
+
+                    $pdfService = PDFService::getInstanz();
+                    $pdfInhalt = (string)$pdfService->erzeugeMonatsPdfFuerMitarbeiter($mid, $jahr, $monat);
+
+                    $bytes = strlen($pdfInhalt);
+                    $headerOk = ($bytes >= 5 && substr($pdfInhalt, 0, 5) === '%PDF-');
+                    $eofOk = (strpos($pdfInhalt, '%%EOF') !== false);
+
+                    $pageObjCount = substr_count($pdfInhalt, '/Type /Page /Parent');
+                    $declaredPages = null;
+                    if (preg_match('/\\/Type\\s*\\/Pages\\b.*?\\/Count\\s+(\\d+)/s', $pdfInhalt, $m)) {
+                        $declaredPages = (int)$m[1];
+                    }
+
+                    $pagesMatch = null;
+                    if ($declaredPages !== null) {
+                        $pagesMatch = ($declaredPages === $pageObjCount);
+                    }
+
+                    $pagesAtLeast2 = ($pageObjCount >= 2);
+
+                    $footerSeite1 = (strpos($pdfInhalt, '(Seite 1/') !== false);
+                    $footerSeite2 = (strpos($pdfInhalt, '(Seite 2/') !== false);
+
+                    // T-069 (Fortsetzung): Report-Monatsübersicht HTML-Render-Check (Kandidat)
+                    // - Rein lesend.
+                    // - Rendert die Monatsübersicht für denselben Kandidaten via ReportController und prüft grob die HTML-Struktur.
+                    $reportHtmlOk = null;
+                    $reportHtmlHinweis = '';
+                    $reportHtmlHasHeading = false;
+                    $reportHtmlHasTable = false;
+                    $reportHtmlHasHeaderCells = false;
+                    $reportHtmlHasPdfLink = false;
+                    $reportHtmlTrCount = 0;
+                    $reportHtmlDaysInMonth = 0;
+                    $reportHtmlRowsMinOk = null;
+
+                    $kannViewAll = false;
+                    try {
+                        $kannViewAll = (
+                            $this->auth->hatRecht('REPORT_MONAT_VIEW_ALL')
+                            || $this->auth->hatRecht('REPORTS_ANSEHEN_ALLE')
+                        );
+                    } catch (Throwable $e) {
+                        $kannViewAll = false;
+                    }
+
+                    $angemeldeteIdFuerHtml = (int)($this->auth->holeAngemeldeteMitarbeiterId() ?? 0);
+                    if (!$kannViewAll && $angemeldeteIdFuerHtml > 0 && $mid !== $angemeldeteIdFuerHtml) {
+                        $reportHtmlOk = null;
+                        $reportHtmlHinweis = 'SKIP: Kein REPORT_MONAT_VIEW_ALL/REPORTS_ANSEHEN_ALLE Recht für fremde Mitarbeiter.';
+                    } else {
+                        $backupGet = $_GET;
+                        try {
+                            if (!class_exists('ReportController')) {
+                                throw new Exception('ReportController fehlt.');
+                            }
+
+                            $_GET['mitarbeiter_id'] = (string)$mid;
+                            $_GET['seite'] = 'report_monat';
+
+                            $obLevel = ob_get_level();
+                            ob_start();
+                            $html = '';
+                            try {
+                                $rc = new ReportController();
+                                $rc->monatsuebersicht($jahr, $monat);
+                                $html = (string)ob_get_clean();
+                            } catch (Throwable $e) {
+                                while (ob_get_level() > $obLevel) {
+                                    @ob_end_clean();
+                                }
+                                throw $e;
+                            }
+
+                            // Nicht cal_days_in_month(): das braucht die Erweiterung
+                            // `calendar`, die in keiner Installationsanleitung des
+                            // Projekts steht. `format('t')` kann PHP von Haus aus.
+                            $reportHtmlDaysInMonth = (int)(new DateTimeImmutable(
+                                sprintf('%04d-%02d-01', (int)$jahr, (int)$monat)
+                            ))->format('t');
+                            $reportHtmlHasHeading = (stripos($html, 'Monatsübersicht') !== false);
+                            $reportHtmlHasTable = (stripos($html, '<table') !== false);
+                            $reportHtmlHasHeaderCells = (
+                                strpos($html, '<th>Datum</th>') !== false
+                                && strpos($html, '<th>An</th>') !== false
+                                && strpos($html, '<th>Ab</th>') !== false
+                            );
+                            $reportHtmlHasPdfLink = (strpos($html, '?seite=report_monat_pdf') !== false);
+
+                            $mTr = [];
+                            $reportHtmlTrCount = (int)preg_match_all('/<tr\b/i', $html, $mTr);
+
+                            // Mindestens: Headerzeile + pro Kalendertag mindestens eine Zeile (Mehrfach-Kommen/Gehen => mehr).
+                            $reportHtmlRowsMinOk = ($reportHtmlTrCount >= ($reportHtmlDaysInMonth + 1));
+
+                            $reportHtmlOk = (
+                                $reportHtmlHasHeading
+                                && $reportHtmlHasTable
+                                && $reportHtmlHasHeaderCells
+                                && $reportHtmlHasPdfLink
+                                && $reportHtmlRowsMinOk
+                            );
+
+                            if ($reportHtmlOk !== true) {
+                                $reportHtmlHinweis = 'HTML-Struktur unerwartet (Heading/Table/Headers/PDF-Link/Zeilenanzahl prüfen).';
+                            }
+                        } catch (Throwable $e) {
+                            $reportHtmlOk = false;
+                            $reportHtmlHinweis = 'HTML-Render-Check fehlgeschlagen: ' . $e->getMessage();
+                        } finally {
+                            $_GET = $backupGet;
+                        }
+                    }
+
+                    $ok = ($bytes > 0 && $headerOk && $eofOk && $pagesAtLeast2);
+                    if ($pagesMatch === false) {
+                        $ok = false;
+                    }
+                    if (!$footerSeite1 || !$footerSeite2) {
+                        $ok = false;
+                    }
+                    if ($reportHtmlOk === false) {
+                        $ok = false;
+                    }
+
+                    $pdfDbMultiErgebnis = [
+                        'ok' => $ok,
+                        'window_monate' => $window,
+                        'gefunden_via' => $gefundenVia,
+                        'mitarbeiter_id' => $mid,
+                        'name' => $name,
+                        'jahr' => $jahr,
+                        'monat' => $monat,
+                        'buchungen_kommen_gehen' => $count,
+                        'max_day_datum' => $maxDayDatum,
+                        'max_day_buchungen' => $maxDayCount,
+                        'pdf_bytes' => $bytes,
+                        'header_ok' => $headerOk,
+                        'eof_ok' => $eofOk,
+                        'pages_count_declared' => $declaredPages,
+                        'pages_count_objects' => $pageObjCount,
+                        'pages_count_match' => $pagesMatch,
+                        'pages_at_least2' => $pagesAtLeast2,
+                        'footer_seite1' => $footerSeite1,
+                        'footer_seite2' => $footerSeite2,
+                        'html_ok' => $reportHtmlOk,
+                        'html_hinweis' => $reportHtmlHinweis,
+                        'html_has_heading' => $reportHtmlHasHeading,
+                        'html_has_table' => $reportHtmlHasTable,
+                        'html_has_header_cells' => $reportHtmlHasHeaderCells,
+                        'html_has_pdf_link' => $reportHtmlHasPdfLink,
+                        'html_tr_count' => $reportHtmlTrCount,
+                        'html_days_in_month' => $reportHtmlDaysInMonth,
+                        'html_rows_min_ok' => $reportHtmlRowsMinOk,
+                        'link_report' => '?seite=report_monat&jahr=' . (int)$jahr . '&monat=' . (int)$monat . '&mitarbeiter_id=' . (int)$mid,
+                        'link_pdf' => '?seite=report_monat_pdf&jahr=' . (int)$jahr . '&monat=' . (int)$monat . '&mitarbeiter_id=' . (int)$mid,
+                    ];
+
+                    if ($bytes <= 0) {
+                        $pdfDbMultiHinweis = 'PDF-Inhalt ist leer.';
+                    } elseif (!$headerOk) {
+                        $pdfDbMultiHinweis = 'PDF-Header fehlt (erwartet: %PDF-...).';
+                    } elseif (!$eofOk) {
+                        $pdfDbMultiHinweis = 'PDF-EOF Marker (%%EOF) fehlt.';
+                    } elseif ($pagesAtLeast2 !== true) {
+                        $pdfDbMultiHinweis = 'Erwartet mind. 2 Seiten, erkannt: ' . (int)$pageObjCount . '.';
+                    } elseif ($pagesMatch === false) {
+                        $pdfDbMultiHinweis = 'PDF-Seitenanzahl inkonsistent: /Pages /Count=' . (int)$declaredPages . ' aber Page-Objekte=' . (int)$pageObjCount . '.';
+                    } elseif (!$footerSeite1 || !$footerSeite2) {
+                        $pdfDbMultiHinweis = 'PDF-Footer "Seite 1/..." oder "Seite 2/..." fehlt im Stream.';
+                    }
+
+                    if (($pdfDbMultiHinweis === null || $pdfDbMultiHinweis === '') && $reportHtmlOk === false) {
+                        $pdfDbMultiHinweis = $reportHtmlHinweis;
+                    }
+                }
+            } catch (Throwable $e) {
+                $pdfDbMultiHinweis = 'PDF-DB-Multipage-Check fehlgeschlagen: ' . $e->getMessage();
+            }
+        }
+
+        return [
+            'window_monate' => $pdfDbMultiWindowMonate,
+            'ergebnis' => $pdfDbMultiErgebnis,
+            'hinweis' => $pdfDbMultiHinweis,
+        ];
+    }
+
+    /**
+     * Feiertag-Seed-Check: ist die bundeseinheitliche Grundmenge eines Jahres da?
+     *
+     * Herausgelöst aus `index()` (T-105); der Rumpf ist unverändert.
+     *
+     * @return array{jahr:int, ergebnis:?array<string,mixed>, hinweis:?string}
+     */
+    private function pruefeFeiertagSeed(int $feiertagSeedJahr): array
+    {
+        $feiertagSeedErgebnis = null;
+        $feiertagSeedHinweis = null;
+
+        $rawJ = trim((string)($_POST['feiertag_seed_jahr'] ?? ''));
+        if ($rawJ !== '') {
+            $feiertagSeedJahr = (int)$rawJ;
+        }
+
+        if (!class_exists('FeiertagService')) {
+            $feiertagSeedHinweis = 'FeiertagService ist nicht verfügbar (Klasse fehlt).';
+        } else {
+            try {
+                $fs = FeiertagService::getInstanz();
+                if (method_exists($fs, 'diagnoseBundesweiteFeiertage')) {
+                    $feiertagSeedErgebnis = $fs->diagnoseBundesweiteFeiertage($feiertagSeedJahr);
+                } else {
+                    $feiertagSeedHinweis = 'diagnoseBundesweiteFeiertage() ist nicht verfügbar (ältere Version).';
+                }
+            } catch (Throwable $e) {
+                $feiertagSeedHinweis = 'Feiertag-Seed-Check fehlgeschlagen: ' . $e->getMessage();
+            }
+        }
+
+        return [
+            'jahr' => $feiertagSeedJahr,
+            'ergebnis' => $feiertagSeedErgebnis,
+            'hinweis' => $feiertagSeedHinweis,
+        ];
+    }
+
     public function index(): void
     {
         if (!$this->pruefeZugriff()) {
@@ -2074,9 +3363,6 @@ class SmokeTestController
         $pdfDbMultiListHinweis = null;
 
 
-        $pdfKommentarSamples = [];
-        $pdfKommentarCheck = [];
-        $pdfKommentarHinweis = null;
 
         // Default: angemeldeter Mitarbeiter (wenn vorhanden)
         $angemeldetFuerPdf = $this->auth->holeAngemeldetenMitarbeiter();
@@ -2149,1167 +3435,53 @@ class SmokeTestController
         $feiertagArbeitszeitTestHinweis = null;
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST' && array_key_exists('terminal_login_code', $_POST)) {
-            $terminalLoginCode = trim((string)($_POST['terminal_login_code'] ?? ''));
-
-            if ($terminalLoginCode === '') {
-                $terminalLoginHinweis = 'Bitte einen Code eingeben.';
-            } elseif ($this->db === null) {
-                $terminalLoginHinweis = 'Database::getInstanz() ist nicht verfügbar.';
-            } else {
-                try {
-                    $pdo = $this->db->getVerbindung();
-
-                    $fetchOne = static function (PDO $pdo, string $sql, array $params): ?array {
-                        $stmt = $pdo->prepare($sql);
-                        $stmt->execute($params);
-                        $row = $stmt->fetch(PDO::FETCH_ASSOC);
-                        return is_array($row) ? $row : null;
-                    };
-
-                    $match = null;
-                    $matchTyp = null;
-                    $warnungen = [];
-                    $fehlerCode = null;
-
-                    // 1) RFID (aktiv)
-                    $match = $fetchOne(
-                        $pdo,
-                        'SELECT id, vorname, nachname, personalnummer, rfid_code, aktiv
-                         FROM mitarbeiter
-                         WHERE rfid_code = :code AND aktiv = 1
-                         LIMIT 1',
-                        ['code' => $terminalLoginCode]
-                    );
-                    if (is_array($match) && isset($match['id'])) {
-                        $matchTyp = 'RFID';
-                    } else {
-                        $inactive = $fetchOne(
-                            $pdo,
-                            'SELECT id, vorname, nachname, personalnummer, rfid_code, aktiv
-                             FROM mitarbeiter
-                             WHERE rfid_code = :code
-                             LIMIT 1',
-                            ['code' => $terminalLoginCode]
-                        );
-                        if (is_array($inactive) && isset($inactive['id']) && (int)($inactive['aktiv'] ?? 0) !== 1) {
-                            $warnungen[] = 'RFID-Code gehört zu einem inaktiven Mitarbeiter (ID ' . (int)$inactive['id'] . ').';
-                        }
-                    }
-
-                    // 2) Personalnummer (nur numerisch, aktiv)
-                    if ($matchTyp === null && ctype_digit($terminalLoginCode)) {
-                        $match = $fetchOne(
-                            $pdo,
-                            'SELECT id, vorname, nachname, personalnummer, rfid_code, aktiv
-                             FROM mitarbeiter
-                             WHERE personalnummer = :pn AND aktiv = 1
-                             LIMIT 1',
-                            ['pn' => $terminalLoginCode]
-                        );
-                        if (is_array($match) && isset($match['id'])) {
-                            $matchTyp = 'Personalnummer';
-                        } else {
-                            $inactive = $fetchOne(
-                                $pdo,
-                                'SELECT id, vorname, nachname, personalnummer, rfid_code, aktiv
-                                 FROM mitarbeiter
-                                 WHERE personalnummer = :pn
-                                 LIMIT 1',
-                                ['pn' => $terminalLoginCode]
-                            );
-                            if (is_array($inactive) && isset($inactive['id']) && (int)($inactive['aktiv'] ?? 0) !== 1) {
-                                $warnungen[] = 'Personalnummer gehört zu einem inaktiven Mitarbeiter (ID ' . (int)$inactive['id'] . ').';
-                            }
-                        }
-                    }
-
-                    // 3) ID (nur numerisch, aktiv)
-                    if ($matchTyp === null && ctype_digit($terminalLoginCode)) {
-                        $match = $fetchOne(
-                            $pdo,
-                            'SELECT id, vorname, nachname, personalnummer, rfid_code, aktiv
-                             FROM mitarbeiter
-                             WHERE id = :id AND aktiv = 1
-                             LIMIT 1',
-                            ['id' => (int)$terminalLoginCode]
-                        );
-                        if (is_array($match) && isset($match['id'])) {
-                            $matchTyp = 'Mitarbeiter-ID';
-                        } else {
-                            $inactive = $fetchOne(
-                                $pdo,
-                                'SELECT id, vorname, nachname, personalnummer, rfid_code, aktiv
-                                 FROM mitarbeiter
-                                 WHERE id = :id
-                                 LIMIT 1',
-                                ['id' => (int)$terminalLoginCode]
-                            );
-                            if (is_array($inactive) && isset($inactive['id']) && (int)($inactive['aktiv'] ?? 0) !== 1) {
-                                $warnungen[] = 'Mitarbeiter-ID existiert, ist aber inaktiv (ID ' . (int)$inactive['id'] . ').';
-                            }
-                        }
-                    }
-
-
-                    // Zusatz (T-069): Mehrdeutigkeits-Check für numerische Codes
-                    // - In der Praxis können Personalnummern versehentlich mit Mitarbeiter-IDs kollidieren.
-                    // - Terminal-Logik (B-036): RFID → Personalnummer → ID, ABER:
-                    //   Wenn RFID nicht passt und sowohl Personalnummer als auch ID auf verschiedene aktive Mitarbeiter zeigen,
-                    //   wird der Login abgebrochen (kein stilles „falsches Einloggen“).
-                    $alternativeTreffer = [];
-                    if (ctype_digit($terminalLoginCode)) {
-                        $cInt = (int)$terminalLoginCode;
-
-                        $byRfid = $fetchOne(
-                            $pdo,
-                            'SELECT id, vorname, nachname, personalnummer, rfid_code, aktiv
-                             FROM mitarbeiter
-                             WHERE rfid_code = :code AND aktiv = 1
-                             LIMIT 1',
-                            ['code' => $terminalLoginCode]
-                        );
-
-                        $byPn = $fetchOne(
-                            $pdo,
-                            'SELECT id, vorname, nachname, personalnummer, rfid_code, aktiv
-                             FROM mitarbeiter
-                             WHERE personalnummer = :pn AND aktiv = 1
-                             LIMIT 1',
-                            ['pn' => $terminalLoginCode]
-                        );
-
-                        $byId = $fetchOne(
-                            $pdo,
-                            'SELECT id, vorname, nachname, personalnummer, rfid_code, aktiv
-                             FROM mitarbeiter
-                             WHERE id = :id AND aktiv = 1
-                             LIMIT 1',
-                            ['id' => $cInt]
-                        );
-
-                        // Alternativen sammeln (für Diagnose-Ausgabe)
-                        $alts = [
-                            'RFID'          => $byRfid,
-                            'Personalnummer' => $byPn,
-                            'Mitarbeiter-ID' => $byId,
-                        ];
-                        foreach ($alts as $t => $rowAlt) {
-                            if (!is_array($rowAlt) || !isset($rowAlt['id'])) {
-                                continue;
-                            }
-                            $alternativeTreffer[$t] = $rowAlt;
-                        }
-
-                        // Terminal-Verhalten emulieren: Mehrdeutigkeits-Abbruch nur wenn RFID nicht passt.
-                        if (!is_array($byRfid) && is_array($byPn) && is_array($byId)) {
-                            $idPn = (int)($byPn['id'] ?? 0);
-                            $idId = (int)($byId['id'] ?? 0);
-                            if ($idPn > 0 && $idId > 0 && $idPn !== $idId) {
-                                $fehlerCode = 'MEHRDEUTIG';
-                                $terminalLoginHinweis = 'Mehrdeutiger numerischer Code: Terminal würde den Login abbrechen (Personalnummer vs Mitarbeiter-ID).';
-                                $match = null;
-                                $matchTyp = null;
-                            }
-                        }
-
-                        // Zusatzhinweis: Code kollidiert zwar, Terminal würde aber gemäß Reihenfolge eindeutig wählen.
-                        if ($fehlerCode === null && $matchTyp !== null && is_array($match) && isset($match['id'])) {
-                            $primId = (int)$match['id'];
-                            $teile = [];
-                            foreach ($alternativeTreffer as $t => $rowAlt) {
-                                $altId = (int)($rowAlt['id'] ?? 0);
-                                if ($altId === $primId) {
-                                    continue;
-                                }
-                                $name = trim((string)($rowAlt['vorname'] ?? '') . ' ' . (string)($rowAlt['nachname'] ?? ''));
-                                $teile[] = $t . ' → ID ' . $altId . ($name !== '' ? ' (' . $name . ')' : '');
-                            }
-                            if (count($teile) > 0) {
-                                $warnungen[] = 'Achtung: numerischer Code kollidiert auch mit ' . implode(', ', $teile) . '. Terminal-Reihenfolge: RFID → Personalnummer → ID.';
-                            }
-                        }
-                    }
-
-                    // Zusatz (T-069): Anwesenheit heute (rein lesend)
-                    // - hilft beim Debuggen der Terminal-Menülogik (Kommen/Gehen-Buttons).
-                    $anwesenheit = null;
-                    if ($matchTyp !== null && is_array($match) && isset($match['id'])) {
-                        try {
-                            $mid = (int)$match['id'];
-
-                            $start = (new DateTimeImmutable('today'))->format('Y-m-d 00:00:00');
-                            $ende  = (new DateTimeImmutable('tomorrow'))->format('Y-m-d 00:00:00');
-
-                            $stmt = $pdo->prepare(
-                                "SELECT
-                                    SUM(CASE WHEN typ = 'kommen' THEN 1 ELSE 0 END) AS kommen,
-                                    SUM(CASE WHEN typ = 'gehen' THEN 1 ELSE 0 END)  AS gehen
-                                 FROM zeitbuchung
-                                 WHERE mitarbeiter_id = :mid
-                                   AND zeitstempel >= :s
-                                   AND zeitstempel < :e"
-                            );
-                            $stmt->execute(['mid' => $mid, 's' => $start, 'e' => $ende]);
-                            $row = $stmt->fetch(PDO::FETCH_ASSOC);
-
-                            $k = is_array($row) && isset($row['kommen']) ? (int)$row['kommen'] : 0;
-                            $g = is_array($row) && isset($row['gehen']) ? (int)$row['gehen'] : 0;
-
-                            $letzte = null;
-                            $stmt2 = $pdo->prepare(
-                                "SELECT typ, zeitstempel, quelle, manuell_geaendert
-                                 FROM zeitbuchung
-                                 WHERE mitarbeiter_id = :mid
-                                 ORDER BY zeitstempel DESC, id DESC
-                                 LIMIT 1"
-                            );
-                            $stmt2->execute(['mid' => $mid]);
-                            $r2 = $stmt2->fetch(PDO::FETCH_ASSOC);
-                            if (is_array($r2) && isset($r2['typ']) && isset($r2['zeitstempel'])) {
-                                $letzte = $r2;
-                            }
-
-                            $anwesenheit = [
-                                'datum' => (new DateTimeImmutable('today'))->format('Y-m-d'),
-                                'kommen' => $k,
-                                'gehen' => $g,
-                                'ist_anwesend' => ($k > $g),
-                                'kommen_erlaubt' => ($k <= $g),
-                                'gehen_erlaubt' => ($k > $g),
-                                'auftrag_erlaubt' => ($k > $g),
-                                'letzte_buchung' => $letzte,
-                            ];
-
-                            if ($g > $k) {
-                                $warnungen[] = 'Auffälligkeit: Heute mehr "Gehen" als "Kommen" (K=' . $k . ', G=' . $g . ').';
-                            }
-                        } catch (Throwable $e) {
-                            $anwesenheit = [
-                                'fehler' => $e->getMessage(),
-                            ];
-                        }
-                    }
-
-
-
-                    if ($matchTyp === null || !is_array($match) || !isset($match['id'])) {
-                        if ($fehlerCode !== 'MEHRDEUTIG') {
-                            $terminalLoginHinweis = 'Kein aktiver Mitarbeiter für diesen Code gefunden.';
-                        }
-                        $terminalLoginErgebnis = [
-                            'typ' => null,
-                            'mitarbeiter' => null,
-                            'warnungen' => $warnungen,
-                            'alternativen' => $alternativeTreffer,
-                            'anwesenheit' => $anwesenheit,
-                            'fehler_code' => $fehlerCode,
-                        ];
-                    } else {
-                        $terminalLoginErgebnis = [
-                            'typ' => $matchTyp,
-                            'mitarbeiter' => $match,
-                            'warnungen' => $warnungen,
-                            'alternativen' => $alternativeTreffer,
-                            'anwesenheit' => $anwesenheit,
-                            'fehler_code' => $fehlerCode,
-                        ];
-                    }
-                } catch (Throwable $e) {
-                    $terminalLoginHinweis = 'DB-Fehler beim Terminal-Login-Check: ' . $e->getMessage();
-                }
-            }
+            [
+                'code' => $terminalLoginCode,
+                'ergebnis' => $terminalLoginErgebnis,
+                'hinweis' => $terminalLoginHinweis,
+            ] = $this->pruefeTerminalLogin($terminalLoginCode);
         }
 
         // PDF-Quick-Check: PDF wird nur im Speicher erzeugt, ohne Ausgabe/Download.
         if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['pdf_test_run'])) {
-            $pdfTestJahr = (int)($_POST['pdf_test_jahr'] ?? $pdfTestJahr);
-            $pdfTestMonat = (int)($_POST['pdf_test_monat'] ?? $pdfTestMonat);
-            $rawMid = trim((string)($_POST['pdf_test_mitarbeiter_id'] ?? ''));
-            if ($rawMid !== '') {
-                $pdfTestMitarbeiterId = (int)$rawMid;
-            }
-
-            if ($pdfTestMitarbeiterId <= 0) {
-                $pdfTestHinweis = 'Keine gültige Mitarbeiter-ID für den PDF-Check (auch kein angemeldeter Mitarbeiter gefunden).';
-            } elseif ($pdfTestJahr < 2000 || $pdfTestJahr > 2100) {
-                $pdfTestHinweis = 'Bitte ein gültiges Jahr (2000–2100) angeben.';
-            } elseif ($pdfTestMonat < 1 || $pdfTestMonat > 12) {
-                $pdfTestHinweis = 'Bitte einen gültigen Monat (1–12) angeben.';
-            } elseif (!class_exists('PDFService')) {
-                $pdfTestHinweis = 'PDFService ist nicht verfügbar (Klasse fehlt).';
-            } else {
-                $pdfInhalt = '';
-
-                $errorHandlerAktiv = false;
-                try {
-                    set_error_handler(function (int $severity, string $message, string $file, int $line) use ($pdfTestJahr, $pdfTestMonat, $pdfTestMitarbeiterId): bool {
-                        Logger::warn('PHP-Warnung/Notice während SmokeTest-PDF-Quick-Check', [
-                            'severity' => $severity,
-                            'message'  => $message,
-                            'file'     => $file,
-                            'line'     => $line,
-                            'jahr'     => $pdfTestJahr,
-                            'monat'    => $pdfTestMonat,
-                            'mitarbeiter_id' => $pdfTestMitarbeiterId,
-                        ], null, null, 'smoke_test');
-                        return true; // Ausgabe unterdrücken
-                    });
-                    $errorHandlerAktiv = true;
-                } catch (Throwable $e) {
-                    $errorHandlerAktiv = false;
-                }
-
-                $obStartLevel = ob_get_level();
-                @ob_start();
-
-                try {
-                    $pdfService = PDFService::getInstanz();
-                    $pdfInhalt = (string)$pdfService->erzeugeMonatsPdfFuerMitarbeiter($pdfTestMitarbeiterId, $pdfTestJahr, $pdfTestMonat);
-                } catch (Throwable $e) {
-                    $pdfTestHinweis = 'PDF-Fehler beim Erzeugen: ' . $e->getMessage();
-                }
-
-                // Buffer leeren (Warnungen/Notices), Handler zurücksetzen
-                while (ob_get_level() > $obStartLevel) {
-                    @ob_end_clean();
-                }
-                if ($errorHandlerAktiv) {
-                    try {
-                        restore_error_handler();
-                    } catch (Throwable $e) {
-                        // ignore
-                    }
-                }
-
-                if ($pdfTestHinweis === null) {
-                    $bytes = strlen($pdfInhalt);
-                    $headerOk = ($bytes >= 5 && substr($pdfInhalt, 0, 5) === '%PDF-');
-                    $eofOk = (strpos($pdfInhalt, '%%EOF') !== false);
-
-                    $pageObjCount = substr_count($pdfInhalt, '/Type /Page /Parent');
-                    $declaredPages = null;
-                    if (preg_match('/\/Type\s*\/Pages\b.*?\/Count\s+(\d+)/s', $pdfInhalt, $m)) {
-                        $declaredPages = (int)$m[1];
-                    }
-
-                    $pagesMatch = null;
-                    if ($declaredPages !== null) {
-                        $pagesMatch = ($declaredPages === $pageObjCount);
-                    }
-
-                    $footerSeite1 = (strpos($pdfInhalt, '(Seite 1/') !== false);
-                    $footerSeite2 = null;
-                    if ($pageObjCount >= 2) {
-                        $footerSeite2 = (strpos($pdfInhalt, '(Seite 2/') !== false);
-                    }
-
-                    $headerArbeitszeitliste = (strpos($pdfInhalt, '(Arbeitszeitliste)') !== false);
-                    $headerTagKw = (strpos($pdfInhalt, '(Tag / KW)') !== false);
-
-                    $okErweitert = ($bytes > 0 && $headerOk && $eofOk);
-                    if ($pagesMatch === false) {
-                        $okErweitert = false;
-                    }
-                    if (!$footerSeite1) {
-                        $okErweitert = false;
-                    }
-                    if ($pageObjCount >= 2 && $footerSeite2 !== true) {
-                        $okErweitert = false;
-                    }
-                    if (!$headerArbeitszeitliste || !$headerTagKw) {
-                        $okErweitert = false;
-                    }
-
-                    $pdfTestErgebnis = [
-                        'ok' => $okErweitert,
-                        'bytes' => $bytes,
-                        'header_ok' => $headerOk,
-                        'eof_ok' => $eofOk,
-                        'pages_count_declared' => $declaredPages,
-                        'pages_count_objects' => $pageObjCount,
-                        'pages_count_match' => $pagesMatch,
-                        'footer_seite1' => $footerSeite1,
-                        'footer_seite2' => $footerSeite2,
-                        'header_arbeitszeitliste' => $headerArbeitszeitliste,
-                        'header_tag_kw' => $headerTagKw,
-                    ];
-
-                    // Optional: Tageswerte-Kommentar (Kürzel) im PDF wiederfinden (nur Diagnose)
-                    $pdfKommentarSamples = [];
-                    $pdfKommentarCheck = [];
-                    $pdfKommentarHinweis = null;
-
-                    if ($this->db === null) {
-                        $pdfKommentarHinweis = 'Kommentar-Check übersprungen: keine DB-Verbindung im Smoke-Test.';
-                    } else {
-                        try {
-                            $startDt = new \DateTimeImmutable(sprintf('%04d-%02d-01', $pdfTestJahr, $pdfTestMonat));
-                            $bisDt   = $startDt->modify('+1 month');
-
-                            $sql = 'SELECT datum, kommentar
-                                    FROM tageswerte_mitarbeiter
-                                    WHERE mitarbeiter_id = :mid
-                                      AND datum >= :von
-                                      AND datum < :bis
-                                      AND kommentar IS NOT NULL
-                                      AND TRIM(kommentar) <> \'\'
-                                    ORDER BY datum ASC
-                                    LIMIT 10';
-
-                            $rows = $this->db->fetchAlle($sql, [
-                                'mid' => $pdfTestMitarbeiterId,
-                                'von' => $startDt->format('Y-m-d'),
-                                'bis' => $bisDt->format('Y-m-d'),
-                            ]);
-
-                            foreach ($rows as $r) {
-                                if (!is_array($r)) {
-                                    continue;
-                                }
-                                $d = trim((string)($r['datum'] ?? ''));
-                                $k = trim((string)($r['kommentar'] ?? ''));
-                                if ($k === '') {
-                                    continue;
-                                }
-
-                                // Wie im PDF: auf 6 Zeichen kürzen (UTF-8 safe, falls möglich)
-                                $short = $k;
-                                if (function_exists('mb_strlen') && function_exists('mb_substr')) {
-                                    if (mb_strlen($short, 'UTF-8') > 6) {
-                                        $short = mb_substr($short, 0, 6, 'UTF-8');
-                                    }
-                                } else {
-                                    if (strlen($short) > 6) {
-                                        $short = substr($short, 0, 6);
-                                    }
-                                }
-
-                                $pdfKommentarSamples[] = [
-                                    'datum' => $d,
-                                    'kommentar' => $short,
-                                ];
-                            }
-                        } catch (Throwable $e) {
-                            $pdfKommentarHinweis = 'Kommentar-Check DB-Fehler: ' . $e->getMessage();
-                        }
-                    }
-
-                    if ($pdfKommentarSamples !== []) {
-                        foreach ($pdfKommentarSamples as $smp) {
-                            if (!is_array($smp)) {
-                                continue;
-                            }
-                            $k = (string)($smp['kommentar'] ?? '');
-                            $d = (string)($smp['datum'] ?? '');
-                            if ($k === '') {
-                                continue;
-                            }
-                            // PDF-Stream enthält Texte als (...). Tj – für Kürzel sollte eine simple Substring-Suche reichen.
-                            $found = (strpos($pdfInhalt, '(' . $k . ')') !== false);
-                            $pdfKommentarCheck[] = [
-                                'datum' => $d,
-                                'kommentar' => $k,
-                                'found_in_pdf' => $found ? 1 : 0,
-                            ];
-                        }
-                    }
-
-                    $pdfTestErgebnis['kommentar_samples'] = $pdfKommentarSamples;
-                    $pdfTestErgebnis['kommentar_check'] = $pdfKommentarCheck;
-                    $pdfTestErgebnis['kommentar_hinweis'] = $pdfKommentarHinweis;
-
-                    if ($bytes <= 0) {
-                        $pdfTestHinweis = 'PDF-Inhalt ist leer.';
-                    } elseif (!$headerOk) {
-                        $pdfTestHinweis = 'PDF-Header fehlt (erwartet: %PDF-...).';
-                    } elseif (!$eofOk) {
-                        $pdfTestHinweis = 'PDF-EOF Marker (%%EOF) fehlt.';
-                    } elseif ($pagesMatch === false) {
-                        $pdfTestHinweis = 'PDF-Seitenanzahl inkonsistent: /Pages /Count=' . (int)$declaredPages . ' aber Page-Objekte=' . (int)$pageObjCount . '.';
-                    } elseif (!$footerSeite1) {
-                        $pdfTestHinweis = 'PDF-Footer "Seite 1/..." fehlt im Stream.';
-                    } elseif ($pageObjCount >= 2 && $footerSeite2 !== true) {
-                        $pdfTestHinweis = 'PDF-Footer "Seite 2/..." fehlt, obwohl mehrere Seiten erkannt wurden.';
-                    } elseif (!$headerArbeitszeitliste || !$headerTagKw) {
-                        $pdfTestHinweis = 'PDF-Headertexte (Arbeitszeitliste / Tag / KW) wurden im Stream nicht gefunden.';
-                    }
-                }
-            }
+            [
+                'mitarbeiter_id' => $pdfTestMitarbeiterId,
+                'jahr' => $pdfTestJahr,
+                'monat' => $pdfTestMonat,
+                'ergebnis' => $pdfTestErgebnis,
+                'hinweis' => $pdfTestHinweis,
+            ] = $this->pruefePdfQuick($pdfTestMitarbeiterId, $pdfTestJahr, $pdfTestMonat);
         }
 
         
         // T-069 (Fortsetzung): PDF-Synth-Check (Multi-Block + Multi-Page, DB-unabhängig)
         if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['pdf_synth_run'])) {
-            $rawJ = trim((string)($_POST['pdf_synth_jahr'] ?? ''));
-            $rawM = trim((string)($_POST['pdf_synth_monat'] ?? ''));
-
-            if ($rawJ !== '') {
-                $pdfSynthJahr = (int)$rawJ;
-            }
-            if ($rawM !== '') {
-                $pdfSynthMonat = (int)$rawM;
-            }
-
-            if ($pdfSynthJahr < 1970 || $pdfSynthJahr > 2100) {
-                $pdfSynthHinweis = 'Ungültiges Jahr (1970..2100).';
-            } elseif ($pdfSynthMonat < 1 || $pdfSynthMonat > 12) {
-                $pdfSynthHinweis = 'Ungültiger Monat (1..12).';
-            } elseif (!class_exists('PDFService')) {
-                $pdfSynthHinweis = 'PDFService ist nicht verfügbar (Klasse fehlt).';
-            } else {
-                try {
-                    $startDt = new DateTimeImmutable(sprintf('%04d-%02d-01', $pdfSynthJahr, $pdfSynthMonat));
-                    $daysInMonth = (int)$startDt->modify('last day of this month')->format('j');
-
-                    $tageswerte = [];
-                    $blocksPerDay = 3;
-
-                    for ($day = 1; $day <= $daysInMonth; $day++) {
-                        $ymd = sprintf('%04d-%02d-%02d', $pdfSynthJahr, $pdfSynthMonat, $day);
-
-                        $arbeitsbloecke = [
-                            [
-                                'kommen_roh'  => $ymd . ' 05:30:00',
-                                'gehen_roh'   => $ymd . ' 09:00:00',
-                                'kommen_korr' => $ymd . ' 05:30:00',
-                                'gehen_korr'  => $ymd . ' 09:00:00',
-                            ],
-                            [
-                                'kommen_roh'  => $ymd . ' 09:15:00',
-                                'gehen_roh'   => $ymd . ' 12:30:00',
-                                'kommen_korr' => $ymd . ' 09:15:00',
-                                'gehen_korr'  => $ymd . ' 12:30:00',
-                            ],
-                            [
-                                'kommen_roh'  => $ymd . ' 13:00:00',
-                                'gehen_roh'   => $ymd . ' 16:00:00',
-                                'kommen_korr' => $ymd . ' 13:00:00',
-                                'gehen_korr'  => $ymd . ' 16:00:00',
-                            ],
-                        ];
-
-                        $tageswerte[] = [
-                            'datum' => $ymd,
-                            'pausen_stunden' => '0.75',
-                            'arbeitszeit_stunden' => '8.00',
-                            'arzt_stunden' => '0.00',
-                            'krank_lfz_stunden' => '0.00',
-                            'krank_kk_stunden' => '0.00',
-                            'feiertag_stunden' => '0.00',
-                            'kurzarbeit_stunden' => '0.00',
-                            'urlaub_stunden' => '0.00',
-                            'sonstige_stunden' => '0.00',
-                            'kommentar' => ($day === 1 ? 'SoU: SmokeTest' : ''),
-                            'zeit_manuell_geaendert' => (($day % 7) === 0 ? 1 : 0),
-                            'arbeitsbloecke' => $arbeitsbloecke,
-                        ];
-                    }
-
-                    $sollstunden = (float)$daysInMonth * 8.0;
-                    $monatswerte = [
-                        'sollstunden' => number_format($sollstunden, 2, '.', ''),
-                    ];
-
-                    $pdfService = PDFService::getInstanz();
-                    if (!method_exists($pdfService, 'erzeugeMonatsPdfAusDaten')) {
-                        throw new Exception('PDFService::erzeugeMonatsPdfAusDaten() fehlt (ältere Version).');
-                    }
-
-                    $pdfInhalt = $pdfService->erzeugeMonatsPdfAusDaten(9999, 'SMOKE TEST', $pdfSynthJahr, $pdfSynthMonat, $tageswerte, $monatswerte);
-
-                    $bytes = (int)strlen($pdfInhalt);
-                    $headerOk = ($bytes >= 5 && substr($pdfInhalt, 0, 5) === '%PDF-');
-                    $eofOk = (strpos($pdfInhalt, '%%EOF') !== false);
-
-                    $declaredPages = null;
-                    if (preg_match('/\/Count\s+(\d+)/', $pdfInhalt, $m) === 1) {
-                        $declaredPages = (int)$m[1];
-                    }
-                    $pageObjCount = 0;
-                    if (preg_match_all('/\/Type\s*\/Page\b/', $pdfInhalt, $mm) !== false) {
-                        $pageObjCount = is_array($mm[0] ?? null) ? count($mm[0]) : 0;
-                    }
-                    $pagesMatch = null;
-                    if ($declaredPages !== null) {
-                        $pagesMatch = ($declaredPages === $pageObjCount);
-                    }
-
-                    $footerSeite1 = (strpos($pdfInhalt, '(Seite 1/') !== false);
-                    $footerSeite2 = (strpos($pdfInhalt, '(Seite 2/') !== false);
-
-                    $headerArbeitszeitliste = (strpos($pdfInhalt, '(Arbeitszeitliste)') !== false);
-                    $headerTagKw = (strpos($pdfInhalt, '(Tag / KW)') !== false);
-
-                    $pagesAtLeast2 = ($pageObjCount >= 2);
-
-                    $okSynth = ($bytes > 0 && $headerOk && $eofOk && $pagesMatch === true && $pagesAtLeast2 && $footerSeite1 && $footerSeite2 && $headerArbeitszeitliste && $headerTagKw);
-
-                    $pdfSynthErgebnis = [
-                        'ok' => $okSynth,
-                        'bytes' => $bytes,
-                        'blocks_per_day' => $blocksPerDay,
-                        'days_in_month' => $daysInMonth,
-                        'rows_expected' => ($daysInMonth * $blocksPerDay) + 2, // + Header + Abschluss "/"
-                        'header_ok' => $headerOk,
-                        'eof_ok' => $eofOk,
-                        'pages_count_declared' => $declaredPages,
-                        'pages_count_objects' => $pageObjCount,
-                        'pages_count_match' => $pagesMatch,
-                        'pages_at_least2' => $pagesAtLeast2,
-                        'footer_seite1' => $footerSeite1,
-                        'footer_seite2' => $footerSeite2,
-                        'header_arbeitszeitliste' => $headerArbeitszeitliste,
-                        'header_tag_kw' => $headerTagKw,
-                    ];
-
-                    if ($bytes <= 0) {
-                        $pdfSynthHinweis = 'PDF-Inhalt ist leer.';
-                    } elseif (!$headerOk) {
-                        $pdfSynthHinweis = 'PDF-Header fehlt (erwartet: %PDF-...).';
-                    } elseif (!$eofOk) {
-                        $pdfSynthHinweis = 'PDF-EOF Marker (%%EOF) fehlt.';
-                    } elseif ($pagesAtLeast2 !== true) {
-                        $pdfSynthHinweis = 'Erwartet mind. 2 Seiten, erkannt: ' . (int)$pageObjCount . '.';
-                    } elseif ($pagesMatch !== true) {
-                        $pdfSynthHinweis = 'PDF-Seitenanzahl inkonsistent: /Pages /Count=' . (int)$declaredPages . ' aber Page-Objekte=' . (int)$pageObjCount . '.';
-                    } elseif (!$footerSeite1 || !$footerSeite2) {
-                        $pdfSynthHinweis = 'PDF-Footer "Seite 1/..." oder "Seite 2/..." fehlt im Stream.';
-                    } elseif (!$headerArbeitszeitliste || !$headerTagKw) {
-                        $pdfSynthHinweis = 'PDF-Headertexte (Arbeitszeitliste / Tag / KW) wurden im Stream nicht gefunden.';
-                    }
-                } catch (Throwable $e) {
-                    $pdfSynthHinweis = 'PDF-Synth-Check fehlgeschlagen: ' . $e->getMessage();
-                }
-            }
+            [
+                'jahr' => $pdfSynthJahr,
+                'monat' => $pdfSynthMonat,
+                'ergebnis' => $pdfSynthErgebnis,
+                'hinweis' => $pdfSynthHinweis,
+            ] = $this->pruefePdfSynth($pdfSynthJahr, $pdfSynthMonat);
         }
 
 
 
         // T-069 (Fortsetzung): PDF DB Kandidaten-Liste (Top-N, rein lesend)
-        $pdfDbMultiListDoEval = false;
         if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST' && (isset($_POST['pdf_db_multipage_list_run']) || isset($_POST['pdf_db_multipage_list_eval']))) {
-            $pdfDbMultiListDoEval = isset($_POST['pdf_db_multipage_list_eval']);
-            $rawW = trim((string)($_POST['pdf_db_multipage_window'] ?? ''));
-            if ($rawW !== '' && ctype_digit($rawW)) {
-                $pdfDbMultiWindowMonate = (int)$rawW;
-            }
-
-            if ($pdfDbMultiWindowMonate < 1) {
-                $pdfDbMultiWindowMonate = 1;
-            }
-            if ($pdfDbMultiWindowMonate > 24) {
-                $pdfDbMultiWindowMonate = 24;
-            }
-
-            $rawL = trim((string)($_POST['pdf_db_multipage_list_limit'] ?? ''));
-            if ($rawL !== '' && ctype_digit($rawL)) {
-                $pdfDbMultiListLimit = (int)$rawL;
-            }
-            if ($pdfDbMultiListLimit < 1) {
-                $pdfDbMultiListLimit = 1;
-            }
-            if ($pdfDbMultiListLimit > 20) {
-                $pdfDbMultiListLimit = 20;
-            }
-
-            if (!Csrf::istGueltig(self::CSRF_BEREICH)) {
-                $pdfDbMultiListHinweis = 'CSRF-Token ungültig – Aktion abgebrochen.';
-            } elseif ($this->db === null) {
-                $pdfDbMultiListHinweis = 'Database::getInstanz() ist nicht verfügbar.';
-            } else {
-                try {
-                    $pdo = $this->db->getVerbindung();
-                    $window = (int)$pdfDbMultiWindowMonate;
-                    $limit = (int)$pdfDbMultiListLimit;
-
-                    $sql = "
-                        SELECT mitarbeiter_id, YEAR(zeitstempel) AS jahr, MONTH(zeitstempel) AS monat, COUNT(*) AS c
-                        FROM zeitbuchung
-                        WHERE typ IN ('kommen','gehen')
-                          AND zeitstempel >= DATE_SUB(CURDATE(), INTERVAL {$window} MONTH)
-                        GROUP BY mitarbeiter_id, YEAR(zeitstempel), MONTH(zeitstempel)
-                        ORDER BY c DESC
-                        LIMIT {$limit}
-                    ";
-
-                    $stmt = $pdo->query($sql);
-                    $rows = $stmt ? $stmt->fetchAll(PDO::FETCH_ASSOC) : [];
-
-                    if (!is_array($rows) || $rows === []) {
-                        $pdfDbMultiListHinweis = 'Keine Kandidaten gefunden (keine Kommen/Gehen-Buchungen in den letzten ' . (int)$window . ' Monaten).';
-                    } else {
-                        $liste = [];
-
-                        foreach ($rows as $cand) {
-                            if (!is_array($cand)) {
-                                continue;
-                            }
-
-                            $mid = (int)($cand['mitarbeiter_id'] ?? 0);
-                            $jahr = (int)($cand['jahr'] ?? 0);
-                            $monat = (int)($cand['monat'] ?? 0);
-                            $count = (int)($cand['c'] ?? 0);
-
-                            if ($mid <= 0 || $jahr <= 0 || $monat < 1 || $monat > 12) {
-                                continue;
-                            }
-
-                            $maxDayCount = 0;
-                            $maxDayDatum = '';
-                            try {
-                                $stmt2 = $pdo->prepare(
-                                    "SELECT DATE(zeitstempel) AS d, COUNT(*) AS c
-                                     FROM zeitbuchung
-                                     WHERE mitarbeiter_id = :mid
-                                       AND typ IN ('kommen','gehen')
-                                       AND YEAR(zeitstempel) = :j
-                                       AND MONTH(zeitstempel) = :m
-                                     GROUP BY DATE(zeitstempel)
-                                     ORDER BY c DESC
-                                     LIMIT 1"
-                                );
-                                $stmt2->execute(['mid' => $mid, 'j' => $jahr, 'm' => $monat]);
-                                $row2 = $stmt2->fetch(PDO::FETCH_ASSOC);
-                                if (is_array($row2)) {
-                                    $maxDayCount = (int)($row2['c'] ?? 0);
-                                    $maxDayDatum = (string)($row2['d'] ?? '');
-                                }
-                            } catch (Throwable $e) {
-                                // ignore
-                            }
-
-                            $name = 'Mitarbeiter #' . (int)$mid;
-                            try {
-                                $mm = new MitarbeiterModel();
-                                $mrow = $mm->holeNachId($mid);
-                                if (is_array($mrow)) {
-                                    $vn = trim((string)($mrow['vorname'] ?? ''));
-                                    $nn = trim((string)($mrow['nachname'] ?? ''));
-                                    $full = trim($vn . ' ' . $nn);
-                                    if ($full !== '') {
-                                        $name = $full;
-                                    }
-                                }
-                            } catch (Throwable $e) {
-                                // ignore
-                            }
-
-                            $liste[] = [
-                                'mitarbeiter_id' => $mid,
-                                'name' => $name,
-                                'jahr' => $jahr,
-                                'monat' => $monat,
-                                'buchungen_kommen_gehen' => $count,
-                                'max_day_datum' => $maxDayDatum,
-                                'max_day_buchungen' => $maxDayCount,
-                                'link_report' => '?seite=report_monat&jahr=' . (int)$jahr . '&monat=' . (int)$monat . '&mitarbeiter_id=' . (int)$mid,
-                                'link_pdf' => '?seite=report_monat_pdf&jahr=' . (int)$jahr . '&monat=' . (int)$monat . '&mitarbeiter_id=' . (int)$mid,
-                            ];
-                        }
-
-                        if ($liste === []) {
-                            $pdfDbMultiListHinweis = 'Kandidatenliste ist leer (Filter/Parsing).';
-                        } else {
-                            if ($pdfDbMultiListDoEval) {
-                                if (!class_exists('PDFService')) {
-                                    $pdfDbMultiListHinweis = 'Batch-Check nicht möglich: PDFService fehlt.';
-                                } else {
-                                    $pdfService = PDFService::getInstanz();
-                                    $okCount = 0;
-                                    $total = is_array($liste) ? count($liste) : 0;
-
-                                    for ($i = 0; $i < $total; $i++) {
-                                        $entry = $liste[$i] ?? null;
-                                        if (!is_array($entry)) {
-                                            continue;
-                                        }
-
-                                        $midE = (int)($entry['mitarbeiter_id'] ?? 0);
-                                        $jahrE = (int)($entry['jahr'] ?? 0);
-                                        $monatE = (int)($entry['monat'] ?? 0);
-
-                                        $evalOk = null;
-                                        $evalReason = '';
-                                        $pagesObj = 0;
-                                        $bytes = 0;
-
-                                        if ($midE > 0 && $jahrE > 0 && $monatE >= 1 && $monatE <= 12) {
-                                            try {
-                                                $pdf = (string)$pdfService->erzeugeMonatsPdfFuerMitarbeiter($midE, $jahrE, $monatE);
-                                                $bytes = strlen($pdf);
-                                                $headerOk = ($bytes >= 5 && substr($pdf, 0, 5) === '%PDF-');
-                                                $eofOk = (strpos($pdf, '%%EOF') !== false);
-
-                                                $pagesObj = 0;
-                                                if (preg_match_all('/\/Type\s*\/Page\b/', $pdf, $mm) !== false) {
-                                                    $pagesObj = is_array($mm[0] ?? null) ? count($mm[0]) : 0;
-                                                }
-
-                                                $declared = null;
-                                                if (preg_match('/\/Type\s*\/Pages\b.*?\/Count\s+(\d+)/s', $pdf, $m2)) {
-                                                    $declared = (int)$m2[1];
-                                                }
-
-                                                $pagesMatch = null;
-                                                if ($declared !== null) {
-                                                    $pagesMatch = ($declared === $pagesObj);
-                                                }
-
-                                                $footer1 = (strpos($pdf, '(Seite 1/') !== false);
-                                                $footer2 = (strpos($pdf, '(Seite 2/') !== false);
-
-                                                $evalOk = ($bytes > 0 && $headerOk && $eofOk && $pagesObj >= 2 && $footer1 && $footer2);
-                                                if ($pagesMatch === false) {
-                                                    $evalOk = false;
-                                                }
-
-                                                if ($evalOk !== true) {
-                                                    if ($bytes <= 0) {
-                                                        $evalReason = 'leer';
-                                                    } elseif (!$headerOk) {
-                                                        $evalReason = 'header';
-                                                    } elseif (!$eofOk) {
-                                                        $evalReason = 'eof';
-                                                    } elseif ($pagesObj < 2) {
-                                                        $evalReason = 'seiten<' . (int)$pagesObj . '>';
-                                                    } elseif ($pagesMatch === false) {
-                                                        $evalReason = 'count mismatch';
-                                                    } elseif (!$footer1 || !$footer2) {
-                                                        $evalReason = 'footer';
-                                                    }
-                                                }
-                                            } catch (Throwable $e) {
-                                                $evalOk = false;
-                                                $evalReason = 'fehler: ' . $e->getMessage();
-                                            }
-                                        } else {
-                                            $evalOk = false;
-                                            $evalReason = 'invalid';
-                                        }
-
-                                        $liste[$i]['eval_ok'] = $evalOk;
-                                        $liste[$i]['eval_reason'] = $evalReason;
-                                        $liste[$i]['eval_pages'] = $pagesObj;
-                                        $liste[$i]['eval_bytes'] = $bytes;
-
-                                        if ($evalOk === true) {
-                                            $okCount++;
-                                        }
-                                    }
-
-                                    $prefix = ($pdfDbMultiListHinweis !== null && $pdfDbMultiListHinweis !== '') ? ($pdfDbMultiListHinweis . ' ') : '';
-                                    $pdfDbMultiListHinweis = $prefix . 'Batch-Check: ' . (int)$okCount . ' von ' . (int)$total . ' Kandidaten liefern >=2 Seiten.';
-                                }
-                            }
-
-                            $pdfDbMultiListe = $liste;
-                        }
-                    }
-                } catch (Throwable $e) {
-                    $pdfDbMultiListHinweis = 'Kandidatenliste fehlgeschlagen: ' . $e->getMessage();
-                }
-            }
+            [
+                'window_monate' => $pdfDbMultiWindowMonate,
+                'limit' => $pdfDbMultiListLimit,
+                'ergebnis' => $pdfDbMultiListe,
+                'hinweis' => $pdfDbMultiListHinweis,
+            ] = $this->sucheMultipageKandidaten($pdfDbMultiWindowMonate, $pdfDbMultiListLimit);
         }
         // T-069 (Fortsetzung): PDF DB Auto-Multipage-Check (Kandidat-Finder)
         if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['pdf_db_multipage_run'])) {
-            $rawW = trim((string)($_POST['pdf_db_multipage_window'] ?? ''));
-            if ($rawW !== '' && ctype_digit($rawW)) {
-                $pdfDbMultiWindowMonate = (int)$rawW;
-            }
-
-            if ($pdfDbMultiWindowMonate < 1) {
-                $pdfDbMultiWindowMonate = 1;
-            }
-            if ($pdfDbMultiWindowMonate > 24) {
-                $pdfDbMultiWindowMonate = 24;
-            }
-
-            if (!Csrf::istGueltig(self::CSRF_BEREICH)) {
-                $pdfDbMultiHinweis = 'CSRF-Token ungültig – Aktion abgebrochen.';
-            } elseif ($this->db === null) {
-                $pdfDbMultiHinweis = 'Database::getInstanz() ist nicht verfügbar.';
-            } elseif (!class_exists('PDFService')) {
-                $pdfDbMultiHinweis = 'PDFService ist nicht verfügbar (Klasse fehlt).';
-            } else {
-                try {
-                    $pdo = $this->db->getVerbindung();
-                    $window = (int)$pdfDbMultiWindowMonate;
-
-                                        $midSel = (int)($_POST['pdf_db_multipage_mid'] ?? 0);
-                    $jahrSel = (int)($_POST['pdf_db_multipage_year'] ?? 0);
-                    $monatSel = (int)($_POST['pdf_db_multipage_month'] ?? 0);
-
-                    $mid = 0;
-                    $jahr = 0;
-                    $monat = 0;
-                    $count = 0;
-                    $gefundenVia = 'auto';
-
-                    if ($midSel > 0 && $jahrSel > 0 && $monatSel >= 1 && $monatSel <= 12) {
-                        $mid = $midSel;
-                        $jahr = $jahrSel;
-                        $monat = $monatSel;
-                        $gefundenVia = 'liste';
-
-                        // Anzahl Kommen/Gehen für die gewählte Kombination
-                        try {
-                            $stmtC = $pdo->prepare(
-                                "SELECT COUNT(*) AS c
-                                 FROM zeitbuchung
-                                 WHERE mitarbeiter_id = :mid
-                                   AND typ IN ('kommen','gehen')
-                                   AND YEAR(zeitstempel) = :j
-                                   AND MONTH(zeitstempel) = :m"
-                            );
-                            $stmtC->execute(['mid' => $mid, 'j' => $jahr, 'm' => $monat]);
-                            $rowC = $stmtC->fetch(PDO::FETCH_ASSOC);
-                            if (is_array($rowC)) {
-                                $count = (int)($rowC['c'] ?? 0);
-                            }
-                        } catch (Throwable $e) {
-                            // ignore
-                        }
-                    } else {
-                        $sql = "
-                            SELECT mitarbeiter_id, YEAR(zeitstempel) AS jahr, MONTH(zeitstempel) AS monat, COUNT(*) AS c
-                            FROM zeitbuchung
-                            WHERE typ IN ('kommen','gehen')
-                              AND zeitstempel >= DATE_SUB(CURDATE(), INTERVAL {$window} MONTH)
-                            GROUP BY mitarbeiter_id, YEAR(zeitstempel), MONTH(zeitstempel)
-                            ORDER BY c DESC
-                            LIMIT 1
-                        ";
-
-                        $stmt = $pdo->query($sql);
-                        $cand = $stmt ? $stmt->fetch(PDO::FETCH_ASSOC) : false;
-
-                        if (!is_array($cand) || (int)($cand['mitarbeiter_id'] ?? 0) <= 0) {
-                            $pdfDbMultiHinweis = 'Kein Kandidat gefunden (keine Kommen/Gehen-Buchungen in den letzten ' . (int)$window . ' Monaten).';
-                        } else {
-                            $mid = (int)($cand['mitarbeiter_id'] ?? 0);
-                            $jahr = (int)($cand['jahr'] ?? 0);
-                            $monat = (int)($cand['monat'] ?? 0);
-                            $count = (int)($cand['c'] ?? 0);
-                        }
-                    }
-
-                    if ($mid <= 0 || $jahr <= 0 || $monat < 1 || $monat > 12) {
-                        // Hinweis wurde bereits gesetzt (Auto) oder wir haben keine valide Auswahl.
-                    } else {
-// Max. Buchungen an einem Tag (Indikator für Mehrfach-Kommen/Gehen)
-                        $maxDayCount = 0;
-                        $maxDayDatum = '';
-                        try {
-                            $stmt2 = $pdo->prepare(
-                                "SELECT DATE(zeitstempel) AS d, COUNT(*) AS c\n                                 FROM zeitbuchung\n                                 WHERE mitarbeiter_id = :mid\n                                   AND typ IN ('kommen','gehen')\n                                   AND YEAR(zeitstempel) = :j\n                                   AND MONTH(zeitstempel) = :m\n                                 GROUP BY DATE(zeitstempel)\n                                 ORDER BY c DESC\n                                 LIMIT 1"
-                            );
-                            $stmt2->execute(['mid' => $mid, 'j' => $jahr, 'm' => $monat]);
-                            $row2 = $stmt2->fetch(PDO::FETCH_ASSOC);
-                            if (is_array($row2)) {
-                                $maxDayCount = (int)($row2['c'] ?? 0);
-                                $maxDayDatum = (string)($row2['d'] ?? '');
-                            }
-                        } catch (Throwable $e) {
-                            // ignore
-                        }
-
-                        // Name (optional)
-                        $name = 'Mitarbeiter #' . (int)$mid;
-                        try {
-                            $mm = new MitarbeiterModel();
-                            $mrow = $mm->holeNachId($mid);
-                            if (is_array($mrow)) {
-                                $vn = trim((string)($mrow['vorname'] ?? ''));
-                                $nn = trim((string)($mrow['nachname'] ?? ''));
-                                $full = trim($vn . ' ' . $nn);
-                                if ($full !== '') {
-                                    $name = $full;
-                                }
-                            }
-                        } catch (Throwable $e) {
-                            // ignore
-                        }
-
-                        $pdfService = PDFService::getInstanz();
-                        $pdfInhalt = (string)$pdfService->erzeugeMonatsPdfFuerMitarbeiter($mid, $jahr, $monat);
-
-                        $bytes = strlen($pdfInhalt);
-                        $headerOk = ($bytes >= 5 && substr($pdfInhalt, 0, 5) === '%PDF-');
-                        $eofOk = (strpos($pdfInhalt, '%%EOF') !== false);
-
-                        $pageObjCount = substr_count($pdfInhalt, '/Type /Page /Parent');
-                        $declaredPages = null;
-                        if (preg_match('/\\/Type\\s*\\/Pages\\b.*?\\/Count\\s+(\\d+)/s', $pdfInhalt, $m)) {
-                            $declaredPages = (int)$m[1];
-                        }
-
-                        $pagesMatch = null;
-                        if ($declaredPages !== null) {
-                            $pagesMatch = ($declaredPages === $pageObjCount);
-                        }
-
-                        $pagesAtLeast2 = ($pageObjCount >= 2);
-
-                        $footerSeite1 = (strpos($pdfInhalt, '(Seite 1/') !== false);
-                        $footerSeite2 = (strpos($pdfInhalt, '(Seite 2/') !== false);
-
-                        // T-069 (Fortsetzung): Report-Monatsübersicht HTML-Render-Check (Kandidat)
-                        // - Rein lesend.
-                        // - Rendert die Monatsübersicht für denselben Kandidaten via ReportController und prüft grob die HTML-Struktur.
-                        $reportHtmlOk = null;
-                        $reportHtmlHinweis = '';
-                        $reportHtmlHasHeading = false;
-                        $reportHtmlHasTable = false;
-                        $reportHtmlHasHeaderCells = false;
-                        $reportHtmlHasPdfLink = false;
-                        $reportHtmlTrCount = 0;
-                        $reportHtmlDaysInMonth = 0;
-                        $reportHtmlRowsMinOk = null;
-
-                        $kannViewAll = false;
-                        try {
-                            $kannViewAll = (
-                                $this->auth->hatRecht('REPORT_MONAT_VIEW_ALL')
-                                || $this->auth->hatRecht('REPORTS_ANSEHEN_ALLE')
-                            );
-                        } catch (Throwable $e) {
-                            $kannViewAll = false;
-                        }
-
-                        $angemeldeteIdFuerHtml = (int)($this->auth->holeAngemeldeteMitarbeiterId() ?? 0);
-                        if (!$kannViewAll && $angemeldeteIdFuerHtml > 0 && $mid !== $angemeldeteIdFuerHtml) {
-                            $reportHtmlOk = null;
-                            $reportHtmlHinweis = 'SKIP: Kein REPORT_MONAT_VIEW_ALL/REPORTS_ANSEHEN_ALLE Recht für fremde Mitarbeiter.';
-                        } else {
-                            $backupGet = $_GET;
-                            try {
-                                if (!class_exists('ReportController')) {
-                                    throw new Exception('ReportController fehlt.');
-                                }
-
-                                $_GET['mitarbeiter_id'] = (string)$mid;
-                                $_GET['seite'] = 'report_monat';
-
-                                $obLevel = ob_get_level();
-                                ob_start();
-                                $html = '';
-                                try {
-                                    $rc = new ReportController();
-                                    $rc->monatsuebersicht($jahr, $monat);
-                                    $html = (string)ob_get_clean();
-                                } catch (Throwable $e) {
-                                    while (ob_get_level() > $obLevel) {
-                                        @ob_end_clean();
-                                    }
-                                    throw $e;
-                                }
-
-                                // Nicht cal_days_in_month(): das braucht die Erweiterung
-                                // `calendar`, die in keiner Installationsanleitung des
-                                // Projekts steht. `format('t')` kann PHP von Haus aus.
-                                $reportHtmlDaysInMonth = (int)(new DateTimeImmutable(
-                                    sprintf('%04d-%02d-01', (int)$jahr, (int)$monat)
-                                ))->format('t');
-                                $reportHtmlHasHeading = (stripos($html, 'Monatsübersicht') !== false);
-                                $reportHtmlHasTable = (stripos($html, '<table') !== false);
-                                $reportHtmlHasHeaderCells = (
-                                    strpos($html, '<th>Datum</th>') !== false
-                                    && strpos($html, '<th>An</th>') !== false
-                                    && strpos($html, '<th>Ab</th>') !== false
-                                );
-                                $reportHtmlHasPdfLink = (strpos($html, '?seite=report_monat_pdf') !== false);
-
-                                $mTr = [];
-                                $reportHtmlTrCount = (int)preg_match_all('/<tr\b/i', $html, $mTr);
-
-                                // Mindestens: Headerzeile + pro Kalendertag mindestens eine Zeile (Mehrfach-Kommen/Gehen => mehr).
-                                $reportHtmlRowsMinOk = ($reportHtmlTrCount >= ($reportHtmlDaysInMonth + 1));
-
-                                $reportHtmlOk = (
-                                    $reportHtmlHasHeading
-                                    && $reportHtmlHasTable
-                                    && $reportHtmlHasHeaderCells
-                                    && $reportHtmlHasPdfLink
-                                    && $reportHtmlRowsMinOk
-                                );
-
-                                if ($reportHtmlOk !== true) {
-                                    $reportHtmlHinweis = 'HTML-Struktur unerwartet (Heading/Table/Headers/PDF-Link/Zeilenanzahl prüfen).';
-                                }
-                            } catch (Throwable $e) {
-                                $reportHtmlOk = false;
-                                $reportHtmlHinweis = 'HTML-Render-Check fehlgeschlagen: ' . $e->getMessage();
-                            } finally {
-                                $_GET = $backupGet;
-                            }
-                        }
-
-                        $ok = ($bytes > 0 && $headerOk && $eofOk && $pagesAtLeast2);
-                        if ($pagesMatch === false) {
-                            $ok = false;
-                        }
-                        if (!$footerSeite1 || !$footerSeite2) {
-                            $ok = false;
-                        }
-                        if ($reportHtmlOk === false) {
-                            $ok = false;
-                        }
-
-                        $pdfDbMultiErgebnis = [
-                            'ok' => $ok,
-                            'window_monate' => $window,
-                            'gefunden_via' => $gefundenVia,
-                            'mitarbeiter_id' => $mid,
-                            'name' => $name,
-                            'jahr' => $jahr,
-                            'monat' => $monat,
-                            'buchungen_kommen_gehen' => $count,
-                            'max_day_datum' => $maxDayDatum,
-                            'max_day_buchungen' => $maxDayCount,
-                            'pdf_bytes' => $bytes,
-                            'header_ok' => $headerOk,
-                            'eof_ok' => $eofOk,
-                            'pages_count_declared' => $declaredPages,
-                            'pages_count_objects' => $pageObjCount,
-                            'pages_count_match' => $pagesMatch,
-                            'pages_at_least2' => $pagesAtLeast2,
-                            'footer_seite1' => $footerSeite1,
-                            'footer_seite2' => $footerSeite2,
-                            'html_ok' => $reportHtmlOk,
-                            'html_hinweis' => $reportHtmlHinweis,
-                            'html_has_heading' => $reportHtmlHasHeading,
-                            'html_has_table' => $reportHtmlHasTable,
-                            'html_has_header_cells' => $reportHtmlHasHeaderCells,
-                            'html_has_pdf_link' => $reportHtmlHasPdfLink,
-                            'html_tr_count' => $reportHtmlTrCount,
-                            'html_days_in_month' => $reportHtmlDaysInMonth,
-                            'html_rows_min_ok' => $reportHtmlRowsMinOk,
-                            'link_report' => '?seite=report_monat&jahr=' . (int)$jahr . '&monat=' . (int)$monat . '&mitarbeiter_id=' . (int)$mid,
-                            'link_pdf' => '?seite=report_monat_pdf&jahr=' . (int)$jahr . '&monat=' . (int)$monat . '&mitarbeiter_id=' . (int)$mid,
-                        ];
-
-                        if ($bytes <= 0) {
-                            $pdfDbMultiHinweis = 'PDF-Inhalt ist leer.';
-                        } elseif (!$headerOk) {
-                            $pdfDbMultiHinweis = 'PDF-Header fehlt (erwartet: %PDF-...).';
-                        } elseif (!$eofOk) {
-                            $pdfDbMultiHinweis = 'PDF-EOF Marker (%%EOF) fehlt.';
-                        } elseif ($pagesAtLeast2 !== true) {
-                            $pdfDbMultiHinweis = 'Erwartet mind. 2 Seiten, erkannt: ' . (int)$pageObjCount . '.';
-                        } elseif ($pagesMatch === false) {
-                            $pdfDbMultiHinweis = 'PDF-Seitenanzahl inkonsistent: /Pages /Count=' . (int)$declaredPages . ' aber Page-Objekte=' . (int)$pageObjCount . '.';
-                        } elseif (!$footerSeite1 || !$footerSeite2) {
-                            $pdfDbMultiHinweis = 'PDF-Footer "Seite 1/..." oder "Seite 2/..." fehlt im Stream.';
-                        }
-
-                        if (($pdfDbMultiHinweis === null || $pdfDbMultiHinweis === '') && $reportHtmlOk === false) {
-                            $pdfDbMultiHinweis = $reportHtmlHinweis;
-                        }
-                    }
-                } catch (Throwable $e) {
-                    $pdfDbMultiHinweis = 'PDF-DB-Multipage-Check fehlgeschlagen: ' . $e->getMessage();
-                }
-            }
+            [
+                'window_monate' => $pdfDbMultiWindowMonate,
+                'ergebnis' => $pdfDbMultiErgebnis,
+                'hinweis' => $pdfDbMultiHinweis,
+            ] = $this->pruefePdfDbMultipage($pdfDbMultiWindowMonate);
         }
 
         // Feiertag-Quick-Check: Monatsreport-Datum prüfen
@@ -3387,25 +3559,11 @@ class SmokeTestController
 
         // Feiertag-Seed-Check: bundeseinheitliche Feiertage pro Jahr vollständig?
         if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['feiertag_seed_run'])) {
-            $rawJ = trim((string)($_POST['feiertag_seed_jahr'] ?? ''));
-            if ($rawJ !== '') {
-                $feiertagSeedJahr = (int)$rawJ;
-            }
-
-            if (!class_exists('FeiertagService')) {
-                $feiertagSeedHinweis = 'FeiertagService ist nicht verfügbar (Klasse fehlt).';
-            } else {
-                try {
-                    $fs = FeiertagService::getInstanz();
-                    if (method_exists($fs, 'diagnoseBundesweiteFeiertage')) {
-                        $feiertagSeedErgebnis = $fs->diagnoseBundesweiteFeiertage($feiertagSeedJahr);
-                    } else {
-                        $feiertagSeedHinweis = 'diagnoseBundesweiteFeiertage() ist nicht verfügbar (ältere Version).';
-                    }
-                } catch (Throwable $e) {
-                    $feiertagSeedHinweis = 'Feiertag-Seed-Check fehlgeschlagen: ' . $e->getMessage();
-                }
-            }
+            [
+                'jahr' => $feiertagSeedJahr,
+                'ergebnis' => $feiertagSeedErgebnis,
+                'hinweis' => $feiertagSeedHinweis,
+            ] = $this->pruefeFeiertagSeed($feiertagSeedJahr);
         }
 
 

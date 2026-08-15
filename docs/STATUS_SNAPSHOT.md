@@ -33,9 +33,9 @@ Keine bekannten.
 
 Ein Satz je Task – die Begründung steht im Verlauf, nicht hier.
 
-- **T-105** In `SmokeTestController::index()` stehen noch fünf Check-Blöcke,
-  die eigene Methoden werden sollen; die sechs Monatsreport-Checks sind es seit
-  P-2026-08-15-44, danach folgen die Teil-Templates der View.
+- **T-105** Alle zwölf Check-Blöcke sind eigene Methoden
+  (P-2026-08-15-44/-45); offen ist der letzte Schritt: `views/smoke_test/index.php`
+  in Teil-Templates zerlegen, jedes mit dem Bündel seines Checks.
 - **T-112** „`catch` → `return []`" an 26 Stellen in `modelle/` und `services/`
   durchsehen – falsch nur dort, wo es die Fehlermeldung des Aufrufers
   unerreichbar macht; Suchlauf in P-2026-08-15-10.
