@@ -99,6 +99,92 @@ in den Statusbericht.
   D-002 entfallen; die Regel selbst gilt weiter.)
 
 
+## P-2026-08-15-16 t-104-pausenregeln-in-views
+
+### EINGELESEN
+- `docs/STATUS_SNAPSHOT.md` (T-104), `docs/arbeitsregeln.md`.
+- `views/konfiguration/sonstiges_gruende.php` als Muster (P-2026-08-15-14).
+- `controller/KonfigurationController.php`, `indexPausenregeln()` vollstaendig,
+  besonders die Validierung im POST-Zweig.
+
+### DATEIEN
+- `views/konfiguration/pausenregeln.php` (neu)
+- `controller/KonfigurationController.php`
+- `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Die Maske „Pausenregeln" erzeugt dasselbe HTML wie vorher – bis auf die
+Einrueckung und die drei `Csrf::feld()`-Stellen –, obwohl das Markup jetzt in
+`views/konfiguration/pausenregeln.php` liegt.
+
+### DONE
+Fuenfte der sechs Masken des `KonfigurationController` und die erste mit **zwei
+unabhaengigen Formularen** auf einer Seite: die gesetzlichen Mindestwerte (aus
+`config`) und die betrieblichen Pausenfenster (Liste plus Formular).
+
+Der Controller behaelt beide POST-Wege, die Validierung, das Laden des zu
+bearbeitenden Fensters und die Liste; die View bekommt zehn Werte – zu den
+ueblichen sechs kommen `$fenster`, `$form`, `$editId` und die vier `cfg*`-Werte
+der gesetzlichen Pausen. 1.788 → 1.638 Zeilen Controller plus 192 Zeilen View.
+
+**Eine bewusste Abweichung**: `Csrf::feld()` statt der handgeschriebenen Zeile,
+an drei Stellen (zwei feste Formulare, eines je Tabellenzeile). Knopf-Groessen
+gab es hier keine zu entfernen.
+
+Der Merker `$ladefehler` (P-2026-08-15-09) und der Link „Neu anlegen" nur beim
+Bearbeiten (P-2026-08-15-15) waren schon da und ziehen unveraendert mit um.
+
+### TEST
+Wegwerf-Umgebung aus P-2026-08-15-08, HEAD-Kopie **vor** der Messung auf
+P-2026-08-15-15 gebracht (die Lehre aus -14).
+
+| Lage | Abweichende Zeilen | erwartet |
+| --- | --- | --- |
+| Liste mit einem Fenster | 9 | 9 (3 × `Csrf::feld`) |
+| mit `ok=1` | 9 | 9 |
+| Bearbeiten (`id=3`) | 9 | 9 |
+| Leere Liste | 6 | 6 (nur die zwei festen Formulare) |
+| Tabelle unlesbar | 6 | 6 |
+
+POST-Wege auf dem neuen Stand:
+
+| Weg | Ergebnis |
+| --- | --- |
+| Gesetzliche Werte speichern (Schwelle 1: 6 → 7) | 302 `&ok=1`, `config` geaendert, danach zurueckgesetzt |
+| Neues Pausenfenster (12:00–12:30) | 302 `&ok=1`, Zeile mit `12:00:00`/`12:30:00` |
+| Umschalten | 302, `aktiv = 0` |
+| Bis vor Von | „Bis-Uhrzeit muss nach der Von-Uhrzeit liegen." |
+| Falsches CSRF-Token | „CSRF-Check fehlgeschlagen.", `aktiv` unveraendert |
+
+22 Backend-Aufrufe HTTP 200, Serverlog ohne Meldung, `php -l` ueber beide
+Dateien, Umlaut-Suchlauf ohne Treffer.
+
+### Gefundene Fehler im eigenen Entwurf
+Der Test sollte die Meldung „Bitte eine gültige Von-Uhrzeit angeben (HH:MM)."
+zeigen und bekam sie nicht. Grund ist keine Aenderung dieses Patches, sondern
+die Validierung selbst: `preg_match('/^\d{2}:\d{2}$/', $von)` prueft nur die
+**Form**, nicht den Bereich. Damit passiert `25:99` die Pruefung, und der
+Benutzer bekommt je nach zweitem Wert:
+
+- `von=25:99`, `bis=13:00` → „Bis-Uhrzeit muss nach der Von-Uhrzeit liegen." –
+  eine Erklaerung, die auf die falsche Eingabe zeigt.
+- `von=25:99`, `bis=26:00` → „Speichern fehlgeschlagen." Die Datenbank weist die
+  `time`-Spalte ab, es landet **nichts** in der Tabelle (nachgesehen), aber die
+  Meldung klingt nach einem Systemproblem statt nach einem Tippfehler.
+
+Aus dem Browser ist das nicht ausloesbar (`<input type="time">` liefert gueltige
+Werte), per POST von Hand schon. Keine Datenverfaelschung, aber zwei irrefuehrende
+Meldungen. Nicht in diesem Patch behoben – hier soll das HTML gleich bleiben.
+Notiert als **B-099**.
+
+### Was bewusst nicht erreicht wurde
+Eine Maske des Controllers fehlt noch: `indexKrankzeitraum()`, mit Abstand die
+groesste. Danach steht die Tab-Zeile sechsmal identisch da und das gemeinsame
+Teil-Template lohnt sich.
+
+### NEXT
+B-099 (Uhrzeit-Pruefung), dann `indexKrankzeitraum()` als letzte Maske.
+
 ## P-2026-08-15-15 t-113-neu-anlegen-nur-beim-bearbeiten
 
 ### EINGELESEN

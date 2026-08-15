@@ -26,8 +26,10 @@ Abschnitt 12, der Stufenplan in Abschnitt 11 – dort und bewusst nicht hier ein
 zweites Mal.
 
 ## Offene Bugs
-
-Keine bekannten.
+- **B-099** Pausenfenster: Die Uhrzeit-Prüfung testet nur die Form (`\d{2}:\d{2}`),
+  nicht den Bereich. `25:99` kommt durch und erzeugt eine irreführende Meldung
+  („Bis-Uhrzeit muss nach der Von-Uhrzeit liegen." bzw. „Speichern
+  fehlgeschlagen."). Aus dem Browser nicht auslösbar, per POST schon.
 
 ## Offene Tasks
 - **T-112** „`catch` → `return []`" steckt an 26 Stellen in `modelle/` und
@@ -35,7 +37,7 @@ Keine bekannten.
   unerreichbar macht (B-097, T-110). Durchsehen, nicht pauschal ändern;
   Suchlauf in P-2026-08-15-10.
 - **T-104** Vier Controller erzeugen HTML selbst, statt `views/` zu benutzen –
-  **9 Masken**: `KonfigurationController` (2), `AuftragController` (4),
+  **8 Masken**: `KonfigurationController` (1), `AuftragController` (4),
   `TerminalAdminController` (2), `SmokeTestController` (1). Eine Maske je
   Patch; Muster und Prüfweg: P-2026-08-11-09.
 
