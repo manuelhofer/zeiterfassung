@@ -43,6 +43,44 @@ Deprecations auf, die im Browser unsichtbar bleiben:
 sudo tail -50 /var/log/httpd/error_log
 ```
 
+## Nach flächigen Textänderungen (Pflicht)
+
+Gemeint ist jede Änderung, die viele Dateien gleichzeitig auf eine
+Schreibweise bringt – Umlaute, Begriffe, Rechtschreibung. Sie ist der einzige
+Änderungstyp in diesem Projekt, der **stumm** kaputtgeht: `php -l` bleibt
+sauber, die Seite lädt, und trotzdem tut ein Knopf nichts mehr, weil sein Wert
+nicht mehr zu der `if`-Bedingung passt, die ihn liest.
+
+Das ist zweimal passiert (P-2026-08-14-08 → P-2026-08-15-01/-02/-03), obwohl
+der Fall in P-2026-08-10-19 vollständig beschrieben stand. Deshalb hier drei
+Suchläufe statt eines weiteren Absatzes. **Erwartete Ausgabe: jeweils keine.**
+
+Ein Formularwert ist ein Bezeichner, kein Text – kein `value` bekommt einen
+Umlaut:
+
+```bash
+grep -rInE '<(input|button|option)[^>]*value="[^"<]*[äöüßÄÖÜ]' --include='*.php' controller views public
+```
+
+Namen mit Unterstrich sind Spalten, Array-Schlüssel oder Felder – auch dort,
+wo ein Kommentar sie nur zitiert:
+
+```bash
+grep -rInoE '[A-Za-zäöüßÄÖÜ]*[äöüß][A-Za-zäöüß]*_[A-Za-z_äöüß]+|[A-Za-z]+_[A-Za-z_]*[äöüß][A-Za-zäöüß_]*' --include='*.php' --include='*.js' --include='*.sql' controller views services core modelle public sql
+```
+
+Funktions- und Variablennamen bleiben ASCII, in PHP wie in JavaScript:
+
+```bash
+grep -rInE '(function|const|let|var)\s+[A-Za-z_$]*[äöüßÄÖÜ]|\$[a-zA-Z_]*[äöüßÄÖÜ][a-zA-Z_]*\s*=' --include='*.php' --include='*.js' controller views services core modelle public
+```
+
+**Was diese Suchläufe nicht finden:** Attribute und Werte, die erst zur
+Laufzeit entstehen. Die Bildschirmtastatur des Terminals baut ihre Tasten in
+JavaScript zusammen – `data-taste-wert="löschen"` stand in keinem Suchlauf und
+war trotzdem da. Wer Terminal-Dateien angefasst hat, öffnet die Seite und
+prüft die Tasten von Hand (siehe *Manuelle Kernablaeufe*).
+
 ## Manuelle Kernablaeufe
 
 Nach Änderungen an Backend, Auth, Session, Rechten oder Layout:
@@ -66,6 +104,11 @@ Nach Änderungen am Terminal:
 - Auftrag stoppen
 - Auto-Logout prüfen
 - Health-Endpunkt `public/terminal.php?aktion=health` prüfen
+- Bildschirmtastatur: ein Zeichen tippen, *Löschen* drücken, auf der
+  Einrichtungsseite zusätzlich die Umschalttaste – diese Tasten hängen an
+  Werten, die kein Suchlauf im Quelltext sieht
+- Urlaub-Wizard: Schritt 1 → 2 → *Zurück*, und einmal ein Enddatum vor dem
+  Startdatum (die Fehlermeldung muss erscheinen und *Weiter* blockieren)
 
 Nach Änderungen an den Installationsskripten (`scripts/terminal/`):
 

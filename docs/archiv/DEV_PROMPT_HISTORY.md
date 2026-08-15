@@ -99,6 +99,88 @@ in den Statusbericht.
   D-002 entfallen; die Regel selbst gilt weiter.)
 
 
+## P-2026-08-15-04 pruefgriff-fuer-flaechige-textaenderungen
+
+### EINGELESEN
+- `docs/wartungscheckliste.md` vollstaendig.
+- `docs/arbeitsregeln.md` §5, der auf die Checkliste verweist.
+- Die eigenen Eintraege P-2026-08-15-01 bis -03 und der von P-2026-08-10-19.
+
+### DATEIEN
+- `docs/wartungscheckliste.md`
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Die drei Suchlaeufe aus dem neuen Abschnitt, woertlich aus der Datei kopiert und
+auf dem Stand `7fa0d8f` ausgefuehrt, melden genau die 15 Stellen, die
+P-2026-08-15-01 bis -03 repariert haben – auf dem heutigen Stand keine einzige.
+
+### DONE
+Drei Patches hintereinander haben denselben Fehlertyp aufgeraeumt, und der Fall
+stand vorher schon vollstaendig beschrieben im Verlauf (P-2026-08-10-19) – ohne
+dass das etwas verhindert haette. Ein vierter Absatz haette daran nichts
+geaendert. Was fehlt, ist kein Text zum Lesen, sondern ein Befehl zum Ausfuehren,
+und zwar dort, wo nach einer Aenderung ohnehin nachgesehen wird.
+
+`docs/wartungscheckliste.md` bekommt deshalb den Abschnitt **„Nach flaechigen
+Textaenderungen (Pflicht)"** mit drei kopierbaren Suchlaeufen und der Ansage
+„Erwartete Ausgabe: jeweils keine":
+
+1. `value="…"` mit Umlaut – ein Formularwert ist ein Bezeichner, kein Text.
+2. Namen mit Unterstrich und Umlaut – Spalten, Array-Schluessel, Felder, auch
+   wo ein Kommentar sie nur zitiert.
+3. Funktions- und Variablennamen mit Umlaut, PHP wie JavaScript.
+
+Dazu steht dort, **was die Suchlaeufe nicht finden**: Werte, die erst zur
+Laufzeit entstehen. `data-taste-wert="löschen"` stand in keinem Quelltext und
+war trotzdem da (P-2026-08-15-03). Der Abschnitt „Manuelle Kernablaeufe" bekommt
+darum zwei Terminal-Zeilen mit: Bildschirmtastatur (Zeichen, Löschen,
+Umschalttaste) und Urlaub-Wizard (Zurück, Enddatum vor Startdatum).
+
+Warum die Checkliste und nicht die Arbeitsregeln: Die Arbeitsregeln liest jeder
+Chat beim Kaltstart, sie stehen unter einer Byte-Grenze (§9), und dort gehoert
+das **Prinzip** hin – der Satz dazu steht seit P-2026-08-15-02 in §7. Der
+konkrete Befehl gehoert in die Datei, die man aufschlaegt, wenn man gerade etwas
+geaendert hat. §5 verweist bereits dorthin.
+
+### TEST
+Die drei Befehle nicht abgetippt, sondern mit `awk` aus den Codebloecken der
+Datei geschnitten und so ausgefuehrt – sonst prueft man seinen Entwurf und nicht
+die Doku:
+
+| Stand | 1) Formularwerte | 2) Bezeichner | 3) Funktionsnamen |
+| --- | --- | --- | --- |
+| `7fa0d8f` (vor der Serie) | 2 | 12 | 1 |
+| heute | 0 | 0 | 0 |
+
+Die 15 Meldungen auf dem alten Stand sind genau die Stellen aus
+P-2026-08-15-01 (2), -02 (12) und -03 (1 – die uebrigen zehn Stellen von -03
+sind Attributnamen und Sentinelwerte, die Suchlauf 3 nicht abdeckt und die
+deshalb im Text ausdruecklich als Luecke benannt sind).
+
+### Gefundene Fehler im eigenen Entwurf
+Der erste Entwurf war ein Pruefskript in `scripts/dev/`, das Formularwerte
+automatisch gegen ihre Vergleichspartner haelt. Es hat den Fehler zwar
+gefunden – aber zusammen mit 29 harmlosen Meldungen, weil Werte oft gar nicht
+im Controller verglichen werden, sondern im Model (`'ABZIEHEN'`), per Route
+(`name="seite"`) oder gar nicht (`wizard_aktion=speichern` ist der Default-Fall).
+Vorher 30 Meldungen, nachher 29 – diesen Unterschied sieht niemand. Ein Pruefer,
+der bei jedem Lauf Rauschen produziert, wird nach dem zweiten Mal ignoriert und
+ist dann schaedlicher als keiner. Verworfen zugunsten der drei engen Suchlaeufe,
+die genau eine Frage stellen und heute null Treffer haben.
+
+### Was bewusst nicht erreicht wurde
+Kein Automatismus – kein Git-Hook, kein CI-Schritt. Das Projekt hat beides
+nicht, und ein Hook waere eine Entscheidung ueber die Arbeitsumgebung, kein
+Doku-Patch. Die Suchlaeufe laufen, wenn jemand sie aufruft.
+
+Die Suchlaeufe pruefen **eine** Sorte Schaden: Umlaut dort, wo ASCII stehen
+muss. Eine Textersetzung kann auch Sinn zerstoeren, ohne ein Sonderzeichen zu
+hinterlassen; dagegen hilft nur Lesen.
+
+### NEXT
+Zurueck zu T-104: `bearbeiten()` des `KonfigurationController` in `views/`.
+
 ## P-2026-08-15-03 terminal-js-bezeichner-wieder-ascii
 
 ### EINGELESEN
