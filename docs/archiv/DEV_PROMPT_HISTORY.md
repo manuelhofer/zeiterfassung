@@ -99,6 +99,101 @@ in den Statusbericht.
   D-002 entfallen; die Regel selbst gilt weiter.)
 
 
+## P-2026-08-15-33 t-104-auftragsliste-in-views
+
+### EINGELESEN
+- `docs/STATUS_SNAPSHOT.md` (T-104), `views/auftrag/detail.php` als Muster
+  (P-2026-08-15-32).
+- `AuftragController::index()`, `zeigeBlaetternavigation()`, `baueListenUrl()`,
+  `zaehleInaktiveAuftraege()` vollstaendig.
+- `views/layout/header.php`, Block `.pager` / `.button-link.disabled`.
+
+### DATEIEN
+- `views/auftrag/liste.php`, `views/auftrag/blaetternavigation.php` (neu)
+- `controller/AuftragController.php`
+- `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Die Auftragsliste erzeugt in allen Ansichten dasselbe HTML wie vorher – bis auf
+die Einrueckung und die `Csrf::feld()`-Stelle je Zeile –, obwohl das Markup
+jetzt in `views/auftrag/liste.php` liegt.
+
+### DONE
+Letzte Maske des `AuftragController`; **der Controller ist damit fertig**
+(T-104 zaehlt nur noch den `SmokeTestController`). 2.053 → 1.842 Zeilen
+Controller plus 214 Zeilen Liste und 85 Zeilen Blaetternavigation.
+
+**Die Blaetternavigation wird ein eigenes Teil-Template.** Sie war eine private
+Methode, die HTML ausgab – nach dem Umzug waere sie der einzige Ort geblieben,
+an dem der Controller noch Markup schreibt. Getrennt in: `baueBlaetterdaten()`
+im Controller rechnet Fenster, Pfeil-Schwelle, Von/Bis und die **URLs** aus
+(sie kommen aus `baueListenUrl()`, das bewusst aus Einzelwerten baut statt aus
+einem mitgeschickten Ziel – das bleibt Controller-Sache), und
+`views/auftrag/blaetternavigation.php` zeigt sie an.
+
+Das Teil-Template nimmt **ein** Buendel `$blaetterdaten` statt acht einzelner
+Variablen: Es wird aus `liste.php` heraus eingebunden und wuerde sonst deren
+Umgebung erben – `$seiteNr` und `$treffer` gibt es dort schon, und wer spaeter
+eine Variable umbenennt, merkt vom stillen Mitlesen nichts.
+
+Ausserdem in den Controller gewandert: das Auslesen der beiden Flash-Meldungen,
+das mitten im HTML stand.
+
+### TEST
+Wegwerf-Umgebung aus P-2026-08-15-28, HEAD-Kopie auf P-2026-08-15-32. Fuer die
+Blaetternavigation **323 erfundene Auftraege** (13 Seiten), 12 davon inaktiv,
+jeder siebte mit „Müller & Söhne" als Kunde.
+
+Verglichen wurde nach Abzug der bekannten `Csrf::feld()`-Stelle je Zeile:
+
+| Lage | Echte Abweichungen |
+| --- | --- |
+| Seite 1 (Pfeile grau, kein Auslassungszeichen) | 0 |
+| Seite 2 und Seite 7 (Auslassung auf **beiden** Seiten) | 0 |
+| Letzte Seite (Pfeile nach rechts grau) | 0 |
+| `s=99` (ueber der letzten Seite) | 0 |
+| Ansicht „inaktiv" | 0 |
+| Suche „Müller" | 0 |
+| Suche ohne Haekchen `mit_inaktiven=0` | 0 |
+| Suche ohne Treffer | 0 |
+| Suche mit `%` und `_` im Begriff | 0 |
+| `auftrag`-Tabelle unlesbar (`RENAME TABLE`) | 0 |
+| Benutzer ohne `AUFTRAEGE_VERWALTEN` | 0 |
+
+Die Pfeil- und Zahlenreihe auf Seite 7 Zeichen fuer Zeichen nachgesehen:
+`« ‹ 1 … 4 5 6 [7] 8 9 10 … 13 › »`, jede URL identisch zum alten Stand.
+
+POST-Wege auf dem neuen Stand:
+
+| Weg | Ergebnis |
+| --- | --- |
+| „Inaktiv setzen" aus Zeile mit Suche und Seite 2 | 302 auf `?seite=auftrag&q=MASSE&s=2`, `aktiv = 0`, Flash „… ist jetzt inaktiv und aus der Liste verschwunden." |
+| Falsches CSRF-Token | 302 auf `?seite=auftrag`, „Die Sitzung ist abgelaufen. Bitte erneut versuchen.", Wert unveraendert |
+
+25 Backend-Routen HTTP 200, Serverlogs beider Staende ohne Meldung, `php -l`
+ueber drei Dateien, Umlaut-Suchlaeufe ohne Treffer.
+
+### Gefundene Fehler im eigenen Entwurf
+Die Massendaten hatten anfangs **gleiche `geaendert_am`-Zeitstempel** (jeder
+28. Auftrag derselbe). Die Sortierung der Liste greift genau darauf zu; bei
+gleichen Werten ist die Reihenfolge unbestimmt, und `LIMIT/OFFSET` schnitt auf
+beiden Staenden andere Zeilen heraus – 112 gemeldete Abweichungen ohne einen
+einzigen Codeunterschied. Wer eine geblaetterte Liste vergleicht, braucht
+**eindeutige Sortierwerte** in den Testdaten, sonst misst er den Zufall.
+
+### Was bewusst nicht erreicht wurde
+Der Fehlerpfad zeigt weiterhin **beides**: „Die Aufträge konnten nicht geladen
+werden." und direkt darunter „Keine Aufträge vorhanden." – dieselbe falsche
+Auskunft, die P-2026-08-15-09 (B-096) fuer sechs andere Listen abgestellt hat.
+Hier nicht mitgemacht, weil dieser Patch HTML-gleich bleiben muss. Als **B-101**
+notiert und direkt danach faellig.
+
+T-120 (die zweimal fast gleiche Katalog-Auswahl) ist mit dieser Maske
+entscheidbar geworden, gehoert aber nicht in denselben Patch.
+
+### NEXT
+B-101, danach T-105/T-104 im `SmokeTestController`.
+
 ## P-2026-08-15-32 t-104-auftragsdetail-in-views
 
 ### EINGELESEN

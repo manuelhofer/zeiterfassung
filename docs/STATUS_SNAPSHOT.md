@@ -27,23 +27,19 @@ zweites Mal.
 
 ## Offene Bugs
 
-Keine bekannten.
+- **B-101** Die Auftragsliste zeigt bei einem Ladefehler beides: „Die Aufträge
+  konnten nicht geladen werden." und „Keine Aufträge vorhanden." – derselbe
+  Fehler, den P-2026-08-15-09 (B-096) für sechs andere Listen behoben hat.
 
 ## Offene Tasks
 - **T-112** „`catch` → `return []`" steckt an 26 Stellen in `modelle/` und
   `services/`. Falsch ist es nur dort, wo es die Fehlermeldung des Aufrufers
   unerreichbar macht (B-097, T-110). Durchsehen, nicht pauschal ändern;
   Suchlauf in P-2026-08-15-10.
-- **T-104** Zwei Controller erzeugen HTML selbst, statt `views/` zu benutzen –
-  **2 Masken**: `AuftragController` (die Auftragsliste), `SmokeTestController`
-  (1). Eine Maske je Patch; Muster und Prüfweg: P-2026-08-11-09, zuletzt
-  P-2026-08-15-32.
-
-  Achtung: Der `grep` nach dem Header-Require zählt zu hoch – er findet auch
-  „Keine Berechtigung"-Blöcke in längst fertigen Controllern.
-
-  Beim Bauen einer Maske erst in `views/layout/header.php` nachsehen und
-  **keine eigenen Grössen auf Knöpfe schreiben** – Begründung steht dort.
+- **T-104** Noch **eine** Maske erzeugt ihr HTML selbst statt in `views/`:
+  `SmokeTestController` (siehe T-105). Muster und Prüfweg: P-2026-08-11-09,
+  zuletzt P-2026-08-15-33; keine eigenen Grössen auf Knöpfe (Begründung in
+  `views/layout/header.php`).
 - **T-120** Die Katalog-Auswahl steht zweimal fast gleich in `views/auftrag/`
   (`formular.php`, `detail.php`) – erst nach der letzten T-104-Maske
   entscheiden, ob ein gemeinsames Teil-Template lohnt.

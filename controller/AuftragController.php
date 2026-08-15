@@ -279,199 +279,72 @@ class AuftragController
             ], null, null, 'auftrag');
         }
 
-        $darfVerwaltenListe = $this->darfAuftraegeVerwalten();
-        $listenCsrf = Csrf::token(self::CSRF_BEREICH_STAMM);
+        $darfVerwalten = $this->darfAuftraegeVerwalten();
 
-        require __DIR__ . '/../views/layout/header.php';
-        ?>
-        <section>
-            <h2><?php echo $nurInaktive ? 'Inaktive Aufträge' : 'Aufträge'; ?></h2>
+        // Die View baut ihr CSRF-Feld selbst; sie bekommt dafür den
+        // Bereichsnamen statt eines fertigen Tokens.
+        $csrfBereich = self::CSRF_BEREICH_STAMM;
 
-            <?php
-                $flashFehlerListe = isset($_SESSION['auftrag_flash_fehler']) ? (string)$_SESSION['auftrag_flash_fehler'] : '';
-                $flashOkListe = isset($_SESSION['auftrag_flash_ok']) ? (string)$_SESSION['auftrag_flash_ok'] : '';
-                unset($_SESSION['auftrag_flash_fehler'], $_SESSION['auftrag_flash_ok']);
-            ?>
-            <?php if ($flashOkListe !== ''): ?>
-                <p class="success"><?php echo htmlspecialchars($flashOkListe, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></p>
-            <?php endif; ?>
-            <?php if ($flashFehlerListe !== ''): ?>
-                <p class="error"><?php echo htmlspecialchars($flashFehlerListe, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></p>
-            <?php endif; ?>
+        $flashOk     = isset($_SESSION['auftrag_flash_ok']) ? (string)$_SESSION['auftrag_flash_ok'] : '';
+        $flashFehler = isset($_SESSION['auftrag_flash_fehler']) ? (string)$_SESSION['auftrag_flash_fehler'] : '';
+        unset($_SESSION['auftrag_flash_fehler'], $_SESSION['auftrag_flash_ok']);
 
-            <div class="table-actions">
-                <?php if (!$nurInaktive): ?>
-                    <?php if ($darfVerwaltenListe): ?>
-                        <a class="button-link" href="?seite=auftrag_neu">+ Auftrag hinzufügen</a>
-                    <?php endif; ?>
-                    <a class="button-link quiet" href="?seite=auftrag&amp;ansicht=inaktiv">
-                        Inaktive Aufträge<?php echo $anzahlInaktive > 0 ? ' (' . $anzahlInaktive . ')' : ''; ?>
-                    </a>
-                <?php else: ?>
-                    <a class="button-link quiet" href="?seite=auftrag">&laquo; Zurück zu den aktiven Aufträgen</a>
-                <?php endif; ?>
-            </div>
+        $blaetterdaten = $this->baueBlaetterdaten($seiteNr, $seitenGesamt, $treffer, $q, $nurInaktive, $mitInaktiven);
 
-            <?php if ($nurInaktive): ?>
-                <p class="muted"><small>
-                    Inaktive Aufträge erscheinen nicht in der normalen Liste. Sie sind
-                    nicht gelöscht: Buchungen, Stunden und Laufkarte bleiben erhalten.
-                </small></p>
-            <?php endif; ?>
+        require __DIR__ . '/../views/auftrag/liste.php';
+    }
 
-            <form method="get" action="">
-                <input type="hidden" name="seite" value="auftrag">
-                <?php if ($nurInaktive): ?>
-                    <input type="hidden" name="ansicht" value="inaktiv">
-                <?php endif; ?>
+    /**
+     * Rechnet vor, was die Blätternavigation anzeigt.
+     *
+     * Die Seitenzahlen stehen immer da. Die Sprungpfeile (Anfang, zurück, vor,
+     * Ende) kommen erst ab `PFEILE_AB_SEITEN` dazu - bei vier Seiten sind alle
+     * Zahlen ohnehin sichtbar.
+     *
+     * Die URLs entstehen hier und nicht in der View: Sie kommen aus
+     * `baueListenUrl()`, das bewusst aus Einzelwerten baut statt aus einem
+     * mitgeschickten Ziel.
+     *
+     * @return array<string,mixed>
+     */
+    private function baueBlaetterdaten(
+        int $seiteNr,
+        int $seitenGesamt,
+        int $treffer,
+        string $q,
+        bool $nurInaktive,
+        bool $mitInaktiven
+    ): array {
+        // Wieviele Zahlen um die aktuelle Seite herum stehen. Bei sehr vielen
+        // Seiten würde die Zeile sonst umbrechen und unlesbar werden.
+        $fenster    = 3;
+        $ersteZahl  = max(1, $seiteNr - $fenster);
+        $letzteZahl = min($seitenGesamt, $seiteNr + $fenster);
 
-                <div class="toolbar">
-                    <label>
-                        Suche
-                        <input type="search" name="q" value="<?php echo htmlspecialchars($q, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>" style="min-width:260px;"
-                               placeholder="Auftragsnummer, Kunde, Zeichnung, Beschreibung">
-                    </label>
-                    <button type="submit">Suchen</button>
-                    <?php if ($q !== ''): ?>
-                        <a class="button-link quiet" href="<?php echo $nurInaktive ? '?seite=auftrag&amp;ansicht=inaktiv' : '?seite=auftrag'; ?>">Zurücksetzen</a>
-                    <?php endif; ?>
+        // Gebraucht werden nur die Ziele, die auch als Link erscheinen: das
+        // Fenster um die aktuelle Seite, dazu erste und letzte Seite sowie die
+        // Nachbarn für die Pfeile.
+        $ziele = array_unique(array_merge(
+            range($ersteZahl, $letzteZahl),
+            [1, $seitenGesamt, max(1, $seiteNr - 1), min($seitenGesamt, $seiteNr + 1)]
+        ));
 
-                    <?php if (!$nurInaktive): ?>
-                        <?php /* Verstecktes Feld voran: So kommt der Wert auch dann mit, wenn das Häkchen weg ist. */ ?>
-                        <input type="hidden" name="mit_inaktiven" value="0">
-                        <label style="flex-direction:row;align-items:center;gap:0.35rem;font-weight:400;">
-                            <input type="checkbox" name="mit_inaktiven" value="1" <?php echo $mitInaktiven ? 'checked' : ''; ?>>
-                            Auch inaktive Aufträge durchsuchen
-                        </label>
-                    <?php endif; ?>
-                </div>
+        $seitenUrls = [];
+        foreach ($ziele as $ziel) {
+            $seitenUrls[$ziel] = $this->baueListenUrl($q, $nurInaktive, (int)$ziel, $mitInaktiven);
+        }
 
-                <p class="muted"><small>
-                    Durchsucht Auftragsnummer, Kunde, Zeichnungsnummer und Kurzbeschreibung<?php echo $nurInaktive ? ' – nur unter den inaktiven Aufträgen' : ''; ?>.
-                    <?php if (!$nurInaktive): ?>
-                        Ohne Suchbegriff zeigt die Liste nur die aktiven Aufträge.
-                    <?php endif; ?>
-                </small></p>
-            </form>
-
-
-            <?php if (!empty($fehlermeldung)): ?>
-                <div class="fehlermeldung">
-                    <?php echo htmlspecialchars((string)$fehlermeldung, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>
-                </div>
-            <?php endif; ?>
-
-            <?php if (count($auftraege) === 0): ?>
-                <?php if ($q !== ''): ?>
-                    <p>Keine Aufträge zu &bdquo;<?php echo htmlspecialchars($q, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>&ldquo; gefunden.</p>
-                    <p><small>Gesucht wurde in Auftragsnummer, Kunde, Zeichnungsnummer und Kurzbeschreibung.</small></p>
-                <?php elseif ($nurInaktive): ?>
-                    <p>Kein Auftrag ist auf inaktiv gesetzt.</p>
-                <?php else: ?>
-                    <p>Keine Aufträge vorhanden.</p>
-                    <p><small>Hier erscheinen angelegte Aufträge und alle Auftragsnummern, zu denen es Buchungen gibt.</small></p>
-                <?php endif; ?>
-            <?php else: ?>
-                <div class="table-wrap">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Auftragsnummer</th>
-                            <th>Kunde</th>
-                            <th>Zeichnungsnummer</th>
-                            <th>Kurzbeschreibung</th>
-                            <th>Buchungen</th>
-                            <th>Laufend</th>
-                            <th>Status</th>
-                            <th>Stunden (Summe)</th>
-                            <th>Erste Buchung</th>
-                            <th>Letzte Buchung</th>
-                            <th>Aktiv</th>
-                            <th>Zuletzt bearbeitet</th>
-                            <th>Aktion</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php foreach ($auftraege as $row): ?>
-                            <?php
-                                $nr = (string)($row['auftragsnummer'] ?? '');
-                                $aktivRaw = $row['auftrag_aktiv'] ?? null;
-                                $buchungen = (int)($row['buchungen'] ?? 0);
-                                $laufend = (int)($row['laufend'] ?? 0);
-                                $status = (string)($row['status'] ?? '');
-                                $sekunden = (int)($row['sekunden'] ?? 0);
-                                $stunden = $sekunden > 0 ? round($sekunden / 3600, 2) : 0.0;
-                                $erste = (string)($row['erste_startzeit'] ?? '');
-                                $letzte = (string)($row['letzte_zeit'] ?? '');
-                                $zuletztBearbeitet = (string)($row['zuletzt_bearbeitet'] ?? '');
-
-                                $kunde = trim((string)($row['kunde'] ?? ''));
-                                $zeichnungsnummer = trim((string)($row['zeichnungsnummer'] ?? ''));
-                                $kurzbeschreibung = trim((string)($row['kurzbeschreibung'] ?? ''));
-
-                                $nrEsc = htmlspecialchars($nr, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
-                                $aktivText = $aktivRaw === null ? '-' : (((int)$aktivRaw === 1) ? 'Ja' : 'Nein');
-                                $statusText = $status !== '' ? $status : '-';
-
-                                // Ohne Stammdatensatz gilt der Auftrag als aktiv (siehe Abfrage).
-                                // Der Knopf richtet sich nach der Zeile, nicht nach der Ansicht:
-                                // In einer Suche über alles stehen beide Sorten nebeneinander.
-                                $zeileAktiv = ($aktivRaw === null) || ((int)$aktivRaw === 1);
-                            ?>
-                            <tr<?php echo $zeileAktiv ? '' : ' class="muted"'; ?>>
-                                <td><?php echo $nrEsc; ?></td>
-                                <td><?php echo $kunde !== '' ? htmlspecialchars($kunde, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') : '-'; ?></td>
-                                <td><?php echo $zeichnungsnummer !== '' ? htmlspecialchars($zeichnungsnummer, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') : '-'; ?></td>
-                                <td><?php echo $kurzbeschreibung !== '' ? htmlspecialchars($kurzbeschreibung, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') : '-'; ?></td>
-                                <td><?php echo $buchungen; ?></td>
-                                <td><?php echo $laufend; ?></td>
-                                <td><?php echo htmlspecialchars($statusText, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></td>
-                                <td><?php echo number_format($stunden, 2, '.', ''); ?></td>
-                                <td><?php echo htmlspecialchars($erste, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></td>
-                                <td><?php echo htmlspecialchars($letzte, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></td>
-                                <td><?php echo $aktivText; ?></td>
-                                <td><?php echo htmlspecialchars($zuletztBearbeitet, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></td>
-                                <td>
-                                    <?php if ($nr !== ''): ?>
-                                        <div class="table-actions">
-                                            <a class="button-link" href="?seite=auftrag_detail&amp;code=<?php echo urlencode($nr); ?>">Details</a>
-                                            <?php if ($darfVerwaltenListe): ?>
-                                                <?php /* Umschalten direkt in der Zeile - dafür erst die Details zu öffnen wäre ein Umweg. */ ?>
-                                                <form method="post" action="?seite=auftrag_aktiv_setzen">
-                                                    <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($listenCsrf, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>">
-                                                    <input type="hidden" name="auftragsnummer" value="<?php echo $nrEsc; ?>">
-                                                    <input type="hidden" name="aktiv" value="<?php echo $zeileAktiv ? '0' : '1'; ?>">
-                                                    <input type="hidden" name="q" value="<?php echo htmlspecialchars($q, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>">
-                                                    <input type="hidden" name="ansicht" value="<?php echo $nurInaktive ? 'inaktiv' : ''; ?>">
-                                                    <input type="hidden" name="mit_inaktiven" value="<?php echo $mitInaktiven ? '1' : '0'; ?>">
-                                                    <input type="hidden" name="s" value="<?php echo $seiteNr; ?>">
-                                                    <button type="submit" class="quiet">
-                                                        <?php echo $zeileAktiv ? 'Inaktiv setzen' : 'Aktiv setzen'; ?>
-                                                    </button>
-                                                </form>
-                                            <?php endif; ?>
-                                        </div>
-                                    <?php else: ?>
-                                        -
-                                    <?php endif; ?>
-                                </td>
-                            </tr>
-                        <?php endforeach; ?>
-                    </tbody>
-                </table>
-                </div>
-
-                <?php $this->zeigeBlaetternavigation($seiteNr, $seitenGesamt, $treffer, $q, $nurInaktive, $mitInaktiven); ?>
-
-                <p class="muted">
-                    <small>
-                        Arbeitsschritt-Code wird in der Detailansicht angezeigt, sofern beim Auftrag-Start erfasst (Scan/Manuell).
-                    </small>
-                </p>
-            <?php endif; ?>
-        </section>
-        <?php
-        require __DIR__ . '/../views/layout/footer.php';
+        return [
+            'seiteNr'      => $seiteNr,
+            'seitenGesamt' => $seitenGesamt,
+            'treffer'      => $treffer,
+            'von'          => (($seiteNr - 1) * self::TREFFER_JE_SEITE) + 1,
+            'bis'          => min($seiteNr * self::TREFFER_JE_SEITE, $treffer),
+            'ersteZahl'    => $ersteZahl,
+            'letzteZahl'   => $letzteZahl,
+            'mitPfeilen'   => $seitenGesamt >= self::PFEILE_AB_SEITEN,
+            'seitenUrls'   => $seitenUrls,
+        ];
     }
 
     /**
@@ -559,90 +432,6 @@ class AuftragController
             : 'Auftrag "' . $auftragsnummer . '" ist jetzt inaktiv und aus der Liste verschwunden.';
 
         header('Location: ' . $zielUrl);
-    }
-
-    /**
-     * Blätternavigation unter der Auftragsliste.
-     *
-     * Die Seitenzahlen stehen immer da. Die Sprungpfeile (Anfang, zurück, vor,
-     * Ende) kommen erst ab `PFEILE_AB_SEITEN` dazu - bei vier Seiten sind alle
-     * Zahlen ohnehin sichtbar.
-     */
-    private function zeigeBlaetternavigation(
-        int $seiteNr,
-        int $seitenGesamt,
-        int $treffer,
-        string $q,
-        bool $nurInaktive,
-        bool $mitInaktiven
-    ): void {
-        $esc = static function ($wert): string {
-            return htmlspecialchars((string)$wert, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
-        };
-
-        $von = (($seiteNr - 1) * self::TREFFER_JE_SEITE) + 1;
-        $bis = min($seiteNr * self::TREFFER_JE_SEITE, $treffer);
-
-        $url = fn (int $ziel): string => $esc($this->baueListenUrl($q, $nurInaktive, $ziel, $mitInaktiven));
-
-        // Wieviele Zahlen um die aktuelle Seite herum stehen. Bei sehr vielen
-        // Seiten würde die Zeile sonst umbrechen und unlesbar werden.
-        $fenster = 3;
-        $ersteZahl = max(1, $seiteNr - $fenster);
-        $letzteZahl = min($seitenGesamt, $seiteNr + $fenster);
-
-        $mitPfeilen = $seitenGesamt >= self::PFEILE_AB_SEITEN;
-        ?>
-        <nav class="pager">
-            <span class="pager-info">
-                <?php echo $treffer === 1
-                    ? '1 Auftrag'
-                    : $von . '&ndash;' . $bis . ' von ' . $treffer . ' Aufträgen'; ?>
-            </span>
-
-            <?php if ($seitenGesamt > 1): ?>
-                <?php if ($mitPfeilen): ?>
-                    <?php if ($seiteNr > 1): ?>
-                        <a class="button-link quiet" href="<?php echo $url(1); ?>" title="Erste Seite">&laquo;</a>
-                        <a class="button-link quiet" href="<?php echo $url($seiteNr - 1); ?>" title="Eine Seite zurück">&lsaquo;</a>
-                    <?php else: ?>
-                        <span class="button-link disabled">&laquo;</span>
-                        <span class="button-link disabled">&lsaquo;</span>
-                    <?php endif; ?>
-                <?php endif; ?>
-
-                <?php if ($ersteZahl > 1): ?>
-                    <a class="button-link quiet" href="<?php echo $url(1); ?>">1</a>
-                    <?php if ($ersteZahl > 2): ?><span class="muted">&hellip;</span><?php endif; ?>
-                <?php endif; ?>
-
-                <?php for ($i = $ersteZahl; $i <= $letzteZahl; $i++): ?>
-                    <?php if ($i === $seiteNr): ?>
-                        <span class="button-link aktuell" aria-current="page"><?php echo $i; ?></span>
-                    <?php else: ?>
-                        <a class="button-link quiet" href="<?php echo $url($i); ?>"><?php echo $i; ?></a>
-                    <?php endif; ?>
-                <?php endfor; ?>
-
-                <?php if ($letzteZahl < $seitenGesamt): ?>
-                    <?php if ($letzteZahl < $seitenGesamt - 1): ?><span class="muted">&hellip;</span><?php endif; ?>
-                    <a class="button-link quiet" href="<?php echo $url($seitenGesamt); ?>"><?php echo $seitenGesamt; ?></a>
-                <?php endif; ?>
-
-                <?php if ($mitPfeilen): ?>
-                    <?php if ($seiteNr < $seitenGesamt): ?>
-                        <a class="button-link quiet" href="<?php echo $url($seiteNr + 1); ?>" title="Eine Seite vor">&rsaquo;</a>
-                        <a class="button-link quiet" href="<?php echo $url($seitenGesamt); ?>" title="Letzte Seite">&raquo;</a>
-                    <?php else: ?>
-                        <span class="button-link disabled">&rsaquo;</span>
-                        <span class="button-link disabled">&raquo;</span>
-                    <?php endif; ?>
-                <?php endif; ?>
-
-                <span class="muted"><small>Seite <?php echo $seiteNr; ?> von <?php echo $seitenGesamt; ?></small></span>
-            <?php endif; ?>
-        </nav>
-        <?php
     }
 
     /**
