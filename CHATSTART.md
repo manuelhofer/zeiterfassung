@@ -24,8 +24,8 @@ Konfiguration zeigt seine Einrichtungsseite und koppelt sich per Code an.
 ## 2. Die vier Regeln, die immer gelten
 
 **Verbindlich und vollständig ist [docs/arbeitsregeln.md](docs/arbeitsregeln.md)**
-– lies die, bevor du etwas änderst. Hier stehen nur die vier, bei denen ein
-Verstoß nicht mehr zu reparieren ist:
+– lies die, bevor du etwas änderst; besprechbar ist jede davon (Abschnitt 0).
+Hier stehen nur die vier, bei denen ein Verstoß nicht mehr zu reparieren ist:
 
 - **1 Patch = 1 Thema** mit **einem** Akzeptanzkriterium in einem Satz.
 - **Patch-ID im Commit-Betreff** (`P-YYYY-MM-DD-XX kurzbeschreibung`), dazu ein

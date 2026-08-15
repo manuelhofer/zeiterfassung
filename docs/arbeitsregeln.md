@@ -5,6 +5,15 @@ Modell gerade eingesetzt wird. Diese Datei gilt für **jede** Änderung.
 
 ---
 
+## 0. Verhandelbar ist alles davon
+
+Jede Regel hier ist besprechbar – sie steht nicht da, weil sie unantastbar
+wäre, sondern weil sie sich bewährt hat. Steht eine im Weg oder ist sie falsch:
+**sagen**, mit Begründung. Was nicht geht, ist Stillschweigen in beide
+Richtungen: eine Regel kommentarlos umgehen, oder ihr sehenden Auges in ein
+schlechtes Ergebnis folgen. Geändert wird sie als eigener Patch mit Begründung
+im Verlauf.
+
 ## 1. Wann überhaupt gearbeitet wird
 
 Ob gerade gearbeitet wird, entscheidet der **Projektstatus** in
@@ -160,8 +169,8 @@ die nur bei Bedarf gelesen werden (Fachregeln, Spezifikation, Handbuch).
 cat CLAUDE.md CHATSTART.md docs/arbeitsregeln.md docs/STATUS_SNAPSHOT.md | wc -c
 ```
 
-**Eine Zahl, Bytes.** `wc -c -m` gibt zwei aus, Zeichen zuerst – das hat in
-P-2026-08-14-03 schon einmal 385 Bytes Luft gemeldet, wo 137 waren.
+**Eine Zahl, Bytes.** `wc -c -m` gibt zwei aus, Zeichen zuerst – die Falle
+steht in P-2026-08-14-03.
 
 Zum Abschluss einer Sitzung: Erledigtes aus dem Snapshot **entfernen**, keine
 ableitbare Zahl pflegen (Prozente, Patch-Listen, Verlaufsabrisse, Zeilenzahlen

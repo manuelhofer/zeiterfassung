@@ -99,6 +99,84 @@ in den Statusbericht.
   D-002 entfallen; die Regel selbst gilt weiter.)
 
 
+## P-2026-08-15-07 regeln-sind-verhandelbar
+
+### EINGELESEN
+- `docs/arbeitsregeln.md` vollstaendig, besonders §9 (Kaltstart-Grenze).
+- `CHATSTART.md`, Abschnitt 2.
+- Ansage von Manuel im Chat: „alle regeln sind fluid man kann über alles reden
+  … das kann übrigens auch mal in die allgemeine aufgabenstellung aufgenommen
+  werden".
+
+### DATEIEN
+- `docs/arbeitsregeln.md`
+- `CHATSTART.md`
+- `README.md`
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+`docs/arbeitsregeln.md` beginnt mit einem Abschnitt 0, der sagt, dass jede Regel
+der Datei besprechbar ist – und der Kaltstart bleibt unter 16.000 Bytes.
+
+### DONE
+Bisher stand nirgends, was fuer dieses Projekt von Anfang an gilt: Die Regeln
+sind Werkzeug, nicht Gesetz. Wer die Datei kalt liest, konnte das nicht wissen –
+sie klingt von der ersten Zeile an nach Vorschrift („gilt fuer **jede**
+Änderung"), und ein Werkzeug, das sie so liest, arbeitet stumm an einer Regel
+vorbei oder folgt ihr in ein schlechtes Ergebnis.
+
+Neuer **Abschnitt 0** vor allen anderen, weil er ueber alle anderen etwas sagt.
+Er nennt beides, was nicht geht: kommentarlos umgehen **und** sehenden Auges
+folgen. Und er sagt, wie eine Aenderung aussieht – eigener Patch mit Begruendung
+im Verlauf, damit aus „darueber kann man reden" nicht „das nimmt hier jeder,
+wie er will" wird.
+
+`CHATSTART.md` bekommt den Halbsatz an der Stelle, die ohnehin auf die
+Arbeitsregeln zeigt. Das ist die Datei, die jedes Werkzeug zuerst liest – dort
+muss der Hinweis stehen, sonst findet ihn nur, wer schon in der richtigen Datei
+ist. `README.md` bekommt ihn im Abschnitt „Mitarbeiten": Das ist die Kurzfassung
+fuer Menschen von aussen, und die liest die Liste sonst als Bedingungskatalog.
+`README.md` zaehlt nicht zum Kaltstart, kostet also keine Bytes.
+
+**Dieser Patch hat die Kaltstart-Grenze erreicht** und deshalb im selben Zug
+gekuerzt, wie §9 es verlangt: Der Nachsatz zu `wc -c -m` erzaehlte die Panne aus
+P-2026-08-14-03 mit Zahlen nach („385 Bytes Luft gemeldet, wo 137 waren"). Der
+Verweis auf den Patch bleibt, die Nacherzaehlung faellt weg – sie steht dort, wo
+sie hingehoert, im Verlauf.
+
+### TEST
+Der Befehl aus §9, dreimal gemessen:
+
+| Stand | Bytes |
+| --- | --- |
+| vorher | 15.550 |
+| erster Entwurf des Abschnitts | 16.012 – **ueber der Marke** |
+| nach Kuerzung von Abschnitt 0 und §9 | 15.986 |
+
+Die 16.012 waren kein Schaetzfehler, sondern der erste Entwurf: sechs Zeilen
+statt fuenf. Gemessen wurde jedes Mal mit `wc -c`, nicht mit `wc -c -m` – die
+Falle, die §9 nennt.
+
+Verweise gegengeprueft mit `grep -rn "arbeitsregeln.md" docs *.md`: Zwei Dateien
+nennen **Abschnittsnummern** – `docs/installationsanleitung.md` „Abschnitt 7"
+und `docs/spezifikation_abteilungsrechte.md` „§1". Beide stimmen weiterhin, weil
+der neue Abschnitt die Nummer **0** bekommen hat und 1–9 dadurch stehen bleiben.
+Waere er als „1" eingeschoben worden, waeren beide Verweise still falsch
+geworden – das ist der Grund fuer die Null, nicht der Stil.
+
+### Was bewusst nicht erreicht wurde
+Der Kaltstart liegt mit 15.986 nur noch **14 Bytes** unter der Marke aus §9.
+Der naechste Patch, der eine dieser vier Dateien anfasst, kuerzt also, statt
+anzubauen – das ist keine Randnotiz, sondern die naechste faellige Arbeit an der
+Doku. Kandidaten stehen nicht hier: Was gekuerzt wird, entscheidet, wer kuerzt.
+
+`CLAUDE.md` bleibt unangetastet. Der Hinweis gilt werkzeugneutral und gehoert
+deshalb nach `CHATSTART.md`; eine zweite Fassung in `CLAUDE.md` waere genau die
+Doppelung, die diese Datei ausdruecklich vermeidet.
+
+### NEXT
+T-104, naechste Maske: `indexSystemlog()` (207 Zeilen, mit JavaScript).
+
 ## P-2026-08-15-06 t-104-konfiguration-bearbeiten-in-views
 
 ### EINGELESEN

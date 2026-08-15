@@ -103,7 +103,9 @@ Einzelheiten: [Terminal-Installation](docs/spezifikation_terminal_installation.m
 
 ## Mitarbeiten
 
-Kurzfassung – vollständig in [`docs/arbeitsregeln.md`](docs/arbeitsregeln.md):
+Kurzfassung – vollständig in [`docs/arbeitsregeln.md`](docs/arbeitsregeln.md).
+Alle diese Regeln sind besprechbar: Steht eine im Weg oder ist sie falsch, ist
+das eine Frage wert und keine stille Ausnahme.
 
 - **Ein Patch = ein Thema** mit einem Akzeptanzkriterium in einem Satz.
 - Patch-ID `P-YYYY-MM-DD-XX` in den Commit-Betreff, z. B.
