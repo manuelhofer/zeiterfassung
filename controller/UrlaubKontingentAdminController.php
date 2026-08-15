@@ -9,7 +9,7 @@ declare(strict_types=1);
  * Zweck:
  * - Korrektur pro Mitarbeiter/Jahr pflegen.
  * - Optionaler Anspruch-Override (anstatt `mitarbeiter.urlaub_monatsanspruch * 12`).
- * - Übertrag wird ab v8 automatisch aus dem Resturlaub des Vorjahres berechnet (Master v8, 12.3). Das Feld `übertrag_tage` ist Legacy und wird hier nicht mehr editiert.
+ * - Übertrag wird ab v8 automatisch aus dem Resturlaub des Vorjahres berechnet (Master v8, 12.3). Das Feld `uebertrag_tage` ist Legacy und wird hier nicht mehr editiert.
  */
 class UrlaubKontingentAdminController
 {

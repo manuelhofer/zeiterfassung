@@ -161,7 +161,7 @@ class QueueService
  *   - fehler (int)
  *   - verarbeitet (int)
  *   - letzte_erstellung (?string)
- *   - letzte_ausführung (?string)
+ *   - letzte_ausfuehrung (?string)
  */
     public function holeStatusSummary(): array
 {
@@ -255,7 +255,7 @@ class QueueService
      * Datenbank gar nicht ansprechen lässt, ist „nicht verfügbar" eine
      * stärkere Aussage, als gerechtfertigt wäre.
      *
-     * @return array{hauptdb_verfügbar:?bool, queue_verfügbar:?bool,
+     * @return array{hauptdb_verfuegbar:?bool, queue_verfuegbar:?bool,
      *               queue_speicherort:?string, offen:?int, fehler:?int,
      *               letzter_fehler:?array<string,mixed>}
      */

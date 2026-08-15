@@ -275,7 +275,7 @@ class TerminalAdminController
      * Quick-Toggle aus der Listenansicht.
      *
      * POST + CSRF: toggelt genau ein erlaubtes Flag.
-     * Erlaubte Felder: aktiv, offline_erlaubt_kommen_gehen, offline_erlaubt_aufträge
+     * Erlaubte Felder: aktiv, offline_erlaubt_kommen_gehen, offline_erlaubt_auftraege
      */
     public function toggleFlag(): void
     {

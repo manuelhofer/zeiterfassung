@@ -109,7 +109,7 @@ class ReportService
 
     /**
      * Ermittelt alle Tage (YYYY-MM-DD) in einem Monat, an denen mindestens eine Zeitbuchung
-     * manuell geändert wurde (`zeitbuchung.manuell_geändert=1`).
+     * manuell geändert wurde (`zeitbuchung.manuell_geaendert=1`).
      *
      * @return array<string,bool> Set: ['2026-01-03' => true, ...]
      */
@@ -163,7 +163,7 @@ class ReportService
      * Warum so?
      * - Pause-Override darf auch mit 0,00h gespeichert werden.
      * - `tageswerte_mitarbeiter.pause_korr_minuten` ist bei 0 nicht unterscheidbar (Default/Override).
-     * - `felder_manuell_geändert` wird auch von anderen Tagesfeldern gesetzt und kann daher
+     * - `felder_manuell_geaendert` wird auch von anderen Tagesfeldern gesetzt und kann daher
      *   nicht als alleiniger Indikator für Pause-Override dienen.
      *
      * Wir lesen pro Monat die Logeinträge:
@@ -283,7 +283,7 @@ class ReportService
      * Liefert Arbeitsblöcke (Kommen->Gehen) pro Tag für einen Monat, basierend auf `zeitbuchung`.
      * Für offene Blöcke (Kommen ohne Gehen) wird `gehen_*` als null gesetzt.
      *
-     * @return array<string,array<int,array<string,mixed>>> Map: 'Y-m-d' => [ ['kommen_roh'=>..., 'gehen_roh'=>..., 'kommen_korr'=>..., 'gehen_korr'=>..., 'ist_stunden'=>..., 'pause_stunden'=>..., 'zeit_manuell_geändert'=>0|1], ...]
+     * @return array<string,array<int,array<string,mixed>>> Map: 'Y-m-d' => [ ['kommen_roh'=>..., 'gehen_roh'=>..., 'kommen_korr'=>..., 'gehen_korr'=>..., 'ist_stunden'=>..., 'pause_stunden'=>..., 'zeit_manuell_geaendert'=>0|1], ...]
      */
     private function holeArbeitsbloeckeProTagFuerMonat(
         int $mitarbeiterId,
@@ -2139,7 +2139,7 @@ class ReportService
         $tageswerte = $this->wendeKurzarbeitVolltagWieBetriebsferienAn($tageswerte, $volltagKurzarbeitStd);
 
         // Monatswerte für Anzeige verlässlich aus Tageswerten ableiten:
-        // - IST: Blockweise Summe der IST-Spalte (arbeitsblöcke[].ist_stunden)
+        // - IST: Blockweise Summe der IST-Spalte (arbeitsbloecke[].ist_stunden)
         // - Abwesenheiten werden für Summen separat erfasst.
         // - Kurzarbeit reduziert das Soll, zählt aber **nicht** als IST (MasterPrompt).
         $parseStundenZuMinuten = function ($wert): int {

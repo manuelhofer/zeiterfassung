@@ -243,7 +243,7 @@ class TerminalKopplungService
     public function entwerteOffeneCodes(int $terminalId): void
     {
         // Eine Sekunde in die Vergangenheit, nicht auf NOW(): Die Prüfung beim
-        // Einlösen lässt `gültig_bis >= NOW()` gelten - auf NOW() gesetzt
+        // Einlösen lässt `gueltig_bis >= NOW()` gelten - auf NOW() gesetzt
         // wäre der alte Code also noch eine Sekunde lang gültig.
         $this->db->ausfuehren(
             'UPDATE terminal_kopplung

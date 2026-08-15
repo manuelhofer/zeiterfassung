@@ -1049,7 +1049,7 @@ class UrlaubService
                 ]
             );
         } catch (\Throwable $e) {
-            // Fallback: Manche Installationen haben die Spalte `übertrag_tage` noch nicht.
+            // Fallback: Manche Installationen haben die Spalte `uebertrag_tage` noch nicht.
             // Dann darf der gesamte Kontingent-Block (inkl. Korrektur!) nicht ausfallen.
             try {
                 $kRow = $db->fetchEine(

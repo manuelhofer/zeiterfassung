@@ -55,9 +55,9 @@ class PausenService
      * Rückgabe:
      * - pause_minuten: Minuten, die automatisch abgezogen werden (Default 0, wenn Entscheidung nötig)
      * - auto_pause_minuten: Minuten, die abgezogen würden, wenn entschieden "Pause abziehen" wäre
-     * - entscheidung_nötig: true/false
+     * - entscheidung_noetig: true/false
      *
-     * @return array{pause_minuten:int,auto_pause_minuten:int,entscheidung_nötig:bool}
+     * @return array{pause_minuten:int,auto_pause_minuten:int,entscheidung_noetig:bool}
      */
     public function berechnePausenMinutenUndEntscheidungFuerBlock(DateTimeImmutable $start, DateTimeImmutable $ende): array
     {

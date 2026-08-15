@@ -516,7 +516,7 @@ if (!function_exists('report_collapse_blocks')) {
      * Kollabiert mehrere Arbeitsblöcke zu einem Tagesblock (erster Start + letzter Endzeit).
      * Start/Ende werden anhand der Main-Zeiten bestimmt (korr bevorzugt, sonst roh).
      *
-     * Rückgabe ist ein einzelner Block im gleichen Format wie 'arbeitsblöcke'.
+     * Rückgabe ist ein einzelner Block im gleichen Format wie 'arbeitsbloecke'.
      */
     function report_collapse_blocks(array $bloecke): array
     {

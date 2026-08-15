@@ -99,6 +99,102 @@ in den Statusbericht.
   D-002 entfallen; die Regel selbst gilt weiter.)
 
 
+## P-2026-08-15-02 zitierte-schluessel-mit-umlaut
+
+### EINGELESEN
+- Eigener Eintrag P-2026-08-15-01, Abschnitt „Was bewusst nicht erreicht wurde".
+- `docs/arbeitsregeln.md` §7, der Absatz „Umlaute schreiben, nicht umschreiben".
+- Die zwoelf Fundstellen selbst, jede im Umfeld von fuenf Zeilen.
+- Zum Gegenpruefen der echten Schreibweise: `sql/01_initial_schema.sql`,
+  `sql/05_migration_terminal_kopplung.sql`,
+  `sql/07_migration_urlaub_uebertrag_festschreiben.sql` und der jeweilige Code.
+
+### DATEIEN
+- `services/PausenService.php`, `services/QueueService.php`,
+  `services/ReportService.php`, `services/TerminalKopplungService.php`,
+  `services/UrlaubService.php`
+- `controller/TerminalAdminController.php`,
+  `controller/UrlaubKontingentAdminController.php`
+- `views/report/monatsuebersicht.php`
+- `docs/arbeitsregeln.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Der Kommentar in `TerminalKopplungService::entwerteOffeneCodes()` zitiert
+`gueltig_bis >= NOW()` – also die Bedingung, die man so in phpMyAdmin einfuegen
+kann; vorher stand dort `gültig_bis`, eine Spalte, die es nicht gibt.
+
+### DONE
+Zwoelf Stellen, an denen ein Kommentar einen Schluessel, eine Spalte oder ein
+Feld mit Umlaut nennt, obwohl der Name im Code ASCII ist. Aus derselben Serie
+wie P-2026-08-15-01, aber aelter: `git blame` zeigt P-2026-08-10-19 und
+P-2026-08-10-26.
+
+| Datei | Kommentar sagte | heisst wirklich |
+| --- | --- | --- |
+| `PausenService.php` (2x) | `entscheidung_nötig` | `entscheidung_noetig` |
+| `QueueService.php` | `letzte_ausführung` | `letzte_ausfuehrung` |
+| `QueueService.php` | `hauptdb_verfügbar`, `queue_verfügbar` | `…_verfuegbar` |
+| `ReportService.php` | `zeitbuchung.manuell_geändert` | `manuell_geaendert` |
+| `ReportService.php` | `felder_manuell_geändert` | `felder_manuell_geaendert` |
+| `ReportService.php` | `zeit_manuell_geändert` | `zeit_manuell_geaendert` |
+| `ReportService.php`, `monatsuebersicht.php` | `arbeitsblöcke` | `arbeitsbloecke` |
+| `TerminalKopplungService.php` | `gültig_bis` | `gueltig_bis` |
+| `TerminalAdminController.php` | `offline_erlaubt_aufträge` | `offline_erlaubt_auftraege` |
+| `UrlaubService.php`, `UrlaubKontingentAdminController.php` | `übertrag_tage` | `uebertrag_tage` |
+
+Kein Fehlverhalten – aber jede dieser Zeilen kostet jemanden Zeit, und zwei
+kosten mehr als die anderen: Der Kommentar in `TerminalKopplungService` zitiert
+eine **SQL-Bedingung**, die so kopiert eine Fehlermeldung gibt, und die beiden
+`@return array{…}`-Zeilen in `QueueService` und `PausenService` beschreiben
+Schluessel, die der Aufrufer nie findet. Ein Werkzeug, das Docblocks auswertet,
+liest hier schlicht etwas Falsches.
+
+Der umgebende Fliesstext behaelt seine Umlaute: „manuell geändert wurde
+(`zeitbuchung.manuell_geaendert=1`)" ist genau richtig so – Sprache mit Umlaut,
+Name ohne.
+
+**Die Regel bekommt denselben Satz mit.** §7 zaehlte auf, was ASCII bleibt
+(Bezeichner, Dateinamen, Datenbankfelder, Konfigurationsschluessel), sagte aber
+nicht, dass das auch dort gilt, wo der Name nur *zitiert* wird. Beide Pannen
+dieser Serie hingen genau daran: einmal im Kommentar, einmal im `value` eines
+Formularfelds. Der Zusatz nennt beide Faelle.
+
+### TEST
+Wegwerf-Umgebung aus P-2026-08-15-01 weiterbenutzt (eigene Datenbanken,
+erfundene Daten, Server ohne OPcache). `php -l` ueber alle acht PHP-Dateien.
+29 Aufrufe durchgeklickt – 22 Backend-Masken, die vier Tabs der Konfiguration
+und die drei Queue-Filter –, alle HTTP 200, Serverlog ohne eine einzige
+Warnung, Deprecation oder Notice.
+
+Der Suchlauf, der die Stellen gefunden hat, laeuft danach ohne Treffer:
+
+```bash
+grep -rInoE '[A-Za-zäöüßÄÖÜ]*[äöüß][A-Za-zäöüß]*_[A-Za-z_äöüß]+|[A-Za-z]+_[A-Za-z_]*[äöüß][A-Za-zäöüß_]*' \
+  --include='*.php' --include='*.js' --include='*.sql' controller views services core modelle public sql
+```
+
+### Gefundene Fehler im eigenen Entwurf
+Der erste Suchlauf war zu grob: Er hat jede Zeichenkette gemeldet, deren
+Umlaut-Form irgendwo als ASCII-Bezeichner vorkommt – 430 Treffer, davon
+praktisch alles Sprache („über" wegen `ueb`, „löschen", „verfügbar", „Aufträge").
+In dieser Menge waeren die zwoelf echten Funde untergegangen. Erst die
+Einschraenkung auf Namen **mit Unterstrich** – also auf das, was nur ein
+Bezeichner sein kann – trennt Fund von Rauschen. Ein Scan, der zu viel meldet,
+ist so unbrauchbar wie einer, der nichts meldet.
+
+### Was bewusst nicht erreicht wurde
+`arbeitsblöcke` hat keinen Unterstrich und faellt durch dieses Raster; gefunden
+wurde es nur, weil der erste, gröbere Lauf es in Anfuehrungszeichen zeigte. Ein
+Scan, der auch solche Faelle sicher findet, muesste die tatsaechlich benutzten
+Array-Schluessel kennen – das ist ein eigenes Werkzeug und ein eigenes Thema.
+
+Nicht angefasst: `docs/` ausserhalb von §7 und `docs/archiv/`. Im Archiv wird
+nicht nachtraeglich korrigiert.
+
+### NEXT
+Der Handgriff in `docs/wartungscheckliste.md`, der bei flaechigen
+Textaenderungen faellig wird (aus P-2026-08-15-01).
+
 ## P-2026-08-15-01 zwei-loeschen-knoepfe-ohne-wirkung
 
 ### EINGELESEN

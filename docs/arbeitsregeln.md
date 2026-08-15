@@ -124,7 +124,9 @@ Debian/Apache. Auch die lokale Entwicklungsumgebung ist nativ aufgesetzt.
 - **Umlaute schreiben, nicht umschreiben:** `ä ö ü ß` in Kommentaren und
   Oberflächentexten, nicht `ae oe ue ss`. Alles ist UTF-8. Ausgenommen bleiben
   Bezeichner, Dateinamen, Datenbankfelder und -werte, Konfigurationsschlüssel
-  und Shell-Skripte – dort gilt weiterhin ASCII.
+  und Shell-Skripte – dort gilt weiterhin ASCII. **Auch dann, wenn sie in einem
+  Kommentar zitiert werden oder als `value` in einem Formularfeld stehen:** Ein
+  Name behält seine Schreibweise, egal wo er auftaucht.
 - Kommentare erklären vor allem das **Warum**, nicht das Was.
 - DB-Zugriff **immer** PDO mit Prepared Statements. Wo das nicht geht (die
   Offline-Queue speichert fertiges SQL), maskieren über `Helper::sqlLiteral()`
