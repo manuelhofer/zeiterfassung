@@ -99,6 +99,100 @@ in den Statusbericht.
   D-002 entfallen; die Regel selbst gilt weiter.)
 
 
+## P-2026-08-15-14 t-104-sonstiges-gruende-in-views
+
+### EINGELESEN
+- `docs/STATUS_SNAPSHOT.md` (T-104), `docs/arbeitsregeln.md`.
+- `views/konfiguration/systemlog.php` und `.../bearbeiten.php` als Muster.
+- `controller/KonfigurationController.php`, `indexSonstigesGruende()` ganz.
+- `views/layout/header.php`, Block `button` / `.button-link`.
+
+### DATEIEN
+- `views/konfiguration/sonstiges_gruende.php` (neu)
+- `controller/KonfigurationController.php`
+- `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Die Maske „Sonstiges-Gründe" erzeugt dasselbe HTML wie vorher – bis auf die
+Einrueckung und die zwei unten benannten Absichten –, obwohl das Markup jetzt in
+`views/konfiguration/sonstiges_gruende.php` liegt.
+
+### DONE
+Vierte der sechs Masken des `KonfigurationController`, und die erste dieser
+Reihe, die **Liste und Formular auf einer Seite** hat. Der Controller behaelt
+Zugriffspruefung, alle POST-Wege (speichern, umschalten), das Laden des zu
+bearbeitenden Eintrags und die Liste; die View bekommt sieben Werte:
+`$eintraege`, `$form`, `$editId`, `$ok`, `$fehlermeldung`, `$ladefehler`,
+`$csrfBereich`. 1.926 → 1.788 Zeilen Controller plus 162 Zeilen View.
+
+**Zwei bewusste Abweichungen**, beide aus dem Muster:
+
+1. `Csrf::feld()` statt der handgeschriebenen `csrf_token`-Zeile, hier an vier
+   Stellen (Formular plus ein Umschalt-Formular je Zeile).
+2. Der Speichern-Knopf verliert `style="padding:0.55rem 0.9rem;"` – dieselbe
+   Stelle wie in P-2026-08-15-06, dieselbe Begruendung (T-104 im Snapshot:
+   keine eigenen Groessen auf Knoepfe).
+
+`$ladefehler` war schon da – die Maske hat ihn in P-2026-08-15-09 bekommen und
+bringt ihn beim Umzug mit.
+
+### TEST
+Wegwerf-Umgebung aus P-2026-08-15-08, **HEAD-Kopie vorher aktualisiert** auf
+P-2026-08-15-13. Das ist kein Detail: Die erste Messung lief noch gegen den
+Stand von heute frueh und zeigte deshalb eine sechste Abweichung – den
+Leer-Hinweis, den -09 entfernt hat. Wer zwei Staende vergleicht, muss wissen,
+welche zwei.
+
+Drei erfundene Gruende: `SU` (normal), `X&Y` mit Titel
+`<b>Test &amp; "Anführung"</b> äöüß` und `<script>`-Text im Kommentar, `NULLK`
+mit `NULL`-Kommentar und `0.00` Stunden.
+
+| Lage | Abweichende Zeilen | erwartet |
+| --- | --- | --- |
+| Liste mit drei Gruenden | 14 | 14 (4 × `Csrf::feld`, 1 × Knopf) |
+| mit `ok=1` | 14 | 14 |
+| Bearbeiten (`id=` eines Grundes) | 14 | 14 |
+| `id=999999` (gibt es nicht) | 14 | 14 |
+| Leere Liste | 5 | 5 (nur das Anlege-Formular) |
+| Tabelle unlesbar | 5 | 5 |
+
+Kein anderer Unterschied – auch nicht bei der Maskierung des `<script>`-Textes
+oder bei `number_format()` auf `0.00`.
+
+POST-Wege auf dem neuen Stand:
+
+| Weg | Ergebnis |
+| --- | --- |
+| Neuen Grund anlegen (`3,5` Stunden mit Komma) | 302 `&ok=1`, in der DB `3.50` |
+| Grund umschalten (aktiv → inaktiv) | 302 `&ok=1`, `aktiv = 0` |
+| Falsches CSRF-Token | „CSRF-Check fehlgeschlagen.", `aktiv` unveraendert |
+| Leerer Code | „Bitte einen gültigen Code (1–10 Zeichen, A-Z/0-9) angeben." |
+| `default_stunden=abc` | „Bitte gültige Default-Stunden angeben (z. B. 8 oder 8.00)." |
+| `id=0` beim Umschalten | „Ungültige ID." |
+
+22 Backend-Aufrufe HTTP 200, Serverlog ohne Deprecation oder Warnung, `php -l`
+ueber beide Dateien, Suchlauf nach Umlauten in `value`-Attributen: keine Treffer.
+
+**Kaltstart:** 15.980 → 16.146 durch T-113, danach an drei Stellen gekuerzt
+(T-104-`grep`-Absatz, T-105, Jahreswechsel) auf **16.031**. Das sind 31 Bytes
+ueber der Marke aus §9 und 353 unter der Grenze. Hier ist Schluss mit
+Wortkuerzen: Die naechsten Kandidaten waeren Saetze, die etwas erklaeren, und
+das Kuerzen ersetzt keine Entscheidung darueber, was im Snapshot stehen soll
+(siehe P-2026-08-15-13, „Was bewusst nicht erreicht wurde").
+
+### Was bewusst nicht erreicht wurde
+Zwei Masken des Controllers fehlen noch: Pausenregeln und Krankzeitraum. Die
+Tab-Zeile steht damit noch dreimal doppelt; das gemeinsame Teil-Template lohnt
+sich erst mit der letzten Maske (so schon in P-2026-08-14-12 festgehalten).
+
+Der „Neu anlegen"-Link zeigt auf dieselbe Seite, auf der man schon steht
+(`?seite=konfiguration_admin&tab=sonstiges`) – er leert nur das Formular. Das
+ist keine Falschheit, aber auch keine gute Beschriftung. Nicht angefasst: Diese
+Maske sollte HTML-gleich bleiben. Notiert unter **T-113**.
+
+### NEXT
+T-104, naechste Maske: `indexPausenregeln()`.
+
 ## P-2026-08-15-13 gefundenes-wird-abgearbeitet
 
 ### EINGELESEN
