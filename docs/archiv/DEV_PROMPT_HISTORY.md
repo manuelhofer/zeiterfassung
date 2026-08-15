@@ -99,6 +99,92 @@ in den Statusbericht.
   D-002 entfallen; die Regel selbst gilt weiter.)
 
 
+## P-2026-08-15-31 t-104-auftragsformular-in-views
+
+### EINGELESEN
+- `docs/STATUS_SNAPSHOT.md` (T-104), `views/auftrag/schritt_formular.php` als
+  frisches Muster (P-2026-08-15-28).
+- `AuftragController::renderAuftragFormular()`, `neu()`, `bearbeiten()`,
+  `speichern()` und `leseKatalogAuswahlAusPost()`.
+- `core/Csrf.php`, `feld()`.
+
+### DATEIEN
+- `views/auftrag/formular.php` (neu)
+- `controller/AuftragController.php`
+- `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Auftrag anlegen und bearbeiten erzeugen dasselbe HTML wie vorher – bis auf die
+Einrueckung und die eine `Csrf::feld()`-Stelle –, obwohl das Markup jetzt in
+`views/auftrag/formular.php` liegt.
+
+### DONE
+Zweite der vier Masken des `AuftragController`. 2.460 → 2.360 Zeilen Controller
+plus 135 Zeilen View.
+
+Der Controller behaelt, was Fachlogik ist: Anzeigewerte vorrechnen, den
+Arbeitsschritt-Katalog laden (nur beim Anlegen) und die angehakten IDs aus dem
+POST lesen. Die View bekommt sieben Werte plus `$csrfBereich`.
+
+**Zwei Klassenkonstanten wandern als Variable in die View.**
+`self::STATUS_AUSWAHL` steht jetzt als `$statusAuswahl` im Aufruf, weil eine
+View die Konstanten ihres Controllers nicht kennen soll – sie wird auch von
+`speichern()` aus gerendert und haette sonst eine feste Bindung an genau diese
+Klasse. Der Altwert-Zweig („(Altwert)") prueft entsprechend `$statusAuswahl`
+statt der Konstante.
+
+Wie im Muster faellt das handgeschriebene versteckte CSRF-Feld weg
+(`Csrf::feld($csrfBereich)`), und die lokale `$esc`-Hilfe wandert mit in die
+View. Keine eigenen Groessen auf Knoepfen; die `style`-Angaben an `div`, `input`
+und `select` sind 1:1 uebernommen, damit der Vergleich aussagekraeftig bleibt.
+
+### TEST
+Wegwerf-Umgebung aus P-2026-08-15-28, beide Staende neu bespielt (HEAD-Kopie auf
+P-2026-08-15-30). Erfundene Daten: drei Auftraege, einer davon mit
+Sonderzeichen in Nummer, Kunde und Kurzbeschreibung (`A&"100"<x>`,
+„Müller & Söhne", „Träger äöüß <b>x</b>"), einer mit dem **frei eingetippten
+Altwert-Status** `offfen`, dazu ein Katalogeintrag `fraesen` / „Fräsen".
+
+| Lage | Abweichende Zeilen | erwartet |
+| --- | --- | --- |
+| Anlegen, Katalog gefuellt | 3 | 3 (1 × `Csrf::feld`) |
+| Bearbeiten, Sonderzeichen | 3 | 3 |
+| Bearbeiten, Altwert-Status | 3 | 3 |
+| Anlegen, kein aktiver Katalogeintrag | 3 | 3 |
+| Anlegen, Katalogtabelle unlesbar (`RENAME TABLE`) | 3 | 3 |
+| `id=999999` (gibt es nicht) | 0 | 0 – beide 302 auf `?seite=auftrag` |
+| POST, leere Auftragsnummer | 3 | 3 |
+| POST, Nummer schon vergeben | 3 | 3 |
+
+Immer dieselbe Stelle: `Csrf::feld()` gibt sein `input` ohne Zeilenumbruch aus.
+Gezielt nachgesehen, weil es die Kanten dieser Maske sind: `(Altwert)` und
+`value="offfen" selected` stehen im neuen HTML, der Katalogkasten erscheint bei
+gefuelltem Katalog und fehlt bei leerem **und** bei unlesbarer Tabelle, und der
+angehakte Katalogschritt bleibt im Fehlerfall angehakt.
+
+Die Wege, die kein HTML-Vergleich zeigt:
+
+| Weg | Ergebnis |
+| --- | --- |
+| Anlegen mit angehaktem Katalogschritt | 302 aufs Detail, Auftrag `NEU-2` da, Schritt `fraesen` daran |
+| Bearbeiten, Haken „Aktiv" entfernt | 302 aufs Detail, `aktiv = 0`, Umlaute korrekt gespeichert |
+| Falsches CSRF-Token | 302 `?seite=auftrag`, „Die Sitzung ist abgelaufen. Bitte erneut versuchen." |
+| Fehlermeldungen | „Bitte eine Auftragsnummer angeben.", „Die Auftragsnummer &quot;NEU-1&quot; gibt es bereits. …" |
+
+25 Backend-Routen HTTP 200, Serverlogs beider Staende ohne Deprecation, Warning
+oder Notice, `php -l` ueber beide Dateien, die drei Umlaut-Suchlaeufe der
+Wartungscheckliste ohne Treffer.
+
+### Was bewusst nicht erreicht wurde
+Die beiden verbliebenen Masken des Controllers (Liste und Detail) sind die
+grossen; sie kommen einzeln. Die Detailmaske enthaelt ausserdem eine zweite
+Katalog-Auswahl, die dem Kasten in dieser View aehnelt – ob sich daraus ein
+gemeinsames Teil-Template lohnt, entscheidet sich erst, wenn beide in `views/`
+liegen. Vorher waere es geraten.
+
+### NEXT
+T-104, naechste Maske: `detail()`.
+
 ## P-2026-08-15-30 t-118-tote-token-zuweisungen-weg
 
 ### EINGELESEN

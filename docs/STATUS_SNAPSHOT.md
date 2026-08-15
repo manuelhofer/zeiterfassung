@@ -35,9 +35,9 @@ Keine bekannten.
   unerreichbar macht (B-097, T-110). Durchsehen, nicht pauschal ändern;
   Suchlauf in P-2026-08-15-10.
 - **T-104** Zwei Controller erzeugen HTML selbst, statt `views/` zu benutzen –
-  **4 Masken**: `AuftragController` (3: Liste, Detail, Auftragsformular),
-  `SmokeTestController` (1). Eine Maske je Patch; Muster und Prüfweg:
-  P-2026-08-11-09, zuletzt P-2026-08-15-28.
+  **3 Masken**: `AuftragController` (2: Liste, Detail), `SmokeTestController`
+  (1). Eine Maske je Patch; Muster und Prüfweg: P-2026-08-11-09, zuletzt
+  P-2026-08-15-31.
 
   Achtung: Der `grep` nach dem Header-Require zählt zu hoch – er findet auch
   „Keine Berechtigung"-Blöcke in längst fertigen Controllern.
