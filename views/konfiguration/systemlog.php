@@ -8,6 +8,7 @@ declare(strict_types=1);
  * - $limit (int) – wie viele Einträge die Abfrage höchstens geholt hat
  * - optional: $ok (int) – 1 zeigt „Aktion abgeschlossen."
  * - optional: $fehlermeldung (string|null)
+ * - optional: $ladefehler (bool) – true, wenn das Log nicht gelesen werden konnte
  * - $csrfBereich (string) – Bereichsname für `Csrf`, kommt aus dem Controller
  */
 require __DIR__ . '/../layout/header.php';
@@ -18,6 +19,7 @@ $eintraege     = $eintraege ?? [];
 $limit         = (int)($limit ?? 0);
 $ok            = (int)($ok ?? 0);
 $fehlermeldung = $fehlermeldung ?? null;
+$ladefehler    = (bool)($ladefehler ?? false);
 ?>
 <section>
     <h2>System-Log</h2>
@@ -50,8 +52,13 @@ $fehlermeldung = $fehlermeldung ?? null;
         <button type="submit" class="button-link danger">System-Log leeren</button>
     </form>
 
+    <?php /* Bei einem Lesefehler ist die Liste ebenfalls leer – dann steht schon
+             die Fehlermeldung da, und „keine Einträge vorhanden" wäre daneben
+             die falsche Auskunft. */ ?>
     <?php if (count($eintraege) === 0): ?>
-        <p>Es sind derzeit keine Log-Einträge vorhanden.</p>
+        <?php if (!$ladefehler): ?>
+            <p>Es sind derzeit keine Log-Einträge vorhanden.</p>
+        <?php endif; ?>
     <?php else: ?>
         <table>
             <thead>

@@ -28,11 +28,13 @@ Abschnitt 12 – dort und bewusst nicht hier ein zweites Mal. Dasselbe gilt für
 den Stufenplan (Abschnitt 11).
 
 ## Offene Bugs
-- **B-096** Die System-Log-Maske zeigt bei unlesbarer Tabelle die Fehlermeldung
-  **und** darunter „keine Log-Einträge vorhanden." – die falsche Auskunft, die
-  P-2026-08-14-14 für die Konfigurations-Übersicht schon abgestellt hat.
+
+Keine bekannten.
 
 ## Offene Tasks
+- **T-111** Zeigen die Listen ausserhalb der Konfiguration ihren Leer-Hinweis
+  auch neben einer Fehlermeldung? Erst prüfen, ob ein Ladefehler dort überhaupt
+  zur leeren Liste führt. Muster: P-2026-08-15-09.
 - **T-104** Vier Controller erzeugen HTML selbst, statt `views/` zu benutzen –
   **10 Masken**: `KonfigurationController` (3), `AuftragController` (4),
   `TerminalAdminController` (2), `SmokeTestController` (1). Eine Maske je

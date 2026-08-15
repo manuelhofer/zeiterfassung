@@ -217,11 +217,15 @@ class KonfigurationController
 
         $eintraege = [];
         $fehlermeldung = null;
+        // Getrennt von $fehlermeldung, weil nur dieser Fall die leere Liste
+        // erklärt: „nicht ladbar" und „nichts vorhanden" sind zwei Aussagen.
+        $ladefehler = false;
 
         try {
             $eintraege = $this->konfigurationService->getAlle();
         } catch (Throwable $e) {
             $fehlermeldung = 'Die Konfiguration konnte nicht geladen werden.';
+            $ladefehler = true;
             Logger::error('Fehler beim Laden der Konfiguration', [
                 'exception' => $e->getMessage(),
             ], null, null, 'config');
@@ -241,6 +245,10 @@ class KonfigurationController
         $ok = isset($_GET['ok']) ? (int)$_GET['ok'] : 0;
         $csrfBereich = self::CSRF_BEREICH;
         $fehlermeldung = null;
+        // Siehe index(): nur ein Lesefehler erklärt die leere Liste. Hier zählt
+        // der eigene Merker doppelt, weil auch eine misslungene POST-Aktion
+        // $fehlermeldung setzt – die sagt über den Bestand nichts aus.
+        $ladefehler = false;
         $eintraege = [];
 
         $istPost = (isset($_SERVER['REQUEST_METHOD']) && strtoupper((string)$_SERVER['REQUEST_METHOD']) === 'POST');
@@ -296,6 +304,7 @@ class KonfigurationController
             $eintraege = $this->datenbank->fetchAlle($sql);
         } catch (Throwable $e) {
             $fehlermeldung = 'Das System-Log konnte nicht geladen werden.';
+            $ladefehler = true;
             Logger::error('Fehler beim Laden des System-Logs', [
                 'exception' => $e->getMessage(),
             ], $this->authService->holeAngemeldeteMitarbeiterId(), null, 'system_log');
@@ -724,6 +733,7 @@ class KonfigurationController
 
         // Liste laden
         $eintraege = [];
+        $ladefehler = false;
         try {
             $eintraege = $this->datenbank->fetchAlle(
                 "SELECT k.*, m.vorname AS m_vorname, m.nachname AS m_nachname
@@ -735,6 +745,7 @@ class KonfigurationController
             if ($fehlermeldung === null) {
                 $fehlermeldung = 'Die Krankzeiten konnten nicht geladen werden.';
             }
+            $ladefehler = true;
             Logger::error('Fehler beim Laden krankzeitraum (Admin)', [
                 'exception' => $e->getMessage(),
             ], $this->authService->holeAngemeldeteMitarbeiterId(), null, 'krank');
@@ -975,7 +986,12 @@ class KonfigurationController
                 </thead>
                 <tbody>
                 <?php if ($eintraege === []): ?>
-                    <tr><td colspan="7">Keine Einträge.</td></tr>
+                    <?php /* Nach einem Lesefehler steht die Fehlermeldung schon
+                             oben – „Keine Einträge." wäre daneben die falsche
+                             Auskunft. */ ?>
+                    <?php if (!$ladefehler): ?>
+                        <tr><td colspan="7">Keine Einträge.</td></tr>
+                    <?php endif; ?>
                 <?php else: ?>
                     <?php foreach ($eintraege as $k): ?>
                         <?php
@@ -1237,6 +1253,7 @@ class KonfigurationController
 
         // Liste laden
         $fenster = [];
+        $ladefehler = false;
         try {
             $fenster = $this->datenbank->fetchAlle(
                 'SELECT * FROM pausenfenster ORDER BY aktiv DESC, sort_order ASC, von_uhrzeit ASC, id ASC'
@@ -1245,6 +1262,7 @@ class KonfigurationController
             if ($fehlermeldung === null) {
                 $fehlermeldung = 'Die Pausenfenster konnten nicht geladen werden.';
             }
+            $ladefehler = true;
             Logger::error('Fehler beim Laden pausenfenster (Admin)', [
                 'exception' => $e->getMessage(),
             ], $this->authService->holeAngemeldeteMitarbeiterId(), null, 'pause');
@@ -1359,8 +1377,12 @@ class KonfigurationController
                 </p>
             </form>
 
+            <?php /* Nach einem Lesefehler ist die Liste ebenfalls leer – dann
+                     steht schon die Fehlermeldung da. */ ?>
             <?php if (count($fenster) === 0): ?>
-                <p>Keine Pausenfenster vorhanden.</p>
+                <?php if (!$ladefehler): ?>
+                    <p>Keine Pausenfenster vorhanden.</p>
+                <?php endif; ?>
             <?php else: ?>
                 <table>
                     <thead>
@@ -1630,6 +1652,7 @@ class KonfigurationController
 
         // Liste laden
         $eintraege = [];
+        $ladefehler = false;
         try {
             $eintraege = $this->datenbank->fetchAlle(
                 'SELECT * FROM sonstiges_grund ORDER BY aktiv DESC, sort_order ASC, titel ASC, id ASC'
@@ -1638,6 +1661,7 @@ class KonfigurationController
             if ($fehlermeldung === null) {
                 $fehlermeldung = 'Die Sonstiges-Gründe konnten nicht geladen werden (Tabelle vorhanden?).';
             }
+            $ladefehler = true;
             Logger::error('Fehler beim Laden sonstiges_grund (Admin)', [
                 'exception' => $e->getMessage(),
             ], $this->authService->holeAngemeldeteMitarbeiterId(), null, 'sonstiges');
@@ -1726,8 +1750,12 @@ class KonfigurationController
 
             <hr style="margin:1rem 0;">
 
+            <?php /* Nach einem Lesefehler ist die Liste ebenfalls leer – dann
+                     steht schon die Fehlermeldung da. */ ?>
             <?php if (count($eintraege) === 0): ?>
-                <p>Es sind derzeit keine Sonstiges-Gründe vorhanden.</p>
+                <?php if (!$ladefehler): ?>
+                    <p>Es sind derzeit keine Sonstiges-Gründe vorhanden.</p>
+                <?php endif; ?>
             <?php else: ?>
                 <table>
                     <thead>

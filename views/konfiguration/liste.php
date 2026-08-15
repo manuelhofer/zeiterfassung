@@ -7,6 +7,7 @@ declare(strict_types=1);
  * - $eintraege (array<int,array<string,mixed>>)
  * - optional: $ok (int) – 1 zeigt „Gespeichert."
  * - optional: $fehlermeldung (string|null)
+ * - optional: $ladefehler (bool) – true, wenn die Liste nicht gelesen werden konnte
  */
 require __DIR__ . '/../layout/header.php';
 
@@ -14,6 +15,7 @@ require __DIR__ . '/../layout/header.php';
 $eintraege     = $eintraege ?? [];
 $ok            = (int)($ok ?? 0);
 $fehlermeldung = $fehlermeldung ?? null;
+$ladefehler    = (bool)($ladefehler ?? false);
 ?>
 <section>
     <h2>Konfiguration</h2>
@@ -44,7 +46,7 @@ $fehlermeldung = $fehlermeldung ?? null;
              die Fehlermeldung da, und „keine Einträge vorhanden" wäre daneben
              die falsche Auskunft. */ ?>
     <?php if (count($eintraege) === 0): ?>
-        <?php if (empty($fehlermeldung)): ?>
+        <?php if (!$ladefehler): ?>
             <p>Es sind derzeit keine Konfigurationseinträge vorhanden.</p>
         <?php endif; ?>
     <?php else: ?>

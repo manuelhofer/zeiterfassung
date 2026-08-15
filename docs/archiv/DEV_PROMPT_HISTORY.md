@@ -99,6 +99,86 @@ in den Statusbericht.
   D-002 entfallen; die Regel selbst gilt weiter.)
 
 
+## P-2026-08-15-09 b-096-leerhinweis-nur-ohne-ladefehler
+
+### EINGELESEN
+- `docs/STATUS_SNAPSHOT.md` (B-096), `docs/arbeitsregeln.md`.
+- P-2026-08-14-14 – derselbe Fehler, dort fuer die Konfigurations-Uebersicht
+  behoben; die Begruendung steht in seinem DONE.
+- `controller/KonfigurationController.php`, alle fuenf Masken an ihren
+  `catch`-Bloecken und ihren Leer-Hinweisen.
+- `views/konfiguration/liste.php`, `views/konfiguration/systemlog.php`.
+
+### DATEIEN
+- `controller/KonfigurationController.php`
+- `views/konfiguration/liste.php`, `views/konfiguration/systemlog.php`
+- `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Ist `system_log` nicht lesbar, steht unter „Das System-Log konnte nicht geladen
+werden." **nicht** mehr „Es sind derzeit keine Log-Einträge vorhanden." – und in
+den drei Nachbarmasken ebenso wenig der jeweils eigene Leer-Hinweis.
+
+### DONE
+B-096 aus P-2026-08-15-08. Beim Fehlerpfad-Test fiel auf, dass der Fehler nicht
+allein im System-Log steckt: **Vier** der fuenf Masken dieses Controllers sagen
+bei unlesbarer Tabelle beides gleichzeitig – die Fehlermeldung und darunter, es
+sei nichts vorhanden. Der Satz schickt einen in die Datenbank, um zu suchen, was
+geloescht wurde, obwohl nur die Abfrage gescheitert ist.
+
+**Vier Masken in einem Patch, nicht vier Patches.** Es ist ein Thema, ein Satz
+Ursache und in jeder Maske dieselben drei Zeilen; vier Commits dafuer waeren
+Buchhaltung ohne Nutzen. Der sichtbare Effekt ist derselbe, nur an vier Stellen.
+
+Geprueft wird ein eigener Merker `$ladefehler`, nicht `empty($fehlermeldung)`.
+Diese Masken setzen `$fehlermeldung` naemlich auch, wenn eine **POST-Aktion**
+misslingt (CSRF, ungueltige ID). Ueber den Bestand sagt das nichts: Bei leerer
+Tabelle und falschem Token gehoert der Leer-Hinweis weiterhin auf die Seite.
+`empty($fehlermeldung)` haette ihn dort still verschluckt – eine zweite falsche
+Auskunft, nur andersherum.
+
+`views/konfiguration/liste.php` wird auf denselben Merker umgestellt, obwohl
+seine Bedingung dort gleichwertig ist (die Uebersicht hat kein Formular). Sonst
+stuenden in `views/konfiguration/` zwei Schreibweisen fuer dieselbe Aussage, und
+die drei noch nicht migrierten Masken bringen beim Umzug die dritte mit.
+
+### TEST
+Wegwerf-Umgebung aus P-2026-08-15-08 weiterbenutzt (Datenbank `zeit_probe_t104c`,
+erfundene Daten, beide Server ohne OPcache). Je Maske zwei Lagen: Tabelle leer
+(`DELETE`) und Tabelle unlesbar (`RENAME TABLE`), jeweils auf **beiden** Staenden
+gemessen. Gezaehlt wurde, ob Leer-Hinweis und Fehlermeldung im HTML stehen.
+
+| Maske | leer (HEAD/neu) | unlesbar HEAD | unlesbar neu |
+| --- | --- | --- | --- |
+| System-Log | Hinweis / Hinweis | Hinweis **und** Fehler | nur Fehler |
+| Krankzeiten | Hinweis / Hinweis | Hinweis **und** Fehler | nur Fehler |
+| Pausenfenster | Hinweis / Hinweis | Hinweis **und** Fehler | nur Fehler |
+| Sonstiges-Gruende | Hinweis / Hinweis | Hinweis **und** Fehler | nur Fehler |
+| Konfiguration | – | nur Fehler | nur Fehler |
+
+Die Konfigurations-Uebersicht ist die Gegenprobe: Sie war schon vorher richtig
+(P-2026-08-14-14) und bleibt es. Ihre leere Lage laesst sich mit `DELETE` nicht
+herstellen – `DefaultsSeeder` legt bei jedem Aufruf nach, gemessen 11 Eintraege
+direkt nach dem Loeschen. Das ist bekannt (P-2026-08-14-12), kein Befund.
+
+Der Fall, wegen dem es `$ladefehler` gibt: leeres `system_log` **plus**
+POST mit falschem Token. Auf beiden Staenden steht die CSRF-Meldung und der
+Leer-Hinweis – der Patch aendert daran nichts, genau wie beabsichtigt.
+
+22 Backend-Aufrufe HTTP 200, Serverlog ohne Deprecation oder Warnung, `php -l`
+ueber die drei geaenderten Dateien.
+
+### Was bewusst nicht erreicht wurde
+Dieselbe Bauart steht in weiteren Listen ausserhalb dieses Controllers
+(Abteilungen, Maschinen, Betriebsferien, Rundungsregeln, Mitarbeiter,
+Terminalverwaltung, Kurzarbeit). Ob dort ueberhaupt ein Ladefehler zur leeren
+Liste fuehren kann, ist ungeprueft – erst nachsehen, dann anfassen. Als **T-111**
+notiert.
+
+### NEXT
+T-111 (Nachbarlisten pruefen), danach die naechste Maske aus T-104:
+`indexSonstigesGruende()`.
+
 ## P-2026-08-15-08 t-104-systemlog-in-views
 
 ### EINGELESEN
