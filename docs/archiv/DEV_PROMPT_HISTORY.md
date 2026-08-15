@@ -99,6 +99,97 @@ in den Statusbericht.
   D-002 entfallen; die Regel selbst gilt weiter.)
 
 
+## P-2026-08-15-44 t-105-monatsreport-checks-als-methoden
+
+### EINGELESEN
+- `docs/STATUS_SNAPSHOT.md` (T-105), P-2026-08-15-37 (dort ist das Markup
+  gewandert und die Begründung entstanden, warum die Methoden vor den
+  Teil-Templates kommen).
+- `SmokeTestController::index()` vollständig, dazu `views/smoke_test/index.php`
+  für die Frage, welche Variablen die Maske erwartet.
+
+### DATEIEN
+- `controller/SmokeTestController.php`
+- `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Die sechs Monatsreport-Checks liefern für Mitarbeiter 15 im Juli 2026 dasselbe
+HTML wie vorher – zeichengleich –, obwohl ihr Rumpf jetzt in sechs eigenen
+Methoden steht.
+
+### DONE
+Sechs Blöcke aus `index()` sind eigene Methoden geworden:
+`pruefeFeiertagQuick()`, `pruefeMonatsraster()`, `pruefeMonatsfallback()`,
+`pruefeDoppelzaehlung()`, `pruefeFeiertagUndArbeitszeit()` und
+`pruefeBuchungssequenz()`. `index()` schrumpft von 2.445 auf 1.701 Zeilen; was
+bleibt, sind sechs `if`-Blöcke von je acht Zeilen.
+
+Jede Methode nimmt die Formularwerte entgegen und gibt ein Bündel zurück –
+dieselben Werte plus `ergebnis` und `hinweis`. `index()` packt es benannt aus:
+
+```php
+[
+    'mitarbeiter_id' => $monatsrasterTestMitarbeiterId,
+    'jahr'           => $monatsrasterTestJahr,
+    …
+] = $this->pruefeMonatsraster($monatsrasterTestMitarbeiterId, …);
+```
+
+**Der Rumpf ist unverändert, auch die Variablennamen.** Sie sind lang
+(`$monatsfallbackTestMitarbeiterId` als Parameter einer Methode, die ohnehin
+`Monatsfallback` heißt), und kürzer wäre schöner. Umbenennen wäre aber eine
+zweite Änderung im selben Patch – und genau die, die der HTML-Vergleich nicht
+mehr absichern könnte, weil er nur das Ergebnis sieht, nicht den Weg. Die
+Namen sind einen eigenen, kleinen Patch wert, wenn die Zerlegung durch ist.
+
+**Warum die Bündel noch nicht bis in die View gehen:** Die Maske liest heute
+rund sechzig lose Variablen. Erst wenn alle Check-Blöcke Bündel liefern, kann
+die View sie als Bündel lesen und in Teil-Templates zerfallen – dann bekommt
+jedes Teil-Template genau eins, so wie `blaetternavigation.php` in
+P-2026-08-15-33. Vorher hätte man zweimal geschnitten.
+
+### TEST
+Wegwerf-Umgebung neu aufgesetzt (zwei Kopien, eigene Datenbanken
+`zeit_probe_t105` und `zeit_probe_t105_off`, erfundener Prüfbenutzer, die
+Juli-Daten aus P-2026-08-15-37), beide Server mit `-d opcache.enable=0`.
+
+Verglichen wurde leerraum-unabhängig gegen HEAD:
+
+| Lage | Echte Abweichungen |
+| --- | --- |
+| Seite ohne Aktion | 0 |
+| Feiertag-Quick-Check, gültiges und unsinniges Datum | 0 |
+| Monatsraster-, Fallback-, Doppelzählung-, Feiertag+Arbeitszeit-Check | 0 |
+| Kommen/Gehen-Sequenz-Check | 0 |
+| Mitarbeiter-ID 0 (Fehlerpfad) | 0 |
+| Datum `2026-13-99` (Fehlerpfad) | 0 |
+| die neun übrigen Fälle aus P-2026-08-15-37 | 0 |
+
+Dass die Checks dabei wirklich gerechnet haben und nicht bloß gleich leer
+waren, ist einzeln nachgesehen: Jeder der sechs Ergebnisblöcke steht auf beiden
+Ständen genau einmal in der Seite, und der Sequenz-Check meldet weiterhin
+9 Tage mit Buchungen, 3 auffällige, 1 Mehrblock-Tag.
+
+Vor der Zerlegung geprüft, dass keine der sechs Methoden eine Variable von
+außen liest: Für jede Methode wurden benutzte gegen gesetzte Namen gestellt –
+alles gebunden. Sonst wäre der Rumpf still auf `null` gelaufen.
+
+26 Backend-Routen HTTP 200 auf beiden Ständen, `php -l`, die drei
+Umlaut-Suchläufe ohne Treffer, beide Serverlogs ohne eine einzige PHP-Meldung.
+
+### Was bewusst nicht erreicht wurde
+**Fünf Blöcke stehen noch in `index()`:** Terminal-Login, PDF-Quick-Check,
+PDF-Synth-Check, PDF-DB-Kandidatenliste und PDF-DB-Auto-Multipage. Sie sind
+länger und verschachtelter als die sechs hier, und der Auto-Multipage-Check
+hat gerade erst einen Umbau hinter sich (P-2026-08-15-39) – der nächste Schnitt
+ist ein eigener Patch mit eigenem Vergleich.
+
+Ebenfalls noch offen und Voraussetzung dafür: die Queue-Übersicht und die
+Terminal-Konfiguration, die ohne POST bei jedem Aufruf laufen.
+
+### NEXT
+T-105: die fünf verbliebenen Check-Blöcke, danach die Teil-Templates der View.
+
 ## P-2026-08-15-43 wegwerf-umgebung-nachpruefen
 
 ### EINGELESEN

@@ -33,9 +33,9 @@ Keine bekannten.
 
 Ein Satz je Task – die Begründung steht im Verlauf, nicht hier.
 
-- **T-105** `SmokeTestController::index()` ist weiterhin eine einzige Methode;
-  das Markup ist raus (P-2026-08-15-37), die fünfzehn Check-Blöcke gehören in
-  eigene Methoden.
+- **T-105** In `SmokeTestController::index()` stehen noch fünf Check-Blöcke,
+  die eigene Methoden werden sollen; die sechs Monatsreport-Checks sind es seit
+  P-2026-08-15-44, danach folgen die Teil-Templates der View.
 - **T-112** „`catch` → `return []`" an 26 Stellen in `modelle/` und `services/`
   durchsehen – falsch nur dort, wo es die Fehlermeldung des Aufrufers
   unerreichbar macht; Suchlauf in P-2026-08-15-10.
