@@ -99,6 +99,67 @@ in den Statusbericht.
   D-002 entfallen; die Regel selbst gilt weiter.)
 
 
+## P-2026-08-15-19 b-100-datum-muss-es-geben
+
+### EINGELESEN
+- `docs/STATUS_SNAPSHOT.md` (B-100), `docs/arbeitsregeln.md` §3.
+- `controller/KonfigurationController.php`: `istUhrzeit()` aus
+  P-2026-08-15-17 als Muster, dazu die Validierung im Krank-POST.
+- `normalisiereKrankDatumEingabe()` – prueft bereits richtig, meldet aber nichts.
+
+### DATEIEN
+- `controller/KonfigurationController.php`
+- `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Ein Krankzeitraum mit `von_datum=2026-02-30` wird mit „Bitte ein gültiges
+Von-Datum angeben." abgelehnt statt mit „Speichern fehlgeschlagen."
+
+### DONE
+B-100 aus P-2026-08-15-18, dieselbe Familie wie B-099: Die Pruefung sah die
+Form, nicht den Inhalt. Neue private Methode `istDatum()` mit `checkdate()` –
+damit stehen Schaltjahr und Monatslaengen **nicht** noch einmal als Ausdruck im
+Code. Beide Datumsfelder benutzen sie.
+
+Der Vergleich `$bis < $von` bleibt Zeichenvergleich und hat jetzt den Kommentar,
+der sagt, warum das reicht (beide Werte geprueft und auf `YYYY-MM-DD`
+normalisiert) – dieselbe Stelle wie bei den Uhrzeiten in -17.
+
+`normalisiereKrankDatumEingabe()` bleibt, wie sie ist. Sie darf weiterhin
+`01.06.2026` zu `2026-06-01` machen und bei Unsinn die Eingabe zurueckgeben; das
+Urteil faellt jetzt die Pruefung dahinter. Die Alternative – die Funktion `null`
+zurueckgeben zu lassen – haette jeden ihrer Aufrufer geaendert, fuer denselben
+Effekt.
+
+### TEST
+Wegwerf-Umgebung aus P-2026-08-15-08, acht Eingaben gegen beide Staende:
+
+| von | bis | HEAD | neu |
+| --- | --- | --- | --- |
+| `2026-02-30` | – | „Speichern fehlgeschlagen." | „Bitte ein gültiges Von-Datum angeben." |
+| `2026-13-01` | – | „Speichern fehlgeschlagen." | „Bitte ein gültiges Von-Datum angeben." |
+| `2026-02-29` | – | „Speichern fehlgeschlagen." | „Bitte ein gültiges Von-Datum angeben." |
+| `2024-02-29` | – | gespeichert | gespeichert |
+| `2026-06-01` | `2026-06-31` | „Speichern fehlgeschlagen." | „Bitte ein gültiges Bis-Datum angeben (oder leer lassen)." |
+| `abc` | – | richtige Meldung | richtige Meldung |
+| `01.06.2026` | – | gespeichert als `2026-06-01` | gleich |
+| `2026-06-01` | `2026-06-10` | gespeichert | gespeichert |
+
+Die beiden 29. Februar stehen absichtlich beieinander: 2026 ist kein Schaltjahr,
+2024 eines. Eine Pruefung, die beide gleich behandelt, waere entweder zu streng
+oder wirkungslos – `checkdate()` trennt sie richtig.
+
+22 Backend-Aufrufe HTTP 200, Serverlog ohne Meldung, `php -l`.
+
+### Was bewusst nicht erreicht wurde
+Andere Masken pruefen Datumseingaben auf ihre eigene Art (Urlaub, Betriebsferien,
+Kurzarbeit, Auftragszeiten). Ob dort dieselbe Luecke steckt, ist ungeprueft –
+das ist ein eigener Durchgang und gehoert zu T-112, wo schon die verwandte Frage
+nach abgefangenen Fehlern steht.
+
+### NEXT
+T-114: die Tab-Zeile der Konfiguration als gemeinsames Teil-Template.
+
 ## P-2026-08-15-18 t-104-krankzeitraum-in-views
 
 ### EINGELESEN

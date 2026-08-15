@@ -141,6 +141,24 @@ class KonfigurationController
     }
 
     /**
+     * Prüft ein Datum auf `YYYY-MM-DD` **und darauf, dass es den Tag gibt**.
+     *
+     * `checkdate()` statt eines längeren Ausdrucks: Schaltjahre und die Länge
+     * der Monate stehen damit nicht noch einmal im Code. Ohne diese Prüfung
+     * kommt `2026-02-30` bis zur Datenbank und wird dort abgewiesen – der
+     * Benutzer liest dann „Speichern fehlgeschlagen." statt eines Hinweises
+     * auf sein Datum (B-100).
+     */
+    private static function istDatum(string $wert): bool
+    {
+        if (preg_match('/^(\d{4})-(\d{2})-(\d{2})$/', $wert, $treffer) !== 1) {
+            return false;
+        }
+
+        return checkdate((int)$treffer[2], (int)$treffer[3], (int)$treffer[1]);
+    }
+
+    /**
      * @return array<int,array{id:int,name:string,aktiv:int}>
      */
     private function holeMitarbeiterListe(int $includeId = 0): array
@@ -575,11 +593,13 @@ class KonfigurationController
                         $fehlermeldung = 'Bitte einen Mitarbeiter auswählen.';
                     } elseif ($typ === '') {
                         $fehlermeldung = 'Bitte einen Typ wählen (LFZ/KK).';
-                    } elseif (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $von)) {
+                    } elseif (!self::istDatum($von)) {
                         $fehlermeldung = 'Bitte ein gültiges Von-Datum angeben.';
-                    } elseif ($bis !== null && !preg_match('/^\d{4}-\d{2}-\d{2}$/', (string)$bis)) {
+                    } elseif ($bis !== null && !self::istDatum((string)$bis)) {
                         $fehlermeldung = 'Bitte ein gültiges Bis-Datum angeben (oder leer lassen).';
                     } elseif ($bis !== null && (string)$bis < $von) {
+                        // Zeichenvergleich reicht: Beide Werte sind hier geprüft
+                        // und normalisiert (`YYYY-MM-DD`).
                         $fehlermeldung = 'Bis-Datum darf nicht vor Von-Datum liegen.';
                     }
 

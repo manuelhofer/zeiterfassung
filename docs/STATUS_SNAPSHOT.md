@@ -26,10 +26,8 @@ Abschnitt 12, der Stufenplan in Abschnitt 11 – dort und bewusst nicht hier ein
 zweites Mal.
 
 ## Offene Bugs
-- **B-100** Krankzeitraum: Die Datumsprüfung testet nur die Form. `2026-02-30`
-  kommt durch und endet in „Speichern fehlgeschlagen." statt in „Bitte ein
-  gültiges Von-Datum angeben." Wie B-099, aber ohne falsche Daten in der
-  Tabelle.
+
+Keine bekannten.
 
 ## Offene Tasks
 - **T-112** „`catch` → `return []`" steckt an 26 Stellen in `modelle/` und
