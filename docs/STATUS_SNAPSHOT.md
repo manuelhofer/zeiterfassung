@@ -35,15 +35,18 @@ Keine bekannten.
   unerreichbar macht (B-097, T-110). Durchsehen, nicht pauschal ändern;
   Suchlauf in P-2026-08-15-10.
 - **T-104** Zwei Controller erzeugen HTML selbst, statt `views/` zu benutzen –
-  **3 Masken**: `AuftragController` (2: Liste, Detail), `SmokeTestController`
+  **2 Masken**: `AuftragController` (die Auftragsliste), `SmokeTestController`
   (1). Eine Maske je Patch; Muster und Prüfweg: P-2026-08-11-09, zuletzt
-  P-2026-08-15-31.
+  P-2026-08-15-32.
 
   Achtung: Der `grep` nach dem Header-Require zählt zu hoch – er findet auch
   „Keine Berechtigung"-Blöcke in längst fertigen Controllern.
 
   Beim Bauen einer Maske erst in `views/layout/header.php` nachsehen und
   **keine eigenen Grössen auf Knöpfe schreiben** – Begründung steht dort.
+- **T-120** Die Katalog-Auswahl steht zweimal fast gleich in `views/auftrag/`
+  (`formular.php`, `detail.php`) – erst nach der letzten T-104-Maske
+  entscheiden, ob ein gemeinsames Teil-Template lohnt.
 - **T-105** `SmokeTestController::index()` ist eine einzige, riesige Methode:
   Diagnosewerkzeug ohne Fachlogik, praktisch nicht mehr änderbar – nur *eine*
   Maske aus T-104 und trotzdem der grösste Brocken darin.

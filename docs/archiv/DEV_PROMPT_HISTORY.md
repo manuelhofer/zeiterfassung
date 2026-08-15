@@ -99,6 +99,96 @@ in den Statusbericht.
   D-002 entfallen; die Regel selbst gilt weiter.)
 
 
+## P-2026-08-15-32 t-104-auftragsdetail-in-views
+
+### EINGELESEN
+- `docs/STATUS_SNAPSHOT.md` (T-104), `views/auftrag/formular.php` als Muster
+  (P-2026-08-15-31).
+- `AuftragController::detail()` vollstaendig, dazu `darfAuftraegeVerwalten()`
+  und `pruefeZugriff()`.
+- `core/Csrf.php`, `feld()`.
+
+### DATEIEN
+- `views/auftrag/detail.php` (neu)
+- `controller/AuftragController.php`
+- `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Das Auftragsdetail erzeugt dasselbe HTML wie vorher – bis auf die Einrueckung
+und die drei `Csrf::feld()`-Stellen –, obwohl das Markup jetzt in
+`views/auftrag/detail.php` liegt.
+
+### DONE
+Dritte Maske des `AuftragController` und die groesste: 2.360 → 2.053 Zeilen
+Controller plus 351 Zeilen View. Der Controller behaelt beide Abfragen (mit und
+ohne Arbeitsschritt-Tabellen), die Summenbildung, die Strichcode-Erzeugung und
+die Katalogliste; die View bekommt fertige Werte.
+
+Zwei Dinge, die vorher **mitten im HTML** standen, rechnet jetzt der Controller
+vor: `$darfVerwalten` und der CSRF-Bereich. Das Token `$stammCsrf` faellt weg –
+die drei Formulare (Schritt hinzufuegen, aus Katalog uebernehmen, Auftrag
+loeschen) bauen ihr Feld mit `Csrf::feld($csrfBereich)`.
+
+Der Kommentar „Ab hier die Stammdaten" ist als PHP-Kommentar mitgewandert; er
+erklaert die Reihenfolge der Bloecke und gilt weiterhin dem, der die Datei
+aendert.
+
+### TEST
+Wegwerf-Umgebung aus P-2026-08-15-28, HEAD-Kopie auf P-2026-08-15-31. Erfundene
+Daten: drei Auftraege (einer mit `A&"100"<x>`), vier Buchungen – eine laufende
+ohne Endzeit, zwei abgeschlossene auf denselben Schritt, eine auf eine
+Auftragsnummer **ohne** Stammdatensatz –, zwei Katalogschritte, davon einer
+(`saegen` / „Sägen & <b>mehr</b>") noch an keinem Auftrag.
+
+| Lage | Abweichende Zeilen | erwartet |
+| --- | --- | --- |
+| Auftrag mit Schritten, ohne Buchung | 9 | 9 (3 × `Csrf::feld`) |
+| Auftrag mit drei Buchungen | 6 | 6 (2 × – der Loeschen-Kasten weicht dem Hinweis) |
+| Bezeichnung kommt aus dem Katalog | 6 | 6 |
+| Auftrag ohne Arbeitsschritte | 9 | 9 |
+| Nummer nur aus Buchungen (kein Stammsatz) | 0 | 0 (keine Verwaltungsformulare) |
+| Auftragsnummer gibt es gar nicht | 0 | 0 |
+| `auftragszeit` unlesbar (`RENAME TABLE`) | 9 | 9 |
+| Erfolgs-Flash nach dem Speichern | 6 | 6 |
+| Fehler-Flash nach verweigertem Loeschen | 6 | 6 |
+| **Benutzer ohne `AUFTRAEGE_VERWALTEN`** | 0 | 0 |
+
+Inhaltlich nachgesehen, weil es die Zweige der Maske sind: „Gesamtstunden
+(abgeschlossen): 3.75" (2,5 h + 1,25 h; die laufende Buchung zaehlt nicht mit),
+die Summentabelle je Arbeitsschritt, „(aus Katalog)", „Noch keine
+Arbeitsschritte hinterlegt.", „Zu dieser Auftragsnummer gibt es noch keinen
+Stammdatensatz", „Die Auftragsdetails konnten nicht geladen werden.", „Der
+Auftrag wurde gespeichert." und „Der Auftrag hat 3 Buchungen und wird deshalb
+nicht gelöscht. …" – der Auftrag steht danach noch in der Datenbank.
+
+Fuer den Rechte-Zweig eine **erfundene Rolle „Probe-Leser" ohne Rechte** und ein
+Benutzer „Probe Leser": Er sieht Buchungen, Summen und den Laufkarten-Link, aber
+keinen der drei Verwaltungskaesten und keinen „Auftrag bearbeiten"-Knopf –
+identisch auf beiden Staenden.
+
+25 Backend-Routen HTTP 200, Serverlogs beider Staende ohne Deprecation, Warning
+oder Notice, `php -l` ueber beide Dateien, die Umlaut-Suchlaeufe ohne Treffer.
+
+### Gefundene Fehler im eigenen Entwurf
+Der erste Vergleichslauf meldete eine Abweichung zu viel: `<p class="success">Der
+Auftrag wurde gespeichert.</p>` stand nur auf einem Stand. Das war **kein**
+Codeunterschied, sondern eine wartende Flash-Meldung aus einem frueheren
+POST – sie wird beim ersten Lesen verbraucht, also sieht sie nur der Stand, der
+zufaellig zuerst abgerufen wird. Das Vergleichsskript holt jede Seite jetzt
+zweimal und vergleicht die zweite Antwort. Wer Flash-Meldungen absichtlich
+pruefen will, muss sie auf **beiden** Staenden getrennt ausloesen – so ist es
+hier gemacht.
+
+### Was bewusst nicht erreicht wurde
+Die Katalog-Auswahl steht jetzt zweimal fast gleich in `views/auftrag/` (im
+Formular beim Anlegen, im Detail beim Nachtragen). Die beiden unterscheiden sich
+in Zielroute, Vorbelegung und Ueberschrift; ob ein gemeinsames Teil-Template
+mehr nutzt als kostet, entscheidet sich mit der letzten Maske – nicht jetzt
+nebenbei. Als **T-120** notiert.
+
+### NEXT
+T-104, letzte Maske des `AuftragController`: die Auftragsliste (`index()`).
+
 ## P-2026-08-15-31 t-104-auftragsformular-in-views
 
 ### EINGELESEN
