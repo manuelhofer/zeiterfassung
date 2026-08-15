@@ -73,6 +73,11 @@ $ladefehler        = (bool)($ladefehler ?? false);
             <p>Es sind derzeit keine Terminals hinterlegt.</p>
         <?php endif; ?>
     <?php else: ?>
+        <?php /* `.table-wrap` gehört zu `.table-actions`: Die Knöpfe bleiben in
+                 ihrer Zeile (`nowrap`), dadurch wird diese elfspaltige Tabelle
+                 breiter als ein schmales Fenster. Ohne den Rahmen schiebt sie
+                 die ganze Seite zur Seite; mit ihm scrollt nur die Tabelle. */ ?>
+        <div class="table-wrap">
         <table>
             <thead>
                 <tr>
@@ -111,32 +116,38 @@ $ladefehler        = (bool)($ladefehler ?? false);
                         <td><?php echo htmlspecialchars($abteilung, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></td>
                         <td><?php echo htmlspecialchars($modus, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></td>
                         <td>
-                            <?php echo $okg ? 'Ja' : 'Nein'; ?>
-                            <form method="post" action="?seite=terminal_admin_toggle" style="display:inline; margin-left:0.5rem;">
-                                <?php echo Csrf::feld($csrfBereich); ?>
-                                <input type="hidden" name="id" value="<?php echo $id; ?>">
-                                <input type="hidden" name="feld" value="offline_erlaubt_kommen_gehen">
-                                <button type="submit" style="padding: 0.15rem 0.5rem;">Umschalten</button>
-                            </form>
+                            <div class="table-actions">
+                                <span><?php echo $okg ? 'Ja' : 'Nein'; ?></span>
+                                <form method="post" action="?seite=terminal_admin_toggle">
+                                    <?php echo Csrf::feld($csrfBereich); ?>
+                                    <input type="hidden" name="id" value="<?php echo $id; ?>">
+                                    <input type="hidden" name="feld" value="offline_erlaubt_kommen_gehen">
+                                    <button type="submit">Umschalten</button>
+                                </form>
+                            </div>
                         </td>
                         <td>
-                            <?php echo $oauf ? 'Ja' : 'Nein'; ?>
-                            <form method="post" action="?seite=terminal_admin_toggle" style="display:inline; margin-left:0.5rem;">
-                                <?php echo Csrf::feld($csrfBereich); ?>
-                                <input type="hidden" name="id" value="<?php echo $id; ?>">
-                                <input type="hidden" name="feld" value="offline_erlaubt_auftraege">
-                                <button type="submit" style="padding: 0.15rem 0.5rem;">Umschalten</button>
-                            </form>
+                            <div class="table-actions">
+                                <span><?php echo $oauf ? 'Ja' : 'Nein'; ?></span>
+                                <form method="post" action="?seite=terminal_admin_toggle">
+                                    <?php echo Csrf::feld($csrfBereich); ?>
+                                    <input type="hidden" name="id" value="<?php echo $id; ?>">
+                                    <input type="hidden" name="feld" value="offline_erlaubt_auftraege">
+                                    <button type="submit">Umschalten</button>
+                                </form>
+                            </div>
                         </td>
                         <td><?php echo $timeout > 0 ? ($timeout . ' s') : '-'; ?></td>
                         <td>
-                            <?php echo $aktiv ? 'Ja' : 'Nein'; ?>
-                            <form method="post" action="?seite=terminal_admin_toggle" style="display:inline; margin-left:0.5rem;">
-                                <?php echo Csrf::feld($csrfBereich); ?>
-                                <input type="hidden" name="id" value="<?php echo $id; ?>">
-                                <input type="hidden" name="feld" value="aktiv">
-                                <button type="submit" style="padding: 0.15rem 0.5rem;">Umschalten</button>
-                            </form>
+                            <div class="table-actions">
+                                <span><?php echo $aktiv ? 'Ja' : 'Nein'; ?></span>
+                                <form method="post" action="?seite=terminal_admin_toggle">
+                                    <?php echo Csrf::feld($csrfBereich); ?>
+                                    <input type="hidden" name="id" value="<?php echo $id; ?>">
+                                    <input type="hidden" name="feld" value="aktiv">
+                                    <button type="submit">Umschalten</button>
+                                </form>
+                            </div>
                         </td>
                         <td>
                             <?php if ($dbBenutzer !== ''): ?>
@@ -147,23 +158,27 @@ $ladefehler        = (bool)($ladefehler ?? false);
                                 <?php /* Rückfrage bewusst ohne Gerätenamen: Der steht in derselben Zeile,
                                          und ein Name im JavaScript-Text wäre nur eine weitere Stelle zum
                                          Maskieren. */ ?>
-                                <form method="post" action="?seite=terminal_admin_entkoppeln" style="display:block; margin-top:0.35rem;"
-                                      onsubmit="return confirm('Dieses Terminal entkoppeln?\n\nDer Datenbankbenutzer wird gelöscht. Das Gerät kann danach nicht mehr buchen, bis es mit einem neuen Kopplungscode erneut gekoppelt wird.');">
-                                    <?php echo Csrf::feld($csrfBereich); ?>
-                                    <input type="hidden" name="id" value="<?php echo $id; ?>">
-                                    <button type="submit" style="padding: 0.15rem 0.5rem;">Entkoppeln</button>
-                                </form>
+                                <div class="table-actions" style="margin-top:0.35rem;">
+                                    <form method="post" action="?seite=terminal_admin_entkoppeln"
+                                          onsubmit="return confirm('Dieses Terminal entkoppeln?\n\nDer Datenbankbenutzer wird gelöscht. Das Gerät kann danach nicht mehr buchen, bis es mit einem neuen Kopplungscode erneut gekoppelt wird.');">
+                                        <?php echo Csrf::feld($csrfBereich); ?>
+                                        <input type="hidden" name="id" value="<?php echo $id; ?>">
+                                        <button type="submit">Entkoppeln</button>
+                                    </form>
+                                </div>
                             <?php else: ?>
                                 <span class="muted">nicht gekoppelt</span>
                             <?php endif; ?>
                         </td>
                         <td>
-                            <a href="?seite=terminal_admin_bearbeiten&amp;id=<?php echo $id; ?>">Bearbeiten</a>
-                            <form method="post" action="?seite=terminal_admin_kopplung" style="display:inline; margin-left:0.5rem;">
-                                <?php echo Csrf::feld($csrfBereich); ?>
-                                <input type="hidden" name="id" value="<?php echo $id; ?>">
-                                <button type="submit" style="padding: 0.15rem 0.5rem;">Kopplungscode</button>
-                            </form>
+                            <div class="table-actions">
+                                <a href="?seite=terminal_admin_bearbeiten&amp;id=<?php echo $id; ?>">Bearbeiten</a>
+                                <form method="post" action="?seite=terminal_admin_kopplung">
+                                    <?php echo Csrf::feld($csrfBereich); ?>
+                                    <input type="hidden" name="id" value="<?php echo $id; ?>">
+                                    <button type="submit">Kopplungscode</button>
+                                </form>
+                            </div>
                             <?php
                                 $offeneKopplung = $kopplungService !== null ? $kopplungService->holeOffeneKopplung($id) : null;
                                 if (is_array($offeneKopplung)):
@@ -177,6 +192,7 @@ $ladefehler        = (bool)($ladefehler ?? false);
                 <?php endforeach; ?>
             </tbody>
         </table>
+        </div>
     <?php endif; ?>
 </section>
 

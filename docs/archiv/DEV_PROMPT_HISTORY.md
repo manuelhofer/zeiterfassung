@@ -99,6 +99,87 @@ in den Statusbericht.
   D-002 entfallen; die Regel selbst gilt weiter.)
 
 
+## P-2026-08-15-22 t-115-terminalliste-ohne-eigene-knopfgroessen
+
+### EINGELESEN
+- `docs/STATUS_SNAPSHOT.md` (T-115), `docs/arbeitsregeln.md`.
+- `views/layout/header.php`, die Bloecke `button`/`.button-link`,
+  `.table-actions` und `.table-wrap` samt ihren Kommentaren.
+- `views/mitarbeiter/liste.php` als Beispiel, wo beide Klassen zusammen stehen.
+- `views/terminal_admin/liste.php` (aus P-2026-08-15-21).
+
+### DATEIEN
+- `views/terminal_admin/liste.php`
+- `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Kein Knopf der Terminalliste schreibt mehr seine eigene Groesse, die Knoepfe sind
+alle 28 Pixel hoch – und bei 820 Pixeln Fensterbreite schiebt die Tabelle nicht
+mehr die ganze Seite zur Seite, sondern scrollt in ihrem eigenen Rahmen.
+
+### DONE
+T-115 aus P-2026-08-15-21. Die sechs Knoepfe trugen
+`style="padding: 0.15rem 0.5rem;"` – genau das, was T-104 verbietet. Sie stehen
+jetzt in `.table-actions`, dem Block, den `views/layout/header.php` fuer Knoepfe
+in Tabellenzellen bereithaelt.
+
+**Die Annahme in T-115 war falsch, und das Messen hat es gezeigt.** Notiert war,
+die Knoepfe wuerden ohne die eigene Angabe „auf die Standardgroesse springen und
+die Tabelle deutlich hoeher machen". Tatsaechlich waren sie **vorher** groesser:
+`min-height: 2rem` aus dem Layout gewinnt gegen ein kleineres `padding`, die
+Knoepfe waren also schon immer 32 Pixel hoch. In `.table-actions` sind sie 28.
+Wer eine sichtbare Aenderung nur schaetzt, schaetzt in die falsche Richtung.
+
+Dazu kam `.table-wrap` um die Tabelle. Das gehoert zum selben Thema, nicht
+nebenbei: `.table-actions` setzt in Zellen `flex-wrap: nowrap` und
+`white-space: nowrap`, die Spalten koennen also nicht mehr so weit schrumpfen.
+Bei 820 Pixeln war die Tabelle danach 1.218 statt 1.049 Pixel breit – ohne
+Rahmen haette das die **Seite** breiter gemacht. Der Kommentar an `.table-wrap`
+im Layout sagt genau das voraus; hier ist der Fall eingetreten.
+
+### TEST
+Wegwerf-Umgebung aus P-2026-08-15-08, zwei erfundene Terminals (eines gekoppelt,
+eines nicht). Gemessen wurde diesmal **im Browser** ueber das DOM, nicht im
+HTML-Text – Groessen stehen nicht im Markup, sondern entstehen aus dem
+Stylesheet.
+
+Bei 1.280 Pixeln Fensterbreite:
+
+| Groesse | HEAD | neu |
+| --- | --- | --- |
+| Knopfhoehe | 32 px | 28 px |
+| Schriftgroesse im Knopf | 14,88 px | 14,4 px |
+| Zeilenhoehen der zwei Zeilen | 114 / 67 px | 110 / 56 px |
+| Tabellenbreite | 1.237 px | 1.237 px |
+| Seite laeuft ueber | nein | nein |
+
+Bei 820 Pixeln:
+
+| | HEAD | neu |
+| --- | --- | --- |
+| Tabellenbreite | 1.049 px | 1.218 px |
+| **Seite** laeuft ueber | **ja** | nein |
+| Tabelle scrollt im Rahmen | – | ja |
+
+Bei 375 Pixeln (Mobilgeraet): Seite laeuft nicht ueber, Tabelle scrollt im
+Rahmen, Knoepfe weiterhin 28 Pixel. Zusaetzlich geprueft, dass in **jeder**
+Aktionszelle der Inhalt in die Zelle passt (Flex-Breite ≤ Zellenbreite) – bei
+`nowrap` ist das die Stelle, an der es sonst herausragt.
+
+Funktionsprobe danach unveraendert: Kopplungscode erzeugen (Panel genau einmal),
+Quick-Toggle kippt den Wert, falsches CSRF-Token wird abgewiesen. 22
+Backend-Aufrufe HTTP 200, Serverlog ohne Meldung, `php -l`.
+
+### Was bewusst nicht erreicht wurde
+Andere Masken haben dieselben handgeschriebenen Groessen (`AuftragController`,
+Teile der Urlaubsansichten). Nicht angefasst – hier ging es um die Liste, die
+gerade nach `views/` gezogen ist. Wer die naechste Maske migriert, sieht sie
+ohnehin.
+
+### NEXT
+`renderFormular()` des `TerminalAdminController` – die letzte Maske dieses
+Controllers.
+
 ## P-2026-08-15-21 t-104-terminalliste-in-views
 
 ### EINGELESEN
