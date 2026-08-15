@@ -99,6 +99,68 @@ in den Statusbericht.
   D-002 entfallen; die Regel selbst gilt weiter.)
 
 
+## P-2026-08-15-30 t-118-tote-token-zuweisungen-weg
+
+### EINGELESEN
+- `docs/STATUS_SNAPSHOT.md` (T-118), `docs/arbeitsregeln.md` §3.
+- P-2026-08-15-24 – derselbe Fund im `TerminalAdminController` (T-116), samt
+  Begruendung, warum das Entfernen gefahrlos ist.
+- `core/Csrf.php`, `token()` und `istGueltig()`.
+- `AuftragController`: `speichern()`, `schrittSpeichern()`,
+  `schritteAusKatalog()`, dazu `renderAuftragFormular()` wegen des Tokens, das
+  dort **noch gebraucht** wird.
+
+### DATEIEN
+- `controller/AuftragController.php`
+- `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Ein POST auf `?seite=auftrag_schritt_speichern` mit falschem Token meldet
+weiterhin „Die Sitzung ist abgelaufen. Bitte erneut versuchen." und aendert
+nichts – obwohl die drei ungenutzten `Csrf::token()`-Zuweisungen weg sind.
+
+### DONE
+T-118 aus P-2026-08-15-28, dasselbe Muster wie T-116: Drei Methoden holten sich
+ein Token in eine Variable, die niemand liest. Alle drei pruefen direkt danach
+mit `istGueltig()` und antworten mit `header('Location: …')` – sie zeigen kein
+Formular, also braucht keine von ihnen ein Token.
+
+Der Fehlerweg von `speichern()` und `schrittSpeichern()` endet zwar in einem
+Formular, aber beide holen sich ihr Token dort selbst:
+`renderAuftragFormular()` in seiner eigenen Variablen (Zeile 1685, wird noch
+gebraucht), `renderSchrittFormular()` seit P-2026-08-15-28 ueber
+`Csrf::feld()` in der View.
+
+Damit sind im `AuftragController` noch zwei `Csrf::token()`-Aufrufe uebrig, und
+beide haben einen Empfaenger.
+
+### TEST
+Wegwerf-Umgebung aus P-2026-08-15-28, Arbeitsstand neu hineingespiegelt.
+
+| Weg | falsches Token | gueltiges Token |
+| --- | --- | --- |
+| `auftrag_speichern` | 302 `?seite=auftrag`, nichts angelegt | 302 `auftrag_detail&code=NEU-1`, Auftrag da |
+| `auftrag_schritt_speichern` | 302, Schritt unveraendert | 302 aufs Detail, Code geaendert |
+| `auftrag_schritte_aus_katalog` | 302, kein Schritt dazu | 302 aufs Detail, `fraesen` uebernommen |
+
+Alle drei Fehlerwege zeigen danach „Die Sitzung ist abgelaufen. Bitte erneut
+versuchen." in der Auftragsliste.
+
+Zusaetzlich der Fall, um den es bei T-116 ging: **frische Sitzung, in der noch
+nie ein Stamm-Formular geoeffnet wurde** – es gibt also gar kein Token in der
+Sitzung. POST mit erfundenem Token: 302, Fehlermeldung, Datensatz unveraendert.
+Genau wie vorher, als `token()` den Wert an dieser Stelle noch angelegt haette.
+
+`php -l`, Serverlog ohne Meldung.
+
+### Was bewusst nicht erreicht wurde
+`renderAuftragFormular()` baut sein CSRF-Feld weiterhin von Hand statt ueber
+`Csrf::feld()`. Das aendert sich mit T-104, wenn diese Maske in `views/` zieht –
+vorher waere es eine HTML-Aenderung ohne Vergleichsstand.
+
+### NEXT
+T-104, naechste Maske: `renderAuftragFormular()`.
+
 ## P-2026-08-15-29 t-119-umlaute-in-texten-und-kommentaren
 
 ### EINGELESEN

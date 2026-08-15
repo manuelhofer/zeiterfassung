@@ -44,9 +44,6 @@ Keine bekannten.
 
   Beim Bauen einer Maske erst in `views/layout/header.php` nachsehen und
   **keine eigenen Grössen auf Knöpfe schreiben** – Begründung steht dort.
-- **T-118** Drei ungenutzte `Csrf::token()`-Zuweisungen im `AuftragController`
-  (`speichern()`, `schrittSpeichern()`, `schritteAusKatalog()`) – dasselbe
-  Muster wie T-116, gefunden in P-2026-08-15-28.
 - **T-105** `SmokeTestController::index()` ist eine einzige, riesige Methode:
   Diagnosewerkzeug ohne Fachlogik, praktisch nicht mehr änderbar – nur *eine*
   Maske aus T-104 und trotzdem der grösste Brocken darin.

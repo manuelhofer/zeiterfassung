@@ -1517,7 +1517,6 @@ class AuftragController
             return;
         }
 
-        $csrfToken = Csrf::token(self::CSRF_BEREICH_STAMM);
         if (!Csrf::istGueltig(self::CSRF_BEREICH_STAMM)) {
             $_SESSION['auftrag_flash_fehler'] = 'Die Sitzung ist abgelaufen. Bitte erneut versuchen.';
             header('Location: ?seite=auftrag');
@@ -1955,7 +1954,6 @@ class AuftragController
             return;
         }
 
-        $csrfToken = Csrf::token(self::CSRF_BEREICH_STAMM);
         if (!Csrf::istGueltig(self::CSRF_BEREICH_STAMM)) {
             $_SESSION['auftrag_flash_fehler'] = 'Die Sitzung ist abgelaufen. Bitte erneut versuchen.';
             header('Location: ?seite=auftrag');
@@ -2194,7 +2192,6 @@ class AuftragController
             return;
         }
 
-        $csrfToken = Csrf::token(self::CSRF_BEREICH_STAMM);
         if (!Csrf::istGueltig(self::CSRF_BEREICH_STAMM)) {
             $_SESSION['auftrag_flash_fehler'] = 'Die Sitzung ist abgelaufen. Bitte erneut versuchen.';
             header('Location: ?seite=auftrag');
