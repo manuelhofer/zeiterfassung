@@ -7,12 +7,17 @@ declare(strict_types=1);
  * Erwartet:
  * - int   $jahr
  * - array $feiertage (Liste aus Feiertag-Datensätzen)
+ * - optional: $fehlermeldung (string|null)
+ * - optional: $ladefehler (bool) – true, wenn die Liste nicht gelesen werden konnte
  *
  * Diese View wird im Standard-Backend-Layout eingebunden.
  */
 ?>
 <?php require __DIR__ . '/../layout/header.php'; ?>
 <?php
+$fehlermeldung = $fehlermeldung ?? null;
+$ladefehler    = (bool)($ladefehler ?? false);
+
 $fmtDatum = static function (string $datum): string {
     $datum = trim($datum);
     if (preg_match('/^(\d{4})-(\d{2})-(\d{2})$/', $datum, $m) === 1) {
@@ -39,8 +44,19 @@ $fmtDatum = static function (string $datum): string {
         noch keine Einträge vorhanden sind.
     </p>
 
+    <?php if (!empty($fehlermeldung)): ?>
+        <div class="fehlermeldung">
+            <?php echo htmlspecialchars((string)$fehlermeldung, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>
+        </div>
+    <?php endif; ?>
+
+    <?php /* Bei einem Lesefehler ist die Liste ebenfalls leer – dann steht schon
+             die Fehlermeldung da, und „keine Feiertage gefunden" wäre daneben
+             die falsche Auskunft. */ ?>
     <?php if (empty($feiertage)): ?>
-        <p>Für dieses Jahr wurden keine Feiertage gefunden.</p>
+        <?php if (!$ladefehler): ?>
+            <p>Für dieses Jahr wurden keine Feiertage gefunden.</p>
+        <?php endif; ?>
     <?php else: ?>
         <table>
             <thead>

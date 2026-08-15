@@ -99,6 +99,68 @@ in den Statusbericht.
   D-002 entfallen; die Regel selbst gilt weiter.)
 
 
+## P-2026-08-15-12 b-098-feiertagsliste-meldet-lesefehler
+
+### EINGELESEN
+- `docs/STATUS_SNAPSHOT.md` (B-098), `docs/arbeitsregeln.md`.
+- `controller/FeiertagController.php`, `index()`.
+- `views/feiertag/liste.php` vollstaendig – sie hatte **keinen** Platz fuer eine
+  Fehlermeldung.
+- `services/FeiertagService.php`, `generiereFeiertageFuerJahrWennNoetig()`.
+- P-2026-08-15-10 und -11 als Muster.
+
+### DATEIEN
+- `controller/FeiertagController.php`, `views/feiertag/liste.php`
+- `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Ist `feiertag` nicht lesbar, zeigt die Feiertagsliste „Die Feiertage konnten
+nicht geladen werden." statt „Für dieses Jahr wurden keine Feiertage gefunden."
+
+### DONE
+B-098, die zweite der beiden Listen aus P-2026-08-15-10, die ihren Lesefehler
+gar nicht zeigten. Ursache hier nicht im Modell, sondern im Controller: Sein
+`catch` **loggte nur**. Die View kannte gar keine Fehlermeldung – es gab keine
+Variable und keinen Block dafuer.
+
+Der Controller setzt jetzt Meldung und `$ladefehler`, die View bekommt den
+ueblichen `fehlermeldung`-Block und zeigt ihren Leer-Hinweis nur ohne
+Ladefehler. Damit sieht diese Maske aus wie die neun anderen.
+
+Der Satz „Für dieses Jahr wurden keine Feiertage gefunden." bleibt stehen und
+ist keine tote Zeile: Er greift, wenn die Tabelle lesbar, aber leer ist – etwa
+wenn das Nachsaeen des Service scheitert. Genau diese Lage steht im Test.
+
+### TEST
+Wegwerf-Umgebung aus P-2026-08-15-08. Drei Lagen, beide Staende:
+
+| Lage | HEAD | neu |
+| --- | --- | --- |
+| normal (Jahr 2026, 9 Feiertage) | Liste | Liste |
+| lesbar, aber leer | Leer-Hinweis | Leer-Hinweis |
+| unlesbar (`RENAME TABLE`) | **Leer-Hinweis, keine Meldung** | nur Fehlermeldung |
+
+Die leere Lage ist der interessante Teil des Aufbaus: Ein blosses `DELETE`
+genuegt nicht, weil `generiereFeiertageFuerJahrWennNoetig()` beim naechsten
+Aufruf sofort nachsaet (gemessen: 9 Eintraege). Dafuer wurde ein Trigger
+gesetzt, der `INSERT` auf `feiertag` mit `SIGNAL SQLSTATE '45000'` abweist –
+danach ist die Tabelle lesbar und bleibt leer. Der Trigger ist am Ende wieder
+weg, die Feiertage sind nachgesaet.
+
+22 Backend-Aufrufe HTTP 200, Serverlog ohne Deprecation oder Warnung, `php -l`
+ueber beide Dateien.
+
+### Was bewusst nicht erreicht wurde
+`generiereFeiertageFuerJahrWennNoetig()` faengt seinen eigenen Lesefehler ab und
+macht mit einer leeren Liste weiter – es versucht dann zu saeen, was bei
+unlesbarer Tabelle ebenfalls scheitert. Sichtbar ist das nicht (die Warnung
+steht im Log, die Seite laedt), und es gehoert zu T-112.
+
+Damit sind alle acht Listen aus T-111 abgearbeitet.
+
+### NEXT
+Zurueck zu T-104: `indexSonstigesGruende()` des `KonfigurationController`.
+
 ## P-2026-08-15-11 b-097-abteilungsliste-meldet-lesefehler
 
 ### EINGELESEN

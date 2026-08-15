@@ -26,9 +26,8 @@ Abschnitt 12, der Stufenplan in Abschnitt 11 – dort und bewusst nicht hier ein
 zweites Mal.
 
 ## Offene Bugs
-- **B-098** Feiertagsliste: Ist `feiertag` nicht lesbar, erscheint **keine**
-  Fehlermeldung, sondern „Für dieses Jahr wurden keine Feiertage gefunden." –
-  der `catch` im `FeiertagController` loggt nur.
+
+Keine bekannten.
 
 ## Offene Tasks
 - **T-112** „`catch` → `return []`" steckt an 26 Stellen in `modelle/` und

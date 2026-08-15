@@ -84,10 +84,16 @@ class FeiertagController
         $this->feiertagService->generiereFeiertageFuerJahrWennNoetig($jahr);
 
         // Feiertage aus der Datenbank laden
-        $feiertage = [];
+        $feiertage     = [];
+        $fehlermeldung = null;
+        // Nur ein Lesefehler erklärt die leere Liste; ohne diesen Merker sagt
+        // die Maske „für dieses Jahr keine gefunden" und meint „nicht gelesen".
+        $ladefehler    = false;
         try {
             $feiertage = $this->feiertagModel->holeFuerJahr($jahr, null);
         } catch (\Throwable $e) {
+            $fehlermeldung = 'Die Feiertage konnten nicht geladen werden.';
+            $ladefehler    = true;
             Logger::error('Fehler beim Laden der Feiertage', [
                 'jahr'      => $jahr,
                 'exception' => $e->getMessage(),
