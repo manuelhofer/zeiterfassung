@@ -30,8 +30,6 @@ zweites Mal.
 Keine bekannten.
 
 ## Offene Tasks
-- **T-113** „Neu anlegen" bei den Sonstiges-Gründen zeigt auf die Seite, auf der
-  man steht; der Link leert nur das Formular. Beschriftung oder Ziel klären.
 - **T-112** „`catch` → `return []`" steckt an 26 Stellen in `modelle/` und
   `services/`. Falsch ist es nur dort, wo es die Fehlermeldung des Aufrufers
   unerreichbar macht (B-097, T-110). Durchsehen, nicht pauschal ändern;

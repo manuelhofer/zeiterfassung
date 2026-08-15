@@ -99,6 +99,77 @@ in den Statusbericht.
   D-002 entfallen; die Regel selbst gilt weiter.)
 
 
+## P-2026-08-15-15 t-113-neu-anlegen-nur-beim-bearbeiten
+
+### EINGELESEN
+- `docs/STATUS_SNAPSHOT.md` (T-113), `docs/arbeitsregeln.md` §3.
+- `views/konfiguration/sonstiges_gruende.php` (aus P-2026-08-15-14).
+- `grep -n "Neu anlegen\|Abbrechen" controller/KonfigurationController.php
+  views/konfiguration/*.php` – der Link steht in **drei** Masken gleich.
+
+### DATEIEN
+- `views/konfiguration/sonstiges_gruende.php`
+- `controller/KonfigurationController.php` (Krankzeitraum, Pausenregeln)
+- `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Auf der leeren Maske „Sonstiges-Gründe" steht kein „Neu anlegen" mehr; oeffnet
+man einen Eintrag zum Bearbeiten, ist der Link da und leert das Formular.
+
+### DONE
+T-113 aus P-2026-08-15-14. Diese Masken haben Liste und Formular auf **einer**
+Seite; „Neu anlegen" zeigt deshalb auf genau die Seite, auf der man schon steht.
+Beim Bearbeiten leert das Formular – dafuer ist der Link da. Ohne Bearbeitung
+tut er nichts: Die Maske laedt neu und sieht aus wie vorher.
+
+Ein Link, der nichts tut, ist schlechter als keiner. Wer ihn drueckt und nichts
+passieren sieht, sucht den Fehler bei sich oder haelt die Maske fuer kaputt.
+
+Der Link erscheint deshalb nur noch bei `$editId > 0`. Beim Bearbeiten aendert
+sich nichts – dort war er richtig und bleibt, wo er war. Die Alternative waere
+gewesen, ihn ganz zu entfernen: Er ist beim Bearbeiten deckungsgleich mit
+„Abbrechen" im Formular. Dagegen spricht die Beschriftung – wer einen neuen
+Eintrag anlegen will, sucht „Neu anlegen" und nicht „Abbrechen".
+
+**Drei Masken statt einer**, weil derselbe Link dreimal dasteht: Sonstiges-
+Gruende (schon in `views/`), Krankzeitraum und Pausenregeln (noch im
+Controller, T-104). Die beiden letzten bringen die Aenderung beim Umzug mit.
+
+### TEST
+Wegwerf-Umgebung aus P-2026-08-15-08, je Maske ein erfundener Datensatz
+(Sonstiges-Grund `SU`, Pausenfenster 09:00–09:15, Krankzeitraum LFZ 01.–05.08.).
+Gezaehlt wurde das Vorkommen von `>Neu anlegen<` im HTML:
+
+| Maske | ohne `id` HEAD | ohne `id` neu | mit `id` HEAD | mit `id` neu |
+| --- | --- | --- | --- | --- |
+| Sonstiges-Gruende | 1 | **0** | 1 | 1 |
+| Pausenregeln | 1 | **0** | 1 | 1 |
+| Krankzeitraum | 1 | **0** | 1 | 1 |
+
+Gegenprobe, dass „mit `id`" auch wirklich Bearbeiten heisst: Das Formular ist
+gefuellt (`code="SU"`, `von_uhrzeit="09:00:00"`, `von_datum="2026-08-01"`), und
+der Link fuehrt auf die Maske mit leerem Formular (`code=""`).
+
+Der erste Durchlauf war wertlos und sah trotzdem gut aus: Zwei `INSERT`s waren
+fehlgeschlagen (`typ` ist ein `enum('lfz','kk')`, nicht `'LFZ'`; `pausenfenster`
+hat keine Spalte `minuten`), und weil der Fehler mit `2>/dev/null` unterdrueckt
+war, lief der Test mit **leeren** IDs. „Mit id" zeigte dann 0 Treffer – was wie
+das gewuenschte Ergebnis aussieht und in Wahrheit gar nichts geprueft hat. Die
+Tabelle oben stammt aus dem Lauf mit echten IDs.
+
+22 Backend-Aufrufe HTTP 200, Serverlog ohne Meldung, `php -l` ueber beide
+Dateien.
+
+### Was bewusst nicht erreicht wurde
+Dass die Maske beim Bearbeiten nicht deutlich sagt, **welchen** Eintrag man
+gerade aendert (kein „Eintrag bearbeiten" ueber dem Formular), bleibt offen. Das
+ist eine Gestaltungsfrage fuer alle drei Masken und keine Zeile mehr – nicht
+notiert als Task, sondern hier festgehalten, weil es beim naechsten Umzug einer
+dieser Masken ohnehin auffaellt.
+
+### NEXT
+T-104, naechste Maske: `indexPausenregeln()`.
+
 ## P-2026-08-15-14 t-104-sonstiges-gruende-in-views
 
 ### EINGELESEN

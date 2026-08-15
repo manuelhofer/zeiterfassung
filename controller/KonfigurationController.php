@@ -772,9 +772,13 @@ class KonfigurationController
                 Wechsel LFZ → KK wird als zweiter Zeitraum gepflegt.
             </p>
 
-            <p>
-                <a href="?seite=konfiguration_admin&amp;tab=krankzeitraum">Neu anlegen</a>
-            </p>
+            <?php /* Nur beim Bearbeiten: Der Link leert das Formular. Auf der
+                     leeren Maske zeigt er auf die eigene Seite und tut nichts. */ ?>
+            <?php if ($editId > 0): ?>
+                <p>
+                    <a href="?seite=konfiguration_admin&amp;tab=krankzeitraum">Neu anlegen</a>
+                </p>
+            <?php endif; ?>
 
             <?php if ($ok === 1): ?>
                 <div class="erfolgsmeldung">Gespeichert.</div>
@@ -1336,9 +1340,13 @@ class KonfigurationController
 
             <h3>Betriebliche Pausenfenster</h3>
 
-            <p>
-                <a href="?seite=konfiguration_admin&amp;tab=pausen">Neu anlegen</a>
-            </p>
+            <?php /* Nur beim Bearbeiten: Der Link leert das Formular. Auf der
+                     leeren Maske zeigt er auf die eigene Seite und tut nichts. */ ?>
+            <?php if ($editId > 0): ?>
+                <p>
+                    <a href="?seite=konfiguration_admin&amp;tab=pausen">Neu anlegen</a>
+                </p>
+            <?php endif; ?>
 
             <form method="post" action="?seite=konfiguration_admin&amp;tab=pausen">
                 <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($csrfToken, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>">

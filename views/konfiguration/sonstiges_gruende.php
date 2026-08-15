@@ -40,9 +40,14 @@ $ladefehler    = (bool)($ladefehler ?? false);
         In der Tagesansicht kann später ein Grund gewählt werden, der dann Default-Stunden und ggf. Begründungspflicht vorgibt.
     </p>
 
-    <p>
-        <a href="?seite=konfiguration_admin&amp;tab=sonstiges">Neu anlegen</a>
-    </p>
+    <?php /* Nur beim Bearbeiten: Der Link leert das Formular. Steht man ohnehin
+             auf der leeren Maske, zeigt er auf die eigene Seite und tut nichts –
+             ein Link, der nichts tut, ist schlechter als keiner. */ ?>
+    <?php if ($editId > 0): ?>
+        <p>
+            <a href="?seite=konfiguration_admin&amp;tab=sonstiges">Neu anlegen</a>
+        </p>
+    <?php endif; ?>
 
     <?php if ($ok === 1): ?>
         <div class="erfolgsmeldung">Gespeichert.</div>
