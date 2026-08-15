@@ -37,9 +37,6 @@ Keine bekannten.
 - **T-104** Zwei Controller erzeugen HTML selbst, statt `views/` zu benutzen –
   **5 Masken**: `AuftragController` (4), `SmokeTestController` (1). Eine Maske
   je Patch; Muster und Prüfweg: P-2026-08-11-09, zuletzt P-2026-08-15-23.
-- **T-116** In `TerminalAdminController` stehen drei ungenutzte
-  `$csrfToken = Csrf::token(...)` (in `toggleFlag()`, `kopplung()`,
-  `entkoppeln()`) – tote Zuweisungen, schon vor P-2026-08-15-23.
 
   Achtung: Der `grep` nach dem Header-Require zählt zu hoch – er findet auch
   „Keine Berechtigung"-Blöcke in längst fertigen Controllern.

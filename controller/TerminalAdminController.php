@@ -143,7 +143,6 @@ class TerminalAdminController
             return;
         }
 
-        $csrfToken = Csrf::token(self::CSRF_BEREICH);
         if (!Csrf::istGueltig(self::CSRF_BEREICH)) {
             if (session_status() === PHP_SESSION_NONE) {
                 session_start();
@@ -228,7 +227,6 @@ class TerminalAdminController
             return;
         }
 
-        $csrfToken = Csrf::token(self::CSRF_BEREICH);
         if (!Csrf::istGueltig(self::CSRF_BEREICH)) {
             $_SESSION[self::FLASH_ERR_KEY] = 'Die Sitzung ist abgelaufen. Bitte erneut versuchen.';
             header('Location: ?seite=terminal_admin');
@@ -298,7 +296,6 @@ class TerminalAdminController
             return;
         }
 
-        $csrfToken = Csrf::token(self::CSRF_BEREICH);
         if (!Csrf::istGueltig(self::CSRF_BEREICH)) {
             $_SESSION[self::FLASH_ERR_KEY] = 'Die Sitzung ist abgelaufen. Bitte erneut versuchen.';
             header('Location: ?seite=terminal_admin');

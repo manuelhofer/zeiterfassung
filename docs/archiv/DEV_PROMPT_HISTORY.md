@@ -99,6 +99,56 @@ in den Statusbericht.
   D-002 entfallen; die Regel selbst gilt weiter.)
 
 
+## P-2026-08-15-24 t-116-tote-token-zuweisungen-weg
+
+### EINGELESEN
+- `docs/STATUS_SNAPSHOT.md` (T-116), `docs/arbeitsregeln.md` §3.
+- `core/Csrf.php`, `token()`, `feld()` und `istGueltig()` vollstaendig.
+- Die drei Methoden `toggleFlag()`, `kopplung()`, `entkoppeln()`.
+
+### DATEIEN
+- `controller/TerminalAdminController.php`
+- `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Ein Entkoppeln-POST mit falschem Token meldet weiterhin „Die Sitzung ist
+abgelaufen. Bitte erneut versuchen." – obwohl die drei ungenutzten
+`Csrf::token()`-Zuweisungen weg sind.
+
+### DONE
+T-116 aus P-2026-08-15-23. Drei Methoden holten sich ein Token in eine Variable,
+die niemand liest – alle drei antworten mit `header('Location: …')` und zeigen
+gar kein Formular.
+
+**Warum das gefahrlos ist, obwohl `token()` mehr tut als zurueckgeben:** Die
+Methode legt den Wert in der Sitzung an, wenn er fehlt. Fehlt er, kann
+`istGueltig()` direkt danach aber ohnehin nicht zustimmen – es vergleicht den
+frisch erzeugten Wert mit dem aus dem POST, und die koennen nicht gleich sein.
+Der Weg endet also so oder so bei der Fehlermeldung. Das naechste Formular legt
+sein Token selbst an, weil `Csrf::feld()` intern `token()` aufruft.
+
+### TEST
+Wegwerf-Umgebung aus P-2026-08-15-08.
+
+| Weg | Ergebnis |
+| --- | --- |
+| Terminalliste und Formular | HTML **zeichengleich** zu HEAD (0 Abweichungen) |
+| Kopplungscode erzeugen | 302, Panel erscheint einmal |
+| Quick-Toggle | 302, Wert kippt |
+| Quick-Toggle mit falschem Token | Flash „CSRF-Check fehlgeschlagen." |
+| Entkoppeln mit falschem Token | 302, Flash „Die Sitzung ist abgelaufen. Bitte erneut versuchen." – Terminal bleibt gekoppelt |
+
+22 Backend-Aufrufe HTTP 200, Serverlog ohne Meldung, `php -l`.
+
+### Was bewusst nicht erreicht wurde
+Ob andere Controller dieselbe tote Zuweisung mitschleppen, ist ungeprueft. Ein
+Suchlauf waere billig (`grep -rn "csrfToken = Csrf::token" controller/`), das
+Aufraeumen aber je Datei eine eigene Pruefung wert – und diese Sitzung endet
+hier.
+
+### NEXT
+T-104 geht weiter mit dem `AuftragController` (vier Masken).
+
 ## P-2026-08-15-23 t-104-terminalformular-in-views
 
 ### EINGELESEN
