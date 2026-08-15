@@ -27,11 +27,7 @@ zweites Mal.
 
 ## Offene Bugs
 
-Ein Satz je Bug – die Begründung steht im Verlauf, nicht hier.
-
-- **B-104** `?seite=dashboard&smoke=1` endet mit HTTP 500, weil der Selbsttest
-  `cal_days_in_month()` aufruft – die Erweiterung `calendar` steht in keiner
-  Installationsanleitung des Projekts; gefunden in P-2026-08-15-39.
+Keine bekannten.
 
 ## Offene Tasks
 

@@ -99,6 +99,87 @@ in den Statusbericht.
   D-002 entfallen; die Regel selbst gilt weiter.)
 
 
+## P-2026-08-15-40 b-104-dashboard-ohne-ext-calendar
+
+### EINGELESEN
+- `docs/STATUS_SNAPSHOT.md` (B-104), P-2026-08-15-39 – dort ist der Fund
+  entstanden.
+- `DashboardController`, Selbsttest-Block ab „Smoke-Test nur wenn explizit
+  angefordert" bis zum Ende der mutierenden Checks.
+- `docs/installationsanleitung.md` (Abschnitt Voraussetzungen) und
+  `docs/lokale_entwicklungsumgebung.md` (benoetigte Erweiterungen).
+
+### DATEIEN
+- `controller/DashboardController.php`
+- `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+`?seite=dashboard&smoke=1` liefert HTTP 200 mit der Selbsttest-Zeile
+„ReportService Monatsraster: OK" statt HTTP 500.
+
+### DONE
+Der Selbsttest des Dashboards rechnete die Tage des Monats mit
+`cal_days_in_month()`. Diese Funktion kommt aus der PHP-Erweiterung
+**`calendar`**, und die steht in **keiner** der beiden Installationsanleitungen
+des Projekts – weder unter den Voraussetzungen der Produktivinstallation
+(`pdo`, `pdo_mysql`, `mbstring`, `json`, `gd`) noch bei der lokalen Umgebung
+(zusaetzlich `mysqli`, `iconv`). Auf einer Installation ohne sie endete
+`?seite=dashboard&smoke=1` mit HTTP 500.
+
+Ersetzt durch `DateTimeImmutable::format('t')` – dieselbe Auskunft, ohne
+Erweiterung. **Warum nicht andersherum**, also die Erweiterung in die
+Anleitungen aufnehmen: Sie wuerde fuer genau zwei Zeilen im ganzen Projekt
+gebraucht, die es auch ohne sie gibt, und jede bestehende Installation muesste
+nachziehen. Eine Abhaengigkeit, die man streichen kann, wird gestrichen und
+nicht dokumentiert.
+
+Damit ist `cal_days_in_month()` aus dem Projekt verschwunden (die zweite
+Fundstelle fiel in P-2026-08-15-39); der Suchlauf findet nur noch die beiden
+Kommentare, die erklaeren, warum dort etwas anderes steht.
+
+### TEST
+Wegwerf-Umgebung aus P-2026-08-15-37, beide Server frisch gestartet.
+
+| Aufruf | HEAD | neuer Stand |
+| --- | --- | --- |
+| `?seite=dashboard&smoke=1` | **HTTP 500**, 212 Bytes Fehlerseite | HTTP 200, 50.779 Bytes |
+| `?seite=dashboard&smoke=2` | **HTTP 500** | HTTP 200 |
+| `?seite=dashboard` (ohne Selbsttest) | HTTP 200 | HTTP 200, **0 echte Abweichungen** |
+
+Auf HEAD steht die Ursache im `system_log` der Probe-Datenbank:
+`{"seite":"dashboard","exception":"Call to undefined function
+cal_days_in_month()"}`.
+
+Auf dem neuen Stand laufen beide Stufen durch: Alle Zeilen des Selbsttests
+melden „OK", darunter die reparierte „ReportService Monatsraster". `smoke=2`
+unterscheidet sich von `smoke=1` um genau den zusaetzlichen Block (DB-Schreiben
+mit Rollback), also zehn Zeilen mehr – der Unterschied, den der Code an dieser
+Stelle vorsieht.
+
+26 Backend-Routen HTTP 200 auf beiden Staenden, `php -l`, Serverlog des neuen
+Standes ohne PHP-Meldung (HEAD: 24).
+
+### Gefundene Fehler im eigenen Entwurf
+Beim Durchsehen des Selbsttests bin ich ueber ein „Fehler: 1" gestolpert und
+war schon dabei, es als weiteren Fund zu notieren. Es ist die
+Queue-Uebersicht des Dashboards, die einen Eintrag im Zustand `fehler` zaehlt –
+und den hatte ich selbst als Testdatum angelegt. Wer in einer Maske nach dem
+Wort „Fehler" sucht, findet auch die Spaltenueberschriften.
+
+### Was bewusst nicht erreicht wurde
+Ob auf dem Zielsystem `calendar` installiert ist, bleibt unbeantwortet – die
+Frage ist jetzt gegenstandslos, weil das Projekt die Erweiterung nicht mehr
+anfasst. Die Anleitungen sind deshalb unveraendert geblieben.
+
+Der Selbsttest des Dashboards ist damit zum ersten Mal in dieser Sitzung
+ueberhaupt gelaufen; was seine einzelnen Checks fachlich aussagen, ist nicht
+geprueft worden. Er meldet „OK" – ob er die richtigen Fragen stellt, ist eine
+andere Frage als die, ob er startet.
+
+### NEXT
+T-105: die fuenfzehn Check-Bloecke aus `SmokeTestController::index()` in eigene
+Methoden.
+
 ## P-2026-08-15-39 b-103-render-check-an-seinen-platz
 
 ### EINGELESEN

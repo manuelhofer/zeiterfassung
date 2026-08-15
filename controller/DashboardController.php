@@ -959,7 +959,12 @@ class DashboardController
                     $mid = (int)($mitarbeiter['id'] ?? 0);
                     $jahr = (int)date('Y');
                     $monat = (int)date('n');
-                    $days = (int)cal_days_in_month(CAL_GREGORIAN, $monat, $jahr);
+                    // Nicht cal_days_in_month(): das braucht die Erweiterung
+                    // `calendar`, die in keiner Installationsanleitung des
+                    // Projekts steht. `format('t')` kann PHP von Haus aus.
+                    $days = (int)(new DateTimeImmutable(
+                        sprintf('%04d-%02d-01', $jahr, $monat)
+                    ))->format('t');
                     try {
                         $daten = ReportService::getInstanz()->holeMonatsdatenFuerMitarbeiter($mid, $jahr, $monat);
                         $tw = (is_array($daten['tageswerte'] ?? null)) ? (array)$daten['tageswerte'] : [];
