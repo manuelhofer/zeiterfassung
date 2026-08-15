@@ -99,6 +99,112 @@ in den Statusbericht.
   D-002 entfallen; die Regel selbst gilt weiter.)
 
 
+## P-2026-08-15-06 t-104-konfiguration-bearbeiten-in-views
+
+### EINGELESEN
+- `docs/STATUS_SNAPSHOT.md` (T-104), `docs/arbeitsregeln.md`.
+- `views/konfiguration/liste.php` (P-2026-08-14-12) und
+  `views/betriebsferien/formular.php` (P-2026-08-11-09) als Muster – die zweite,
+  weil diese Maske ein Formular hat und die erste keines.
+- `core/Csrf.php`, besonders `feld()`.
+- `views/layout/header.php`, der Block zu `button` / `.button-link`.
+- `controller/KonfigurationController.php`, `bearbeiten()` vollstaendig.
+
+### DATEIEN
+- `views/konfiguration/bearbeiten.php` (neu)
+- `controller/KonfigurationController.php`
+- `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Die Bearbeiten-Maske erzeugt fuer einen bestehenden Schluessel dasselbe HTML wie
+vorher – bis auf die Einrueckung und die zwei unten benannten Absichten –,
+obwohl das Markup jetzt in `views/konfiguration/bearbeiten.php` liegt.
+
+### DONE
+Zweite der sechs Masken des `KonfigurationController`, wie in P-2026-08-14-12
+angekuendigt. Der Controller behaelt Laden, Validierung und Speichern und reicht
+danach fuenf Werte an die View: `$datensatz`, `$istBearbeiten`,
+`$schluesselGet`, `$fehlermeldung`, `$csrfBereich`. 2.108 → 2.023 Zeilen
+Controller plus 112 Zeilen View.
+
+**Zwei bewusste Abweichungen** vom bisherigen HTML, beide aus dem Muster:
+
+1. Statt der handgeschriebenen `csrf_token`-Zeile steht `Csrf::feld()` – dieselbe
+   Ausgabe, aber die Maske kann den Feldnamen nicht mehr verschreiben. Genau
+   dafuer gibt es die Methode (`core/Csrf.php`). Der Unterschied im HTML ist ein
+   fehlender Zeilenumbruch.
+2. Der Speichern-Knopf verliert sein `style="padding:0.55rem 0.9rem;"`. Der
+   Snapshot sagt zu T-104: beim Bauen einer Maske **keine eigenen Groessen auf
+   Knoepfe schreiben**. `views/layout/header.php` setzt fuer `button` und
+   `.button-link` gemeinsam `padding`, `min-height` und `box-sizing`, damit ein
+   Knopf und ein Knopf-Link nebeneinander gleich hoch sind; eine eigene
+   Angabe bricht genau das. Dieser Knopf war der einzige der Maske.
+
+Damit ist `$csrfToken` in `bearbeiten()` ueberfluessig geworden und faellt weg –
+die uebrigen vier Masken des Controllers bringen ihren eigenen Aufruf mit.
+
+Die Tab-Zeile hat diese Maske nicht (sie verlinkt nur „Zurueck zur Uebersicht"),
+also bleibt die Doppelung aus P-2026-08-14-12 unveraendert bei fuenf Stellen.
+
+### TEST
+Drei Server auf derselben Probe-Datenbank: HEAD vor diesem Patch, der neue
+Stand, und der Stand aus P-2026-08-15-05 fuer den Schreibfehler. Erfundene
+Eintraege: `probe.einfach`, `probe.sonder` (Wert `<b>&amp; "Anfuehrung"</b>`,
+Beschreibung mit `<`, `&`, `"` und `äöüß`), `probe.leer` (Wert, Typ und
+Beschreibung `NULL`).
+
+HTML beider Staende normalisiert (Leerraum zusammengefasst, Token maskiert) und
+verglichen – fuenf Aufrufe, jeweils **genau zwei** Abweichungen, und zwar die
+beiden oben genannten:
+
+| Aufruf | Abweichungen |
+| --- | --- |
+| ohne Schluessel (Anlegen) | 2 |
+| `probe.einfach` | 2 |
+| `probe.sonder` | 2 |
+| `probe.leer` | 2 |
+| `schluessel=gibtesnicht` | 2 |
+
+Alles andere zeichengleich – auch die Maskierung von `<b>&amp; "Anfuehrung"</b>`
+im Textfeld, das `readonly` am gesperrten Schluessel, das `urlencode()` im
+Formularziel und die Zeile „Erstellt / Geändert".
+
+Danach die Wege, die kein HTML-Vergleich zeigt:
+
+| Weg | Ergebnis |
+| --- | --- |
+| Speichern eines bestehenden Eintrags | 302 `&ok=1`, Wert in der Datenbank geaendert |
+| Neuen Eintrag anlegen | 302 `&ok=1`, Eintrag da |
+| Falsches CSRF-Token | „CSRF-Check fehlgeschlagen. Bitte Seite neu laden.", Wert unveraendert |
+| Leerer Schluessel | „Bitte geben Sie einen Schlüssel an." |
+| Schluessel mit Leerzeichen | „Der Schlüssel darf keine Leerzeichen enthalten." |
+| Schreibsperre (Trigger aus P-2026-08-15-05) | „Der Eintrag konnte nicht gespeichert werden.", Wert unveraendert |
+
+29 Backend-Aufrufe HTTP 200, Serverlog ohne PHP-Meldung, `php -l` ueber beide
+Dateien. Probe-Eintraege geloescht, Entwicklungsdatenbank nicht angefasst.
+
+### Gefundene Fehler im eigenen Entwurf
+Der erste Entwurf der View hat `$csrfToken` als Variable weitergereicht, so wie
+der Controller sie hatte. Das haette funktioniert und trotzdem am Muster
+vorbeigebaut: Alle bereits migrierten Formular-Views bekommen `$csrfBereich` und
+rufen `Csrf::feld()` selbst auf. Zwei Wege fuer dieselbe Sache in
+`views/` waeren genau die Art Uneinheitlichkeit, die T-104 aufloesen soll.
+
+### Was bewusst nicht erreicht wurde
+Die vier restlichen Masken des Controllers (Systemlog, Krankzeitraum,
+Pausenregeln, Sonstiges-Gruende) bleiben, wie sie sind – eine Maske je Patch.
+
+Das gemeinsame Teil-Template fuer die Tab-Zeile ist weiter offen; es lohnt sich
+erst, wenn die letzte der sechs Masken dran ist (so schon in P-2026-08-14-12
+festgehalten).
+
+### NEXT
+Naechste Maske aus T-104. Nachgemessen, nicht geschaetzt, sind die vier
+verbliebenen `indexSystemlog()` 207, `indexSonstigesGruende()` 362,
+`indexPausenregeln()` 385 und `indexKrankzeitraum()` 723 Zeilen – also
+`indexSystemlog()`. Sie bringt als erste dieser Reihe JavaScript mit (das
+Aufklappen der Detailzeile).
+
 ## P-2026-08-15-05 set-meldet-schreibfehler
 
 ### EINGELESEN

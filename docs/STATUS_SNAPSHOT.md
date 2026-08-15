@@ -33,7 +33,7 @@ Keine bekannten.
 
 ## Offene Tasks
 - **T-104** Vier Controller erzeugen HTML selbst, statt `views/` zu benutzen –
-  **12 Masken**: `KonfigurationController` (5), `AuftragController` (4),
+  **11 Masken**: `KonfigurationController` (4), `AuftragController` (4),
   `TerminalAdminController` (2), `SmokeTestController` (1). Eine Maske je
   Patch; Muster und Prüfweg: P-2026-08-11-09.
 

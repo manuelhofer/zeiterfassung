@@ -1918,8 +1918,6 @@ class KonfigurationController
 
         $istPost = (isset($_SERVER['REQUEST_METHOD']) && strtoupper((string)$_SERVER['REQUEST_METHOD']) === 'POST');
 
-        $csrfToken = Csrf::token(self::CSRF_BEREICH);
-
         $schluesselGet = isset($_GET['schluessel']) ? trim((string)$_GET['schluessel']) : '';
         $schluesselPost = isset($_POST['schluessel']) ? trim((string)$_POST['schluessel']) : '';
 
@@ -2018,91 +2016,8 @@ class KonfigurationController
         }
 
         $istBearbeiten = ($schluesselGet !== '');
+        $csrfBereich   = self::CSRF_BEREICH;
 
-        require __DIR__ . '/../views/layout/header.php';
-        ?>
-        <section>
-            <h2><?php echo $istBearbeiten ? 'Konfiguration bearbeiten' : 'Konfiguration anlegen'; ?></h2>
-
-            <p>
-                <a href="?seite=konfiguration_admin">&laquo; Zurück zur Übersicht</a>
-            </p>
-
-            <?php if (!empty($fehlermeldung)): ?>
-                <div class="fehlermeldung">
-                    <?php echo htmlspecialchars((string)$fehlermeldung, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>
-                </div>
-            <?php endif; ?>
-
-            <form method="post" action="?seite=konfiguration_admin_bearbeiten<?php echo $istBearbeiten ? '&amp;schluessel=' . urlencode($schluesselGet) : ''; ?>">
-                <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($csrfToken, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>">
-                <div style="display:flex; flex-direction:column; gap:0.6rem; max-width:900px;">
-                    <label>
-                        Schlüssel
-                        <input
-                            type="text"
-                            name="schluessel"
-                            value="<?php echo htmlspecialchars((string)$datensatz['schluessel'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>"
-                            <?php echo $istBearbeiten ? 'readonly' : ''; ?>
-                            style="width:100%; padding:0.45rem;"
-                            maxlength="190"
-                            required
-                        >
-                        <?php if ($istBearbeiten): ?>
-                            <small>Der Schlüssel ist bei bestehenden Einträgen gesperrt.</small>
-                        <?php else: ?>
-                            <small>Beispiel: <code>terminal_timeout_standard</code></small>
-                        <?php endif; ?>
-                    </label>
-
-                    <label>
-                        Typ (optional)
-                        <input
-                            type="text"
-                            name="typ"
-                            value="<?php echo htmlspecialchars((string)$datensatz['typ'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>"
-                            style="width:100%; padding:0.45rem;"
-                            maxlength="50"
-                            placeholder="z.B. int / bool / string"
-                        >
-                    </label>
-
-                    <label>
-                        Wert
-                        <textarea
-                            name="wert"
-                            rows="5"
-                            style="width:100%; padding:0.45rem; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;"
-                        ><?php echo htmlspecialchars((string)$datensatz['wert'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></textarea>
-                    </label>
-
-                    <label>
-                        Beschreibung (optional)
-                        <textarea
-                            name="beschreibung"
-                            rows="3"
-                            style="width:100%; padding:0.45rem;"
-                        ><?php echo htmlspecialchars((string)$datensatz['beschreibung'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></textarea>
-                    </label>
-
-                    <?php if (!empty($datensatz['erstellt_am']) || !empty($datensatz['geaendert_am'])): ?>
-                        <div class="muted" style="font-size:0.9rem;">
-                            <?php if (!empty($datensatz['erstellt_am'])): ?>
-                                Erstellt: <?php echo htmlspecialchars((string)$datensatz['erstellt_am'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>
-                            <?php endif; ?>
-                            <?php if (!empty($datensatz['geaendert_am'])): ?>
-                                &nbsp;|&nbsp; Geändert: <?php echo htmlspecialchars((string)$datensatz['geaendert_am'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>
-                            <?php endif; ?>
-                        </div>
-                    <?php endif; ?>
-
-                    <div>
-                        <button type="submit" style="padding:0.55rem 0.9rem;">Speichern</button>
-                    </div>
-                </div>
-            </form>
-        </section>
-        <?php
-        require __DIR__ . '/../views/layout/footer.php';
+        require __DIR__ . '/../views/konfiguration/bearbeiten.php';
     }
 }
