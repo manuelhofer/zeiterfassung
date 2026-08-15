@@ -148,6 +148,29 @@ Nach Änderungen an Offline-Queue oder Datenbankverbindung:
 - Terminal mit nicht erreichbarer Hauptdatenbank nur kontrolliert testen
 - Wiederanlauf der Queue prüfen
 
+## Wegwerf-Umgebung abräumen (Pflicht)
+
+Wer zwei Stände gegeneinander rendert, hinterlässt Testserver und Probe-
+Datenbanken. Beides gehört am Ende weg – **und nachgeprüft, nicht geglaubt.**
+`kill` und `pkill` melden Erfolg, auch wenn der Prozess weiterläuft; zweimal
+hing danach noch ein Server auf seinem Port, einmal über eine Sitzungsgrenze
+hinweg.
+
+```bash
+ss -ltn | awk 'NR>1 && $4 ~ /:88[0-9][0-9]$/ { print "Port belegt: " $4 }'
+pgrep -af 'php -S' | grep -v pgrep
+mariadb -h 127.0.0.1 -u zeiterfassung -pzeiterfassung -N -B -e 'SHOW DATABASES;'
+```
+
+Die ersten beiden Befehle geben im Normalfall **nichts** aus. Beim Port wird
+bewusst auf das Feld geprüft und nicht mit `grep` gesucht: Ein flüchtiger
+Client-Port wie `48855` enthält `8855` und meldet sonst falschen Alarm.
+
+In der letzten Ausgabe darf nur `zeiterfassung` und `zeiterfassung_offline`
+stehen – jede `zeit_probe_*` ist ein Rest. Zum Schluss die
+Entwicklungsdatenbank gegenprüfen: Sie darf keinen erfundenen Prüfbenutzer
+enthalten und muss so viele Zeilen haben wie vorher.
+
 ## Bereiche mit besonderer Vorsicht
 
 - `public/index.php` und `public/terminal.php`

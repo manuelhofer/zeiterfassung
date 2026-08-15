@@ -99,6 +99,70 @@ in den Statusbericht.
   D-002 entfallen; die Regel selbst gilt weiter.)
 
 
+## P-2026-08-15-43 wegwerf-umgebung-nachpruefen
+
+### EINGELESEN
+- `docs/wartungscheckliste.md` vollständig.
+- P-2026-08-15-37 (dort standen zwei Server einer früheren Sitzung noch) und
+  P-2026-08-15-33, das sie als beendet gemeldet hatte.
+- `docs/lokale_entwicklungsumgebung.md`, Abschnitt 6a (Datenbanknamen).
+
+### DATEIEN
+- `docs/wartungscheckliste.md`
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Die Wartungscheckliste nennt drei Befehle, mit denen sich das Abräumen einer
+Wegwerf-Umgebung nachweisen lässt – und der erste meldet einen Server auf 8801,
+solange einer läuft, und schweigt, sobald er weg ist.
+
+### DONE
+Zweimal ist dasselbe passiert: Ein Testserver galt als beendet und lief weiter.
+Einmal über eine Sitzungsgrenze hinweg – P-2026-08-15-33 hatte „Testserver
+beendet" gemeldet, zwei Tage später hingen sie noch auf 8801 und 8802 –, einmal
+mir selbst beim Abräumen, wo `pkill` Erfolg meldete und ein Prozess weiterlief.
+
+Der Grund ist immer derselbe: `kill` und `pkill` sagen nichts darüber, ob der
+Prozess wirklich weg ist. Deshalb steht das Nachsehen jetzt als eigener
+Abschnitt in der Checkliste, mit drei Befehlen: belegte Ports, laufende
+`php -S`-Prozesse, vorhandene Datenbanken. Dazu, was in der Ausgabe stehen darf
+– nur `zeiterfassung` und `zeiterfassung_offline`, jede `zeit_probe_*` ist ein
+Rest – und der Hinweis, am Ende die Entwicklungsdatenbank gegenzuprüfen.
+
+**Der Port wird über das Feld geprüft, nicht mit `grep` gesucht.** Der erste
+Entwurf stand als `ss -ltnp | grep -E '88[0-9][0-9]'` in der Datei und schlug
+sofort Alarm – auf einem flüchtigen Client-Port `48855`, in dem `8855` steckt.
+Eine Prüfung, die grundlos anschlägt, wird nach dem dritten Mal ignoriert;
+`awk` auf die Adressspalte trifft nur das, was gemeint ist.
+
+### TEST
+Beide Richtungen ausprobiert, nicht nur die stille:
+
+| Lage | Ausgabe des Port-Befehls | Ausgabe von `pgrep` |
+| --- | --- | --- |
+| aufgeräumt | nichts | nichts |
+| ein `php -S` auf 8801 läuft | `Port belegt: 127.0.0.1:8801` | die PID des Servers |
+| danach beendet | nichts | nichts |
+
+Der Datenbank-Befehl zeigt `information_schema mysql performance_schema sys
+test zeiterfassung zeiterfassung_offline` – keine `zeit_probe_*`.
+
+Kein Code angefasst, also kein `php -l` und kein Klickweg.
+
+### Was bewusst nicht erreicht wurde
+Ein Skript, das die Umgebung selbst abräumt, wäre der nächste Schritt – erst
+wenn eine Sitzung immer dieselbe Umgebung baut. Solange die Portnummern und
+Datenbanknamen je Sitzung anders sind, wäre ein Skript entweder unvollständig
+oder gefährlich; eine Prüfung, die man liest, ist hier das mildere Mittel.
+
+`pgrep -af 'php -S'` findet in einer Skript-Umgebung unter Umständen auch die
+Zeile, die den Befehl selbst enthält. In einer normalen Shell passiert das
+nicht; der Port-Befehl ist ohnehin der belastbarere von beiden.
+
+### NEXT
+T-105: die fünfzehn Check-Blöcke aus `SmokeTestController::index()` in eigene
+Methoden.
+
 ## P-2026-08-15-42 umlaute-auch-in-den-uebrigen-dokumenten
 
 ### EINGELESEN
@@ -126,7 +190,7 @@ Wörter, die mir eingefallen sind. Wer `Kernablaeufe` schreibt, aber keines
 dieser sieben, war nicht dabei: `wartungscheckliste.md`,
 `spezifikation_terminal_installation.md`, vier Fachregeln, das Admin-Handbuch,
 `sql/README.md` und – am peinlichsten – `arbeitsregeln.md` selbst, wo in §3
-„weiss" statt „weiß" stand.
+`weiss` statt `weiß` stand.
 
 Jetzt läuft der Suchlauf über **alle** Markdown-Dateien, die es gibt
 (`find . -name '*.md'`), statt über eine Vorauswahl. 132 Ersetzungen in 11
