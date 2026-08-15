@@ -99,6 +99,118 @@ in den Statusbericht.
   D-002 entfallen; die Regel selbst gilt weiter.)
 
 
+## P-2026-08-15-01 zwei-loeschen-knoepfe-ohne-wirkung
+
+### EINGELESEN
+- `CHATSTART.md`, `docs/arbeitsregeln.md`, `docs/STATUS_SNAPSHOT.md`.
+- `git show a0359fa -- controller/KonfigurationController.php` (der Umlaut-Patch
+  P-2026-08-14-08) und dessen Eintrag hier.
+- `controller/KonfigurationController.php`, `indexSystemlog()`.
+- `views/queue/liste.php` und `controller/QueueController.php`, `index()`.
+
+### DATEIEN
+- `controller/KonfigurationController.php`
+- `views/queue/liste.php`
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Ein Klick auf „Loeschen" in der System-Log-Maske entfernt die Zeile wirklich –
+vorher blieb sie stehen, ohne dass etwas dazu gesagt wurde.
+
+### DONE
+Zwei tote Knoepfe, beide aus P-2026-08-14-08. Der Umlaut-Patch hat in zwei
+versteckten Formularfeldern den **Wert** mituebersetzt:
+
+| Stelle | Formular schickte | Controller vergleicht |
+| --- | --- | --- |
+| `KonfigurationController.php` (System-Log) | `log_action=löschen` | `'loeschen'` |
+| `views/queue/liste.php` (Queue-Fehler) | `aktion=löschen` | `'loeschen'` |
+
+Beide Male trifft der Vergleich nicht mehr, beide Male passiert daraufhin gar
+nichts: kein Redirect, keine Meldung, HTTP 200, dieselbe Liste. Der Eintrag ist
+noch da. Wer das sieht, haelt es fuer einen Datenbankfehler oder fuer ein
+fehlendes Recht – und sucht an der falschen Stelle.
+
+Die Werte stehen wieder auf ASCII, mit je einem Kommentar daneben, warum das
+hier **kein** Verstoss gegen die Umlaut-Regel ist: Ein `value` in einem
+`type="hidden"`-Feld ist kein Oberflaechentext, sondern der Vergleichspartner
+einer `if`-Bedingung. Sichtbar bleibt die Beschriftung des Knopfes, und die
+hatte den Umlaut schon vorher.
+
+**Warum das Werkzeug aus P-2026-08-14-08 es nicht gemerkt hat:** Es hat
+Bezeichner, Spaltennamen, Rechte-Codes und Routen geschuetzt – also alles, was
+im PHP-Quelltext wie ein Bezeichner *aussieht*. Ein Wert in Inline-HTML sieht
+aber wie Text aus. Die Luecke war nicht die Wortliste, sondern die Annahme,
+Inline-HTML enthalte nur Text.
+
+**Und das ist der eigentliche Befund:** Dieser Fehler war vier Tage vorher schon
+einmal gebaut – und wurde erkannt, bevor er ausgeliefert wurde. P-2026-08-10-19
+hat genau dieses Werkzeug in einem zweiten Anlauf ueber `T_INLINE_HTML` laufen
+lassen, gemerkt, dass `views/queue/liste.php` danach `value="löschen"` sendet,
+den Anlauf verworfen und das Werkzeug auf `T_COMMENT`/`T_DOC_COMMENT`
+beschraenkt.
+
+Das steht nicht nur in der Commit-Nachricht. Es steht in diesem Verlauf, im
+Eintrag zu P-2026-08-10-19, unter „Gefundene Fehler im eigenen Entwurf", mit
+Dateinamen, mit dem Wort „lautlos wirkungslos" – und im TEST-Abschnitt sogar
+mit der Gegenprobe, die man dafuer laufen laesst („`views/queue/liste.php`
+sendet weiterhin `value="loeschen"`"). Besser aufschreiben kann man eine Falle
+nicht.
+
+P-2026-08-14-08 hat trotzdem dieselbe Fassung wieder gebaut, dieselbe Datei
+zerlegt und diesmal ausgeliefert. Das Wissen war da, an der richtigen Stelle,
+gut geschrieben – gelesen wurde es nicht, weil der Verlauf ausdruecklich
+**keine** Startlektuere ist (`CHATSTART.md`, Abschnitt 3) und nichts den
+Zusammenhang „ich baue gerade wieder so ein Werkzeug" mit dem alten Eintrag
+verbindet. Ein Text, den man nur findet, wenn man schon weiss, wonach man
+sucht, schuetzt nicht. Was hier gefehlt hat, ist kein Absatz, sondern ein
+Handgriff in `docs/wartungscheckliste.md`, der bei flaechigen Textaenderungen
+faellig wird. Der kommt als eigener Patch.
+
+### TEST
+Wegwerf-Umgebung wie in P-2026-08-14-14: `git archive HEAD` nach `/tmp`, eigene
+`config.local.php`, Datenbanken `zeit_probe_loeschen` (aus
+`sql/01_initial_schema.sql`) und `zeit_probe_loeschen_off` (aus
+`sql/offline_db_schema.sql`), erfundene Daten (Benutzer „Probe Pruefer", zwei
+Log-Zeilen, ein Queue-Eintrag im Status `fehler`). Server mit
+`-d opcache.enable=0 -d opcache.enable_cli=0`. Entwicklungsdatenbank nicht
+angefasst, Probe-Datenbanken danach geloescht.
+
+Erst der Fehler auf dem HEAD-Stand, dann derselbe Ablauf nach der Aenderung:
+
+| Ablauf | HEAD | nach dem Fix |
+| --- | --- | --- |
+| System-Log, „Loeschen" auf einer Zeile | HTTP 200, Zeile bleibt, keine Meldung | HTTP 302 `&ok=1`, Zeile weg |
+| Queue-Fehler, „Ignorieren/Loeschen" | HTTP 200, Eintrag bleibt, keine Meldung | HTTP 302 `&meldung=eintrag_geloescht`, Eintrag weg |
+
+Der POST wurde mit genau dem Wert geschickt, den die Maske im jeweiligen Stand
+im Formular stehen hatte – nicht mit einem von Hand gesetzten. Gegengeprueft im
+Serverlog: keine Warnung, keine Deprecation. Zusaetzlich „System-Log leeren"
+(der zweite Knopf derselben Maske, Wert `leeren`, nie angefasst) – funktioniert
+weiterhin.
+
+### Gefundene Fehler im eigenen Entwurf
+Der erste Griff war, nur die eine Stelle zu reparieren, die beim Lesen des
+Controllers auffiel. Erst ein Scan ueber alle Zeichenketten, die wie ein
+Bezeichner aussehen (ein Wort, klein, Umlaut drin), hat die zweite gefunden –
+in einer anderen Datei, aus einem anderen Patch derselben Serie
+(P-2026-08-14-09). Ohne den Scan waere die Queue-Maske kaputt geblieben.
+
+### Was bewusst nicht erreicht wurde
+Derselbe Scan hat zwei **Kommentare** gefunden, die seit derselben Serie einen
+Schluessel falsch nennen: `views/report/monatsuebersicht.php` schreibt
+`'arbeitsblöcke'`, `services/ReportService.php` schreibt
+`'zeit_manuell_geändert'` – beide Schluessel heissen im Code ASCII. Das ist
+Doku-Drift, kein Fehlverhalten: eigener Patch.
+
+Nicht angefasst ist auch, dass ein unbekannter Aktionswert in beiden Masken
+**stillschweigend** durchfaellt. Genau das hat den Fehler so schwer sichtbar
+gemacht, ist aber ein eigenes Thema und ein eigener sichtbarer Effekt.
+
+### NEXT
+Die beiden falsch benannten Schluessel in den Kommentaren, danach der stille
+Durchfall bei unbekannter Aktion.
+
 ## P-2026-08-14-14 t-110-fehlerpfad-der-konfiguration
 
 ### EINGELESEN

@@ -189,7 +189,9 @@ declare(strict_types=1);
 
                                 <form method="post" action="?seite=queue_admin&amp;status=fehler" style="margin:0;" onsubmit="return confirm('Diesen Queue-Eintrag wirklich ignorieren/löschen?\n\nHinweis: Der Sachverhalt muss ggf. vorher manuell in der Hauptdatenbank nachgepflegt werden.');">
                                     <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($csrfToken, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>">
-                                    <input type="hidden" name="aktion" value="löschen">
+                                    <!-- Wert ohne Umlaut: das ist kein Oberflaechentext, sondern der
+                                         Vergleichswert aus $aktion === 'loeschen' im QueueController. -->
+                                    <input type="hidden" name="aktion" value="loeschen">
                                     <input type="hidden" name="id" value="<?php echo (int)($eintrag['id'] ?? 0); ?>">
                                     <button type="submit">Ignorieren/Löschen</button>
                                 </form>
