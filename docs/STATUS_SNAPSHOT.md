@@ -38,9 +38,6 @@ Keine bekannten.
   `SmokeTestController` (siehe T-105). Muster und Prüfweg: P-2026-08-11-09,
   zuletzt P-2026-08-15-33; keine eigenen Grössen auf Knöpfe (Begründung in
   `views/layout/header.php`).
-- **T-120** Die Katalog-Auswahl steht zweimal fast gleich in `views/auftrag/`
-  (`formular.php`, `detail.php`) – erst nach der letzten T-104-Maske
-  entscheiden, ob ein gemeinsames Teil-Template lohnt.
 - **T-105** `SmokeTestController::index()` ist eine einzige, riesige Methode:
   Diagnosewerkzeug ohne Fachlogik, praktisch nicht mehr änderbar – nur *eine*
   Maske aus T-104 und trotzdem der grösste Brocken darin.

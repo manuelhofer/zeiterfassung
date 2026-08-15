@@ -99,6 +99,57 @@ in den Statusbericht.
   D-002 entfallen; die Regel selbst gilt weiter.)
 
 
+## P-2026-08-15-35 t-120-katalog-auswahl-bleibt-zweimal
+
+### EINGELESEN
+- `docs/STATUS_SNAPSHOT.md` (T-120), P-2026-08-15-32 – dort ist die Frage
+  entstanden.
+- Beide Bloecke vollstaendig: `views/auftrag/formular.php` (22 Zeilen) und
+  `views/auftrag/detail.php` (25 Zeilen), Zeile fuer Zeile verglichen.
+- `docs/arbeitsregeln.md` §3 („Keine Refactors nebenbei").
+
+### DATEIEN
+- `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+T-120 steht nicht mehr im Snapshot, und im Verlauf steht, warum die
+Katalog-Auswahl zweimal bleiben darf.
+
+### DONE
+**Entschieden: kein gemeinsames Teil-Template.** Kein Code geaendert.
+
+Der Vergleich beider Bloecke (`comm` ueber die getrimmten Zeilen) ergibt
+**zwoelf** gemeinsame Zeilen, davon vier reine `<?php`-Klammern. Verschieden
+sind: Ueberschrift, Erklaertext, Rahmen-`style`, ob ein eigenes `<form>` mit
+Ziel und Knopf drumherum steht, und ob die Haekchen vorbelegt sein koennen.
+
+Ein Teil-Template dafuer braeuchte drei Parameter, um die Unterschiede wieder
+hereinzureichen – und wer dann eine der beiden Masken aendert, muss trotzdem
+erst nachsehen, was die andere davon mitbekommt. Zehn gesparte Zeilen sind das
+nicht wert.
+
+Der Grund, warum sie sich aehneln, ist kein Zufall und kein Fehler: Beide
+zeigen dieselbe Liste. Aber sie beantworten verschiedene Fragen – „was soll der
+neue Auftrag gleich mitbekommen" und „was fehlt diesem Auftrag noch".
+
+Das ist keine Regel gegen Teil-Templates: `views/auftrag/blaetternavigation.php`
+aus P-2026-08-15-33 ist eins geworden, weil dort ein geschlossener Block mit
+einem Datenbuendel wandert. Hier waere es eine Klammer um zwei verschiedene
+Dinge.
+
+### TEST
+Keine Codeaenderung, also kein `php -l` und kein Klickweg. Geprueft wurde die
+Grundlage der Entscheidung: `comm -12` ueber beide Bloecke, Ergebnis oben; die
+beiden Dateien sind unveraendert (`git status` sauber ausser der Dokumentation).
+
+### Was bewusst nicht erreicht wurde
+Sollte eine dritte Maske dieselbe Auswahl brauchen, ist die Rechnung neu zu
+machen – dann teilen sich drei Stellen die zehn Zeilen, und die Antwort kann
+anders ausfallen.
+
+### NEXT
+T-105/T-104: `SmokeTestController::index()`.
+
 ## P-2026-08-15-34 b-101-leerhinweis-nur-ohne-ladefehler
 
 ### EINGELESEN
