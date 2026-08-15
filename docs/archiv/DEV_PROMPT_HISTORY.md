@@ -99,6 +99,67 @@ in den Statusbericht.
   D-002 entfallen; die Regel selbst gilt weiter.)
 
 
+## P-2026-08-15-25 kaltstart-ohne-byte-grenze
+
+### EINGELESEN
+- `docs/arbeitsregeln.md` §9 vollstaendig.
+- Die eigenen Eintraege P-2026-08-15-13 und -14 – dort steht der Befund, dass
+  fuenfmal gekuerzt wurde, um etwas hinzufuegen zu duerfen.
+- Ansage von Manuel im Chat: „ich hab da keine grenze gesetzt von 4 dateien und
+  16kb .. mach die grenze weg .. tu was du schafst … so klein wie irgend
+  moeglich aber wenn es halt ein bisschen mehr braucht braucht es ein bisschen
+  mehr".
+- `grep` nach `16.384`/`16.000`/`Kaltstart` ueber alle `*.md` – die Grenze stand
+  nur in §9, nirgends sonst.
+
+### DATEIEN
+- `docs/arbeitsregeln.md`
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+§9 nennt keine Byte-Zahl und keinen Messbefehl mehr, sondern „so kurz wie
+moeglich, aber nicht kuerzer" plus die Disziplin, an der es wirklich haengt:
+ein Satz je Bug und Task im Snapshot.
+
+### DONE
+Die Grenze von 16.384 Bytes hat sich niemand gewuenscht – sie war eine
+Eigenerfindung frueherer Sitzungen aus der richtigen Absicht „Kaltstart klein
+halten". Als Zahl hat sie das Falsche gesteuert: Weil der Snapshot voll
+mitzaehlt und jede Sitzung, die Bugs findet, ihn wachsen laesst, wurde am Ende
+an Wortlaengen gespart (30 Bytes in P-2026-08-15-14), statt zu entscheiden, was
+ueberhaupt hineingehoert. Eine Zahl, die man durch Umformulieren erreicht, misst
+nichts mehr.
+
+Ersetzt durch zwei Saetze, die dasselbe Ziel ohne Zahl verfolgen: kurz halten,
+aber ein paar Zeilen mehr sind erlaubt, wenn die Sache sie braucht – und die
+Disziplin dort ansetzen, wo der Umfang tatsaechlich entsteht: ein Satz je Bug
+und Task im Snapshot, Begruendung im Verlauf.
+
+Mit entfallen ist der `wc -c`-Block samt Warnung vor `wc -c -m` (P-2026-08-14-03)
+– ohne Grenze gibt es nichts zu messen. Die Falle bleibt im Verlauf dokumentiert,
+falls je wieder jemand zaehlt.
+
+### TEST
+Keine Codeaenderung, also kein `php -l` und kein Klickweg. Geprueft wurde die
+Dokumentation selbst: `grep -rn "16\.384\|16\.000\|16384\|Kaltstart"` ueber alle
+`*.md` ausserhalb des Verlaufs meldet nur noch die Ueberschrift von §9. Kein
+anderer Text und keine andere Datei hat sich auf die Zahl berufen, also gibt es
+keine haengenden Verweise. §9 ist um 4 Zeilen kuerzer als vorher.
+
+### Gefundene Fehler im eigenen Entwurf
+Der erste Entwurf hat die Grenze nur angehoben (auf 24 KB). Das waere derselbe
+Fehler mit groesserer Zahl gewesen: Auch 24.000 werden erreicht, und dann steht
+dieselbe Sitzung wieder vor derselben Wahl zwischen Kuerzen und Weglassen.
+
+### Was bewusst nicht erreicht wurde
+Der Snapshot ist mit diesem Patch **nicht** auf „ein Satz je Eintrag" gebracht
+worden – er hat heute mehrere mehrzeilige Punkte (T-104, T-112). Das ist eine
+inhaltliche Entscheidung je Eintrag und gehoert nicht in denselben Patch wie die
+Regel; es faellt beim naechsten Aufraeumen des Snapshots an.
+
+### NEXT
+§0: dass nicht nur Regeln, sondern der ganze Arbeitsweg besprechbar ist.
+
 ## P-2026-08-15-24 t-116-tote-token-zuweisungen-weg
 
 ### EINGELESEN

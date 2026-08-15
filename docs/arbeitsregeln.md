@@ -163,16 +163,15 @@ Hotfixes, Prüf-Queries). Strukturänderungen gehören trotzdem **immer** nach
 
 Jeder neue Chat liest `CLAUDE.md`, `CHATSTART.md`, diese Datei und den Snapshot,
 **bevor** er irgendetwas tun kann – auch bei der kleinsten Frage. Was hier
-steht, kostet jedes Mal. Grenze **16.384 Bytes**, ab **16.000** wird beim
-nächsten Patch gekürzt statt angebaut. Neue Erklärungen gehören in die Dateien,
-die nur bei Bedarf gelesen werden (Fachregeln, Spezifikation, Handbuch).
+steht, kostet jedes Mal: **so kurz wie möglich, aber nicht kürzer.** Braucht
+eine Sache ein paar Zeilen mehr, bekommt sie die. Neue Erklärungen gehören
+ohnehin in die Dateien, die nur bei Bedarf gelesen werden (Fachregeln,
+Spezifikation, Handbuch).
 
-```bash
-cat CLAUDE.md CHATSTART.md docs/arbeitsregeln.md docs/STATUS_SNAPSHOT.md | wc -c
-```
-
-**Eine Zahl, Bytes.** `wc -c -m` gibt zwei aus, Zeichen zuerst – die Falle
-steht in P-2026-08-14-03.
+Eine feste Byte-Grenze gibt es **nicht** – sie hat zuletzt dazu geführt, an
+Wortlängen zu sparen, statt zu entscheiden, was überhaupt hineingehört. Was
+von Natur aus wächst, ist der Snapshot: **ein Satz je Bug und Task**, die
+Begründung steht im Verlauf. Wer dort diszipliniert bleibt, braucht keine Zahl.
 
 Zum Abschluss einer Sitzung: Erledigtes aus dem Snapshot **entfernen**, keine
 ableitbare Zahl pflegen (Prozente, Patch-Listen, Verlaufsabrisse, Zeilenzahlen
