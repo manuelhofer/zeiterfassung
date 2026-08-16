@@ -119,6 +119,92 @@ in den Statusbericht.
   P-2026-08-16-08.
 
 
+## P-2026-08-16-15 t-131-rfid-bridge-konfiguration-wirkt
+
+### EINGELESEN
+- `docs/STATUS_SNAPSHOT.md` (T-131), P-2026-08-16-12 – dort steht die
+  Nachstellung.
+- `views/terminal/_autologout.php`, `views/terminal/_layout_bottom.php` – der
+  Weg, auf dem das Partial eingebunden wird.
+- `public/terminal.php` (`$konfig = Start::los();`) und `core/Start.php` – wo
+  die Konfiguration herkommt und wem die Variable gehört.
+- `grep -rn '\$konfig' views/ controller/` – Gegenprobe, ob noch eine zweite
+  View auf dieselbe unsichtbare Variable baut. Antwort: nein, nur diese eine.
+- `docs/fachregeln/terminal_und_offline.md`, Abschnitt 2 – wofür die Bridge da
+  ist und dass sie je Gerät konfiguriert wird.
+
+### DATEIEN
+- `core/Start.php`, `views/terminal/_autologout.php`
+- `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Steht in `config/config.local.php` `terminal.rfid_ws.enabled = false`, bindet
+keine Terminalseite mehr `js/terminal-rfid-ws.js` ein; steht dort eine
+abweichende `url`, erscheint genau die im `data-rfid-ws-url`.
+
+### DONE
+`Start::konfig()` ist neu: die einmal geladene Konfiguration, abrufbar auch von
+Code, der nicht im Gültigkeitsbereich des Einstiegspunkts läuft. `Start::los()`
+benutzt sie selbst, sodass die Datei weiterhin einmal je Anfrage gelesen wird.
+
+`views/terminal/_autologout.php` fragt jetzt dort, statt sich auf `$konfig` zu
+verlassen. Diese Variable ist lokal in `public/terminal.php`; die Views werden
+aus Methoden des `TerminalController` heraus eingebunden, also aus einem
+anderen Gültigkeitsbereich. `isset($konfig)` war dort immer falsch, und es
+galten stumm die defensiven Defaults „Bridge an, `ws://127.0.0.1:8765`".
+
+Die Defaults bleiben, wo sie sind – sie sind richtig für eine Konfiguration
+ohne `rfid_ws`-Block. Falsch war nur, dass sie nicht zu überstimmen waren.
+
+### Gefundene Fehler im eigenen Entwurf
+Erster Gedanke war, die Konfiguration in der View selbst zu lesen
+(`require config/config.php`). Das wäre der vierte Leser derselben Datei
+gewesen – neben `Start`, `Helper::terminalId()` und
+`Helper::ermittleWebBasis()`. Genau diese Vervielfältigung hat diese Sitzung
+schon zweimal aufgeräumt (T-130, T-132); sie noch einmal zu säen, während der
+Verlaufseintrag darüber drei Zeilen weiter oben steht, wäre schwer zu erklären.
+
+Zweiter Punkt, geprüft statt angenommen: `Start::konfig()` merkt sich die
+Konfiguration je Anfrage. Bei der Kopplung entsteht `config.local.php`
+**während** einer Anfrage. Das ändert nichts – `Start::los()` hat die alte
+Fassung ohnehin schon gelesen, und die nächste Anfrage liest neu; dafür steht
+das `clearstatcache()` in `config/config.php`.
+
+### TEST
+Terminal-Wegwerf-Kopien auf Port 8803 (Arbeitsstand) und 8804 (HEAD 5a1f5f0),
+dieselbe Konfiguration, drei Fassungen nacheinander:
+
+1. `'rfid_ws' => ['enabled' => false, …]`: neu bindet `terminal-rfid-ws.js`
+   **nicht** mehr ein (0 Treffer im HTML), alt weiterhin (1 Treffer).
+2. `'enabled' => true, 'url' => 'ws://127.0.0.1:9999/rfid'`: neu rendert
+   `data-rfid-ws-url="ws://127.0.0.1:9999/rfid"`, alt
+   `data-rfid-ws-url="ws://127.0.0.1:8765"` – die abweichende Adresse war also
+   wirklich wirkungslos, nicht nur der Schalter.
+3. Ohne `rfid_ws`-Block (der Normalfall): beide Stände rendern
+   `ws://127.0.0.1:8765`. Der Standardweg bleibt unberührt.
+
+Dazu die Backend-Seiten im Vergleich alt/neu: `?seite=queue_admin` ohne
+Unterschied; die Abweichungen auf `?seite=dashboard` sind die drei erwarteten
+Zeilen aus T-130/T-132 (Queue-Quelle, Fehlerzahl, Zeitstempel). `php -l` über
+beide geänderten Dateien, Serverlogs ohne Warnung oder Deprecation.
+
+### Was bewusst nicht erreicht wurde
+`Helper::terminalId()`, `Helper::istTerminalInstallation()` und
+`Helper::ermittleWebBasis()` lesen `config/config.php` weiterhin selbst, statt
+`Start::konfig()` zu nehmen. Das ist dieselbe Dopplung eine Ebene tiefer und
+gehört zu T-133 – hier hätte es den Patch von „ein Fehler behoben" zu
+„Bootstrap umgebaut" gemacht.
+
+Ungeprüft bleibt, ob die Bridge mit einer echten abweichenden Adresse auch
+**verbindet**; dafür braucht es den Adapterdienst auf dem Gerät. Belegt ist,
+was diese Änderung betrifft: dass die konfigurierte Adresse in der Seite steht.
+
+### NEXT
+T-133 (die letzten Nachbauten der Queue-Auswahl im `TerminalController`, die
+zwei privaten `istTerminalInstallation()` und die drei Selbstleser der
+Konfiguration) – reines Aufräumen ohne sichtbaren Effekt, deshalb als eigener
+Patch und ohne Eile.
+
 ## P-2026-08-16-14 t-132-selbstcheck-fragt-statt-nachzubauen
 
 ### EINGELESEN

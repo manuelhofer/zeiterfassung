@@ -50,18 +50,18 @@ $scriptRelPfad = 'js/terminal-rfid-ws.js';
 $rfidWsEnabled = true;
 $rfidWsUrl = 'ws://127.0.0.1:8765';
 
-if (isset($konfig) && is_array($konfig)) {
-    $t = $konfig['terminal'] ?? null;
-    if (is_array($t)) {
-        $rw = $t['rfid_ws'] ?? null;
-        if (is_array($rw)) {
-            if (array_key_exists('enabled', $rw)) {
-                $rfidWsEnabled = (bool)$rw['enabled'];
-            }
-            if (!empty($rw['url']) && is_string($rw['url'])) {
-                $rfidWsUrl = trim($rw['url']);
-            }
-        }
+// Die Konfiguration kommt aus `Start::konfig()`, nicht aus `$konfig` (T-131):
+// Diese Variable ist lokal in `public/terminal.php`, und diese View wird aus
+// einer Methode des `TerminalController` heraus eingebunden – dort war sie nie
+// sichtbar. Es galten also immer die Defaults darüber: `enabled = false` blieb
+// wirkungslos, und eine abweichende `url` wurde ignoriert.
+$rw = Start::konfig()['terminal']['rfid_ws'] ?? null;
+if (is_array($rw)) {
+    if (array_key_exists('enabled', $rw)) {
+        $rfidWsEnabled = (bool)$rw['enabled'];
+    }
+    if (!empty($rw['url']) && is_string($rw['url'])) {
+        $rfidWsUrl = trim($rw['url']);
     }
 }
 

@@ -55,17 +55,13 @@ Abschnitt 5. Reihenfolge ist Absicht: T-125 kommt zuletzt.
 - **T-129** Dass ein unbekannter Chip keine Buchung auf `mitarbeiter_id = 0`
   erzeugt, hängt allein am `sql_mode` des Servers; einen Fremdschlüssel, der
   das auffinge, hat `zeitbuchung` nicht.
-- **T-133** Fünf weitere Stellen in `controller/TerminalController.php` wählen
-  die Queue-Datenbank selbst statt über den `OfflineQueueManager`; dazu haben
-  `ZeitService` und `AuftragszeitService` je eine private
-  `istTerminalInstallation()` mit identischem Rumpf. Am Terminal ist das Ergebnis
-  heute dasselbe – der Unterschied entsteht erst, wenn jemand die Regel wieder
-  ändert.
-- **T-131** `views/terminal/_autologout.php` liest die Einstellungen der
-  RFID-Bridge aus `$konfig`, das in der View gar nicht existiert – es ist eine
-  lokale Variable von `public/terminal.php`. Damit greifen weder
-  `rfid_ws.enabled = false` noch eine abweichende `url`; es gilt immer der
-  Default `ws://127.0.0.1:8765`. Nachgestellt in P-2026-08-16-12.
+- **T-133** Aufräumen ohne sichtbaren Effekt: Fünf Stellen in
+  `controller/TerminalController.php` wählen die Queue-Datenbank selbst statt
+  über den `OfflineQueueManager`, `ZeitService` und `AuftragszeitService` haben
+  je eine private `istTerminalInstallation()` neben der in `Helper`, und drei
+  `Helper`-Methoden lesen `config/config.php` selbst statt über
+  `Start::konfig()`. Heute liefert alles dasselbe – der Unterschied entsteht,
+  wenn jemand eine der Regeln wieder ändert (so geschehen in P-2026-08-16-14).
 - **T-112** „`catch` → `return []`" an 26 Stellen in `modelle/` und `services/`
   durchsehen – falsch nur dort, wo es die Fehlermeldung des Aufrufers
   unerreichbar macht; Suchlauf in P-2026-08-15-10.
