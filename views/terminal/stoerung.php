@@ -2,43 +2,19 @@
 declare(strict_types=1);
 
 /**
- * Terminal – Störungsmodus
+ * Terminal – Störung: weder Hauptdatenbank noch Offline-Queue erreichbar
  *
- * Dieser Screen wird angezeigt, sobald ein Eintrag in der lokalen Offline-Queue
- * (db_injektionsqueue) den Status "fehler" hat.
+ * Regel (`docs/fachregeln/terminal_und_offline.md`, Abschnitt 5):
+ * Das ist der **einzige** Fall, für den es diesen sperrenden Bildschirm noch
+ * gibt – in ihm lässt sich keine Buchung speichern, weder in der Hauptdatenbank
+ * noch lokal. Den Status `503` setzt der Aufrufer (`public/terminal.php`).
  *
- * Regel (`docs/fachregeln/terminal_und_offline.md`):
- * - Queue-Abarbeitung wird beim ersten Fehler gestoppt.
- * - Terminal muss dann Aktionen blockieren und den fehlerhaften SQL-Befehl anzeigen.
- * - Erst nachdem ein Admin den Eintrag im Backend löscht/ignoriert, darf die Queue weiterlaufen.
+ * Ein gescheiterter Queue-Eintrag führt hierher **nicht** mehr: Er wird beim
+ * Einspielen übersprungen, das Terminal bleibt bedienbar, und gemeldet wird er
+ * dort, wo jemand entscheiden darf – in der Queue-Verwaltung des Backends.
  */
 
 $queueStatus = $_SESSION['terminal_queue_status'] ?? null;
-
-$eintrag = $stoerungEintrag ?? null;
-if (!is_array($eintrag)) {
-    $eintrag = null;
-}
-
-$sqlBefehl = $eintrag['sql_befehl'] ?? null;
-if (!is_string($sqlBefehl)) {
-    $sqlBefehl = null;
-}
-
-$fehlernachricht = $eintrag['fehlernachricht'] ?? null;
-if (!is_string($fehlernachricht)) {
-    $fehlernachricht = null;
-}
-
-$erstelltAm = $eintrag['erstellt_am'] ?? null;
-if (!is_string($erstelltAm)) {
-    $erstelltAm = null;
-}
-
-$id = $eintrag['id'] ?? null;
-if (!is_scalar($id) || (string)$id === '') {
-    $id = null;
-}
 
 $queueOffen  = null;
 $queueFehler = null;
@@ -53,7 +29,6 @@ if (is_array($queueStatus)) {
     if (array_key_exists('hauptdb_verfuegbar', $queueStatus)) {
         $hauptdbOk = $queueStatus['hauptdb_verfuegbar'];
     }
-
     if (array_key_exists('queue_verfuegbar', $queueStatus)) {
         $offlineQueueOk = $queueStatus['queue_verfuegbar'];
     }
@@ -65,27 +40,16 @@ if (is_array($queueStatus)) {
     }
 }
 
-
-
-$fatalOhneQueue = ($hauptdbOk === false && $offlineQueueOk === false);
-
-
 $seitenTitel = 'Störung – Terminal';
-$seitenUeberschrift = $fatalOhneQueue ? 'Terminal nicht verfügbar' : 'Terminal im Störungsmodus';
+$seitenUeberschrift = 'Terminal nicht verfügbar';
 $bodyKlasse = 'terminal-wide';
 require __DIR__ . '/_layout_top.php';
 ?>
 
 <div class="fehler">
-        <?php if ($fatalOhneQueue): ?>
-            <strong>Weder Hauptdatenbank noch Offline-Queue verfügbar.</strong><br>
-            Bitte <strong>Administrator anfordern</strong>.<br>
-            Ohne Offline-Queue kann das Terminal keine Buchungen speichern.
-        <?php else: ?>
-            <strong>Fehler bei der Übertragung in die Hauptdatenbank.</strong><br>
-            Bitte <strong>Administrator anfordern</strong>.<br>
-            Solange der fehlerhafte Queue-Eintrag nicht entfernt wurde, sind alle Terminal-Aktionen gesperrt.
-        <?php endif; ?>
+        <strong>Weder Hauptdatenbank noch Offline-Queue verfügbar.</strong><br>
+        Bitte <strong>Administrator anfordern</strong>.<br>
+        Ohne Offline-Queue kann das Terminal keine Buchungen speichern.
     </div>
 
     <div class="status-box warn">
@@ -120,66 +84,15 @@ require __DIR__ . '/_layout_top.php';
 
     <div class="status-box error">
         <div class="status-title"><span>Fehlerdetails</span></div>
-        <?php if ($fatalOhneQueue): ?>
-            Offline-Queue ist deaktiviert oder nicht erreichbar. Bitte Offline-DB/Config prüfen.
-        <?php else: ?>
-            <?php if ($id !== null): ?>
-                ID: <strong><?php echo htmlspecialchars((string)$id, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></strong><br>
-            <?php endif; ?>
-            <?php if ($erstelltAm !== null): ?>
-                Erstellt am: <strong><?php echo htmlspecialchars($erstelltAm, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></strong><br>
-            <?php endif; ?>
-            <?php if ($fehlernachricht !== null && $fehlernachricht !== ''): ?>
-                Fehlermeldung: <strong><?php echo htmlspecialchars($fehlernachricht, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></strong>
-            <?php else: ?>
-                Fehlermeldung: <strong>(nicht verfügbar)</strong>
-            <?php endif; ?>
-
-            <div class="status-small mt"><strong>SQL-Befehl</strong></div>
-            <?php if ($sqlBefehl !== null && $sqlBefehl !== ''): ?>
-                <pre><?php echo htmlspecialchars($sqlBefehl, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></pre>
-            <?php else: ?>
-                <pre>(SQL-Befehl nicht verfügbar)</pre>
-            <?php endif; ?>
-        <?php endif; ?>
+        Offline-Queue ist deaktiviert oder nicht erreichbar. Bitte Offline-DB/Config prüfen.
     </div>
 
     <p class="hinweis center">
-        <?php if ($fatalOhneQueue): ?>
-            Hinweis: Bitte Offline-DB/Config reparieren (Offline-Queue). Danach kann das Terminal wieder buchen.
-        <?php else: ?>
-            Hinweis: Der fehlerhafte Queue-Eintrag muss im Backend (Offline-Queue) gelöscht/ignoriert werden,
-            oder manuell korrekt nachgetragen werden. Danach läuft die Queue weiter.
-        <?php endif; ?>
+        Hinweis: Bitte Offline-DB/Config reparieren (Offline-Queue). Danach kann das Terminal wieder buchen.
     </p>
 
 <div class="button-row">
     <a href="terminal.php?aktion=start" class="button-link">Neu prüfen / Start</a>
 </div>
-
-<?php
-// Optionales Mitarbeiterpanel (nur wenn noch ein Mitarbeiter eingeloggt ist).
-$mitarbeiterId = null;
-$mitarbeiterName = '';
-if (isset($mitarbeiter) && is_array($mitarbeiter) && isset($mitarbeiter['id'])) {
-    $mitarbeiterId = (int)$mitarbeiter['id'];
-    $mitarbeiterName = trim((string)($mitarbeiter['vorname'] ?? '') . ' ' . (string)($mitarbeiter['nachname'] ?? ''));
-}
-?>
-
-<?php if ($mitarbeiterId !== null && $mitarbeiterName !== ''): ?>
-    <details class="status-box terminal-mitarbeiterpanel">
-        <summary class="status-title">
-            <a href="terminal.php?aktion=start&amp;view=arbeitszeit" style="display:flex; justify-content:space-between; width:100%; color:inherit; text-decoration:none;">
-                <span>
-                    Mitarbeiter:
-                    <strong><?php echo htmlspecialchars($mitarbeiterName, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></strong>
-                    (ID: <?php echo (int)$mitarbeiterId; ?>)
-                </span>
-                <span class="status-small">Arbeitszeit</span>
-            </a>
-        </summary>
-    </details>
-<?php endif; ?>
 
 <?php require __DIR__ . '/_layout_bottom.php'; ?>

@@ -36,12 +36,8 @@ Ein Satz je Task – die Begründung steht im Verlauf, nicht hier.
 **Offline-Betrieb am Terminal** – Befund und Entscheidungen in P-2026-08-16-08,
 die Regeln dazu in
 [`fachregeln/terminal_und_offline.md`](fachregeln/terminal_und_offline.md),
-Abschnitt 5. Reihenfolge ist Absicht: T-122 und T-123 gehören zusammen, T-125
-kommt zuletzt.
+Abschnitt 5. Reihenfolge ist Absicht: T-125 kommt zuletzt.
 
-- **T-122** Ein gescheiterter Queue-Eintrag wird übersprungen statt die
-  Abarbeitung zu stoppen, das Terminal bleibt bedienbar, und der verbleibende
-  Störungsfall (weder Haupt- noch Queue-Datenbank) liefert `503` statt `200`.
 - **T-123** Der gescheiterte Eintrag wird in die `db_injektionsqueue` der
   Hauptdatenbank geschrieben, damit die vorhandene Queue-Verwaltung im Backend
   ihn zeigt – ohne das heißt T-122 „Fehler verschwindet".

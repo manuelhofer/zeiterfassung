@@ -213,41 +213,18 @@ try {
     $_SESSION['terminal_queue_status'] = $queueStatus;
 
     // ------------------------------------------------------------
-    // Fatal: Haupt-DB down UND keine Offline-Queue verfügbar
+    // Störungsmodus: der eine Fall, in dem nichts mehr geht
     // ------------------------------------------------------------
-    // In diesem Zustand kann das Terminal keine Buchungen speichern.
-    // Wir wechseln in einen blockierenden Screen („Admin anfordern“).
+    // Weder Haupt-DB noch Offline-Queue erreichbar - dann ist keine Buchung
+    // speicherbar, und das muss auf dem Bildschirm stehen. Dazu HTTP `503`
+    // statt `200`: Vorher meldete der Sperrbildschirm einer Überwachung
+    // „alles in Ordnung“, während das Gerät nichts mehr annehmen konnte.
+    //
+    // Ein gescheiterter Queue-Eintrag sperrt hier **nicht** mehr. Er wird beim
+    // Einspielen übersprungen und im Backend gemeldet; Kommen und Gehen laufen
+    // weiter (`docs/fachregeln/terminal_und_offline.md`, Abschnitt 5).
     if ($queueStatus['hauptdb_verfuegbar'] === false && $queueStatus['queue_verfuegbar'] === false) {
-        $stoerungEintrag = null;
-        require __DIR__ . '/../views/terminal/stoerung.php';
-        exit;
-    }
-
-    // ------------------------------------------------------------
-    // Störungsmodus (siehe `docs/fachregeln/terminal_und_offline.md`):
-    // Wenn ein Fehler-Eintrag in der Queue existiert, muss das Terminal
-    // in einen blockierenden Störungsmodus wechseln, bis ein Admin den
-    // problematischen Queue-Eintrag löscht/ignoriert.
-    // ------------------------------------------------------------
-
-    $stoerungAktiv = false;
-    $stoerungEintrag = null;
-
-    if (array_key_exists('fehler', $queueStatus) && $queueStatus['fehler'] !== null) {
-        $stoerungAktiv = ((int)$queueStatus['fehler'] > 0);
-    }
-
-    // Fallback: wenn der Zähler nicht ermittelt werden konnte, aber ein letzter Fehler-Eintrag existiert.
-    if (!$stoerungAktiv && isset($queueStatus['letzter_fehler']) && is_array($queueStatus['letzter_fehler']) && !empty($queueStatus['letzter_fehler']['id'])) {
-        $stoerungAktiv = true;
-    }
-
-    if ($stoerungAktiv) {
-        if (isset($queueStatus['letzter_fehler']) && is_array($queueStatus['letzter_fehler'])) {
-            $stoerungEintrag = $queueStatus['letzter_fehler'];
-        }
-
-        // In diesem Modus werden alle normalen Aktionen blockiert.
+        http_response_code(503);
         require __DIR__ . '/../views/terminal/stoerung.php';
         exit;
     }

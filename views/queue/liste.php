@@ -99,8 +99,8 @@ declare(strict_types=1);
     </form>
 
     <p class="muted" style="font-size: 0.9rem;">
-        Hinweis: Einträge mit Status <strong>fehler</strong> blockieren das Terminal im Störungsmodus.
-        Nach manueller Prüfung kann ein Admin den fehlerhaften Eintrag <strong>ignorieren/löschen</strong>, damit die Queue weiterlaufen kann.
+        Hinweis: Ein Eintrag mit Status <strong>fehler</strong> wurde beim Einspielen übersprungen – das Terminal bucht weiter.
+        Nach manueller Prüfung kann ein Admin ihn erneut ausführen (<strong>Retry</strong>) oder <strong>ignorieren/löschen</strong>.
     </p>
 
     <?php if (empty($eintraege)): ?>

@@ -9,7 +9,7 @@ declare(strict_types=1);
  * Aufgaben:
  * - SQL-Befehle in die Queue schreiben, wenn die Hauptdatenbank nicht erreichbar ist.
  * - Abarbeitung der Queue, sobald die Hauptdatenbank wieder verfügbar ist.
- * - Abbruch der Abarbeitung beim ersten Fehler („Störungsmodus“).
+ * - Überspringen eines gescheiterten Eintrags, ohne die Abarbeitung zu stoppen.
  * - Bereitstellung von Hilfsfunktionen für das Backend/Terminal-UI (z. B. aktueller Fehler-Eintrag).
  */
 class OfflineQueueManager
@@ -121,13 +121,19 @@ class OfflineQueueManager
     /**
      * Abarbeitung aller offenen Queue-Einträge in zeitlicher Reihenfolge.
      *
-     * Regeln (siehe `docs/fachregeln/terminal_und_offline.md`):
+     * Regeln (siehe `docs/fachregeln/terminal_und_offline.md`, Abschnitt 5):
      * - Es werden nur Einträge mit Status 'offen' verarbeitet.
      * - Abarbeitung in aufsteigender Reihenfolge von `erstellt_am`, dann `id`.
-     * - Beim ersten Fehler:
-     *   - wird der Eintrag auf Status 'fehler' gesetzt,
-     *   - es wird die Fehlermeldung gespeichert,
-     *   - die Abarbeitung wird abgebrochen.
+     * - Scheitert ein Eintrag, geht er mit seiner Fehlermeldung auf Status
+     *   'fehler' und wird **übersprungen**; die folgenden Einträge werden
+     *   weiter abgearbeitet.
+     *
+     * Warum überspringen und nicht abbrechen: Ein einziger unauflösbarer
+     * Eintrag – ein unbekannter Chip genügt – hielt sonst alle späteren
+     * Buchungen fest, obwohl mit ihnen nichts ist, und sperrte das Terminal.
+     * Ein zweiter Versuch entsteht daraus nicht: 'fehler' ist nicht 'offen',
+     * der nächste Lauf sieht den Eintrag nicht mehr. Gemeldet wird er im
+     * Backend, wo jemand entscheiden darf.
      */
     public function verarbeiteOffeneEintraege(): void
     {
@@ -157,7 +163,7 @@ class OfflineQueueManager
             // Sicherstellen, dass der SQL-Befehl nicht leer ist.
             if (trim($sqlBefehl) === '') {
                 $this->markiereAlsFehler($queuePdo, $id, 'Leerer SQL-Befehl in db_injektionsqueue.');
-                break;
+                continue;
             }
 
             try {
@@ -182,8 +188,8 @@ class OfflineQueueManager
                     'offline_queue'
                 );
 
-                // Beim ersten Fehler abbrechen.
-                break;
+                // Kein Abbruch: Der nächste Eintrag ist an diesem Fehler
+                // unschuldig und gehört genauso in die Hauptdatenbank.
             }
         }
     }

@@ -1244,90 +1244,11 @@ class TerminalController
         $this->datenbank           = Database::getInstanz();
     }
 
-    /**
-     * Störungsmodus (siehe `docs/fachregeln/terminal_und_offline.md`):
-     *
-     * Sobald ein Queue-Eintrag auf Status "fehler" steht, müssen alle Aktionen
-     * am Terminal blockiert werden. Die Seite zeigt den konkreten SQL-Befehl,
-     * der den Fehler ausgelöst hat, damit ein Admin gezielt reagieren kann.
-     */
-    public function stoerung(): void
-    {
-        // Terminal ist funktional eingeschränkt (503), solange ein Queue-Fehler existiert.
-
-        // Wenn ein Mitarbeiter noch eingeloggt ist, zeigen wir unten ein Mitarbeiterpanel.
-        // (Nur read-only; Aktionen bleiben weiterhin gesperrt.)
-        $mitarbeiter = $this->holeAngemeldetenTerminalMitarbeiter();
-
-        $queueStatus = $_SESSION['terminal_queue_status'] ?? null;
-        $letzterFehler = null;
-        $queueOffen = null;
-        $queueFehler = null;
-        $queueZeit = null;
-
-        if (is_array($queueStatus)) {
-            if (isset($queueStatus['zeit']) && is_string($queueStatus['zeit'])) {
-                $queueZeit = $queueStatus['zeit'];
-            }
-            if (array_key_exists('offen', $queueStatus) && $queueStatus['offen'] !== null) {
-                $queueOffen = (int)$queueStatus['offen'];
-            }
-            if (array_key_exists('fehler', $queueStatus) && $queueStatus['fehler'] !== null) {
-                $queueFehler = (int)$queueStatus['fehler'];
-            }
-            if (isset($queueStatus['letzter_fehler']) && is_array($queueStatus['letzter_fehler'])) {
-                $letzterFehler = $queueStatus['letzter_fehler'];
-            }
-        }
-
-        // Fallback: direkt aus dem Queue-Manager laden, falls die Session noch nichts hat.
-        if ($letzterFehler === null) {
-            try {
-                $letzterFehler = OfflineQueueManager::getInstanz()->holeLetztenFehlerEintrag();
-            } catch (Throwable $e) {
-                $letzterFehler = null;
-            }
-        }
-
-        // View-Kompatibilität: `views/terminal/stoerung.php` erwartet `$stoerungEintrag`.
-        $stoerungEintrag = is_array($letzterFehler) ? $letzterFehler : null;
-
-        // Wenn keine Queue-Fehler (mehr) vorhanden sind, ist der Störungsmodus beendet.
-        // Wichtig: Der Benutzer kann auf dieser URL (aktion=störung) "festhängen", wenn ein Admin
-        // den Fehler im Backend behebt. Dann soll ein Reload automatisch zur Startseite zurück.
-
-        $fatalOhneQueue = false;
-        if (is_array($queueStatus)) {
-            $hauptOk = $queueStatus['hauptdb_verfuegbar'] ?? null;
-            $queueOk = null;
-
-            if (array_key_exists('queue_verfuegbar', $queueStatus)) {
-                $queueOk = $queueStatus['queue_verfuegbar'];
-            }
-
-            if ($hauptOk === false && $queueOk === false) {
-                $fatalOhneQueue = true;
-            }
-        }
-
-        if ($stoerungEintrag === null && $fatalOhneQueue === false) {
-            $_SESSION['terminal_flash_nachricht'] = 'Störung behoben – Terminal ist wieder verfügbar.';
-            header('Location: terminal.php?aktion=start');
-            return;
-        }
-
-        // Terminal ist funktional eingeschränkt.
-        http_response_code(503);
-        // Monatsstatus für das Mitarbeiterpanel (Soll Monat / Soll bis heute / IST bis heute) – nur online.
-        $monatsStatus = null;
-        if (is_array($mitarbeiter) && isset($mitarbeiter['id'])) {
-            $monatsStatus = $this->berechneMonatsStatusFuerMitarbeiter((int)$mitarbeiter['id']);
-        }
-
-
-
-        require __DIR__ . '/../views/terminal/stoerung.php';
-    }
+    // Hier stand `stoerung()`: eine Methode ohne Route, die den Sperrbildschirm
+    // wegen eines gescheiterten Queue-Eintrags rendern sollte. Den Modus gibt es
+    // nicht mehr (P-2026-08-16-10), und den einen verbleibenden Störungsfall
+    // zeigt `public/terminal.php` selbst – die Methode hätte ihn nach dem Umbau
+    // sogar dann behauptet, wenn nur ein Fehler-Eintrag vorlag.
 
     /**
      * Logout des Terminals.

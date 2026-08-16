@@ -119,6 +119,111 @@ in den Statusbericht.
   P-2026-08-16-08.
 
 
+## P-2026-08-16-10 t-122-fehler-eintrag-ueberspringen
+
+### EINGELESEN
+- `docs/STATUS_SNAPSHOT.md` (T-122), `docs/fachregeln/terminal_und_offline.md`
+  Abschnitt 5 – dort steht die geltende Regel seit P-2026-08-16-08.
+- `core/OfflineQueueManager.php` vollständig, `public/terminal.php`,
+  `views/terminal/stoerung.php`, `controller/TerminalController::stoerung()`.
+- Die Aufrufer der Abarbeitung: `controller/QueueController.php`
+  (`queue_verarbeiten` samt Vorher/Nachher-Zählung),
+  `controller/SmokeTestController.php` (Queue-Roundtrip) – Gegenprobe, ob einer
+  von ihnen auf „stoppt beim ersten Fehler" baut. Antwort: nein, beide zählen
+  Zustände, statt Abbruch anzunehmen.
+
+### DATEIEN
+- `core/OfflineQueueManager.php`, `public/terminal.php`
+- `views/terminal/stoerung.php`, `controller/TerminalController.php`
+- `views/queue/liste.php`
+- `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Stehen zwei Offline-Buchungen in der Queue und ist die erste unauflösbar
+(unbekannter Chip), landet nach Rückkehr der Verbindung die **zweite** in
+`zeitbuchung`, während die erste auf `fehler` stehen bleibt – und das Terminal
+zeigt weiter seinen Startbildschirm statt eines Sperrbildschirms.
+
+### DONE
+Drei Änderungen, die zusammen einen Modus abschaffen:
+
+- **`verarbeiteOffeneEintraege()` bricht nicht mehr ab.** Aus den beiden
+  `break` nach `markiereAlsFehler()` wird ein Überspringen. Ein zweiter Versuch
+  entsteht daraus nicht: `fehler` ist nicht `offen`, der nächste Lauf sieht den
+  Eintrag nicht mehr.
+- **`public/terminal.php` sperrt nicht mehr wegen eines Fehler-Eintrags.** Der
+  ganze `$stoerungAktiv`-Block ist weg. Übrig bleibt der eine Fall, in dem
+  wirklich nichts geht – weder Haupt- noch Queue-Datenbank –, und der liefert
+  jetzt **`503`** statt `200`. Der Widerspruch davor war deutlich: `?aktion=health`
+  meldete einer Überwachung längst `503`, der Bildschirm daneben `200 OK`.
+- **`views/terminal/stoerung.php`** trägt nur noch diesen einen Fall. Die
+  Hälfte für „ein Eintrag ist kaputt" samt SQL-Anzeige ist entfernt – der
+  Mitarbeiter am Gerät kann daran nichts ändern, und den Text hätte sonst
+  niemand mehr erreicht.
+
+Dazu zwei Texte, die durch den Umbau falsch geworden wären:
+`views/queue/liste.php` sagte „Einträge mit Status fehler blockieren das
+Terminal im Störungsmodus" – jetzt steht dort, dass der Eintrag übersprungen
+wurde und das Terminal weiterbucht.
+
+### Gefundene Fehler im eigenen Entwurf
+`TerminalController::stoerung()` hat **keine Route**: `public/terminal.php`
+kennt kein `case 'stoerung'`, und niemand ruft die Methode auf. Aufgefallen ist
+das erst beim Umbau der View – sie berechnete außerdem ein `$monatsStatus`, das
+die View nie gelesen hat. Nach dem Umbau wäre sie nicht nur tot, sondern
+falsch gewesen: Bei einem bloßen Fehler-Eintrag hätte sie „weder Haupt- noch
+Queue-Datenbank" behauptet. Deshalb ist sie entfernt und an ihrer Stelle steht
+eine Zeile, die sagt warum – sonst baut sie der Nächste wieder ein.
+
+### Zuschnitt
+Fünf Code-Dateien in einem Patch sind mehr als üblich, aber es ist **ein**
+Thema: den Sperrmodus gibt es nicht mehr. Hätte ich die Texte und die tote
+Methode auf einen Folge-Patch geschoben, stünde dazwischen ein Stand, in dem
+der Bildschirm etwas anderes behauptet als der Code tut.
+
+### TEST
+Wegwerf-Kopie des Arbeitsstands im **Terminal-Modus**
+(`installation_typ = 'terminal'`, `terminal.id = 1`) auf Port 8803 gegen
+`zeit_probe` / `zeit_probe_off`, Ausfall über die Konfiguration erzeugt
+(`dsn` auf einen toten Port). Ein erfundener Mitarbeiter mit Chip
+`CHIP-GUT-001`; die Entwicklungsdatenbank blieb außen vor.
+
+Ablauf: online Login und Kommen → Zeile in `zeitbuchung`. Verbindung gekappt →
+**erst** unbekannter Chip `CHIP-UNBEKANNT-999` + Kommen, **dann** bekannter
+Chip + Kommen, also das Gift vor dem Guten. Verbindung zurück, ein
+Seitenaufruf. Derselbe Ausgangspunkt anschließend gegen den alten Stand der
+drei Dateien aus `HEAD`:
+
+| | alter Stand | neuer Stand |
+| --- | --- | --- |
+| Eintrag 1 (unbekannter Chip) | `fehler` | `fehler` |
+| Eintrag 2 (gültig) | **`offen`** – nie eingespielt | **`verarbeitet`** |
+| `?aktion=start` | „Terminal im Störungsmodus", HTTP **200** | Startbildschirm, HTTP **200** |
+| `?aktion=start`, beide Datenbanken tot | HTTP **200** | HTTP **503** |
+| `?aktion=health`, beide tot | HTTP 503 | HTTP 503 |
+
+Die eingespielte Buchung trägt die **Offline-Zeit** als `zeitstempel`
+(07:30:00) und die Einspielzeit als `erstellt_am` (07:30:13), `terminal_id = 1`.
+Danach mit dem Fehler-Eintrag in der Queue am Terminal angemeldet und **Gehen**
+gebucht – ging durch, Zeile in `zeitbuchung`, der Fehler-Eintrag blieb liegen.
+`php -l` über alle fünf geänderten Dateien, Serverlog ohne Warnung oder
+Deprecation.
+
+### Was bewusst nicht erreicht wurde
+Der gescheiterte Eintrag liegt weiterhin **nur** in der lokalen Queue des
+Terminals – im Backend sieht ihn niemand, weil die Queue-Verwaltung nach
+derselben Regel ihre eigene Datenbank liest. Genau das ist T-123, und bis dahin
+heißt dieser Patch für den Betrachter „Fehler verschwindet". Deshalb folgt er
+unmittelbar.
+
+`views/queue/liste.php` ist nur durchgelesen und syntaktisch geprüft, nicht im
+Browser aufgerufen: Die Wegwerf-Umgebung lief im Terminal-Modus, und der
+geänderte Absatz ist reiner Text ohne Logik.
+
+### NEXT
+T-123: den gescheiterten Eintrag in die `db_injektionsqueue` der
+**Hauptdatenbank** legen, damit die vorhandene Queue-Verwaltung ihn zeigt.
+
 ## P-2026-08-16-09 t-121-verbindung-schnell-scheitern
 
 ### EINGELESEN
