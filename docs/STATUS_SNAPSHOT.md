@@ -38,7 +38,6 @@ die Regeln dazu in
 [`fachregeln/terminal_und_offline.md`](fachregeln/terminal_und_offline.md),
 Abschnitt 5. Reihenfolge ist Absicht: T-125 kommt zuletzt.
 
-- **T-124** Die Zustandspille wird offline rot (`error`) statt gelb (`warn`).
 - **T-125** Lokale Liste der Berechtigten auf dem Terminal (nur ID,
   Personalnummer, RFID, aktiv – keine Namen), damit ein unbekannter Chip sofort
   am Gerät auffällt statt erst beim Einspielen.
@@ -61,6 +60,11 @@ Abschnitt 5. Reihenfolge ist Absicht: T-125 kommt zuletzt.
   zeigt die Meldungen aus T-123 dann nicht; `offline_db.enabled` steht
   standardmäßig auf `1`, die Regel gehört an `installation_typ` gebunden wie
   `Helper::terminalId()`. Nachgestellt in P-2026-08-16-11.
+- **T-131** `views/terminal/_autologout.php` liest die Einstellungen der
+  RFID-Bridge aus `$konfig`, das in der View gar nicht existiert – es ist eine
+  lokale Variable von `public/terminal.php`. Damit greifen weder
+  `rfid_ws.enabled = false` noch eine abweichende `url`; es gilt immer der
+  Default `ws://127.0.0.1:8765`. Nachgestellt in P-2026-08-16-12.
 - **T-112** „`catch` → `return []`" an 26 Stellen in `modelle/` und `services/`
   durchsehen – falsch nur dort, wo es die Fehlermeldung des Aufrufers
   unerreichbar macht; Suchlauf in P-2026-08-15-10.

@@ -44,20 +44,25 @@
     return "unbekannt";
   }
 
+  // Zwei Klassen statt einer: Die Zustandspille ist offline **rot** (T-124),
+  // die Systemstatus-Box darunter bleibt gelb – genau so, wie
+  // `views/terminal/_statusbox.php` beide beim Seitenaufbau rendert. Mit einer
+  // gemeinsamen Klasse färbte der erste Poll die Box um, und das Gerät sähe
+  // zehn Sekunden nach dem Laden anders aus als beim Laden.
   function decideState(h) {
     var haupt = h && Object.prototype.hasOwnProperty.call(h, "hauptdb_verfuegbar") ? h.hauptdb_verfuegbar : null;
     var queue = h && Object.prototype.hasOwnProperty.call(h, "queue_verfuegbar") ? h.queue_verfuegbar : null;
 
     if (haupt === false && queue === true) {
-      return { pillText: "OFFLINE", pillClass: "warn", title: "Systemstatus: Offline-Modus" };
+      return { pillText: "OFFLINE", pillClass: "error", boxClass: "warn", title: "Systemstatus: Offline-Modus" };
     }
     if (haupt === false && queue === false) {
-      return { pillText: "STÖRUNG", pillClass: "error", title: "Systemstatus: Störung" };
+      return { pillText: "STÖRUNG", pillClass: "error", boxClass: "error", title: "Systemstatus: Störung" };
     }
     if (haupt !== true) {
-      return { pillText: "UNKLAR", pillClass: "warn", title: "Systemstatus: Unklar" };
+      return { pillText: "UNKLAR", pillClass: "warn", boxClass: "warn", title: "Systemstatus: Unklar" };
     }
-    return { pillText: "ONLINE", pillClass: "ok", title: "Systemstatus: Online" };
+    return { pillText: "ONLINE", pillClass: "ok", boxClass: "ok", title: "Systemstatus: Online" };
   }
 
   function updateTopbarPill(state) {
@@ -91,8 +96,8 @@
 
     // Klassen
     box.classList.remove("ok", "warn", "error");
-    if (state.pillClass) {
-      box.classList.add(state.pillClass);
+    if (state.boxClass) {
+      box.classList.add(state.boxClass);
     }
 
     // Titel im Summary
@@ -157,7 +162,7 @@
     } catch (e) {
       // Keine harten Fehler – Kiosk darf nicht crashen.
       // Bei Netzwerkfehlern zeigen wir: STÖRUNG (best effort)
-      var state = { pillText: "STÖRUNG", pillClass: "error", title: "Systemstatus: Störung" };
+      var state = { pillText: "STÖRUNG", pillClass: "error", boxClass: "error", title: "Systemstatus: Störung" };
       updateTopbarPill(state);
     } finally {
       inFlight = false;

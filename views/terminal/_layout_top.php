@@ -53,8 +53,13 @@ if (is_array($qs)) {
     $queue = $qs['queue_verfuegbar'] ?? null;
 
     if ($hauptdb === false && $queue === true) {
+        // Rot, nicht gelb: Gelb heißt in dieser Pille „unklar" (siehe die
+        // UNKLAR-Stufe in `public/js/terminal-health-poll.js`), und wer die
+        // Verbindung fehlen sieht, soll das nicht mit einem Zwischenzustand
+        // verwechseln. Regel: `docs/fachregeln/terminal_und_offline.md`,
+        // Abschnitt 5 – „online grün ONLINE, offline rot OFFLINE".
         $topbarPillText = 'OFFLINE';
-        $topbarPillClass = 'warn';
+        $topbarPillClass = 'error';
     } elseif ($hauptdb === false && $queue === false) {
         $topbarPillText = 'STÖRUNG';
         $topbarPillClass = 'error';

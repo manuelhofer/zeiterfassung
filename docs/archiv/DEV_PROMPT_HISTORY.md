@@ -119,6 +119,100 @@ in den Statusbericht.
   P-2026-08-16-08.
 
 
+## P-2026-08-16-12 t-124-zustandspille-offline-rot
+
+### EINGELESEN
+- `docs/STATUS_SNAPSHOT.md` (T-124), `docs/fachregeln/terminal_und_offline.md`
+  Abschnitt 5 („online grün ONLINE, offline rot OFFLINE") und D-008 – die Regel
+  stand schon rot da, der Code war der Nachzügler.
+- `views/terminal/_layout_top.php` (Topbar-Pille), `public/css/terminal.css`
+  (`.terminal-pill.ok/.warn/.error`).
+- `public/js/terminal-health-poll.js` – die zweite Stelle, die dieselbe Pille
+  färbt; ohne sie wäre die Farbe nach zehn Sekunden wieder gelb.
+- `views/terminal/_statusbox.php` – wie die Systemstatus-Box serverseitig
+  eingefärbt wird, damit der Poll sie nicht anders färbt als der Seitenaufbau.
+
+### DATEIEN
+- `views/terminal/_layout_top.php`, `public/js/terminal-health-poll.js`
+- `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Ist die Hauptdatenbank nicht erreichbar und die lokale Queue schon, trägt die
+Pille oben rechts die Klasse `error` und ist rot (`#c62828`) – beim
+Seitenaufbau **und** nachdem der Health-Poll gelaufen ist.
+
+### DONE
+Zwei Stellen, eine Farbe:
+
+- `views/terminal/_layout_top.php`: `warn` → `error` für den Fall
+  „Hauptdatenbank aus, Queue da".
+- `public/js/terminal-health-poll.js`: dasselbe im Poll. Der Zustand trägt
+  jetzt **zwei** Klassen – `pillClass` für die Pille, `boxClass` für die
+  Systemstatus-Box darunter. Offline heißt damit Pille rot, Box gelb, genau wie
+  `views/terminal/_statusbox.php` beide beim Seitenaufbau rendert.
+
+Gelb bleibt, was gelb gehört: die Stufe **UNKLAR** (Hauptdatenbank weder
+sicher da noch sicher weg). Genau deshalb ist die Trennung nötig – „offline"
+und „unklar" sahen vorher gleich aus, obwohl das eine ein Befund ist und das
+andere das Fehlen eines Befundes. `.terminal-pill.warn` bleibt also in
+Gebrauch und in der CSS-Datei.
+
+### Gefundene Fehler im eigenen Entwurf
+Die erste Fassung war die eine Zeile in `_layout_top.php`. Damit wäre die
+Pille beim Laden rot gewesen und beim ersten Health-Poll – nach zehn Sekunden
+– wieder gelb geworden; genau das, was ein Kiosk-Bildschirm den ganzen Tag
+zeigt. Beim Nachsehen in der JS-Datei fiel dann auf, dass ihr Zustandsobjekt
+**eine** Klasse für Pille und Systemstatus-Box führt: Hätte ich sie einfach
+mitgeändert, wäre die Box mitgerötet und hätte sich vom serverseitig
+gerenderten Zustand unterschieden. Daher `boxClass`.
+
+### TEST
+Prüfumgebung (`zeit_probe` / `zeit_probe_off`), dazu zwei Wegwerf-Kopien im
+**Terminal-Modus**: Arbeitsstand auf Port 8803, HEAD (5a1f5f0) auf 8804, beide
+mit toter Hauptdatenbank (DSN auf Port 1, Verbindung wird sofort abgelehnt)
+und erreichbarer Ausweichdatenbank.
+
+1. Gegenüberstellung derselben Seite: alt `terminal-pill … warn`, neu
+   `terminal-pill … error`, Text beide Male `OFFLINE`.
+2. Im echten Browser geladen: `background-color: rgb(198, 40, 40)` – das ist
+   `#c62828` aus `.terminal-pill.error`.
+3. **Der Poll wurde nachgeprüft, nicht angenommen:** Pille im DOM auf
+   `ok`/„MARKIERT" gesetzt und gewartet. Nach dem nächsten Poll stand dort
+   wieder `OFFLINE` mit `error` – der Poll hat also überschrieben, und zwar
+   rot.
+4. `?aktion=offline_info` (die Seite, die die Systemstatus-Box zeigt): nach dem
+   Poll Pille `error`, Box weiterhin `warn`, Titel „Systemstatus:
+   Offline-Modus" – also hat der Poll die Box angefasst und sie trotzdem gelb
+   gelassen.
+
+`php -l` über `views/terminal/_layout_top.php`, `deno check` über
+`public/js/terminal-health-poll.js`, Serverlog des Terminals ohne Warnung oder
+Deprecation.
+
+### Was bewusst nicht erreicht wurde
+Der STÖRUNG-Zustand ist jetzt genauso rot wie OFFLINE. Das bleibt so: Die
+beiden unterscheiden sich im Text, und wer den Störungsbildschirm sieht, hat
+ohnehin eine ganzseitige Meldung vor sich – eine dritte Farbe wäre eine
+Unterscheidung, die niemand braucht.
+
+**T-131, dabei gefunden und nachgestellt, nicht behoben:**
+`views/terminal/_autologout.php` entscheidet über die RFID-Bridge anhand von
+`$konfig` – einer Variablen, die es in der View nicht gibt. Sie ist lokal in
+`public/terminal.php`, die Views werden aber aus Methoden des
+`TerminalController` heraus eingebunden, also aus einem anderen Gültigkeits-
+bereich. `isset($konfig)` ist dort immer falsch, es greifen die defensiven
+Defaults. Nachgestellt: In der Konfiguration der Wegwerf-Kopie stand
+`rfid_ws.enabled = false`, im HTML stand trotzdem
+`<script src="js/terminal-rfid-ws.js" data-rfid-ws-url="ws://127.0.0.1:8765">`,
+und der Browser meldete im Sekundentakt gescheiterte WebSocket-Verbindungen.
+Die abschaltbare Bridge ist dabei die harmlosere Hälfte – eine abweichende
+`url` wird genauso ignoriert, und dann sucht jemand den Fehler in der Bridge
+statt in der Sichtbarkeit einer Variablen.
+
+### NEXT
+T-130 (Queue-Speicherort an `installation_typ` binden) – der Fund aus
+P-2026-08-16-11, solange er frisch ist.
+
 ## P-2026-08-16-11 t-123-fehler-eintrag-im-backend-melden
 
 ### EINGELESEN
