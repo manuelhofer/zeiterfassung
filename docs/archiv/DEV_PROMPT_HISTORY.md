@@ -18,6 +18,85 @@ legacy_zip_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-08-16-26 t-135-fremdschluessel-auftragszeit-mitarbeiter
+
+### EINGELESEN
+- `sql/09_migration_zeitbuchung_fk_mitarbeiter.sql` – die Vorlage; dieser Patch
+  ist dieselbe Sache für die zweite Tabelle.
+- `services/AuftragszeitService.php`, Zeilen 940–970, und
+  `controller/TerminalController.php`, Zeile 3118 – wo `auftragszeit` mit einem
+  zusammengebauten SQL-Befehl in die Queue geht, und woher die Mitarbeiter-ID
+  dort kommt.
+- `sql/01_initial_schema.sql`, `auftragszeit`.
+
+### DATEIEN
+- `sql/01_initial_schema.sql`
+- `sql/11_migration_auftragszeit_fk_mitarbeiter.sql` (neu), `sql/README.md`
+- `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Ein `INSERT` in `auftragszeit` mit einer Mitarbeiter-ID, die es nicht gibt,
+scheitert mit Fehler 1452 – auch bei `sql_mode = ''` –, während „Auftrag
+starten" und „Auftrag stoppen" am Terminal unverändert durchlaufen.
+
+### DONE
+`auftragszeit.mitarbeiter_id` hat jetzt `fk_auftragszeit_mitarbeiter`, sonst
+Wort für Wort wie Migration 09: `ON DELETE RESTRICT ON UPDATE CASCADE`,
+verwaiste Zeilen werden gemeldet statt überfahren, der vorhandene Index
+`idx_auftragszeit_mitarbeiter` wird mitbenutzt.
+
+**Das ist Vorsorge, kein Fehler.** Nachgesehen, woher die Mitarbeiter-ID in den
+Queue-Befehlen für `auftragszeit` kommt: aus der angemeldeten Sitzung, und beim
+Fortsetzen eines pausierten Auftrags aus `az.mitarbeiter_id` einer vorhandenen
+Zeile. Beides ist gültig, ein RFID-Code wird nirgends aufgelöst – die Lücke aus
+T-129 gibt es hier heute nicht. Sie entsteht mit dem zweiten Schritt nach T-125
+(Anmeldung und Aufträge im Offline-Betrieb), und dann gilt dort dieselbe
+Begründung. Den Fremdschlüssel vorher zu setzen kostet eine Migration auf einer
+Tabelle mit einer einzigen Zeile; ihn nachzurüsten, wenn die Lücke da ist,
+kostet die Diskussion darüber, was in der Zwischenzeit hineingelaufen ist.
+
+### TEST
+Prüfumgebung, `alt` = 3f09bff, `neu` = Arbeitsstand.
+
+1. **Neuinstallation:** `zeit_probe` aus `01_initial_schema.sql` → beide
+   Fremdschlüssel da (`fk_zeitbuchung_mitarbeiter`,
+   `fk_auftragszeit_mitarbeiter`); `auftragszeit` hat weiterhin 10 Indizes,
+   InnoDB legt also keinen zweiten auf `mitarbeiter_id` an.
+2. **Migration 11 zweimal** auf einer Datenbank aus dem Schema des vorigen
+   Standes → gesetzt, dann `SELECT 1`, kein Fehler.
+3. **Verwaister Bestand:** eine gültige und eine verwaiste Zeile
+   (`mitarbeiter_id = 999`) → die Migration nennt **eine**, setzt den
+   Fremdschlüssel nicht, lässt beide Zeilen stehen. Nach dem Löschen der
+   verwaisten: zweiter Lauf setzt ihn, die gültige Zeile ist noch da.
+4. **Der Weg durch die Anwendung:** Terminal online, Chip `CHIP-T135`,
+   „Kommen" → neu anmelden (die Sitzung wird nach jeder Buchung geleert) →
+   „Auftrag starten" mit `A-T135` / `AS-1` → Zeile 9 `laufend` mit
+   `mitarbeiter_id = 15`. Neu anmelden, „Auftrag stoppen" → dieselbe Zeile
+   `abgeschlossen` mit Endzeit. Der Fremdschlüssel steht keinem der beiden
+   Schritte im Weg.
+5. **Er greift:** `sql_mode=''`, `INSERT … SELECT` mit einem Chip, den es nicht
+   gibt → `1452 … fk_auftragszeit_mitarbeiter`.
+6. **Backend-Seiten unverändert:** `?seite=smoke_test`, `?seite=dashboard`,
+   `?seite=queue_admin`, `?seite=auftraege` – je 0 abweichende Zeilen. Kein
+   `php -l`: Der Patch fasst keine PHP-Datei an. `meldungen` → beide
+   Serverlogs ohne PHP-Meldung.
+
+In der Entwicklungsdatenbank: 1 Auftragszeit, davon 0 ohne Mitarbeiter – die
+Migration liefe dort ohne Nacharbeit durch.
+
+### Was bewusst nicht erreicht wurde
+`auftragszeit` hat weitere Verweise ohne Fremdschlüssel – `auftrag_id`,
+`arbeitsschritt_id`, `maschine_id`, `terminal_id`, alle `NULL`-fähig. Die
+bleiben, wie sie sind: Sie stehen unter anderen Bedingungen (der
+Offline-Befehl `auftrag_ensure` legt einen Auftrag bei Bedarf selbst an), und
+sie reihum mit Fremdschlüsseln zu versehen wäre ein Aufräumen ohne Anlass –
+also genau das, was die Arbeitsregeln „Refactor nebenbei" nennen. Wenn dafür
+ein Grund auftaucht, ist er ein eigener Task.
+
+### NEXT
+T-135 ist erledigt. Offen bleiben T-125 und T-112 – und der Gerätetest, für den
+es einen Bildschirm braucht.
+
 ## P-2026-08-16-25 t-128-ein-abschluss-statt-zwei
 
 ### EINGELESEN

@@ -26,6 +26,9 @@ gebraucht - Neuinstallationen bekommen alles über `01_initial_schema.sql`.
   Patch P-2026-08-10-27).
 - `08_migration_auftrag_zeichnungsnummer.sql`: ergänzt `auftrag` um die Spalte
   `zeichnungsnummer` samt Index (Patch P-2026-08-10-33).
+- `11_migration_auftragszeit_fk_mitarbeiter.sql`: dasselbe wie Migration 09,
+  für `auftragszeit.mitarbeiter_id` (T-135, Patch P-2026-08-16-26). Verhält
+  sich bei verwaisten Zeilen genauso.
 - `10_migration_queue_herkunftsvermerk.sql`: ergänzt `db_injektionsqueue` um
   `meta_quell_id` samt Index, damit beim Wiederanlauf Buchung und
   „ist eingespielt"-Vermerk in **einer** Transaktion abgeschlossen werden und

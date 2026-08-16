@@ -140,7 +140,12 @@ CREATE TABLE `auftragszeit` (
   KEY `idx_auftragszeit_status` (`status`),
   KEY `fk_auftragszeit_terminal` (`terminal_id`),
   KEY `idx_auftragszeit_auftrag_arbeitsschritt` (`auftrag_id`,`arbeitsschritt_code`),
-  KEY `idx_auftragszeit_code_arbeitsschritt` (`auftragscode`,`arbeitsschritt_code`)
+  KEY `idx_auftragszeit_code_arbeitsschritt` (`auftragscode`,`arbeitsschritt_code`),
+  -- Dieselbe Zusicherung wie bei `zeitbuchung` (T-135): Eine Auftragszeit ohne
+  -- gültigen Mitarbeiter darf nicht entstehen. Heute käme sie hier gar nicht
+  -- her - offline wird die ID der angemeldeten Sitzung genommen, kein Chip
+  -- aufgelöst. Sobald Aufträge offline per Chip laufen, ändert sich das.
+  CONSTRAINT `fk_auftragszeit_mitarbeiter` FOREIGN KEY (`mitarbeiter_id`) REFERENCES `mitarbeiter` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE
 ) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------

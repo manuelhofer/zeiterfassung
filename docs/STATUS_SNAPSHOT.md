@@ -41,10 +41,6 @@ Abschnitt 5. Reihenfolge ist Absicht: T-125 kommt zuletzt.
 - **T-125** Lokale Liste der Berechtigten auf dem Terminal (nur ID,
   Personalnummer, RFID, aktiv – keine Namen), damit ein unbekannter Chip sofort
   am Gerät auffällt statt erst beim Einspielen.
-- **T-135** `auftragszeit.mitarbeiter_id` hat keinen Fremdschlüssel – heute
-  harmlos (die Offline-Auftragsbuchung nimmt die ID der angemeldeten Sitzung),
-  aber sobald Aufträge offline per Chip gehen, entsteht dort dieselbe Lücke,
-  die T-129 in `zeitbuchung` geschlossen hat.
 - **T-112** „`catch` → `return []`" an 26 Stellen in `modelle/` und `services/`
   durchsehen – falsch nur dort, wo es die Fehlermeldung des Aufrufers
   unerreichbar macht; Suchlauf in P-2026-08-15-10.
