@@ -42,9 +42,8 @@ Abschnitt 5. Reihenfolge ist Absicht: T-125 kommt zuletzt.
   Personalnummer, RFID, aktiv – keine Namen), damit ein unbekannter Chip sofort
   am Gerät auffällt statt erst beim Einspielen.
 - **T-126** Offline zeigt das Menü „Urlaub", „Übersicht" und „RFID-Chip
-  zuweisen", obwohl alle drei offline nur in Fehlermeldungen enden; dazu nennt
-  die Meldung „RFID-Code erfasst (ID …)" den Chipcode „ID" und der Hinweis
-  „Bitte RFID-Chip an das Lesegerät halten" bleibt nach dem Scan stehen.
+  zuweisen", obwohl alle drei offline nur in Fehlermeldungen enden (die beiden
+  Meldungstexte daraus sind in P-2026-08-16-18 erledigt).
 - **T-128** Zwischen dem Commit auf der Hauptdatenbank und dem
   `UPDATE status='verarbeitet'` in der Queue gibt es keinen gemeinsamen
   Abschluss – fällt genau dazwischen der Strom aus, wird der Eintrag beim

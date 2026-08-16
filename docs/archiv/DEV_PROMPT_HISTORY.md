@@ -18,6 +18,87 @@ legacy_zip_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-08-16-18 t-126-offline-scan-sagt-was-jetzt-dran-ist
+
+### EINGELESEN
+- `views/terminal/start.php`, Zeilen 521–655 – der Offline-Zweig des
+  Startbildschirms: woher `$offlineRfid` kommt (Session) und in welcher
+  Reihenfolge Hinweis, RFID-Feld und die Knöpfe „Kommen"/„Gehen" stehen.
+- `controller/TerminalController.php`, Zeilen 1743–1790 – der Scan-Schritt
+  offline, und Zeile 3362 – wie `terminal_flash_nachricht` zu `$nachricht`
+  wird.
+- `controller/TerminalController.php`, Zeilen 4033–4075 – was nach der Buchung
+  passiert: RFID wird geleert, also gehört der Hinweis an den Zustand und nicht
+  an den Klick.
+- `public/css/terminal.css`, Zeilen 43–68 – `terminal-login-form-mit-rfid`
+  blendet das Feld **nicht** aus; ein zweiter Scan überschreibt den Code
+  weiterhin.
+- `docs/fachregeln/terminal_und_offline.md`, Abschnitt 5 (RFID-only) und 6
+  (Login-Texte).
+
+### DATEIEN
+- `views/terminal/start.php`
+- `controller/TerminalController.php`
+- `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Nach dem Offline-Scan von `CHIP-PATCH-TERMINAL` steht auf dem Startbildschirm
+„Chip CHIP-PATCH-TERMINAL erkannt. Bitte „Kommen" oder „Gehen" auswählen." –
+und weder die Aufforderung, den Chip an das Lesegerät zu halten, noch die
+Meldung „RFID-Code erfasst (ID …)".
+
+### DONE
+Der Hinweis über dem RFID-Feld hängt jetzt am Zustand: ohne erfassten Code die
+Aufforderung zum Scannen wie bisher, mit erfasstem Code der Chipcode und die
+Frage, die als Nächstes zu beantworten ist.
+
+Die Flash-Meldung dazu ist ersatzlos weg. Sie war aus zwei Gründen falsch: Sie
+nannte den Chipcode „ID" – das ist er nicht, die Mitarbeiter-ID wird erst beim
+Einspielen über den Code aufgelöst –, und sie sagte dasselbe wie der Hinweis
+zwei Zeilen darüber, nur mit anderen Worten. Übrig bleibt **eine** Stelle, die
+den Zustand nennt, und sie liest ihn aus der Session statt aus einem
+verbrauchten Flash: Ein Neuaufbau der Seite zeigt danach weiterhin, welcher
+Chip erfasst ist.
+
+Nicht angefasst: Das RFID-Feld bleibt sichtbar und fokussiert, ein zweiter Scan
+überschreibt den Code wie bisher. Das ist am Gerät der schnellere Weg als
+„RFID wechseln" und war nie Teil des Befunds.
+
+### TEST
+Prüfumgebung `aufbauen HEAD` (e9013a3), `terminal beide --offline`, beide
+Stände also Terminals ohne Verbindung:
+
+1. **Der Befund selbst:** Chip `CHIP-PATCH-TERMINAL` gescannt (POST auf
+   `terminal.php?aktion=start`), danach die Seite geholt. Stand „alt" zeigt
+   beides – die `meldung`-Box „RFID-Code erfasst (ID CHIP-PATCH-TERMINAL)…"
+   **und** darunter „Bitte RFID-Chip an das Lesegerät halten". Stand „neu"
+   zeigt „Chip **CHIP-PATCH-TERMINAL** erkannt. Bitte „Kommen" oder „Gehen"
+   auswählen." und keine Meldungsbox.
+2. **Sonst nichts verändert:** Der Zeilenvergleich beider Seiten nach dem Scan
+   weicht nur in diesen zwei Blöcken ab – der Rest (Formulare, Knöpfe,
+   Health-Poll) ist identisch, abgesehen von CSRF-Token und Cache-Buster.
+3. **Bildschirm vor dem Scan unverändert:** nach `offline_rfid_reset=1` auf
+   beiden Ständen `vergleichen 'terminal.php?aktion=start'` → 0 abweichende
+   Zeilen.
+4. **Der Ablauf trägt weiter:** Scan, dann „Kommen" → HTTP 302, in
+   `zeit_probe_off` steht Eintrag 1 (`status = offen`,
+   `meta_aktion = zeit_kommen_rfid`, `meta_terminal_id = 1`,
+   `erstellt_am = 15:31:16`), und der Startbildschirm zeigt danach wieder die
+   Aufforderung zum Scannen samt „Offline: Kommen gespeichert um 15:31:16."
+5. `php -l` über beide geänderten Dateien, `meldungen` → beide Serverlogs ohne
+   PHP-Meldung.
+
+Umgebung abgeräumt und nachgeprüft (siehe unten).
+
+### Was bewusst nicht erreicht wurde
+Der zweite Teil von T-126 – die offline sichtbaren Knöpfe „Urlaub",
+„Übersicht" und „RFID-Chip zu Mitarbeiter zuweisen" – bleibt offen. Das ist ein
+anderer Bildschirm (die Sitzung, die vor dem Ausfall angemeldet war) und ein
+anderer sichtbarer Effekt, also ein eigener Patch.
+
+### NEXT
+T-126, zweiter Teil: das Offline-Menü.
+
 ## P-2026-08-16-17 pruefumgebung-terminal-modus
 
 ### EINGELESEN

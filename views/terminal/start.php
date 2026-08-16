@@ -539,10 +539,22 @@ require __DIR__ . '/_layout_top.php';
                 }
             ?>
 
-            <p class="hinweis">
-                Bitte RFID-Chip an das Lesegerät halten.<br>
-                Danach „Kommen“ oder „Gehen“ auswählen.
-            </p>
+            <?php if ($offlineRfid === ''): ?>
+                <p class="hinweis">
+                    Bitte RFID-Chip an das Lesegerät halten.<br>
+                    Danach „Kommen“ oder „Gehen“ auswählen.
+                </p>
+            <?php else: ?>
+                <?php
+                    // T-126: Nach dem Scan darf die Aufforderung zum Scannen nicht stehen bleiben –
+                    // sie widerspricht dem, was jetzt dran ist. Der Zustand steht hier und nicht in
+                    // einer Flash-Meldung, damit er einen Neuaufbau der Seite übersteht.
+                ?>
+                <p class="hinweis">
+                    Chip <strong><?php echo htmlspecialchars($offlineRfid, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></strong> erkannt.<br>
+                    Bitte „Kommen“ oder „Gehen“ auswählen.
+                </p>
+            <?php endif; ?>
 
             <form method="post" action="terminal.php?aktion=start" class="login-form terminal-login-form<?php echo ($offlineRfid !== '') ? ' terminal-login-form-mit-rfid' : ''; ?>">
                 <label for="rfid_code">RFID</label>

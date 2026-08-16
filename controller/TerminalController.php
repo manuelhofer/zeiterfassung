@@ -1774,10 +1774,9 @@ class TerminalController
                             unset($_SESSION['terminal_offline_rfid_hint']);
                         }
 
-                        $_SESSION['terminal_flash_nachricht'] = sprintf(
-                            'RFID-Code erfasst (ID %s). Bitte „Kommen“, „Gehen“ oder „Zurück“ wählen.',
-                            $rfidCode
-                        );
+                        // T-126: Hier stand eine Flash-Meldung „RFID-Code erfasst (ID …)“ – sie nannte den
+                        // Chipcode „ID“ und sagte dasselbe wie der Hinweis darüber ein zweites Mal.
+                        // Was gescannt wurde, steht jetzt in `views/terminal/start.php` aus der Session.
 
                         // Immer redirecten, damit Refresh/Enter nicht mehrfach auslöst.
                         $redir = 'terminal.php?aktion=start';
