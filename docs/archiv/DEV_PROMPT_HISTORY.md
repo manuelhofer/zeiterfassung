@@ -18,6 +18,80 @@ legacy_zip_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-08-16-23 t-133-helper-liest-konfiguration-ueber-start
+
+### EINGELESEN
+- `core/Helper.php`, Zeilen 182–336 – `ermittleWebBasis()`,
+  `holeBaseUrlAusKonfigdatei()`, `istTerminalInstallation()`, `terminalId()`.
+- `core/Start.php` vollständig – `los()` und `konfig()`, und warum es
+  `konfig()` gibt (T-131: Views laufen in einem anderen Gültigkeitsbereich als
+  der Einstiegspunkt).
+- `config/config.php` und `config/config.local.php` – dass die Basisdatei im
+  Repository liegt und die lokale nur eingebunden wird.
+
+### DATEIEN
+- `core/Helper.php`
+- `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+`grep -n "config/config.php" core/Helper.php` findet nur noch den Verweis im
+Kommentar, und `Helper::istTerminalInstallation()`, `terminalId()` sowie
+`ermittleWebBasis()` liefern in Terminal- wie Backend-Betrieb dieselben Werte
+wie vorher.
+
+### DONE
+Drei Methoden in `Helper` luden `config/config.php` mit einem eigenen
+`require` – dieselbe Datei, die `Start` beim Aufruf ohnehin lädt, nur ein
+zweites, drittes und viertes Mal. Alle drei fragen jetzt `Start::konfig()`.
+
+Aufgegeben wurde dabei die Prüfung `is_file()` und damit der stille Rückfall
+auf „leer/false/null", wenn die Datei fehlt. Das ist kein Verlust: `Start::los()`
+lädt dieselbe Datei am Anfang **jedes** Einstiegspunkts, ohne Prüfung. Fehlt
+sie, ist der Aufruf längst gescheitert, bevor eine dieser Methoden dazu kommt,
+sich defensiv zu verhalten. Die `try`/`catch` bleiben.
+
+Die Zwischenspeicher in `istTerminalInstallation()` und `terminalId()` bleiben
+ebenfalls – sie sparen jetzt nicht mehr das Lesen der Datei (das tut
+`Start::konfig()`), aber weiterhin die Auswertung.
+
+Damit ist T-133 abgeschlossen.
+
+### TEST
+Prüfumgebung, `alt` = 9777423, `neu` = Arbeitsstand.
+
+1. **Backend-Seiten unverändert:** `vergleichen` für `?seite=smoke_test`
+   (56.912 Bytes), `?seite=dashboard` (33.214), `?seite=queue_admin` (27.219)
+   und `?seite=terminals` – je 0 abweichende Zeilen.
+2. **Dieselben Antworten in beiden Betriebsarten:** `istTerminalInstallation`,
+   `terminalId` und `ermittleWebBasis` auf beiden Ständen abgefragt –
+   Terminal-Modus `true / 1`, Backend-Modus `false / NULL`, jeweils gleich.
+3. **`base_url` wirkt weiterhin:** In beiden Ständen `app.base_url` auf
+   `/probe-unterordner` gesetzt → `ermittleWebBasis()` liefert auf beiden
+   `'probe-unterordner'`. Das ist der einzige der drei Werte, der aus der
+   Konfiguration einen Inhalt formt statt nur eine Ja/Nein-Frage zu
+   beantworten; ohne diesen Schritt hätte der Test nur zweimal `''` verglichen.
+4. **Der Weg über die Queue trägt:** beide Stände offline, Chip
+   `CHIP-T133` gescannt, „Kommen" gebucht → je ein Eintrag
+   `zeit_kommen_rfid` mit `meta_terminal_id = 1`. Zurück online, ein
+   Seitenaufruf → beide `verarbeitet` (`versuche = 1`), beide Buchungen mit
+   ihrer Offline-Zeit und `terminal_id = 1` in `zeitbuchung`. Die Terminal-ID
+   kommt aus `Helper::terminalId()` – also aus der geänderten Stelle.
+5. `php -l` über die geänderte Datei, `meldungen` → beide Serverlogs ohne
+   PHP-Meldung.
+
+Umgebung abgeräumt und nachgeprüft: kein Port 8801–8808, kein `php`-Prozess,
+keine `zeit_probe`-Datenbank, Verzeichnis gelöscht, `zeiterfassung` und
+`zeiterfassung_offline` unberührt.
+
+### Was bewusst nicht erreicht wurde
+`Start::konfig()` selbst prüft nicht, ob die Datei existiert – ein fehlendes
+`config/config.php` ist weiterhin ein Fatal, nur eben eines an der Stelle, an
+der die Konfiguration wirklich gebraucht wird. Eine Behandlung gehört, wenn
+überhaupt, nach `Start` und wäre ein eigenes Thema.
+
+### NEXT
+T-133 ist erledigt. Offen bleiben T-125, T-128, T-129 und T-112.
+
 ## P-2026-08-16-22 t-133-terminalerkennung-nur-noch-im-helper
 
 ### EINGELESEN

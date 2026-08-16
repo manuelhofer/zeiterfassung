@@ -220,17 +220,17 @@ class Helper
     }
 
     /**
-     * Liest `app.base_url` aus der Konfigurationsdatei.
+     * Liest `app.base_url` aus der Konfiguration.
+     *
+     * T-133: Vorher stand hier ein eigenes `require` auf
+     * `config/config.php` – dieselbe Datei, die `Start` ohnehin lädt, nur ein
+     * zweites Mal und an `Start::konfig()` vorbei. Wer die Konfiguration
+     * umstellt, muss sonst daran denken, dass sie an drei Stellen in dieser
+     * Klasse noch von Hand gelesen wird.
      */
     private static function holeBaseUrlAusKonfigdatei(): string
     {
-        $pfad = __DIR__ . '/../config/config.php';
-        if (!is_file($pfad)) {
-            return '';
-        }
-
-        /** @var array<string,mixed> $konfig */
-        $konfig = require $pfad;
+        $konfig = Start::konfig();
         $baseUrl = $konfig['app']['base_url'] ?? '';
 
         return is_string($baseUrl) ? trim($baseUrl) : '';
@@ -260,14 +260,8 @@ class Helper
 
         $ermittelt = true;
 
-        $pfad = __DIR__ . '/../config/config.php';
-        if (!is_file($pfad)) {
-            return $istTerminal;
-        }
-
         try {
-            /** @var array<string,mixed> $konfig */
-            $konfig = require $pfad;
+            $konfig = Start::konfig();
         } catch (\Throwable $e) {
             return $istTerminal;
         }
@@ -310,14 +304,8 @@ class Helper
             return null;
         }
 
-        $pfad = __DIR__ . '/../config/config.php';
-        if (!is_file($pfad)) {
-            return null;
-        }
-
         try {
-            /** @var array<string,mixed> $konfig */
-            $konfig = require $pfad;
+            $konfig = Start::konfig();
         } catch (\Throwable $e) {
             return null;
         }

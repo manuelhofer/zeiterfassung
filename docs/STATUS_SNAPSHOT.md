@@ -48,11 +48,6 @@ Abschnitt 5. Reihenfolge ist Absicht: T-125 kommt zuletzt.
 - **T-129** Dass ein unbekannter Chip keine Buchung auf `mitarbeiter_id = 0`
   erzeugt, hängt allein am `sql_mode` des Servers; einen Fremdschlüssel, der
   das auffinge, hat `zeitbuchung` nicht.
-- **T-133** Aufräumen ohne sichtbaren Effekt: Drei `Helper`-Methoden lesen
-  `config/config.php` selbst statt über `Start::konfig()`. Heute liefert beides
-  dasselbe – der Unterschied entsteht, wenn jemand die Regel wieder ändert (so
-  geschehen in P-2026-08-16-14). Queue-Datenbank und Terminalerkennung sind
-  erledigt (P-2026-08-16-21, P-2026-08-16-22).
 - **T-112** „`catch` → `return []`" an 26 Stellen in `modelle/` und `services/`
   durchsehen – falsch nur dort, wo es die Fehlermeldung des Aufrufers
   unerreichbar macht; Suchlauf in P-2026-08-15-10.
