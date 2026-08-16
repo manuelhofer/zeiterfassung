@@ -151,12 +151,9 @@ class BetriebsferienAdminController
             ], $id > 0 ? $id : null, null, 'betriebsferien');
         }
 
-        $abteilungen = [];
-        try {
-            $abteilungen = $this->abteilungModel->holeAlleAktiven();
-        } catch (\Throwable $e) {
-            $abteilungen = [];
-        }
+        // `holeAlleAktiven()` fängt selbst ab und liefert `[]`; der `catch` hier
+        // konnte nie greifen und die Zuweisung davor war dieselbe (T-112).
+        $abteilungen = $this->abteilungModel->holeAlleAktiven();
 
         $this->renderFormular($eintrag, $abteilungen, $fehlermeldung);
     }
@@ -214,12 +211,9 @@ class BetriebsferienAdminController
             'aktiv'        => $aktiv,
         ];
 
-        $abteilungen = [];
-        try {
-            $abteilungen = $this->abteilungModel->holeAlleAktiven();
-        } catch (\Throwable $e) {
-            $abteilungen = [];
-        }
+        // `holeAlleAktiven()` fängt selbst ab und liefert `[]`; der `catch` hier
+        // konnte nie greifen und die Zuweisung davor war dieselbe (T-112).
+        $abteilungen = $this->abteilungModel->holeAlleAktiven();
 
         if ($fehlermeldung !== null) {
             $this->renderFormular($eintrag, $abteilungen, $fehlermeldung);

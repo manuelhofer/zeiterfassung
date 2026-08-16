@@ -186,14 +186,9 @@ class AbteilungAdminController
                 'aktiv'        => $aktiv,
             ];
 
-            try {
-                $alleAbteilungen = $this->abteilungModel->holeAlleAktiven();
-            } catch (\Throwable $e) {
-                $alleAbteilungen = [];
-                Logger::error('Fehler beim Nachladen der Abteilungen für das Formular', [
-                    'exception' => $e->getMessage(),
-                ], null, null, 'abteilung');
-            }
+            // Ohne `try`: `holeAlleAktiven()` fängt selbst ab, protokolliert und
+            // liefert `[]` – der `catch` hier konnte nie greifen (T-112).
+            $alleAbteilungen = $this->abteilungModel->holeAlleAktiven();
 
             $fehlermeldungLok = $fehlermeldung;
             $fehlermeldung    = $fehlermeldungLok;
@@ -241,14 +236,8 @@ class AbteilungAdminController
                 'aktiv'        => $aktiv,
             ];
 
-            try {
-                $alleAbteilungen = $this->abteilungModel->holeAlleAktiven();
-            } catch (\Throwable $e2) {
-                $alleAbteilungen = [];
-                Logger::error('Fehler beim Nachladen der Abteilungen nach einem Speicherfehler', [
-                    'exception' => $e2->getMessage(),
-                ], null, null, 'abteilung');
-            }
+            // Siehe oben (T-112): `holeAlleAktiven()` wirft nicht.
+            $alleAbteilungen = $this->abteilungModel->holeAlleAktiven();
 
             $csrfBereich = self::CSRF_BEREICH;
             require __DIR__ . '/../views/abteilung/formular.php';

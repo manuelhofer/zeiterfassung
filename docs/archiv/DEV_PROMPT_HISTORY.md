@@ -18,6 +18,152 @@ legacy_zip_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-08-16-27 t-112-tote-catch-bloecke-entfernt
+
+### EINGELESEN
+- P-2026-08-15-10, Abschnitt „Was bewusst nicht erreicht wurde" – dort steht
+  T-112 mit seinem Kriterium: falsch ist das Abfangen nur, wo es die
+  Fehlermeldung des Aufrufers unerreichbar macht.
+- P-2026-08-14-14 (T-110) und `modelle/AbteilungModel.php`, Zeilen 15–55 – das
+  Muster, das daraus entstanden ist: eine abfangende Methode für Auswahlen,
+  eine `…OhneFallback()` für alle, die unterscheiden müssen.
+- Die 26 Fundstellen selbst und je ihre Aufrufer.
+
+### DATEIEN
+- `controller/AbteilungAdminController.php`,
+  `controller/BetriebsferienAdminController.php`,
+  `controller/MaschineAdminController.php`,
+  `controller/MitarbeiterAdminController.php`,
+  `controller/TerminalAdminController.php`, `controller/TerminalController.php`
+- `services/AuftragszeitService.php`, `services/ReportService.php`,
+  `services/UrlaubService.php`
+- `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Nach dem Patch findet der Suchlauf keinen `try`-Block mehr, dessen `catch` nur
+einen Aufruf absichert, der selbst abfängt – und jede betroffene Maske liefert
+byteweise dieselbe Seite wie vorher, auch dann, wenn die gelesene Tabelle
+tatsächlich unlesbar ist.
+
+### DONE
+Die 26 Stellen sind durchgesehen. Das Ergebnis in einem Satz: **Kein einziger
+Aufrufer verliert eine Meldung an den Benutzer – aber 28 `try`/`catch`-Blöcke
+in 9 Dateien behaupteten eine Fehlerbehandlung, die nicht stattfinden kann.**
+Sie sind weg.
+
+Das Muster war überall dasselbe:
+
+```php
+$abteilungen = [];
+try {
+    $abteilungen = $this->abteilungModel->holeAlleAktiven();
+} catch (\Throwable $e) {
+    $abteilungen = [];
+}
+```
+
+`holeAlleAktiven()` fängt selbst ab, protokolliert und liefert `[]`. Der `catch`
+konnte also nie greifen, und wenn er es könnte, setzte er den Wert, der schon
+dastand. Fünf Zeilen, die einem Leser sagen: „hier ist der Fehlerfall
+bedacht". Genau dieser Eindruck hat T-110 und T-111 erzeugt – dort hatte
+jemand darauf vertraut und die Maske behauptete danach, es sei nichts
+vorhanden.
+
+Ein paar Blöcke waren länger, aber nicht anders: In
+`TerminalController::hatLaufendenHauptauftrag()` lieferte der `catch` `false` –
+dasselbe, was die leere Liste zwei Zeilen weiter ergibt. In
+`AuftragszeitService::stoppeAuftrag()` lieferte er `null`, ebenso. In
+`ReportService` protokollierte er eine Warnung und gab `[]` zurück.
+
+**Was nicht geändert wurde: das Verhalten.** Die Methoden fangen weiter ab.
+Für eine Auswahl in einem Formular ist das die richtige Entscheidung, und sie
+ist in P-2026-08-14-14 begründet; wer unterscheiden muss, hat mit
+`…OhneFallback()` den anderen Weg. Dieser Patch nimmt nur die Attrappe daneben
+weg.
+
+Ein Nebeneffekt, der es wert ist: `new AbteilungModel()` steht in mehreren
+dieser Blöcke mit im `try`. Der Konstruktor ruft `Database::getInstanz()`, und
+das kann werfen – aber nur beim allerersten Aufruf im Prozess und nur, wenn
+`config/config.php` fehlt. An diesen Stellen hat der Controller längst mit der
+Datenbank gearbeitet; die Instanz steht also. Fehlt die Datei wirklich, ist der
+Aufruf schon in `Start::los()` gescheitert (P-2026-08-16-23).
+
+### TEST
+Prüfumgebung, `alt` = e9bf323, `neu` = Arbeitsstand. Vergleich immer beide
+Stände auf **denselben** Daten.
+
+1. **Normalfall, 13 Seiten byteweise gleich:** Abteilungen, Betriebsferien,
+   Maschinen, Mitarbeiter, Terminals, Rollen – Liste und Bearbeiten-Maske –,
+   dazu Dashboard, Smoke-Test, Queue-Verwaltung, Monatsreport,
+   Urlaubsjahresübersicht, Urlaubsplanung, Zeit heute.
+2. **Der eigentliche Test – die Tabelle wirklich wegnehmen** (`RENAME TABLE`),
+   und zwar mit Daten drin, damit der Ausfall überhaupt sichtbar ist:
+
+   | Tabelle weg | Maske | vorher → nachher | alt vs. neu |
+   | --- | --- | --- | --- |
+   | `abteilung` | Maschine bearbeiten | 27.595 → 27.318 | gleich |
+   | `abteilung` | Betriebsferien bearbeiten | 27.776 → 27.499 | gleich |
+   | `abteilung` | Terminal bearbeiten | 28.425 → 28.148 | gleich |
+   | `abteilung` | Mitarbeiter bearbeiten | 45.105 → 29.876 | gleich |
+   | `recht` | Rolle bearbeiten | 47.954 → 27.154 | gleich |
+   | `mitarbeiter_hat_rolle` | Mitarbeiter bearbeiten | – | gleich |
+   | `betriebsferien` | Monatsreport | 99.833 → 99.651 | gleich |
+   | `betriebsferien` | Urlaubsplanung | 185.110 → 184.900 | gleich |
+   | `auftragszeit` | Terminal-Startscreen | 5.555 → 5.080 | gleich |
+
+   Die mittlere Spalte ist der Beleg, dass der Ausfall wirklich eintrat; die
+   rechte, dass beide Stände ihn gleich beantworten.
+3. **Terminal-Ablauf:** Chip `CHIP-T112`, angemeldet, „Kommen" gebucht, ein
+   laufender Hauptauftrag in der Datenbank – Startscreen, „Auftrag stoppen",
+   „Nebenauftrag stoppen" auf beiden Ständen gleich.
+4. `php -l` über alle neun Dateien, `meldungen` → beide Serverlogs ohne
+   PHP-Meldung. Der Suchlauf nach toten `catch`-Blöcken findet nichts mehr.
+
+### Gefundene Fehler im eigenen Entwurf
+**Der Suchlauf war zweimal falsch, und beide Male sah er richtig aus.**
+
+Zuerst zählte er den `catch`-Rumpf zum `try`-Rumpf. Grund: Die Zeile
+`} catch (\Throwable $e) {` schließt eine Klammer und öffnet eine, die Tiefe
+bleibt also unverändert, und die Sammlung lief weiter. Weil in fast jedem
+`catch` ein `$e->getMessage()` steht, sah der Block dann nach „zwei Aufrufen"
+aus und fiel durch das Raster – **sieben der 28 Stellen fehlten**, genau die
+mit Protokolleintrag. Aufgefallen ist es nur, weil eine Stelle, die ich vorher
+von Hand gelesen hatte (`MaschineAdminController:138`), in der Liste nicht
+vorkam. Der Rumpf endet jetzt an der Zeile `} catch`, nicht an der Klammertiefe.
+
+Davor hatte derselbe Lauf bei jeder Methode „0 Aufrufer" gemeldet: `grep` las
+das Suchmuster `->holeAktive(` als Option, weil es mit `-` beginnt. Ohne `--`
+davor ist eine solche Suche still leer statt falsch – und „keine Aufrufer" ist
+ein Ergebnis, das man glauben möchte.
+
+**Der erste Fehlerfall-Test war wertlos.** Ich habe `abteilung` umbenannt und
+die Masken verglichen: gleich. Nur hatte die Probe-Datenbank überhaupt keine
+Abteilung – „Tabelle weg" und „Tabelle leer" liefern dieselbe Seite, der Test
+prüfte nichts. Erst mit drei angelegten Abteilungen ändert sich die Größe, und
+erst dann sagt „gleich" etwas aus. Dieselbe Falle wie in P-2026-08-16-24,
+zwei Patches vorher, in derselben Sitzung.
+
+**Eine Vermutung, die falsch war:** Ich wollte als Folge notieren, dass ein
+Speichern aus der leeren Rechte-Maske der Rolle ihre Rechte nimmt. Nachgemessen
+mit unlesbarer `recht`-Tabelle: Rolle „Chef" hatte vorher 30 Rechte und danach
+30. Die Vermutung ist nicht in den Snapshot gewandert.
+
+### Was bewusst nicht erreicht wurde
+Die abfangenden Methoden selbst bleiben, wie sie sind – T-112 fragt nach dem
+Aufrufer, nicht nach dem Modell.
+
+Die Frage dahinter ist damit nicht überall beantwortet: **Soll die Maske den
+Lesefehler zeigen?** Für Listen ist das entschieden (T-111), für die
+Rechte-Auswahl in Rollen- und Mitarbeitermaske nicht – dort bleibt es beim
+stummen Leerlauf, gemessen in Test 2. Das steht jetzt als **T-136** im
+Snapshot. Am Terminal bleibt es bewusst stumm: Nach
+`fachregeln/terminal_und_offline.md`, Abschnitt 5, bekommt der Mitarbeiter am
+Gerät keine Fehlertexte zu sehen, an denen er nichts ändern kann.
+
+### NEXT
+T-112 ist erledigt. Offen bleiben T-125 und T-136 – und der Gerätetest, für den
+es einen Bildschirm braucht.
+
 ## P-2026-08-16-26 t-135-fremdschluessel-auftragszeit-mitarbeiter
 
 ### EINGELESEN

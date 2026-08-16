@@ -1939,12 +1939,11 @@ class TerminalController
             }
             $this->setzeTerminalAnwesenheitStatus($kommenHeute > $gehenHeute);
 
-            try {
-                $auftragszeitModel = new AuftragszeitModel();
-                $laufendeAuftraege = $auftragszeitModel->holeLaufendeFuerMitarbeiter((int)$mitarbeiter['id']);
-            } catch (Throwable $e) {
-                $laufendeAuftraege = [];
-            }
+            // Ohne `try`: `holeLaufendeFuerMitarbeiter()` fängt selbst ab,
+            // protokolliert und liefert `[]` – der `catch` hier konnte nie
+            // greifen (T-112).
+            $auftragszeitModel = new AuftragszeitModel();
+            $laufendeAuftraege = $auftragszeitModel->holeLaufendeFuerMitarbeiter((int)$mitarbeiter['id']);
 
             // Unvollständige Stempel für den Mitarbeiter (z. B. nur Kommen ohne Gehen).
             // Wichtig: "heute" ist noch nicht abgeschlossen. Wir warnen erst ab Folgetag,
@@ -2671,25 +2670,25 @@ class TerminalController
             return false;
         }
 
-        // Online: DB prüfen
-        try {
-            $m = new AuftragszeitModel();
-            $laufende = $m->holeLaufendeFuerMitarbeiter($mitarbeiterId);
-            if (!is_array($laufende) || count($laufende) === 0) {
-                return false;
-            }
-            foreach ($laufende as $row) {
-                if (!is_array($row)) {
-                    continue;
-                }
-                if (($row['typ'] ?? '') === 'haupt' && ($row['status'] ?? '') === 'laufend' && empty($row['endzeit'])) {
-                    return true;
-                }
-            }
-            return false;
-        } catch (Throwable $e) {
+        // Online: DB prüfen.
+        // Ohne `try` (T-112): `holeLaufendeFuerMitarbeiter()` fängt selbst ab,
+        // protokolliert und liefert `[]`. Der `catch` lieferte `false` – also
+        // dasselbe, was die leere Liste zwei Zeilen später ohnehin ergibt.
+        $m = new AuftragszeitModel();
+        $laufende = $m->holeLaufendeFuerMitarbeiter($mitarbeiterId);
+        if (!is_array($laufende) || count($laufende) === 0) {
             return false;
         }
+        foreach ($laufende as $row) {
+            if (!is_array($row)) {
+                continue;
+            }
+            if (($row['typ'] ?? '') === 'haupt' && ($row['status'] ?? '') === 'laufend' && empty($row['endzeit'])) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**
@@ -2744,12 +2743,9 @@ class TerminalController
         // Laufende Aufträge sind nur online zuverlässig abrufbar.
         $laufendeAuftraege = [];
         if ($this->istHauptdatenbankAktiv()) {
-            try {
-                $auftragszeitModel = new AuftragszeitModel();
-                $laufendeAuftraege = $auftragszeitModel->holeLaufendeFuerMitarbeiter($mitarbeiterId);
-            } catch (Throwable $e) {
-                $laufendeAuftraege = [];
-            }
+            // Siehe T-112: `holeLaufendeFuerMitarbeiter()` wirft nicht.
+            $auftragszeitModel = new AuftragszeitModel();
+            $laufendeAuftraege = $auftragszeitModel->holeLaufendeFuerMitarbeiter($mitarbeiterId);
         }
 
         $terminalTimeoutSekunden = $this->holeTerminalTimeoutSekunden('standard');
@@ -2907,15 +2903,13 @@ class TerminalController
 
         $laufendeNebenauftraege = [];
         if ($this->istHauptdatenbankAktiv()) {
-            try {
-                $auftragszeitModel = new AuftragszeitModel();
-                $laufendeAuftraege = $auftragszeitModel->holeLaufendeFuerMitarbeiter($mitarbeiterId);
-                $laufendeNebenauftraege = array_values(array_filter($laufendeAuftraege, static function ($row): bool {
-                    return is_array($row) && (($row['typ'] ?? '') === 'neben');
-                }));
-            } catch (Throwable $e) {
-                $laufendeNebenauftraege = [];
-            }
+            // Siehe T-112: `holeLaufendeFuerMitarbeiter()` wirft nicht, und der
+            // Filter darunter arbeitet nur auf dem Ergebnis.
+            $auftragszeitModel = new AuftragszeitModel();
+            $laufendeAuftraege = $auftragszeitModel->holeLaufendeFuerMitarbeiter($mitarbeiterId);
+            $laufendeNebenauftraege = array_values(array_filter($laufendeAuftraege, static function ($row): bool {
+                return is_array($row) && (($row['typ'] ?? '') === 'neben');
+            }));
         } else {
             // Offline: wir können nicht zuverlässig prüfen, ob ein Nebenauftrag läuft.
             // Stattdessen erlauben wir ein manuelles Stoppen per Auftragscode.
@@ -3413,13 +3407,9 @@ class TerminalController
         $heuteBuchungen = $heute['buchungen'] ?? [];
         $heuteFehler = $heute['fehler'] ?? null;
 
-        $laufendeAuftraege = [];
-        try {
-            $auftragszeitModel = new AuftragszeitModel();
-            $laufendeAuftraege = $auftragszeitModel->holeLaufendeFuerMitarbeiter($mitarbeiterId);
-        } catch (Throwable $e) {
-            $laufendeAuftraege = [];
-        }
+        // Siehe T-112: `holeLaufendeFuerMitarbeiter()` wirft nicht.
+        $auftragszeitModel = new AuftragszeitModel();
+        $laufendeAuftraege = $auftragszeitModel->holeLaufendeFuerMitarbeiter($mitarbeiterId);
 
         $terminalTimeoutSekunden = $this->holeTerminalTimeoutSekunden('standard');
         $csrfToken = Csrf::token(self::CSRF_BEREICH);
@@ -3753,12 +3743,11 @@ $urlaubSaldo = null;
             $heuteBuchungen  = $uebersicht['buchungen'];
             $heuteFehler     = $uebersicht['fehler'];
 
-            try {
-                $auftragszeitModel = new AuftragszeitModel();
-                $laufendeAuftraege = $auftragszeitModel->holeLaufendeFuerMitarbeiter((int)$mitarbeiter['id']);
-            } catch (Throwable $e) {
-                $laufendeAuftraege = [];
-            }
+            // Ohne `try`: `holeLaufendeFuerMitarbeiter()` fängt selbst ab,
+            // protokolliert und liefert `[]` – der `catch` hier konnte nie
+            // greifen (T-112).
+            $auftragszeitModel = new AuftragszeitModel();
+            $laufendeAuftraege = $auftragszeitModel->holeLaufendeFuerMitarbeiter((int)$mitarbeiter['id']);
         }
 
         require __DIR__ . '/../views/terminal/start.php';

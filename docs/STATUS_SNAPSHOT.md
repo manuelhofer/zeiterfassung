@@ -41,9 +41,10 @@ Abschnitt 5. Reihenfolge ist Absicht: T-125 kommt zuletzt.
 - **T-125** Lokale Liste der Berechtigten auf dem Terminal (nur ID,
   Personalnummer, RFID, aktiv – keine Namen), damit ein unbekannter Chip sofort
   am Gerät auffällt statt erst beim Einspielen.
-- **T-112** „`catch` → `return []`" an 26 Stellen in `modelle/` und `services/`
-  durchsehen – falsch nur dort, wo es die Fehlermeldung des Aufrufers
-  unerreichbar macht; Suchlauf in P-2026-08-15-10.
+- **T-136** Ist `recht` nicht lesbar, zeigt die Rechte-Auswahl in Rollen- und
+  Mitarbeitermaske stumm eine leere Liste (gemessen 47.954 → 27.154 Bytes,
+  keine Meldung) – dieselbe Sache wie T-111, nur in einem Formular statt in
+  einer Liste.
 - **Jahreswechsel beobachten:** Beim ersten echten Jahreswechsel prüfen, ob die
   festgeschriebenen Urlaubssalden plausibel bleiben (B-080).
 - **Terminal im Browser:** „Gehen" und „Auftrag starten/stoppen" sind am Gerät

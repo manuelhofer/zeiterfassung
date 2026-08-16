@@ -1247,29 +1247,20 @@ class ReportService
         $monatEnd = $monatStart;
     }
 
-    // Abteilungen des Mitarbeiters laden
-    try {
-        $abteilungIds = $this->mitarbeiterHatAbteilungModel->holeAbteilungsIdsFuerMitarbeiter($mitarbeiterId);
-    } catch (\Throwable $e) {
-        $abteilungIds = [];
-    }
+    // Abteilungen des Mitarbeiters laden.
+    // Ohne `try` (T-112): `holeAbteilungsIdsFuerMitarbeiter()` fängt selbst ab,
+    // protokolliert und liefert `[]`.
+    $abteilungIds = $this->mitarbeiterHatAbteilungModel->holeAbteilungsIdsFuerMitarbeiter($mitarbeiterId);
 
     $abteilungIds = array_values(array_unique(array_filter(array_map('intval', $abteilungIds), static fn($v) => $v > 0)));
 
-    // Betriebsferien (global + abteilungsspezifisch) laden
-    $eintraege = [];
-    try {
-        $eintraege = array_merge($eintraege, $this->betriebsferienModel->holeAktive(null));
-        foreach ($abteilungIds as $aid) {
-            $eintraege = array_merge($eintraege, $this->betriebsferienModel->holeAktive($aid));
-        }
-    } catch (\Throwable $e) {
-        Logger::warn('Fehler beim Laden der Betriebsferien für Monatsreport', [
-            'mitarbeiter_id' => $mitarbeiterId,
-            'monat'          => $monatStart->format('Y-m'),
-            'exception'      => $e->getMessage(),
-        ], $mitarbeiterId, null, 'reportservice');
-        return [];
+    // Betriebsferien (global + abteilungsspezifisch) laden.
+    // Auch hier ohne `try`: `holeAktive()` fängt ab und liefert `[]`. Der
+    // `catch` protokollierte eine Warnung und gab `[]` zurück - beides konnte
+    // nie eintreten, und die leere Liste prüft die Zeile darunter ohnehin.
+    $eintraege = array_merge([], $this->betriebsferienModel->holeAktive(null));
+    foreach ($abteilungIds as $aid) {
+        $eintraege = array_merge($eintraege, $this->betriebsferienModel->holeAktive($aid));
     }
 
     if ($eintraege === []) {

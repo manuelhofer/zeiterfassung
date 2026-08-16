@@ -440,16 +440,10 @@ class AuftragszeitService
 
         $auftragscode = $auftragscodeTrim;
 
-        try {
-            $laufende = $this->auftragszeitModel->holeLaufendeFuerMitarbeiter($mitarbeiterId);
-        } catch (\Throwable $e) {
-            Logger::error('Fehler beim Laden laufender Aufträge im AuftragszeitService (stoppeAuftrag)', [
-                'mitarbeiter_id' => $mitarbeiterId,
-                'exception'      => $e->getMessage(),
-            ], $mitarbeiterId, null, 'auftragszeit_service');
-
-            return null;
-        }
+        // Ohne `try` (T-112): `holeLaufendeFuerMitarbeiter()` fängt selbst ab,
+        // protokolliert und liefert `[]`. Der `catch` lieferte `null` – dasselbe,
+        // was die Prüfung auf die leere Liste zwei Zeilen später ergibt.
+        $laufende = $this->auftragszeitModel->holeLaufendeFuerMitarbeiter($mitarbeiterId);
 
         if (!is_array($laufende) || count($laufende) === 0) {
             return null;

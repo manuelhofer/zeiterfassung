@@ -1792,20 +1792,14 @@ class UrlaubService
         $betriebsferienModel = new BetriebsferienModel();
         $abteilungModel = new MitarbeiterHatAbteilungModel();
 
-        $abteilungsIds = [];
-        try {
-            $abteilungsIds = $abteilungModel->holeAbteilungsIdsFuerMitarbeiter($mitarbeiterId);
-        } catch (\Throwable $e) {
-            $abteilungsIds = [];
-        }
+        // Die drei `try` in dieser Methode sind entfallen (T-112): Sowohl
+        // `holeAbteilungsIdsFuerMitarbeiter()` als auch `holeAktive()` fangen
+        // selbst ab, protokollieren und liefern `[]` – die `catch` daneben
+        // setzten genau denselben Wert und konnten nie greifen.
+        $abteilungsIds = $abteilungModel->holeAbteilungsIdsFuerMitarbeiter($mitarbeiterId);
 
         // Globale Betriebsferien
-        $ranges = [];
-        try {
-            $ranges = $betriebsferienModel->holeAktive(null);
-        } catch (\Throwable $e) {
-            $ranges = [];
-        }
+        $ranges = $betriebsferienModel->holeAktive(null);
 
         foreach ($ranges as $row) {
             $this->fuegeBetriebsferienRangeInSet($set, $row, $von, $bis);
@@ -1818,11 +1812,7 @@ class UrlaubService
                 continue;
             }
 
-            try {
-                $ranges = $betriebsferienModel->holeAktive($abteilungId);
-            } catch (\Throwable $e) {
-                $ranges = [];
-            }
+            $ranges = $betriebsferienModel->holeAktive($abteilungId);
 
             foreach ($ranges as $row) {
                 $this->fuegeBetriebsferienRangeInSet($set, $row, $von, $bis);

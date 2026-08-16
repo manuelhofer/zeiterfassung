@@ -154,18 +154,12 @@ class MitarbeiterAdminController
         }
 
         // Rechte-Overrides (Allow/Deny pro Mitarbeiter) aus POST rekonstruieren, damit Eingaben bei Validierungsfehler nicht verloren gehen.
-        $alleRechte = [];
-        try {
-            $rolleModel = new RolleModel();
-            // Phase 1b (Rechte-Roadmap): Inaktive (Legacy-)Rechte ausblenden,
-            // damit die Mitarbeiter-Override-UI keine doppelten/alten Codes mehr anzeigt.
-            $alleRechte = $rolleModel->holeAlleRechte(true);
-        } catch (\Throwable $e) {
-            $alleRechte = [];
-            Logger::error('Rechte-Liste konnte nicht geladen werden (Validierungsfehler)', [
-                'exception' => $e->getMessage(),
-            ], isset($mitarbeiter['id']) ? (int)$mitarbeiter['id'] : null, null, 'recht');
-        }
+        // Phase 1b (Rechte-Roadmap): Inaktive (Legacy-)Rechte ausblenden,
+        // damit die Mitarbeiter-Override-UI keine doppelten/alten Codes mehr anzeigt.
+        // Ohne `try`: `holeAlleRechte()` fängt selbst ab, protokolliert und
+        // liefert `[]` – der `catch` hier konnte nie greifen (T-112).
+        $rolleModel = new RolleModel();
+        $alleRechte = $rolleModel->holeAlleRechte(true);
 
         $rechteOverrides = [];
         $overridePost = $_POST['recht_override'] ?? [];
@@ -202,13 +196,10 @@ class MitarbeiterAdminController
 
         
         // Abteilungen für scoped Rollen laden (Phase 1)
-        $alleAbteilungen = [];
-        try {
-            $abteilungModel  = new AbteilungModel();
-            $alleAbteilungen = $abteilungModel->holeAlleAktiven();
-        } catch (\Throwable) {
-            $alleAbteilungen = [];
-        }
+        // `holeAlleAktiven()` fängt selbst ab und liefert `[]`; der `catch` hier
+        // konnte nie greifen (T-112).
+        $abteilungModel  = new AbteilungModel();
+        $alleAbteilungen = $abteilungModel->holeAlleAktiven();
 
         // Scoped Rollen (abteilung) laden (Phase 1)
         $rollenScopesAbteilung = [];
@@ -673,16 +664,11 @@ class MitarbeiterAdminController
 
             // Legacy-Fallback: alte Zuordnungstabelle `mitarbeiter_hat_rolle`
             if (count($rollenIdsAusgewaehlt) === 0) {
-                try {
-                    $rollenZuordnungModel = new MitarbeiterHatRolleModel();
-                    $rollenIdsAusgewaehlt = $rollenZuordnungModel->holeRollenIdsFuerMitarbeiter($id);
-                } catch (\Throwable $e) {
-                    $rollenIdsAusgewaehlt = [];
-                    Logger::error('Rollen für Mitarbeiter konnten nicht geladen werden', [
-                        'mitarbeiter_id' => $id,
-                        'exception'      => $e->getMessage(),
-                    ], $id, null, 'rolle');
-                }
+                // `holeRollenIdsFuerMitarbeiter()` fängt selbst ab,
+                // protokolliert und liefert `[]` – der `catch` hier konnte nie
+                // greifen (T-112).
+                $rollenZuordnungModel = new MitarbeiterHatRolleModel();
+                $rollenIdsAusgewaehlt = $rollenZuordnungModel->holeRollenIdsFuerMitarbeiter($id);
             }
         }
 
@@ -776,46 +762,39 @@ class MitarbeiterAdminController
             }
 
             if (count($fehlende) > 0) {
-                try {
-                    $nachgeladene = $this->mitarbeiterModel->holeNachIds($fehlende, false);
-                    foreach ($nachgeladene as $m) {
-                        $mid = (int)($m['id'] ?? 0);
-                        if ($mid > 0 && $mid !== $id && !isset($idsImDropdown[$mid])) {
-                            $alleMitarbeiterGenehmiger[] = $m;
-                            $idsImDropdown[$mid] = true;
-                        }
+                // Ohne `try` (T-112): `holeNachIds()` fängt selbst ab,
+                // protokolliert und liefert `[]`. Sonst steht in diesem Block
+                // nur noch der `usort` mit einem Vergleich aus Zeichenketten –
+                // auch der wirft nicht.
+                $nachgeladene = $this->mitarbeiterModel->holeNachIds($fehlende, false);
+                foreach ($nachgeladene as $m) {
+                    $mid = (int)($m['id'] ?? 0);
+                    if ($mid > 0 && $mid !== $id && !isset($idsImDropdown[$mid])) {
+                        $alleMitarbeiterGenehmiger[] = $m;
+                        $idsImDropdown[$mid] = true;
                     }
-
-                    // Sortierung konsistent halten
-                    usort($alleMitarbeiterGenehmiger, function (array $a, array $b): int {
-                        $na = strtolower((string)($a['nachname'] ?? ''));
-                        $nb = strtolower((string)($b['nachname'] ?? ''));
-                        if ($na === $nb) {
-                            $va = strtolower((string)($a['vorname'] ?? ''));
-                            $vb = strtolower((string)($b['vorname'] ?? ''));
-                            return $va <=> $vb;
-                        }
-                        return $na <=> $nb;
-                    });
-                } catch (\Throwable $e) {
-                    Logger::error('Genehmiger: Nachladen inaktiver Mitarbeiter für Dropdown fehlgeschlagen', [
-                        'mitarbeiter_id' => $id > 0 ? $id : null,
-                        'fehlende_ids'   => $fehlende,
-                        'exception'      => $e->getMessage(),
-                    ], $id > 0 ? $id : null, null, 'genehmiger');
                 }
+
+                // Sortierung konsistent halten
+                usort($alleMitarbeiterGenehmiger, function (array $a, array $b): int {
+                    $na = strtolower((string)($a['nachname'] ?? ''));
+                    $nb = strtolower((string)($b['nachname'] ?? ''));
+                    if ($na === $nb) {
+                        $va = strtolower((string)($a['vorname'] ?? ''));
+                        $vb = strtolower((string)($b['vorname'] ?? ''));
+                        return $va <=> $vb;
+                    }
+                    return $na <=> $nb;
+                });
             }
         }
 
 
         // Abteilungen: Liste aller aktiven Abteilungen (für Mitarbeiter-Zuordnung + scoped Rollen)
-        $alleAbteilungen = [];
-        try {
-            $abteilungModel  = new AbteilungModel();
-            $alleAbteilungen = $abteilungModel->holeAlleAktiven();
-        } catch (\Throwable) {
-            $alleAbteilungen = [];
-        }
+        // `holeAlleAktiven()` fängt selbst ab und liefert `[]`; der `catch` hier
+        // konnte nie greifen (T-112).
+        $abteilungModel  = new AbteilungModel();
+        $alleAbteilungen = $abteilungModel->holeAlleAktiven();
 
         // Scoped Rollen (abteilung) laden (Phase 1)
         $rollenScopesAbteilung = [];
@@ -1404,13 +1383,9 @@ class MitarbeiterAdminController
                 $mitarbeiter['abteilungen_ids'] = $abteilungenIdsPost;
 
                 // Abteilungen-Liste laden (für Dropdowns)
-                $alleAbteilungen = [];
-                try {
-                    $abteilungModel  = new AbteilungModel();
-                    $alleAbteilungen = $abteilungModel->holeAlleAktiven();
-                } catch (\Throwable) {
-                    $alleAbteilungen = [];
-                }
+                // Siehe oben (T-112): `holeAlleAktiven()` wirft nicht.
+                $abteilungModel  = new AbteilungModel();
+                $alleAbteilungen = $abteilungModel->holeAlleAktiven();
 
                 $rollenScopesAbteilung = [];
 
@@ -1447,13 +1422,9 @@ class MitarbeiterAdminController
                 $mitarbeiter['abteilungen_ids'] = $abteilungenIdsPost;
 
                 // Abteilungen-Liste laden (für Dropdowns)
-                $alleAbteilungen = [];
-                try {
-                    $abteilungModel  = new AbteilungModel();
-                    $alleAbteilungen = $abteilungModel->holeAlleAktiven();
-                } catch (\Throwable) {
-                    $alleAbteilungen = [];
-                }
+                // Siehe oben (T-112): `holeAlleAktiven()` wirft nicht.
+                $abteilungModel  = new AbteilungModel();
+                $alleAbteilungen = $abteilungModel->holeAlleAktiven();
 
                 $rollenScopesAbteilung = [];
 

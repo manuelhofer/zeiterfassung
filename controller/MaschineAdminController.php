@@ -134,15 +134,9 @@ class MaschineAdminController
             ], $id, null, 'maschine');
         }
 
-        $abteilungen = [];
-        try {
-            $abteilungen = $this->abteilungModel->holeAlleAktiven();
-        } catch (\Throwable $e) {
-            $abteilungen = [];
-            Logger::error('Fehler beim Laden der Abteilungen für Maschinen-Formular', [
-                'exception' => $e->getMessage(),
-            ], null, null, 'maschine');
-        }
+        // `holeAlleAktiven()` fängt selbst ab, protokolliert und liefert `[]`;
+        // der `catch` hier konnte nie greifen (T-112).
+        $abteilungen = $this->abteilungModel->holeAlleAktiven();
 
         $this->renderFormular($maschine, $abteilungen, $fehlermeldung, null);
     }
@@ -199,12 +193,8 @@ class MaschineAdminController
             'aktiv'        => $aktiv,
         ];
 
-        $abteilungen = [];
-        try {
-            $abteilungen = $this->abteilungModel->holeAlleAktiven();
-        } catch (\Throwable $e) {
-            $abteilungen = [];
-        }
+        // Siehe oben (T-112).
+        $abteilungen = $this->abteilungModel->holeAlleAktiven();
 
         if ($fehlermeldung !== null) {
             $this->renderFormular($maschine, $abteilungen, $fehlermeldung, $erfolgsmeldung);
@@ -371,15 +361,8 @@ class MaschineAdminController
             }
         }
 
-        $abteilungen = [];
-        try {
-            $abteilungen = $this->abteilungModel->holeAlleAktiven();
-        } catch (\Throwable $e) {
-            $abteilungen = [];
-            Logger::error('Fehler beim Laden der Abteilungen für Barcode-Neuerzeugung', [
-                'exception' => $e->getMessage(),
-            ], $id > 0 ? $id : null, null, 'maschine');
-        }
+        // Siehe oben (T-112).
+        $abteilungen = $this->abteilungModel->holeAlleAktiven();
 
         if ($maschine === null) {
             $maschine = [

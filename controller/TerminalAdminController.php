@@ -429,12 +429,9 @@ class TerminalAdminController
             ], $id > 0 ? $id : null, null, 'terminal');
         }
 
-        $abteilungen = [];
-        try {
-            $abteilungen = $this->abteilungModel->holeAlleAktiven();
-        } catch (\Throwable $e) {
-            $abteilungen = [];
-        }
+        // `holeAlleAktiven()` fängt selbst ab und liefert `[]`; der `catch` hier
+        // konnte nie greifen (T-112).
+        $abteilungen = $this->abteilungModel->holeAlleAktiven();
 
         $this->renderFormular($terminal, $abteilungen, $fehlermeldung);
     }
@@ -460,12 +457,9 @@ class TerminalAdminController
 
         $fehlermeldung = $this->validiereTerminalDaten($terminal);
 
-        $abteilungen = [];
-        try {
-            $abteilungen = $this->abteilungModel->holeAlleAktiven();
-        } catch (\Throwable $e) {
-            $abteilungen = [];
-        }
+        // `holeAlleAktiven()` fängt selbst ab und liefert `[]`; der `catch` hier
+        // konnte nie greifen (T-112).
+        $abteilungen = $this->abteilungModel->holeAlleAktiven();
 
         if ($fehlermeldung !== null) {
             $this->renderFormular($terminal, $abteilungen, $fehlermeldung);
