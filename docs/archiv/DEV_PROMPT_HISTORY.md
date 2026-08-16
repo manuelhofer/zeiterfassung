@@ -119,6 +119,77 @@ in den Statusbericht.
   P-2026-08-16-08.
 
 
+## P-2026-08-16-09 t-121-verbindung-schnell-scheitern
+
+### EINGELESEN
+- `docs/STATUS_SNAPSHOT.md` (T-121), P-2026-08-16-08 – dort stehen Messung und
+  Zählung, die diesen Patch begründen.
+- `core/Database.php` vollständig; die Aufrufer von
+  `istHauptdatenbankVerfuegbar()` und `getVerbindung()` in `public/terminal.php`,
+  `controller/TerminalController.php`, `services/QueueService.php`,
+  `core/OfflineQueueManager.php`.
+- Gegenprobe, ob irgendwo gezielt `PDOException` gefangen wird (Antwort: nein,
+  überall `Throwable`) – sonst hätte die neue `RuntimeException` einen
+  `catch`-Zweig verfehlt.
+
+### DATEIEN
+- `core/Database.php`
+- `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Zeigt die Konfiguration auf einen Host, der nicht antwortet, liefert
+`terminal.php?aktion=start` nach rund drei Sekunden den Offline-Bildschirm statt
+nach 270 Sekunden.
+
+### DONE
+Zwei Änderungen, die nur zusammen wirken:
+
+- **`PDO::ATTR_TIMEOUT`** (3 s, als Konstante `VERBINDUNGS_TIMEOUT_SEKUNDEN`)
+  begrenzt den **Verbindungsaufbau**. Laufzeiten von Abfragen bleiben unberührt
+  – ein langer Report wird davon nicht abgeschnitten.
+- **Ein Merker je Aufruf** (`$hauptdbErreichbar`): Wer in einem Request einmal
+  festgestellt hat, dass die Hauptdatenbank nicht antwortet, fragt nicht noch
+  achtmal nach. `getVerbindung()` wirft dann sofort, statt einen neuen Versuch
+  zu starten. Über Requests hinweg wird bewusst **nichts** gemerkt, sonst käme
+  das Terminal von selbst nie zurück.
+
+Ohne den Merker hätte der Timeout allein aus 270 s nur 27 s gemacht – neun
+Versuche zu je drei Sekunden. Erst beide zusammen ergeben einen Versuch.
+
+### TEST
+Wegwerf-Kopie im Terminal-Modus auf Port 8803 gegen `zeit_probe` /
+`zeit_probe_off`, Ausfall über die Konfiguration erzeugt.
+
+| Lage | vorher | nachher |
+| --- | --- | --- |
+| Host schweigt (`192.0.2.1`), `?aktion=start` | 270,2 s | **3,01 s** |
+| Host schweigt, `?aktion=health` | 60,1 s | **3,00 s** |
+
+Dazu die Gegenprobe, dass der Offline-Betrieb weiterhin trägt: online Login und
+Kommen → Zeile in `zeitbuchung`; Verbindung gekappt → Chip gescannt, Gehen
+gebucht → Eintrag `offen` in `db_injektionsqueue` der Offline-Datenbank;
+Verbindung zurück → beim nächsten Seitenaufruf `verarbeitet`, Buchung in der
+Hauptdatenbank mit der **Offline-Zeit** als `zeitstempel`. `index.php` antwortet
+auch mit toter Hauptdatenbank ohne Verzögerung. `php -l` über `core/Database.php`,
+Serverlog ohne Warnung oder Deprecation.
+
+Umgebung abgeräumt und von außen gegengeprüft: kein Port 8801–8809, kein
+`php`-Prozess, keine `zeit_probe`-Datenbank, `zeiterfassung` und
+`zeiterfassung_offline` unberührt.
+
+### Was bewusst nicht erreicht wurde
+Die **Offline-Datenbank** bekommt denselben Timeout, aber keinen Merker: Ist sie
+nicht erreichbar, versucht es jeder Aufruf erneut. Das ist hier folgenlos, weil
+sie auf demselben Gerät liegt und eine abgelehnte Verbindung sofort antwortet –
+und es ist ein anderes Thema. Ebenso unberührt bleibt, dass
+`TerminalController::start()` den Queue-Status zweimal ermittelt und den Replay
+ein zweites Mal anstößt (T-127); mit dem Merker kostet das keine Zeit mehr, hübsch
+ist es trotzdem nicht.
+
+### NEXT
+T-122 und T-123 zusammenhängend: kaputter Eintrag wird übersprungen, das
+Terminal bleibt bedienbar, und der Eintrag taucht im Backend auf.
+
 ## P-2026-08-16-08 offline-befund-und-entscheidungen
 
 ### EINGELESEN

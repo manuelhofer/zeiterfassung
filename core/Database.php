@@ -25,6 +25,34 @@ class Database
     private ?\PDO $offlinePdo = null;
 
     /**
+     * Ergebnis der letzten Erreichbarkeitsprüfung der Hauptdatenbank – gilt für
+     * **diesen** Aufruf, nicht länger.
+     *
+     * Warum es das gibt: Ein Terminal fragt pro Seitenaufruf mehrfach, ob die
+     * Hauptdatenbank da ist (Idle-Timeout, Queue-Abarbeitung, Statusanzeige,
+     * Startseite). Ohne Merker versuchte jede dieser Fragen eine neue
+     * Verbindung, weil ein gescheiterter Versuch nichts hinterlässt. An einem
+     * Host, der schweigt statt abzulehnen, waren das neun Versuche zu je
+     * `VERBINDUNGS_TIMEOUT_SEKUNDEN` – gemessene 270 Sekunden für **eine**
+     * Seite (P-2026-08-16-08).
+     *
+     * `null` heißt „in diesem Aufruf noch nicht gefragt". Über Aufrufe hinweg
+     * wird bewusst nichts gemerkt: Sonst käme das Terminal nach einer Störung
+     * nie von selbst zurück.
+     */
+    private ?bool $hauptdbErreichbar = null;
+
+    /**
+     * Verbindungsaufbau abbrechen, statt auf einen Zeitablauf des Netzstacks zu
+     * warten. Betrifft nur den Aufbau (`MYSQL_OPT_CONNECT_TIMEOUT`), nicht die
+     * Laufzeit von Abfragen – ein langer Report bleibt also unberührt.
+     *
+     * Drei Sekunden sind im LAN reichlich (eine gesunde Verbindung steht in
+     * Millisekunden) und am Terminal gerade noch erträglich.
+     */
+    private const VERBINDUNGS_TIMEOUT_SEKUNDEN = 3;
+
+    /**
      * Privater Konstruktor – nutze `getInstanz()`.
      */
     private function __construct()
@@ -83,7 +111,21 @@ class Database
             return $this->hauptPdo;
         }
 
-        $this->hauptPdo = $this->erstellePdoAusKonfig($this->dbKonfig);
+        // Ist die Hauptdatenbank in diesem Aufruf schon einmal ausgefallen,
+        // wird nicht erneut gewartet – die Antwort wäre dieselbe.
+        if ($this->hauptdbErreichbar === false) {
+            throw new \RuntimeException(
+                'Hauptdatenbank ist in diesem Aufruf bereits als nicht erreichbar erkannt worden.'
+            );
+        }
+
+        try {
+            $this->hauptPdo = $this->erstellePdoAusKonfig($this->dbKonfig);
+        } catch (\Throwable $e) {
+            $this->hauptdbErreichbar = false;
+            throw $e;
+        }
+
         return $this->hauptPdo;
     }
 
@@ -115,13 +157,19 @@ class Database
      */
     public function istHauptdatenbankVerfuegbar(): bool
     {
+        if ($this->hauptdbErreichbar !== null) {
+            return $this->hauptdbErreichbar;
+        }
+
         try {
             $pdo = $this->getVerbindung();
             $stmt = $pdo->query('SELECT 1');
-            return $stmt !== false;
+            $this->hauptdbErreichbar = ($stmt !== false);
         } catch (\Throwable $e) {
-            return false;
+            $this->hauptdbErreichbar = false;
         }
+
+        return $this->hauptdbErreichbar;
     }
 
     /**
@@ -221,6 +269,7 @@ class Database
             \PDO::ATTR_ERRMODE            => \PDO::ERRMODE_EXCEPTION,
             \PDO::ATTR_DEFAULT_FETCH_MODE => \PDO::FETCH_ASSOC,
             \PDO::ATTR_EMULATE_PREPARES   => false,
+            \PDO::ATTR_TIMEOUT            => self::VERBINDUNGS_TIMEOUT_SEKUNDEN,
         ];
 
         foreach ($defaults as $key => $value) {

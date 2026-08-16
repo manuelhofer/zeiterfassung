@@ -36,11 +36,9 @@ Ein Satz je Task – die Begründung steht im Verlauf, nicht hier.
 **Offline-Betrieb am Terminal** – Befund und Entscheidungen in P-2026-08-16-08,
 die Regeln dazu in
 [`fachregeln/terminal_und_offline.md`](fachregeln/terminal_und_offline.md),
-Abschnitt 5. Reihenfolge ist Absicht: T-121 zuerst, T-125 zuletzt.
+Abschnitt 5. Reihenfolge ist Absicht: T-122 und T-123 gehören zusammen, T-125
+kommt zuletzt.
 
-- **T-121** `PDO::ATTR_TIMEOUT` setzen und „nicht erreichbar" je Aufruf einmal
-  merken – ohne das braucht eine Terminalseite an einem schweigenden Host
-  gemessene 270 Sekunden.
 - **T-122** Ein gescheiterter Queue-Eintrag wird übersprungen statt die
   Abarbeitung zu stoppen, das Terminal bleibt bedienbar, und der verbleibende
   Störungsfall (weder Haupt- noch Queue-Datenbank) liefert `503` statt `200`.
