@@ -41,10 +41,10 @@ Abschnitt 5. Reihenfolge ist Absicht: T-125 kommt zuletzt.
 - **T-125** Lokale Liste der Berechtigten auf dem Terminal (nur ID,
   Personalnummer, RFID, aktiv – keine Namen), damit ein unbekannter Chip sofort
   am Gerät auffällt statt erst beim Einspielen.
-- **T-136** Ist `recht` nicht lesbar, zeigt die Rechte-Auswahl in Rollen- und
-  Mitarbeitermaske stumm eine leere Liste (gemessen 47.954 → 27.154 Bytes,
-  keine Meldung) – dieselbe Sache wie T-111, nur in einem Formular statt in
-  einer Liste.
+- **T-137** Beim Speichern einer Rolle verliert sie ihre **inaktiven** Rechte:
+  Die Maske zeigt nur aktive an (Phase 1b), gespeichert wird aber genau das
+  Angezeigte (gemessen 30 → 25, auf beiden Ständen gleich). Erst klären, ob das
+  so gewollt ist – die Phase-1b-Bereinigung könnte genau das bezwecken.
 - **Jahreswechsel beobachten:** Beim ersten echten Jahreswechsel prüfen, ob die
   festgeschriebenen Urlaubssalden plausibel bleiben (B-080).
 - **Terminal im Browser:** „Gehen" und „Auftrag starten/stoppen" sind am Gerät

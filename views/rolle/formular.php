@@ -22,6 +22,14 @@ $rechteAlle = $rechteAlle ?? [];
 /** @var int[] $rolleRechtIds */
 $rolleRechtIds = $rolleRechtIds ?? [];
 
+/**
+ * Meldung, wenn die Rechte-Auswahl nicht geladen werden konnte (T-136).
+ * `null` heißt „geladen" – eine leere Liste ist dann wirklich leer.
+ *
+ * @var string|null $rechteLadefehler
+ */
+$rechteLadefehler = $rechteLadefehler ?? null;
+
 $csrfToken = isset($csrfToken) && is_string($csrfToken) ? $csrfToken : '';
 
 $id           = $rolle['id'] ?? null;
@@ -65,8 +73,13 @@ $aktiv        = array_key_exists('aktiv', (array)$rolle) ? ((int)$rolle['aktiv']
             <legend>Rechte dieser Rolle</legend>
             <p style="margin-top:0;">Diese Rechte werden an Mitarbeiter vererbt, die diese Rolle besitzen.</p>
 
-            <?php if (count($rechteAlle) === 0): ?>
-                <p><em>Keine Rechte gefunden (Tabelle <code>recht</code> fehlt oder ist leer).</em></p>
+            <?php if ($rechteLadefehler !== null): ?>
+                <?php /* T-136: Lesefehler statt Leer-Hinweis - und das Kennzeichen,
+                         damit das Speichern die vorhandenen Rechte in Ruhe lässt. */ ?>
+                <div class="fehler"><?php echo htmlspecialchars($rechteLadefehler, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></div>
+                <input type="hidden" name="rechte_nicht_geladen" value="1">
+            <?php elseif (count($rechteAlle) === 0): ?>
+                <p><em>Keine Rechte gefunden (Tabelle <code>recht</code> ist leer).</em></p>
             <?php else: ?>
                 <?php
                 /**

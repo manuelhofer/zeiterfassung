@@ -25,10 +25,25 @@ $rollen        = $rollen ?? [];
 $genehmiger    = $genehmiger ?? [];
 /** @var array<int,array<string,mixed>> $alleRollen */
 $alleRollen    = $alleRollen ?? [];
+
+/**
+ * Meldung, wenn die Rollenliste nicht geladen werden konnte (T-136).
+ *
+ * @var string|null $rollenLadefehler
+ */
+$rollenLadefehler = $rollenLadefehler ?? null;
 /** @var array<int,array<string,mixed>> $alleMitarbeiterGenehmiger */
 $alleMitarbeiterGenehmiger = $alleMitarbeiterGenehmiger ?? [];
 /** @var array<int,array<string,mixed>> $alleRechte */
 $alleRechte = $alleRechte ?? [];
+
+/**
+ * Meldung, wenn die Rechte-Liste nicht geladen werden konnte (T-136).
+ * `null` heißt „geladen" – eine leere Liste ist dann wirklich leer.
+ *
+ * @var string|null $rechteLadefehler
+ */
+$rechteLadefehler = $rechteLadefehler ?? null;
 /** @var array<int,array<string,mixed>> $alleAbteilungen */
 $alleAbteilungen = $alleAbteilungen ?? [];
 /** @var array<int,array<string,mixed>> $rollenScopesAbteilung */
@@ -422,7 +437,12 @@ $zeigeAbteilungsrollenBereich = $hatAbteilungen || count($rollenScopesAbteilung)
         <fieldset>
             <legend>Rollen (Berechtigungen)</legend>
 
-            <?php if (count($alleRollen) === 0): ?>
+            <?php if ($rollenLadefehler !== null): ?>
+                <?php /* T-136: wie bei den Rechten - Lesefehler zeigen und das
+                         Speichern die vorhandenen Rollen nicht anfassen lassen. */ ?>
+                <div class="fehler"><?php echo htmlspecialchars($rollenLadefehler, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></div>
+                <input type="hidden" name="rollen_nicht_geladen" value="1">
+            <?php elseif (count($alleRollen) === 0): ?>
                 <p>Es sind noch keine Rollen definiert.</p>
             <?php else: ?>
                 <div class="permission-card-grid">
@@ -670,7 +690,12 @@ $zeigeAbteilungsrollenBereich = $hatAbteilungen || count($rollenScopesAbteilung)
             <legend>Rechte-Overrides (pro Mitarbeiter)</legend>
             <p><small>Standard: Rechte kommen über Rollen. Hier kannst du einzelne Rechte zusätzlich <b>erlauben</b> oder explizit <b>entziehen</b>. Leer = vererbt über Rollen.</small></p>
 
-            <?php if (count($alleRechte) === 0): ?>
+            <?php if ($rechteLadefehler !== null): ?>
+                <?php /* T-136: Lesefehler statt Leer-Hinweis - und das Kennzeichen,
+                         damit das Speichern die vorhandenen Overrides nicht loescht. */ ?>
+                <div class="fehler"><?php echo htmlspecialchars($rechteLadefehler, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></div>
+                <input type="hidden" name="rechte_nicht_geladen" value="1">
+            <?php elseif (count($alleRechte) === 0): ?>
                 <p>Es sind noch keine Rechte definiert.</p>
             <?php else: ?>
                 <?php

@@ -149,36 +149,50 @@ class RolleModel
     /**
      * Holt alle Rechte (aus Tabelle `recht`).
      *
+     * **Wirft bei einem Lesefehler** (T-136). Hier stand ein `catch` mit
+     * `return []` – ohne Protokolleintrag, ohne Rückgabe an den Aufrufer. Für
+     * eine Auswahl, die der Benutzer ankreuzt, ist das die falsche Antwort:
+     * „keine Rechte vorhanden" und „Rechte nicht lesbar" sehen im Formular
+     * gleich aus, und nur eines davon ist harmlos. Anders als bei
+     * `AbteilungModel::holeAlleAktiven()` gibt es hier keine zweite,
+     * abfangende Fassung – alle Aufrufer sind Rechte-Masken, und alle müssen
+     * unterscheiden.
+     *
      * @return array<int,array<string,mixed>>
+     *
+     * @throws \RuntimeException wenn die Rechte-Tabellen nicht lesbar sind
      */
     public function holeAlleRechte(bool $nurAktive = false): array
     {
-        try {
-            $pdo = $this->db->getVerbindung();
-            if (!$this->sindRechteTabellenVerfuegbar($pdo)) {
-                return [];
-            }
-
-            $sql = 'SELECT id, code, name, beschreibung, aktiv
-                    FROM recht';
-
-            $params = [];
-            if ($nurAktive) {
-                $sql .= ' WHERE aktiv = 1';
-            }
-
-            $sql .= ' ORDER BY aktiv DESC, name ASC, code ASC';
-
-            return $this->db->fetchAlle($sql, $params);
-        } catch (\Throwable $e) {
-            return [];
+        $pdo = $this->db->getVerbindung();
+        if (!$this->sindRechteTabellenVerfuegbar($pdo)) {
+            throw new \RuntimeException('Die Tabellen `recht` und `rolle_hat_recht` sind nicht lesbar.');
         }
+
+        $sql = 'SELECT id, code, name, beschreibung, aktiv
+                FROM recht';
+
+        $params = [];
+        if ($nurAktive) {
+            $sql .= ' WHERE aktiv = 1';
+        }
+
+        $sql .= ' ORDER BY aktiv DESC, name ASC, code ASC';
+
+        return $this->db->fetchAlle($sql, $params);
     }
 
     /**
      * Liefert die IDs der Rechte, die einer Rolle zugeordnet sind.
      *
+     * **Wirft bei einem Lesefehler** (T-136), und hier wiegt es schwerer als
+     * bei `holeAlleRechte()`: Ein `[]` heißt für das Formular „diese Rolle hat
+     * kein einziges Recht". Es zeigt dann lauter leere Kästchen, und wer
+     * speichert, schreibt genau das zurück.
+     *
      * @return int[]
+     *
+     * @throws \RuntimeException wenn die Rechte-Tabellen nicht lesbar sind
      */
     public function holeRechtIdsFuerRolle(int $rolleId): array
     {
@@ -186,43 +200,42 @@ class RolleModel
             return [];
         }
 
-        try {
-            $pdo = $this->db->getVerbindung();
-            if (!$this->sindRechteTabellenVerfuegbar($pdo)) {
-                return [];
-            }
-
-            $rows = $this->db->fetchAlle(
-                'SELECT recht_id
-                 FROM rolle_hat_recht
-                 WHERE rolle_id = :rid',
-                ['rid' => $rolleId]
-            );
-
-            $ids = [];
-            foreach ($rows as $row) {
-                $id = (int)($row['recht_id'] ?? 0);
-                if ($id > 0) {
-                    $ids[$id] = true;
-                }
-            }
-
-            return array_keys($ids);
-        } catch (\Throwable $e) {
-            return [];
+        $pdo = $this->db->getVerbindung();
+        if (!$this->sindRechteTabellenVerfuegbar($pdo)) {
+            throw new \RuntimeException('Die Tabellen `recht` und `rolle_hat_recht` sind nicht lesbar.');
         }
+
+        $rows = $this->db->fetchAlle(
+            'SELECT recht_id
+             FROM rolle_hat_recht
+             WHERE rolle_id = :rid',
+            ['rid' => $rolleId]
+        );
+
+        $ids = [];
+        foreach ($rows as $row) {
+            $id = (int)($row['recht_id'] ?? 0);
+            if ($id > 0) {
+                $ids[$id] = true;
+            }
+        }
+
+        return array_keys($ids);
     }
 
     /**
      * Erstellt oder aktualisiert eine Rolle und speichert anschließend die Rechte-Zuordnung.
      *
-     * @param int|null                 $rolleId null/0 = neu anlegen
+     * @param int|null                 $rolleId  null/0 = neu anlegen
      * @param array<string,mixed>      $daten
-     * @param int[]                    $rechtIds
+     * @param int[]|null               $rechtIds `null` = Rechte **nicht**
+     *        anfassen. Das braucht die Maske, wenn sie die vorhandene
+     *        Zuordnung gar nicht laden konnte (T-136): Ein leeres Array hieße
+     *        dort „keine Rechte" und würde alle löschen.
      *
      * @return int|null Rolle-ID bei Erfolg, sonst null
      */
-    public function speichereRolleMitRechten(?int $rolleId, array $daten, array $rechtIds): ?int
+    public function speichereRolleMitRechten(?int $rolleId, array $daten, ?array $rechtIds): ?int
     {
         $rolleId = $rolleId !== null ? (int)$rolleId : 0;
 
@@ -238,15 +251,17 @@ class RolleModel
         }
         $aktiv = !empty($daten['aktiv']) ? 1 : 0;
 
-        // Rechte normalisieren/unique
-        $tmp = [];
-        foreach ($rechtIds as $rid) {
-            $rid = (int)$rid;
-            if ($rid > 0) {
-                $tmp[$rid] = true;
+        // Rechte normalisieren/unique. `null` bleibt `null` - siehe oben.
+        if ($rechtIds !== null) {
+            $tmp = [];
+            foreach ($rechtIds as $rid) {
+                $rid = (int)$rid;
+                if ($rid > 0) {
+                    $tmp[$rid] = true;
+                }
             }
+            $rechtIds = array_keys($tmp);
         }
-        $rechtIds = array_keys($tmp);
 
         $pdo = $this->db->getVerbindung();
 
@@ -284,8 +299,9 @@ class RolleModel
                 }
             }
 
-            // Rechte speichern (wenn Tabellen verfügbar). Falls nicht, nur Rolle speichern.
-            if ($this->sindRechteTabellenVerfuegbar($pdo)) {
+            // Rechte speichern (wenn Tabellen verfügbar). Falls nicht, nur Rolle
+            // speichern. `null` heißt „nicht anfassen" (T-136).
+            if ($rechtIds !== null && $this->sindRechteTabellenVerfuegbar($pdo)) {
                 $del = $pdo->prepare('DELETE FROM rolle_hat_recht WHERE rolle_id = :rid');
                 $del->execute(['rid' => $rolleId]);
 

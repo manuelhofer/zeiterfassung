@@ -93,6 +93,63 @@ class MitarbeiterAdminController
      * @param array<string,mixed> $mitarbeiter
      * @param array<int,int> $rollenIdsAusgewaehlt
      */
+    /**
+     * Lädt die Rechte-Liste für die Override-Auswahl im Mitarbeiterformular.
+     *
+     * Scheitert sie, bekommt die Maske eine Meldung statt einer leeren Liste –
+     * und blendet die Auswahl aus (T-136). Das ist hier nicht nur Kosmetik:
+     * Beim Speichern werden die Overrides eines Mitarbeiters gelöscht und aus
+     * dem POST neu geschrieben. Ohne angezeigte Kästchen kommt nichts im POST
+     * an, und der Mitarbeiter verlöre alle Overrides, obwohl nur die Anzeige
+     * kaputt war.
+     *
+     * Phase 1b (Rechte-Roadmap): Inaktive (Legacy-)Rechte werden ausgeblendet,
+     * damit die Override-UI keine doppelten/alten Codes mehr anzeigt.
+     *
+     * @return array{0:array<int,array<string,mixed>>, 1:string|null}
+     */
+    private function ladeRechteAuswahl(?int $mitarbeiterId): array
+    {
+        try {
+            return [(new RolleModel())->holeAlleRechte(true), null];
+        } catch (\Throwable $e) {
+            Logger::error('Rechte-Liste für die Mitarbeitermaske konnte nicht geladen werden', [
+                'mitarbeiter_id' => $mitarbeiterId,
+                'exception'      => $e->getMessage(),
+            ], $mitarbeiterId, null, 'recht');
+
+            return [[], 'Die Rechte konnten nicht geladen werden. Die Auswahl bleibt deshalb '
+                . 'ausgeblendet; alles andere lässt sich speichern, die vorhandenen '
+                . 'Rechte-Overrides bleiben dabei unverändert.'];
+        }
+    }
+
+    /**
+     * Lädt die Rollenliste für die Auswahl im Mitarbeiterformular.
+     *
+     * Dasselbe wie `ladeRechteAuswahl()`, eine Liste weiter – und mit derselben
+     * Folge, wenn sie fehlschlägt: Das Speichern schreibt die Rollen eines
+     * Mitarbeiters aus dem POST neu; ohne angezeigte Kästchen kommt nichts an,
+     * und der Mitarbeiter verlöre alle Rollen (T-136).
+     *
+     * @return array{0:array<int,array<string,mixed>>, 1:string|null}
+     */
+    private function ladeRollenAuswahl(?int $mitarbeiterId): array
+    {
+        try {
+            return [(new RolleModel())->holeAlleAktiven(), null];
+        } catch (\Throwable $e) {
+            Logger::error('Rollen-Liste für die Mitarbeitermaske konnte nicht geladen werden', [
+                'mitarbeiter_id' => $mitarbeiterId,
+                'exception'      => $e->getMessage(),
+            ], $mitarbeiterId, null, 'rolle');
+
+            return [[], 'Die Rollen konnten nicht geladen werden. Die Auswahl bleibt deshalb '
+                . 'ausgeblendet; alles andere lässt sich speichern, die vorhandenen Rollen '
+                . 'dieses Mitarbeiters bleiben dabei unverändert.'];
+        }
+    }
+
     private function renderFormMitFehler(array $mitarbeiter, string $fehlermeldung, array $rollenIdsAusgewaehlt): void
     {
         $rollen = [];
@@ -130,16 +187,9 @@ class MitarbeiterAdminController
         }
 
         // Rollen-Liste (alle aktiven Rollen) laden
-        $alleRollen = [];
-        try {
-            $rolleModel = new RolleModel();
-            $alleRollen = $rolleModel->holeAlleAktiven();
-        } catch (\Throwable $e) {
-            $alleRollen = [];
-            Logger::error('Rollen-Liste konnte nicht geladen werden (Validierungsfehler)', [
-                'exception' => $e->getMessage(),
-            ], isset($mitarbeiter['id']) ? (int)$mitarbeiter['id'] : null, null, 'rolle');
-        }
+        [$alleRollen, $rollenLadefehler] = $this->ladeRollenAuswahl(
+            isset($mitarbeiter['id']) ? (int)$mitarbeiter['id'] : null
+        );
 
         // Alle aktiven Mitarbeiter für die Genehmiger-Auswahlliste laden (auch im Validierungsfehler-Fall)
         $alleMitarbeiterGenehmiger = [];
@@ -154,12 +204,9 @@ class MitarbeiterAdminController
         }
 
         // Rechte-Overrides (Allow/Deny pro Mitarbeiter) aus POST rekonstruieren, damit Eingaben bei Validierungsfehler nicht verloren gehen.
-        // Phase 1b (Rechte-Roadmap): Inaktive (Legacy-)Rechte ausblenden,
-        // damit die Mitarbeiter-Override-UI keine doppelten/alten Codes mehr anzeigt.
-        // Ohne `try`: `holeAlleRechte()` fängt selbst ab, protokolliert und
-        // liefert `[]` – der `catch` hier konnte nie greifen (T-112).
-        $rolleModel = new RolleModel();
-        $alleRechte = $rolleModel->holeAlleRechte(true);
+        [$alleRechte, $rechteLadefehler] = $this->ladeRechteAuswahl(
+            isset($mitarbeiter['id']) ? (int)$mitarbeiter['id'] : null
+        );
 
         $rechteOverrides = [];
         $overridePost = $_POST['recht_override'] ?? [];
@@ -615,19 +662,8 @@ class MitarbeiterAdminController
         $rechteEffektiv   = [];
 
         // Rollen-Liste (alle aktiven Rollen) + Rechte-Liste (alle Rechte) laden
-        try {
-            $rolleModel = new RolleModel();
-            $alleRollen = $rolleModel->holeAlleAktiven();
-            // Phase 1b (Rechte-Roadmap): Inaktive (Legacy-)Rechte ausblenden,
-            // damit die Mitarbeiter-Override-UI keine doppelten/alten Codes mehr anzeigt.
-            $alleRechte = $rolleModel->holeAlleRechte(true);
-        } catch (\Throwable $e) {
-            $alleRollen = [];
-            $alleRechte = [];
-            Logger::error('Rollen-Liste konnte nicht geladen werden', [
-                'exception' => $e->getMessage(),
-            ], $id > 0 ? $id : null, null, 'rolle');
-        }
+        [$alleRollen, $rollenLadefehler] = $this->ladeRollenAuswahl($id > 0 ? $id : null);
+        [$alleRechte, $rechteLadefehler] = $this->ladeRechteAuswahl($id > 0 ? $id : null);
 
         // Ausgewählte Rollen eines bestehenden Mitarbeiters laden
         if ($id > 0 && $mitarbeiter !== null) {
@@ -1183,8 +1219,11 @@ class MitarbeiterAdminController
         $aktiv = isset($_POST['aktiv']) && (string)$_POST['aktiv'] === '1' ? 1 : 0;
         $loginErlaubt = isset($_POST['ist_login_berechtigt']) && (string)$_POST['ist_login_berechtigt'] === '1' ? 1 : 0;
 
-        $rollenIdsPost = $_POST['rollen_ids'] ?? [];
-        if (!is_array($rollenIdsPost)) {
+        // Dieselbe Absicherung wie bei den Rechten (T-136): Konnte die Maske die
+        // Rollenliste nicht laden, hatte sie keine Kästchen – und ein leeres
+        // `rollen_ids` hieße hier „alle Rollen weg". `null` = nicht anfassen.
+        $rollenIdsPost = isset($_POST['rollen_nicht_geladen']) ? null : ($_POST['rollen_ids'] ?? []);
+        if ($rollenIdsPost !== null && !is_array($rollenIdsPost)) {
             $rollenIdsPost = [];
         }
 
@@ -1219,10 +1258,16 @@ class MitarbeiterAdminController
 
         $passwortNeu = trim((string)($_POST['passwort_neu'] ?? ''));
 
-        // Rechte-Overrides aus POST parsen ("" = vererbt)
-        $rechtOverridesToSave = [];
+        // Rechte-Overrides aus POST parsen ("" = vererbt).
+        //
+        // T-136: Konnte die Maske die Rechte gar nicht anzeigen, hat sie auch
+        // keine `recht_override`-Felder mitgeschickt. Ohne dieses Kennzeichen
+        // liest das Speichern daraus „keine Overrides" und löscht unten alle
+        // vorhandenen – ein stiller Rechteverlust an einem Tag, an dem nur die
+        // Anzeige kaputt war. `null` heißt deshalb: nicht anfassen.
+        $rechtOverridesToSave = isset($_POST['rechte_nicht_geladen']) ? null : [];
         $overridePost = $_POST['recht_override'] ?? [];
-        if (is_array($overridePost)) {
+        if ($rechtOverridesToSave !== null && is_array($overridePost)) {
             foreach ($overridePost as $rechtIdRoh => $wert) {
                 $rid = (int)$rechtIdRoh;
                 if ($rid <= 0) {
@@ -1261,7 +1306,7 @@ class MitarbeiterAdminController
                 'ist_login_berechtigt'  => $loginErlaubt,
             ];
 
-            $this->renderFormMitFehler($mitarbeiter, $fehlermeldung, $rollenIdsPost);
+            $this->renderFormMitFehler($mitarbeiter, $fehlermeldung, $rollenIdsPost ?? []);
             return;
         }
 
@@ -1291,7 +1336,7 @@ class MitarbeiterAdminController
                 'ist_login_berechtigt'  => $loginErlaubt,
             ];
 
-            $this->renderFormMitFehler($mitarbeiter, $fehlermeldung, $rollenIdsPost);
+            $this->renderFormMitFehler($mitarbeiter, $fehlermeldung, $rollenIdsPost ?? []);
             return;
         }
 
@@ -1332,7 +1377,7 @@ class MitarbeiterAdminController
                     'ist_login_berechtigt'  => $loginErlaubt,
                 ];
 
-                $this->renderFormMitFehler($mitarbeiter, $fehlermeldung, $rollenIdsPost);
+                $this->renderFormMitFehler($mitarbeiter, $fehlermeldung, $rollenIdsPost ?? []);
                 return;
             }
         }
@@ -1392,18 +1437,9 @@ class MitarbeiterAdminController
                 $rollen                    = [];
                 $genehmiger                = [];
                 $alleRollen                = [];
-                $rollenIdsAusgewaehlt      = $rollenIdsPost;
+                $rollenIdsAusgewaehlt      = $rollenIdsPost ?? [];
 
-                try {
-                    $rolleModel  = new RolleModel();
-                    $alleRollen  = $rolleModel->holeAlleAktiven();
-                } catch (\Throwable $e) {
-                    $alleRollen = [];
-                    Logger::error('Rollen-Liste konnte nicht geladen werden (Fehler beim Aktualisieren)', [
-                        'mitarbeiter_id' => $id,
-                        'exception'      => $e->getMessage(),
-                    ], $id, null, 'rolle');
-                }
+                [$alleRollen, $rollenLadefehler] = $this->ladeRollenAuswahl($id > 0 ? $id : null);
 
                 $csrfBereich = self::CSRF_BEREICH;
                 require __DIR__ . '/../views/mitarbeiter/formular.php';
@@ -1431,17 +1467,9 @@ class MitarbeiterAdminController
                 $rollen                    = [];
                 $genehmiger                = [];
                 $alleRollen                = [];
-                $rollenIdsAusgewaehlt      = $rollenIdsPost;
+                $rollenIdsAusgewaehlt      = $rollenIdsPost ?? [];
 
-                try {
-                    $rolleModel  = new RolleModel();
-                    $alleRollen  = $rolleModel->holeAlleAktiven();
-                } catch (\Throwable $e) {
-                    $alleRollen = [];
-                    Logger::error('Rollen-Liste konnte nicht geladen werden (Fehler beim Anlegen)', [
-                        'exception' => $e->getMessage(),
-                    ], null, null, 'rolle');
-                }
+                [$alleRollen, $rollenLadefehler] = $this->ladeRollenAuswahl(null);
 
                 $csrfBereich = self::CSRF_BEREICH;
                 require __DIR__ . '/../views/mitarbeiter/formular.php';
@@ -1542,16 +1570,23 @@ class MitarbeiterAdminController
             if ($rechteAbschnittSpeichern) {
                 $rechteRuecksprungUrl = '?seite=mitarbeiter_rechte&id=' . (int)$mitarbeiterIdNachSave;
 
-            // Rollen speichern
-            try {
-                $rollenZuordnungModel = new MitarbeiterHatRolleModel();
-                $rollenZuordnungModel->speichereRollenFuerMitarbeiter($mitarbeiterIdNachSave, $rollenIdsPost);
-            } catch (\Throwable $e) {
-                Logger::error('Fehler beim Speichern der Rollen eines Mitarbeiters (Controller)', [
+            // Rollen speichern. `null` heißt „die Maske konnte die Rollenliste
+            // nicht anzeigen" – dann bleibt die Zuordnung, wie sie ist (T-136).
+            if ($rollenIdsPost === null) {
+                Logger::warn('Rollen unverändert gelassen: Die Maske konnte die Rollenliste nicht laden', [
                     'mitarbeiter_id' => $mitarbeiterIdNachSave,
-                    'rollen_ids'     => $rollenIdsPost,
-                    'exception'      => $e->getMessage(),
                 ], $mitarbeiterIdNachSave, null, 'rolle');
+            } else {
+                try {
+                    $rollenZuordnungModel = new MitarbeiterHatRolleModel();
+                    $rollenZuordnungModel->speichereRollenFuerMitarbeiter($mitarbeiterIdNachSave, $rollenIdsPost);
+                } catch (\Throwable $e) {
+                    Logger::error('Fehler beim Speichern der Rollen eines Mitarbeiters (Controller)', [
+                        'mitarbeiter_id' => $mitarbeiterIdNachSave,
+                        'rollen_ids'     => $rollenIdsPost,
+                        'exception'      => $e->getMessage(),
+                    ], $mitarbeiterIdNachSave, null, 'rolle');
+                }
             }
 
 
@@ -1577,43 +1612,47 @@ class MitarbeiterAdminController
 
             // Scoped Rollen (global) spiegeln (neues Modell, Migration 17).
             // Fail-safe: wenn Tabelle nicht existiert, bleibt Legacy bestehen.
+            // Und wie eine Zeile darüber: `null` heißt „nicht anfassen" (T-136),
+            // sonst löscht das `DELETE` hier die Spiegelung gleich mit.
             try {
                 $pdo = Database::getInstanz()->getVerbindung();
                 $pdo->query('SELECT 1 FROM mitarbeiter_hat_rolle_scope LIMIT 1');
 
-                $pdo->beginTransaction();
+                if ($rollenIdsPost !== null) {
+                    $pdo->beginTransaction();
 
-                $stmtDelScope = $pdo->prepare(
-                    "DELETE FROM mitarbeiter_hat_rolle_scope
-                     WHERE mitarbeiter_id = :mid
-                       AND scope_typ = 'global'
-                       AND scope_id = 0"
-                );
-                $stmtDelScope->execute([':mid' => $mitarbeiterIdNachSave]);
-
-                $rollenIdsUniq = [];
-                foreach ($rollenIdsPost as $ridRoh) {
-                    $rid = (int)$ridRoh;
-                    if ($rid > 0) {
-                        $rollenIdsUniq[$rid] = true;
-                    }
-                }
-
-                if (count($rollenIdsUniq) > 0) {
-                    $stmtInsScope = $pdo->prepare(
-                        "INSERT INTO mitarbeiter_hat_rolle_scope (mitarbeiter_id, rolle_id, scope_typ, scope_id, gilt_unterbereiche)
-                         VALUES (:mid, :rid, 'global', 0, 1)"
+                    $stmtDelScope = $pdo->prepare(
+                        "DELETE FROM mitarbeiter_hat_rolle_scope
+                         WHERE mitarbeiter_id = :mid
+                           AND scope_typ = 'global'
+                           AND scope_id = 0"
                     );
+                    $stmtDelScope->execute([':mid' => $mitarbeiterIdNachSave]);
 
-                    foreach (array_keys($rollenIdsUniq) as $rid) {
-                        $stmtInsScope->execute([
-                            ':mid' => $mitarbeiterIdNachSave,
-                            ':rid' => (int)$rid,
-                        ]);
+                    $rollenIdsUniq = [];
+                    foreach ($rollenIdsPost as $ridRoh) {
+                        $rid = (int)$ridRoh;
+                        if ($rid > 0) {
+                            $rollenIdsUniq[$rid] = true;
+                        }
                     }
-                }
 
-                $pdo->commit();
+                    if (count($rollenIdsUniq) > 0) {
+                        $stmtInsScope = $pdo->prepare(
+                            "INSERT INTO mitarbeiter_hat_rolle_scope (mitarbeiter_id, rolle_id, scope_typ, scope_id, gilt_unterbereiche)
+                             VALUES (:mid, :rid, 'global', 0, 1)"
+                        );
+
+                        foreach (array_keys($rollenIdsUniq) as $rid) {
+                            $stmtInsScope->execute([
+                                ':mid' => $mitarbeiterIdNachSave,
+                                ':rid' => (int)$rid,
+                            ]);
+                        }
+                    }
+
+                    $pdo->commit();
+                }
             } catch (\Throwable $e) {
                 // Transaktion sauber beenden (falls gestartet)
                 try {
@@ -1810,7 +1849,25 @@ class MitarbeiterAdminController
                 exit;
             }
 
-            // Rechte-Overrides speichern (Allow/Deny)
+            // Rechte-Overrides speichern (Allow/Deny).
+            //
+            // `null` heißt „die Maske konnte die Rechte nicht anzeigen" (T-136).
+            // Dann wird hier **nichts** angefasst: Das `DELETE` unten würde
+            // sonst alle vorhandenen Overrides löschen, weil das Formular
+            // mangels Kästchen keine mitschicken konnte.
+            if ($rechtOverridesToSave === null) {
+                Logger::warn('Rechte-Overrides unverändert gelassen: Die Maske konnte die Rechte nicht laden', [
+                    'mitarbeiter_id' => $mitarbeiterIdNachSave,
+                ], $mitarbeiterIdNachSave, null, 'recht');
+
+                $_SESSION['mitarbeiter_admin_flash_error'] = 'Die Rechte konnten nicht geladen werden. '
+                    . 'Alles andere wurde gespeichert, die Rechte-Overrides dieses Mitarbeiters '
+                    . 'blieben unverändert.';
+
+                header('Location: ' . $rechteRuecksprungUrl);
+                exit;
+            }
+
             try {
                 $pdo = Database::getInstanz()->getVerbindung();
 

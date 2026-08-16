@@ -18,6 +18,137 @@ legacy_zip_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-08-16-28 t-136-keine-auswahl-speichern-die-nie-da-war
+
+### EINGELESEN
+- P-2026-08-14-14 (T-110) und P-2026-08-15-09/-10 – dieselbe Frage für Listen,
+  und das Muster, das dort entstanden ist.
+- `modelle/RolleModel.php` – `holeAlleRechte()`, `holeRechtIdsFuerRolle()`,
+  `speichereRolleMitRechten()` und `sindRechteTabellenVerfuegbar()`.
+- `controller/RollenAdminController.php` und
+  `controller/MitarbeiterAdminController.php` – jede Stelle, die Rollen oder
+  Rechte lädt, **und** jede, die sie zurückschreibt.
+- `views/rolle/formular.php`, `views/mitarbeiter/formular.php`.
+
+### DATEIEN
+- `modelle/RolleModel.php`
+- `controller/RollenAdminController.php`, `controller/MitarbeiterAdminController.php`
+- `views/rolle/formular.php`, `views/mitarbeiter/formular.php`
+- `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Ist `recht` oder `rolle` nicht lesbar, sagt die Maske das – und ein Speichern
+aus dieser Maske lässt Rollen, Scopes und Rechte-Overrides des Mitarbeiters
+unverändert, statt sie zu löschen.
+
+### DONE
+T-136 war als „stumme leere Liste" notiert. Beim Nachmessen war es mehr:
+**Die Maske löschte, was sie nicht anzeigen konnte.**
+
+Der Ablauf beim Speichern eines Mitarbeiters ist „alles weg, dann aus dem POST
+neu schreiben" – für Rollen, für die Spiegelung in
+`mitarbeiter_hat_rolle_scope` und für die Rechte-Overrides. Konnte die Maske
+die Liste nicht laden, hatte sie keine Kästchen; im POST stand nichts; also
+wurde nichts neu geschrieben. Nachgestellt mit umbenannter Tabelle:
+
+| Tabelle weg | Stand | Overrides | Rollen | Scopes |
+| --- | --- | --- | --- | --- |
+| `recht` | vorher | 3 → **0** | 2 → 2 | 2 → 2 |
+| `recht` | nachher | 3 → 3 | 2 → 2 | 2 → 2 |
+| `rolle` | vorher | 3 → **0** | 2 → **0** | 2 → **0** |
+| `rolle` | nachher | 3 → 3 | 2 → 2 | 2 → 2 |
+
+Und dazu die Meldung, um die es ursprünglich ging: Vorher stand da „Es sind
+noch keine Rechte definiert", jetzt „Die Rechte konnten nicht geladen werden".
+
+Drei Teile:
+
+**1. Das Modell sagt Bescheid.** `RolleModel::holeAlleRechte()` und
+`holeRechtIdsFuerRolle()` fingen selbst ab und lieferten `[]` – ohne
+Protokolleintrag. Beide werfen jetzt. Eine zweite, abfangende Fassung wie bei
+`AbteilungModel::holeAlleAktiven()` gibt es hier bewusst nicht: Alle Aufrufer
+sind Rechte-Masken, und alle müssen unterscheiden.
+
+**2. Die Masken zeigen den Fehler und markieren sich.** Statt der leeren Liste
+steht dort die Meldung, und ein `<input type="hidden" name="…_nicht_geladen">`
+geht mit ab. Zwei Kennzeichen, eines je Liste – `rechte_nicht_geladen` und
+`rollen_nicht_geladen`.
+
+**3. Das Speichern respektiert das Kennzeichen.** `$rollenIdsPost` und
+`$rechtOverridesToSave` sind dann `null` statt `[]`, und `null` heißt an jeder
+verarbeitenden Stelle „nicht anfassen" – auch in
+`RolleModel::speichereRolleMitRechten()`, dessen `$rechtIds` deshalb
+`?array` geworden ist. Der Unterschied zwischen „keine ausgewählt" und „gar
+nicht gefragt" steht damit im Typ und nicht in einem Kommentar.
+
+Ein Nebenfund, den der Umbau mitnimmt: Vorher hingen Rollenliste und
+Rechteliste am **selben** `try`. War `rolle` kaputt, blendete die Maske auch
+die Rechte aus, obwohl `recht` in Ordnung war. Jetzt lädt jede Liste für sich –
+im Test oben sieht man es an den 25 Auswahlfeldern, die auf dem neuen Stand
+stehen bleiben.
+
+### TEST
+Prüfumgebung, `alt` = e746b18, `neu` = Arbeitsstand, beide auf denselben Daten.
+
+1. **Normalfall byteweise gleich:** Smoke-Test, Dashboard, Rollenliste,
+   Rolle bearbeiten, Mitarbeiterliste, Mitarbeiter bearbeiten, „Rollen &
+   Rechte" – je 0 abweichende Zeilen.
+2. **Der Datenverlust, nachgestellt:** die Tabelle wirklich umbenannt, Maske
+   abgerufen und **unverändert wieder abgeschickt** – die Zahlen stehen in der
+   Tabelle oben. Auf dem alten Stand verschwinden Overrides (bei `recht`) bzw.
+   Overrides, Rollen und Scopes (bei `rolle`); auf dem neuen bleibt alles.
+3. **Kontrolllauf ohne Ausfall:** dieselbe Maske, alles lesbar, unverändert
+   abgeschickt → 3/2/2 vorher wie nachher. Ohne diesen Lauf hieße „nichts
+   verloren" nur „das Skript hat nichts geändert".
+4. **Was der Admin sieht:** bei `recht` weg „Die Rechte konnten nicht geladen
+   werden", bei `rolle` weg „Die Rollen konnten nicht geladen werden" – auf
+   dem alten Stand stattdessen „Es sind noch keine Rechte/Rollen definiert".
+5. **Protokoll:** je ein `error` beim Laden, dazu ein `warn` beim Speichern
+   („unverändert gelassen"). Vorher stand von alldem nichts im Log.
+6. **Rollenmaske als Regression:** Rolle 1 mit allen 30 Rechten, Maske
+   unverändert gespeichert → 25 auf **beiden** Ständen (siehe unten).
+7. `php -l` über alle fünf Dateien, `meldungen` → beide Serverlogs ohne
+   PHP-Meldung.
+
+### Gefundene Fehler im eigenen Entwurf
+**Mein Testskript hat zweimal sich selbst gemessen.** Erst schickte es die
+Rollen-Kästchen nicht mit – die Rollen verschwanden also auch auf dem neuen
+Stand, und es sah nach einem Loch im Patch aus. Nachgebessert, dann fehlten die
+25 Auswahlfelder der Overrides, mit demselben Effekt eine Spalte weiter. Ein
+Skript, das ein Formular abschickt, muss **alle** Felder mitschicken, die die
+Maske anzeigt; sonst prüft es die eigene Nachlässigkeit. Deshalb steht jetzt
+der Kontrolllauf (Test 3) daneben: Er fällt sofort um, wenn das Skript wieder
+etwas vergisst.
+
+**Zweimal einen Sentinel-Wurf gebaut und wieder verworfen.** Um mitten in einem
+langen `try` auszusteigen, hatte ich `throw new \RuntimeException('…')`
+geschrieben – beim zweiten Mal wäre die Ausnahme in einem `catch` gelandet, das
+`Logger::error('Fehler beim Spiegeln …')` schreibt. Der Patch hätte also gegen
+Datenverlust geschützt und dafür jedes Mal einen Fehler ins Protokoll gelegt,
+den es nicht gab. Ersetzt durch ein gewöhnliches `if` um den
+Transaktionsrumpf.
+
+**Eine Zahl, die nach meinem Fehler aussah:** Rolle 1 hatte 30 Rechte und nach
+dem Speichern 25. Gegenprobe auf dem alten Stand: dort auch. Die Maske zeigt
+nur **aktive** Rechte (Phase 1b), gespeichert wird das Angezeigte – die fünf
+inaktiven fallen weg. Vorbestehend, nicht von diesem Patch, und als T-137
+notiert statt hier mitgefixt: Es kann genauso gut die Absicht der
+Phase-1b-Bereinigung sein, und das entscheidet nicht der, der es beim Testen
+findet.
+
+### Was bewusst nicht erreicht wurde
+Die Rolle-bearbeiten-Maske verliert bei unlesbarer `recht`-Tabelle ohnehin
+nichts – `speichereRolleMitRechten()` überspringt den Rechte-Teil, wenn
+`sindRechteTabellenVerfuegbar()` `false` sagt. Das Kennzeichen ist dort also
+zweiter Gurt und nicht der einzige. Belassen, weil sich diese Prüfung auf zwei
+Tabellen stützt und die Maske auch aus anderen Gründen leer bleiben kann.
+
+T-137 (inaktive Rechte beim Speichern) ist offen und braucht erst eine
+Entscheidung, keine Zeile Code.
+
+### NEXT
+T-136 ist erledigt. Offen bleiben T-125 und T-137 – und der Gerätetest.
+
 ## P-2026-08-16-27 t-112-tote-catch-bloecke-entfernt
 
 ### EINGELESEN

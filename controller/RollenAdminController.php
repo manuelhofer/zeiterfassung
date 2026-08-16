@@ -102,10 +102,7 @@ class RollenAdminController
         }
 
         // Rechte für UI
-        // Phase 1b (Rechte-Roadmap): Inaktive (Legacy-)Rechte ausblenden,
-        // damit die Rollen-UI keine doppelten/alten Codes mehr anzeigt.
-        $rechteAlle = $this->rolleModel->holeAlleRechte(true);
-        $rolleRechtIds = $id > 0 ? $this->rolleModel->holeRechtIdsFuerRolle($id) : [];
+        [$rechteAlle, $rolleRechtIds, $rechteLadefehler] = $this->ladeRechteAuswahl($id);
 
         $csrfToken = Csrf::token(self::CSRF_BEREICH);
 
@@ -134,7 +131,7 @@ class RollenAdminController
                 'aktiv'        => (isset($_POST['aktiv']) && $_POST['aktiv'] === '1') ? 1 : 0,
             ];
 
-            $rechteAlle = $this->rolleModel->holeAlleRechte(true);
+            [$rechteAlle, , $rechteLadefehler] = $this->ladeRechteAuswahl(0);
             $rolleRechtIds = $this->leseRechtIdsAusPost();
 
             $fehlermeldung = 'CSRF-Check fehlgeschlagen. Bitte Seite neu laden.';
@@ -147,7 +144,11 @@ class RollenAdminController
         $beschreibung = trim((string)($_POST['beschreibung'] ?? ''));
         $aktiv        = isset($_POST['aktiv']) && $_POST['aktiv'] === '1';
 
-        $rechtIds = $this->leseRechtIdsAusPost();
+        // Konnte die Maske die Rechte-Auswahl gar nicht anzeigen, hat sie auch
+        // keine Kästchen zum Ankreuzen gehabt. Ein leeres `$rechtIds` hieße
+        // dann „alle Rechte weg" – gemeint war „nicht angefasst" (T-136).
+        $rechteWarenLesbar = !isset($_POST['rechte_nicht_geladen']);
+        $rechtIds = $rechteWarenLesbar ? $this->leseRechtIdsAusPost() : null;
 
         $fehlermeldung = null;
 
@@ -165,8 +166,8 @@ class RollenAdminController
             $rolle       = $datenRolle;
             $rolle['id'] = $id > 0 ? $id : null;
 
-            $rechteAlle = $this->rolleModel->holeAlleRechte(true);
-            $rolleRechtIds = $rechtIds;
+            [$rechteAlle, , $rechteLadefehler] = $this->ladeRechteAuswahl(0);
+            $rolleRechtIds = $rechtIds ?? [];
 
             require __DIR__ . '/../views/rolle/formular.php';
             return;
@@ -177,8 +178,8 @@ class RollenAdminController
             $rolle       = $datenRolle;
             $rolle['id'] = $id > 0 ? $id : null;
 
-            $rechteAlle = $this->rolleModel->holeAlleRechte(true);
-            $rolleRechtIds = $rechtIds;
+            [$rechteAlle, , $rechteLadefehler] = $this->ladeRechteAuswahl(0);
+            $rolleRechtIds = $rechtIds ?? [];
 
             $fehlermeldung = 'Rolle konnte nicht gespeichert werden. Bitte prüfen Sie die Eingaben.';
             require __DIR__ . '/../views/rolle/formular.php';
@@ -186,6 +187,39 @@ class RollenAdminController
         }
 
         header('Location: ?seite=rollen_admin');
+    }
+
+    /**
+     * Lädt die Rechte-Auswahl für das Formular.
+     *
+     * Die Maske hat zwei Listen nötig: alle vergebbaren Rechte und die, die
+     * diese Rolle heute hat. Scheitert eine davon, darf das Formular **nicht**
+     * lauter leere Kästchen zeigen – das sieht aus wie „diese Rolle hat keine
+     * Rechte" und wäre nach dem nächsten Speichern auch so (T-136).
+     *
+     * Phase 1b (Rechte-Roadmap): Inaktive (Legacy-)Rechte werden ausgeblendet,
+     * damit die Rollen-UI keine doppelten/alten Codes mehr anzeigt.
+     *
+     * @return array{0:array<int,array<string,mixed>>, 1:int[], 2:string|null}
+     *         Rechte, zugeordnete IDs, Fehlermeldung für die Maske
+     */
+    private function ladeRechteAuswahl(int $rolleId): array
+    {
+        try {
+            $rechte = $this->rolleModel->holeAlleRechte(true);
+            $zugeordnet = $rolleId > 0 ? $this->rolleModel->holeRechtIdsFuerRolle($rolleId) : [];
+
+            return [$rechte, $zugeordnet, null];
+        } catch (\Throwable $e) {
+            Logger::error('Rechte-Auswahl für die Rollenmaske konnte nicht geladen werden', [
+                'rolle_id'  => $rolleId > 0 ? $rolleId : null,
+                'exception' => $e->getMessage(),
+            ], null, null, 'recht');
+
+            return [[], [], 'Die Rechte konnten nicht geladen werden. Die Auswahl bleibt deshalb '
+                . 'ausgeblendet; Name und Beschreibung lassen sich trotzdem speichern, die '
+                . 'vorhandenen Rechte der Rolle bleiben dabei unverändert.'];
+        }
     }
 
     /**
