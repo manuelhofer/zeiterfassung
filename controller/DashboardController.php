@@ -730,17 +730,13 @@ class DashboardController
                 $queueDbOk = false;
                 $queueDetails = 'Unbekannt';
                 try {
-                    // gleiche Logik wie OfflineQueueManager::holeQueueVerbindung():
-                    $queuePdo = $db->getOfflineVerbindung();
-                    $queueQuelle = 'offline';
-                    if (!($queuePdo instanceof \PDO)) {
-                        if ($hauptDbOk) {
-                            $queuePdo = $db->getVerbindung();
-                            $queueQuelle = 'haupt';
-                        } else {
-                            $queuePdo = null;
-                        }
-                    }
+                    // Nicht nachgebaut, sondern gefragt: Die Regel steht im
+                    // OfflineQueueManager (T-132). Eine Diagnose, die selbst
+                    // entscheidet, welche Datenbank gemeint ist, prüft
+                    // irgendwann eine andere als die benutzte - und meldet
+                    // „OK" über eine Tabelle, in die niemand schreibt.
+                    $queuePdo = OfflineQueueManager::getInstanz()->holeQueueVerbindungOderNull();
+                    $queueQuelle = OfflineQueueManager::getInstanz()->holeQueueSpeicherort() ?? 'keine';
 
                     if ($queuePdo instanceof \PDO) {
                         $stmt = $queuePdo->query('SELECT 1');
@@ -762,7 +758,7 @@ class DashboardController
                             : ($queueQuelle . ' DB nicht erreichbar');
                     } else {
                         $queueDbOk = false;
-                        $queueDetails = 'Keine Queue-DB (offline deaktiviert + Haupt-DB down)';
+                        $queueDetails = 'Keine Queue-DB (Haupt-DB down, keine nutzbare Ausweichdatenbank)';
                     }
                 } catch (Throwable $e) {
                     $queueDbOk = false;
@@ -892,33 +888,24 @@ class DashboardController
                 $ok = empty($missingSvc);
                 $add('Terminal Services', $ok, $ok ? 'OK' : ('Fehlt: ' . implode(', ', $missingSvc)), (microtime(true) - $t0) * 1000.0);
 
-                // 3f) Offline-Queue Verbindung/Schema (Offline-DB falls aktiv, sonst Haupt-DB)
+                // 3f) Offline-Queue Verbindung/Schema (Speicherort nach der Regel
+                //     des OfflineQueueManager: Terminal → Ausweichdatenbank,
+                //     Backend → Hauptdatenbank)
                 $t0 = microtime(true);
-                $queuePdo = null;
-                $queueQuelle = 'haupt';
                 $queueConnOk = false;
                 $queueDetails = '';
 
                 try {
-                    if ($offlineEnabled) {
-                        $queueQuelle = 'offline';
-                        $queuePdo = $db->getOfflineVerbindung();
-                        if (!($queuePdo instanceof \PDO)) {
-                            $queuePdo = null;
-                            $queueDetails = 'Offline-DB aktiv, aber nicht erreichbar';
-                        }
-                    }
+                    $queuePdo = OfflineQueueManager::getInstanz()->holeQueueVerbindungOderNull();
+                    $queueQuelle = OfflineQueueManager::getInstanz()->holeQueueSpeicherort() ?? 'keine';
 
                     if (!($queuePdo instanceof \PDO)) {
-                        $queueQuelle = 'haupt';
-                        if ($hauptDbOk) {
-                            $queuePdo = $db->getVerbindung();
-                        } else {
-                            $queuePdo = null;
-                            if ($queueDetails === '') {
-                                $queueDetails = 'Haupt-DB down';
-                            }
-                        }
+                        // `offlineEnabled` sagt nur, ob eine Ausweichdatenbank
+                        // konfiguriert ist - auf einem Backend zählt sie für die
+                        // Queue ohnehin nicht.
+                        $queueDetails = $hauptDbOk
+                            ? 'Keine Queue-DB ermittelbar'
+                            : 'Haupt-DB down';
                     }
 
                     if ($queuePdo instanceof \PDO) {

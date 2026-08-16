@@ -3018,24 +3018,21 @@ class SmokeTestController
 
         if ($this->db !== null) {
             try {
-                // Queue-DB Auswahl wie in `QueueController`: Offline-DB bevorzugen (falls konfiguriert).
-                $pdoTmp = null;
-                $queueQuelle = 'haupt';
+                // Queue-DB nach der Regel des `OfflineQueueManager` - Terminal
+                // → Ausweichdatenbank, Backend → Hauptdatenbank (T-132). Hier
+                // stand vorher eine eigene Fassung, die den Installationstyp
+                // nicht kannte; sie zählte auf einem Backend mit erreichbarer
+                // `offline_db` in der falschen Tabelle.
+                $pdoTmp = OfflineQueueManager::getInstanz()->holeQueueVerbindungOderNull();
+                $queueQuelle = OfflineQueueManager::getInstanz()->holeQueueSpeicherort() ?? 'keine';
 
-                try {
-                    $pdoOff = $this->db->getOfflineVerbindung();
-                    if ($pdoOff instanceof PDO) {
-                        $pdoTmp = $pdoOff;
-                        $queueQuelle = 'offline';
-                    }
-                } catch (Throwable $e) {
-                    // Ignore – wir fallen auf Haupt-DB zurück.
-                    $pdoTmp = null;
-                }
-
+                // Ohne Verbindung sagt die Regel „die Queue liegt gerade
+                // nirgends". Das gehört hingeschrieben: Vorher warf der
+                // Rückfall auf die Hauptdatenbank hier eine Ausnahme und
+                // erzeugte wenigstens eine Meldung; ein stiller leerer Kasten
+                // sähe aus wie „Queue leer".
                 if (!($pdoTmp instanceof PDO)) {
-                    $pdoTmp = $this->db->getVerbindung();
-                    $queueQuelle = 'haupt';
+                    $queueHinweis = 'Queue-Übersicht nicht verfügbar: keine Queue-Datenbank erreichbar.';
                 }
 
                 if ($pdoTmp instanceof PDO) {
@@ -3298,23 +3295,17 @@ class SmokeTestController
                                 // Fehler in Verarbeitung wird unten über Status angezeigt
                             }
 
-                            // Status des Test-Eintrags lesen
-                            $pdoTmp = null;
-                            $quelle = 'unbekannt';
-
-                            try {
-                                $pdoOff = $this->db->getOfflineVerbindung();
-                                if ($pdoOff instanceof PDO) {
-                                    $pdoTmp = $pdoOff;
-                                    $quelle = 'offline';
-                                }
-                            } catch (\Throwable) {
-                                $pdoTmp = null;
-                            }
+                            // Status des Test-Eintrags lesen - aus derselben
+                            // Datenbank, in die `speichereInQueue()` eben
+                            // geschrieben hat (T-132). Eine eigene Auswahl
+                            // machte den Roundtrip zur Lüge: Er hätte in der
+                            // einen Datenbank geschrieben und in der anderen
+                            // gesucht und gemeldet, der Eintrag sei weg.
+                            $pdoTmp = OfflineQueueManager::getInstanz()->holeQueueVerbindungOderNull();
+                            $quelle = OfflineQueueManager::getInstanz()->holeQueueSpeicherort() ?? 'unbekannt';
 
                             if (!($pdoTmp instanceof PDO)) {
-                                $pdoTmp = $this->db->getVerbindung();
-                                $quelle = 'haupt';
+                                throw new \RuntimeException('Keine Queue-Datenbank erreichbar.');
                             }
 
                             $stmt = $pdoTmp->prepare("SELECT id, status, fehlernachricht FROM db_injektionsqueue WHERE meta_aktion = :a ORDER BY id DESC LIMIT 1");

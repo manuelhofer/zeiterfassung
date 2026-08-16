@@ -119,6 +119,99 @@ in den Statusbericht.
   P-2026-08-16-08.
 
 
+## P-2026-08-16-14 t-132-selbstcheck-fragt-statt-nachzubauen
+
+### EINGELESEN
+- `docs/STATUS_SNAPSHOT.md` (T-132) und P-2026-08-16-13 – der Patch, dessen
+  Nebenwirkung dieser hier einsammelt.
+- `controller/DashboardController.php`, Abschnitte „3aa) Queue-DB" und
+  „3f) Offline-Queue Verbindung/Schema".
+- `controller/SmokeTestController.php`: `holeQueueUebersicht()` und die Aktion
+  `queue_roundtrip`.
+- `core/OfflineQueueManager.php` – `holeQueueVerbindungOderNull()` und
+  `holeQueueSpeicherort()`, die beide öffentlich sind und genau dafür da.
+
+### DATEIEN
+- `controller/DashboardController.php`, `controller/SmokeTestController.php`
+- `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Auf einem Backend mit erreichbarer `offline_db` meldet der Selbstcheck
+„haupt DB OK" und der Queue-Roundtrip findet seinen Test-Eintrag wieder – beide
+sehen in dieselbe Datenbank, in die geschrieben wird.
+
+### DONE
+Vier Nachbauten der Regel „wo liegt die Queue" durch die Frage an den
+`OfflineQueueManager` ersetzt. Zwei Zeilen statt je fünfzehn, und vor allem:
+**eine** Antwort.
+
+Zwei Stellen bekamen dabei eine Meldung, die es vorher nicht brauchte, weil das
+Nachgebaute die Ausnahme mitbrachte:
+
+- `holeQueueUebersicht()` sagt jetzt „keine Queue-Datenbank erreichbar", statt
+  einen leeren Kasten zu zeigen. Vorher warf der Rückfall auf die
+  Hauptdatenbank; die Ausnahme wurde gefangen und **war** die Meldung.
+- Der Roundtrip bricht mit derselben Aussage ab, statt auf `null` zuzugreifen.
+
+### Gefundene Fehler im eigenen Entwurf
+**P-2026-08-16-13 hat den Queue-Roundtrip kaputt gemacht, und das war beim
+Schreiben nicht zu sehen.** Er schreibt über `speichereInQueue()` – also über
+die zentrale Regel, seit gestern „Backend → Hauptdatenbank" – und suchte danach
+mit seiner eigenen Fassung in der Ausweichdatenbank. Ergebnis auf dem Backend:
+„Test-Eintrag wurde nicht wiedergefunden (Queue-DB?)".
+
+Nicht vermutet, sondern nachgestellt: Der Zwischenstand 68df36d (T-130 behoben,
+T-132 noch nicht) auf Port 8806 gegen dieselben Probe-Datenbanken liefert genau
+diesen Satz. Damit ist dieser Patch keine Kosmetik an einer Diagnose, sondern
+die Reparatur einer Prüfung, die seit gestern falsch Alarm schlägt.
+
+Daraus gelernt und im Verlauf notiert, weil es der nächste sonst wieder baut:
+Wer eine zentrale Regel ändert, muss die **Nachbauten** derselben Regel suchen,
+nicht nur die Aufrufer. Ein `grep` nach `getOfflineVerbindung` hätte sie
+gefunden – er wurde in P-2026-08-16-13 auch gemacht, und die Stellen standen im
+Eintrag. Sie standen dort nur als „Diagnose, eigenes Thema", und das war eine
+Fehleinschätzung: Eine Diagnose, die etwas anderes prüft als das, was läuft,
+ist keine Diagnose.
+
+### TEST
+Prüfumgebung als Backend, beide Datenbanken erreichbar und unterscheidbar
+befüllt (Haupt: 1 verarbeitet; Ausweich: 1 offen, 1 fehler). alt = 5a1f5f0,
+neu = Arbeitsstand, zusätzlich der Zwischenstand 68df36d auf Port 8806.
+
+1. `?seite=dashboard&smoke=1`: alt „offline DB OK, table=ok" und „OK (offline)",
+   neu „haupt DB OK, table=ok" und „OK (haupt)".
+2. `?seite=smoke_test`, Queue-Übersicht: alt „Queue-DB: Offline-DB – Gesamt 2 –
+   Offen 1 – Fehler 1", neu „Queue-DB: Haupt-DB – Gesamt 1 – Verarbeitet 1" –
+   also die Zählstände der jeweils gelesenen Datenbank.
+3. **Queue-Roundtrip, alle drei Stände:** alt „OK (Eintrag #3, Offline-DB)" –
+   in sich stimmig, weil dort auch geschrieben wurde. Zwischenstand 68df36d
+   „Test-Eintrag wurde nicht wiedergefunden". Neu „OK (Eintrag #3, Haupt-DB)",
+   und der Eintrag steht nachweislich in `zeit_probe`, nicht in
+   `zeit_probe_off`.
+4. Gegenprobe Terminal (Ports 8803 mit toter und 8805 mit erreichbarer
+   Hauptdatenbank): beide weiterhin `queue_speicherort: offline`.
+
+`php -l` über beide geänderten Dateien, alle fünf Serverlogs ohne Warnung oder
+Deprecation.
+
+### Was bewusst nicht erreicht wurde
+**T-133:** In `controller/TerminalController.php` stehen fünf weitere
+Nachbauten derselben Auswahl (Offline-Hinweis zur RFID, Debug-Liste,
+Queue-Status mit und ohne Debug, Verarbeitungs-Report). Sie laufen am Terminal
+und liefern dort dasselbe wie die zentrale Regel – heute ist daran nichts
+falsch, deshalb gehört das Aufräumen nicht in einen Patch, der einen Fehler
+behebt. Dazu die zwei privaten `istTerminalInstallation()` in `ZeitService` und
+`AuftragszeitService`, die seit P-2026-08-16-13 eine dritte Fassung neben
+`Helper::istTerminalInstallation()` sind.
+
+Eine Ausnahme ist mir dabei aufgefallen und bleibt absichtlich stehen:
+`ermittleOfflineHintFuerRfid()` fragt **nur** die Ausweichdatenbank und gibt
+sonst `null`. Ob der Hinweis „letzte Buchung war Kommen" auch aus der
+Hauptdatenbank kommen soll, ist eine fachliche Frage und keine Aufräumarbeit.
+
+### NEXT
+T-131 (RFID-Bridge-Konfiguration wirkungslos) – der Fund aus P-2026-08-16-12.
+
 ## P-2026-08-16-13 t-130-queue-speicherort-an-installationstyp
 
 ### EINGELESEN
