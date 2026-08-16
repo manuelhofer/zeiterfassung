@@ -28,6 +28,13 @@ class OfflineQueueManager
     private bool $schemaInitialisiert = false;
 
     /**
+     * Ob die Queue-Tabelle der Hauptdatenbank die Spalte `meta_quell_id` hat
+     * (Migration 10). Einmal je Prozess ermittelt; `null` heißt „noch nicht
+     * gefragt".
+     */
+    private ?bool $herkunftsSpalteVorhanden = null;
+
+    /**
      * Privater Konstruktor.
      */
     private function __construct()
@@ -139,6 +146,13 @@ class OfflineQueueManager
      * Ein zweiter Versuch entsteht daraus nicht: 'fehler' ist nicht 'offen',
      * der nächste Lauf sieht den Eintrag nicht mehr. Gemeldet wird er im
      * Backend, wo jemand entscheiden darf.
+     *
+     * **Ein Abschluss, nicht zwei** (T-128): Buchung und Herkunftsvermerk
+     * gehen gemeinsam in **einer** Transaktion auf die Hauptdatenbank. Das
+     * Abhaken in der Queue des Terminals danach ist nur noch eine Notiz –
+     * geht sie verloren, weil in genau diesem Moment der Strom ausfällt,
+     * findet der nächste Lauf den Vermerk und holt sie nach, statt die Buchung
+     * ein zweites Mal einzuspielen.
      */
     public function verarbeiteOffeneEintraege(): void
     {
@@ -150,6 +164,17 @@ class OfflineQueueManager
         $queuePdo = $this->holeQueueVerbindung();
         $this->ensureQueueSchema($queuePdo);
         $hauptPdo = $this->datenbank->getVerbindung();
+
+        // Liegt die Queue in der Hauptdatenbank – ein Terminal ohne erreichbare
+        // Ausweichdatenbank –, gibt es nur eine Datenbank und damit von selbst
+        // nur einen Abschluss: Das `UPDATE` gehört dann einfach mit in die
+        // Transaktion. Ein Vermerk wäre hier eine Kopie der Zeile daneben.
+        $eineDatenbank = ($queuePdo === $hauptPdo);
+
+        // Einmal vorab fragen, nicht je Eintrag – und bewusst **vor** der
+        // Schleife, damit auf der Verbindung, über die gleich der Cursor läuft,
+        // keine Nebenabfrage mehr nötig ist.
+        $vermerkMoeglich = !$eineDatenbank && $this->hatHerkunftsSpalte($hauptPdo);
 
         $sqlSelect = 'SELECT *
                       FROM db_injektionsqueue
@@ -173,13 +198,44 @@ class OfflineQueueManager
                 continue;
             }
 
+            // Der Eintrag steht auf 'offen' – aber steht er das zu Recht? Nach
+            // einem Stromausfall zwischen Commit und Abhaken ist die Buchung
+            // längst drin. Dann nur die Notiz nachholen.
+            if ($vermerkMoeglich && $this->istBereitsEingespielt($hauptPdo, $eintrag)) {
+                $this->markiereAlsVerarbeitet($queuePdo, $id);
+
+                Logger::warn(
+                    'Queue-Eintrag war bereits eingespielt und wurde nur nachgetragen',
+                    ['id' => $id, 'meta_aktion' => $eintrag['meta_aktion'] ?? null],
+                    null,
+                    isset($eintrag['meta_terminal_id']) ? (int)$eintrag['meta_terminal_id'] : null,
+                    'offline_queue'
+                );
+
+                continue;
+            }
+
             try {
                 // Ausführung auf der Hauptdatenbank.
                 $hauptPdo->beginTransaction();
                 $hauptPdo->exec($sqlBefehl);
+
+                if ($eineDatenbank) {
+                    $this->markiereAlsVerarbeitet($queuePdo, $id);
+                } elseif ($vermerkMoeglich) {
+                    // Kein `try` darum: Lässt sich der Vermerk nicht schreiben,
+                    // darf die Buchung nicht stehen bleiben – sonst wäre sie
+                    // genau die Buchung, die beim nächsten Lauf ein zweites Mal
+                    // entsteht. Die Ausnahme fällt in den `catch` unten und
+                    // nimmt die Transaktion mit.
+                    $this->schreibeHerkunftsvermerk($hauptPdo, $eintrag);
+                }
+
                 $hauptPdo->commit();
 
-                $this->markiereAlsVerarbeitet($queuePdo, $id);
+                if (!$eineDatenbank) {
+                    $this->markiereAlsVerarbeitet($queuePdo, $id);
+                }
             } catch (\Throwable $e) {
                 if ($hauptPdo->inTransaction()) {
                     $hauptPdo->rollBack();
@@ -259,14 +315,27 @@ class OfflineQueueManager
             $terminalId = Helper::terminalId();
         }
 
+        // Die Herkunft gehört auch an die Fehlermeldung – bisher stand die
+        // lokale ID nur im Fließtext der Meldung. Verwechseln lässt sich
+        // beides nicht: Als „schon eingespielt" zählt nur ein Vermerk mit
+        // Status `verarbeitet` (T-128).
+        $mitHerkunft = $this->hatHerkunftsSpalte($hauptPdo);
+
         $sql = 'INSERT INTO db_injektionsqueue
                     (erstellt_am, status, sql_befehl, fehlernachricht, letzte_ausfuehrung,
-                     versuche, meta_mitarbeiter_id, meta_terminal_id, meta_aktion)
+                     versuche, meta_mitarbeiter_id, meta_terminal_id, meta_aktion'
+                . ($mitHerkunft ? ', meta_quell_id' : '') . ')
                 VALUES (:erstellt_am, \'fehler\', :sql_befehl, :fehlernachricht, :letzte_ausfuehrung,
-                        :versuche, :meta_mitarbeiter_id, :meta_terminal_id, :meta_aktion)';
+                        :versuche, :meta_mitarbeiter_id, :meta_terminal_id, :meta_aktion'
+                . ($mitHerkunft ? ', :meta_quell_id' : '') . ')';
 
         try {
             $statement = $hauptPdo->prepare($sql);
+
+            if ($mitHerkunft) {
+                $statement->bindValue(':meta_quell_id', $lokaleId > 0 ? $lokaleId : null, $lokaleId > 0 ? \PDO::PARAM_INT : \PDO::PARAM_NULL);
+            }
+
             $statement->bindValue(':erstellt_am', $erstelltAm, \PDO::PARAM_STR);
             $statement->bindValue(':sql_befehl', (string)($eintrag['sql_befehl'] ?? ''), \PDO::PARAM_STR);
             $statement->bindValue(':fehlernachricht', $meldung, \PDO::PARAM_STR);
@@ -311,6 +380,210 @@ class OfflineQueueManager
                 'offline_queue'
             );
         }
+    }
+
+    /**
+     * Woher ein Queue-Eintrag stammt: `[terminal_id, lokale_id, erstellt_am]`,
+     * oder `null`, wenn sich das nicht eindeutig sagen lässt.
+     *
+     * Warum alle drei zusammen und nicht nur die lokale ID: Die ID ist nur
+     * innerhalb **einer** Queue eindeutig. Zwei Terminals haben beide einen
+     * Eintrag 7, und wird die Ausweichdatenbank eines Terminals neu angelegt,
+     * fängt sie selbst bei demselben Gerät wieder bei 1 an. Der Zeitpunkt des
+     * Eintrags trennt auch diesen Fall – zwei Buchungen auf dieselbe Sekunde
+     * mit derselben wiederverwendeten ID gibt es praktisch nicht.
+     *
+     * @param array<string,mixed> $eintrag
+     * @return array{0:int,1:int,2:string}|null
+     */
+    private function herkunftDesEintrags(array $eintrag): ?array
+    {
+        $quellId = (int)($eintrag['id'] ?? 0);
+        if ($quellId <= 0) {
+            return null;
+        }
+
+        $terminalId = $eintrag['meta_terminal_id'] ?? null;
+        if ($terminalId === null) {
+            $terminalId = Helper::terminalId();
+        }
+
+        if ($terminalId === null) {
+            return null;
+        }
+
+        $erstelltAm = $eintrag['erstellt_am'] ?? null;
+        if (!is_string($erstelltAm) || trim($erstelltAm) === '') {
+            return null;
+        }
+
+        return [(int)$terminalId, $quellId, trim($erstelltAm)];
+    }
+
+    /**
+     * Steht in der Hauptdatenbank schon der Vermerk, dass dieser Eintrag
+     * eingespielt wurde?
+     *
+     * Nur `verarbeitet` zählt. Eine Fehlermeldung zu demselben Eintrag
+     * (`meldeFehlerAnHauptdatenbank()`) trägt dieselbe Herkunft, bedeutet aber
+     * das Gegenteil – sie als „schon drin" zu lesen, würde eine Buchung
+     * verlieren, die nie stattgefunden hat.
+     *
+     * @param array<string,mixed> $eintrag
+     */
+    private function istBereitsEingespielt(\PDO $hauptPdo, array $eintrag): bool
+    {
+        $herkunft = $this->herkunftDesEintrags($eintrag);
+        if ($herkunft === null) {
+            return false;
+        }
+
+        try {
+            $statement = $hauptPdo->prepare(
+                'SELECT id
+                   FROM db_injektionsqueue
+                  WHERE meta_terminal_id = :terminal_id
+                    AND meta_quell_id    = :quell_id
+                    AND erstellt_am      = :erstellt_am
+                    AND status           = \'verarbeitet\'
+                  LIMIT 1'
+            );
+            $statement->bindValue(':terminal_id', $herkunft[0], \PDO::PARAM_INT);
+            $statement->bindValue(':quell_id', $herkunft[1], \PDO::PARAM_INT);
+            $statement->bindValue(':erstellt_am', $herkunft[2], \PDO::PARAM_STR);
+            $statement->execute();
+
+            return $statement->fetchColumn() !== false;
+        } catch (\Throwable $e) {
+            // Im Zweifel einspielen. Eine Dublette steht in der Hauptdatenbank
+            // und lässt sich im Backend erkennen und korrigieren; eine Buchung,
+            // die niemand gemacht hat, weil eine kaputte Abfrage „schon drin"
+            // sagte, ist weg.
+            Logger::warn(
+                'Herkunftsvermerk konnte nicht geprüft werden – Eintrag wird eingespielt',
+                ['id' => $herkunft[1], 'exception' => $e->getMessage()],
+                null,
+                $herkunft[0],
+                'offline_queue'
+            );
+
+            return false;
+        }
+    }
+
+    /**
+     * Schreibt den Vermerk „Eintrag N von Terminal X ist eingespielt" in die
+     * `db_injektionsqueue` der Hauptdatenbank.
+     *
+     * Aufgerufen **innerhalb** der Transaktion, in der auch die Buchung steckt.
+     * Das ist der ganze Trick an T-128: Zwei Datenbanken lassen sich ohne XA
+     * nicht gemeinsam abschließen, eine Datenbank mit sich selbst schon. Der
+     * Vermerk und die Buchung stehen danach entweder beide da oder keiner von
+     * beiden.
+     *
+     * Der Vermerk trägt den vollständigen SQL-Befehl. Das lässt die Tabelle
+     * mitwachsen und ist es wert: In der Queue-Verwaltung steht damit, was ein
+     * Terminal wann nachgetragen hat – bisher war das nur am Gerät zu sehen.
+     *
+     * @param array<string,mixed> $eintrag
+     */
+    private function schreibeHerkunftsvermerk(\PDO $hauptPdo, array $eintrag): void
+    {
+        $herkunft = $this->herkunftDesEintrags($eintrag);
+        if ($herkunft === null) {
+            // Ohne Herkunft kein Vermerk – und damit für diesen einen Eintrag
+            // auch kein Schutz. Das gehört ins Protokoll und nicht in eine
+            // Ausnahme: Die Buchung selbst ist in Ordnung.
+            Logger::warn(
+                'Queue-Eintrag ohne erkennbare Herkunft eingespielt – ohne Vermerk (T-128)',
+                ['id' => $eintrag['id'] ?? null, 'meta_aktion' => $eintrag['meta_aktion'] ?? null],
+                null,
+                null,
+                'offline_queue'
+            );
+
+            return;
+        }
+
+        $sql = 'INSERT INTO db_injektionsqueue
+                    (erstellt_am, status, sql_befehl, letzte_ausfuehrung, versuche,
+                     meta_mitarbeiter_id, meta_terminal_id, meta_aktion, meta_quell_id)
+                VALUES (:erstellt_am, \'verarbeitet\', :sql_befehl, :letzte_ausfuehrung, :versuche,
+                        :meta_mitarbeiter_id, :meta_terminal_id, :meta_aktion, :meta_quell_id)';
+
+        $statement = $hauptPdo->prepare($sql);
+        $statement->bindValue(':erstellt_am', $herkunft[2], \PDO::PARAM_STR);
+        $statement->bindValue(':sql_befehl', (string)($eintrag['sql_befehl'] ?? ''), \PDO::PARAM_STR);
+        $statement->bindValue(
+            ':letzte_ausfuehrung',
+            (new \DateTimeImmutable('now'))->format('Y-m-d H:i:s'),
+            \PDO::PARAM_STR
+        );
+        $statement->bindValue(':versuche', (int)($eintrag['versuche'] ?? 0) + 1, \PDO::PARAM_INT);
+
+        $mitarbeiterId = $eintrag['meta_mitarbeiter_id'] ?? null;
+        if ($mitarbeiterId !== null) {
+            $statement->bindValue(':meta_mitarbeiter_id', (int)$mitarbeiterId, \PDO::PARAM_INT);
+        } else {
+            $statement->bindValue(':meta_mitarbeiter_id', null, \PDO::PARAM_NULL);
+        }
+
+        $statement->bindValue(':meta_terminal_id', $herkunft[0], \PDO::PARAM_INT);
+
+        $aktion = $eintrag['meta_aktion'] ?? null;
+        if (is_string($aktion) && $aktion !== '') {
+            $statement->bindValue(':meta_aktion', $aktion, \PDO::PARAM_STR);
+        } else {
+            $statement->bindValue(':meta_aktion', null, \PDO::PARAM_NULL);
+        }
+
+        $statement->bindValue(':meta_quell_id', $herkunft[1], \PDO::PARAM_INT);
+
+        $statement->execute();
+    }
+
+    /**
+     * Hat die Queue-Tabelle die Spalte `meta_quell_id` (Migration 10)?
+     *
+     * Warum das überhaupt geprüft wird, statt sich auf die Migration zu
+     * verlassen: Ohne die Prüfung würde auf einer Installation, die den Code
+     * eingespielt hat und die Migration nicht, **jede** Buchung beim
+     * Wiederanlauf scheitern – der Vermerk ist Teil der Transaktion. Aus einer
+     * vergessenen Migration würde damit ein Terminal, das keine Zeiten mehr
+     * nachträgt. Der Rückfall auf den alten Weg ist das kleinere Übel, aber
+     * nicht stillschweigend: Er steht als Fehler im Protokoll.
+     */
+    private function hatHerkunftsSpalte(\PDO $pdo): bool
+    {
+        if ($this->herkunftsSpalteVorhanden !== null) {
+            return $this->herkunftsSpalteVorhanden;
+        }
+
+        $vorhanden = false;
+        try {
+            // Dieselbe Form wie in `ensureQueueSchema()`: Eine Abfrage, die
+            // nichts liest, aber die Spalte benennen muss.
+            $probe = $pdo->query('SELECT meta_quell_id FROM db_injektionsqueue LIMIT 0');
+            $vorhanden = ($probe !== false);
+        } catch (\Throwable $e) {
+            $vorhanden = false;
+        }
+
+        if (!$vorhanden) {
+            Logger::error(
+                'db_injektionsqueue ohne Spalte meta_quell_id – sql/10_migration_queue_herkunftsvermerk.sql '
+                . 'fehlt. Die Queue arbeitet weiter, aber ein Ausfall zwischen Buchung und Abhaken kann '
+                . 'einen Eintrag ein zweites Mal einspielen (T-128).',
+                [],
+                null,
+                Helper::terminalId(),
+                'offline_queue'
+            );
+        }
+
+        $this->herkunftsSpalteVorhanden = $vorhanden;
+
+        return $vorhanden;
     }
 
     /**
@@ -457,6 +730,7 @@ class OfflineQueueManager
                 "  meta_mitarbeiter_id INTEGER NULL,\n" .
                 "  meta_terminal_id INTEGER NULL,\n" .
                 "  meta_aktion TEXT NULL,\n" .
+                "  meta_quell_id INTEGER NULL,\n" .
                 "  erstellt_am TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP\n" .
                 ");"
             );
@@ -473,6 +747,9 @@ class OfflineQueueManager
                 "  meta_mitarbeiter_id INT UNSIGNED NULL,\n" .
                 "  meta_terminal_id INT UNSIGNED NULL,\n" .
                 "  meta_aktion VARCHAR(100) NULL,\n" .
+                // Nur in der Hauptdatenbank gefüllt; steht hier, damit beide
+                // Queue-Tabellen dieselbe Form haben (T-128).
+                "  meta_quell_id INT UNSIGNED NULL,\n" .
                 "  erstellt_am DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,\n" .
                 "  PRIMARY KEY (id)\n" .
                 ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;"

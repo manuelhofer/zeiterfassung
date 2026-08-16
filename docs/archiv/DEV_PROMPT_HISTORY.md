@@ -18,6 +18,160 @@ legacy_zip_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-08-16-25 t-128-ein-abschluss-statt-zwei
+
+### EINGELESEN
+- `core/OfflineQueueManager.php` vollständig – vor allem
+  `verarbeiteOffeneEintraege()` und `meldeFehlerAnHauptdatenbank()`, die
+  einzige Stelle, die heute schon in die Queue der Hauptdatenbank schreibt.
+- `sql/01_initial_schema.sql`, `db_injektionsqueue` – welche Metadaten es
+  schon gibt (`meta_terminal_id`, `meta_aktion`) und welche fehlt.
+- `services/TerminalDbBenutzerService.php`, Zeilen 100–130 – ob ein Terminal
+  überhaupt in diese Tabelle schreiben darf (`SELECT, INSERT, UPDATE`, also ja,
+  und tabellenweit: eine neue Spalte ist automatisch mit abgedeckt).
+- `views/queue/liste.php` – ob die Queue-Verwaltung ihre Spalten aufzählt oder
+  durchreicht (sie zählt auf, eine neue Spalte ändert die Maske nicht).
+- P-2026-08-16-21, Abschnitt über den Fehlschluss mit dem offenen Cursor –
+  damit ich die Schleife **nicht** noch einmal „repariere".
+
+### DATEIEN
+- `core/OfflineQueueManager.php`
+- `sql/01_initial_schema.sql`, `sql/offline_db_schema.sql`
+- `sql/10_migration_queue_herkunftsvermerk.sql` (neu), `sql/README.md`
+- `docs/fachregeln/terminal_und_offline.md`
+- `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Steht ein Eintrag auf `offen`, obwohl seine Buchung längst in der
+Hauptdatenbank liegt – der Zustand nach einem Stromausfall zwischen Commit und
+Abhaken –, entsteht beim nächsten Wiederanlauf **keine zweite Buchung**; der
+Eintrag geht ohne Ausführung auf `verarbeitet`, mit einem Vermerk im Protokoll.
+
+### DONE
+Die eingespielte Buchung und ein Vermerk „Eintrag N von Terminal X ist drin"
+gehen jetzt in **einer** Transaktion auf die Hauptdatenbank. Der Vermerk ist
+eine Zeile in deren `db_injektionsqueue` mit `status = 'verarbeitet'` und der
+neuen Spalte `meta_quell_id` – der ID, die der Eintrag in der Queue des
+Terminals hat.
+
+Damit gibt es genau einen Abschluss, der zählt. Das `UPDATE` auf dem Gerät ist
+danach nur noch eine Notiz: Fehlt sie, findet der nächste Lauf den Vermerk
+(`meta_terminal_id` + `meta_quell_id` + `erstellt_am`), holt die Notiz nach und
+spielt **nicht** erneut ein. Verteilte Transaktionen (XA) braucht es dafür
+nicht – zwei Datenbanken lassen sich nicht gemeinsam abschließen, eine mit sich
+selbst schon.
+
+Liegt die Queue in der Hauptdatenbank – Backend, oder Terminal ohne erreichbare
+Ausweichdatenbank –, gibt es keinen Vermerk: Dort ist es dieselbe Datenbank,
+und das `UPDATE` läuft einfach mit in der Transaktion. Vorher stand es
+außerhalb, auch in diesem Fall.
+
+Drei Entscheidungen, die nicht offensichtlich sind:
+
+**Verglichen wird auf drei Felder, nicht auf die ID.** Die lokale ID ist nur
+innerhalb einer Queue eindeutig. Zwei Terminals haben beide einen Eintrag 7,
+und wird die Ausweichdatenbank eines Geräts neu angelegt, fängt sie bei
+demselben Gerät wieder bei 1 an. `erstellt_am` trennt auch diesen Fall.
+
+**Kein `UNIQUE` auf (Terminal, Quell-ID).** Der Gedanke lag nahe und ist eine
+Falle: Der Vermerk steckt in der Transaktion der Buchung. Nach einer neu
+angelegten Ausweichdatenbank kollidiert er mit einem alten Vermerk, scheitert –
+und nimmt die Buchung mit. Ein gewöhnlicher Index tut es.
+
+**Fehlt Migration 10, arbeitet die Queue weiter.** Aus demselben Grund: Der
+Vermerk ist Teil der Transaktion, also würde ohne die Spalte **jede** Buchung
+beim Wiederanlauf scheitern. Aus einer vergessenen Migration würde ein
+Terminal, das keine Zeiten mehr nachträgt. `hatHerkunftsSpalte()` fragt deshalb
+einmal je Prozess nach der Spalte und fällt auf den alten Weg zurück – aber
+nicht stillschweigend, sondern mit einem `error` im Protokoll, der die
+Migrationsdatei beim Namen nennt.
+
+Mitgeändert: `meldeFehlerAnHauptdatenbank()` setzt `meta_quell_id` ebenfalls –
+bisher stand die lokale ID nur im Fließtext der Fehlermeldung. Verwechseln
+lässt sich beides nicht, als „schon eingespielt" zählt nur ein Vermerk mit
+`status = 'verarbeitet'`.
+
+### TEST
+Prüfumgebung, `alt` = ab2f6ea, `neu` = Arbeitsstand.
+
+1. **Neuinstallation:** `zeit_probe` aus `01_initial_schema.sql` → Spalte
+   `meta_quell_id` da, Index `idx_db_injektionsqueue_herkunft` über
+   (`meta_terminal_id`, `meta_quell_id`, `erstellt_am`).
+2. **Migration 10 zweimal** auf einer Datenbank aus dem Schema des vorigen
+   Standes → beim zweiten Lauf viermal `SELECT 1`, kein Fehler. Später noch
+   einmal auf `zeit_probe` **mit** Daten angewandt (die Spalte war für Test 6
+   entfernt worden): Spalte zurück, die zwei vorhandenen Einträge unberührt.
+3. **Der Fehler, nachgestellt – alter Stand:** Terminal `alt` offline, Chip
+   `CHIP-T128`, „Kommen" → Eintrag 1 `offen`. Online, ein Seitenaufruf →
+   `verarbeitet`, Buchung 161 um 17:00:31. Dann der Stromausfall: Eintrag von
+   Hand zurück auf `offen` (genau das, was übrig bleibt, wenn der Commit da ist
+   und das Abhaken nicht). Ein Seitenaufruf → **Buchung 162, dieselbe Person,
+   dieselbe Sekunde.** Das ist T-128, sichtbar.
+4. **Derselbe Ablauf – neuer Stand:** Eintrag 2 offline gebucht, online
+   eingespielt → Buchung 163 um 17:00:56, dazu **ein** Vermerk in der
+   Hauptdatenbank (`status = verarbeitet`, `meta_quell_id = 2`,
+   `meta_terminal_id = 1`, `erstellt_am` = Zeitpunkt des Eintrags). Eintrag
+   zurück auf `offen`, Seitenaufruf → `zeitbuchung` hat weiterhin **genau eine**
+   Zeile, der Eintrag steht wieder auf `verarbeitet`, ein zweiter Vermerk
+   entsteht nicht, und im Protokoll steht `warn: Queue-Eintrag war bereits
+   eingespielt und wurde nur nachgetragen` mit `{"id":2,…}`.
+5. **Ein-Datenbank-Fall:** Eintrag von Hand in die Queue der Hauptdatenbank,
+   Stand `neu` als Backend, „Queue jetzt verarbeiten" → Eintrag `verarbeitet`,
+   Buchung 164 da, **kein** zusätzlicher Vermerk. Der Zweig greift also.
+6. **Migration vergessen:** `meta_quell_id` samt Index aus `zeit_probe`
+   entfernt, dann offline „Gehen" gebucht und wieder online → die Buchung
+   kommt durch (165), der Eintrag geht auf `verarbeitet`, und im Protokoll
+   steht der `error` mit dem Dateinamen der Migration. Ohne diesen Rückfall
+   wäre hier jede Buchung gescheitert.
+7. **Backend-Seiten unverändert:** `vergleichen` für `?seite=smoke_test`,
+   `?seite=dashboard`, `?seite=queue_admin` und
+   `?seite=queue_admin&status=verarbeitet` – je 0 abweichende Zeilen. Die neue
+   Spalte ändert die Maske nicht, weil die Liste ihre Spalten aufzählt.
+8. `php -l` über die geänderte Datei, `meldungen` → beide Serverlogs ohne
+   PHP-Meldung.
+
+### Gefundene Fehler im eigenen Entwurf
+**Die erste Fassung der Suche hätte Buchungen verloren, nicht gerettet.** Sie
+fragte nur nach (`meta_terminal_id`, `meta_quell_id`, `erstellt_am`), ohne den
+Status. Damit hätte auch eine **Fehlermeldung** zu demselben Eintrag als „schon
+eingespielt" gezählt – und der Fall dazu ist real: Bricht der Strom zwischen
+dem Melden des Fehlers in der Hauptdatenbank und dem lokalen
+`status = 'fehler'` ab, steht der Eintrag beim nächsten Start wieder auf
+`offen`. Die Suche hätte die Fehlermeldung gefunden, den Eintrag ohne
+Ausführung auf `verarbeitet` gesetzt, und die Buchung wäre weg gewesen – genau
+die Umkehrung des Fehlers, den dieser Patch behebt. Jetzt zählt nur
+`status = 'verarbeitet'`.
+
+Ebenfalls beim Schreiben aufgefallen und oben schon begründet: das `UNIQUE`,
+das die Buchung mit in den Abgrund gezogen hätte, und die vergessene Migration,
+die ohne Rückfall jede Buchung hätte scheitern lassen. Beide waren die
+naheliegende erste Fassung.
+
+### Was bewusst nicht erreicht wurde
+**Doppelte Fehlermeldungen sind weiterhin möglich.** Der eben beschriebene Fall
+– Strom weg zwischen Meldung und lokalem `fehler` – führt beim nächsten Lauf zu
+einem zweiten, gleichlautenden Eintrag in der Queue-Verwaltung. Das ist
+Absicht: Der Eintrag wurde nie eingespielt, ein zweiter Versuch ist richtig,
+und zwei identische Meldungen sind sichtbar und wegzuklicken. Eine Buchung, die
+niemand gemacht hat, wäre es nicht.
+
+**Ohne Terminal-ID gibt es keinen Vermerk.** Ein Queue-Eintrag ohne
+`meta_terminal_id`, dessen Gerät auch über `Helper::terminalId()` keine liefert,
+lässt sich keinem Absender zuordnen; er wird eingespielt wie bisher, mit einem
+`warn` im Protokoll. Auf einem Terminal kommt das nicht vor – die Queue gibt es
+dort nur mit Konfiguration –, aber stillschweigend übergehen wollte ich es
+nicht.
+
+**Die Queue-Tabelle der Hauptdatenbank wächst mit**, je eingespielter Buchung
+eine Zeile samt SQL-Befehl. Das ist der Preis der Entscheidung und war so
+besprochen; nebenbei steht damit im Backend, was ein Terminal wann nachgetragen
+hat. Ein Aufräumen alter `verarbeitet`-Zeilen gibt es nicht und ist heute auch
+nicht nötig.
+
+### NEXT
+T-128 ist erledigt. Als Nächstes T-135 (Fremdschlüssel auf
+`auftragszeit.mitarbeiter_id`), danach bleiben T-125 und T-112.
+
 ## P-2026-08-16-24 t-129-fremdschluessel-zeitbuchung-mitarbeiter
 
 ### EINGELESEN

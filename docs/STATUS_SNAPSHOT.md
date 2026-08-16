@@ -41,10 +41,6 @@ Abschnitt 5. Reihenfolge ist Absicht: T-125 kommt zuletzt.
 - **T-125** Lokale Liste der Berechtigten auf dem Terminal (nur ID,
   Personalnummer, RFID, aktiv – keine Namen), damit ein unbekannter Chip sofort
   am Gerät auffällt statt erst beim Einspielen.
-- **T-128** Zwischen dem Commit auf der Hauptdatenbank und dem
-  `UPDATE status='verarbeitet'` in der Queue gibt es keinen gemeinsamen
-  Abschluss – fällt genau dazwischen der Strom aus, wird der Eintrag beim
-  nächsten Start ein zweites Mal eingespielt.
 - **T-135** `auftragszeit.mitarbeiter_id` hat keinen Fremdschlüssel – heute
   harmlos (die Offline-Auftragsbuchung nimmt die ID der angemeldeten Sitzung),
   aber sobald Aufträge offline per Chip gehen, entsteht dort dieselbe Lücke,

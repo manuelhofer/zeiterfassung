@@ -231,6 +231,29 @@ Reihenfolge abgearbeitet. Scheitert ein Eintrag:
   Abteilungsleiter sehen Zeitpunkt, Chipnummer und SQL-Befehl und tragen die
   Zeit von Hand nach oder verwerfen den Eintrag.
 
+### Ein Abschluss, nicht zwei
+
+Eine eingespielte Buchung berührt **zwei** Datenbanken: Der Befehl läuft auf
+der Hauptdatenbank, das `status = 'verarbeitet'` steht in der Queue des
+Terminals. Zwei Abschlüsse – fällt der Strom dazwischen aus, ist die Buchung
+drin und der Eintrag weiterhin `offen`, und der nächste Start bucht ein zweites
+Mal (T-128).
+
+Deshalb geht mit der Buchung in **derselben** Transaktion ein Vermerk in die
+`db_injektionsqueue` der Hauptdatenbank: Zeile mit `status = 'verarbeitet'` und
+`meta_quell_id` = die ID, die der Eintrag in der Queue des Terminals hat. Das
+Abhaken auf dem Gerät ist danach nur noch eine Notiz. Fehlt sie, findet der
+nächste Lauf den Vermerk (`meta_terminal_id` + `meta_quell_id` +
+`erstellt_am`), trägt sie nach und spielt **nicht** erneut ein.
+
+Zwei Folgen davon, beide gewollt:
+
+- Die Queue-Verwaltung im Backend zeigt unter `verarbeitet` künftig, was ein
+  Terminal wann nachgetragen hat. Bisher war das nur am Gerät zu sehen.
+- Liegt die Queue in der Hauptdatenbank (Terminal ohne erreichbare
+  Ausweichdatenbank), gibt es keinen Vermerk – dort ist es dieselbe Datenbank,
+  und das `UPDATE` läuft einfach mit in der Transaktion.
+
 **Warum das geändert wurde** (Entscheidung Manuel, P-2026-08-16-08): Vorher
 stoppte die Abarbeitung beim ersten Fehler und das Terminal ging in einen
 sperrenden Störungsmodus. Nachgestellt hieß das: Ein einziger unbekannter Chip

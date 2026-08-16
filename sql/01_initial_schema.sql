@@ -188,10 +188,12 @@ CREATE TABLE `db_injektionsqueue` (
   `meta_mitarbeiter_id` bigint(20) UNSIGNED DEFAULT NULL,
   `meta_terminal_id` bigint(20) UNSIGNED DEFAULT NULL,
   `meta_aktion` varchar(100) DEFAULT NULL,
+  `meta_quell_id` bigint(20) UNSIGNED DEFAULT NULL COMMENT 'ID dieses Eintrags in der Queue des Terminals; NULL = hier entstanden',
   PRIMARY KEY (`id`),
   KEY `idx_db_injektionsqueue_status` (`status`),
   KEY `idx_db_injektionsqueue_meta_mitarbeiter` (`meta_mitarbeiter_id`),
-  KEY `idx_db_injektionsqueue_meta_terminal` (`meta_terminal_id`)
+  KEY `idx_db_injektionsqueue_meta_terminal` (`meta_terminal_id`),
+  KEY `idx_db_injektionsqueue_herkunft` (`meta_terminal_id`,`meta_quell_id`,`erstellt_am`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------

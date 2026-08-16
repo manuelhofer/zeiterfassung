@@ -26,6 +26,12 @@ gebraucht - Neuinstallationen bekommen alles über `01_initial_schema.sql`.
   Patch P-2026-08-10-27).
 - `08_migration_auftrag_zeichnungsnummer.sql`: ergänzt `auftrag` um die Spalte
   `zeichnungsnummer` samt Index (Patch P-2026-08-10-33).
+- `10_migration_queue_herkunftsvermerk.sql`: ergänzt `db_injektionsqueue` um
+  `meta_quell_id` samt Index, damit beim Wiederanlauf Buchung und
+  „ist eingespielt"-Vermerk in **einer** Transaktion abgeschlossen werden und
+  ein Stromausfall dazwischen keine doppelte Buchung mehr erzeugt (T-128,
+  Patch P-2026-08-16-25). Fehlt die Migration, arbeitet die Queue weiter wie
+  bisher und schreibt einen Fehler ins Protokoll.
 - `09_migration_zeitbuchung_fk_mitarbeiter.sql`: legt den Fremdschlüssel
   `zeitbuchung.mitarbeiter_id` -> `mitarbeiter.id` an, damit ein unbekannter
   RFID-Chip keine Buchung auf einen Mitarbeiter erzeugen kann, den es nicht
