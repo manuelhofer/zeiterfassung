@@ -99,6 +99,108 @@ in den Statusbericht.
   D-002 entfallen; die Regel selbst gilt weiter.)
 
 
+## P-2026-08-16-01 t-105-pdf-checks-teil-templates
+
+### EINGELESEN
+- `docs/STATUS_SNAPSHOT.md` (T-105), P-2026-08-15-46 – dort steht das Muster.
+- Die drei PDF-Blöcke in `views/smoke_test/index.php` vollständig, dazu die
+  Stellen in `index()`, an denen ihre Werte entstehen.
+- `core/Csrf.php` (`feld()`), weil vier Formulare dieses Abschnitts ein Token
+  brauchen.
+
+### DATEIEN
+- `views/smoke_test/pdf_quick.php`, `pdf_synth.php`, `pdf_db_multipage.php` (neu)
+- `views/smoke_test/index.php`, `controller/SmokeTestController.php`
+- `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Die Kandidatenliste zeigt für ein Suchfenster von 24 Monaten dieselbe Tabelle
+wie vorher – samt gleichem Suchfenster in **allen** Formularen des Abschnitts –,
+obwohl ihr Markup jetzt in `views/smoke_test/pdf_db_multipage.php` steht.
+
+### DONE
+Die drei PDF-Checks sind Teil-Templates: `pdf_quick.php`, `pdf_synth.php` und
+`pdf_db_multipage.php`. `views/smoke_test/index.php` geht von 776 auf 430
+Zeilen; neun der fünfzehn Blöcke stehen jetzt außerhalb.
+
+**Ein Abschnitt, zwei Bündel.** `pdf_db_multipage.php` zeigt zwei Checks – den
+Top-1-Kandidaten und die Kandidatenliste – und bekommt deshalb
+`$pdfDbMultiDaten` **und** `$pdfDbListeDaten`. Sie teilen sich das Suchfenster:
+bisher, weil beide Formulare dieselbe Variable lasen, jetzt sichtbar, weil der
+Controller den Wert nach jedem Lauf in beide Bündel schreibt. Genau dieser
+Wert wäre bei einer stillen Trennung auseinandergelaufen – nach einem Listenlauf
+hätte das obere Formular wieder 6 Monate gezeigt statt 24.
+
+**Eine Variable mit zwei Aufgaben ist weg.** `$pdfTestMitarbeiterId` war
+gleichzeitig der Formularwert des PDF-Quick-Checks **und** die Vorgabe für die
+sechs Monatsreport-Checks – und der PDF-Check überschrieb sie. Dass das bisher
+nichts kaputt machte, lag allein an der Reihenfolge: Die sechs Bündel entstehen,
+bevor der PDF-Check läuft. Die Vorgabe heißt jetzt
+`$angemeldeteMitarbeiterId` und wird von niemandem mehr überschrieben.
+
+**`$csrfBereich` bleibt ein zweiter Wert von außen.** Vier Formulare des
+PDF-DB-Abschnitts brauchen ein Token; der Bereichsname gehört nicht in das
+Bündel eines Checks, weil er keinem gehört. Er steht als erwarteter Wert im
+Kopf des Teil-Templates.
+
+### TEST
+Wegwerf-Umgebung wie in P-2026-08-15-46, `alt` auf b236b54. 21 Lagen
+leerraum-unabhängig verglichen, **jede mit 0 echten Abweichungen**: Seite ohne
+Aktion; PDF-Quick mit Daten, ohne Daten im Monat, mit Mitarbeiter-ID 0 und mit
+Jahr 1999; PDF-Synth gültig und mit Monat 13; PDF-DB als Top-1, als Liste, als
+Liste mit PDF-Prüfung und mit einem Fenster ohne Mehrseiten-Kandidat;
+Terminal-Login per RFID und mit `<script>`; dazu die sechs Monatsreport-Checks
+und der Feiertag-Seed-Check als Rückfallprobe.
+
+Dass die Blöcke wirklich gerechnet haben, ist einzeln nachgesehen: PDF-Quick
+meldet 8.698 Bytes und ein Seitenobjekt, Synth „mind. 2 Seiten: ja", der
+Top-1-Check 19 Kommen/Gehen-Buchungen im 24-Monats-Fenster, die Liste ihre
+Tabelle mit den drei Zusatzspalten der PDF-Prüfung.
+
+**Die beiden Kopplungen sind gezielt geprüft**, weil sie ein HTML-Vergleich mit
+Vorgabewerten nicht zeigen würde:
+
+| Frage | Ergebnis auf beiden Ständen |
+| --- | --- |
+| Zeigt nach einem Listenlauf (Fenster 24) auch das obere Formular 24? | ja, alle vier Felder |
+| Bleiben die sechs Monatsformulare bei 15, wenn der PDF-Check auf 16 läuft? | ja |
+
+70 Backend-Routen mit identischen Statuscodes auf beiden Ständen (43 x 200),
+`php -l` über alle geänderten und neuen Dateien, die drei Umlaut-Suchläufe ohne
+Treffer, beide Serverlogs ohne eine einzige PHP-Meldung.
+
+### Gefundene Fehler im eigenen Entwurf
+**Eine Ersetzung über die ganze Datei hat drei Zeilen zu viel getroffen.** Die
+sechs Bündel sollten ihre Vorgabe aus dem neuen Namen bekommen; das Muster
+`'mitarbeiter_id' => $pdfTestMitarbeiterId,` steht mit derselben Einrückung aber
+auch im Rückgabe-Array von `pruefePdfQuick()` und in dessen Fehlerbehandlung.
+Aufgefallen ist es, weil das Skript die Trefferzahl **ausgibt**: erwartet waren
+sechs, gemeldet neun. Drei Zeilen zurückgesetzt. Wer über eine ganze Datei
+ersetzt, nennt vorher die erwartete Trefferzahl – sie ist die Prüfung, nicht
+der Augenschein danach.
+
+**Der Rechner ist mitten in der Sitzung neu gestartet** und hat `/tmp`
+mitgenommen: beide Repo-Kopien, beide Server, alle Vergleichsdateien. Die
+Probe-Datenbanken lagen nicht in `/tmp` und haben überlebt, und weil die
+Umgebung aus einem Skript entsteht, war sie in einer Minute wieder da. Das ist
+der Grund, warum sie ein Skript ist und keine Folge von Handgriffen.
+
+### Was bewusst nicht erreicht wurde
+**Der Terminal-Login-Check bleibt ungeteilt.** Sein Formular steht oben auf der
+Seite, sein Ergebnis erst nach den neun Teil-Templates – ein Teil-Template kann
+nur zusammenhängend ausgeben. Es bräuchte also zwei Dateien für einen Check,
+und das ist die Frage wert, ob das Ergebnis nicht einfach unter sein Formular
+gehört. Das ist eine **sichtbare** Änderung und damit ein eigener Patch mit
+eigener Begründung, kein Nebenprodukt einer Zerlegung.
+
+Ebenfalls offen: Terminal-Konfiguration, Offline-Queue, Abhängigkeitstabelle
+und Klick-Checkliste. Die ersten beiden laufen ohne POST mitten in `index()`
+und haben noch keine Methode.
+
+### NEXT
+T-105: das Ergebnis des Terminal-Login-Checks unter sein Formular holen, danach
+die Blöcke ohne POST.
+
 ## P-2026-08-15-46 t-105-monatsreport-teil-templates
 
 ### EINGELESEN

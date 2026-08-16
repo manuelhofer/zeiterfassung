@@ -3329,52 +3329,59 @@ class SmokeTestController
         $terminalLoginErgebnis = null;
         $terminalLoginHinweis = null;
 
+        // Vorgabe für jeden Check, der einen Mitarbeiter braucht: der angemeldete.
+        $angemeldeteMitarbeiterId = 0;
+        $angemeldeterMitarbeiter = $this->auth->holeAngemeldetenMitarbeiter();
+        if (is_array($angemeldeterMitarbeiter) && isset($angemeldeterMitarbeiter['id'])) {
+            $angemeldeteMitarbeiterId = (int)$angemeldeterMitarbeiter['id'];
+        }
+
         // T-069 (Teil): PDF-Quick-Check
         // - Rein lesend.
         // - Erzeugt das PDF im Speicher und prüft nur Header/EOF, ohne es auszugeben.
-        $pdfTestJahr = (int)date('Y');
-        $pdfTestMonat = (int)date('n');
-        $pdfTestMitarbeiterId = 0;
-        $pdfTestErgebnis = null;
-        $pdfTestHinweis = null;
-
+        $pdfQuickDaten = [
+            'mitarbeiter_id' => $angemeldeteMitarbeiterId,
+            'jahr' => (int)date('Y'),
+            'monat' => (int)date('n'),
+            'ergebnis' => null,
+            'hinweis' => null,
+        ];
 
         // T-069 (Fortsetzung): PDF-Synth-Check (Multi-Block + Multi-Page, DB-unabhängig)
         // - Rein lesend (keine DB-Reads/Mutationen nötig)
         // - Erzeugt ein synthetisches Monats-PDF im Speicher und erwartet mind. 2 Seiten.
-        $pdfSynthJahr = (int)date('Y');
-        $pdfSynthMonat = (int)date('n');
-        $pdfSynthErgebnis = null;
-        $pdfSynthHinweis = null;
+        $pdfSynthDaten = [
+            'jahr' => (int)date('Y'),
+            'monat' => (int)date('n'),
+            'ergebnis' => null,
+            'hinweis' => null,
+        ];
 
         // T-069 (Fortsetzung): PDF DB Auto-Multipage-Check (Kandidat-Finder)
         // - Rein lesend.
         // - Sucht in den letzten X Monaten den Mitarbeiter/Monat mit den meisten Kommen/Gehen-Buchungen
         //   und prüft, ob das erzeugte Monats-PDF mindestens 2 Seiten hat.
-        $pdfDbMultiWindowMonate = 6;
-        $pdfDbMultiErgebnis = null;
-        $pdfDbMultiHinweis = null;
+        $pdfDbMultiDaten = [
+            'window_monate' => 6,
+            'ergebnis' => null,
+            'hinweis' => null,
+        ];
 
         // T-069 (Fortsetzung): PDF DB Kandidaten-Liste (Top-N, rein lesend)
         // - Listet die "besten" Mitarbeiter/Monat-Kombinationen (Kommen/Gehen) im Suchfenster.
         // - Keine PDF-Erzeugung (schnell), nur Links + optionale Detailprüfung via separater Aktion.
-        $pdfDbMultiListLimit = 10;
-        $pdfDbMultiListe = null;
-        $pdfDbMultiListHinweis = null;
-
-
-
-        // Default: angemeldeter Mitarbeiter (wenn vorhanden)
-        $angemeldetFuerPdf = $this->auth->holeAngemeldetenMitarbeiter();
-        if (is_array($angemeldetFuerPdf) && isset($angemeldetFuerPdf['id'])) {
-            $pdfTestMitarbeiterId = (int)$angemeldetFuerPdf['id'];
-        }
+        $pdfDbListeDaten = [
+            'window_monate' => 6,
+            'limit' => 10,
+            'ergebnis' => null,
+            'hinweis' => null,
+        ];
 
         // T-069 (Teil): Feiertag-Quick-Check (Monatsreport)
         // - Prüft, ob ein Datum im Monatsreport als Feiertag erkannt wird und (wenn ohne Arbeit) Sollstunden im Feld "Feiertag" landen.
         // - Hinweis: Der Report kann im Hintergrund fehlende Feiertage nachziehen (idempotentes Seeding), weil es auch im Live-Betrieb so funktioniert.
         $feiertagQuickDaten = [
-            'mitarbeiter_id' => $pdfTestMitarbeiterId,
+            'mitarbeiter_id' => $angemeldeteMitarbeiterId,
             'datum' => (new DateTimeImmutable('today'))->format('Y-01-01'),
             'ergebnis' => null,
             'hinweis' => null,
@@ -3391,7 +3398,7 @@ class SmokeTestController
         // - Prüft, ob `ReportService::holeMonatsdatenFuerMitarbeiter()` wirklich ein vollständiges Monatsraster liefert.
         // - Erwartung: Anzahl Tageswerte = Anzahl Kalendertage im Monat UND alle Datumswerte (YYYY-MM-DD) sind vorhanden.
         $monatsrasterDaten = [
-            'mitarbeiter_id' => $pdfTestMitarbeiterId,
+            'mitarbeiter_id' => $angemeldeteMitarbeiterId,
             'jahr' => (int)date('Y'),
             'monat' => (int)date('n'),
             'ergebnis' => null,
@@ -3402,7 +3409,7 @@ class SmokeTestController
         // - Prüft, ob es Tage mit Zeitbuchungen gibt, die noch keinen Datensatz in `tageswerte_mitarbeiter` haben,
         //   und ob der Monatsreport diese Tage trotzdem sinnvoll füllt (Fallback aus Zeitbuchungen).
         $monatsfallbackDaten = [
-            'mitarbeiter_id' => $pdfTestMitarbeiterId,
+            'mitarbeiter_id' => $angemeldeteMitarbeiterId,
             'jahr' => (int)date('Y'),
             'monat' => (int)date('n'),
             'ergebnis' => null,
@@ -3415,7 +3422,7 @@ class SmokeTestController
         // - Findet Auffälligkeiten: doppelte Typen, gehen ohne kommen, offener Block (kommen ohne gehen), ungerade Anzahl.
         // - Rein lesend.
         $buchungssequenzDaten = [
-            'mitarbeiter_id' => $pdfTestMitarbeiterId,
+            'mitarbeiter_id' => $angemeldeteMitarbeiterId,
             'jahr' => (int)date('Y'),
             'monat' => (int)date('n'),
             'ergebnis' => null,
@@ -3428,7 +3435,7 @@ class SmokeTestController
         //   wenn Arbeitszeit vorhanden ist.
         // - Rein lesend.
         $doppelzaehlungDaten = [
-            'mitarbeiter_id' => $pdfTestMitarbeiterId,
+            'mitarbeiter_id' => $angemeldeteMitarbeiterId,
             'jahr' => (int)date('Y'),
             'monat' => (int)date('n'),
             'ergebnis' => null,
@@ -3439,7 +3446,7 @@ class SmokeTestController
         // - Prüft im Monatsreport, ob an Feiertagen mit Arbeitszeit keine Feiertagsstunden zusätzlich gezählt werden.
         // - Rein lesend.
         $feiertagArbeitszeitDaten = [
-            'mitarbeiter_id' => $pdfTestMitarbeiterId,
+            'mitarbeiter_id' => $angemeldeteMitarbeiterId,
             'jahr' => (int)date('Y'),
             'monat' => (int)date('n'),
             'ergebnis' => null,
@@ -3456,44 +3463,38 @@ class SmokeTestController
 
         // PDF-Quick-Check: PDF wird nur im Speicher erzeugt, ohne Ausgabe/Download.
         if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['pdf_test_run'])) {
-            [
-                'mitarbeiter_id' => $pdfTestMitarbeiterId,
-                'jahr' => $pdfTestJahr,
-                'monat' => $pdfTestMonat,
-                'ergebnis' => $pdfTestErgebnis,
-                'hinweis' => $pdfTestHinweis,
-            ] = $this->pruefePdfQuick($pdfTestMitarbeiterId, $pdfTestJahr, $pdfTestMonat);
+            $pdfQuickDaten = $this->pruefePdfQuick(
+                $pdfQuickDaten['mitarbeiter_id'],
+                $pdfQuickDaten['jahr'],
+                $pdfQuickDaten['monat']
+            );
         }
 
         
         // T-069 (Fortsetzung): PDF-Synth-Check (Multi-Block + Multi-Page, DB-unabhängig)
         if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['pdf_synth_run'])) {
-            [
-                'jahr' => $pdfSynthJahr,
-                'monat' => $pdfSynthMonat,
-                'ergebnis' => $pdfSynthErgebnis,
-                'hinweis' => $pdfSynthHinweis,
-            ] = $this->pruefePdfSynth($pdfSynthJahr, $pdfSynthMonat);
+            $pdfSynthDaten = $this->pruefePdfSynth(
+                $pdfSynthDaten['jahr'],
+                $pdfSynthDaten['monat']
+            );
         }
 
 
 
         // T-069 (Fortsetzung): PDF DB Kandidaten-Liste (Top-N, rein lesend)
         if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST' && (isset($_POST['pdf_db_multipage_list_run']) || isset($_POST['pdf_db_multipage_list_eval']))) {
-            [
-                'window_monate' => $pdfDbMultiWindowMonate,
-                'limit' => $pdfDbMultiListLimit,
-                'ergebnis' => $pdfDbMultiListe,
-                'hinweis' => $pdfDbMultiListHinweis,
-            ] = $this->sucheMultipageKandidaten($pdfDbMultiWindowMonate, $pdfDbMultiListLimit);
+            $pdfDbListeDaten = $this->sucheMultipageKandidaten(
+                $pdfDbListeDaten['window_monate'],
+                $pdfDbListeDaten['limit']
+            );
+            // Beide Abschnitte zeigen dasselbe Suchfenster im Formular – bisher,
+            // weil sie sich eine Variable teilten. Jetzt wandert der Wert sichtbar.
+            $pdfDbMultiDaten['window_monate'] = $pdfDbListeDaten['window_monate'];
         }
         // T-069 (Fortsetzung): PDF DB Auto-Multipage-Check (Kandidat-Finder)
         if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['pdf_db_multipage_run'])) {
-            [
-                'window_monate' => $pdfDbMultiWindowMonate,
-                'ergebnis' => $pdfDbMultiErgebnis,
-                'hinweis' => $pdfDbMultiHinweis,
-            ] = $this->pruefePdfDbMultipage($pdfDbMultiWindowMonate);
+            $pdfDbMultiDaten = $this->pruefePdfDbMultipage($pdfDbMultiDaten['window_monate']);
+            $pdfDbListeDaten['window_monate'] = $pdfDbMultiDaten['window_monate'];
         }
 
         // Feiertag-Quick-Check: Monatsreport-Datum prüfen
