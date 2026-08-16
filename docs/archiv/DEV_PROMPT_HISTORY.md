@@ -119,6 +119,86 @@ in den Statusbericht.
   P-2026-08-16-08.
 
 
+## P-2026-08-16-16 t-127-startseite-ohne-doppelarbeit
+
+### EINGELESEN
+- `docs/STATUS_SNAPSHOT.md` (T-127).
+- `public/terminal.php`, Zeilen 186–213 – der Replay und die Zustandsermittlung,
+  die je Request laufen, **bevor** ein Controller dran ist.
+- `controller/TerminalController::start()` vollständig um die betroffenen
+  Blöcke herum.
+- `views/terminal/start.php` – vor allem die erste Zeile des PHP-Vorspanns, in
+  der `$queueStatus` gesetzt wird.
+- `grep -rn 'queueStatus' views/terminal/` – Gegenprobe, ob eine der Views die
+  Fassung des Controllers benutzt. Antwort: keine, alle lesen die Session.
+
+### DATEIEN
+- `controller/TerminalController.php`
+- `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Die Startseite des Terminals liefert Zeichen für Zeichen dasselbe HTML wie
+vorher – online, offline und mit `&debug=1` –, braucht dafür aber messbar
+weniger Datenbankabfragen, und eine Offline-Buchung wird nach Rückkehr der
+Verbindung weiterhin beim ersten Aufruf eingespielt.
+
+### DONE
+Aus `start()` sind drei Blöcke entfallen:
+
+- **Der zweite Replay-Anstoß** samt eigenem 10-Sekunden-Rate-Limit über die
+  Session. `public/terminal.php` arbeitet die Queue bei jedem Request ab, bevor
+  ein Controller läuft; die Startseite hat also nie eine offene Buchung
+  vorgefunden, die dort nicht schon versucht worden wäre. Der Schlüssel
+  `terminal_offlinequeue_replay_last` wird nirgends sonst benutzt.
+- **Zwei Blöcke, die den Queue-Status zählten** – derselbe `GROUP BY status`,
+  dieselbe Abfrage nach der letzten Fehlermeldung, dasselbe Ziel-Array, direkt
+  hintereinander.
+
+### Gefundene Fehler im eigenen Entwurf
+T-127 sagt „ermittelt den Queue-Status zweimal hintereinander identisch", und
+danach hätte man den zweiten Block gestrichen. Beim Nachsehen, wer das Ergebnis
+liest, stellte sich heraus: **niemand.** `views/terminal/start.php` setzt in
+seiner ersten Zeile `$queueStatus = $_SESSION['terminal_queue_status'] ?? null;`
+– die View teilt sich den Gültigkeitsbereich mit der Methode und überschreibt
+die mühsam gezählte Fassung, bevor irgendetwas sie anschaut. Auch die anderen
+Views (`_statusbox.php`, `stoerung.php`, `offline_info.php`) lesen die Session.
+Also sind beide Blöcke entfallen, nicht nur der zweite.
+
+Das ist zugleich die Erklärung, warum das so lange niemandem auffiel: Der
+Fehler war unsichtbar, weil die richtige Anzeige aus einer anderen Quelle kam.
+
+### TEST
+Zwei Terminal-Kopien auf denselben Probe-Datenbanken: alt = HEAD (426e898) auf
+Port 8807, neu = Arbeitsstand auf 8808.
+
+1. **HTML Zeichen für Zeichen verglichen** (Uhrzeit, CSRF-Token und
+   Cache-Buster normalisiert): Startseite online (1645 Bytes), Startseite
+   offline (2707 Bytes), Startseite mit `&debug=1` online (6308) und offline
+   (7380), dazu `?aktion=offline_info` in beiden Lagen – jedes Mal identisch.
+2. **Abfragen gezählt** über `SHOW GLOBAL STATUS LIKE 'Questions'`, 20 Aufrufe
+   je Stand, zweimal wiederholt und beide Male gleich: **19 Abfragen je Aufruf
+   vorher, 14 nachher.**
+3. **Replay End-to-End:** Hauptdatenbank tot, im Browser Chip `CHIP-T127`
+   gescannt und „Kommen" gedrückt → Eintrag `offen` in der Ausweichdatenbank,
+   `zeitbuchung` leer. Verbindung zurück, **ein** Aufruf der Startseite →
+   Eintrag `verarbeitet` mit `versuche = 1`, und in `zeitbuchung` steht die
+   Buchung mit der Offline-Zeit 14:13:56 und `terminal_id = 1`. Der Replay
+   hängt also nicht am gelöschten Anstoß, und er hat genau einmal versucht.
+
+`php -l` über `controller/TerminalController.php`, alle sechs Serverlogs ohne
+Warnung oder Deprecation.
+
+### Was bewusst nicht erreicht wurde
+Die verbliebenen drei Stellen in `start()` und den Nachbarmethoden, die die
+Queue-Datenbank selbst auswählen (Debug-Liste, Offline-Hinweis zur RFID,
+Verarbeitungs-Report), bleiben stehen – das ist T-133 und hat mit „doppelte
+Arbeit je Aufruf" nichts zu tun. Die Zahl in T-133 sinkt damit von fünf auf
+drei.
+
+### NEXT
+T-133, wenn Aufräumen an der Reihe ist; sonst T-126 (Offline-Menü und
+Meldungstexte) als nächster sichtbarer Punkt.
+
 ## P-2026-08-16-15 t-131-rfid-bridge-konfiguration-wirkt
 
 ### EINGELESEN

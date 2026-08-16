@@ -45,9 +45,6 @@ Abschnitt 5. Reihenfolge ist Absicht: T-125 kommt zuletzt.
   zuweisen", obwohl alle drei offline nur in Fehlermeldungen enden; dazu nennt
   die Meldung „RFID-Code erfasst (ID …)" den Chipcode „ID" und der Hinweis
   „Bitte RFID-Chip an das Lesegerät halten" bleibt nach dem Scan stehen.
-- **T-127** `TerminalController::start()` ermittelt den Queue-Status zweimal
-  hintereinander identisch und stößt den Replay ein zweites Mal an, obwohl
-  `public/terminal.php` das bei jedem Request schon tut.
 - **T-128** Zwischen dem Commit auf der Hauptdatenbank und dem
   `UPDATE status='verarbeitet'` in der Queue gibt es keinen gemeinsamen
   Abschluss – fällt genau dazwischen der Strom aus, wird der Eintrag beim
@@ -55,7 +52,7 @@ Abschnitt 5. Reihenfolge ist Absicht: T-125 kommt zuletzt.
 - **T-129** Dass ein unbekannter Chip keine Buchung auf `mitarbeiter_id = 0`
   erzeugt, hängt allein am `sql_mode` des Servers; einen Fremdschlüssel, der
   das auffinge, hat `zeitbuchung` nicht.
-- **T-133** Aufräumen ohne sichtbaren Effekt: Fünf Stellen in
+- **T-133** Aufräumen ohne sichtbaren Effekt: Drei Stellen in
   `controller/TerminalController.php` wählen die Queue-Datenbank selbst statt
   über den `OfflineQueueManager`, `ZeitService` und `AuftragszeitService` haben
   je eine private `istTerminalInstallation()` neben der in `Helper`, und drei

@@ -1496,31 +1496,13 @@ class TerminalController
             $debugAktiv = (bool)$_SESSION['terminal_debug_aktiv'];
         }
 
-        // Offline-Queue Replay-Trigger (End-to-End Feldtest):
-        // Sobald die Hauptdatenbank wieder verfügbar ist, versuchen wir bei jedem
-        // Aufruf der Startseite die offenen Queue-Einträge abzuarbeiten.
-        // Rate-Limit über Session, damit wir bei schnellen Reloads nicht spammen.
-        try {
-            $db = Database::getInstanz();
-            $hauptOk = false;
-            $hauptOk = (bool)$db->istHauptdatenbankVerfuegbar();
-
-            if ($hauptOk) {
-                $now = time();
-                $last = 0;
-                if (isset($_SESSION['terminal_offlinequeue_replay_last'])) {
-                    $last = (int)$_SESSION['terminal_offlinequeue_replay_last'];
-                }
-
-                // 10s Mindestabstand
-                if (($now - $last) >= 10) {
-                    $_SESSION['terminal_offlinequeue_replay_last'] = $now;
-                    OfflineQueueManager::getInstanz()->verarbeiteOffeneEintraege();
-                }
-            }
-        } catch (Throwable $e) {
-            // bewusst ignorieren: Terminal darf dadurch nicht ausfallen.
-        }
+        // Hier stand ein zweiter Replay-Anstoß für die Offline-Queue, mit
+        // eigenem 10-Sekunden-Rate-Limit über die Session. Er ist entfallen
+        // (T-127): `public/terminal.php` arbeitet die Queue bei **jedem**
+        // Request ab, bevor überhaupt ein Controller läuft – die Startseite
+        // hat also nie eine offene Buchung vorgefunden, die dort nicht schon
+        // versucht worden wäre. Was blieb, war ein zweiter Durchlauf pro
+        // Aufruf und ein Rate-Limit, das nichts begrenzte.
 
         // Debug-Ansicht: letzte Queue-Einträge anzeigen (hilft bei T-069 Teil 2b: Offline-Queue)
         $debugQueueEintraege = null;
@@ -1561,116 +1543,16 @@ class TerminalController
             }
         }
 
-        // Offline-Queue Status (immer lesen, aber nur anzeigen wenn Auffälligkeiten da sind).
-        // Wir versuchen bevorzugt die Offline-DB (Terminal), sonst Fallback auf Haupt-DB.
-        $queueStatus = [
-            'offen'       => 0,
-            'fehler'      => 0,
-            'verarbeitet' => 0,
-            'letzter_fehler_kurz' => null,
-        ];
-
-        try {
-            $db = Database::getInstanz();
-            $pdo = null;
-
-            try {
-                $pdo = $db->getOfflineVerbindung();
-            } catch (Throwable $e) {
-                $pdo = null;
-            }
-
-            if (!($pdo instanceof PDO)) {
-                try {
-                        $pdo = $db->getVerbindung();
-                } catch (Throwable $e) {
-                    $pdo = null;
-                }
-            }
-
-            if ($pdo instanceof PDO) {
-                $stmt = $pdo->query("SELECT status, COUNT(*) AS cnt FROM db_injektionsqueue GROUP BY status");
-                if ($stmt !== false) {
-                    while (($row = $stmt->fetch(PDO::FETCH_ASSOC)) !== false) {
-                        $st = (string)($row['status'] ?? '');
-                        $cnt = (int)($row['cnt'] ?? 0);
-                        if ($st !== '' && array_key_exists($st, $queueStatus)) {
-                            $queueStatus[$st] = $cnt;
-                        }
-                    }
-                }
-
-                if ((int)$queueStatus['fehler'] > 0) {
-                    $stmt2 = $pdo->query(
-                        "SELECT LEFT(COALESCE(fehlernachricht,''), 140) AS fehler_kurz "
-                        . "FROM db_injektionsqueue WHERE status='fehler' ORDER BY letzte_ausfuehrung DESC, id DESC LIMIT 1"
-                    );
-                    if ($stmt2 !== false) {
-                        $row2 = $stmt2->fetch(PDO::FETCH_ASSOC);
-                        if (is_array($row2) && isset($row2['fehler_kurz'])) {
-                            $t = trim((string)$row2['fehler_kurz']);
-                            if ($t !== '') {
-                                $queueStatus['letzter_fehler_kurz'] = $t;
-                            }
-                        }
-                    }
-                }
-            }
-        } catch (Throwable $e) {
-            // Status bleibt auf Default (0) – Terminal darf nicht blockieren.
-        }
-
-        // Queue-Status (auch ohne Debug): nur counts + letzter Fehler (kurz).
-        // Die Verbindung kann je nach Setup die Offline-DB oder (Fallback) die Haupt-DB sein.
-        try {
-            $db = Database::getInstanz();
-            $pdo = null;
-
-            try {
-                $pdo = $db->getOfflineVerbindung();
-            } catch (Throwable $e) {
-                $pdo = null;
-            }
-
-            if (!($pdo instanceof PDO)) {
-                try {
-                        $pdo = $db->getVerbindung();
-                } catch (Throwable $e) {
-                    $pdo = null;
-                }
-            }
-
-            if ($pdo instanceof PDO) {
-                $stmt = $pdo->query("SELECT status, COUNT(*) AS c FROM db_injektionsqueue GROUP BY status");
-                if ($stmt !== false) {
-                    while (($row = $stmt->fetch(PDO::FETCH_ASSOC)) !== false) {
-                        $status = (string)($row['status'] ?? '');
-                        $cnt = (int)($row['c'] ?? 0);
-                        if (isset($queueStatus[$status])) {
-                            $queueStatus[$status] = $cnt;
-                        }
-                    }
-                }
-
-                if ((int)$queueStatus['fehler'] > 0) {
-                    $stmt2 = $pdo->query(
-                        "SELECT LEFT(COALESCE(fehlernachricht,''), 140) AS fehler_kurz FROM db_injektionsqueue "
-                        . "WHERE status='fehler' ORDER BY letzte_ausfuehrung DESC, id DESC LIMIT 1"
-                    );
-                    if ($stmt2 !== false) {
-                        $row2 = $stmt2->fetch(PDO::FETCH_ASSOC);
-                        if (is_array($row2) && isset($row2['fehler_kurz'])) {
-                            $t = trim((string)$row2['fehler_kurz']);
-                            if ($t !== '') {
-                                $queueStatus['letzter_fehler_kurz'] = $t;
-                            }
-                        }
-                    }
-                }
-            }
-        } catch (Throwable $e) {
-            // leise ignorieren – Terminal darf nie daran scheitern.
-        }
+        // Hier standen zwei Blöcke, die den Queue-Status zählten – derselbe
+        // `GROUP BY status`, dieselbe Fehlermeldung, dasselbe Ziel-Array, direkt
+        // hintereinander. Beide sind entfallen (T-127), und zwar nicht nur der
+        // zweite: Das Ergebnis wurde nie gelesen. `views/terminal/start.php`
+        // überschreibt `$queueStatus` in seiner ersten Zeile mit
+        // `$_SESSION['terminal_queue_status']` – dem Zustand, den
+        // `public/terminal.php` je Request ermittelt und den auch
+        // `_statusbox.php` und `stoerung.php` benutzen. Es waren also zwei bis
+        // vier Abfragen je Aufruf der Startseite für einen Wert, den niemand
+        // anschaut.
 
         // Login-Versuch per POST
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
