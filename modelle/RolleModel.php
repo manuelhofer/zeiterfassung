@@ -302,7 +302,22 @@ class RolleModel
             // Rechte speichern (wenn Tabellen verfügbar). Falls nicht, nur Rolle
             // speichern. `null` heißt „nicht anfassen" (T-136).
             if ($rechtIds !== null && $this->sindRechteTabellenVerfuegbar($pdo)) {
-                $del = $pdo->prepare('DELETE FROM rolle_hat_recht WHERE rolle_id = :rid');
+                // Nur wegnehmen, was die Maske überhaupt zur Auswahl gestellt
+                // hat (T-137). Sie zeigt seit Phase 1b nur **aktive** Rechte;
+                // ein `DELETE` über alle löschte deshalb bei jedem Speichern
+                // still die Zuordnungen zu inaktiven (Legacy-)Rechten mit -
+                // gemessen 30 Zuordnungen vor dem Speichern, 25 danach, ohne
+                // dass jemand ein Kästchen angefasst hätte.
+                //
+                // Wirkung hatten diese Zuordnungen zwar keine (`AuthService`
+                // filtert überall auf `r.aktiv = 1`), aber die Maske hat sie
+                // nicht gezeigt und darf deshalb auch nicht über sie
+                // entscheiden - dieselbe Regel wie in T-136.
+                $del = $pdo->prepare(
+                    'DELETE FROM rolle_hat_recht
+                      WHERE rolle_id = :rid
+                        AND recht_id IN (SELECT id FROM recht WHERE aktiv = 1)'
+                );
                 $del->execute(['rid' => $rolleId]);
 
                 if (count($rechtIds) > 0) {

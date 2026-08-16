@@ -18,6 +18,89 @@ legacy_zip_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-08-16-29 t-137-inaktive-rechte-ueberleben-das-speichern
+
+### EINGELESEN
+- `services/AuthService.php`, `ladeRechteCodesAusDb()` und die Superuser-Prüfung
+  – die Frage, ob ein inaktives Recht überhaupt etwas bewirkt.
+- `modelle/RolleModel.php`, `speichereRolleMitRechten()` – das `DELETE`.
+- `controller/MitarbeiterAdminController.php`, der Override-Block – das zweite
+  `DELETE` derselben Bauart.
+- P-2026-08-16-28 (T-136) – die Regel, die dieser Patch fortsetzt.
+
+### DATEIEN
+- `modelle/RolleModel.php`, `controller/MitarbeiterAdminController.php`
+- `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Eine Rolle mit 30 Zuordnungen (25 aktive, 5 inaktive Rechte) hat nach einem
+unveränderten Speichern der Maske wieder 30 – und ein abgehaktes Recht
+verschwindet trotzdem.
+
+### DONE
+Beide Masken schrieben ihre Auswahl mit „alles weg, dann das Angezeigte neu"
+zurück. Seit Phase 1b zeigen sie nur **aktive** Rechte – das „alles" war also
+größer als das „Angezeigte", und bei jedem Speichern fielen die Zuordnungen zu
+inaktiven Rechten weg. Gemessen: Rolle 1 vorher 30, nachher 25; ein Mitarbeiter
+mit vier Overrides (zwei auf aktive, zwei auf inaktive Rechte) behielt zwei.
+
+Beide `DELETE` sind jetzt auf genau das eingegrenzt, was die Maske zur Auswahl
+gestellt hat:
+
+```sql
+DELETE FROM rolle_hat_recht
+ WHERE rolle_id = :rid
+   AND recht_id IN (SELECT id FROM recht WHERE aktiv = 1)
+```
+
+**Warum überhaupt, wenn es nichts bewirkt:** `AuthService` filtert an allen
+fünf Auswertungsstellen auf `r.aktiv = 1` – ein inaktives Recht gibt niemandem
+etwas, weder über die Rolle noch über einen Override. Der Schaden war also
+nicht „falsche Rechte", sondern eine stille Datenänderung: Wer eine
+Rollenbeschreibung korrigiert, entfernt nebenbei Zuordnungen, die er nie zu
+sehen bekam. Wird ein Legacy-Recht später wieder aktiv geschaltet, ist es
+weg – ohne dass irgendwo steht, wann und durch wen.
+
+Die Gegenfrage stand im Snapshot und ist beantwortet: Der Phase-1b-Kommentar
+sagt „ausblenden, **damit die UI keine alten Codes mehr anzeigt**" – er redet
+über die Anzeige, nicht über die Daten. Eine Maske, die etwas verbirgt, darf
+nicht darüber entscheiden. Das ist dieselbe Regel wie in T-136, einen Tag alt.
+
+### TEST
+Prüfumgebung, `alt` = 7a01d2b, `neu` = Arbeitsstand.
+
+1. **Rolle, unverändert gespeichert:** Rolle 1 mit allen 30 Rechten (25 aktiv,
+   5 inaktiv) → `alt` 30/25/0, `neu` 30/25/5. Der alte Stand verliert die fünf,
+   der neue behält sie.
+2. **Mitarbeiter-Overrides, unverändert gespeichert:** vier Overrides, davon
+   zwei auf inaktive Rechte → `alt` 2/2/0, `neu` 4/2/2.
+3. **Gegenprobe Abwählen:** ein aktives Recht im Formular abgehakt → 30 wird
+   29, die fünf inaktiven bleiben. Der engere Löschbereich verhindert das
+   Entfernen also nicht.
+4. **Gegenprobe Override entfernen:** alle 25 Auswahlfelder auf „vererbt"
+   gesetzt → die beiden aktiven Overrides verschwinden, die beiden inaktiven
+   bleiben (2/0/2).
+5. **Seiten unverändert:** Smoke-Test, Dashboard, Rolle bearbeiten, „Rollen &
+   Rechte" – je 0 abweichende Zeilen.
+6. `php -l` über beide Dateien, `meldungen` → beide Serverlogs ohne
+   PHP-Meldung.
+
+Die Tests 3 und 4 sind der eigentliche Inhalt dieses Prüflaufs: Eine
+Einschränkung eines `DELETE` ist schnell zu weit gefasst, und dann speichert
+die Maske gar nichts mehr – das fiele im Alltag sofort auf, in einem Test, der
+nur „nichts verloren" prüft, aber nie.
+
+### Was bewusst nicht erreicht wurde
+Der Löschbereich steht als `aktiv = 1` im SQL und nicht als Liste der IDs, die
+die Maske wirklich gerendert hat. Beides ist heute dasselbe – der einzige
+Aufrufer ruft `holeAlleRechte(true)`. Sollte je eine zweite Maske mit anderer
+Auswahl dazukommen, ist das die Stelle, die nachgezogen werden muss; ein
+Parameter dafür wäre heute Vorrat ohne Bedarf.
+
+### NEXT
+T-137 ist erledigt. Offen bleiben T-125 (lokale Liste der Berechtigten am
+Terminal) und der Gerätetest.
+
 ## P-2026-08-16-28 t-136-keine-auswahl-speichern-die-nie-da-war
 
 ### EINGELESEN

@@ -1876,7 +1876,15 @@ class MitarbeiterAdminController
 
                 $pdo->beginTransaction();
 
-                $stmtDel = $pdo->prepare('DELETE FROM mitarbeiter_hat_recht WHERE mitarbeiter_id = :mid');
+                // Wie bei der Rolle (T-137): nur wegnehmen, was die Maske zur
+                // Auswahl gestellt hat. Sie zeigt nur aktive Rechte, also
+                // dürfen Overrides auf inaktive Rechte hier nicht mit
+                // verschwinden.
+                $stmtDel = $pdo->prepare(
+                    'DELETE FROM mitarbeiter_hat_recht
+                      WHERE mitarbeiter_id = :mid
+                        AND recht_id IN (SELECT id FROM recht WHERE aktiv = 1)'
+                );
                 $stmtDel->execute([':mid' => $mitarbeiterIdNachSave]);
 
                 if (count($rechtOverridesToSave) > 0) {
