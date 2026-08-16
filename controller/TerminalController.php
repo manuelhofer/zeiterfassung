@@ -1934,6 +1934,27 @@ class TerminalController
             $heuteBuchungen  = $uebersicht['buchungen'];
             $heuteFehler     = $uebersicht['fehler'];
 
+            // T-134: Offline entscheidet allein der Session-Merker über „anwesend", und
+            // geschrieben wurde er bisher nur beim Buchen. Wer angemeldet war, ohne in
+            // dieser Sitzung zu stempeln, galt beim Ausfall als nicht anwesend – das Menü
+            // bot dann „Kommen“ an, obwohl der Tag längst ein „Kommen“ hat.
+            // Gezählt wird dieselbe Liste, die der Startbildschirm online anzeigt;
+            // Mikro-Paare fallen paarweise weg und verschieben das Verhältnis nicht.
+            $kommenHeute = 0;
+            $gehenHeute  = 0;
+            foreach ($heuteBuchungen as $b) {
+                if (!is_array($b)) {
+                    continue;
+                }
+                $typ = isset($b['typ']) ? (string)$b['typ'] : '';
+                if ($typ === 'kommen') {
+                    $kommenHeute++;
+                } elseif ($typ === 'gehen') {
+                    $gehenHeute++;
+                }
+            }
+            $this->setzeTerminalAnwesenheitStatus($kommenHeute > $gehenHeute);
+
             try {
                 $auftragszeitModel = new AuftragszeitModel();
                 $laufendeAuftraege = $auftragszeitModel->holeLaufendeFuerMitarbeiter((int)$mitarbeiter['id']);

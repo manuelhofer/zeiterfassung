@@ -18,6 +18,91 @@ legacy_zip_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-08-16-20 t-134-anwesenheit-ueberlebt-den-ausfall
+
+### EINGELESEN
+- `controller/TerminalController.php`, Zeilen 522–587
+  (`setzeTerminalAnwesenheitStatus()`, `istTerminalMitarbeiterHeuteAnwesend()`)
+  – wer den Merker schreibt und wann.
+- `controller/TerminalController.php`, Zeilen 1908–1945 (`start()`, Online-Zweig)
+  – dort liegt die Tagesliste bereits.
+- `controller/TerminalController.php`, Zeilen 274–375
+  (`holeHeutigeZeitUebersicht()`, `filtereMicroZeitbuchungenAusListe()`) – ob
+  der Mikro-Filter das Verhältnis kommen/gehen verschiebt.
+- `views/terminal/start.php`, Zeilen 171–202 – woher `$istAnwesend` kommt:
+  online gezählt, offline aus der Session.
+
+### DATEIEN
+- `controller/TerminalController.php`
+- `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Eine Sitzung, die angemeldet ist und deren Tag ein „Kommen" von 07:12 hat, ohne
+dass in dieser Sitzung gestempelt wurde, zeigt nach dem Ausfall der
+Hauptdatenbank weiterhin „Gehen" – nicht „Du bist aktuell nicht als anwesend
+erfasst" mit dem Knopf „Kommen".
+
+### DONE
+Offline entscheidet allein `$_SESSION['terminal_anwesend']`, ob jemand als
+anwesend gilt. Geschrieben hat den Merker nur
+`istTerminalMitarbeiterHeuteAnwesend()` – und die ruft der Startbildschirm
+online gar nicht auf, er zählt selbst. Wer sich also anmeldete und nichts
+buchte, hatte den Merker nie: Im Moment des Ausfalls wurde aus „anwesend, bitte
+Gehen" ein „nicht anwesend, bitte Kommen". Ein Tipper darauf hätte ein zweites
+`kommen` desselben Tages in die Queue gelegt.
+
+`start()` zählt die Tagesliste jetzt im Online-Zweig aus und schreibt den
+Merker – dieselbe Liste, die der Bildschirm daneben anzeigt, also kann Anzeige
+und Merker nicht auseinanderlaufen. Ein zusätzlicher Datenbankzugriff entsteht
+nicht; die Liste liegt an dieser Stelle bereits (deshalb **nicht**
+`istTerminalMitarbeiterHeuteAnwesend()` aufgerufen – die fragt ein zweites Mal,
+und genau das war T-127).
+
+Mikro-Paare (Kommen/Gehen binnen 180 s) sind aus der Liste gefiltert. Sie
+fallen paarweise, verschieben `kommen > gehen` also nicht.
+
+### TEST
+Prüfumgebung, `alt` = eb14b14 (davor), `neu` = Arbeitsstand, beide als
+Terminal. Nachgestellt wurde der Fall, der es auslöst: Das „Kommen" gehört zum
+Tag, aber nicht zu dieser Sitzung – hier per `INSERT` als Buchung von 07:12,
+in echt eine ältere Sitzung, ein anderes Terminal oder ein Queue-Eintrag von
+vorhin.
+
+1. **Online sind beide gleich:** angemeldet per Chip → beide Stände zeigen
+   „Gehen" und „Auftrag starten". `vergleichen 'terminal.php?aktion=start'`
+   → 0 abweichende Zeilen.
+2. **Der Ausfall, gleiche Sitzung, ein Seitenaufruf später:** „alt" zeigt „Du
+   bist aktuell nicht als anwesend erfasst" und den Knopf „Kommen". „neu" zeigt
+   „Gehen" und „Auftrag starten".
+3. **Der Weg, der vorher gar nicht offenstand:** „Gehen" offline gedrückt →
+   HTTP 302, in `zeit_probe_off` Eintrag 1 `zeit_gehen` (Mitarbeiter 15) und
+   Eintrag 2 `auftrag_stop_alle`, beide `offen`.
+4. **Rückkehr:** `terminal`, ein Seitenaufruf → beide Einträge `verarbeitet`
+   (`versuche = 1`), in `zeitbuchung` steht neben dem Kommen von 07:12 das
+   Gehen mit seiner Offline-Zeit 15:41:31 und `terminal_id = 1`.
+5. **Gegenrichtung:** Nach dem Gehen ist die Sitzung wie vorgesehen leer, der
+   Bildschirm steht wieder auf „Bitte RFID-Chip an das Lesegerät halten".
+6. `php -l` über die geänderte Datei, `meldungen` → beide Serverlogs ohne
+   PHP-Meldung.
+
+Umgebung abgeräumt und nachgeprüft: kein Port 8801–8808, kein `php`-Prozess,
+keine `zeit_probe`-Datenbank, Verzeichnis gelöscht, `zeiterfassung` und
+`zeiterfassung_offline` unberührt.
+
+### Was bewusst nicht erreicht wurde
+Der Merker ist weiterhin nur so frisch wie der letzte Seitenaufruf mit
+Verbindung. Bucht jemand an einem **anderen** Terminal, während dieses Gerät
+offline ist, weiß dieses Gerät davon nichts – das kann es nicht, und dafür ist
+T-125 da (lokale Liste), nicht dieser Patch.
+
+Nicht angefasst: Dass `istTerminalMitarbeiterHeuteAnwesend()` ungefiltert zählt
+und der Bildschirm gefiltert, bleibt ein Unterschied zwischen Guard und
+Anzeige. Er wirkt nur bei Mikro-Paaren, fällt dort paarweise aus und war nie
+Gegenstand einer Beobachtung – notiert, nicht mitgemacht.
+
+### NEXT
+T-133 (Aufräumen ohne sichtbaren Effekt).
+
 ## P-2026-08-16-19 t-126-offline-menue-ohne-tote-tueren
 
 ### EINGELESEN
