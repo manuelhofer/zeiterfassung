@@ -99,6 +99,79 @@ in den Statusbericht.
   D-002 entfallen; die Regel selbst gilt weiter.)
 
 
+## P-2026-08-16-05 t-105-login-ergebnis-unter-sein-formular
+
+### EINGELESEN
+- `docs/STATUS_SNAPSHOT.md` (T-105) und P-2026-08-16-01, „Was bewusst nicht
+  erreicht wurde" – dort steht die Frage, die dieser Patch beantwortet.
+- `views/smoke_test/index.php` vollständig, dazu
+  `SmokeTestController::pruefeTerminalLogin()` (welche Zweige der Block hat).
+
+### DATEIEN
+- `views/smoke_test/index.php`
+- `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Nach „Prüfen" mit dem Code `RFID-PRUEF-001` steht das Ergebnis („OK: Terminal
+würde den Mitarbeiter per rfid einloggen") direkt unter dem Formular des
+Terminal-Login-Checks statt neun Überschriften weiter unten – und ist Zeile für
+Zeile dasselbe Ergebnis wie vorher.
+
+### DONE
+Das Formular des Terminal-Login-Checks stand oben auf der Seite, sein Ergebnis
+erst hinter neun weiteren Blöcken: Man drückte „Prüfen" und sah nichts. Der
+Ergebnisblock ist jetzt dort, wo jeder andere Check seinen hat – zwischen dem
+Hinweis und dem nächsten Abschnitt.
+
+Verschoben, nicht umgeschrieben: Die 101 Zeilen sind unverändert übernommen.
+Das ist der Grund, warum der Vergleich unten so scharf sein kann – was oben
+dazukommt, muss unten wortgleich fehlen.
+
+Damit ist die Frage aus P-2026-08-16-01 entschieden: **kein** zweites
+Teil-Template für einen Check. Der Block steht jetzt zusammenhängend und lässt
+sich in einem Stück schneiden.
+
+### TEST
+Pruefumgebung aus P-2026-08-16-04, `alt` auf 0abad5a, Probe-Daten für die
+Zweige des Checks: Prüfbenutzer mit RFID `RFID-PRUEF-001` und Personalnummer
+4711, ein zweiter Mitarbeiter mit Personalnummer 15 (= ID des ersten, macht den
+numerischen Code mehrdeutig), ein dritter inaktiv, dazu ein „kommen" von heute.
+
+| Lage | Abweichende Zeilen | davon oben dazu / unten weg |
+| --- | --- | --- |
+| Code `RFID-PRUEF-001` (OK + Anwesenheit) | 78 | 39 / 39, **wortgleich** |
+| Code `15` (BLOCK, mehrdeutig + Alternativen) | 34 | 17 / 17, wortgleich |
+| Code `17` (FAIL + Hinweis „inaktiv") | 30 | 15 / 15, wortgleich |
+| Code `xyz` (FAIL) | 12 | 6 / 6, wortgleich |
+| Code leer (nur Hinweis) | 0 | – |
+| Seite ohne POST | 0 | – |
+
+„Wortgleich" heißt: Die hinzugefügten Zeilen des Diffs, vom Vorzeichen befreit,
+sind Byte für Byte dieselben wie die entfernten. Der Block ist damit
+nachweislich derselbe – nur an einer anderen Stelle.
+
+**Die Stelle selbst ist nachgesehen**, nicht nur die Gleichheit: Im alten Stand
+liegt „Terminal würde den Mitarbeiter per …" hinter der zehnten `<h3>` der
+Seite, im neuen zwischen der ersten und der zweiten.
+
+72 Backend-Routen aus `public/index.php` gelesen (nicht aus dem Gedächtnis) und
+gegen beide Stände abgefragt: identische Statuscodes, keine Abweichung.
+`php -l`, beide Serverlogs ohne PHP-Meldung, die Umlaut-Suchläufe der
+Wartungscheckliste ohne Treffer.
+
+### Was bewusst nicht erreicht wurde
+Die zwei Leerzeilen vor `<?php endif; ?>` sind mitgewandert, obwohl sie
+überflüssig sind. Wer verschiebt und dabei aufräumt, kann hinterher nicht mehr
+belegen, dass er nur verschoben hat.
+
+Der Block ist weiterhin kein Teil-Template und `$terminalLoginCode`,
+`$terminalLoginErgebnis`, `$terminalLoginHinweis` sind weiterhin drei lose
+Variablen statt eines Bündels – das ist der nächste Patch und ein anderes
+Thema.
+
+### NEXT
+T-105 abschließen: der Terminal-Login-Check als Teil-Template mit einem Bündel.
+
 ## P-2026-08-16-04 pruefumgebung-als-skript
 
 ### EINGELESEN

@@ -69,24 +69,6 @@ require __DIR__ . '/../layout/header.php';
         </div>
     <?php endif; ?>
 
-    <?php require __DIR__ . '/pdf_quick.php'; ?>
-
-    <?php require __DIR__ . '/pdf_synth.php'; ?>
-
-    <?php require __DIR__ . '/pdf_db_multipage.php'; ?>
-
-    <?php require __DIR__ . '/feiertag_quick.php'; ?>
-
-    <?php require __DIR__ . '/monatsraster.php'; ?>
-
-    <?php require __DIR__ . '/monatsfallback.php'; ?>
-
-    <?php require __DIR__ . '/doppelzaehlung.php'; ?>
-
-    <?php require __DIR__ . '/feiertag_arbeitszeit.php'; ?>
-
-    <?php require __DIR__ . '/buchungssequenz.php'; ?>
-
     <?php if (is_array($terminalLoginErgebnis)):
         $typ = $terminalLoginErgebnis['typ'] ?? null;
         $m = $terminalLoginErgebnis['mitarbeiter'] ?? null;
@@ -189,8 +171,24 @@ require __DIR__ . '/../layout/header.php';
 
     <?php endif; ?>
 
+    <?php require __DIR__ . '/pdf_quick.php'; ?>
 
-    
+    <?php require __DIR__ . '/pdf_synth.php'; ?>
+
+    <?php require __DIR__ . '/pdf_db_multipage.php'; ?>
+
+    <?php require __DIR__ . '/feiertag_quick.php'; ?>
+
+    <?php require __DIR__ . '/monatsraster.php'; ?>
+
+    <?php require __DIR__ . '/monatsfallback.php'; ?>
+
+    <?php require __DIR__ . '/doppelzaehlung.php'; ?>
+
+    <?php require __DIR__ . '/feiertag_arbeitszeit.php'; ?>
+
+    <?php require __DIR__ . '/buchungssequenz.php'; ?>
+
     <?php require __DIR__ . '/terminal_konfiguration.php'; ?>
 
     <?php require __DIR__ . '/offline_queue.php'; ?>
