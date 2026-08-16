@@ -93,12 +93,14 @@ url_von() {
     esac
 }
 
-# HTML vergleichbar machen: ein Strom, Umbruch nach jedem '>', Token maskiert.
-# Damit faellt auch der fehlende Zeilenumbruch von Csrf::feld() weg, der sonst
-# jede Tabelle mit Schein-Abweichungen fuellt.
+# HTML vergleichbar machen: ein Strom, Umbruch nach jedem '>', Token maskiert,
+# Einrueckung weg. Damit faellt der fehlende Zeilenumbruch von Csrf::feld()
+# ebenso weg wie die Ebene, die ein Block verliert, wenn er aus der Seite in
+# ein Teil-Template wandert - beides ist Leerraum und kein Unterschied.
 normalisieren() {
     tr -d '\r\n\t' \
         | sed -e 's/[[:space:]]\{1,\}/ /g' -e 's/>/>\n/g' \
+        | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' \
         | sed -e 's/\(name="csrf_token" value="\)[^"]*"/\1TOKEN"/g'
 }
 
@@ -382,6 +384,16 @@ befehl_vergleichen() {
         return 1
     fi
     if [ "$abweichungen" != "0" ]; then
+        # Letzte Instanz: Ein Block, der in ein Teil-Template wandert, verliert
+        # eine Einrueckungsebene - das steht danach als Leerzeichen mitten im
+        # Strom und ist trotzdem kein Unterschied. Wer beide Dokumente ohne
+        # jedes Leerzeichen vergleicht, sieht es.
+        tr -d '[:space:]' < "$BASIS/alt.norm" > "$BASIS/alt.eng"
+        tr -d '[:space:]' < "$BASIS/neu.norm" > "$BASIS/neu.eng"
+        if cmp -s "$BASIS/alt.eng" "$BASIS/neu.eng"; then
+            gruen "Nur Leerraum: ohne jedes Leerzeichen sind beide Dokumente identisch."
+            return 0
+        fi
         head -40 "$BASIS/diff.txt"
         return 1
     fi

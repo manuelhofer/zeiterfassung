@@ -99,6 +99,67 @@ in den Statusbericht.
   D-002 entfallen; die Regel selbst gilt weiter.)
 
 
+## P-2026-08-16-06 pruefumgebung-vergleich-ohne-einrueckung
+
+### EINGELESEN
+- `scripts/dev/pruefumgebung.sh`, Funktionen `normalisieren()` und
+  `befehl_vergleichen()` (P-2026-08-16-04).
+- P-2026-08-15-46 und P-2026-08-16-01 – dort steht, was „leerraum-unabhängig"
+  in diesem Projekt heißen soll.
+
+### DATEIEN
+- `scripts/dev/pruefumgebung.sh`
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Ein Block, der aus der Seite in ein Teil-Template wandert und dabei eine
+Einrückungsebene verliert, meldet im Vergleich keine Abweichung mehr – eine
+geänderte Überschrift dagegen weiterhin, mit Rückgabewert 1.
+
+### DONE
+Das Skript versprach einen Vergleich, der Leerraum ignoriert, und hielt es
+nicht: Es fasste Leerraum zwar zusammen, ließ ihn aber am Zeilenanfang stehen.
+Beim ersten echten Einsatz (Terminal-Login-Check als Teil-Template) meldete es
+deshalb acht Abweichungen, von denen keine eine war – der Block hatte nur seine
+vier Leerzeichen Einrückung verloren.
+
+Zwei Schritte dagegen:
+
+- `normalisieren()` schneidet Leerraum am Anfang und Ende jeder Zeile ab.
+  Damit fallen sechs der acht Zeilen weg.
+- Bleiben trotzdem Zeilen übrig, vergleicht `vergleichen` beide Dokumente ein
+  zweites Mal **ohne jedes Leerzeichen**. Sind sie so identisch, sagt es das
+  („Nur Leerraum") und gibt 0 zurück. Damit fallen die letzten zwei Zeilen weg:
+  Die Einrückung vor einem `</p>` steht nach dem Zusammenfassen mitten im
+  Strom, nicht am Zeilenanfang, und ein `sed` sieht ihr nicht an, dass sie
+  Einrückung war.
+
+Der zweite Schritt läuft **nur**, wenn der Zeilenvergleich etwas gefunden hat –
+so bleibt „Kein Unterschied" die genaue Aussage und „Nur Leerraum" die
+schwächere, und man sieht, welche von beiden gilt.
+
+### TEST
+| Lage | Zeilen | Meldung | Rückgabewert |
+| --- | --- | --- | --- |
+| Teil-Template mit verlorener Einrückung (vorher 8 Zeilen) | 2 | „Nur Leerraum" | 0 |
+| dasselbe, Überschrift zusätzlich geändert | 4 | Diff wird gezeigt | 1 |
+| Marke wieder weg | 2 | „Nur Leerraum" | 0 |
+
+Der mittlere Fall ist der wichtige: Ein Vergleich, der Leerraum wegwirft, darf
+nicht gleich alles wegwerfen. Die Marke stand in derselben Zeile wie die
+Einrückungsänderung und wurde trotzdem gemeldet.
+
+`bash -n` über das Skript; kein PHP angefasst.
+
+### Was bewusst nicht erreicht wurde
+Der Leerraum-Vergleich ist ein Alles-oder-Nichts: Er sagt „alles nur Leerraum"
+oder zeigt den Diff. Eine Mischung – zwei echte Zeilen plus Einrückung – meldet
+weiterhin beide zusammen. Das ist gewollt: Sobald irgendetwas Echtes dabei ist,
+soll man den ganzen Diff sehen und nicht eine gefilterte Auswahl.
+
+### NEXT
+T-105 abschließen: der Terminal-Login-Check als Teil-Template mit einem Bündel.
+
 ## P-2026-08-16-05 t-105-login-ergebnis-unter-sein-formular
 
 ### EINGELESEN
