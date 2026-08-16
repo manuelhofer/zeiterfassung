@@ -24,26 +24,11 @@ class ZeitService
         $this->rundungsService       = RundungsService::getInstanz();
     }
 
-    /**
-     * Terminal-Installationserkennung (für Offline-Queue-Logik).
-     */
-    private function istTerminalInstallation(): bool
-    {
-        $pfad = __DIR__ . '/../config/config.php';
-        if (!is_file($pfad)) {
-            return false;
-        }
-
-        try {
-            /** @var array<string,mixed> $cfg */
-            $cfg = require $pfad;
-        } catch (\Throwable $e) {
-            return false;
-        }
-
-        $typ = $cfg['app']['installation_typ'] ?? null;
-        return is_string($typ) && strtolower(trim($typ)) === 'terminal';
-    }
+    // T-133: Hier stand eine eigene `istTerminalInstallation()`, Wort für Wort
+    // dieselbe Regel wie in `Helper` – und dieselbe noch einmal in
+    // `AuftragszeitService`. Drei Fassungen einer Frage sind zwei zu viel: Wer
+    // die Regel ändert, ändert erfahrungsgemäß nicht alle (P-2026-08-16-14).
+    // Gefragt wird jetzt `Helper::istTerminalInstallation()`.
 
     private function sqlQuote(string $value): string
     {
@@ -202,7 +187,7 @@ class ZeitService
             }
         }
 
-        if ($quelle === 'terminal' && $this->istTerminalInstallation() && $hauptDbOk === false) {
+        if ($quelle === 'terminal' && Helper::istTerminalInstallation() && $hauptDbOk === false) {
             $zeitStr = $zeitpunkt->format('Y-m-d H:i:s');
             $terminalSql = ($terminalId !== null) ? (string)(int)$terminalId : 'NULL';
 

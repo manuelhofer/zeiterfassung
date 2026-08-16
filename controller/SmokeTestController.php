@@ -177,7 +177,10 @@ class SmokeTestController
             if (is_string($inhalt) && $inhalt !== '') {
                 $hatQueueCall = (strpos($inhalt, 'OfflineQueueManager::getInstanz()->speichereInQueue') !== false);
                 $hatPseudoId  = (strpos($inhalt, 'return $ok ? 0 : null') !== false);
-                $hatBedingung = (strpos($inhalt, '$this->istTerminalInstallation()') !== false && strpos($inhalt, '$hauptDbOk === false') !== false);
+                // T-133: Die Bedingung fragt seit P-2026-08-16-22 `Helper::istTerminalInstallation()`
+                // statt einer eigenen Kopie im Service. Wer den Suchtext hier vergisst, bekommt
+                // eine Prüfung, die „Offline-Bedingung fehlt" meldet, obwohl sie dasteht.
+                $hatBedingung = (strpos($inhalt, 'Helper::istTerminalInstallation()') !== false && strpos($inhalt, '$hauptDbOk === false') !== false);
 
                 $ok = ($hatQueueCall && $hatPseudoId && $hatBedingung);
 

@@ -21,26 +21,11 @@ class AuftragszeitService
         $this->auftragszeitModel = new AuftragszeitModel();
     }
 
-    /**
-     * Terminal-Installationserkennung (für Offline-Queue-Logik).
-     */
-    private function istTerminalInstallation(): bool
-    {
-        $pfad = __DIR__ . '/../config/config.php';
-        if (!is_file($pfad)) {
-            return false;
-        }
-
-        try {
-            /** @var array<string,mixed> $cfg */
-            $cfg = require $pfad;
-        } catch (\Throwable $e) {
-            return false;
-        }
-
-        $typ = $cfg['app']['installation_typ'] ?? null;
-        return is_string($typ) && strtolower(trim($typ)) === 'terminal';
-    }
+    // T-133: Hier stand eine eigene `istTerminalInstallation()`, Wort für Wort
+    // dieselbe Regel wie in `Helper` und in `ZeitService`. Gefragt wird jetzt
+    // `Helper::istTerminalInstallation()` – siehe dort, warum
+    // `app.installation_typ` maßgeblich ist und nicht die Erreichbarkeit einer
+    // Datenbank.
 
     private function sqlQuote(string $value): string
     {
@@ -210,7 +195,7 @@ class AuftragszeitService
             }
         }
 
-        if ($this->istTerminalInstallation() && $hauptDbOk === false) {
+        if (Helper::istTerminalInstallation() && $hauptDbOk === false) {
             $zeitStr = $startzeit->format('Y-m-d H:i:s');
 
             // 1) laufende Hauptaufträge des Mitarbeiters schließen
@@ -392,7 +377,7 @@ class AuftragszeitService
 
         $auftragscodeTrim = $auftragscode !== null ? trim($auftragscode) : '';
 
-        if ($this->istTerminalInstallation() && $hauptDbOk === false) {
+        if (Helper::istTerminalInstallation() && $hauptDbOk === false) {
             $endStr = $zeitpunkt->format('Y-m-d H:i:s');
 
             $sql = 'UPDATE auftragszeit SET '
@@ -552,7 +537,7 @@ class AuftragszeitService
             }
         }
 
-        if ($this->istTerminalInstallation() && $hauptDbOk === false) {
+        if (Helper::istTerminalInstallation() && $hauptDbOk === false) {
             $endStr = $zeitpunkt->format('Y-m-d H:i:s');
             $sql = 'UPDATE auftragszeit SET '
                 . 'endzeit=' . $this->sqlQuote($endStr) . ', '
@@ -646,7 +631,7 @@ class AuftragszeitService
             }
         }
 
-        if ($this->istTerminalInstallation() && $hauptDbOk === false) {
+        if (Helper::istTerminalInstallation() && $hauptDbOk === false) {
             $endStr = $zeitpunkt->format('Y-m-d H:i:s');
             $sql = 'UPDATE auftragszeit SET '
                 . 'endzeit=' . $this->sqlQuote($endStr) . ', '
@@ -746,7 +731,7 @@ class AuftragszeitService
             }
         }
 
-        if ($this->istTerminalInstallation() && $hauptDbOk === false) {
+        if (Helper::istTerminalInstallation() && $hauptDbOk === false) {
             $endStr = $zeitpunkt->format('Y-m-d H:i:s');
             $sql = 'UPDATE auftragszeit SET '
                 . 'endzeit=' . $this->sqlQuote($endStr) . ', '
@@ -878,7 +863,7 @@ class AuftragszeitService
             }
         }
 
-        if ($this->istTerminalInstallation() && $hauptDbOk === false) {
+        if (Helper::istTerminalInstallation() && $hauptDbOk === false) {
             $endStr = $zeitpunkt->format('Y-m-d H:i:s');
             $sql = 'UPDATE auftragszeit SET '
                 . 'endzeit=' . $this->sqlQuote($endStr) . ', '
@@ -958,7 +943,7 @@ class AuftragszeitService
             }
         }
 
-        if ($this->istTerminalInstallation() && $hauptDbOk === false) {
+        if (Helper::istTerminalInstallation() && $hauptDbOk === false) {
             $zeitStr = $zeitpunkt->format('Y-m-d H:i:s');
             $sql = 'INSERT INTO auftragszeit (mitarbeiter_id, auftrag_id, arbeitsschritt_id, auftragscode, arbeitsschritt_code, maschine_id, terminal_id, typ, startzeit, kommentar) '
                 . 'SELECT az.mitarbeiter_id, az.auftrag_id, az.arbeitsschritt_id, az.auftragscode, az.arbeitsschritt_code, az.maschine_id, az.terminal_id, '
@@ -1072,7 +1057,7 @@ class AuftragszeitService
             }
         }
 
-        if ($this->istTerminalInstallation() && $hauptDbOk === false) {
+        if (Helper::istTerminalInstallation() && $hauptDbOk === false) {
             $zeitStr = $zeitpunkt->format('Y-m-d H:i:s');
             $sql = 'INSERT INTO auftragszeit (mitarbeiter_id, auftrag_id, arbeitsschritt_id, auftragscode, arbeitsschritt_code, maschine_id, terminal_id, typ, startzeit, kommentar) '
                 . 'SELECT az.mitarbeiter_id, az.auftrag_id, az.arbeitsschritt_id, az.auftragscode, az.arbeitsschritt_code, az.maschine_id, az.terminal_id, '
@@ -1196,7 +1181,7 @@ class AuftragszeitService
             }
         }
 
-        if ($this->istTerminalInstallation() && $hauptDbOk === false) {
+        if (Helper::istTerminalInstallation() && $hauptDbOk === false) {
             $zeitStr = $zeitpunkt->format('Y-m-d H:i:s');
             $sql = 'INSERT INTO auftragszeit (mitarbeiter_id, auftrag_id, arbeitsschritt_id, auftragscode, arbeitsschritt_code, maschine_id, terminal_id, typ, startzeit, kommentar) '
                 . 'SELECT az.mitarbeiter_id, az.auftrag_id, az.arbeitsschritt_id, az.auftragscode, az.arbeitsschritt_code, az.maschine_id, az.terminal_id, '

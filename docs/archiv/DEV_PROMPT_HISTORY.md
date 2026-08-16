@@ -18,6 +18,86 @@ legacy_zip_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-08-16-22 t-133-terminalerkennung-nur-noch-im-helper
+
+### EINGELESEN
+- `core/Helper.php`, Zeilen 239–279 – die maßgebliche Fassung samt Begründung,
+  warum `app.installation_typ` zählt und nicht die Erreichbarkeit einer
+  Datenbank.
+- `services/ZeitService.php`, Zeilen 26–45, und
+  `services/AuftragszeitService.php`, Zeilen 23–42 – die beiden privaten
+  Kopien.
+- `controller/SmokeTestController.php`, Zeilen 164–200 – die Selbstprüfung, die
+  im Quelltext von `ZeitService` nach dem Aufruf **als Text** sucht.
+
+### DATEIEN
+- `services/ZeitService.php`, `services/AuftragszeitService.php`
+- `controller/SmokeTestController.php`
+- `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+`grep -rn "istTerminalInstallation" --include="*.php"` findet genau **eine**
+Definition (`core/Helper.php`), und der Selbstcheck „ZeitService: Kommen/Gehen
+offline → Offline-Queue + Pseudo-ID" steht weiterhin auf OK.
+
+### DONE
+`ZeitService` und `AuftragszeitService` hatten je eine private
+`istTerminalInstallation()` – Wort für Wort dieselbe wie in `Helper`, nur ohne
+deren Zwischenspeicher. Beide sind weg; die elf Aufrufstellen fragen jetzt
+`Helper::istTerminalInstallation()`.
+
+Mitgeändert, und das ist der eigentliche Inhalt dieses Patches: Die
+Selbstprüfung im Smoke-Test sucht im Quelltext von `ZeitService` nach dem
+**Text** `$this->istTerminalInstallation()`. Wer nur die Services umstellt,
+bekommt eine Prüfung, die „Offline-Bedingung fehlt" meldet, obwohl die
+Bedingung dasteht – ein falscher Alarm an genau der Stelle, die vor echten
+Alarmen warnen soll. Der Suchtext lautet jetzt
+`Helper::istTerminalInstallation()`.
+
+Das ist die Lage aus T-133 in klein: eine Regel an drei Stellen, und die vierte
+Stelle prüft auf den Wortlaut einer davon.
+
+### TEST
+Prüfumgebung, `alt` = fbd445f, `neu` = Arbeitsstand.
+
+1. **Nur noch eine Definition:** `grep -rn "istTerminalInstallation"` über alle
+   PHP-Dateien – eine Definition in `core/Helper.php`, sonst nur Aufrufe
+   (`OfflineQueueManager`, beide Services) und der Suchtext im Smoke-Test.
+2. **Selbstcheck grün und unverändert:** `vergleichen '?seite=smoke_test'` →
+   0 abweichende Zeilen bei 56.912 Bytes.
+3. **Gegenprobe zum Suchtext:** Im gespiegelten Stand den alten Suchtext wieder
+   eingesetzt – der Selbstcheck kippt sofort auf „FEHLT/FAIL – Fehlt:
+   Offline-Bedingung fehlt". Danach zurückgespiegelt: wieder OK. Die Prüfung
+   hängt also wirklich an diesem Wortlaut, und sie ist jetzt richtig eingestellt.
+4. **Der Zweig, um den es geht, arbeitet weiter:** Beide Stände als Terminal,
+   angemeldet, Tag mit einem Kommen um 07:00, dann Verbindung weg und „Gehen"
+   gedrückt → je Stand zwei Queue-Einträge, `zeit_gehen` (aus `ZeitService`) und
+   `auftrag_stop_alle` (aus `AuftragszeitService`), beide mit
+   `meta_mitarbeiter_id = 15` und `meta_terminal_id = 1`. Alt und neu liefern
+   dasselbe.
+5. **Die Regel antwortet in beiden Betriebsarten richtig:**
+   `Helper::istTerminalInstallation()` → `true` mit `terminalId() = 1` im
+   Terminal-Modus, `false` mit `terminalId() = null` im Backend-Modus.
+6. `php -l` über alle drei geänderten Dateien, `meldungen` → beide Serverlogs
+   ohne PHP-Meldung.
+
+Umgebung abgeräumt und nachgeprüft: kein Port 8801–8808, kein `php`-Prozess,
+keine `zeit_probe`-Datenbank, Verzeichnis gelöscht, `zeiterfassung` und
+`zeiterfassung_offline` unberührt.
+
+### Gefundene Fehler im eigenen Entwurf
+Erster Anlauf war „Kopien löschen, Aufrufe umbiegen, fertig" – der Smoke-Test
+wäre stillschweigend rot geworden. Aufgefallen ist es nur, weil `grep` nach
+`istTerminalInstallation` auch den `SmokeTestController` nannte und ich der
+Zeile nachgegangen bin, statt sie als Treffer im Kommentar abzutun.
+
+### Was bewusst nicht erreicht wurde
+Der dritte Teil von T-133 – drei `Helper`-Methoden, die `config/config.php`
+selbst lesen statt über `Start::konfig()` – steht noch aus.
+
+### NEXT
+T-133, dritter Teil: `Helper` liest die Konfiguration über `Start::konfig()`.
+
 ## P-2026-08-16-21 t-133-queue-verbindung-aus-einer-hand
 
 ### EINGELESEN
