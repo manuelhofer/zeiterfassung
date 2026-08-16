@@ -299,6 +299,23 @@ Fachliche Probe-Daten bringt jeder Patch selbst mit (`daten <datei.sql>`) –
 welche Kanten eine Maske hat, weiß nur, wer sie gerade anfasst. Alle Befehle
 und Optionen stehen im Kopf des Skripts.
 
+**Terminal statt Backend.** Dieselben zwei Stände lassen sich in ein
+gekoppeltes Gerät verwandeln – ohne zweites Verzeichnis, ohne zweiten Port:
+
+```bash
+scripts/dev/pruefumgebung.sh terminal --offline    # Gerät ohne Verbindung
+scripts/dev/pruefumgebung.sh terminal              # Verbindung ist zurück
+scripts/dev/pruefumgebung.sh backend               # wieder Backend
+```
+
+`--offline` zeigt die Hauptdatenbank auf eine Datenbank, die es nicht gibt;
+damit schreibt das Gerät in die Ausweichdatenbank. Der Wechsel wirkt sofort,
+ein Server muss dafür nicht neu starten – genau daraus wird der Ausfall samt
+Rückkehr: offline buchen, `terminal`, ein Seitenaufruf, die Queue läuft an.
+Beide Stände dürfen verschiedene Modi haben (`terminal neu --offline` neben
+`backend alt`). Die Pfade heißen im Terminal-Modus `terminal.php?aktion=…`;
+ein `?seite=…` beantwortet ein Terminal nur mit einer Weiterleitung.
+
 ## 7. Täglicher Betrieb
 
 ```bash

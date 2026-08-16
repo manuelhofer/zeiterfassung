@@ -64,8 +64,9 @@ Abschnitt 5. Reihenfolge ist Absicht: T-125 kommt zuletzt.
   unerreichbar macht; Suchlauf in P-2026-08-15-10.
 - **Jahreswechsel beobachten:** Beim ersten echten Jahreswechsel prüfen, ob die
   festgeschriebenen Urlaubssalden plausibel bleiben (B-080).
-- **Terminal im Browser:** Die Buchungsflows sind unter PHP 8.5 noch nicht
-  durchgeklickt (offen aus P-2026-08-08-02).
+- **Terminal im Browser:** „Gehen" und „Auftrag starten/stoppen" sind am Gerät
+  nie durchgeklickt worden; „Kommen" offline samt Wiederanlauf ist es
+  (eingegrenzt in P-2026-08-16-17, offen aus P-2026-08-08-02).
 - Praxis-Test: Bugs und Anomalien sammeln, als Micro-Patches beheben.
 - Nur bei Bedarf: Scan-Flow/UX im Auftragsmodul verfeinern, Stop-Detailmaske
   (Fallback) am Terminal vereinfachen.

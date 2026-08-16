@@ -14,12 +14,33 @@
 #      scripts/dev/pruefumgebung.sh aufbauen [<commit>]     # Standard: HEAD
 #      scripts/dev/pruefumgebung.sh spiegeln                # Arbeitsstand neu einspielen
 #      scripts/dev/pruefumgebung.sh daten <datei.sql>       # Probe-Daten einspielen
+#      scripts/dev/pruefumgebung.sh terminal [alt|neu|beide] [--offline]
+#      scripts/dev/pruefumgebung.sh backend  [alt|neu|beide]
 #      scripts/dev/pruefumgebung.sh holen alt|neu [--post 'a=b'] [--token] <pfad>
 #      scripts/dev/pruefumgebung.sh vergleichen [--post 'a=b'] [--token] <pfad>
 #      scripts/dev/pruefumgebung.sh sql [--offline] <statement>
 #      scripts/dev/pruefumgebung.sh meldungen               # PHP-Meldungen der Serverlogs
 #      scripts/dev/pruefumgebung.sh status
 #      scripts/dev/pruefumgebung.sh abraeumen
+#
+#  Terminal-Modus:
+#      `terminal` schreibt die Konfiguration eines gekoppelten Geraets
+#      (`installation_typ = terminal`, `terminal.id`) - dieselben Ports,
+#      dieselben Probe-Datenbanken, kein zweites Verzeichnis. `--offline` zeigt
+#      die Hauptdatenbank zusaetzlich auf eine Datenbank, die es nicht gibt;
+#      damit ist das Geraet offline und schreibt in die Ausweichdatenbank.
+#      Der Modus haengt am Stand, nicht am Aufruf: `spiegeln` behaelt ihn bei,
+#      und der Wechsel wirkt sofort - ein Server muss nicht neu starten. Genau
+#      so wird aus einem Ausfall die Rueckkehr: erst `terminal --offline`
+#      buchen, dann `terminal`, ein Seitenaufruf, und die Queue laeuft an.
+#      Beide Staende koennen verschiedene Modi haben - `terminal neu --offline`
+#      neben `backend alt` ist ein Terminal ohne Verbindung samt Backend, das
+#      seine Fehlermeldung zeigt.
+#
+#      Der Pfad ist hier `terminal.php?aktion=…`, nicht `?seite=…`:
+#          scripts/dev/pruefumgebung.sh vergleichen 'terminal.php?aktion=start'
+#      Ein `?seite=…` beantwortet ein Terminal mit einer Weiterleitung auf
+#      `terminal.php` - dann vergleicht man zwei leere Antworten.
 #
 #  Was die Umgebung ist:
 #      - zwei Kopien des Repos ausserhalb der Arbeitskopie
@@ -63,9 +84,18 @@ DB_PASS="${ZEIT_DB_PASS:-zeiterfassung}"
 DB_PROBE="${ZEIT_PROBE_DB:-zeit_probe}"
 DB_PROBE_OFF="${DB_PROBE}_off"
 
+# Der Ausfall: ein Datenbankname, den es nicht gibt. Bewusst auf demselben,
+# erreichbaren Host - dann scheitert die Verbindung sofort statt in einen
+# Zeitablauf zu laufen, und der Name faellt unter dieselbe zeit_probe-Regel.
+DB_PROBE_TOT="${DB_PROBE}_tot"
+
 # Erfundener Pruefbenutzer - reine Testdaten, nie ein echter Mensch.
 PRUEF_BENUTZER="probe"
 PRUEF_PASSWORT="probe1234"
+
+# Erfundenes Terminal, wie es nach einer Kopplung in der Datenbank steht.
+TERMINAL_ID=1
+TERMINAL_NAME="Probe-Terminal"
 
 rot()  { printf '\033[31m%s\033[0m\n' "$*"; }
 gruen(){ printf '\033[32m%s\033[0m\n' "$*"; }
@@ -97,21 +127,82 @@ url_von() {
 # Einrueckung weg. Damit faellt der fehlende Zeilenumbruch von Csrf::feld()
 # ebenso weg wie die Ebene, die ein Block verliert, wenn er aus der Seite in
 # ein Teil-Template wandert - beides ist Leerraum und kein Unterschied.
+#
+# Ebenso der Cache-Buster '?v=<mtime>' der Terminal-Seiten: 'git archive' setzt
+# allen Dateien die Zeit des Commits, rsync behaelt die der Arbeitskopie - der
+# Wert ist also **immer** verschieden, und zwar in jeder Zeile mit CSS oder JS.
+# Maskiert werden nur die Ziffern; '?v=' bleibt stehen, damit ein Wechsel des
+# Verfahrens (Hash statt Zeitstempel) weiterhin als Unterschied auffaellt.
 normalisieren() {
     tr -d '\r\n\t' \
         | sed -e 's/[[:space:]]\{1,\}/ /g' -e 's/>/>\n/g' \
         | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' \
-        | sed -e 's/\(name="csrf_token" value="\)[^"]*"/\1TOKEN"/g'
+        | sed -e 's/\(name="csrf_token" value="\)[^"]*"/\1TOKEN"/g' \
+        | sed -e 's/\(?v=\)[0-9]\{1,\}/\1ZEITSTEMPEL/g'
+}
+
+# Der Modus eines Standes - 'backend', 'terminal' oder 'terminal offline'.
+# Er liegt neben dem Stand und nicht im Aufruf, damit 'spiegeln' ihn nicht
+# stillschweigend auf Backend zuruecksetzt: Wer mitten in einem Offline-Test
+# den Arbeitsstand nachzieht, will danach dasselbe Geraet vorfinden.
+modus_lesen() {
+    local name="$1"
+    if [ -f "$BASIS/$name.modus" ]; then
+        cat "$BASIS/$name.modus"
+    else
+        echo "backend"
+    fi
 }
 
 konfiguration_schreiben() {
-    local ziel="$1"
+    local name="$1"
+    local ziel="$BASIS/$name"
+
+    local modus typ hauptdb terminal_block
+    modus="$(modus_lesen "$name")"
+
+    typ='backend'
+    hauptdb="$DB_PROBE"
+    case "$modus" in
+        terminal*) typ='terminal' ;;
+    esac
+    case "$modus" in
+        *offline) hauptdb="$DB_PROBE_TOT" ;;
+    esac
+
+    # Ein Terminal kennt sich selbst - ohne 'terminal.id' traegt keine Buchung
+    # eine Geraetekennung, und dann prueft der Test etwas anderes als gemeint.
+    if [ "$typ" = 'terminal' ]; then
+        terminal_block="    // Wer dieses Geraet ist - wie nach einer Kopplung.
+    'terminal' => [
+        'id'                           => $TERMINAL_ID,
+        'name'                         => '$TERMINAL_NAME',
+        'standort_beschreibung'        => 'Pruefumgebung',
+        'abteilung_id'                 => null,
+        'auto_logout_timeout_sekunden' => 60,
+        'offline_erlaubt_kommen_gehen' => true,
+        'offline_erlaubt_auftraege'    => true,
+"
+    else
+        terminal_block="    'terminal' => [
+"
+    fi
+
+    terminal_block="$terminal_block
+        // Bridge aus: sie wuerde nur ins Leere verbinden und Meldungen erzeugen.
+        'rfid_ws' => [
+            'enabled' => false,
+            'url'     => 'ws://127.0.0.1:8765',
+        ],
+    ],"
+
     cat > "$ziel/config/config.local.php" <<PHPKONFIG
 <?php
 declare(strict_types=1);
 
 /**
  * Konfiguration der Pruefumgebung - erzeugt von scripts/dev/pruefumgebung.sh.
+ * Modus dieses Standes: $modus
  *
  * Haengt bewusst an den Probe-Datenbanken. Die Entwicklungsdatenbank
  * 'zeiterfassung' wird von dieser Umgebung nie angefasst.
@@ -123,14 +214,14 @@ return [
         // 'php -S' liefert public/ direkt an der Wurzel aus, deshalb leer.
         'base_url' => '',
         'debug' => true,
-        'installation_typ' => 'backend',
+        'installation_typ' => '$typ',
     ],
 
     'timezone' => 'Europe/Berlin',
 
     'db' => [
         'host'    => '$DB_HOST',
-        'dbname'  => '$DB_PROBE',
+        'dbname'  => '$hauptdb',
         'charset' => 'utf8mb4',
         'user'    => '$DB_USER',
         'pass'    => '$DB_PASS',
@@ -145,18 +236,13 @@ return [
         'pass'    => '$DB_PASS',
     ],
 
-    'terminal' => [
-        'rfid_ws' => [
-            'enabled' => false,
-            'url'     => 'ws://127.0.0.1:8765',
-        ],
-    ],
+$terminal_block
 ];
 PHPKONFIG
 
     # Gegenprobe: die Kopie darf niemals auf die Entwicklungsdatenbank zeigen.
-    if ! grep -q "'dbname'  => '$DB_PROBE'," "$ziel/config/config.local.php"; then
-        fehler "Konfiguration in $ziel zeigt nicht auf $DB_PROBE."
+    if ! grep -q "'dbname'  => '$hauptdb'," "$ziel/config/config.local.php"; then
+        fehler "Konfiguration in $ziel zeigt nicht auf $hauptdb."
     fi
 }
 
@@ -167,7 +253,7 @@ arbeitsstand_spiegeln() {
         --exclude '.git' \
         --exclude 'config/config.local.php' \
         "$PROJEKT/" "$BASIS/neu/" || fehler "rsync des Arbeitsstands fehlgeschlagen."
-    konfiguration_schreiben "$BASIS/neu"
+    konfiguration_schreiben neu
 }
 
 server_starten() {
@@ -212,11 +298,14 @@ befehl_aufbauen() {
 
     schritt "Verzeichnisse ($BASIS)"
     rm -rf "$BASIS/alt" "$BASIS/neu"
+    # Auch die Modusmerker weg: Eine frische Umgebung ist ein Backend, nicht
+    # das Terminal von gestern.
+    rm -f "$BASIS/alt.modus" "$BASIS/neu.modus"
     mkdir -p "$BASIS/alt" "$BASIS/neu" || fehler "Konnte $BASIS nicht anlegen."
 
     schritt "Stand 'alt' aus $commit ($kurz)"
     git -C "$PROJEKT" archive "$commit" | tar -x -C "$BASIS/alt" || fehler "git archive fehlgeschlagen."
-    konfiguration_schreiben "$BASIS/alt"
+    konfiguration_schreiben alt
     echo "$kurz" > "$BASIS/alt.commit"
 
     schritt "Stand 'neu' aus dem Arbeitsstand"
@@ -297,6 +386,71 @@ befehl_daten() {
     [ -f "$datei" ] || fehler "SQL-Datei '$datei' nicht gefunden."
     db "$DB_PROBE" < "$datei" || fehler "Einspielen von '$datei' fehlgeschlagen."
     echo "'$datei' in $DB_PROBE eingespielt."
+}
+
+# ---------------------------------------------------------------------------
+#  terminal / backend
+# ---------------------------------------------------------------------------
+# Ein gekoppeltes Terminal steht auch in der Datenbank. Ohne diese Zeile zeigt
+# jede Buchung mit `terminal_id` ins Leere und die Terminal-Verwaltung im
+# Backend bleibt leer - der Test prueft dann eine Lage, die es nicht gibt.
+terminal_eintragen() {
+    db "$DB_PROBE" -e "INSERT INTO \`terminal\`
+                           (id, name, standort_beschreibung, modus, aktiv,
+                            offline_erlaubt_kommen_gehen, offline_erlaubt_auftraege)
+                       VALUES ($TERMINAL_ID, '$TERMINAL_NAME', 'Pruefumgebung', 'terminal', 1, 1, 1)
+                       ON DUPLICATE KEY UPDATE name = '$TERMINAL_NAME', aktiv = 1;" \
+        || fehler "Konnte das Probe-Terminal nicht eintragen."
+}
+
+modus_setzen() {
+    local stand="$1" modus="$2"
+    [ -d "$BASIS/neu" ] || fehler "Keine Umgebung vorhanden - erst 'aufbauen'."
+
+    local namen
+    case "$stand" in
+        beide) namen="alt neu" ;;
+        *)     namen="$stand" ;;
+    esac
+
+    case "$modus" in
+        terminal*) terminal_eintragen ;;
+    esac
+
+    local name
+    for name in $namen; do
+        [ -d "$BASIS/$name" ] || fehler "Stand '$name' gibt es nicht - erst 'aufbauen'."
+        echo "$modus" > "$BASIS/$name.modus"
+        konfiguration_schreiben "$name"
+        echo "Stand '$name' ($(url_von "$name")): $modus"
+    done
+
+    # Kein Neustart der Server: 'config/config.php' liest die lokale Datei je
+    # Anfrage neu (clearstatcache), der naechste Seitenaufruf sieht den Modus.
+    case "$modus" in
+        terminal*) echo "Terminal-Startbildschirm: $(url_von "${namen%% *}")/terminal.php" ;;
+    esac
+}
+
+befehl_terminal() {
+    local stand="beide" modus="terminal"
+    while [ $# -gt 0 ]; do
+        case "$1" in
+            --offline)     modus="terminal offline"; shift ;;
+            alt|neu|beide) stand="$1"; shift ;;
+            *) fehler "Unbekannte Angabe '$1' (erlaubt: alt, neu, beide, --offline)" ;;
+        esac
+    done
+    modus_setzen "$stand" "$modus"
+}
+
+befehl_backend() {
+    local stand="${1:-beide}"
+    case "$stand" in
+        alt|neu|beide) ;;
+        *) fehler "Unbekannter Stand '$stand' (erlaubt: alt, neu, beide)" ;;
+    esac
+    modus_setzen "$stand" "backend"
 }
 
 # ---------------------------------------------------------------------------
@@ -434,6 +588,11 @@ befehl_status() {
     echo "Ablage:  $BASIS"
     [ -f "$BASIS/alt.commit" ] && echo "alt:     $(cat "$BASIS/alt.commit")"
     echo
+    echo "Modus:"
+    local name
+    for name in alt neu; do
+        [ -d "$BASIS/$name" ] && echo "  $name: $(modus_lesen "$name")"
+    done
     echo "Ports:"
     ss -ltn | awk 'NR>1 && $4 ~ /:88[0-9][0-9]$/ { print "  belegt: " $4 }'
     echo "Prozesse:"
@@ -501,6 +660,8 @@ case "$befehl" in
     aufbauen)    befehl_aufbauen "$@" ;;
     spiegeln)    befehl_spiegeln "$@" ;;
     daten)       befehl_daten "$@" ;;
+    terminal)    befehl_terminal "$@" ;;
+    backend)     befehl_backend "$@" ;;
     holen)       befehl_holen "$@" ;;
     vergleichen) befehl_vergleichen "$@" ;;
     sql)         befehl_sql "$@" ;;
@@ -508,7 +669,7 @@ case "$befehl" in
     status)      befehl_status "$@" ;;
     abraeumen)   befehl_abraeumen "$@" ;;
     *)
-        sed -n '2,50p' "$0" | sed 's/^#//; s/^ //'
+        sed -n '2,67p' "$0" | sed 's/^#//; s/^ //'
         exit 1
         ;;
 esac

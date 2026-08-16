@@ -18,6 +18,144 @@ legacy_zip_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-08-16-17 pruefumgebung-terminal-modus
+
+### EINGELESEN
+- `scripts/dev/pruefumgebung.sh` vollständig – vor allem
+  `konfiguration_schreiben()`, `arbeitsstand_spiegeln()` und `normalisieren()`.
+- `controller/TerminalEinrichtungController.php`, Zeilen 455–520 – wie die
+  Konfiguration eines **wirklich** gekoppelten Geräts aussieht. Die Prüfumgebung
+  soll dieselbe schreiben, nicht eine plausible.
+- `core/Helper.php` (`istTerminalInstallation()`, `terminalId()`) – woran ein
+  Terminal erkannt wird: `app.installation_typ` und `terminal.id`.
+- `core/Database.php` (`istHauptdatenbankVerfuegbar()`) – jeder Fehler wird zu
+  „nicht verfügbar"; ein Datenbankname, den es nicht gibt, genügt als Ausfall.
+- `sql/01_initial_schema.sql`, Tabelle `terminal`.
+
+### DATEIEN
+- `scripts/dev/pruefumgebung.sh`
+- `docs/lokale_entwicklungsumgebung.md`
+- `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+`pruefumgebung.sh terminal --offline` macht aus der aufgebauten Umgebung ohne
+Handarbeit ein Gerät ohne Verbindung – ein Chip-Scan mit „Kommen" landet in
+`zeit_probe_off` und nicht in `zeit_probe` –, und `terminal` allein holt die
+Verbindung zurück, sodass derselbe Eintrag beim nächsten Seitenaufruf mit
+seiner **Offline-Zeit** in `zeitbuchung` steht.
+
+### DONE
+Zwei neue Befehle, `terminal [alt|neu|beide] [--offline]` und
+`backend [alt|neu|beide]`. Sie starten **nichts** – sie schreiben die
+Konfiguration des jeweiligen Standes neu:
+
+- `installation_typ = 'terminal'` und ein vollständiger `terminal`-Block mit
+  `id`, Namen und den Offline-Erlaubnissen, so wie ihn die Kopplung erzeugt.
+- `--offline` zeigt `db.dbname` auf `zeit_probe_tot` – eine Datenbank, die es
+  nicht gibt. Bewusst auf demselben, erreichbaren Host: dann scheitert die
+  Verbindung sofort statt in einen Zeitablauf zu laufen, und der Name fällt
+  unter dieselbe `zeit_probe`-Regel, an der das Skript sonst abbricht.
+- Ein Eintrag in `terminal` (ID 1, „Probe-Terminal") kommt dazu, sonst zeigt
+  jede Buchung mit `terminal_id` ins Leere.
+
+Der Modus liegt als `<stand>.modus` neben dem Stand, nicht im Aufruf. Das ist
+der Unterschied, der zählt: `spiegeln` schreibt die Konfiguration neu und hätte
+sonst mitten im Offline-Test stillschweigend ein Backend daraus gemacht.
+
+Weil php ohne OPcache läuft und `config/config.php` je Anfrage neu liest, wirkt
+der Wechsel **sofort**. Damit ist der Ausfall samt Rückkehr kein Aufbau mehr,
+sondern zwei Aufrufe: `terminal --offline`, buchen, `terminal`, eine Seite
+laden.
+
+Ports, Verzeichnisse und `abraeumen` bleiben unverändert – es gibt nichts
+zusätzlich abzuräumen. Das war der eigentliche Punkt: Von Hand entstanden
+jedes Mal neue Kopien auf 8803 ff., die einzeln wieder wegmussten.
+
+### Gefundene Fehler im eigenen Entwurf
+Erster Entwurf legte je Modus eine eigene Kopie auf einem eigenen Port an – so,
+wie es von Hand lief. Beim Durchgehen der letzten Sitzungen stellte sich heraus,
+dass das die schlechtere Nachbildung ist: Ein echter Ausfall wechselt den
+Zustand **desselben** Geräts. Zwei Ports sind zwei Geräte, und der Wiederanlauf
+der Queue – der interessanteste Teil – lässt sich daran gar nicht zeigen.
+
+`aufbauen` löschte `alt/` und `neu/`, aber nicht die Modusmerker daneben. Eine
+frische Umgebung wäre stumm als Terminal von gestern hochgekommen. Jetzt fliegen
+sie mit.
+
+`vergleichen '?aktion=start'` liefert im Terminal-Modus zweimal HTTP 302 und
+null Bytes und meldet dazu „Kein Unterschied" – `?seite=…` geht an `index.php`,
+und die leitet auf `terminal.php` um. Zwei leere Antworten sind gleich, nur
+beweist das nichts. Der richtige Pfad ist `terminal.php?aktion=start`; das steht
+jetzt im Kopf des Skripts, weil die Falle geräuschlos zuschnappt.
+
+### Was mitgemacht wurde, obwohl es ein zweites Thema ist
+`normalisieren()` maskiert jetzt auch den Cache-Buster `?v=<mtime>`. Ohne das
+weicht **jede** Terminal-Seite in jeder CSS- und JS-Zeile ab: `git archive`
+setzt allen Dateien die Zeit des Commits, `rsync` behält die der Arbeitskopie.
+Backend-Seiten tragen keinen Cache-Buster, deshalb ist das nie aufgefallen –
+und deshalb hätte der neue Befehl seinen Hauptzweck nicht erfüllt, sondern nur
+verschoben: In P-2026-08-16-16 wurde genau das von Hand herausgerechnet.
+Maskiert werden nur die Ziffern; `?v=` bleibt stehen, damit ein Wechsel des
+Verfahrens weiterhin auffällt.
+
+### TEST
+Umgebung `aufbauen HEAD` (3b92609, saubere Arbeitskopie), danach der Reihe nach:
+
+1. **Terminal online:** `terminal` → `terminal.php?aktion=health` meldet
+   `hauptdb_verfuegbar: true`, `queue_speicherort: offline` (die Regel aus
+   T-130), Startseite HTTP 200. `php -l` über die erzeugte
+   `config.local.php` – keine Syntaxfehler.
+2. **Terminal offline:** `terminal --offline` → `hauptdb_verfuegbar: false`,
+   `queue_verfuegbar: true`, und die Zustandspille steht als
+   `terminal-pill … error` mit „OFFLINE" in der Seite (T-124).
+3. **Buchung offline:** Chip `CHIP-PATCH-TERMINAL` gescannt, „Kommen"
+   gedrückt. In `zeit_probe_off` steht Eintrag 1: `status = offen`,
+   `meta_aktion = zeit_kommen_rfid`, `meta_terminal_id = 1`,
+   `erstellt_am = 15:18:44`, RFID-Auflösung im SQL. In `zeit_probe` ist
+   `zeitbuchung` leer (`COUNT(*) = 0`).
+4. **Rückkehr, ohne Neustart:** Chip einem Mitarbeiter zugewiesen, `terminal`,
+   **ein** Seitenaufruf → Eintrag `verarbeitet` mit `versuche = 1`, und in
+   `zeitbuchung` steht die Buchung mit der Offline-Zeit **15:18:44** und
+   `terminal_id = 1`.
+5. **Gemischt:** `terminal neu --offline` neben `backend alt`. `status` zeigt
+   beide Modi getrennt; das Backend auf 8801 kennt „Probe-Terminal" in seiner
+   Terminal-Verwaltung.
+6. **`spiegeln` behält den Modus:** danach steht in der Konfiguration von `neu`
+   weiterhin `Modus dieses Standes: terminal offline`.
+7. **Vergleich im Terminal-Modus:** `vergleichen 'terminal.php?aktion=start'` →
+   1747 Bytes beiderseits, 0 abweichende Zeilen. Vorher waren es 6, alle drei
+   Cache-Buster.
+8. **Gegenprobe zur Maskierung:** im gespiegelten Stand einen sichtbaren Text
+   in `views/terminal/start.php` geändert – der Vergleich meldet ihn weiterhin
+   (2 Zeilen). Die Maske versteckt also nur den Zeitstempel.
+9. **Backend unberührt:** `backend` → `?seite=dashboard` (33.214 Bytes) und
+   `?seite=queue_admin` (27.219 Bytes) je ohne Abweichung.
+10. **Fehlerwege:** `terminal` ohne Umgebung bricht mit „Keine Umgebung
+    vorhanden – erst 'aufbauen'" ab (Exit 1), `terminal quatsch` mit der Liste
+    der erlaubten Angaben.
+
+`bash -n` über das Skript, `meldungen` meldet beide Serverlogs ohne Warnung
+oder Deprecation.
+
+Umgebung abgeräumt und nachgeprüft: kein Port 8801–8808, kein `php`-Prozess,
+keine `zeit_probe`-Datenbank, Verzeichnis gelöscht, `zeiterfassung` und
+`zeiterfassung_offline` unberührt.
+
+### Was bewusst nicht erreicht wurde
+Der Terminal-Modus gilt für beide Stände einer Umgebung, aber nur für **ein**
+Gerät (`terminal.id = 1`). Zwei Terminals gleichzeitig – etwa um zu prüfen, ob
+eine Buchung am falschen Gerät landet – braucht weiterhin Handarbeit. Bisher
+stand die Frage nie im Raum.
+
+Ungeprüft bleibt der Störungsmodus (weder Haupt- noch Ausweichdatenbank
+erreichbar). Dafür müsste auch `offline_db` sterben; das ist eine dritte
+Schalterstellung und gehört zu dem Patch, der sie braucht.
+
+### NEXT
+T-126 (Offline-Menü und die beiden Meldungstexte). Beim Test oben stand die
+Vorlage dafür auf dem Bildschirm: „RFID-Code erfasst (ID CHIP-PATCH-TERMINAL)"
+und darunter unverändert „Bitte RFID-Chip an das Lesegerät halten".
+
 Diese Datei ist der **vollständige Projektverlauf**, chronologisch absteigend,
 ein Eintrag je Patch. Sie wird nie gelöscht und bei jedem Patch im selben
 Commit ergänzt (`docs/arbeitsregeln.md`, Abschnitt 6).
