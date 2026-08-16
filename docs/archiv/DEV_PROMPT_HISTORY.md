@@ -97,7 +97,141 @@ in den Statusbericht.
 - **D-006:** Micro-Patches sind Pflicht: **1 Patch = 1 Thema = 1 Effekt.** (Die
   früher mitgenannte Begründung „es bleiben nur 2 weitere Dateien" ist mit
   D-002 entfallen; die Regel selbst gilt weiter.)
+- **D-007:** Ein gescheiterter Eintrag der Offline-Queue **stoppt die
+  Abarbeitung nicht** und sperrt das Terminal nicht. Er wird übersprungen und
+  im **Backend** gemeldet (Eintrag in die `db_injektionsqueue` der
+  Hauptdatenbank, sichtbar über die vorhandene Queue-Verwaltung). Kommen und
+  Gehen müssen immer gehen; ein einzelner unbekannter Chip darf keine Halle
+  stilllegen. Überholt die frühere Vorgabe „beim ersten Fehler stoppen und in
+  den Störungsmodus wechseln" aus Master-Prompt v13. Entscheidung Manuel,
+  Begründung und Nachstellung in P-2026-08-16-08.
+- **D-008:** Der Offline-Zustand wird am Terminal **nur** über die
+  Zustandspille oben rechts angezeigt (grün `ONLINE` / rot `OFFLINE`). Kein
+  Banner, kein erklärender Text, keine Aufforderung, einen Admin zu rufen – der
+  Mitarbeiter am Gerät kann daran nichts ändern. Überholt die Vorgabe
+  „Hauptdatenbank nicht aktiv – Admin anfordern auf allen Terminalseiten", die
+  ohnehin nie umgesetzt war. Entscheidung Manuel, P-2026-08-16-08.
+- **D-009:** Bekommt das Terminal eine lokale Liste der Berechtigten (T-125),
+  dann **nur Nummern** – `mitarbeiter_id`, `personalnummer`, `rfid_code`,
+  `aktiv` –, **keine Namen und keine Passwörter**, und sie dient dem **Erkennen
+  und Auflösen**, nicht der Zugangskontrolle: Ein Chip, der nicht in der Liste
+  steht, wird offline trotzdem angenommen. Entscheidung Manuel,
+  P-2026-08-16-08.
 
+
+## P-2026-08-16-08 offline-befund-und-entscheidungen
+
+### EINGELESEN
+- `docs/fachregeln/terminal_und_offline.md` (Abschnitte 5 und 6) – die Vorgabe.
+- `core/OfflineQueueManager.php`, `core/Database.php`, `services/QueueService.php`,
+  `services/ZeitService.php` (`bucheZeit()`), `services/AuftragszeitService.php`
+  (Offline-Zweige), `public/terminal.php`, `controller/TerminalController.php`
+  (`bucheZeitOfflinePerRfid()`, `start()`, `kommen()`, `stoerung()`).
+- `views/terminal/_layout_top.php`, `_statusbox.php`, `start.php`, `stoerung.php`.
+- `sql/01_initial_schema.sql` (`zeitbuchung`, `db_injektionsqueue`).
+
+### DATEIEN
+- `docs/fachregeln/terminal_und_offline.md`
+- `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Wer nach diesem Patch `docs/fachregeln/terminal_und_offline.md`, Abschnitt 5,
+liest, findet dort die geltende Regel für einen gescheiterten Queue-Eintrag
+(überspringen, im Backend melden) statt der überholten („stoppen, Terminal
+sperren").
+
+### DONE
+Kein Code. Dieser Patch hält fest, was ein Prüflauf des Offline-Betriebs
+ergeben hat und was Manuel daraufhin entschieden hat – D-007 bis D-009, dazu
+T-121 bis T-129 im Snapshot.
+
+**Wie geprüft wurde:** Eine Wegwerf-Kopie des Arbeitsstands im
+**Terminal-Modus** (`installation_typ = 'terminal'`, `terminal.id = 1`) auf
+Port 8803, `db` → `zeit_probe`, `offline_db` → `zeit_probe_off`. Der Ausfall
+wurde über die Konfiguration erzeugt: ein `dsn` auf einen toten Port
+(Verbindung abgelehnt) und ein `dsn` auf `192.0.2.1` (Host schweigt). Die
+Entwicklungsdatenbank blieb außen vor.
+
+**Was trägt** (alles nachgestellt, nicht abgeleitet):
+
+- Offline gestempelt 06:51:04, Verbindung zurück 06:51:16 → in `zeitbuchung`
+  steht `zeitstempel = 06:51:04` und `erstellt_am = 06:51:16`. Die Rohzeit
+  überlebt die Queue, die `terminal_id` ebenfalls.
+- Der Mitarbeiter wird erst beim Einspielen über den Chip aufgelöst
+  (`(SELECT id FROM mitarbeiter WHERE rfid_code = '…' AND aktiv = 1 LIMIT 1)`),
+  wie in Abschnitt 5 vorgesehen.
+- Beide Wege funktionieren: RFID-only ohne Anmeldung **und** die Buchung aus
+  einer Sitzung, die vor dem Ausfall angemeldet war (dann mit fester
+  Mitarbeiter-ID).
+- Der Wiederanlauf braucht keinen Klick: `public/terminal.php` arbeitet die
+  Queue bei jedem Request ab, und der Kiosk fragt alle 5 s `?aktion=health` ab
+  und lädt neu, sobald die Datenbank antwortet.
+- Ein unbekannter Chip erzeugt **keine** falsche Buchung: `mitarbeiter_id` ist
+  `NOT NULL`, der Subselect liefert `NULL`, das Einspielen scheitert.
+
+**Der Fund, der alles andere überwiegt (T-121):** `Database` setzt keinen
+`PDO::ATTR_TIMEOUT`. Zu einem Host, der nicht ablehnt, sondern schweigt, dauert
+ein Verbindungsversuch **30 Sekunden**. Gezählt wurden pro Aufruf **neun**
+Versuche für die Startseite und **zwei** für `?aktion=health`; gemessen sind das
+**270 s** bzw. **60 s**. Der Kiosk pollt Health alle 5 s, und jede dieser
+Anfragen hält die PHP-Session-Sperre – die Klicks des Mitarbeiters stehen
+dahinter an. Das Terminal geht in dieser Lage nicht offline, es steht.
+Gegenprobe mit `PDO::ATTR_TIMEOUT => 2`: Abbruch nach 2,0 s.
+
+Warum das nie auffiel: In jedem bisherigen Test war die Datenbank *aus*, also
+lehnte der Host ab – das antwortet in Millisekunden. In der Halle heißt „Netz
+weg" meistens, dass Pakete verschwinden.
+
+**Der Fund, der die Regel gekippt hat (D-007):** Unbekannter Chip offline
+gescannt → Queue-Eintrag → beim Einspielen `Column 'mitarbeiter_id' cannot be
+null` → Status `fehler` → Störungsmodus, und ab da war **alles** gesperrt, für
+alle Mitarbeiter, obwohl die Hauptdatenbank wieder lief. Der dokumentierte
+Ausweg funktionierte nicht: Die Queue liegt in der lokalen Datenbank des
+Terminals, das Backend liest über dieselbe Regel
+(`OfflineQueueManager::holeQueueVerbindungOderNull()`) seine eigene und sieht
+den Eintrag nie. Am Gerät gibt es auch nichts: `public/terminal.php` zeigt den
+Störungsbildschirm vor jedem Controller und beendet.
+
+**Weitere Beobachtungen, jede als eigene Aufgabe abgelegt:** grüne
+`ONLINE`-Pille auf dem roten Störungsbildschirm und HTTP 200 statt 503 (T-122);
+Meldung nur lokal statt im Backend (T-123); Pille offline gelb statt rot
+(T-124); offline sichtbare Knöpfe „Urlaub", „Übersicht", „RFID-Chip zuweisen",
+die offline nur Fehlermeldungen liefern – der Adminknopf, weil offline das in
+der Session gecachte Recht benutzt wird (T-126); doppelte Queue-Status-Abfrage
+und doppelter Replay-Anstoß in `start()` (T-127); kein gemeinsamer Abschluss
+zwischen Haupt-DB-Commit und Queue-Update (T-128); der Schutz vor
+`mitarbeiter_id = 0` hängt allein am `sql_mode` (T-129).
+
+**Aufträge im Offline-Betrieb:** Sie sind eingebaut, aber praktisch
+unerreichbar. Ohne Hauptdatenbank gibt es keine Anmeldung und damit kein Menü,
+nur Kommen/Gehen per Chip; eine vorher angemeldete Sitzung wird nach jeder
+Buchung geleert, und der Auto-Logout greift nach 60 s. Deshalb T-125 zuerst und
+Anmeldung/Aufträge offline erst danach.
+
+### TEST
+Der Prüflauf **ist** der Inhalt dieses Patches; die Zahlen oben stammen daraus.
+Geändert wurde nur Dokumentation, deshalb kein `php -l`. Die Prüfumgebung ist
+abgeräumt und von außen gegengeprüft: kein Port 8801–8809 belegt, kein
+`php -S`, keine `zeit_probe`-Datenbank, `zeiterfassung` und
+`zeiterfassung_offline` unberührt.
+
+### Gefundene Fehler im eigenen Entwurf
+Am Ende der vorigen Sitzung war gemeldet, die Prüfumgebung sei abgeräumt. Sie
+war es nicht: Die Server auf 8801/8802 liefen noch (gestartet 06:37, also nach
+dem letzten Commit) und beide `zeit_probe`-Datenbanken standen noch. Die
+Nachprüfung aus `docs/wartungscheckliste.md` war offenbar **vor** dem letzten
+Aufbau gelaufen und danach nicht wiederholt worden. Konsequenz: Die Nachprüfung
+gehört an das Ende der Sitzung, nicht an das Ende des letzten Patches.
+
+### Was bewusst nicht erreicht wurde
+Keine Zeile Code. Die Regel in Abschnitt 5 beschreibt ab jetzt den
+**Sollzustand** – das Terminal sperrt heute noch beim ersten Fehler. Wer das
+liest, muss den Snapshot dazu lesen: T-122 und T-123 sind offen. Diese Lücke
+ist bewusst in Kauf genommen, weil die Alternative wäre, die Entscheidung
+nirgends festzuhalten, bis der Code fertig ist.
+
+### NEXT
+T-121 (Verbindungs-Timeout), danach T-122 und T-123 zusammenhängend.
 
 ## P-2026-08-16-07 t-105-terminal-login-teil-template
 

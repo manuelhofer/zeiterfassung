@@ -119,7 +119,18 @@ Einzelheiten inklusive Rechteliste des Terminal-Benutzers:
 ## 5. Offline-Fall und Injektions-Queue
 
 Vor jeder Schreiboperation in die Hauptdatenbank wird die Verbindung geprüft.
-Ist sie nicht erreichbar:
+
+**Diese Prüfung muss schnell scheitern.** „Nicht erreichbar" heißt in der Halle
+selten „Verbindung abgelehnt" (das antwortet in Millisekunden), sondern meistens
+„es kommt gar nichts zurück" – Switch tot, Server hängt, Firewall verwirft. Ohne
+gesetzten Verbindungs-Timeout wartet PHP dann 30 Sekunden je Versuch, und ein
+einziger Seitenaufruf braucht mehrere davon. Gemessen an einem Host, der
+schweigt: **270 Sekunden für die Startseite** (P-2026-08-16-08). Das Terminal
+geht dann nicht offline, es steht. Deshalb gilt: Verbindungs-Timeout wenige
+Sekunden, und wer in einem Aufruf einmal „nicht erreichbar" festgestellt hat,
+fragt in **demselben** Aufruf nicht noch einmal nach.
+
+Ist die Hauptdatenbank nicht erreichbar:
 
 **Erlaubt bleibt**, was den Betrieb am Laufen hält: Kommen/Gehen, Aufträge
 starten/stoppen.
@@ -158,8 +169,16 @@ Geschrieben wird in eine **lokale Sekundärdatenbank** (Tabelle
 `fehler`), **roher SQL-Befehl** zur späteren 1:1-Ausführung gegen die
 Hauptdatenbank, sowie Metadaten (Mitarbeiter-ID, Art der Aktion).
 
-Auf allen Terminalseiten wird in diesem Zustand gut sichtbar angezeigt:
-**„Hauptdatenbank nicht aktiv – Admin anfordern"**.
+**Was der Mitarbeiter davon sieht: die Zustandspille oben rechts, sonst
+nichts.** Sie steht auf jeder Terminalseite und heißt online grün `ONLINE`,
+offline rot `OFFLINE`. Kein zusätzlicher Text, keine Aufforderung, einen Admin
+zu rufen – der Mitarbeiter am Gerät kann daran nichts ändern, und ein
+Alarmbanner über dem Stempelknopf erzeugt nur Anrufe. Die Farbe genügt, damit
+niemand wochenlang übersieht, dass die Verbindung fehlt.
+
+Früher stand hier die Vorgabe, auf allen Terminalseiten „Hauptdatenbank nicht
+aktiv – Admin anfordern" anzuzeigen. Umgesetzt war sie nie, und sie ist auch
+nicht gewollt (Entscheidung Manuel, P-2026-08-16-08).
 
 **Wo die Queue liegt, weiß genau eine Stelle:** der `OfflineQueueManager` mit
 `holeQueueVerbindungOderNull()` und `holeQueueSpeicherort()`. Wer neu auf
@@ -167,21 +186,66 @@ Auf allen Terminalseiten wird in diesem Zustand gut sichtbar angezeigt:
 direkt, sonst entsteht eine zweite Meinung darüber, welche Datenbank gemeint
 ist.
 
-### Wiederanlauf und Störungsmodus
+### Wiederanlauf: ein kaputter Eintrag hält niemanden auf
 
 Sobald die Hauptdatenbank wieder erreichbar ist, wird die Queue in zeitlicher
-Reihenfolge abgearbeitet – **bis ein Fehler auftritt**.
+Reihenfolge abgearbeitet. Scheitert ein Eintrag:
 
-Bei einem Fehler:
+- Er wird auf `fehler` gesetzt, mit Fehlermeldung – und **übersprungen**. Die
+  folgenden Einträge werden weiter abgearbeitet.
+- Das Terminal bleibt **bedienbar**. Kommen und Gehen müssen immer gehen.
+- Am Terminal steht darüber **nichts**. Der Mitarbeiter kann einen kaputten
+  Eintrag nicht reparieren; die Meldung gehört dorthin, wo jemand entscheiden
+  darf.
+- Gemeldet wird im **Backend**: Wenn das Einspielen scheitert, ist die
+  Hauptdatenbank ja gerade erreichbar – sonst hätte es keinen Versuch gegeben.
+  Das Terminal legt den gescheiterten Eintrag deshalb in `db_injektionsqueue`
+  **der Hauptdatenbank** ab. Damit zeigt ihn die vorhandene Queue-Verwaltung
+  (`QUEUE_VERWALTEN`) ohne neue Maske: Chef, Personalbüro oder
+  Abteilungsleiter sehen Zeitpunkt, Chipnummer und SQL-Befehl und tragen die
+  Zeit von Hand nach oder verwerfen den Eintrag.
 
-- Abarbeitung **sofort stoppen**.
-- Terminal wechselt in den **Störungsmodus**: Meldung, **der konkrete
-  SQL-Befehl**, und die Aufforderung, einen Admin zu rufen.
-- Ein berechtigter Admin kann im Backend den Eintrag einsehen, den SQL-Befehl
-  prüfen und entscheiden: „Ignorieren/Löschen" (die Injektion wird verworfen,
-  die Queue läuft weiter) oder den Fehler notieren, den Eintrag löschen und
-  den Sachverhalt manuell korrekt nachtragen.
-- Erst nach Bearbeitung des Eintrags darf die Queue weiterlaufen.
+**Warum das geändert wurde** (Entscheidung Manuel, P-2026-08-16-08): Vorher
+stoppte die Abarbeitung beim ersten Fehler und das Terminal ging in einen
+sperrenden Störungsmodus. Nachgestellt hieß das: Ein einziger unbekannter Chip
+– ein neuer Mitarbeiter, ein Besucher, ein Chip auf `aktiv = 0` – legte das
+Gerät für **alle** lahm, auch wenn die Hauptdatenbank längst wieder lief. Der
+dokumentierte Ausweg („Admin löscht den Eintrag im Backend") funktionierte
+dabei nicht: Die Queue liegt in der lokalen Datenbank des Terminals, und das
+Backend liest über dieselbe Regel seine eigene. Es blieb nur, mit Tastatur oder
+SSH an das Gerät zu gehen.
+
+### Störungsmodus: nur noch ein Fall
+
+Der sperrende Bildschirm bleibt für die eine Lage, in der das Terminal
+tatsächlich nichts mehr tun kann: **weder Hauptdatenbank noch lokale Queue
+erreichbar**. Dann ist keine Buchung speicherbar, und das muss dastehen –
+inklusive HTTP-Status `503`, damit eine Überwachung es sieht.
+
+### Lokale Liste der Berechtigten (geplant, T-125)
+
+Heute merkt das Terminal erst beim Einspielen – Stunden später –, dass ein Chip
+niemandem gehört. Der Mensch, der ihn drangehalten hat, ist längst weg.
+Deshalb soll das Gerät eine **eigene, kleine Liste** bekommen, die es im
+Online-Betrieb aus der Hauptdatenbank auffrischt:
+
+- **Nur** `mitarbeiter_id`, `personalnummer`, `rfid_code`, `aktiv`.
+- **Keine Namen, keine Passwörter, keine Kontostände.** Wird das Gerät
+  gestohlen, sind es Nummern ohne Zuordnung. (Dass die Zugangsdaten zur
+  Hauptdatenbank ohnehin auf dem Gerät liegen, bleibt davon unberührt – der
+  Spiegel macht es nicht schlimmer, aber auch nicht besser.)
+- Zweck ist **Erkennen und Auflösen**, nicht Türsteherei: Ein Chip, der nicht
+  in der Liste steht, wird offline **trotzdem angenommen**. Sonst verliert
+  jemand mit frisch ausgegebenem Chip seine Ankunftszeit, weil der Spiegel zwei
+  Stunden alt ist. Der Eintrag geht dann wie gehabt mit RFID-Auflösung in die
+  Queue und taucht im Zweifel im Backend auf.
+- Der Spiegel ersetzt die Regel oben **nicht**: Er kann veraltet sein,
+  unauflösbare Einträge bleiben möglich.
+
+Erst danach ist der zweite Schritt sinnvoll – **Anmeldung und Aufträge im
+Offline-Betrieb**. Der braucht zusätzlich eine Anwesenheitslogik ohne
+Hauptdatenbank und, wenn beim Auftragsstart eine Maschine gewählt wird, auch
+eine lokale Maschinenliste. Das ist ein eigenes Vorhaben, kein Anhängsel.
 
 ## 6. Terminal-UI: Layout, Uhr, Texte
 
