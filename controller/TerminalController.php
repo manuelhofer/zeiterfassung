@@ -1732,6 +1732,7 @@ class TerminalController
                     if (isset($_POST['offline_rfid_reset']) && (string)$_POST['offline_rfid_reset'] === '1') {
                         unset($_SESSION['terminal_offline_rfid_code']);
                         unset($_SESSION['terminal_offline_rfid_hint']);
+                        unset($_SESSION['terminal_offline_rfid_spiegel']);
 
                         $redir = 'terminal.php?aktion=start';
                         if ($debugAktiv) {
@@ -1749,12 +1750,23 @@ class TerminalController
                         // Für den nächsten Schritt (Kommen/Gehen) merken.
                         $_SESSION['terminal_offline_rfid_code'] = $rfidCode;
 
+                        // T-125: Kennt das Gerät diesen Chip? Die Antwort
+                        // gehört auf den Bildschirm, solange der Mensch noch
+                        // davorsteht – beim Einspielen ist er längst weg.
+                        // Gesperrt wird dadurch nichts (siehe Fachregel,
+                        // Abschnitt 5): Buchen darf er in jedem Fall.
+                        $_SESSION['terminal_offline_rfid_spiegel'] =
+                            MitarbeiterSpiegel::getInstanz()->pruefeChip($rfidCode);
+
                         // UX (Offline): Aus der lokalen Queue die letzte bekannte Aktion für diesen RFID
                         // ermitteln und einen Button-Vorschlag speichern (damit man sich weniger verklickt).
                         $hint = $this->ermittleOfflineHintFuerRfid($rfidCode);
                         if (is_array($hint)) {
                             $_SESSION['terminal_offline_rfid_hint'] = $hint;
                         } else {
+                            // Nur den Vorschlag zurücknehmen. Die Spiegel-Antwort
+                            // bleibt: Ein Chip ohne früheren Queue-Eintrag ist
+                            // genau der Fall, für den T-125 gebaut wurde.
                             unset($_SESSION['terminal_offline_rfid_hint']);
                         }
 
@@ -4048,6 +4060,7 @@ $urlaubSaldo = null;
                     $_SESSION['terminal_flash_nachricht'] = 'Kommen wurde bereits um ' . $dupZeit . ' gespeichert (Doppelklick/Scan ignoriert).';
                     unset($_SESSION['terminal_offline_rfid_code']);
                     unset($_SESSION['terminal_offline_rfid_hint']);
+                    unset($_SESSION['terminal_offline_rfid_spiegel']);
                     header('Location: terminal.php?aktion=start');
                     exit;
                 }
@@ -4063,6 +4076,7 @@ $urlaubSaldo = null;
                 // Kiosk: nach der Buchung RFID wieder leeren (nächster Mitarbeiter).
                 unset($_SESSION['terminal_offline_rfid_code']);
                 unset($_SESSION['terminal_offline_rfid_hint']);
+                unset($_SESSION['terminal_offline_rfid_spiegel']);
                 header('Location: terminal.php?aktion=start');
                 exit;
             }
@@ -4232,6 +4246,7 @@ $urlaubSaldo = null;
                     $_SESSION['terminal_flash_nachricht'] = 'Gehen wurde bereits um ' . $dupZeit . ' gespeichert (Doppelklick/Scan ignoriert).';
                     unset($_SESSION['terminal_offline_rfid_code']);
                     unset($_SESSION['terminal_offline_rfid_hint']);
+                    unset($_SESSION['terminal_offline_rfid_spiegel']);
                     header('Location: terminal.php?aktion=start');
                     exit;
                 }
@@ -4247,6 +4262,7 @@ $urlaubSaldo = null;
                 // Kiosk: nach der Buchung RFID wieder leeren (nächster Mitarbeiter).
                 unset($_SESSION['terminal_offline_rfid_code']);
                 unset($_SESSION['terminal_offline_rfid_hint']);
+                unset($_SESSION['terminal_offline_rfid_spiegel']);
                 header('Location: terminal.php?aktion=start');
                 exit;
             }

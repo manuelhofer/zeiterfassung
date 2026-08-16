@@ -271,12 +271,13 @@ tatsächlich nichts mehr tun kann: **weder Hauptdatenbank noch lokale Queue
 erreichbar**. Dann ist keine Buchung speicherbar, und das muss dastehen –
 inklusive HTTP-Status `503`, damit eine Überwachung es sieht.
 
-### Lokale Liste der Berechtigten (geplant, T-125)
+### Lokale Liste der Berechtigten (T-125)
 
-Heute merkt das Terminal erst beim Einspielen – Stunden später –, dass ein Chip
-niemandem gehört. Der Mensch, der ihn drangehalten hat, ist längst weg.
-Deshalb soll das Gerät eine **eigene, kleine Liste** bekommen, die es im
-Online-Betrieb aus der Hauptdatenbank auffrischt:
+Ohne sie merkte das Terminal erst beim Einspielen – Stunden später –, dass ein
+Chip niemandem gehört. Der Mensch, der ihn drangehalten hat, war längst weg.
+Deshalb hat das Gerät eine **eigene, kleine Liste** (`mitarbeiter_spiegel` in
+der lokalen Ausweichdatenbank), die es im Online-Betrieb aus der
+Hauptdatenbank auffrischt:
 
 - **Nur** `mitarbeiter_id`, `personalnummer`, `rfid_code`, `aktiv`.
 - **Keine Namen, keine Passwörter, keine Kontostände.** Wird das Gerät
@@ -291,7 +292,24 @@ Online-Betrieb aus der Hauptdatenbank auffrischt:
 - Der Spiegel ersetzt die Regel oben **nicht**: Er kann veraltet sein,
   unauflösbare Einträge bleiben möglich.
 
-Erst danach ist der zweite Schritt sinnvoll – **Anmeldung und Aufträge im
+**Was am Gerät passiert:** Nach dem Scan steht unter „Chip … erkannt" eine
+Zeile, wenn der Chip nicht in der Liste steht („nicht bekannt") oder dort auf
+`aktiv = 0` liegt („nicht aktiv") – beide mit dem Zusatz, dass die Buchung
+trotzdem angenommen wird und man sich im Büro melden soll. Ist der Chip in
+Ordnung, steht dort **nichts**: Ein Bildschirm, der jedes Mal etwas sagt, wird
+nicht mehr gelesen.
+
+**Wenn es keinen Spiegel gibt** – kein Ausweichdatenbank, Tabelle fehlt, oder
+noch nie aufgefrischt –, sagt das Gerät ebenfalls nichts. Eine leere Liste
+würde sonst jeden Chip als unbekannt melden, und das wäre schlimmer als zu
+schweigen.
+
+**Aufgefrischt** wird bei jedem Terminal-Aufruf, aber höchstens alle fünf
+Minuten und nur, solange die Hauptdatenbank erreichbar ist – dieselbe
+Bedingung wie beim Wiederanlauf der Queue. Geschrieben wird ganz oder gar
+nicht: Ein halb gefüllter Spiegel meldete Chips als unbekannt, die es gibt.
+
+Der zweite Schritt ist damit möglich – **Anmeldung und Aufträge im
 Offline-Betrieb**. Der braucht zusätzlich eine Anwesenheitslogik ohne
 Hauptdatenbank und, wenn beim Auftragsstart eine Maschine gewählt wird, auch
 eine lokale Maschinenliste. Das ist ein eigenes Vorhaben, kein Anhängsel.

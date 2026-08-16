@@ -537,6 +537,15 @@ require __DIR__ . '/_layout_top.php';
                         $offlineHint = $h;
                     }
                 }
+
+                // T-125: Was die lokale Liste der Berechtigten über diesen Chip
+                // sagt. Nur `unbekannt` und `inaktiv` werden angezeigt – bei
+                // allem anderen gibt es nichts zu melden, und ein Bildschirm,
+                // der jedes Mal etwas sagt, wird nicht mehr gelesen.
+                $offlineSpiegel = '';
+                if ($offlineRfid !== '' && isset($_SESSION['terminal_offline_rfid_spiegel'])) {
+                    $offlineSpiegel = (string)$_SESSION['terminal_offline_rfid_spiegel'];
+                }
             ?>
 
             <?php if ($offlineRfid === ''): ?>
@@ -554,6 +563,18 @@ require __DIR__ . '/_layout_top.php';
                     Chip <strong><?php echo htmlspecialchars($offlineRfid, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></strong> erkannt.<br>
                     Bitte „Kommen“ oder „Gehen“ auswählen.
                 </p>
+
+                <?php if ($offlineSpiegel === MitarbeiterSpiegel::CHIP_UNBEKANNT): ?>
+                    <p class="fehler">
+                        Dieser Chip ist auf diesem Gerät <strong>nicht bekannt</strong>.
+                        Die Buchung wird trotzdem angenommen – bitte im Büro melden.
+                    </p>
+                <?php elseif ($offlineSpiegel === MitarbeiterSpiegel::CHIP_INAKTIV): ?>
+                    <p class="fehler">
+                        Dieser Chip ist als <strong>nicht aktiv</strong> hinterlegt.
+                        Die Buchung wird trotzdem angenommen – bitte im Büro melden.
+                    </p>
+                <?php endif; ?>
             <?php endif; ?>
 
             <form method="post" action="terminal.php?aktion=start" class="login-form terminal-login-form<?php echo ($offlineRfid !== '') ? ' terminal-login-form-mit-rfid' : ''; ?>">

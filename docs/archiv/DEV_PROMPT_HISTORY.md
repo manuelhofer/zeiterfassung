@@ -18,6 +18,142 @@ legacy_zip_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-08-16-30 t-125-lokale-liste-der-berechtigten
+
+### EINGELESEN
+- `docs/fachregeln/terminal_und_offline.md`, Abschnitt 5 – die Spezifikation
+  war fertig, inklusive der Entscheidung „Erkennen und Auflösen, nicht
+  Türsteherei".
+- `core/OfflineQueueManager.php` – die Bauart für „lokale Datenbank, Tabelle
+  bei Bedarf selbst anlegen" und die Regel, wann die Ausweichdatenbank zählt.
+- `public/terminal.php`, Zeilen 186–200 – wo der Wiederanlauf angestoßen wird.
+- `controller/TerminalController.php`, Offline-Scan-Zweig, und
+  `views/terminal/start.php`.
+- `scripts/terminal/install_terminal.sh`, Zeile 479 – welche Rechte der lokale
+  Datenbankbenutzer hat.
+
+### DATEIEN
+- `core/MitarbeiterSpiegel.php` (neu)
+- `sql/offline_db_schema.sql`
+- `public/terminal.php`, `controller/TerminalController.php`,
+  `views/terminal/start.php`
+- `docs/fachregeln/terminal_und_offline.md`
+- `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Ein Chip, den die Hauptdatenbank nicht kennt, wird offline gescannt: Auf dem
+Bildschirm steht „nicht bekannt", die Buchung wird trotzdem angenommen und
+liegt danach als `zeit_kommen_rfid` in der Queue.
+
+### DONE
+Das Terminal führt eine eigene, kleine Liste der Berechtigten
+(`mitarbeiter_spiegel` in der lokalen Ausweichdatenbank) und sagt nach dem
+Scan, wenn ein Chip dort fehlt oder auf `aktiv = 0` steht. Vier Spalten:
+`mitarbeiter_id`, `personalnummer`, `rfid_code`, `aktiv` – keine Namen, keine
+Passwörter, keine Kontostände.
+
+Drei Entscheidungen aus der Fachregel, die im Code sichtbar bleiben mussten:
+
+**Der Spiegel sperrt nichts.** Ein unbekannter Chip darf buchen wie jeder
+andere; der Eintrag geht mit RFID-Auflösung in die Queue und taucht im Zweifel
+im Backend auf. Sonst verlöre jemand mit frisch ausgegebenem Chip seine
+Ankunftszeit, weil der Spiegel zwei Stunden alt ist.
+
+**Kein Spiegel heißt Schweigen, nicht „unbekannt".** Fehlt die
+Ausweichdatenbank, fehlt die Tabelle oder ist sie noch nie gefüllt worden,
+liefert `pruefeChip()` `CHIP_OHNE_AUSKUNFT` und der Bildschirm sagt nichts.
+Ein leerer Spiegel würde sonst jeden Chip anschwärzen – die eine Antwort, die
+schlimmer ist als keine.
+
+**Nur die lokale Datenbank, kein Rückfall auf die Hauptdatenbank.** Anders als
+bei der Queue: Dort steht `mitarbeiter` selbst, ein Spiegel daneben wäre eine
+zweite Wahrheit über dieselbe Frage. Auf einem Backend entsteht deshalb keine
+Tabelle, weder hier noch dort.
+
+Aufgefrischt wird im selben Atemzug wie der Wiederanlauf der Queue in
+`public/terminal.php` – gleiche Bedingung, gleiche Stelle –, aber höchstens
+alle fünf Minuten, und geschrieben wird in einer Transaktion: Ein halb
+gefüllter Spiegel meldete Chips als unbekannt, die es gibt.
+
+Die Rechte reichen: Der lokale Benutzer hat `CREATE, INDEX, INSERT, DELETE` auf
+der Ausweichdatenbank (`install_terminal.sh`, Zeile 479), und aus der
+Hauptdatenbank werden die vier Spalten **einzeln** gelesen – `SELECT *` auf
+`mitarbeiter` scheitert am Terminal, weil das Leserecht dort spaltenweise
+vergeben ist (T-101).
+
+### TEST
+Prüfumgebung, `alt` = 05bba4e, `neu` = Arbeitsstand. Zwei Probe-Chips:
+`CHIP-T125` (aktiv) und `CHIP-INAKTIV` (`aktiv = 0`).
+
+1. **Der Spiegel entsteht:** Terminal online, ein Seitenaufruf → zwei Zeilen,
+   Spaltenliste exakt `mitarbeiter_id, personalnummer, rfid_code, aktiv,
+   aktualisiert_am`. Kein Name, nirgends.
+2. **Was der Scan sagt** (Terminal offline):
+
+   | Chip | Anzeige |
+   | --- | --- |
+   | `CHIP-T125` | (kein Hinweis) |
+   | `CHIP-INAKTIV` | „nicht aktiv" |
+   | `CHIP-NIEGESEHEN` | „nicht bekannt" |
+
+3. **Und trotzdem buchen:** `CHIP-NIEGESEHEN` offline „Kommen" → Eintrag 1 in
+   der Queue, `zeit_kommen_rfid`, mit genau diesem Chip im SQL-Befehl. Genau
+   das ist der Unterschied zwischen Erkennen und Türsteherei.
+4. **Ohne Spiegel schweigt das Gerät:** Tabelle gelöscht, derselbe unbekannte
+   Chip gescannt → kein Hinweis.
+5. **Backend legt keinen an:** Tabelle gelöscht, dann nur Backend-Aufrufe
+   (Dashboard, Mitarbeiterliste, Queue-Verwaltung) → weder in der
+   Ausweichdatenbank noch in der Hauptdatenbank eine Tabelle
+   `mitarbeiter_spiegel`. Danach ein Terminal-Aufruf → zwei Zeilen.
+6. **Auffrischung:** zweiter Aufruf zwei Sekunden später → `aktualisiert_am`
+   unverändert. Stand künstlich auf gestern gesetzt → nächster Aufruf frischt
+   auf.
+7. **Seiten unverändert, wo der Spiegel nichts zu sagen hat:** Smoke-Test,
+   Dashboard, Queue-Verwaltung, Mitarbeiterliste und der Terminal-Startschirm
+   ohne Scan – je 0 abweichende Zeilen.
+8. `php -l` über alle geänderten Dateien, `meldungen` → beide Serverlogs ohne
+   PHP-Meldung, keine Protokollzeile der Kategorie `mitarbeiter_spiegel`.
+
+### Gefundene Fehler im eigenen Entwurf
+**Eine Massenersetzung hat genau das gelöscht, was der Patch setzt.** Die neue
+Session-Variable musste überall dort verschwinden, wo auch der
+Button-Vorschlag verschwindet – also habe ich `unset(… rfid_hint …)` gesucht
+und die Zeile darunter ergänzt. An einer der sechs Stellen steht dieses
+`unset` aber im `else` desselben Blocks, in dem ich zwei Zeilen vorher die
+Spiegel-Antwort gesetzt hatte: Ein Chip **ohne** früheren Queue-Eintrag hätte
+seinen Hinweis sofort wieder verloren – und das ist genau der Chip, für den
+T-125 gebaut ist. Die Ersetzung hat außerdem an fünf Stellen die Einrückung
+zerlegt. Beides beim Durchsehen des eigenen Diffs gefunden, nicht beim Testen:
+Der Fall wäre erst dem Ersten in der Halle aufgefallen.
+
+**Ein Prüflauf, der nichts geprüft hat:** „Backend legt keinen Spiegel an"
+meldete zuerst eine vorhandene Tabelle – angelegt hatte sie aber ein
+Terminal-Aufruf aus dem Test davor, nicht das Backend. Wiederholt mit
+gelöschter Tabelle und ausschließlich Backend-Aufrufen. Dieselbe Sorte Fehler
+wie in den beiden Patches vorher; er entsteht jedes Mal daraus, dass die
+Umgebung noch etwas aus dem letzten Schritt enthält.
+
+### Was bewusst nicht erreicht wurde
+Die fünf Minuten Auffrischung stehen als Konstante im Code und nicht in der
+`config`-Tabelle. Ein Schalter dafür wäre heute Vorrat: Es gibt keinen Fall, in
+dem jemand ihn drehen wollte, und die Zahl steht mit Begründung an der Stelle,
+an der sie wirkt.
+
+Der Spiegel wird nicht geleert, wenn ein Gerät entkoppelt wird. Das
+Entkoppeln löscht den Datenbankbenutzer der **Hauptdatenbank** – die lokale
+Datei bleibt sowieso, mitsamt Queue. Wer das ändern will, ändert es für beide
+Tabellen zusammen, nicht für eine.
+
+**Anmeldung und Aufträge im Offline-Betrieb** ist der zweite Schritt, für den
+T-125 die Voraussetzung war. Er braucht eine Anwesenheitslogik ohne
+Hauptdatenbank und ggf. eine lokale Maschinenliste – ein eigenes Vorhaben, das
+erst spezifiziert gehört. Steht als T-138 im Snapshot.
+
+### NEXT
+T-125 ist erledigt; damit ist die Aufgabenkette aus P-2026-08-16-08
+abgearbeitet. Offen: T-138 (erst spezifizieren) und der Gerätetest, für den es
+einen Bildschirm braucht.
+
 ## P-2026-08-16-29 t-137-inaktive-rechte-ueberleben-das-speichern
 
 ### EINGELESEN

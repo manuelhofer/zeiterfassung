@@ -36,11 +36,13 @@ Ein Satz je Task – die Begründung steht im Verlauf, nicht hier.
 **Offline-Betrieb am Terminal** – Befund und Entscheidungen in P-2026-08-16-08,
 die Regeln dazu in
 [`fachregeln/terminal_und_offline.md`](fachregeln/terminal_und_offline.md),
-Abschnitt 5. Reihenfolge ist Absicht: T-125 kommt zuletzt.
+Abschnitt 5. Die Aufgabenkette daraus ist abgearbeitet; offen bleibt der
+zweite Schritt, für den T-125 die Voraussetzung war:
 
-- **T-125** Lokale Liste der Berechtigten auf dem Terminal (nur ID,
-  Personalnummer, RFID, aktiv – keine Namen), damit ein unbekannter Chip sofort
-  am Gerät auffällt statt erst beim Einspielen.
+- **T-138** Anmeldung und Aufträge im Offline-Betrieb – braucht zusätzlich eine
+  Anwesenheitslogik ohne Hauptdatenbank und, wenn beim Auftragsstart eine
+  Maschine gewählt wird, eine lokale Maschinenliste. Eigenes Vorhaben, erst
+  spezifizieren.
 - **Jahreswechsel beobachten:** Beim ersten echten Jahreswechsel prüfen, ob die
   festgeschriebenen Urlaubssalden plausibel bleiben (B-080).
 - **Terminal im Browser:** „Gehen" und „Auftrag starten/stoppen" sind am Gerät

@@ -198,6 +198,12 @@ try {
         ], null, null, 'terminal_offline_queue');
     }
 
+    // Lokale Liste der Berechtigten auffrischen (T-125). Steht hier, weil es
+    // dieselbe Bedingung hat wie der Wiederanlauf darüber: solange die
+    // Hauptdatenbank erreichbar ist, und sonst nie. Die Methode entscheidet
+    // selbst, ob überhaupt etwas zu tun ist – meistens nicht.
+    MitarbeiterSpiegel::getInstanz()->aktualisiereWennFaellig();
+
     $zustand = QueueService::getInstanz()->holeZustand();
 
     $queueStatus = [
