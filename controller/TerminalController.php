@@ -1168,12 +1168,11 @@ class TerminalController
             return null;
         }
 
-        $pdo = null;
-        try {
-            $pdo = $this->datenbank->getOfflineVerbindung();
-        } catch (Throwable $e) {
-            $pdo = null;
-        }
+        // T-133: Wo die Queue liegt, beantwortet der OfflineQueueManager – nicht
+        // dieser Controller. Vorher stand hier die Ausweichdatenbank fest; auf
+        // einem Terminal mit toter Ausweichdatenbank sah diese Abfrage deshalb
+        // nichts, obwohl die Queue dann in der Hauptdatenbank liegt.
+        $pdo = OfflineQueueManager::getInstanz()->holeQueueVerbindungOderNull();
 
         if (!($pdo instanceof PDO)) {
             return null;
@@ -1508,22 +1507,11 @@ class TerminalController
         $debugQueueEintraege = null;
         if ($debugAktiv) {
             try {
-                $db = Database::getInstanz();
-                $pdo = null;
-
-                try {
-                    $pdo = $db->getOfflineVerbindung();
-                } catch (Throwable $e) {
-                    $pdo = null;
-                }
-
-                if (!($pdo instanceof PDO)) {
-                    try {
-                            $pdo = $db->getVerbindung();
-                    } catch (Throwable $e) {
-                        $pdo = null;
-                    }
-                }
+                // T-133: dieselbe Frage, dieselbe Antwortstelle wie in der
+                // Queue-Verwaltung. Die Nachbildung hier fiel auf die
+                // Ausweichdatenbank auch dann zurück, wenn diese Installation
+                // gar kein Terminal ist.
+                $pdo = OfflineQueueManager::getInstanz()->holeQueueVerbindungOderNull();
 
                 if ($pdo instanceof PDO) {
                     $stmt = $pdo->query(
@@ -1615,22 +1603,12 @@ class TerminalController
                     $newFehler = 0;
 
                     try {
-                        $pdo = null;
-                        $db = Database::getInstanz();
-
-                        try {
-                            $pdo = $db->getOfflineVerbindung();
-                        } catch (Throwable $e) {
-                            $pdo = null;
-                        }
-
-                        if (!($pdo instanceof PDO)) {
-                            try {
-                                    $pdo = $db->getVerbindung();
-                            } catch (Throwable $e) {
-                                $pdo = null;
-                            }
-                        }
+                        // T-133: Die Zähler müssen dieselbe Datenbank meinen wie die
+                        // Liste darüber und wie der Lauf darunter. Genau hier
+                        // entstand der Fehler aus P-2026-08-16-14, als eine der
+                        // vervielfachten Regeln nur an der Hälfte der Stellen
+                        // geändert wurde.
+                        $pdo = OfflineQueueManager::getInstanz()->holeQueueVerbindungOderNull();
 
                         if ($pdo instanceof PDO) {
                             $beforeOffen = (int)$pdo->query("SELECT COUNT(*) FROM db_injektionsqueue WHERE status='offen'")->fetchColumn();

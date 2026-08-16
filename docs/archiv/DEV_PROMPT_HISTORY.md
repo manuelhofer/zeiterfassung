@@ -18,6 +18,113 @@ legacy_zip_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-08-16-21 t-133-queue-verbindung-aus-einer-hand
+
+### EINGELESEN
+- `core/OfflineQueueManager.php`, Zeilen 490–583 –
+  `holeQueueVerbindungOderNull()`, `holeAusweichVerbindungOderNull()`,
+  `holeQueueSpeicherort()`: die Regel, und warum sie an `installation_typ`
+  hängt (T-130).
+- `controller/TerminalController.php`, Zeilen 1164–1200 (Offline-Hinweis zum
+  Chip), 1507–1544 (Debug-Liste) und 1610–1655 (Zähler um „Queue jetzt
+  verarbeiten").
+- `services/QueueService.php`, `controller/QueueController.php` – wie es
+  aussieht, wenn die Regel richtig benutzt wird.
+- `controller/DashboardController.php` Zeile 584 und
+  `controller/SmokeTestController.php` Zeile 396 – die beiden anderen
+  `getOfflineVerbindung()`-Aufrufe. Sie bleiben: Dort lautet die Frage „ist die
+  Ausweichdatenbank erreichbar?", nicht „wo liegt die Queue?".
+- `docs/fachregeln/terminal_und_offline.md`, Abschnitt 5 („Wo die Queue liegt,
+  weiß genau eine Stelle").
+
+### DATEIEN
+- `controller/TerminalController.php`
+- `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Auf einer Backend-Installation mit erreichbarer Ausweichdatenbank zeigt die
+Debug-Liste der Terminalseite denselben Eintrag wie die Queue-Verwaltung
+(`?seite=queue_admin`) – nicht mehr den der Ausweichdatenbank.
+
+### DONE
+Drei Stellen im `TerminalController` bauten die Regel nach, statt sie zu
+fragen: erst `getOfflineVerbindung()`, sonst `getVerbindung()`. Das ist nicht
+dieselbe Regel – der Nachbau kennt `installation_typ` nicht und nimmt die
+Ausweichdatenbank auch dort, wo sie nichts zu sagen hat. Alle drei rufen jetzt
+`OfflineQueueManager::getInstanz()->holeQueueVerbindungOderNull()`.
+
+Sichtbar wird das auf einem Backend, auf dem eine `zeiterfassung_offline`
+erreichbar ist – genau die Lage aus T-130:
+
+- Die Debug-Liste zeigte die Einträge der Ausweichdatenbank, während die
+  Queue-Verwaltung nebenan die der Hauptdatenbank zeigt. Zwei Listen, zwei
+  Datenbanken, dieselbe Überschrift.
+- Die Zähler um „Queue jetzt verarbeiten" meldeten „Offen: 2 → 2", obwohl der
+  Lauf dazwischen die **Hauptdatenbank** abgearbeitet hat. Der Bericht beschrieb
+  eine Datenbank, die niemand angefasst hatte, und las sich wie „hat nicht
+  funktioniert".
+- Der Hinweis „Letzte Offline-Buchung" suchte nur in der Ausweichdatenbank. Auf
+  einem Terminal mit toter Ausweichdatenbank – die Queue liegt dann in der
+  Hauptdatenbank – fand er deshalb nie etwas.
+
+Auf einem Terminal mit erreichbarer Ausweichdatenbank, also im Normalfall,
+ändert sich nichts: Beide Wege liefern dieselbe Verbindung. Das ist der Grund,
+warum es niemandem auffiel.
+
+### Gefundene Fehler im eigenen Entwurf
+Der erste Testlauf sah aus wie ein schwerer Fehler in der Queue-Abarbeitung:
+`verarbeiteOffeneEintraege()` warf `SQLSTATE[HY000] 2014 – Cannot execute
+queries while other unbuffered queries are active`, der Eintrag blieb auf
+`offen`, und die Hauptverbindung war für den Rest des Aufrufs unbrauchbar –
+bis hin dazu, dass nicht einmal `Logger` noch schreiben konnte. Ich habe das
+der Schleife über den offenen Cursor zugeschrieben und sie auf `fetchAll()`
+umgebaut.
+
+Falsch. Die Gegenprobe mit realistischen Einträgen lief auf demselben,
+unveränderten Stand fehlerfrei durch – und mit dem Umbau trat der Fehler
+weiterhin auf. Ausgelöst hatte ihn mein eigener Probe-Eintrag: Sein SQL war
+`SELECT 1`, und `PDO::exec()` auf ein SELECT lässt ein ungelesenes Ergebnis auf
+der Verbindung stehen. Die Queue bekommt ihre Befehle ausschließlich aus
+`ZeitService`/`AuftragszeitService` und die sind INSERT/UPDATE; über die
+Anwendung ist der Fall nicht erreichbar. Der Umbau ist zurückgenommen –
+`core/OfflineQueueManager.php` ist in diesem Patch unverändert.
+
+Was bleibt: Testdaten müssen aussehen wie echte Daten. Eine Stunde ging dafür
+drauf, dass `SELECT 1` bequemer zu tippen war als ein INSERT.
+
+### TEST
+Prüfumgebung, `alt` = 125b04a, `neu` = Arbeitsstand.
+
+1. **Backend mit erreichbarer Ausweichdatenbank** (`backend beide`), in beiden
+   Queues je ein unterscheidbarer Eintrag: Debug-Liste auf „alt" zeigt
+   `AUS_AUSWEICHDATENBANK`, auf „neu" `AUS_HAUPTDATENBANK`.
+   `?seite=queue_admin&status=fehler` zeigt auf beiden Ständen
+   `AUS_HAUPTDATENBANK` – „neu" stimmt damit überein, „alt" nicht.
+2. **Zähler:** zwei offene Einträge in der Ausweichdatenbank, keiner in der
+   Hauptdatenbank, „Queue jetzt verarbeiten" gedrückt → „alt" meldet
+   „Offen: 2 → 2", „neu" meldet „Offen: 0 → 0". Die beiden Einträge liegen
+   danach unverändert in der Ausweichdatenbank; abgearbeitet wurde die
+   Hauptdatenbank, und nur „neu" sagt das auch.
+3. **Terminal unverändert** (`terminal beide --offline`): Chip `CHIP-T133`
+   gescannt, „Kommen" gebucht, erneut gescannt → beide Stände zeigen „Letzte
+   Offline-Buchung: **Kommen** um 16:05:36 16-08-2026". Online gedrückt meldet
+   „Queue jetzt verarbeiten" auf beiden Ständen „Offen: 0 → 0".
+4. `php -l` über die geänderte Datei, `meldungen` → beide Serverlogs ohne
+   PHP-Meldung.
+
+Umgebung abgeräumt und nachgeprüft: kein Port 8801–8808, kein `php`-Prozess,
+keine `zeit_probe`-Datenbank, Verzeichnis gelöscht, `zeiterfassung` und
+`zeiterfassung_offline` unberührt.
+
+### Was bewusst nicht erreicht wurde
+Die beiden anderen Teile von T-133 – die doppelten
+`istTerminalInstallation()` in `ZeitService`/`AuftragszeitService` und die drei
+`Helper`-Methoden, die `config/config.php` selbst lesen – stehen noch aus. Je
+ein eigener Patch, weil je eine eigene Regel.
+
+### NEXT
+T-133, zweiter Teil: `istTerminalInstallation()` nur noch in `Helper`.
+
 ## P-2026-08-16-20 t-134-anwesenheit-ueberlebt-den-ausfall
 
 ### EINGELESEN

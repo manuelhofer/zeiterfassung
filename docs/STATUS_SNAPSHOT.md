@@ -48,13 +48,12 @@ Abschnitt 5. Reihenfolge ist Absicht: T-125 kommt zuletzt.
 - **T-129** Dass ein unbekannter Chip keine Buchung auf `mitarbeiter_id = 0`
   erzeugt, hängt allein am `sql_mode` des Servers; einen Fremdschlüssel, der
   das auffinge, hat `zeitbuchung` nicht.
-- **T-133** Aufräumen ohne sichtbaren Effekt: Drei Stellen in
-  `controller/TerminalController.php` wählen die Queue-Datenbank selbst statt
-  über den `OfflineQueueManager`, `ZeitService` und `AuftragszeitService` haben
-  je eine private `istTerminalInstallation()` neben der in `Helper`, und drei
-  `Helper`-Methoden lesen `config/config.php` selbst statt über
-  `Start::konfig()`. Heute liefert alles dasselbe – der Unterschied entsteht,
-  wenn jemand eine der Regeln wieder ändert (so geschehen in P-2026-08-16-14).
+- **T-133** Aufräumen ohne sichtbaren Effekt: `ZeitService` und
+  `AuftragszeitService` haben je eine private `istTerminalInstallation()` neben
+  der in `Helper`, und drei `Helper`-Methoden lesen `config/config.php` selbst
+  statt über `Start::konfig()`. Heute liefert alles dasselbe – der Unterschied
+  entsteht, wenn jemand eine der Regeln wieder ändert (so geschehen in
+  P-2026-08-16-14). Die Queue-Datenbank ist erledigt (P-2026-08-16-21).
 - **T-112** „`catch` → `return []`" an 26 Stellen in `modelle/` und `services/`
   durchsehen – falsch nur dort, wo es die Fehlermeldung des Aufrufers
   unerreichbar macht; Suchlauf in P-2026-08-15-10.
