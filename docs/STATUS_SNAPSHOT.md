@@ -38,9 +38,6 @@ die Regeln dazu in
 [`fachregeln/terminal_und_offline.md`](fachregeln/terminal_und_offline.md),
 Abschnitt 5. Reihenfolge ist Absicht: T-125 kommt zuletzt.
 
-- **T-123** Der gescheiterte Eintrag wird in die `db_injektionsqueue` der
-  Hauptdatenbank geschrieben, damit die vorhandene Queue-Verwaltung im Backend
-  ihn zeigt – ohne das heißt T-122 „Fehler verschwindet".
 - **T-124** Die Zustandspille wird offline rot (`error`) statt gelb (`warn`).
 - **T-125** Lokale Liste der Berechtigten auf dem Terminal (nur ID,
   Personalnummer, RFID, aktiv – keine Namen), damit ein unbekannter Chip sofort
@@ -59,6 +56,11 @@ Abschnitt 5. Reihenfolge ist Absicht: T-125 kommt zuletzt.
 - **T-129** Dass ein unbekannter Chip keine Buchung auf `mitarbeiter_id = 0`
   erzeugt, hängt allein am `sql_mode` des Servers; einen Fremdschlüssel, der
   das auffinge, hat `zeitbuchung` nicht.
+- **T-130** Ein Backend mit erreichbarer `offline_db` liest seine
+  Queue-Verwaltung aus der Ausweichdatenbank statt aus der Hauptdatenbank und
+  zeigt die Meldungen aus T-123 dann nicht; `offline_db.enabled` steht
+  standardmäßig auf `1`, die Regel gehört an `installation_typ` gebunden wie
+  `Helper::terminalId()`. Nachgestellt in P-2026-08-16-11.
 - **T-112** „`catch` → `return []`" an 26 Stellen in `modelle/` und `services/`
   durchsehen – falsch nur dort, wo es die Fehlermeldung des Aufrufers
   unerreichbar macht; Suchlauf in P-2026-08-15-10.

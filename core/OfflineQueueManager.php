@@ -10,6 +10,8 @@ declare(strict_types=1);
  * - SQL-Befehle in die Queue schreiben, wenn die Hauptdatenbank nicht erreichbar ist.
  * - Abarbeitung der Queue, sobald die Hauptdatenbank wieder verfügbar ist.
  * - Überspringen eines gescheiterten Eintrags, ohne die Abarbeitung zu stoppen.
+ * - Melden eines gescheiterten Eintrags in der Hauptdatenbank, damit das
+ *   Backend ihn zeigt.
  * - Bereitstellung von Hilfsfunktionen für das Backend/Terminal-UI (z. B. aktueller Fehler-Eintrag).
  */
 class OfflineQueueManager
@@ -127,6 +129,9 @@ class OfflineQueueManager
      * - Scheitert ein Eintrag, geht er mit seiner Fehlermeldung auf Status
      *   'fehler' und wird **übersprungen**; die folgenden Einträge werden
      *   weiter abgearbeitet.
+     * - Gemeldet wird er in der Hauptdatenbank
+     *   (`meldeFehlerAnHauptdatenbank()`), damit ihn die Queue-Verwaltung im
+     *   Backend zeigt.
      *
      * Warum überspringen und nicht abbrechen: Ein einziger unauflösbarer
      * Eintrag – ein unbekannter Chip genügt – hielt sonst alle späteren
@@ -162,7 +167,9 @@ class OfflineQueueManager
 
             // Sicherstellen, dass der SQL-Befehl nicht leer ist.
             if (trim($sqlBefehl) === '') {
-                $this->markiereAlsFehler($queuePdo, $id, 'Leerer SQL-Befehl in db_injektionsqueue.');
+                $meldung = 'Leerer SQL-Befehl in db_injektionsqueue.';
+                $this->markiereAlsFehler($queuePdo, $id, $meldung);
+                $this->meldeFehlerAnHauptdatenbank($hauptPdo, $queuePdo, $eintrag, $meldung);
                 continue;
             }
 
@@ -179,6 +186,7 @@ class OfflineQueueManager
                 }
 
                 $this->markiereAlsFehler($queuePdo, $id, $e->getMessage());
+                $this->meldeFehlerAnHauptdatenbank($hauptPdo, $queuePdo, $eintrag, $e->getMessage());
 
                 Logger::error(
                     'Fehler bei Abarbeitung von db_injektionsqueue',
@@ -191,6 +199,117 @@ class OfflineQueueManager
                 // Kein Abbruch: Der nächste Eintrag ist an diesem Fehler
                 // unschuldig und gehört genauso in die Hauptdatenbank.
             }
+        }
+    }
+
+    /**
+     * Legt einen gescheiterten Eintrag dort ab, wo jemand über ihn entscheiden
+     * darf: in der `db_injektionsqueue` der **Hauptdatenbank**. Die vorhandene
+     * Queue-Verwaltung im Backend (`QUEUE_VERWALTEN`) zeigt ihn damit ohne neue
+     * Maske – mit Zeitpunkt, Chipnummer (im SQL-Befehl), Terminal und
+     * Fehlermeldung, und mit „Retry" und „Ignorieren/Löschen" daneben.
+     *
+     * Warum das nötig ist: Ohne diesen Schritt hieße „überspringen" für jeden
+     * Betrachter „Fehler verschwindet". Die Queue liegt auf dem Terminal, und
+     * das Backend liest nach derselben Regel seine eigene – gesehen hätte den
+     * Eintrag nur, wer mit Tastatur oder SSH an das Gerät geht.
+     *
+     * Dass die Hauptdatenbank gerade erreichbar ist, steht fest: Sonst hätte es
+     * den Versuch nicht gegeben, der eben gescheitert ist.
+     *
+     * Der lokale Eintrag bleibt liegen und wird **nicht** gelöscht – er ist der
+     * Beleg auf dem Gerät. Doppelt eingespielt wird deshalb nichts: Er steht
+     * auf `fehler`, und abgearbeitet wird nur `offen`.
+     *
+     * @param array<string,mixed> $eintrag Der lokale Queue-Eintrag, wie er aus
+     *                                     `db_injektionsqueue` gelesen wurde.
+     */
+    private function meldeFehlerAnHauptdatenbank(
+        \PDO $hauptPdo,
+        \PDO $queuePdo,
+        array $eintrag,
+        string $fehlerNachricht
+    ): void {
+        // Liegt die Queue ohnehin in der Hauptdatenbank – ein Terminal ohne
+        // erreichbare Ausweichdatenbank –, steht der Eintrag dort schon. Eine
+        // Kopie wäre derselbe Fehler zweimal in derselben Liste.
+        if ($queuePdo === $hauptPdo) {
+            return;
+        }
+
+        $lokaleId = (int)($eintrag['id'] ?? 0);
+
+        // Woher der Eintrag stammt, gehört in die Meldung: Die ID im Backend
+        // ist eine neue, die lokale findet man sonst auf dem Gerät nicht wieder.
+        $meldung = 'Terminal-Queue Eintrag ' . $lokaleId . ': ' . $fehlerNachricht;
+        if (strlen($meldung) > 1000) {
+            $meldung = substr($meldung, 0, 1000);
+        }
+
+        // Der Zeitpunkt der Buchung, nicht der des Einspielversuchs - danach
+        // sortiert die Liste im Backend, und danach sucht der Mensch, der die
+        // Zeit von Hand nachträgt.
+        $erstelltAm = $eintrag['erstellt_am'] ?? null;
+        if (!is_string($erstelltAm) || trim($erstelltAm) === '') {
+            $erstelltAm = (new \DateTimeImmutable('now'))->format('Y-m-d H:i:s');
+        }
+
+        $terminalId = $eintrag['meta_terminal_id'] ?? null;
+        if ($terminalId === null) {
+            $terminalId = Helper::terminalId();
+        }
+
+        $sql = 'INSERT INTO db_injektionsqueue
+                    (erstellt_am, status, sql_befehl, fehlernachricht, letzte_ausfuehrung,
+                     versuche, meta_mitarbeiter_id, meta_terminal_id, meta_aktion)
+                VALUES (:erstellt_am, \'fehler\', :sql_befehl, :fehlernachricht, :letzte_ausfuehrung,
+                        :versuche, :meta_mitarbeiter_id, :meta_terminal_id, :meta_aktion)';
+
+        try {
+            $statement = $hauptPdo->prepare($sql);
+            $statement->bindValue(':erstellt_am', $erstelltAm, \PDO::PARAM_STR);
+            $statement->bindValue(':sql_befehl', (string)($eintrag['sql_befehl'] ?? ''), \PDO::PARAM_STR);
+            $statement->bindValue(':fehlernachricht', $meldung, \PDO::PARAM_STR);
+            $statement->bindValue(
+                ':letzte_ausfuehrung',
+                (new \DateTimeImmutable('now'))->format('Y-m-d H:i:s'),
+                \PDO::PARAM_STR
+            );
+            $statement->bindValue(':versuche', (int)($eintrag['versuche'] ?? 0) + 1, \PDO::PARAM_INT);
+
+            $mitarbeiterId = $eintrag['meta_mitarbeiter_id'] ?? null;
+            if ($mitarbeiterId !== null) {
+                $statement->bindValue(':meta_mitarbeiter_id', (int)$mitarbeiterId, \PDO::PARAM_INT);
+            } else {
+                $statement->bindValue(':meta_mitarbeiter_id', null, \PDO::PARAM_NULL);
+            }
+
+            if ($terminalId !== null) {
+                $statement->bindValue(':meta_terminal_id', (int)$terminalId, \PDO::PARAM_INT);
+            } else {
+                $statement->bindValue(':meta_terminal_id', null, \PDO::PARAM_NULL);
+            }
+
+            $aktion = $eintrag['meta_aktion'] ?? null;
+            if (is_string($aktion) && $aktion !== '') {
+                $statement->bindValue(':meta_aktion', $aktion, \PDO::PARAM_STR);
+            } else {
+                $statement->bindValue(':meta_aktion', null, \PDO::PARAM_NULL);
+            }
+
+            $statement->execute();
+        } catch (\Throwable $e) {
+            // Scheitert auch das, bleibt nur das Protokoll. Der lokale Eintrag
+            // steht weiterhin auf 'fehler'; die Abarbeitung darf daran nicht
+            // hängen bleiben - sonst hielte ein defektes Melden genau das auf,
+            // was dieser Patch freimacht.
+            Logger::error(
+                'Gescheiterter Queue-Eintrag konnte nicht in der Hauptdatenbank gemeldet werden',
+                ['lokale_id' => $lokaleId, 'exception' => $e->getMessage()],
+                null,
+                is_int($terminalId) ? $terminalId : null,
+                'offline_queue'
+            );
         }
     }
 

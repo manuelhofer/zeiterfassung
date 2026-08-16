@@ -119,6 +119,123 @@ in den Statusbericht.
   P-2026-08-16-08.
 
 
+## P-2026-08-16-11 t-123-fehler-eintrag-im-backend-melden
+
+### EINGELESEN
+- `docs/STATUS_SNAPSHOT.md` (T-123), `docs/fachregeln/terminal_und_offline.md`
+  Abschnitt 5 („Gemeldet wird im Backend"), P-2026-08-16-10 – der Patch, den
+  dieser hier vervollständigt.
+- `core/OfflineQueueManager.php` (`verarbeiteOffeneEintraege()`,
+  `speichereInQueue()`, `holeQueueVerbindungOderNull()`), `core/Database.php`
+  (`getVerbindung()`/`getOfflineVerbindung()` – beide halten ihr PDO, deshalb
+  ist ein Identitätsvergleich zulässig).
+- `sql/01_initial_schema.sql`, Tabelle `db_injektionsqueue` – Spalten und der
+  `status`-ENUM, der `fehler` kennt.
+- `controller/QueueController.php` und `views/queue/liste.php` – was die
+  vorhandene Maske anzeigt und anbietet, damit keine neue nötig wird.
+
+### DATEIEN
+- `core/OfflineQueueManager.php`
+- `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Scheitert eine Offline-Buchung beim Einspielen, steht sie danach in der
+`db_injektionsqueue` der **Hauptdatenbank** auf `fehler` und die
+Queue-Verwaltung im Backend zeigt sie mit Zeitpunkt, Chipnummer und
+SQL-Befehl – ohne dass jemand an das Terminal gehen muss.
+
+### DONE
+Eine neue private Methode `meldeFehlerAnHauptdatenbank()`, aufgerufen an den
+zwei Stellen, an denen ein Eintrag auf `fehler` geht. Sie legt eine Kopie in
+der Hauptdatenbank ab:
+
+- **`erstellt_am` ist die Buchungszeit, nicht die des Einspielversuchs.**
+  Danach sortiert die Liste, und danach sucht der Mensch, der die Zeit von Hand
+  nachträgt. Der Zeitpunkt des gescheiterten Versuchs steht in
+  `letzte_ausfuehrung`.
+- **Die Fehlermeldung nennt die lokale ID** („Terminal-Queue Eintrag 1: …").
+  Die ID im Backend ist eine neue; ohne diesen Zusatz findet man den Eintrag
+  auf dem Gerät nicht wieder. `meta_terminal_id`, `meta_mitarbeiter_id` und
+  `meta_aktion` werden mitgenommen, die Chipnummer steckt ohnehin im SQL.
+- **Kein Doppeleintrag, wenn die Queue schon die Hauptdatenbank ist.** Ein
+  Terminal ohne erreichbare Ausweichdatenbank schreibt direkt dorthin; die
+  Kopie wäre derselbe Fehler zweimal in derselben Liste. Erkannt am
+  Identitätsvergleich der beiden PDO-Objekte – `Database` hält beide.
+- **Scheitert das Melden selbst, hängt daran nichts.** Der Fehler geht ins
+  Protokoll, die Abarbeitung läuft weiter. Sonst hielte ein defektes Melden
+  genau das auf, was P-2026-08-16-10 freigemacht hat.
+
+Der lokale Eintrag bleibt liegen und wird **nicht** gelöscht – er ist der Beleg
+auf dem Gerät. Zweimal eingespielt wird deshalb nichts: Er steht auf `fehler`,
+abgearbeitet wird nur `offen`.
+
+Eine neue Maske brauchte es nicht: Die vorhandene Queue-Verwaltung zeigt den
+Eintrag unter „Fehler" samt „Retry" und „Ignorieren/Löschen".
+
+### Gefundene Fehler im eigenen Entwurf
+Die erste Fassung hätte die Kopie mit `erstellt_am = CURRENT_TIMESTAMP`
+angelegt, also mit der Zeit des Einspielversuchs. Das ist genau die Angabe,
+die der Betrachter braucht, um die Zeit nachzutragen – und sie wäre um Stunden
+falsch gewesen. Jetzt wird `erstellt_am` aus dem lokalen Eintrag übernommen.
+
+### TEST
+Wegwerf-Kopie im **Terminal-Modus** auf Port 8803 (`zeit_probe` /
+`zeit_probe_off`) plus eine zweite im **Backend-Modus** auf Port 8804 auf
+derselben Hauptdatenbank, `offline_db` dort aus – so sieht eine echte
+Backend-Installation aus. Ausfall über die Konfiguration erzeugt.
+
+1. Offline mit unbekanntem Chip `CHIP-UNBEKANNT-999` gestempelt, Verbindung
+   zurück, ein Seitenaufruf. Lokale Queue: `fehler`. Hauptdatenbank: **ein**
+   Eintrag, `status = fehler`, `erstellt_am = 07:35:19` (die Offline-Zeit),
+   `letzte_ausfuehrung = 07:35:30`, `meta_terminal_id = 1`, Chipnummer im SQL.
+2. Backend `?seite=queue_admin&status=fehler` aufgerufen: Der Eintrag steht in
+   der Liste, mit „Terminal-Queue Eintrag 1: SQLSTATE[23000] … mitarbeiter_id
+   cannot be null" und den Knöpfen „Retry" und „Ignorieren/Löschen".
+3. **Der ganze Weg zu Ende:** Chip einem neuen Mitarbeiter zugewiesen, im
+   Backend auf „Retry" – Meldung „erneut ausgeführt und als verarbeitet
+   markiert", und in `zeitbuchung` steht die Buchung mit der **Offline-Zeit**
+   07:36:14 und `terminal_id = 1`. Danach das Terminal dreimal aufgerufen:
+   keine zweite Buchung, keine zweite Meldung.
+4. Gegenprobe ohne Ausweichdatenbank: Poison-Eintrag direkt in die
+   Hauptdatenbank, `offline_db` tot – der Eintrag geht auf `fehler`, und
+   daneben entsteht **keine** Kopie (`COUNT(*) = 1`).
+5. Wiederholte Seitenaufrufe im Normalfall: `COUNT(*)` in der Hauptdatenbank
+   bleibt bei 1.
+
+`php -l` über `core/OfflineQueueManager.php`, beide Serverlogs ohne Warnung
+oder Deprecation, `system_log` nur mit den erwarteten
+`offline_queue`-Meldungen. Nebenbei belegt: Der in P-2026-08-16-10 geänderte
+Hinweistext in `views/queue/liste.php` wurde dabei doch im Browser gesehen –
+dort stand er als „übersprungen … das Terminal bucht weiter".
+
+Umgebung abgeräumt und von außen gegengeprüft: kein Port 8801–8809, kein
+`php`-Prozess, keine `zeit_probe`-Datenbank, Verzeichnis gelöscht,
+`zeiterfassung` und `zeiterfassung_offline` unberührt.
+
+### Was bewusst nicht erreicht wurde
+**T-130, aufgefallen und nachgestellt, nicht behoben:** Ein Backend mit
+erreichbarer `offline_db` liest seine Queue-Verwaltung aus der
+Ausweichdatenbank – nach derselben Regel „Offline zuerst", die für das Terminal
+richtig ist. Nachgestellt: Backend auf `zeit_probe_off` gezeigt, in der
+Hauptdatenbank ein Eintrag mit Markierung – die Liste zeigte den der
+Ausweichdatenbank und den markierten **nicht**. Auf einer normalen
+Backend-Installation gibt es diese Datenbank nicht, dann fällt die Regel auf
+die Hauptdatenbank zurück und T-123 trägt; `offline_db.enabled` steht in
+`config/config.php` aber standardmäßig auf `1`, und auf einem Rechner, auf dem
+beides liegt, wäre die Meldung unsichtbar. Die Regel gehört an
+`installation_typ` gebunden, so wie `Helper::terminalId()` es tut – das ist ein
+eigenes Thema und ein eigener Patch.
+
+Ebenfalls unberührt: T-128 (kein gemeinsamer Abschluss zwischen Commit und
+`UPDATE status`) – die Kopie in der Hauptdatenbank ist ein dritter Schreibweg
+ohne gemeinsame Klammer, ändert an der Lage aber nichts: Sie entsteht erst,
+nachdem der Eintrag lokal auf `fehler` steht, und der wird nie wieder
+angefasst.
+
+### NEXT
+T-124 (Zustandspille offline rot statt gelb) – klein und unabhängig. T-125
+bleibt bewusst zuletzt.
+
 ## P-2026-08-16-10 t-122-fehler-eintrag-ueberspringen
 
 ### EINGELESEN
