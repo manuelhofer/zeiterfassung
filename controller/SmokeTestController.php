@@ -3003,6 +3003,226 @@ class SmokeTestController
         ];
     }
 
+    /**
+     * Offline-Queue: Zähler und die letzten zehn Einträge (rein lesend).
+     *
+     * Herausgelöst aus `index()` (T-105); der Rumpf ist unverändert.
+     *
+     * @return array{uebersicht:?array<string,mixed>, hinweis:?string}
+     */
+    private function holeQueueUebersicht(): array
+    {
+        // T-069 (Teil): Offline-Queue Übersicht (rein lesend)
+        $queueUebersicht = null;
+        $queueHinweis = null;
+
+        if ($this->db !== null) {
+            try {
+                // Queue-DB Auswahl wie in `QueueController`: Offline-DB bevorzugen (falls konfiguriert).
+                $pdoTmp = null;
+                $queueQuelle = 'haupt';
+
+                try {
+                    $pdoOff = $this->db->getOfflineVerbindung();
+                    if ($pdoOff instanceof PDO) {
+                        $pdoTmp = $pdoOff;
+                        $queueQuelle = 'offline';
+                    }
+                } catch (Throwable $e) {
+                    // Ignore – wir fallen auf Haupt-DB zurück.
+                    $pdoTmp = null;
+                }
+
+                if (!($pdoTmp instanceof PDO)) {
+                    $pdoTmp = $this->db->getVerbindung();
+                    $queueQuelle = 'haupt';
+                }
+
+                if ($pdoTmp instanceof PDO) {
+                    $counts = ['offen' => 0, 'verarbeitet' => 0, 'fehler' => 0];
+
+                    $stmt = $pdoTmp->query("SELECT status, COUNT(*) AS c FROM db_injektionsqueue GROUP BY status");
+                    if ($stmt) {
+                        while ($r = $stmt->fetch(PDO::FETCH_ASSOC)) {
+                            if (!is_array($r)) {
+                                continue;
+                            }
+                            $st = (string)($r['status'] ?? '');
+                            $c = (int)($r['c'] ?? 0);
+                            if (array_key_exists($st, $counts)) {
+                                $counts[$st] = $c;
+                            }
+                        }
+                    }
+
+                    $counts['gesamt'] = (int)($counts['offen'] + $counts['verarbeitet'] + $counts['fehler']);
+
+                    $latest = [];
+                    $stmt2 = $pdoTmp->query(
+                        "SELECT id, erstellt_am, status, versuche, letzte_ausfuehrung, meta_mitarbeiter_id, meta_terminal_id, meta_aktion, fehlernachricht
+                         FROM db_injektionsqueue
+                         ORDER BY id DESC
+                         LIMIT 10"
+                    );
+                    if ($stmt2) {
+                        while ($r = $stmt2->fetch(PDO::FETCH_ASSOC)) {
+                            if (!is_array($r)) {
+                                continue;
+                            }
+
+                            $fn = (string)($r['fehlernachricht'] ?? '');
+                            if ($fn !== '') {
+                                if (function_exists('mb_strlen') && function_exists('mb_substr')) {
+                                    if (mb_strlen($fn, 'UTF-8') > 160) {
+                                        $fn = mb_substr($fn, 0, 160, 'UTF-8') . '…';
+                                    }
+                                } else {
+                                    if (strlen($fn) > 160) {
+                                        $fn = substr($fn, 0, 160) . '...';
+                                    }
+                                }
+                            }
+
+                            $r['fehlernachricht_kurz'] = $fn;
+                            $latest[] = $r;
+                        }
+                    }
+
+                    $queueUebersicht = [
+                        'quelle' => $queueQuelle,
+                        'counts' => $counts,
+                        'latest' => $latest,
+                    ];
+
+                    if ((int)($counts['fehler'] ?? 0) > 0) {
+                        $queueHinweis = 'Es gibt Queue-Einträge im Status "fehler" (' . (($queueQuelle ?? 'haupt') === 'offline' ? 'Offline-DB' : 'Haupt-DB') . '). Bitte Queue im Backend prüfen.';
+                    } elseif ((int)($counts['offen'] ?? 0) > 0) {
+                        $queueHinweis = 'Es gibt offene Queue-Einträge (' . (($queueQuelle ?? 'haupt') === 'offline' ? 'Offline-DB' : 'Haupt-DB') . '). Falls die Haupt-DB wieder online ist: Queue im Backend verarbeiten.';
+                    }
+                }
+            } catch (Throwable $e) {
+                $queueHinweis = 'Queue-Übersicht konnte nicht geladen werden: ' . $e->getMessage();
+                $queueUebersicht = null;
+            }
+        }
+
+        return [
+            'uebersicht' => $queueUebersicht,
+            'hinweis' => $queueHinweis,
+        ];
+    }
+
+    /**
+     * Terminal-Konfiguration: die drei Timeout-Schlüssel aus `config` mit dem
+     * Wert, der am Terminal wirklich gilt (rein lesend).
+     *
+     * Herausgelöst aus `index()` (T-105); der Rumpf ist unverändert.
+     *
+     * @return array{zeilen:?array<int,array<string,mixed>>, hinweis:?string}
+     */
+    private function holeTerminalKonfiguration(): array
+    {
+        // T-069 (Teil): Terminal-Konfiguration (Timeouts) – rein lesend
+        // Hinweis: Das Terminal nutzt `config` Keys, fällt aber auf Defaults zurück, wenn nicht gesetzt/ungültig.
+        $terminalConfig = null;
+        $terminalConfigHinweis = null;
+
+        if ($this->db !== null) {
+            try {
+                $pdoCfg = $this->db->getVerbindung();
+                if ($pdoCfg instanceof PDO) {
+                    $defs = [
+                        [
+                            'key' => 'terminal_timeout_standard',
+                            'titel' => 'Auto-Logout Timeout (Standard)',
+                            'default' => 60,
+                            'min' => 10,
+                            'max' => 1800,
+                        ],
+                        [
+                            'key' => 'terminal_timeout_urlaub',
+                            'titel' => 'Auto-Logout Timeout (Urlaub)',
+                            'default' => 180,
+                            'min' => 30,
+                            'max' => 3600,
+                        ],
+                        [
+                            'key' => 'terminal_session_idle_timeout',
+                            'titel' => 'Server-Session Idle Timeout (Fallback)',
+                            'default' => 300,
+                            'min' => 30,
+                            'max' => 86400,
+                        ],
+                    ];
+
+                    $keys = array_map(static fn(array $d): string => (string)$d['key'], $defs);
+                    $placeholders = implode(',', array_fill(0, count($keys), '?'));
+
+                    $map = [];
+                    $stmtCfg = $pdoCfg->prepare("SELECT schluessel, wert FROM config WHERE schluessel IN ($placeholders)");
+                    $stmtCfg->execute($keys);
+                    while ($r = $stmtCfg->fetch(PDO::FETCH_ASSOC)) {
+                        if (!is_array($r)) {
+                            continue;
+                        }
+                        $k = (string)($r['schluessel'] ?? '');
+                        if ($k === '') {
+                            continue;
+                        }
+                        $map[$k] = (string)($r['wert'] ?? '');
+                    }
+
+                    $rows = [];
+                    foreach ($defs as $d) {
+                        $k = (string)$d['key'];
+                        $raw = array_key_exists($k, $map) ? (string)$map[$k] : null;
+
+                        $storedInt = null;
+                        if ($raw !== null) {
+                            $rawTrim = trim($raw);
+                            if ($rawTrim !== '' && is_numeric($rawTrim)) {
+                                $storedInt = (int)$rawTrim;
+                            }
+                        }
+
+                        $min = (int)$d['min'];
+                        $max = (int)$d['max'];
+                        $def = (int)$d['default'];
+
+                        $valid = ($storedInt !== null && $storedInt >= $min && $storedInt <= $max);
+                        $effective = $valid ? (int)$storedInt : $def;
+
+                        $status = 'default';
+                        if ($raw !== null) {
+                            $status = $valid ? 'ok' : 'invalid';
+                        }
+
+                        $rows[] = [
+                            'key' => $k,
+                            'titel' => (string)$d['titel'],
+                            'raw' => $raw,
+                            'effective' => $effective,
+                            'status' => $status,
+                            'min' => $min,
+                            'max' => $max,
+                            'default' => $def,
+                        ];
+                    }
+
+                    $terminalConfig = $rows;
+                }
+            } catch (Throwable $e) {
+                $terminalConfigHinweis = 'Terminal-Konfiguration konnte nicht geladen werden: ' . $e->getMessage();
+                $terminalConfig = null;
+            }
+        }
+
+        return [
+            'zeilen' => $terminalConfig,
+            'hinweis' => $terminalConfigHinweis,
+        ];
+    }
+
     public function index(): void
     {
         if (!$this->pruefeZugriff()) {
@@ -3132,194 +3352,11 @@ class SmokeTestController
 
         $checks = $this->fuehreChecksAus();
 
-        // T-069 (Teil): Offline-Queue Übersicht (rein lesend)
-        $queueUebersicht = null;
-        $queueHinweis = null;
+        // T-069 (Teil): Offline-Queue und Terminal-Konfiguration – beide rein
+        // lesend und ohne POST, deshalb laufen sie bei jedem Aufruf.
+        $queueDaten = $this->holeQueueUebersicht();
+        $terminalConfigDaten = $this->holeTerminalKonfiguration();
 
-        if ($this->db !== null) {
-            try {
-                // Queue-DB Auswahl wie in `QueueController`: Offline-DB bevorzugen (falls konfiguriert).
-                $pdoTmp = null;
-                $queueQuelle = 'haupt';
-
-                try {
-                    $pdoOff = $this->db->getOfflineVerbindung();
-                    if ($pdoOff instanceof PDO) {
-                        $pdoTmp = $pdoOff;
-                        $queueQuelle = 'offline';
-                    }
-                } catch (Throwable $e) {
-                    // Ignore – wir fallen auf Haupt-DB zurück.
-                    $pdoTmp = null;
-                }
-
-                if (!($pdoTmp instanceof PDO)) {
-                    $pdoTmp = $this->db->getVerbindung();
-                    $queueQuelle = 'haupt';
-                }
-
-                if ($pdoTmp instanceof PDO) {
-                    $counts = ['offen' => 0, 'verarbeitet' => 0, 'fehler' => 0];
-
-                    $stmt = $pdoTmp->query("SELECT status, COUNT(*) AS c FROM db_injektionsqueue GROUP BY status");
-                    if ($stmt) {
-                        while ($r = $stmt->fetch(PDO::FETCH_ASSOC)) {
-                            if (!is_array($r)) {
-                                continue;
-                            }
-                            $st = (string)($r['status'] ?? '');
-                            $c = (int)($r['c'] ?? 0);
-                            if (array_key_exists($st, $counts)) {
-                                $counts[$st] = $c;
-                            }
-                        }
-                    }
-
-                    $counts['gesamt'] = (int)($counts['offen'] + $counts['verarbeitet'] + $counts['fehler']);
-
-                    $latest = [];
-                    $stmt2 = $pdoTmp->query(
-                        "SELECT id, erstellt_am, status, versuche, letzte_ausfuehrung, meta_mitarbeiter_id, meta_terminal_id, meta_aktion, fehlernachricht
-                         FROM db_injektionsqueue
-                         ORDER BY id DESC
-                         LIMIT 10"
-                    );
-                    if ($stmt2) {
-                        while ($r = $stmt2->fetch(PDO::FETCH_ASSOC)) {
-                            if (!is_array($r)) {
-                                continue;
-                            }
-
-                            $fn = (string)($r['fehlernachricht'] ?? '');
-                            if ($fn !== '') {
-                                if (function_exists('mb_strlen') && function_exists('mb_substr')) {
-                                    if (mb_strlen($fn, 'UTF-8') > 160) {
-                                        $fn = mb_substr($fn, 0, 160, 'UTF-8') . '…';
-                                    }
-                                } else {
-                                    if (strlen($fn) > 160) {
-                                        $fn = substr($fn, 0, 160) . '...';
-                                    }
-                                }
-                            }
-
-                            $r['fehlernachricht_kurz'] = $fn;
-                            $latest[] = $r;
-                        }
-                    }
-
-                    $queueUebersicht = [
-                        'quelle' => $queueQuelle,
-                        'counts' => $counts,
-                        'latest' => $latest,
-                    ];
-
-                    if ((int)($counts['fehler'] ?? 0) > 0) {
-                        $queueHinweis = 'Es gibt Queue-Einträge im Status "fehler" (' . (($queueQuelle ?? 'haupt') === 'offline' ? 'Offline-DB' : 'Haupt-DB') . '). Bitte Queue im Backend prüfen.';
-                    } elseif ((int)($counts['offen'] ?? 0) > 0) {
-                        $queueHinweis = 'Es gibt offene Queue-Einträge (' . (($queueQuelle ?? 'haupt') === 'offline' ? 'Offline-DB' : 'Haupt-DB') . '). Falls die Haupt-DB wieder online ist: Queue im Backend verarbeiten.';
-                    }
-                }
-            } catch (Throwable $e) {
-                $queueHinweis = 'Queue-Übersicht konnte nicht geladen werden: ' . $e->getMessage();
-                $queueUebersicht = null;
-            }
-        }
-
-        // T-069 (Teil): Terminal-Konfiguration (Timeouts) – rein lesend
-        // Hinweis: Das Terminal nutzt `config` Keys, fällt aber auf Defaults zurück, wenn nicht gesetzt/ungültig.
-        $terminalConfig = null;
-        $terminalConfigHinweis = null;
-
-        if ($this->db !== null) {
-            try {
-                $pdoCfg = $this->db->getVerbindung();
-                if ($pdoCfg instanceof PDO) {
-                    $defs = [
-                        [
-                            'key' => 'terminal_timeout_standard',
-                            'titel' => 'Auto-Logout Timeout (Standard)',
-                            'default' => 60,
-                            'min' => 10,
-                            'max' => 1800,
-                        ],
-                        [
-                            'key' => 'terminal_timeout_urlaub',
-                            'titel' => 'Auto-Logout Timeout (Urlaub)',
-                            'default' => 180,
-                            'min' => 30,
-                            'max' => 3600,
-                        ],
-                        [
-                            'key' => 'terminal_session_idle_timeout',
-                            'titel' => 'Server-Session Idle Timeout (Fallback)',
-                            'default' => 300,
-                            'min' => 30,
-                            'max' => 86400,
-                        ],
-                    ];
-
-                    $keys = array_map(static fn(array $d): string => (string)$d['key'], $defs);
-                    $placeholders = implode(',', array_fill(0, count($keys), '?'));
-
-                    $map = [];
-                    $stmtCfg = $pdoCfg->prepare("SELECT schluessel, wert FROM config WHERE schluessel IN ($placeholders)");
-                    $stmtCfg->execute($keys);
-                    while ($r = $stmtCfg->fetch(PDO::FETCH_ASSOC)) {
-                        if (!is_array($r)) {
-                            continue;
-                        }
-                        $k = (string)($r['schluessel'] ?? '');
-                        if ($k === '') {
-                            continue;
-                        }
-                        $map[$k] = (string)($r['wert'] ?? '');
-                    }
-
-                    $rows = [];
-                    foreach ($defs as $d) {
-                        $k = (string)$d['key'];
-                        $raw = array_key_exists($k, $map) ? (string)$map[$k] : null;
-
-                        $storedInt = null;
-                        if ($raw !== null) {
-                            $rawTrim = trim($raw);
-                            if ($rawTrim !== '' && is_numeric($rawTrim)) {
-                                $storedInt = (int)$rawTrim;
-                            }
-                        }
-
-                        $min = (int)$d['min'];
-                        $max = (int)$d['max'];
-                        $def = (int)$d['default'];
-
-                        $valid = ($storedInt !== null && $storedInt >= $min && $storedInt <= $max);
-                        $effective = $valid ? (int)$storedInt : $def;
-
-                        $status = 'default';
-                        if ($raw !== null) {
-                            $status = $valid ? 'ok' : 'invalid';
-                        }
-
-                        $rows[] = [
-                            'key' => $k,
-                            'titel' => (string)$d['titel'],
-                            'raw' => $raw,
-                            'effective' => $effective,
-                            'status' => $status,
-                            'min' => $min,
-                            'max' => $max,
-                            'default' => $def,
-                        ];
-                    }
-
-                    $terminalConfig = $rows;
-                }
-            } catch (Throwable $e) {
-                $terminalConfigHinweis = 'Terminal-Konfiguration konnte nicht geladen werden: ' . $e->getMessage();
-                $terminalConfig = null;
-            }
-        }
 
 
         // T-069 (Teil): Terminal-Login-Resolver

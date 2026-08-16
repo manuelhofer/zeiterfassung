@@ -99,6 +99,81 @@ in den Statusbericht.
   D-002 entfallen; die Regel selbst gilt weiter.)
 
 
+## P-2026-08-16-03 t-105-uebersichten-ohne-post
+
+### EINGELESEN
+- `docs/STATUS_SNAPSHOT.md` (T-105), P-2026-08-15-45 („Was bewusst nicht
+  erreicht wurde": die beiden Blöcke brauchen einen eigenen Schnitt).
+- Die Blöcke „Offline-Queue Übersicht" und „Terminal-Konfiguration" in
+  `index()` und ihr Markup in `views/smoke_test/index.php`.
+
+### DATEIEN
+- `views/smoke_test/offline_queue.php`, `terminal_konfiguration.php` (neu)
+- `views/smoke_test/index.php`, `controller/SmokeTestController.php`
+- `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Die Queue-Übersicht zeigt für drei Einträge in der Offline-DB dieselbe Zeile
+wie vorher – „Gesamt 3 – Offen 1 – Fehler 1 – Verarbeitet 1" –, obwohl sie
+jetzt aus `holeQueueUebersicht()` kommt und in
+`views/smoke_test/offline_queue.php` gezeichnet wird.
+
+### DONE
+Die beiden Blöcke, die **ohne POST** bei jedem Aufruf laufen, sind jetzt
+Methoden mit Bündel und haben ihr Teil-Template: `holeQueueUebersicht()` →
+`offline_queue.php`, `holeTerminalKonfiguration()` →
+`terminal_konfiguration.php`. Der Rumpf ist unverändert übernommen, auch die
+Variablennamen; `index()` geht von 571 auf 386 Zeilen, die View von 372 auf
+237.
+
+Damit steht jeder Block der Maske außerhalb – bis auf den Terminal-Login-Check
+und die zwei Blöcke ohne eigene Daten (Abhängigkeitstabelle, Klick-Checkliste).
+
+**Zwei Werte kommen weiterhin von außen**, und beide zu Recht: `$csrfBereich`
+für den Roundtrip-Knopf und `$smokeFlash` für die Meldung des letzten
+Roundtrips. Der Flash gehört nicht zur Übersicht, sondern zur Aktion darunter –
+er kommt aus der Session, nicht aus der Queue. Im Kopf des Teil-Templates steht
+das so.
+
+### TEST
+Wegwerf-Umgebung wie zuvor, `alt` auf ea86e04. Die 20 Lagen des Vorpatches
+erneut (alle 0), dazu sechs Lagen für genau diese beiden Blöcke:
+
+| Lage | Echte Abweichungen |
+| --- | --- |
+| Queue mit Einträgen in allen drei Zuständen | 0 |
+| Queue-Tabelle der Offline-DB unlesbar (Ersatztext) | 0 |
+| `config` unlesbar (Hinweis **und** Ersatztext) | 0 |
+| Konfig-Tabelle mit gültigem und ungültigem Wert | 0 |
+| Queue-Roundtrip: 302, Flash „Queue-Roundtrip OK (…, Offline-DB)", Eintrag verarbeitet | nur laufende ID |
+| 70 Backend-Routen | identische Statuscodes |
+
+**Ein falscher Suchbegriff aus einer früheren Sitzung ist dabei aufgefallen.**
+Der Nachweis für den Ersatztext der Terminal-Konfiguration lief in
+P-2026-08-15-37 über „Keine Terminal-**Config**daten verfügbar" – auf der Seite
+steht aber „Keine Terminal-**Konfig**daten verfügbar". Der Zähler stand damals
+auf 0 und wurde trotzdem als Beleg notiert. Diesmal ist der Text aus der Datei
+genommen statt aus dem Gedächtnis, und der Zähler steht auf 1.
+
+`php -l` über alle geänderten und neuen Dateien, beide Serverlogs ohne
+PHP-Meldung, die Erb-Prüfung meldet für jedes Teil-Template nur seine
+dokumentierten Werte von außen.
+
+### Was bewusst nicht erreicht wurde
+**Der Zweig „Nicht gesetzt → Default" der Konfig-Tabelle ist ungeprüft
+geblieben.** Der Schlüssel `terminal_session_idle_timeout` lässt sich nicht
+wegnehmen: Er steht im Schema und ist nach dem nächsten Seitenaufruf wieder da.
+Beide Stände zeigen dieselbe Tabelle, aber diese eine Zelle hat kein Lauf
+erzeugt.
+
+Die Abhängigkeitstabelle (`$checks`) und die Klick-Checkliste stehen weiter im
+Markup der View. Sie haben kein Bündel: Die eine bekommt eine fertige Liste,
+die andere ist reiner Text.
+
+### NEXT
+T-105: das Ergebnis des Terminal-Login-Checks unter sein Formular holen –
+sichtbare Änderung, deshalb erst nach Rücksprache.
+
 ## P-2026-08-16-02 t-105-feiertag-seed-teil-template
 
 ### EINGELESEN
