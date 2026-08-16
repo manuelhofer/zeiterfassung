@@ -3362,9 +3362,11 @@ class SmokeTestController
         // T-069 (Teil): Terminal-Login-Resolver
         // - Rein lesend.
         // - Emuliert die Terminal-Login-Reihenfolge: RFID → (wenn numerisch) Personalnummer → (wenn numerisch) Mitarbeiter-ID.
-        $terminalLoginCode = '';
-        $terminalLoginErgebnis = null;
-        $terminalLoginHinweis = null;
+        $terminalLoginDaten = [
+            'code' => '',
+            'ergebnis' => null,
+            'hinweis' => null,
+        ];
 
         // Vorgabe für jeden Check, der einen Mitarbeiter braucht: der angemeldete.
         $angemeldeteMitarbeiterId = 0;
@@ -3493,11 +3495,7 @@ class SmokeTestController
         ];
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST' && array_key_exists('terminal_login_code', $_POST)) {
-            [
-                'code' => $terminalLoginCode,
-                'ergebnis' => $terminalLoginErgebnis,
-                'hinweis' => $terminalLoginHinweis,
-            ] = $this->pruefeTerminalLogin($terminalLoginCode);
+            $terminalLoginDaten = $this->pruefeTerminalLogin($terminalLoginDaten['code']);
         }
 
         // PDF-Quick-Check: PDF wird nur im Speicher erzeugt, ohne Ausgabe/Download.

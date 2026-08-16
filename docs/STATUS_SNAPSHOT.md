@@ -33,10 +33,6 @@ Keine bekannten.
 
 Ein Satz je Task – die Begründung steht im Verlauf, nicht hier.
 
-- **T-105** Jeder Block der Smoke-Test-Maske ist ein Teil-Template mit Bündel
-  (bis P-2026-08-16-03); offen bleibt allein der Terminal-Login-Check, der seit
-  P-2026-08-16-05 zusammenhängend steht und damit als Teil-Template schneidbar
-  ist.
 - **T-112** „`catch` → `return []`" an 26 Stellen in `modelle/` und `services/`
   durchsehen – falsch nur dort, wo es die Fehlermeldung des Aufrufers
   unerreichbar macht; Suchlauf in P-2026-08-15-10.

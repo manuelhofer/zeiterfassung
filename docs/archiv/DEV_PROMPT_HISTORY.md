@@ -99,6 +99,90 @@ in den Statusbericht.
   D-002 entfallen; die Regel selbst gilt weiter.)
 
 
+## P-2026-08-16-07 t-105-terminal-login-teil-template
+
+### EINGELESEN
+- `docs/STATUS_SNAPSHOT.md` (T-105), P-2026-08-16-01 bis -03 – dort steht das
+  Muster, und P-2026-08-16-05, das den Block zusammenhängend gemacht hat.
+- `views/smoke_test/buchungssequenz.php` als Muster für Kopfkommentar und
+  Auspacken des Bündels.
+- `SmokeTestController::pruefeTerminalLogin()` (Rückgabe-Array) und die Stellen
+  in `index()`, an denen seine Werte entstehen.
+
+### DATEIEN
+- `views/smoke_test/terminal_login.php` (neu)
+- `views/smoke_test/index.php`, `controller/SmokeTestController.php`
+- `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Der Terminal-Login-Check meldet für den Code `RFID-PRUEF-001` dieselbe Kachel
+wie vorher – „OK: Terminal würde den Mitarbeiter per rfid einloggen" samt
+Anwesenheit heute –, obwohl sein Markup jetzt in
+`views/smoke_test/terminal_login.php` steht.
+
+### DONE
+**T-105 ist fertig.** Der letzte Block mit eigenen Daten hat sein Teil-Template
+und sein Bündel: `$terminalLoginCode/-Ergebnis/-Hinweis` sind zu
+`$terminalLoginDaten` geworden, und weil `pruefeTerminalLogin()` schon vorher
+genau dieses Array zurückgab, fällt das Auseinandernehmen im Controller weg –
+aus fünf Zeilen Destrukturierung wird eine Zuweisung.
+
+`views/smoke_test/index.php` geht von 235 auf 116 Zeilen und besteht jetzt fast
+nur noch aus `require`-Zeilen; das Teil-Template hat 137. Ohne Bündel bleiben
+die zwei Blöcke, die keine eigenen Daten haben: die Abhängigkeitstabelle (sie
+bekommt eine fertige Liste) und die Klick-Checkliste (reiner Text).
+
+**Zwei Sätze im Kopfkommentar der Seite waren überholt** und sind
+mitgegangen, weil sie genau das beschreiben, was dieser Patch abschließt: „Jeder
+Block bis auf den Terminal-Login-Check …" stimmt nicht mehr, und die Begründung
+gegen eine `?? null`-Vorbelegung rechnete noch mit „knapp sechzig Zeilen" – es
+sind vierzehn Bündel. Die Begründung selbst gilt unverändert.
+
+### TEST
+Pruefumgebung, `alt` auf 489584a, Probe-Daten wie in P-2026-08-16-05.
+
+| Lage | Zeilen | Meldung |
+| --- | --- | --- |
+| Code `RFID-PRUEF-001` (OK + Anwesenheit) | 2 | nur Leerraum |
+| Code `15` (BLOCK + Alternativen) | 2 | nur Leerraum |
+| Code `17` (FAIL + Hinweis „inaktiv") | 2 | nur Leerraum |
+| Code `xyz` (FAIL) | 2 | nur Leerraum |
+| Code leer (Hinweis) | 2 | nur Leerraum |
+| Seite ohne POST | 2 | nur Leerraum |
+| PDF-Synth-Check, Feiertag-Seed-Check (Rückfallprobe) | 2 | nur Leerraum |
+
+Die zwei Zeilen sind in **jeder** Lage dieselbe Stelle: das Leerzeichen vor dem
+`</p>` des Einleitungstextes, das der Block verliert, wenn er eine
+Einrückungsebene abgibt. Ohne jedes Leerzeichen sind beide Dokumente identisch
+(P-2026-08-16-06).
+
+**Dass jeder Zweig wirklich gebaut wurde**, ist einzeln nachgesehen und nicht
+aus „nur Leerraum" geschlossen: „Anwesenheit heute" bei RFID, „Mehrdeutiger
+numerischer Code" bei 15, „ist aber inaktiv (ID 17)" bei 17, „Kein aktiver
+Mitarbeiter" bei `xyz`, „Bitte einen Code eingeben." bei leer.
+
+**Erb-Prüfung** über alle vierzehn Teil-Templates: `terminal_login.php` benutzt
+von außen genau einen Wert, `$terminalLoginDaten`. Die dreizehn anderen sind
+unverändert, und `index.php` erbt genau die siebzehn Werte, die sein Kopf
+aufzählt.
+
+72 Backend-Routen aus `public/index.php`: identische Statuscodes auf beiden
+Ständen. `php -l` über die drei geänderten Dateien, beide Serverlogs ohne
+PHP-Meldung.
+
+### Was bewusst nicht erreicht wurde
+Der Ergebnisblock behält seine kurzen Namen `$m`, `$a`, `$k`, `$g`, `$lb` und
+die zwei überflüssigen Leerzeilen vor `<?php endif; ?>`. Der Block ist
+unverändert übernommen; wer beim Verschieben aufräumt, kann hinterher nicht
+mehr belegen, dass er nur verschoben hat.
+
+Die Abhängigkeitstabelle und die Klick-Checkliste bleiben im Markup der Seite –
+sie haben kein Bündel, und ein Teil-Template ohne eigene Daten wäre eine Datei
+ohne Vertrag.
+
+### NEXT
+T-112: die 26 `catch` → `return []`-Stellen durchsehen.
+
 ## P-2026-08-16-06 pruefumgebung-vergleich-ohne-einrueckung
 
 ### EINGELESEN
