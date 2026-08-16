@@ -119,6 +119,113 @@ in den Statusbericht.
   P-2026-08-16-08.
 
 
+## P-2026-08-16-13 t-130-queue-speicherort-an-installationstyp
+
+### EINGELESEN
+- `docs/STATUS_SNAPSHOT.md` (T-130) und P-2026-08-16-11 – dort steht die
+  Nachstellung, hier steht die Behebung.
+- `core/OfflineQueueManager.php` (`holeQueueVerbindungOderNull()`,
+  `holeQueueSpeicherort()`), `core/Database.php` (`getOfflineVerbindung()`),
+  `config/config.php` – Beleg für `offline_db.enabled` mit Default `1`.
+- `core/Helper.php` (`terminalId()`) – das Vorbild für die Bindung an
+  `app.installation_typ`.
+- Alle Aufrufer von `getOfflineVerbindung()` (`grep`): `services/QueueService.php`
+  geht über die zentrale Regel, `controller/QueueController.php` hatte noch eine
+  eigene, `controller/DashboardController.php` und
+  `controller/SmokeTestController.php` haben je zwei weitere.
+
+### DATEIEN
+- `core/Helper.php`, `core/OfflineQueueManager.php`
+- `controller/QueueController.php`
+- `docs/fachregeln/terminal_und_offline.md`
+- `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Steht auf einem Backend mit erreichbarer `offline_db` je ein Fehler-Eintrag in
+beiden Datenbanken, zeigt die Queue-Verwaltung den der **Hauptdatenbank** – und
+„Retry" führt dessen SQL aus, nicht das der Ausweichdatenbank.
+
+### DONE
+Die Regel „wo liegt die Queue" hängt jetzt am Installationstyp:
+
+- **`Helper::istTerminalInstallation()`** ist neu und beantwortet die Frage
+  einmal für alle. Sie ist nicht dasselbe wie `terminalId()`: Ein gekoppeltes
+  Terminal ohne gültige `terminal.id` ist immer noch ein Terminal, `terminalId()`
+  gibt dort aber `null`. `terminalId()` benutzt sie jetzt, statt
+  `installation_typ` selbst zu lesen – zwei Leser derselben Angabe sind der
+  Anfang genau des Auseinanderlaufens, um das es hier geht.
+- **`OfflineQueueManager::holeAusweichVerbindungOderNull()`** ist die einzige
+  Stelle, die die Ausweichdatenbank noch anfasst, und sie gibt auf einem Backend
+  `null` zurück. `holeQueueVerbindungOderNull()` und `holeQueueSpeicherort()`
+  gehen beide durch sie; vorher stand die Auswahl in beiden Methoden getrennt.
+- **`QueueController::holeQueueVerbindung()`** benutzt die zentrale Regel, statt
+  eine eigene zu führen.
+
+Damit gilt: Terminal → erreichbare Ausweichdatenbank, sonst Hauptdatenbank,
+sonst nichts. Backend → immer Hauptdatenbank. Genau dorthin melden die
+Terminals ihre gescheiterten Einträge (P-2026-08-16-11).
+
+### Gefundene Fehler im eigenen Entwurf
+Der erste Entwurf wollte `Helper::terminalId() !== null` als Prüfung nehmen –
+die Methode gibt es schließlich schon. Das wäre falsch gewesen: Ein Terminal
+mit fehlender oder kaputter `terminal.id` hätte damit als Backend gegolten und
+seine Queue in die Hauptdatenbank verlegt. Ist die gerade weg, gäbe es gar
+keine Queue mehr – aus einem Konfigurationsfehler würde ein Störungsbildschirm
+und eine verlorene Buchung. Deshalb eine eigene Methode für die eigene Frage.
+
+Zweiter Fund beim Nachsehen: `QueueController` führte die alte Regel noch
+selbst. Nur `QueueService` umzustellen hätte die halbe Maske umgestellt – die
+Liste „Fehler" hätte die Hauptdatenbank gezeigt, die Zähler, die Liste
+„Verarbeitet" und **Retry** weiterhin die Ausweichdatenbank. Das wäre schlimmer
+gewesen als vorher.
+
+### TEST
+Prüfumgebung als Backend (`installation_typ = backend`, `offline_db.enabled =
+true`, beide Datenbanken erreichbar – die Lage aus der Nachstellung), alt =
+5a1f5f0, neu = Arbeitsstand. In beiden Datenbanken ein unterscheidbarer
+Fehler-Eintrag.
+
+1. `?seite=queue_admin&status=fehler`: alt zeigt
+   `EINTRAG-DER-AUSWEICHDATENBANK`, neu zeigt `MELDUNG-AUS-DER-HAUPTDATENBANK`.
+2. **Retry, der ganze Weg.** Auf alt: Zähler des Ausweich-Eintrags 1 → 2,
+   Meldung `SQLSTATE[42000] …`, Hauptdatenbank unberührt, `zeitbuchung` leer –
+   der gemeldete Eintrag war weder sichtbar noch erreichbar. Auf neu mit
+   gültigem SQL: Meldung `retry_ok`, Haupt-Eintrag auf `verarbeitet`, in
+   `zeitbuchung` die Buchung mit der Offline-Zeit `07:35:19` und
+   `terminal_id = 1`, Ausweich-Eintrag unverändert auf `fehler` mit
+   `versuche = 1`.
+3. Dashboard-Kachel: alt „Quelle: Offline-DB", neu „Quelle: Haupt-DB".
+4. **Gegenprobe Terminal, damit nichts kippt, was funktioniert:** dieselbe
+   Arbeitskopie mit `installation_typ = terminal` auf Port 8803 (Hauptdatenbank
+   tot) und 8805 (Hauptdatenbank erreichbar). Beide melden
+   `queue_speicherort: offline` – die erreichbare Hauptdatenbank zieht die
+   Queue also nicht weg.
+5. **Echte Offline-Buchung im Browser** auf 8803: Chip `CHIP-T130-PROBE`
+   gescannt, „Kommen" gedrückt. Der Eintrag steht in der **Ausweich**datenbank
+   (`zeit_kommen_rfid`, `meta_terminal_id = 1`, RFID-Auflösung im SQL), die
+   Hauptdatenbank bekam nichts.
+
+`php -l` über die drei geänderten PHP-Dateien, alle vier Serverlogs ohne
+Warnung oder Deprecation.
+
+### Was bewusst nicht erreicht wurde
+**T-132, dabei gefunden und nachgestellt:** Der Selbstcheck führt die Regel
+noch viermal selbst – `controller/DashboardController.php` (Queue-DB-Prüfung
+und Queue-Verbindung/Schema) und `controller/SmokeTestController.php`
+(`holeQueueUebersicht()` und der Queue-Roundtrip). `?seite=dashboard&smoke=1`
+meldet auf dem Backend deshalb weiterhin „offline DB OK, table=ok", obwohl die
+Queue jetzt in der Hauptdatenbank liegt. Das ist keine Nebenwirkung dieses
+Patches, sondern dieselbe Dopplung eine Ebene tiefer – und es ist eine
+Diagnose, die den Zustand des Systems falsch beschreibt. Eigener Patch, gleich
+im Anschluss.
+
+Ebenfalls stehen geblieben: `ZeitService` und `AuftragszeitService` haben je
+eine private `istTerminalInstallation()` mit identischem Rumpf. Sie sind
+richtig, nur doppelt; das gehört zu T-132.
+
+### NEXT
+T-132 – der Selbstcheck soll dieselbe Datenbank melden, in die geschrieben wird.
+
 ## P-2026-08-16-12 t-124-zustandspille-offline-rot
 
 ### EINGELESEN

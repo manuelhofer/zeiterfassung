@@ -186,6 +186,22 @@ nicht gewollt (Entscheidung Manuel, P-2026-08-16-08).
 direkt, sonst entsteht eine zweite Meinung darüber, welche Datenbank gemeint
 ist.
 
+**Die Ausweichdatenbank zählt nur auf einem Terminal.** Maßgeblich ist
+`app.installation_typ` (`Helper::istTerminalInstallation()`), nicht die
+Erreichbarkeit der Datenbank:
+
+- **Terminal:** erreichbare Ausweichdatenbank, sonst die Hauptdatenbank, sonst
+  nichts (Störungsmodus).
+- **Backend:** immer die Hauptdatenbank. Dorthin melden die Terminals ihre
+  gescheiterten Einträge, dort erwartet sie die Queue-Verwaltung.
+
+Der Grund ist derselbe wie bei `Helper::terminalId()`: `offline_db.enabled`
+steht standardmäßig auf `1`, und auf einem Rechner, auf dem Backend und eine
+erreichbare `zeiterfassung_offline` beieinanderliegen, las die Queue-Verwaltung
+sonst die Ausweichdatenbank – die Meldungen der Terminals waren unsichtbar, und
+„Retry" suchte die ID in der falschen Datenbank (T-130, behoben in
+P-2026-08-16-13).
+
 ### Wiederanlauf: ein kaputter Eintrag hält niemanden auf
 
 Sobald die Hauptdatenbank wieder erreichbar ist, wird die Queue in zeitlicher

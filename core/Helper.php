@@ -237,6 +237,48 @@ class Helper
     }
 
     /**
+     * Läuft dieser Code auf einer Terminal-Installation?
+     *
+     * Maßgeblich ist `app.installation_typ` aus `config/config.local.php` –
+     * nicht, ob eine Ausweichdatenbank erreichbar ist oder ein `terminal`-Block
+     * in der Konfiguration steht. Beides kann auf einem Backend genauso
+     * zutreffen, und dann beantwortet es eine andere Frage als die gestellte.
+     *
+     * Wer wissen will, **welches** Terminal es ist, nimmt `terminalId()`. Der
+     * Unterschied zählt: Ein gekoppeltes Terminal ohne gültige `terminal.id`
+     * ist immer noch ein Terminal, `terminalId()` gibt dort aber `null`.
+     */
+    public static function istTerminalInstallation(): bool
+    {
+        // Innerhalb einer Anfrage ändert sich die Konfiguration nicht.
+        static $ermittelt = false;
+        static $istTerminal = false;
+
+        if ($ermittelt) {
+            return $istTerminal;
+        }
+
+        $ermittelt = true;
+
+        $pfad = __DIR__ . '/../config/config.php';
+        if (!is_file($pfad)) {
+            return $istTerminal;
+        }
+
+        try {
+            /** @var array<string,mixed> $konfig */
+            $konfig = require $pfad;
+        } catch (\Throwable $e) {
+            return $istTerminal;
+        }
+
+        $typ = $konfig['app']['installation_typ'] ?? null;
+        $istTerminal = is_string($typ) && strtolower(trim($typ)) === 'terminal';
+
+        return $istTerminal;
+    }
+
+    /**
      * Liefert die ID des Terminals, auf dem dieser Code gerade läuft – oder
      * `null`, wenn es keines ist.
      *
@@ -264,6 +306,10 @@ class Helper
 
         $ermittelt = true;
 
+        if (!self::istTerminalInstallation()) {
+            return null;
+        }
+
         $pfad = __DIR__ . '/../config/config.php';
         if (!is_file($pfad)) {
             return null;
@@ -273,11 +319,6 @@ class Helper
             /** @var array<string,mixed> $konfig */
             $konfig = require $pfad;
         } catch (\Throwable $e) {
-            return null;
-        }
-
-        $typ = $konfig['app']['installation_typ'] ?? null;
-        if (!is_string($typ) || strtolower(trim($typ)) !== 'terminal') {
             return null;
         }
 

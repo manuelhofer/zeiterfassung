@@ -503,22 +503,17 @@ class OfflineQueueManager
      * Dieselbe Regel wie `holeQueueVerbindung()`, nur ohne Ausnahme: `null`
      * heißt „im Moment liegt die Queue nirgends".
      *
-     * Öffentlich, weil `QueueService` dieselbe Frage beantworten muss – wer
-     * anzeigt, muss in dieselbe Tabelle sehen, in die geschrieben wird. Diese
-     * Regel stand vorher viermal im Projekt, in vier leicht verschiedenen
-     * Fassungen; driften sie auseinander, liest die Oberfläche eine andere
-     * Datenbank, als das Terminal befüllt.
+     * Öffentlich, weil `QueueService` und `QueueController` dieselbe Frage
+     * beantworten müssen – wer anzeigt, muss in dieselbe Tabelle sehen, in die
+     * geschrieben wird. Diese Regel stand vorher mehrfach im Projekt, in leicht
+     * verschiedenen Fassungen; driften sie auseinander, liest die Oberfläche
+     * eine andere Datenbank, als das Terminal befüllt.
      */
     public function holeQueueVerbindungOderNull(): ?\PDO
     {
-        try {
-            $offline = $this->datenbank->getOfflineVerbindung();
-        } catch (\Throwable $e) {
-            $offline = null;
-        }
-
-        if ($offline instanceof \PDO) {
-            return $offline;
+        $ausweich = $this->holeAusweichVerbindungOderNull();
+        if ($ausweich instanceof \PDO) {
+            return $ausweich;
         }
 
         // Rückfall auf die Hauptdatenbank nur dann, wenn sie erreichbar ist.
@@ -534,17 +529,49 @@ class OfflineQueueManager
     }
 
     /**
+     * Die lokale Ausweichdatenbank – aber **nur auf einem Terminal**.
+     *
+     * Sie gehört der Maschine in der Halle: Dort ist sie die Queue, solange die
+     * Hauptdatenbank fehlt. Auf einem Backend beantwortet dieselbe Datenbank
+     * eine andere Frage. Die Queue eines Backends liegt in der Hauptdatenbank,
+     * und nur dort – dorthin melden die Terminals ihre gescheiterten Einträge
+     * (P-2026-08-16-11), und dort erwartet sie die Queue-Verwaltung.
+     *
+     * Warum die Bindung nötig ist (T-130): `offline_db.enabled` steht in
+     * `config/config.php` standardmäßig auf `1`. Auf einem Rechner, auf dem
+     * beides liegt – Backend und eine erreichbare `zeiterfassung_offline` –,
+     * las die Queue-Verwaltung die Ausweichdatenbank und zeigte die Meldungen
+     * der Terminals nicht. Nicht sichtbar heißt hier: nicht vorhanden, für
+     * jeden, der hinsieht.
+     *
+     * Maßgeblich ist deshalb `app.installation_typ`, genau wie bei
+     * `Helper::terminalId()` – nicht die Erreichbarkeit der Datenbank und nicht
+     * ein `terminal`-Block, der aus einer früheren Kopplung stehen geblieben
+     * ist.
+     */
+    private function holeAusweichVerbindungOderNull(): ?\PDO
+    {
+        if (!Helper::istTerminalInstallation()) {
+            return null;
+        }
+
+        try {
+            $offline = $this->datenbank->getOfflineVerbindung();
+        } catch (\Throwable $e) {
+            return null;
+        }
+
+        return $offline instanceof \PDO ? $offline : null;
+    }
+
+    /**
      * Wo die Queue gerade liegt: `'offline'`, `'haupt'` oder `null`, wenn
      * keine der beiden Datenbanken erreichbar ist. Für Anzeigen gedacht.
      */
     public function holeQueueSpeicherort(): ?string
     {
-        try {
-            if ($this->datenbank->getOfflineVerbindung() instanceof \PDO) {
-                return 'offline';
-            }
-        } catch (\Throwable $e) {
-            // Nicht erreichbar zählt wie nicht vorhanden.
+        if ($this->holeAusweichVerbindungOderNull() instanceof \PDO) {
+            return 'offline';
         }
 
         try {

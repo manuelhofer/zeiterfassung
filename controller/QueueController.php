@@ -31,17 +31,23 @@ class QueueController
     /**
      * Ermittelt die passende Verbindung für die Queue-Tabelle.
      *
-     * Wenn eine Offline-DB konfiguriert und erreichbar ist, wird diese verwendet.
-     * Andernfalls wird die Hauptdatenbank genutzt.
+     * Die Regel steht im `OfflineQueueManager` und **nur** dort
+     * (`docs/fachregeln/terminal_und_offline.md`, Abschnitt 5). Hier stand
+     * vorher eine eigene Fassung – „Ausweichdatenbank zuerst, sonst
+     * Hauptdatenbank", ohne Blick auf den Installationstyp. Damit las die
+     * Queue-Verwaltung eines Backends mit erreichbarer `offline_db` eine andere
+     * Tabelle als die, in die gemeldet wird: „Retry" suchte die ID in der
+     * falschen Datenbank, die Zähler zählten dort, und die Liste zeigte die
+     * Einträge der Terminals nicht (T-130).
      */
     private function holeQueueVerbindung(): \PDO
     {
-        $offline = $this->datenbank->getOfflineVerbindung();
-        if ($offline instanceof \PDO) {
-            return $offline;
+        $pdo = OfflineQueueManager::getInstanz()->holeQueueVerbindungOderNull();
+        if ($pdo === null) {
+            throw new \RuntimeException('Keine Queue-DB verfügbar (Offline-DB nicht aktiv/erreichbar und Haupt-DB offline).');
         }
 
-        return $this->datenbank->getVerbindung();
+        return $pdo;
     }
 
     /**

@@ -55,11 +55,11 @@ Abschnitt 5. Reihenfolge ist Absicht: T-125 kommt zuletzt.
 - **T-129** Dass ein unbekannter Chip keine Buchung auf `mitarbeiter_id = 0`
   erzeugt, hängt allein am `sql_mode` des Servers; einen Fremdschlüssel, der
   das auffinge, hat `zeitbuchung` nicht.
-- **T-130** Ein Backend mit erreichbarer `offline_db` liest seine
-  Queue-Verwaltung aus der Ausweichdatenbank statt aus der Hauptdatenbank und
-  zeigt die Meldungen aus T-123 dann nicht; `offline_db.enabled` steht
-  standardmäßig auf `1`, die Regel gehört an `installation_typ` gebunden wie
-  `Helper::terminalId()`. Nachgestellt in P-2026-08-16-11.
+- **T-132** Der Selbstcheck führt die Regel „wo liegt die Queue" noch selbst –
+  zweimal in `controller/DashboardController.php`, zweimal in
+  `controller/SmokeTestController.php` – und meldet auf einem Backend mit
+  erreichbarer `offline_db` deshalb „offline DB OK", obwohl die Queue seit
+  P-2026-08-16-13 in der Hauptdatenbank liegt.
 - **T-131** `views/terminal/_autologout.php` liest die Einstellungen der
   RFID-Bridge aus `$konfig`, das in der View gar nicht existiert – es ist eine
   lokale Variable von `public/terminal.php`. Damit greifen weder
