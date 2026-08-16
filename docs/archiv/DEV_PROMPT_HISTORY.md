@@ -18,6 +18,109 @@ legacy_zip_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-08-16-19 t-126-offline-menue-ohne-tote-tueren
+
+### EINGELESEN
+- `views/terminal/start.php`, Zeilen 816–827 (Mitarbeiterpanel mit dem Link
+  „Arbeitszeit"), 1786–1830 und 1866–1884 (die beiden Menü-Zweige „nicht
+  anwesend" / „anwesend"), 1886–2012 (Klappbox „Übersicht (heute)").
+- `controller/TerminalController.php`, Zeilen 1348–1371 – warum der
+  Adminknopf offline überhaupt erscheint: Das Recht kommt aus dem
+  Session-Cache, nicht aus der Datenbank.
+- `docs/fachregeln/terminal_und_offline.md`, Abschnitt 5 („Nicht erlaubt sind
+  komplexe Übersichten, Urlaubsanträge …", „Was der Mitarbeiter davon sieht:
+  die Zustandspille, sonst nichts") und Abschnitt 7 (Guards gelten
+  serverseitig).
+
+### DATEIEN
+- `views/terminal/start.php`
+- `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Fällt die Hauptdatenbank aus, während jemand angemeldet ist, stehen im Menü nur
+noch Kommen bzw. Gehen, die Auftragsknöpfe und „Abbrechen" – „Urlaub
+Übersicht", „RFID-Chip zu Mitarbeiter zuweisen", die Klappbox „Übersicht
+(heute)" und der Link „Arbeitszeit" sind weg, während dieselben Adressen direkt
+aufgerufen weiterhin ihre Absage liefern.
+
+### DONE
+Vier Stellen zeigten offline eine Tür, hinter der offline nichts ist:
+
+- „Urlaub Übersicht" und „RFID-Chip zu Mitarbeiter zuweisen" standen in beiden
+  Menü-Zweigen als graue `disabled`-Attrappe da.
+- Die Klappbox „Übersicht (heute)" öffnete offline auf den Satz, dass es sie
+  offline nicht gibt, plus Datum – das Datum steht in der Uhr im Kopf.
+- Der Kopf des Mitarbeiterpanels war ein Link auf die Monatsauswertung, die
+  offline mit „Nur im Online-Modus verfügbar." antwortet.
+- Der Zusatz „(Urlaub kann auch ohne Kommen beantragt werden.)" bewarb offline
+  genau den Weg, den es offline nicht gibt.
+
+Alle vier hängen jetzt an `$hauptdbOk === true`. Der Name des Mitarbeiters
+bleibt offline stehen, nur der Weg in die Auswertung verschwindet. Der
+Offline-Zweig innerhalb der Klappbox ist damit unerreichbar und mit entfernt –
+er hätte sonst als toter Code die nächste Suche in die Irre geführt.
+
+**Serverseitig ist nichts gelockert.** Das ist der Punkt, an dem so eine
+Änderung falsch abbiegen könnte: Ein Knopf, der nicht mehr da ist, ist kein
+Schutz (Fachregel Abschnitt 7, B-033). Die Guards in den Aktionen bleiben, wie
+sie sind, und der Test unten ruft die drei Adressen direkt auf.
+
+Warum überhaupt weg statt grau: Am Kiosk kann der Mitarbeiter an der Lage
+nichts ändern; ein Knopf, der nicht reagiert, erzeugt genau die Anrufe, die
+Abschnitt 5 vermeiden will. Die Zustandspille sagt „OFFLINE", das genügt.
+
+### Nebenbei gefunden (neue Aufgabe T-134)
+Beim Nachstellen des Bildschirms: Dieselbe Sitzung, ein Seitenaufruf
+auseinander – online zeigt das Terminal „Gehen" (anwesend, aus der Datenbank
+gezählt), offline „Du bist aktuell **nicht als anwesend** erfasst. Bitte zuerst
+`Kommen` buchen." und bietet Kommen an. Ein Tipper darauf legt ein zweites
+`kommen` desselben Tages in die Queue – also genau die Doppelbuchung, gegen die
+die Knopf-Logik da ist.
+
+Ursache: Offline liest die View `$_SESSION['terminal_anwesend']`, und diesen
+Merker schreibt nur `istTerminalMitarbeiterHeuteAnwesend()`. Der
+Startbildschirm zählt online selbst (`$heuteBuchungen`) und ruft die Methode
+nicht auf – wer sich anmeldet und nichts bucht, hat den Merker also nie. Nicht
+in diesem Patch behoben: anderes Thema, eigener Effekt, und die Antwort liegt
+im Controller, nicht in der View.
+
+### TEST
+Prüfumgebung mit `alt` = e9013a3 (vor beiden T-126-Patches), `neu` =
+Arbeitsstand, beide als Terminal. Mitarbeiter 15 mit Chip
+`CHIP-PATCH-TERMINAL`, angemeldet, Adminrecht `MITARBEITER_VERWALTEN`
+vorhanden (sonst wäre der RFID-Knopf gar nicht der Rede wert):
+
+1. **Offline, nicht anwesend:** „alt" zeigt Arbeitszeit-Link, den
+   Urlaub-Zusatz, „Urlaub Übersicht" und „RFID-Chip zu Mitarbeiter zuweisen".
+   „neu" zeigt Name, Hinweis, „Kommen", „Abbrechen" – sonst nichts.
+2. **Offline, anwesend** (Merker über den Kommen-Guard gesetzt): „alt" zeigt
+   zusätzlich die Klappbox „Übersicht (heute)" mit „Hauptdatenbank offline –
+   Übersicht ist nur online verfügbar." und dem Datum. „neu" zeigt „Gehen",
+   „Auftrag starten", „Abbrechen".
+3. **Online unverändert:** `vergleichen 'terminal.php?aktion=start'` bei
+   angemeldeter, anwesender Sitzung → **0 abweichende Zeilen**. Die Klappbox
+   steht dort weiterhin vollständig (Monatsstatus, Saldo, heutige Buchungen,
+   laufende Aufträge) – die Umbauten an ihrem Rumpf haben sie nicht beschädigt.
+4. **Die Guards halten:** offline direkt aufgerufen →
+   `?aktion=urlaub_beantragen` HTTP 302 und „Hauptdatenbank nicht erreichbar –
+   Urlaub am Terminal nicht möglich.", `?aktion=rfid_zuweisen` HTTP 302 und
+   „Hauptdatenbank offline – RFID-Zuweisung ist nur online möglich.",
+   `?view=arbeitszeit` zeigt „Nur im Online-Modus verfügbar."
+5. `php -l` über die geänderte Datei, `meldungen` → beide Serverlogs ohne
+   PHP-Meldung.
+
+Umgebung abgeräumt und nachgeprüft: kein Port 8801–8808, kein `php`-Prozess,
+keine `zeit_probe`-Datenbank, Verzeichnis gelöscht, `zeiterfassung` und
+`zeiterfassung_offline` unberührt.
+
+### Was bewusst nicht erreicht wurde
+Der Startbildschirm **ohne** Anmeldung (RFID-only offline) ist nicht berührt –
+dort gab es diese Knöpfe nie. T-134 bleibt offen, siehe oben.
+
+### NEXT
+T-134 (der Anwesenheitsmerker beim Ausfall) – gefunden in diesem Patch, also
+gleich danach. Sonst T-133 (Aufräumen ohne sichtbaren Effekt).
+
 ## P-2026-08-16-18 t-126-offline-scan-sagt-was-jetzt-dran-ist
 
 ### EINGELESEN

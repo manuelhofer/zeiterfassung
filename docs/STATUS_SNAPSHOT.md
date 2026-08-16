@@ -41,9 +41,11 @@ Abschnitt 5. Reihenfolge ist Absicht: T-125 kommt zuletzt.
 - **T-125** Lokale Liste der Berechtigten auf dem Terminal (nur ID,
   Personalnummer, RFID, aktiv – keine Namen), damit ein unbekannter Chip sofort
   am Gerät auffällt statt erst beim Einspielen.
-- **T-126** Offline zeigt das Menü „Urlaub", „Übersicht" und „RFID-Chip
-  zuweisen", obwohl alle drei offline nur in Fehlermeldungen enden (die beiden
-  Meldungstexte daraus sind in P-2026-08-16-18 erledigt).
+- **T-134** Fällt die Hauptdatenbank aus, während jemand angemeldet und
+  anwesend ist, meldet dieselbe Sitzung „nicht als anwesend erfasst" und bietet
+  „Kommen" an – ein zweites `kommen` desselben Tages; der Merker
+  `terminal_anwesend` entsteht nur beim Buchen, nicht beim Anmelden
+  (gefunden in P-2026-08-16-19).
 - **T-128** Zwischen dem Commit auf der Hauptdatenbank und dem
   `UPDATE status='verarbeitet'` in der Queue gibt es keinen gemeinsamen
   Abschluss – fällt genau dazwischen der Strom aus, wird der Eintrag beim

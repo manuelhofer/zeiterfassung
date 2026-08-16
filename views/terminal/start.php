@@ -815,14 +815,24 @@ require __DIR__ . '/_layout_top.php';
 
         <details class="status-box terminal-mitarbeiterpanel">
             <summary class="status-title">
-                <a href="terminal.php?aktion=start&amp;view=arbeitszeit" style="display:flex; justify-content:space-between; width:100%; color:inherit; text-decoration:none;">
+                <?php // T-126: „Arbeitszeit“ führt zur Monatsauswertung – offline nur zu deren Absage.
+                      // Der Name bleibt, der Weg dorthin verschwindet. ?>
+                <?php if ($hauptdbOk === true): ?>
+                    <a href="terminal.php?aktion=start&amp;view=arbeitszeit" style="display:flex; justify-content:space-between; width:100%; color:inherit; text-decoration:none;">
+                        <span>
+                            Mitarbeiter:
+                            <strong><?php echo htmlspecialchars($mitarbeiterName, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></strong>
+                            (ID: <?php echo (int)$mitarbeiterId; ?>)
+                        </span>
+                        <span class="status-small">Arbeitszeit</span>
+                    </a>
+                <?php else: ?>
                     <span>
                         Mitarbeiter:
                         <strong><?php echo htmlspecialchars($mitarbeiterName, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></strong>
                         (ID: <?php echo (int)$mitarbeiterId; ?>)
                     </span>
-                    <span class="status-small">Arbeitszeit</span>
-                </a>
+                <?php endif; ?>
             </summary>
         </details>
 
@@ -1786,7 +1796,9 @@ require __DIR__ . '/_layout_top.php';
             <?php if (!$istAnwesend): ?>
                 <p class="hinweis">
                     Du bist aktuell <strong>nicht als anwesend</strong> erfasst. Bitte zuerst <strong>"Kommen"</strong> buchen.
-                    <br>(Urlaub kann auch ohne Kommen beantragt werden.)
+                    <?php if ($hauptdbOk === true): ?>
+                        <br>(Urlaub kann auch ohne Kommen beantragt werden.)
+                    <?php endif; ?>
                 </p>
 
                 <div class="button-row primary-action">
@@ -1811,22 +1823,17 @@ require __DIR__ . '/_layout_top.php';
                     </form>
                 </div>
 
-                <div class="button-row">
-                    <?php if ($hauptdbOk === true): ?>
+                <?php // T-126: Offline führen beide nur zu „Nur im Online-Modus verfügbar" – also nicht anbieten. ?>
+                <?php if ($hauptdbOk === true): ?>
+                    <div class="button-row">
                         <a href="terminal.php?aktion=urlaub_beantragen" class="button-link">Urlaub Übersicht</a>
-                    <?php else: ?>
-                        <span class="button-link disabled">Urlaub Übersicht</span>
-                    <?php endif; ?>
-                </div>
+                    </div>
 
-                <?php if ($darfRfidZuweisen): ?>
-                <div class="button-row">
-                    <?php if ($hauptdbOk === true): ?>
-                        <a href="terminal.php?aktion=rfid_zuweisen" class="button-link secondary">RFID-Chip zu Mitarbeiter zuweisen</a>
-                    <?php else: ?>
-                        <span class="button-link disabled">RFID-Chip zu Mitarbeiter zuweisen</span>
+                    <?php if ($darfRfidZuweisen): ?>
+                        <div class="button-row">
+                            <a href="terminal.php?aktion=rfid_zuweisen" class="button-link secondary">RFID-Chip zu Mitarbeiter zuweisen</a>
+                        </div>
                     <?php endif; ?>
-                </div>
                 <?php endif; ?>
 
             <?php else: ?>
@@ -1866,22 +1873,12 @@ require __DIR__ . '/_layout_top.php';
                     </div>
                 <?php endif; ?>
 
-                <?php if ($darfRfidZuweisen): ?>
+                <?php // T-126: Offline führen beide nur zu „Nur im Online-Modus verfügbar" – also nicht anbieten. ?>
+                <?php if ($hauptdbOk === true): ?>
                     <div class="button-row">
-                        <?php if ($hauptdbOk === true): ?>
-                            <a href="terminal.php?aktion=urlaub_beantragen" class="button-link">Urlaub Übersicht</a>
+                        <a href="terminal.php?aktion=urlaub_beantragen" class="button-link">Urlaub Übersicht</a>
+                        <?php if ($darfRfidZuweisen): ?>
                             <a href="terminal.php?aktion=rfid_zuweisen" class="button-link secondary">RFID-Chip zu Mitarbeiter zuweisen</a>
-                        <?php else: ?>
-                            <a href="#" class="button-link disabled">Urlaub Übersicht</a>
-                            <a href="#" class="button-link secondary disabled">RFID-Chip zu Mitarbeiter zuweisen</a>
-                        <?php endif; ?>
-                    </div>
-                <?php else: ?>
-                    <div class="button-row">
-                        <?php if ($hauptdbOk === true): ?>
-                            <a href="terminal.php?aktion=urlaub_beantragen" class="button-link">Urlaub Übersicht</a>
-                        <?php else: ?>
-                            <a href="#" class="button-link disabled">Urlaub Übersicht</a>
                         <?php endif; ?>
                     </div>
                 <?php endif; ?>
@@ -1896,26 +1893,12 @@ require __DIR__ . '/_layout_top.php';
             <button type="submit" form="logout-form" class="secondary terminal-primary-action">Abbrechen</button>
         </div>
 
-<?php if ($istAnwesend): ?>
+<?php // T-126: Die Übersicht ist eine Auswertung der Hauptdatenbank. Offline blieb von ihr
+      // nur die Meldung übrig, dass es sie offline nicht gibt – also erst gar nicht anbieten. ?>
+<?php if ($istAnwesend && $hauptdbOk === true): ?>
 
             <details id="uebersicht_details" class="status-box terminal-uebersichtheute mt-1">
             <summary class="status-title"><span>Übersicht (heute)</span></summary>
-            <?php if ($hauptdbOk !== true): ?>
-                <div class="status-small mt-05">
-                    <strong>Hauptdatenbank offline – Übersicht ist nur online verfügbar.</strong>
-                </div>
-
-                <div class="status-small mt-05">
-                    Datum: <strong><?php echo htmlspecialchars((string)($heuteDatum ?? ''), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></strong>
-                </div>
-
-                <?php if (is_array($letzterAuftrag) && (($letzterAuftrag['status'] ?? '') === 'laufend') && !empty($letzterAuftrag['auftragscode'])): ?>
-                    <div class="status-small mt-035">Letzter Auftrag (lokal): <strong><?php echo htmlspecialchars((string)$letzterAuftrag['auftragscode'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></strong></div>
-                <?php endif; ?>
-                <?php if (is_array($letzterAuftrag) && (($letzterAuftrag['status'] ?? '') === 'pausiert') && !empty($letzterAuftrag['auftragscode'])): ?>
-                    <div class="status-small mt-035">Letzter Auftrag (pausiert, lokal): <strong><?php echo htmlspecialchars((string)$letzterAuftrag['auftragscode'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></strong></div>
-                <?php endif; ?>
-            <?php else: ?>
 
             <?php if (!empty($heuteFehler)): ?>
                 <div class="status-small mt-05">
@@ -2021,7 +2004,6 @@ require __DIR__ . '/_layout_top.php';
                     }
                 ?></pre>
             <?php endif; ?>
-        <?php endif; ?>
             </details>
             <?php endif; ?>
 
