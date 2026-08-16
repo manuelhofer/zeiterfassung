@@ -277,6 +277,28 @@ Damit sich niemand über Daten wundert, die nicht aus dem Betrieb stammen:
 - Der eigentliche Datenbestand stammt aus dem Serverdump vom 2026-08-08 und
   enthält echte Personendaten – deshalb liegt er **nicht** im Repository.
 
+## 6c. Zwei Stände gegeneinander rendern (Prüfumgebung)
+
+Wer Markup verschiebt – Controller in ein Teil-Template –, muss belegen, dass
+dieselbe Seite danach dasselbe HTML liefert. Dafür gibt es
+`scripts/dev/pruefumgebung.sh`: zwei Kopien des Projekts (ein Commit und der
+Arbeitsstand), **ein** Paar Probe-Datenbanken, an denen beide hängen, ein
+erfundener Prüfbenutzer und zwei `php -S` mit abgeschaltetem OPcache.
+
+```bash
+scripts/dev/pruefumgebung.sh aufbauen HEAD
+scripts/dev/pruefumgebung.sh vergleichen '?seite=smoke_test'   # 0 = gleich
+scripts/dev/pruefumgebung.sh spiegeln                          # nach jeder Änderung
+scripts/dev/pruefumgebung.sh abraeumen                         # Pflicht, prüft sich nach
+```
+
+Die Entwicklungsdatenbank wird dabei nicht angefasst: Beide Kopien bekommen
+eine eigene `config.local.php` auf `zeit_probe`/`zeit_probe_off`, und jeder
+Datenbankname muss mit `zeit_probe` beginnen, sonst bricht das Skript ab.
+Fachliche Probe-Daten bringt jeder Patch selbst mit (`daten <datei.sql>`) –
+welche Kanten eine Maske hat, weiß nur, wer sie gerade anfasst. Alle Befehle
+und Optionen stehen im Kopf des Skripts.
+
 ## 7. Täglicher Betrieb
 
 ```bash

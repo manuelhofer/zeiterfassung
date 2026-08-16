@@ -156,6 +156,17 @@ Datenbanken. Beides gehört am Ende weg – **und nachgeprüft, nicht geglaubt.*
 hing danach noch ein Server auf seinem Port, einmal über eine Sitzungsgrenze
 hinweg.
 
+Stammt die Umgebung aus `scripts/dev/pruefumgebung.sh`, räumt sie sich selbst
+ab und prüft dabei genau die drei Punkte darunter nach:
+
+```bash
+scripts/dev/pruefumgebung.sh abraeumen
+```
+
+Die Befehle bleiben trotzdem hier stehen: Sie gelten für **jede** Umgebung,
+auch für eine von Hand gebaute, und sie sind der Blick von außen auf das, was
+ein Skript über sich selbst behauptet.
+
 ```bash
 ss -ltn | awk 'NR>1 && $4 ~ /:88[0-9][0-9]$/ { print "Port belegt: " $4 }'
 pgrep -af 'php -S' | grep -v pgrep

@@ -99,6 +99,130 @@ in den Statusbericht.
   D-002 entfallen; die Regel selbst gilt weiter.)
 
 
+## P-2026-08-16-04 pruefumgebung-als-skript
+
+### EINGELESEN
+- `docs/wartungscheckliste.md`, Abschnitt „Wegwerf-Umgebung abräumen".
+- `docs/lokale_entwicklungsumgebung.md` (Abschnitte 4.3, 4.4, 5 – Datenbanken,
+  Konfiguration, OPcache) und `scripts/dev/setup_lokale_umgebung_arch.sh` als
+  Muster für Aufbau und Ton eines Skripts in diesem Projekt.
+- P-2026-08-15-28 und P-2026-08-15-37 (dort steht, woraus die Umgebung
+  besteht), P-2026-08-15-43 (die Nachprüfung beim Abräumen),
+  P-2026-08-16-01 („Gefundene Fehler": der Neustart hat `/tmp` mitgenommen).
+- `controller/LoginController.php` (Erstinstallations-Maske) und
+  `core/Csrf.php` (Feldname `csrf_token`).
+
+### DATEIEN
+- `scripts/dev/pruefumgebung.sh` (neu)
+- `docs/lokale_entwicklungsumgebung.md`, `docs/wartungscheckliste.md`
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+`pruefumgebung.sh aufbauen HEAD` liefert zwei angemeldete Stände auf 8801/8802
+an denselben Probe-Datenbanken, `vergleichen '?seite=smoke_test'` meldet dafür
+0 abweichende Zeilen – und nach einer Änderung im Arbeitsstand meldet derselbe
+Befehl sie.
+
+### DONE
+Die Wegwerf-Umgebung ist ein Skript statt einer Folge von Handgriffen. Sie
+entstand seit P-2026-08-15-08 in jeder Sitzung neu, jedes Mal gleich und jedes
+Mal frisch getippt; in P-2026-08-16-01 hat ein Neustart sie mitten im Lauf
+gelöscht, weil sie in `/tmp` lag.
+
+Neun Befehle: `aufbauen`, `spiegeln`, `daten`, `holen`, `vergleichen`, `sql`,
+`meldungen`, `status`, `abraeumen`. Der Aufbau ist der aus dem Verlauf – zwei
+Kopien (`git archive` für den Commit, `rsync` für den Arbeitsstand), **ein**
+Paar Probe-Datenbanken aus dem Schema, an denen beide hängen, ein erfundener
+Prüfbenutzer und zwei `php -S` mit `opcache.enable=0`.
+
+**Drei Entscheidungen, die vom bisherigen Vorgehen abweichen:**
+
+- **Die Ablage liegt nicht mehr in `/tmp`**, sondern unter
+  `~/.cache/zeiterfassung-pruefumgebung`. Genau das war der Verlust in
+  P-2026-08-16-01.
+- **Der Prüfbenutzer entsteht über die Erstinstallations-Maske der App**, nicht
+  per `INSERT`. Passwort-Hash und Rollenzuordnung sind damit die echten, und
+  ein kaputter Erstinstallations-Pfad fällt beim Aufbau auf statt gar nicht.
+- **Fachliche Probe-Daten bleiben draußen.** Welche Kanten eine Maske hat,
+  weiß nur der Patch, der sie anfasst; das Skript nimmt sie über
+  `daten <datei.sql>` entgegen. Ein Skript mit eingebauten Juli-2026-Daten wäre
+  nach zwei Patches falsch.
+
+**Zwei Wachhunde**, beide ausprobiert: Jeder Datenbankname muss mit
+`zeit_probe` beginnen, und ein belegter Port bricht den Aufbau ab, statt sich
+an einen fremden Server zu hängen.
+
+`vergleichen` normalisiert wie bisher (ein Strom, Umbruch nach jedem `>`,
+`csrf_token` maskiert) und gibt den Rückgabewert 0 nur bei Gleichheit – damit
+ist es in einer Schleife brauchbar. `abraeumen` prüft sich nach: Ports,
+`php -S`-Prozesse, `zeit_probe`-Datenbanken, und zeigt zum Schluss die
+Entwicklungsdatenbanken.
+
+### TEST
+Voller Zyklus auf diesem Rechner, jeder Schritt einzeln nachgesehen:
+
+| Lage | Ergebnis |
+| --- | --- |
+| `aufbauen HEAD` (a5ae8ef) | 35 + 1 Tabellen, beide Server oben, beide Stände angemeldet (Dashboard HTTP 200) |
+| `vergleichen '?seite=smoke_test'` bei gleichem Stand | 0 Zeilen, Rückgabewert 0 |
+| `vergleichen '?seite=dashboard'` | 0 Zeilen |
+| Marke im Arbeitsstand, `spiegeln`, erneut vergleichen | 2 Zeilen, Rückgabewert 1, Diff zeigt genau die Marke |
+| Marke zurückgenommen, `spiegeln`, erneut vergleichen | wieder 0 |
+| `vergleichen --post 'terminal_login_code=1'` | 0 Zeilen |
+| `vergleichen --post '…pdf_synth_run…' --token` | 0 Zeilen |
+| `meldungen` im Normalfall | „Beide Serverlogs ohne PHP-Meldung" |
+| `meldungen` mit erzwungener Warnung | meldet sie, Rückgabewert 1 |
+| `abraeumen` | „Aufgeraeumt", Rückgabewert 0 |
+
+**Dass die POSTs wirklich etwas ausgelöst haben, ist einzeln belegt** und nicht
+aus „0 Abweichungen" geschlossen: Der Login-Check zeigt „Name: Probe Pruefer",
+der Synth-Check „Seiten (/Pages /Count): 3".
+
+**Die Nachprüfung des Abräumens einmal von außen**, nicht über das Skript
+selbst: keine belegten Ports, kein `php -S`, `SHOW DATABASES` ohne
+`zeit_probe*`, Ablageverzeichnis weg. Die Entwicklungsdatenbank hat weiterhin
+13 Mitarbeiter und keinen Datensatz mit Nachname „Pruefer" – die Umgebung hat
+sie nie gesehen.
+
+`bash -n` über das Skript; kein PHP angefasst, also kein `php -l`.
+
+### Gefundene Fehler im eigenen Entwurf
+**Der erste Entwurf hätte den Testlauf an die Entwicklungsdatenbank gehängt.**
+`rsync` kopiert den Arbeitsstand einschließlich `config/config.local.php` – und
+die zeigt auf `zeiterfassung`. Der Stand „neu" hätte also nicht die
+Probe-Datenbank benutzt, sondern die echte, mit echten Personendaten, und
+`daten <datei.sql>` hätte dort geschrieben. Aufgefallen beim Schreiben der
+`spiegeln`-Funktion. Jetzt ist die Datei vom Kopieren ausgenommen, wird nach
+**jeder** Spiegelung neu geschrieben, und das Skript prüft danach, dass in der
+Kopie wirklich `zeit_probe` steht.
+
+**Ein Testlauf, der am Gegenstand vorbeiging.** Der erste POST auf den
+Terminal-Login-Check lief mit Code `1` und meldete „Kein aktiver Mitarbeiter" –
+das sah nach einem gelaufenen Check aus und war eins: Der Prüfbenutzer hat in
+einer frischen Datenbank die ID **15**, weil das Schema den Zähler dort
+beginnen lässt. Mit `15` kommt „Probe Pruefer". Dieselbe Sorte Fehler wie in
+P-2026-08-15-46: Ein Lauf, der eine Seite baut, beweist noch nicht, dass er den
+gemeinten Zweig gebaut hat.
+
+### Was bewusst nicht erreicht wurde
+- **`--token` nimmt das erste `csrf_token` der Seite.** Eine Maske mit zwei
+  CSRF-Bereichen braucht einen von Hand gebauten POST-Rumpf. Steht so im Kopf
+  des Skripts.
+- **Nur der Installationstyp `backend`.** Ein Terminal-Stand
+  (`installation_typ = terminal`) mit eigener Kopplung ist nicht vorgesehen;
+  die Terminal-Routen sind über den Backend-Stand erreichbar, die
+  Einrichtungsseite nicht.
+- **Getestet ist das Skript auf diesem Rechner** (CachyOS, MariaDB lokal,
+  `mariadb`, `rsync`, `ss`, `curl` vorhanden). Auf einem Debian-Rechner sollte
+  es laufen, geprüft ist es dort nicht.
+- Die Probe-Datenbanken heißen fest `zeit_probe`/`zeit_probe_off` statt je
+  Thema anders (`zeit_probe_t105`). Zwei Umgebungen gleichzeitig gibt es damit
+  nur über `ZEIT_PROBE_DB` und andere Ports – gebraucht wurde das noch nie.
+
+### NEXT
+T-105: das Ergebnis des Terminal-Login-Checks unter sein Formular holen
+(freigegeben), danach der Check als Teil-Template.
+
 ## P-2026-08-16-03 t-105-uebersichten-ohne-post
 
 ### EINGELESEN
