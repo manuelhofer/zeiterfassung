@@ -18,6 +18,155 @@ legacy_zip_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-08-16-24 t-129-fremdschluessel-zeitbuchung-mitarbeiter
+
+### EINGELESEN
+- `controller/TerminalController.php`, Zeilen 1083–1152 –
+  `bucheZeitOfflinePerRfid()`, der einzige Ort, an dem ein SQL-Befehl mit
+  unaufgelöster Mitarbeiter-ID in die Queue geht.
+- `core/OfflineQueueManager.php`, Zeilen 143–203 – was beim Einspielen mit
+  einem scheiternden Eintrag passiert (überspringen, melden).
+- `sql/01_initial_schema.sql` – `zeitbuchung`, `auftragszeit` und die zwei
+  einzigen Fremdschlüssel, die das Schema überhaupt hat.
+- `sql/07_…` und `sql/08_…` – die Hausform einer idempotenten Migration
+  (`information_schema` + `PREPARE`).
+- `docs/fachregeln/terminal_und_offline.md`, Abschnitt 5.
+
+### DATEIEN
+- `sql/01_initial_schema.sql`
+- `sql/09_migration_zeitbuchung_fk_mitarbeiter.sql` (neu)
+- `sql/README.md`
+- `controller/TerminalController.php` (nur Kommentar)
+- `docs/fachregeln/terminal_und_offline.md`
+- `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Auf einem Server mit `sql_mode = ''` erzeugt ein Queue-Eintrag, dessen
+RFID-Auflösung ins Leere greift, keine Zeitbuchung mehr auf
+`mitarbeiter_id = 0`, sondern scheitert mit Fehler 1452, geht auf `fehler` und
+erscheint in der Queue-Verwaltung des Backends.
+
+### DONE
+`zeitbuchung.mitarbeiter_id` hat jetzt den Fremdschlüssel
+`fk_zeitbuchung_mitarbeiter` auf `mitarbeiter.id`
+(`ON DELETE RESTRICT ON UPDATE CASCADE`) – in der Neuinstallation und über
+Migration 09 für Bestandsdatenbanken.
+
+**Die Aufgabe war schärfer formuliert, als der Befund hergibt.** T-129 sagt,
+der Schutz hänge „allein am `sql_mode`". Nachgemessen auf MariaDB 11.8 stimmt
+das so nicht – er hängt am `sql_mode` **und an der Form des INSERT**:
+
+| Form | `sql_mode=''` | strikt |
+| --- | --- | --- |
+| einzeiliges `INSERT … VALUES` | Fehler 1048 | Fehler 1048 |
+| mehrzeiliges `INSERT … VALUES` | `mitarbeiter_id = 0` | Fehler 1048 |
+| `INSERT … SELECT` | `mitarbeiter_id = 0` | Fehler 1048 |
+
+Die Anwendung schreibt heute die erste Form. Es gibt also **keinen aktuellen
+Fehler** – heute erzeugt kein unbekannter Chip eine Buchung auf `0`. Was es
+gibt, ist eine Zusicherung, die niemand ausgesprochen hat: Sie steht und fällt
+mit einer Zeile Zeichenkettenbau in einem Controller, und die beiden Formen,
+die sie kippen, sind genau die, zu denen man sie umbaut, wenn man sie
+„aufräumt" – der Kommentar an der Stelle empfahl bis eben die Gegenrichtung
+(„damit die Queue nicht stillschweigend '0 Rows' verarbeitet").
+
+Der Fremdschlüssel nimmt die Entscheidung aus dem Zeichenkettenbau heraus:
+`0` steht nicht in `mitarbeiter`, also scheitert der INSERT in jeder Form und
+in jedem `sql_mode`. Der Queue-Eintrag geht auf `fehler`, wird übersprungen und
+im Backend gemeldet – der Weg, den P-2026-08-16-10 und -11 dafür gebaut haben.
+
+`ON DELETE RESTRICT`, weil eine Zeitbuchung ihren Mitarbeiter nicht verlieren
+darf. Die Anwendung löscht keinen Mitarbeiter (sie setzt `aktiv = 0`, geprüft
+per Suchlauf); von Hand in phpMyAdmin geht es ab jetzt nicht mehr, solange
+Buchungen daranhängen. Das ist gewollt.
+
+Die Migration setzt den Fremdschlüssel **nicht**, wenn verwaiste Zeitbuchungen
+im Weg sind: Sie listet sie auf, sagt das in einem Satz und lässt die Tabelle
+in Ruhe. Sonst bräche sie mit „Fehler 1452" ab, und der Administrator stünde
+vor einer halb gelaufenen Migration statt vor einer Liste. Nach dem Aufräumen
+ein zweites Mal ausführen – das ist derselbe Lauf, keine Sonderbehandlung.
+
+Mitgeändert, weil es dieselbe Zusicherung beschreibt: der falsche Kommentar in
+`bucheZeitOfflinePerRfid()` und in der Fachregel der Satz „geht auf `fehler`
+und die Abarbeitung stoppt" – gestoppt wird seit P-2026-08-16-10 nicht mehr,
+zwei Absätze weiter unten stand es schon richtig.
+
+### TEST
+Prüfumgebung, `alt` = 7bcd46f, `neu` = Arbeitsstand.
+
+1. **Der Befund oben ist gemessen, nicht erinnert:** Wegwerf-Datenbank mit
+   `mitarbeiter`/`zeitbuchung`, alle drei Befehlsformen je einmal mit
+   `sql_mode=''` und einmal strikt. Ergebnis ist die Tabelle oben; die beiden
+   `mitarbeiter_id = 0`-Zeilen standen anschließend wirklich in der Tabelle,
+   mit `Warning 1048` als einziger Spur.
+2. **Neuinstallation:** `zeit_probe` aus `01_initial_schema.sql` →
+   `SHOW CREATE TABLE zeitbuchung` zeigt den Fremdschlüssel, und die Indexliste
+   hat weiterhin genau vier Einträge – InnoDB benutzt
+   `idx_zeitbuchung_mitarbeiter` und legt keinen zweiten an.
+3. **Migration, sauberer Bestand:** Datenbank aus `01_initial_schema.sql` des
+   **alten** Standes (ohne Fremdschlüssel), Migration 09 zweimal
+   hintereinander → beim ersten Mal gesetzt, beim zweiten Mal `SELECT 1`, kein
+   Fehler, kein doppelter Index.
+4. **Migration, verwaister Bestand:** dieselbe Datenbank mit einer gültigen
+   Buchung und zwei verwaisten (`mitarbeiter_id` 999 und 0) → die Migration
+   nennt genau die zwei, setzt den Fremdschlüssel **nicht** und lässt alle drei
+   Zeilen stehen. Nach dem Löschen der zwei: zweiter Lauf setzt ihn, die
+   gültige Buchung ist noch da.
+5. **Der ganze Weg auf einem Server ohne strikten Modus:** `sql_mode` global
+   auf `''`, Stand `neu` als Terminal offline. Unbekannter Chip `CHIP-FREMD`
+   gescannt, „Kommen" – dann bekannter Chip `CHIP-T129`, „Kommen". Zwei
+   Einträge `zeit_kommen_rfid`, beide `offen`. Zurück online, ein Seitenaufruf
+   → Eintrag 1 `fehler`, Eintrag 2 `verarbeitet` mit Buchung auf Mitarbeiter 15
+   und `terminal_id = 1`. Der kaputte hält den guten nicht auf.
+6. **Der Fremdschlüssel fängt, was die Befehlsform nicht fängt:** Eintrag 3 von
+   Hand in die Queue gelegt, diesmal als `INSERT … SELECT` mit unbekanntem Chip
+   → Seitenaufruf → `fehler` mit `1452 … fk_zeitbuchung_mitarbeiter`, keine
+   Zeile in `zeitbuchung`. Gegenprobe auf demselben Stand mit
+   `DROP FOREIGN KEY`: derselbe Eintrag geht auf `verarbeitet` durch und legt
+   eine Buchung auf `mitarbeiter_id = 0` an, ohne Fehlermeldung irgendwo. Genau
+   der Fall aus T-129, einmal mit und einmal ohne Netz.
+7. **Backend sieht die Meldung:** `?seite=queue_admin&status=fehler` auf Stand
+   `neu` zeigt beide gescheiterten Einträge mit Chipnummer, `zeit_kommen_rfid`
+   und Fehlertext (1048 bzw. 1452). Der Vorgabefilter ist `offen`, dort steht
+   erwartungsgemäß nichts.
+8. **Online buchen geht weiter:** Terminal online, `CHIP-T129` → „Gehen"
+   gebucht 16:46:16, „Kommen" gebucht 16:46:30, beide in `zeitbuchung`.
+9. **Backend-Seiten unverändert:** `vergleichen` für `?seite=smoke_test`
+   (59.101 Bytes), `?seite=dashboard` (33.447) und `?seite=queue_admin`
+   (27.219) – je 0 abweichende Zeilen.
+10. `php -l` über die geänderte PHP-Datei, `meldungen` → beide Serverlogs ohne
+    PHP-Meldung. `sql_mode` global wieder auf dem Ausgangswert, nachgeprüft.
+
+Die Entwicklungsdatenbank wurde nur gezählt, nicht angefasst: 10.032
+Zeitbuchungen, davon 0 ohne Mitarbeiter – dort liefe die Migration ohne
+Nacharbeit durch.
+
+### Gefundene Fehler im eigenen Entwurf
+Der Waisen-Test (Punkt 4) war beim ersten Anlauf wertlos, und zwar unauffällig:
+Das `INSERT` für den Probe-Mitarbeiter scheiterte an zwei `NOT NULL`-Spalten,
+ich hatte seine Ausgabe aber nach `/dev/null` geschickt. Damit war die Tabelle
+`mitarbeiter` leer, **alle drei** Buchungen galten als verwaist, und die
+Migration meldete brav „3 Zeitbuchung(en) ohne Mitarbeiter". Das sah nach einem
+bestandenen Test aus und prüfte in Wahrheit nichts: Ob die Migration zwischen
+gültig und verwaist unterscheidet, kann ein Lauf ohne eine einzige gültige
+Zeile nicht zeigen. Wiederholt mit angelegtem Mitarbeiter – erst dann steht in
+der Ausgabe „2" und nicht „3". Fehlerausgaben von Vorbereitungsschritten gehören
+nicht unterdrückt, auch wenn sie den Ablauf zumüllen.
+
+### Was bewusst nicht erreicht wurde
+`auftragszeit.mitarbeiter_id` bleibt ohne Fremdschlüssel – heute ist dort keine
+Lücke, weil die Offline-Auftragsbuchung die ID der angemeldeten Sitzung nimmt
+und keinen Chip auflöst. Sobald Aufträge offline per Chip laufen (der zweite
+Schritt nach T-125), entsteht sie; deshalb steht sie als T-135 im Snapshot und
+nicht in diesem Patch.
+
+Der Befehl in `bucheZeitOfflinePerRfid()` bleibt Wort für Wort, wie er war. Er
+ist heute richtig, und ihn „gleich mit" umzubauen wäre genau der Griff, gegen
+den dieser Patch das Netz spannt.
+
+### NEXT
+T-129 ist erledigt. Offen bleiben T-125, T-128, T-135 und T-112.
+
 ## P-2026-08-16-23 t-133-helper-liest-konfiguration-ueber-start
 
 ### EINGELESEN

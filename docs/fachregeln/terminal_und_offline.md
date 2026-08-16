@@ -159,8 +159,18 @@ INSERT ... SELECT id FROM mitarbeiter WHERE rfid_code='…' LIMIT 1;
 ```
 
 Wird beim Replay keine passende Mitarbeiter-ID gefunden (RFID unbekannt), geht
-der Eintrag auf `fehler` und die Abarbeitung stoppt – ein Admin muss die RFID
-zuweisen oder den Eintrag verwerfen.
+der Eintrag auf `fehler`, wird **übersprungen** und im Backend gemeldet – ein
+Admin muss die RFID zuweisen oder den Eintrag verwerfen. (Hier stand „die
+Abarbeitung stoppt"; das gilt seit P-2026-08-16-10 nicht mehr, siehe
+„Wiederanlauf" weiter unten.)
+
+Dass der Eintrag **scheitert** statt eine Buchung auf einen Mitarbeiter zu
+erzeugen, den es nicht gibt, sichert der Fremdschlüssel
+`fk_zeitbuchung_mitarbeiter` (T-129, `sql/09_migration_…`). Vorher hing es am
+`sql_mode` des Servers und an der Form des INSERT: Bei einem einzeiligen
+`INSERT … VALUES` bricht MariaDB in jedem Modus ab, bei `INSERT … SELECT` ohne
+strikten Modus dagegen nicht – dort landet die Buchung auf `mitarbeiter_id = 0`
+und gilt als eingespielt.
 
 ### Die Queue
 

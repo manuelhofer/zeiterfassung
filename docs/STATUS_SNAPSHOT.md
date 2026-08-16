@@ -45,9 +45,10 @@ Abschnitt 5. Reihenfolge ist Absicht: T-125 kommt zuletzt.
   `UPDATE status='verarbeitet'` in der Queue gibt es keinen gemeinsamen
   Abschluss – fällt genau dazwischen der Strom aus, wird der Eintrag beim
   nächsten Start ein zweites Mal eingespielt.
-- **T-129** Dass ein unbekannter Chip keine Buchung auf `mitarbeiter_id = 0`
-  erzeugt, hängt allein am `sql_mode` des Servers; einen Fremdschlüssel, der
-  das auffinge, hat `zeitbuchung` nicht.
+- **T-135** `auftragszeit.mitarbeiter_id` hat keinen Fremdschlüssel – heute
+  harmlos (die Offline-Auftragsbuchung nimmt die ID der angemeldeten Sitzung),
+  aber sobald Aufträge offline per Chip gehen, entsteht dort dieselbe Lücke,
+  die T-129 in `zeitbuchung` geschlossen hat.
 - **T-112** „`catch` → `return []`" an 26 Stellen in `modelle/` und `services/`
   durchsehen – falsch nur dort, wo es die Fehlermeldung des Aufrufers
   unerreichbar macht; Suchlauf in P-2026-08-15-10.

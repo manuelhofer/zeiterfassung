@@ -26,6 +26,12 @@ gebraucht - Neuinstallationen bekommen alles über `01_initial_schema.sql`.
   Patch P-2026-08-10-27).
 - `08_migration_auftrag_zeichnungsnummer.sql`: ergänzt `auftrag` um die Spalte
   `zeichnungsnummer` samt Index (Patch P-2026-08-10-33).
+- `09_migration_zeitbuchung_fk_mitarbeiter.sql`: legt den Fremdschlüssel
+  `zeitbuchung.mitarbeiter_id` -> `mitarbeiter.id` an, damit ein unbekannter
+  RFID-Chip keine Buchung auf einen Mitarbeiter erzeugen kann, den es nicht
+  gibt (T-129, Patch P-2026-08-16-24). Findet sie verwaiste Zeitbuchungen,
+  nennt sie diese und setzt den Fremdschlüssel **nicht** - nach dem Aufräumen
+  einfach erneut ausführen.
 - `06_migration_terminal_db_benutzer.sql`: ergänzt `terminal` um die Spalten zum
   Datenbankbenutzer der Kopplung (Patch P-2026-08-08-35). **Enthält zusätzlich
   die GRANT-Anweisungen, die ein Administrator einmal von Hand ausführen muss**,

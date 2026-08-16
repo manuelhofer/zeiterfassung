@@ -745,6 +745,16 @@ CREATE TABLE `urlaub_kontingent_jahr` (
 -- --------------------------------------------------------
 -- Tabellenstruktur für Tabelle `zeitbuchung`
 -- --------------------------------------------------------
+-- `fk_zeitbuchung_mitarbeiter` ist mehr als Ordnungsliebe (T-129): Der
+-- Offline-Befehl in der Queue löst den Mitarbeiter erst beim Einspielen über
+-- den RFID-Code auf. Findet er keinen, liefert der Unterausdruck `NULL` – und
+-- ob daraus ein Fehler oder stillschweigend `mitarbeiter_id = 0` wird, hing
+-- bisher allein am `sql_mode` des Servers und an der Form des INSERT.
+-- Der Fremdschlüssel entscheidet das unabhängig davon: `0` gibt es in
+-- `mitarbeiter` nicht.
+--
+-- `ON DELETE RESTRICT` steht hier für den Leser; MariaDB gibt es in
+-- `SHOW CREATE TABLE` nicht zurück, weil es der Standard ist.
 CREATE TABLE `zeitbuchung` (
   `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,
   `mitarbeiter_id` bigint(20) UNSIGNED NOT NULL,
@@ -760,7 +770,8 @@ CREATE TABLE `zeitbuchung` (
   PRIMARY KEY (`id`),
   KEY `idx_zeitbuchung_mitarbeiter` (`mitarbeiter_id`),
   KEY `idx_zeitbuchung_zeitstempel` (`zeitstempel`),
-  KEY `idx_zeitbuchung_terminal` (`terminal_id`)
+  KEY `idx_zeitbuchung_terminal` (`terminal_id`),
+  CONSTRAINT `fk_zeitbuchung_mitarbeiter` FOREIGN KEY (`mitarbeiter_id`) REFERENCES `mitarbeiter` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE
 ) ENGINE=InnoDB AUTO_INCREMENT=161 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------

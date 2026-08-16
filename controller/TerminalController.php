@@ -1117,9 +1117,15 @@ class TerminalController
             return Helper::sqlLiteral($s);
         };
 
-        // WICHTIG: Wir bauen die Mitarbeiter-Auflösung so, dass ein fehlender RFID
-        // zu einem SQL-Fehler führt (damit die Queue im Fehlerfall stoppt und nicht
-        // stillschweigend "0 Rows" verarbeitet).
+        // Ein Chip, der niemandem gehört, muss beim Einspielen **scheitern** und
+        // darf keine Buchung auf einen Mitarbeiter erzeugen, den es nicht gibt.
+        // Getragen wird das jetzt vom Fremdschlüssel `fk_zeitbuchung_mitarbeiter`
+        // (T-129) – nicht mehr von der Form dieses Befehls: Dass ein einzeiliges
+        // `INSERT ... VALUES` bei `NULL` in jedem `sql_mode` abbricht, gilt für
+        // `INSERT ... SELECT` schon nicht mehr (P-2026-08-16-24).
+        //
+        // Die Abarbeitung stoppt dabei nicht: Der Eintrag geht auf `fehler`, wird
+        // übersprungen und im Backend gemeldet (P-2026-08-16-10, -11).
         $terminalId = Helper::terminalId();
 
         $sql = 'INSERT INTO zeitbuchung (mitarbeiter_id, typ, zeitstempel, quelle, manuell_geaendert, kommentar, terminal_id) VALUES ('
