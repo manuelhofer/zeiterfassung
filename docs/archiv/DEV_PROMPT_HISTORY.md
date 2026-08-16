@@ -99,6 +99,57 @@ in den Statusbericht.
   D-002 entfallen; die Regel selbst gilt weiter.)
 
 
+## P-2026-08-16-02 t-105-feiertag-seed-teil-template
+
+### EINGELESEN
+- `docs/STATUS_SNAPSHOT.md` (T-105), P-2026-08-16-01 – dort steht das Muster.
+- Der Feiertag-Seed-Block in `views/smoke_test/index.php` und
+  `pruefeFeiertagSeed()`.
+
+### DATEIEN
+- `views/smoke_test/feiertag_seed.php` (neu)
+- `views/smoke_test/index.php`, `controller/SmokeTestController.php`
+- `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Der Feiertag-Seed-Check meldet für 2026 dieselbe Bilanz wie vorher – erwartet 9,
+vorhanden 10, dazu die Liste „Zusätzlich vorhanden" –, obwohl sein Markup jetzt
+in `views/smoke_test/feiertag_seed.php` steht.
+
+### DONE
+Der letzte Check mit eigener Prüfmethode und eigenem Formular ist ein
+Teil-Template. `$feiertagSeedJahr/-Ergebnis/-Hinweis` sind zu
+`$feiertagSeedDaten` geworden; die View ist bei 372 Zeilen.
+
+### TEST
+Wegwerf-Umgebung wie in P-2026-08-16-01, `alt` auf eda8162. Die 20 Lagen aus
+dem Vorpatch erneut, alle mit 0 echten Abweichungen, dazu zwei Lagen für die
+Zweige dieses Blocks:
+
+| Lage | Echte Abweichungen |
+| --- | --- |
+| Seed-Lauf, der Feiertage nachzieht („Zusätzlich vorhanden") | 0 |
+| Seed-Lauf mit blockiertem Schreiben („Fehlend") | 0 |
+
+**Der zweite Fall braucht einen Trick**, sonst gibt es ihn nicht: Der Check
+zieht fehlende Feiertage selbst nach, bevor er zählt – die Liste „Fehlend" ist
+danach immer leer. Für die Prüfung hat ein `BEFORE INSERT`-Trigger auf
+`feiertag` mit `SIGNAL` das Seeding scheitern lassen; dann meldet der Check
+erwartet 9, vorhanden 8 und zeigt die Liste. Trigger danach gelöscht, ein
+weiterer Lauf hat die Grundmenge wiederhergestellt (10 Einträge für 2026).
+
+`php -l` über alle geänderten Dateien, beide Serverlogs ohne PHP-Meldung.
+
+### Was bewusst nicht erreicht wurde
+Der Terminal-Login-Check bleibt geteilt (Begründung in P-2026-08-16-01), und
+die Blöcke ohne POST – Terminal-Konfiguration und Offline-Queue – stehen
+weiterhin im Markup und ohne eigene Methode.
+
+### NEXT
+T-105: das Ergebnis des Terminal-Login-Checks unter sein Formular holen
+(sichtbare Änderung, eigener Patch), danach Terminal-Konfiguration und
+Offline-Queue als Methode plus Teil-Template.
+
 ## P-2026-08-16-01 t-105-pdf-checks-teil-templates
 
 ### EINGELESEN

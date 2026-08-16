@@ -33,10 +33,10 @@ Keine bekannten.
 
 Ein Satz je Task – die Begründung steht im Verlauf, nicht hier.
 
-- **T-105** Neun Checks sind Teil-Templates mit eigenem Bündel
-  (P-2026-08-15-46, P-2026-08-16-01); offen sind der Terminal-Login-Check
-  (Formular und Ergebnis stehen weit auseinander, siehe P-2026-08-16-01) sowie
-  Feiertag-Seed, Terminal-Konfiguration und Queue-Übersicht.
+- **T-105** Alle Checks mit eigener Prüfmethode sind Teil-Templates mit Bündel
+  (bis P-2026-08-16-02); offen sind der Terminal-Login-Check (Formular und
+  Ergebnis stehen weit auseinander, siehe P-2026-08-16-01) sowie
+  Terminal-Konfiguration und Queue-Übersicht, die ohne POST in `index()` laufen.
 - **T-112** „`catch` → `return []`" an 26 Stellen in `modelle/` und `services/`
   durchsehen – falsch nur dort, wo es die Fehlermeldung des Aufrufers
   unerreichbar macht; Suchlauf in P-2026-08-15-10.

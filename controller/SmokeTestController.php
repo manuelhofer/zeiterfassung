@@ -3390,9 +3390,11 @@ class SmokeTestController
         // T-069 (Teil): Feiertag-Seed-Check (bundesweit)
         // - Prüft, ob die bundeseinheitliche Grundmenge für ein Jahr vollständig in `feiertag` vorhanden ist.
         // - Rein lesend (Seeding ist idempotent und entspricht dem Live-Verhalten von istFeiertag()).
-        $feiertagSeedJahr = (int)date('Y');
-        $feiertagSeedErgebnis = null;
-        $feiertagSeedHinweis = null;
+        $feiertagSeedDaten = [
+            'jahr' => (int)date('Y'),
+            'ergebnis' => null,
+            'hinweis' => null,
+        ];
 
         // T-069 (Teil): Monatsreport-Raster-Check
         // - Prüft, ob `ReportService::holeMonatsdatenFuerMitarbeiter()` wirklich ein vollständiges Monatsraster liefert.
@@ -3560,11 +3562,7 @@ class SmokeTestController
 
         // Feiertag-Seed-Check: bundeseinheitliche Feiertage pro Jahr vollständig?
         if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['feiertag_seed_run'])) {
-            [
-                'jahr' => $feiertagSeedJahr,
-                'ergebnis' => $feiertagSeedErgebnis,
-                'hinweis' => $feiertagSeedHinweis,
-            ] = $this->pruefeFeiertagSeed($feiertagSeedJahr);
+            $feiertagSeedDaten = $this->pruefeFeiertagSeed($feiertagSeedDaten['jahr']);
         }
 
 
