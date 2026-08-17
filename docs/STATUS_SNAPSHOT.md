@@ -18,12 +18,12 @@ nichts.
 
 ## Nächster Schritt (konkret)
 
-**T-140, der Fachlogik-Harness.** Der Gerätetest wäre der nächste Schritt, aber
-das Gerät fehlt noch rund einen Monat – er steht deshalb unter „Offene Tasks".
-Ohne Gerät ist T-140 die lohnendste Arbeit: Die Rechenkerne sind die Stellen, an
-denen ein Fehler still bleibt – der Klicktest sieht ihn nicht, und die
-Prüfumgebung vergleicht zwei Stände, nicht Soll und Ist. Erst spezifizieren,
-dann bauen.
+**T-140, das nachrechnende Prüfskript.** Der Gerätetest wäre der nächste Schritt,
+aber das Gerät fehlt noch rund einen Monat – er steht deshalb unter „Offene
+Tasks". Ohne Gerät ist T-140 die lohnendste Arbeit: Die Rechenkerne sind die
+Stellen, an denen ein Fehler still bleibt – der Klicktest zeigt eine Zahl, aber
+niemand erkennt an 8:36 statt 8:30, dass sie falsch ist, und die Prüfumgebung
+vergleicht zwei Stände, nicht Soll und Ist. Erst spezifizieren, dann bauen.
 
 ## Offene Bugs
 
@@ -41,9 +41,10 @@ Ein Satz je Task – die Begründung steht im Verlauf, nicht hier.
 - **T-139** Der Legacy-Admin-Fallback (`hatRolle('Chef')`,
   `Personalbüro`/`Personalbuero`) ist über Controller und Views kopiert und
   gehört in eine Methode in `AuthService`.
-- **T-140** Ein minimaler Fachlogik-Harness für Rundung, Pausen und
-  Urlaubssalden, ohne Composer und auf der PHP-Baseline lauffähig – eigenes
-  Vorhaben, erst spezifizieren.
+- **T-140** Ein Prüfskript, das nachrechnet: feste Eingaben, erwartetes Ergebnis
+  („Kommen 07:03, Gehen 16:12, Rundung auf 15 Minuten → 8:30 und 30 min Pause"),
+  ein Aufruf auf der Kommandozeile, ohne Composer. Die Prüfungen in
+  `SmokeTestController` sind der Ausgangspunkt. Erst spezifizieren.
 - **T-141** [`rechte_prompt.md`](rechte_prompt.md) trägt einen alten Stand und
   eine Merge-Roadmap, die nicht gekommen ist – Legacy-Rechte zusammenführen
   oder das Dokument nachziehen.

@@ -18,6 +18,67 @@ legacy_zip_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-08-17-07 t-140-ohne-fachjargon
+
+### EINGELESEN
+- `docs/STATUS_SNAPSHOT.md`, „Nächster Schritt" und T-140 – beide nannten das
+  Vorhaben „Fachlogik-Harness".
+- `controller/SmokeTestController.php` – die elf `pruefe…()`-Methoden und ihre
+  Sichtbarkeit.
+- `views/smoke_test/doppelzaehlung.php`, `monatsraster.php`,
+  `feiertag_arbeitszeit.php` – was die Smoke-Tests tatsächlich prüfen.
+
+### DATEIEN
+- `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+T-140 nennt ein Beispiel mit Eingabe und erwartetem Ergebnis, das Wort „Harness"
+kommt im Kaltstart nicht mehr vor, und wer den Task liest, weiß ohne Rückfrage,
+was gebaut werden soll.
+
+### DONE
+T-140 hieß „ein minimaler Fachlogik-Harness". Manuel hat gefragt, was ein
+Harness ist – und das ist der Befund: **Ein Task, den man nicht ohne Rückfrage
+versteht, ist nicht formuliert, sondern nur notiert.** „Harness" ist englischer
+Testjargon in einem Projekt, dessen Regel „Deutsch: Oberfläche, Variablennamen,
+Kommentare" lautet. Das Wort ist raus, aus dem Task und aus dem nächsten
+Schritt.
+
+Stattdessen steht dort, was das Skript tut, an einem Fall, den man nachlesen
+kann: „Kommen 07:03, Gehen 16:12, Rundung auf 15 Minuten → 8:30 und 30 min
+Pause". Wer das liest, braucht keine Erklärung mehr.
+
+**Was beim Nachsehen die eigene Bewertung korrigiert hat:** Ich hatte die
+Smoke-Tests als Diagnose-Seiten für Kern-Abhängigkeiten beschrieben. Das ist zu
+pauschal. `pruefeDoppelzaehlung()`, `pruefeMonatsraster()` und
+`pruefeFeiertagUndArbeitszeit()` prüfen **Fachlogik**: keine Doppelzählung bei
+Betriebsferien und Kurzarbeit-Volltag, genau ein Tageswert je Kalendertag, kein
+Feiertag mit gleichzeitiger Arbeitszeit. Die Erwartungen sind also längst
+formuliert – sie stehen nur an einem Ort, der Login, Browser und eine
+handgetippte Mitarbeiter-ID braucht, und sie prüfen Plausibilität auf
+vorhandenen Daten statt feste Eingabe gegen erwartetes Ergebnis.
+
+Deshalb steht im Task jetzt, dass diese Prüfungen der **Ausgangspunkt** sind –
+und bewusst nicht, dass man sie einfach aufruft: Die elf `pruefe…()`-Methoden
+sind `private` in einem Controller, der `AuthService` und `Database` im
+Konstruktor zieht. Wiederverwenden heißt hier herauslösen, nicht aufrufen. Was
+T-140 spart, ist das Ausdenken der Fälle, nicht das Bauen.
+
+### TEST
+- `grep -rn "Harness" docs/STATUS_SNAPSHOT.md docs/arbeitsregeln.md CHATSTART.md
+  CLAUDE.md`: keine Fundstelle mehr.
+- Kaltstart 17.080 Bytes, vorher 16.886 – 194 Bytes für das Beispiel; Snapshot
+  70 → 71 Zeilen.
+- `grep -n "function pruefe" controller/SmokeTestController.php`: elf Methoden,
+  alle `private` – die Aussage im Task ist geprüft und nicht geraten.
+- Snapshot am Stück gegengelesen: „Nächster Schritt" und T-140 beschreiben
+  dieselbe Sache, ohne dieselbe Formulierung zu wiederholen – der eine sagt
+  warum jetzt, der andere was zu bauen ist.
+
+### NEXT
+P-2026-08-17-08: Die Testpflicht in Abschnitt 5 kommt auf Manuels Ansage zurück –
+diesmal ohne Aktivierungsklausel und ohne Fachjargon.
+
 ## P-2026-08-17-06 testpflicht-zurueckgenommen
 
 ### EINGELESEN
