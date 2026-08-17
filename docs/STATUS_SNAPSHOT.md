@@ -18,12 +18,11 @@ nichts.
 
 ## Nächster Schritt (konkret)
 
-**Keiner offen.** Die PDF-Prüfungen liegen in `PdfPruefungService`
-(P-2026-08-17-26), der dabei gefundene B-105 ist behoben (-27). Von T-142 bleibt
-nur `pruefeTerminalLogin`, und das wartet auf den Gerätetest.
-
-Weiter geht es mit den offenen Tasks unten – oder mit dem, was der Praxis-Test
-hergibt.
+**T-138, Patch 1 von 3:** Die Auftrags-SQL löst den Mitarbeiter über die RFID
+auf, statt die ID als Zahl zu schreiben. Vorgehen, Fallstricke und Prüfung
+stehen in
+[`spezifikation_offline_auftraege.md`](spezifikation_offline_auftraege.md),
+Abschnitt 5.
 
 ## Offene Bugs
 
@@ -48,10 +47,9 @@ die Regeln dazu in
 Abschnitt 5. Die Aufgabenkette daraus ist abgearbeitet; offen bleibt der
 zweite Schritt, für den T-125 die Voraussetzung war:
 
-- **T-138** Anmeldung und Aufträge im Offline-Betrieb – braucht zusätzlich eine
-  Anwesenheitslogik ohne Hauptdatenbank und, wenn beim Auftragsstart eine
-  Maschine gewählt wird, eine lokale Maschinenliste. Eigenes Vorhaben, erst
-  spezifizieren.
+- **T-138** Aufträge im Offline-Betrieb – spezifiziert in
+  [`spezifikation_offline_auftraege.md`](spezifikation_offline_auftraege.md),
+  Abschnitt 5: drei Patches in fester Reihenfolge, alle ohne Gerät prüfbar.
 - **Jahreswechsel beobachten:** Beim ersten echten Jahreswechsel prüfen, ob die
   festgeschriebenen Urlaubssalden plausibel bleiben (B-080).
 - **Terminal im Browser:** „Gehen" und „Auftrag starten/stoppen" sind am Gerät

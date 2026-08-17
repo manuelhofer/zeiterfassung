@@ -18,6 +18,78 @@ legacy_zip_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-08-17-28 t-138-spezifikation-offline-auftraege
+
+### EINGELESEN
+- `docs/fachregeln/terminal_und_offline.md`, Abschnitt 5 – die geltenden Regeln.
+- `services/AuftragszeitService.php`, `starteAuftrag()` und `stoppeAuftrag()`,
+  je der Offline-Zweig – was dort schon in die Queue geht.
+- `controller/TerminalController.php`: `bucheZeitOfflinePerRfid()` (1093),
+  `ermittleOfflineHintFuerRfid()` (1170), `istTerminalMitarbeiterHeuteAnwesend()`
+  (535), der Offline-Zweig in `kommen()` (4038) und die fünf Auftragsmethoden.
+- `core/MitarbeiterSpiegel.php` und `sql/offline_db_schema.sql` – die Bauart
+  eines Spiegels.
+- `sql/01_initial_schema.sql`, `auftragszeit` und `maschine`.
+
+### DATEIEN
+- `docs/spezifikation_offline_auftraege.md` (neu)
+- `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Wer T-138 übernimmt, findet drei Patches mit Dateien, Vorgehen,
+Akzeptanzkriterium und Prüfung – und muss dafür weder den Offline-Zweig von
+`AuftragszeitService` noch die Fachregel erst selbst rekonstruieren.
+
+### DONE
+T-138 ist aufgeschrieben. Der Umfang ist dabei **kleiner** geworden, nicht
+größer: Der Offline-Auftragscode ist längst gebaut, inklusive des Anlegens
+unbekannter Aufträge per `ON DUPLICATE KEY UPDATE`. Was fehlt, sind drei
+Lücken – die Auftragswege sind offline nicht erreichbar (L1), die Auftrags-SQL
+schreibt die Mitarbeiter-ID als Zahl statt sie beim Replay aufzulösen (L2), und
+die Anwesenheitsprüfung hat offline keine Grundlage (L3).
+
+**Ein Denkfehler von mir steht mit drin, weil er teuer war.** Ich hatte
+behauptet, ein Auftragsstopp könne offline seinen Start nicht wiederfinden, und
+Manuel drei Optionen für ein Paarungsverfahren vorgelegt. Falsch: Der Stopp ist
+ein bedingtes `UPDATE` über `status='laufend' AND endzeit IS NULL`, die Queue
+spielt der Reihe nach ab, der Start läuft vorher. Manuels Einwand („kann doch
+genauso als Insert funktionieren wie die Zeiten, vielleicht vorher ein Check ob
+der Auftrag vorhanden ist") beschrieb wörtlich das, was im Code steht. Abschnitt
+2 der Spezifikation führt beides deshalb ausdrücklich auf – wer nur die
+Aufgabenbeschreibung liest, baut sonst dasselbe Phantom noch einmal.
+
+**Vier Entscheidungen sind festgehalten** (Abschnitt 4), die wichtigste zuerst:
+**keine vollständige lokale Datenbank.** Die Frage kam von Manuel. Der Grund für
+das Nein ist die Richtung – die Queue fügt nur hinzu und kann deshalb nicht
+kollidieren, eine volle lokale Datenbank ändert auch und kann es immer. Dazu
+kollidierende Auto-Increment-IDs gegen die Fremdschlüssel aus T-129/T-135,
+Personendaten auf jedem Gerät entgegen T-125, und Fehlerbilder, die bis zum
+Gerätetest niemand prüfen kann. Die Regel daraus: **lesend lokal, schreibend
+Queue.**
+
+Die übrigen drei: ein Scan je Aktion statt einer Offline-Anmeldung (die
+Fachregel bleibt damit unverändert), und Anwesenheit als Befund statt als Sperre
+– wer keinen Queue-Eintrag hat, darf trotzdem buchen, dieselbe Haltung wie beim
+Spiegel in T-125.
+
+**Warum nicht in der Lesekarte:** `spezifikation_fachlogik_pruefskript.md` steht
+auch nicht dort. Verlinkt wird aus dem Snapshot, weil dort landet, wer den
+nächsten Schritt sucht.
+
+### TEST
+- Keine PHP-Datei geändert, `php -l` ist gegenstandslos.
+- Jede Zeilenangabe in Abschnitt 2 und 3 einzeln aufgeschlagen und gegen den
+  Code gehalten – die sieben Fundstellen stimmen mit dem Arbeitsstand.
+- Die vier SQL-Ausschnitte in Abschnitt 2 und 5 sind aus dem Code übernommen
+  bzw. gegen `sql/01_initial_schema.sql` geprüft, nicht aus dem Gedächtnis.
+- **Nicht geprüft, weil noch nichts gebaut ist:** ob die drei Patches in dieser
+  Reihenfolge wirklich aufgehen. Der Zuschnitt ist begründet, aber unbelegt –
+  wer P1 baut und merkt, dass P2 dazugehört, schneidet neu und schreibt es hier
+  auf.
+
+### NEXT
+P1 aus Abschnitt 5: Auftrags-SQL mit RFID-Auflösung.
+
 ## P-2026-08-17-27 b-105-multipage-check-mit-tie-break
 
 ### EINGELESEN
