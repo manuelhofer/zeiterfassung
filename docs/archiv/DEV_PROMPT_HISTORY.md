@@ -18,6 +18,85 @@ legacy_zip_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-08-17-01 bewertung-als-offene-tasks
+
+### EINGELESEN
+- `CHATSTART.md`, `docs/arbeitsregeln.md`, `docs/STATUS_SNAPSHOT.md`,
+  `docs/README.md` – der Kaltstart am Stück, weil bewertet werden sollte, was er
+  leistet und was er übersieht.
+- `docs/rechte_prompt.md`, Kopf und Kapitel 1b – „Stand: 2026-01-17" und die
+  Spalte „Im Code geprüft".
+- Stichproben im Code: `controller/ZeitController.php`,
+  `controller/SmokeTestController.php`, `scripts/dev/pruefumgebung.sh`,
+  `docs/wartungscheckliste.md`.
+- Höchste vergebene Task-ID im Verlauf (T-138), damit die neuen IDs anschließen.
+
+### DATEIEN
+- `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Unter „Offene Tasks" stehen T-139 bis T-142 mit je einem Satz, der Snapshot ist
+dabei um weniger als 15 Zeilen gewachsen, und keine der Zahlen aus der Bewertung
+ist mitgewandert.
+
+### DONE
+Manuel hat um eine offene Bewertung des Projekts gebeten – Prozess, Doku,
+Codestand. Vier Befunde daraus sind Arbeit und nicht Meinung; sie stehen jetzt
+dort, wo Arbeit hingehört. Was gemessen wurde, gehört in diesen Eintrag und
+**nicht** in den Snapshot, weil es von selbst driftet (Abschnitt 9 der
+Arbeitsregeln):
+
+**T-139** – Der Legacy-Admin-Fallback
+`hatRolle('Chef') || hatRolle('Personalbüro') || hatRolle('Personalbuero')`
+steht heute **25-mal in 18 Dateien**: in den Controllern, in
+`views/layout/header.php` und in `public/maschine_code.php`. Das ist eine
+Rechteentscheidung in 25 Kopien – genau die Bauart, bei der ein späterer Patch
+eine davon vergisst und niemand es merkt. `docs/rechte_prompt.md` nennt den
+Fallback bereits als „teilweise", also war er von Anfang an als Übergang
+gedacht.
+
+**T-140** – Es gibt **keine automatisierte Verhaltensprüfung**: keine
+`composer.json`, kein Test-Framework, keine CI. Die Pflichtprüfung in
+Abschnitt 5 ist `php -l` (Syntax, nicht Verhalten), der Klicktest und die
+Prüfumgebung. Die Prüfumgebung belegt „nichts hat sich geändert" – sie kann
+nicht belegen „das Ergebnis ist richtig". Betroffen ist ausgerechnet die reine
+Rechenlogik: Rundung, Pausenabzug, Urlaubssalden, Monatssummen. Die
+TEST-Abschnitte hier im Verlauf sind sorgfältig, aber es sind Einmalläufe; sie
+laufen nie wieder.
+
+**T-141** – `docs/rechte_prompt.md` heißt „Source of Truth", trägt „Stand:
+2026-01-17" und listet Legacy-Rechte mit „Im Code geprüft: NEIN" samt einer
+Merge-Roadmap in Kapitel 5, die nicht gekommen ist. Das ist die einzige Stelle,
+an der das Projekt seine eigene Anti-Drift-Regel aus `docs/README.md` verletzt –
+und sie liegt bei den Berechtigungen.
+
+**T-142** – Die größten Dateien: `controller/TerminalController.php` 4.372
+Zeilen mit 58 Methoden, `controller/SmokeTestController.php` 3.604,
+`controller/MitarbeiterAdminController.php` 2.649, `services/ReportService.php`
+2.366. Der Controller-Ordner liegt bei 26.582 Zeilen auf 25 Dateien. Das ist
+die Kehrseite von „keine Refactors nebenbei": die Regel ist richtig, aber die
+Struktur selbst stand nie in einer Task.
+
+**Was bewusst nicht in den Snapshot kam:** die Bewertung selbst. Ein
+Befundabschnitt im Kaltstart wäre eine zweite Wahrheit über den Projektstand und
+würde veralten; die Begründungen stehen hier, der Stand dort.
+
+### TEST
+- `wc -c CLAUDE.md CHATSTART.md docs/arbeitsregeln.md docs/STATUS_SNAPSHOT.md`:
+  vorher 15.881 Bytes, nachher 16.551 – der Kaltstart wächst um 670 Bytes.
+- Der Snapshot wächst von 53 auf 65 Zeilen, das Kriterium ist gehalten.
+- `grep -n "25\|4.372\|2\.000\|18 Dateien" docs/STATUS_SNAPSHOT.md` trifft nur
+  das vorhandene „T-125" – keine der gemessenen Zahlen ist mitgewandert.
+- Der Link auf `rechte_prompt.md` aus dem Snapshot heraus geprüft (relativ zu
+  `docs/`, zielt richtig).
+- Snapshot am Stück gegengelesen: T-138 und der Offline-Absatz stehen
+  unverändert, die neuen Tasks hängen nicht darunter.
+
+### NEXT
+P-2026-08-17-02: Der Gerätetest steht als „Nächster Schritt", ist aber rund
+einen Monat blockiert – das Gerät fehlt. Er wandert zu den Tasks, T-140 tritt an
+seine Stelle.
+
 ## P-2026-08-16-30 t-125-lokale-liste-der-berechtigten
 
 ### EINGELESEN

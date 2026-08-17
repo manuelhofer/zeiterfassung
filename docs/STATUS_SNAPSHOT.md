@@ -33,6 +33,18 @@ Keine bekannten.
 
 Ein Satz je Task – die Begründung steht im Verlauf, nicht hier.
 
+- **T-139** Der Legacy-Admin-Fallback (`hatRolle('Chef')`,
+  `Personalbüro`/`Personalbuero`) ist über Controller und Views kopiert und
+  gehört in eine Methode in `AuthService`.
+- **T-140** Ein minimaler Fachlogik-Harness für Rundung, Pausen und
+  Urlaubssalden, ohne Composer und auf der PHP-Baseline lauffähig – eigenes
+  Vorhaben, erst spezifizieren.
+- **T-141** [`rechte_prompt.md`](rechte_prompt.md) trägt einen alten Stand und
+  eine Merge-Roadmap, die nicht gekommen ist – Legacy-Rechte zusammenführen
+  oder das Dokument nachziehen.
+- **T-142** Die größten Controller und Services aufteilen – je Datei ein
+  eigenes Vorhaben, erst spezifizieren.
+
 **Offline-Betrieb am Terminal** – Befund und Entscheidungen in P-2026-08-16-08,
 die Regeln dazu in
 [`fachregeln/terminal_und_offline.md`](fachregeln/terminal_und_offline.md),
