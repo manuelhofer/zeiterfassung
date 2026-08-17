@@ -18,12 +18,12 @@ nichts.
 
 ## Nächster Schritt (konkret)
 
-**Der Gerätetest.** Kopplung und Skripte sind fertig und im Container geprüft;
-was ein Container nicht zeigen kann, braucht jetzt einen Bildschirm. Die sieben
-Prüfpunkte stehen als Protokoll in
-[`spezifikation_terminal_installation.md`](spezifikation_terminal_installation.md),
-Abschnitt 12, der Stufenplan in Abschnitt 11 – dort und bewusst nicht hier ein
-zweites Mal.
+**T-140, der Fachlogik-Harness.** Der Gerätetest wäre der nächste Schritt, aber
+das Gerät fehlt noch rund einen Monat – er steht deshalb unter „Offene Tasks".
+Ohne Gerät ist T-140 die lohnendste Arbeit: Die Rechenkerne sind die Stellen, an
+denen ein Fehler still bleibt – der Klicktest sieht ihn nicht, und die
+Prüfumgebung vergleicht zwei Stände, nicht Soll und Ist. Erst spezifizieren,
+dann bauen.
 
 ## Offene Bugs
 
@@ -33,6 +33,11 @@ Keine bekannten.
 
 Ein Satz je Task – die Begründung steht im Verlauf, nicht hier.
 
+- **Gerätetest am Terminal** – Kopplung und Skripte sind fertig und im Container
+  geprüft, das Gerät ist frühestens ab ca. Mitte September verfügbar; Protokoll
+  und Stufenplan in
+  [`spezifikation_terminal_installation.md`](spezifikation_terminal_installation.md),
+  Abschnitt 12 und 11.
 - **T-139** Der Legacy-Admin-Fallback (`hatRolle('Chef')`,
   `Personalbüro`/`Personalbuero`) ist über Controller und Views kopiert und
   gehört in eine Methode in `AuthService`.

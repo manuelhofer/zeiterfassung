@@ -18,6 +18,67 @@ legacy_zip_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-08-17-02 geraetetest-blockiert-naechster-schritt
+
+### EINGELESEN
+- `docs/STATUS_SNAPSHOT.md` nach P-2026-08-17-01 – „Nächster Schritt (konkret)"
+  und die Taskliste mit T-139 bis T-142.
+- `docs/spezifikation_terminal_installation.md`, Abschnitte 11 und 12 – wohin der
+  Verweis zeigt, damit das Prüfprotokoll nicht ein zweites Mal abgeschrieben wird.
+
+### DATEIEN
+- `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Eine neue Sitzung liest unter „Nächster Schritt" eine Aufgabe, die ohne
+Terminal-Hardware ausführbar ist, und findet den Gerätetest samt Sperrgrund
+unter den offenen Tasks wieder.
+
+### DONE
+Manuel hat gesagt, dass der Gerätetest derzeit nicht möglich ist – das Gerät
+fehlt noch etwa einen Monat. Er stand als „Nächster Schritt (konkret)" ganz
+oben, also las jede Sitzung als Erstes eine Aufgabe, die niemand ausführen
+kann. Das kostet in jeder Sitzung dieselbe Runde: lesen, anfangen wollen,
+feststellen, dass Hardware fehlt.
+
+Der Gerätetest ist deshalb ein Task mit Sperrgrund („frühestens ab ca. Mitte
+September"), und an seine Stelle tritt **T-140**, der Fachlogik-Harness – die
+Arbeit mit dem größten Nutzen, die ohne Gerät geht.
+
+Zwei Dinge sind absichtlich unverändert geblieben:
+
+**Der Projektstatus.** Er sagt weiter „FERTIG – Praxis-Test". Ein fehlendes
+Gerät ist kein Rückschritt im Stand, sondern ein Termin.
+
+**Der Task „Terminal im Browser".** Er nennt dieselbe Lücke aus anderer
+Richtung – „Gehen" und „Auftrag starten/stoppen" sind nie durchgeklickt – und
+war schon korrekt notiert. Zusammenlegen hieße, eine der beiden Formulierungen
+zu verlieren; sie stehen nebeneinander, aber jede nur einmal.
+
+**Fehler im eigenen Entwurf, beim Nacharbeiten gefunden:** Der erste Wortlaut
+des Abschnitts zählte „Rundung, Pausenabzug und Urlaubssalden" ein zweites Mal
+auf – dieselbe Aussage stand schon bei T-140 vier Absätze weiter unten. Genau
+die Doppelung, die `docs/README.md` verbietet: Ändert sich der Umfang des
+Harness, hätte jemand zwei Stellen zu pflegen und würde eine vergessen. Der
+Abschnitt sagt jetzt „die Rechenkerne" und nennt den Umfang nicht; er steht bei
+T-140, also an genau einer Stelle.
+
+### TEST
+- Kaltstart: `wc -c` über die vier Immer-Dateien ergibt 16.886 Bytes, nach
+  P-2026-08-17-01 waren es 16.551 – 335 Bytes für den Sperrvermerk.
+- Snapshot 65 → 70 Zeilen.
+- Der Verweis geprüft: `spezifikation_terminal_installation.md` hat
+  „## 11. Umsetzung in Stufen" (Zeile 769) und
+  „## 12. Der Gerätetest – Prüfprotokoll" (Zeile 838); beide Abschnitte
+  existieren, das Protokoll steht dort und nicht hier.
+- Snapshot am Stück gegengelesen: „Nächster Schritt" verweist auf T-140, T-140
+  steht in der Liste, kein toter Verweis.
+
+### NEXT
+P-2026-08-17-03: Abschnitt 5 der Arbeitsregeln kennt keine Verhaltensprüfung.
+Der Harness wird dort Pflicht – formuliert so, dass die Regel erst greift, wenn
+T-140 ihn gebaut hat.
+
 ## P-2026-08-17-01 bewertung-als-offene-tasks
 
 ### EINGELESEN
