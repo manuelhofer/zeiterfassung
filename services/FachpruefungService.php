@@ -378,4 +378,540 @@ class FachpruefungService
             'hinweis' => $feiertagArbeitszeitTestHinweis,
         ];
     }
+
+    /**
+     * Feiertag-Check fuer einen einzelnen Tag: erkennt der Report ihn als
+     * Feiertag, und passt die Arbeitszeit dazu?
+     *
+     * @return array{mitarbeiter_id:int, datum:string, ergebnis:?array<string,mixed>, hinweis:?string}
+     */
+    public function pruefeFeiertagQuick(int $feiertagTestMitarbeiterId, string $feiertagTestDatum): array
+    {
+        $feiertagTestErgebnis = null;
+        $feiertagTestHinweis = null;
+
+        if ($feiertagTestMitarbeiterId <= 0) {
+            $feiertagTestHinweis = 'Keine gültige Mitarbeiter-ID für den Feiertag-Check (auch kein angemeldeter Mitarbeiter gefunden).';
+        } else {
+            // Datum robust parsen
+            try {
+                if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $feiertagTestDatum)) {
+                    throw new Exception('Datum bitte im Format YYYY-MM-DD angeben.');
+                }
+                $dt = new DateTimeImmutable($feiertagTestDatum);
+            } catch (Throwable $e) {
+                $feiertagTestHinweis = 'Ungültiges Datum: ' . $e->getMessage();
+                $dt = null;
+            }
+
+            if ($feiertagTestHinweis === null && $dt instanceof DateTimeImmutable) {
+                if (!class_exists('ReportService')) {
+                    $feiertagTestHinweis = 'ReportService ist nicht verfügbar (Klasse fehlt).';
+                } else {
+                    $jahr = (int)$dt->format('Y');
+                    $monat = (int)$dt->format('n');
+                    $wochentag = (int)$dt->format('N');
+
+                    $istFeiertag = null;
+                    try {
+                        $fs = FeiertagService::getInstanz();
+                        $istFeiertag = $fs->istFeiertag($dt, null);
+                    } catch (Throwable $e) {
+                        $istFeiertag = null;
+                    }
+
+                    try {
+                        $rs = ReportService::getInstanz();
+                        $monatsdaten = $rs->holeMonatsdatenFuerMitarbeiter($feiertagTestMitarbeiterId, $jahr, $monat);
+                        $tageswerte = is_array($monatsdaten) ? ($monatsdaten['tageswerte'] ?? []) : [];
+
+                        $row = null;
+                        if (is_array($tageswerte)) {
+                            foreach ($tageswerte as $tw) {
+                                if (!is_array($tw)) {
+                                    continue;
+                                }
+                                if ((string)($tw['datum'] ?? '') === $dt->format('Y-m-d')) {
+                                    $row = $tw;
+                                    break;
+                                }
+                            }
+                        }
+
+                        if (!is_array($row)) {
+                            $feiertagTestHinweis = 'Kein Tageswert für das Datum im Monatsreport gefunden.';
+                        } else {
+                            $arbeits = (float)str_replace(',', '.', (string)($row['arbeitszeit_stunden'] ?? '0'));
+                            $feier = (float)str_replace(',', '.', (string)($row['feiertag_stunden'] ?? '0'));
+                            $kennF = (int)($row['kennzeichen_feiertag'] ?? 0);
+                            $tagestyp = (string)($row['tagestyp'] ?? '');
+                            $kommentar = (string)($row['kommentar'] ?? '');
+
+                            $hatArbeit = ($arbeits > 0.01);
+                            $ok = null;
+                            $erwartung = '';
+
+                            if ($istFeiertag === true && $wochentag < 6) {
+                                if ($hatArbeit) {
+                                    // Wenn gearbeitet wurde, erwarten wir zumindest das Kennzeichen.
+                                    $erwartung = 'Feiertag erkannt; bei Arbeitszeit > 0 werden Feiertagsstunden ggf. 0 gelassen.';
+                                    $ok = ($kennF === 1);
+                                } else {
+                                    $erwartung = 'Feiertag erkannt und ohne Arbeit: Feiertagsstunden > 0 und Kennzeichen gesetzt.';
+                                    $ok = ($kennF === 1 && $feier > 0.01);
+                                }
+                            } elseif ($istFeiertag === true && $wochentag >= 6) {
+                                $erwartung = 'Datum ist Feiertag, aber Wochenende: je nach Regel kann Feiertagsstunden 0 bleiben.';
+                                $ok = null;
+                            } elseif ($istFeiertag === false) {
+                                $erwartung = 'Datum ist laut FeiertagService kein Feiertag.';
+                                $ok = null;
+                            } else {
+                                $erwartung = 'FeiertagService nicht verfügbar oder Fehler.';
+                                $ok = null;
+                            }
+
+                            $feiertagTestErgebnis = [
+                                'ok' => $ok,
+                                'datum' => $dt->format('Y-m-d'),
+                                'wochentag' => $wochentag,
+                                'ist_feiertag' => $istFeiertag,
+                                'kennzeichen_feiertag' => $kennF,
+                                'arbeitszeit_stunden' => $arbeits,
+                                'feiertag_stunden' => $feier,
+                                'tagestyp' => $tagestyp,
+                                'kommentar' => $kommentar,
+                                'erwartung' => $erwartung,
+                            ];
+                        }
+                    } catch (Throwable $e) {
+                        $feiertagTestHinweis = 'Feiertag-Check Fehler (Report): ' . $e->getMessage();
+                    }
+                }
+            }
+        }
+
+        return [
+            'mitarbeiter_id' => $feiertagTestMitarbeiterId,
+            'datum' => $feiertagTestDatum,
+            'ergebnis' => $feiertagTestErgebnis,
+            'hinweis' => $feiertagTestHinweis,
+        ];
+    }
+
+    /**
+     * Fallback-Check: fuellt der Report Tage ohne Tageswerte aus den Buchungen?
+     *
+     * @return array{mitarbeiter_id:int, jahr:int, monat:int, ergebnis:?array<string,mixed>, hinweis:?string}
+     */
+    public function pruefeMonatsfallback(int $monatsfallbackTestMitarbeiterId, int $monatsfallbackTestJahr, int $monatsfallbackTestMonat): array
+    {
+        $monatsfallbackTestErgebnis = null;
+        $monatsfallbackTestHinweis = null;
+
+        if ($monatsfallbackTestMitarbeiterId <= 0) {
+            $monatsfallbackTestHinweis = 'Keine gültige Mitarbeiter-ID für den Monatsreport-Fallback-Check.';
+        } elseif ($monatsfallbackTestMonat < 1 || $monatsfallbackTestMonat > 12) {
+            $monatsfallbackTestHinweis = 'Monat muss 1..12 sein.';
+        } elseif ($monatsfallbackTestJahr < 1970 || $monatsfallbackTestJahr > 2100) {
+            $monatsfallbackTestHinweis = 'Jahr außerhalb des erwarteten Bereichs (1970..2100).';
+        } elseif ($this->db === null) {
+            $monatsfallbackTestHinweis = 'Database::getInstanz() ist nicht verfügbar.';
+        } elseif (!class_exists('ReportService')) {
+            $monatsfallbackTestHinweis = 'ReportService ist nicht verfügbar (Klasse fehlt).';
+        } else {
+            try {
+                $start = new DateTimeImmutable(sprintf('%04d-%02d-01', $monatsfallbackTestJahr, $monatsfallbackTestMonat));
+                $bis = $start->modify('+1 month');
+
+                // 1) Tage mit Buchungen ermitteln (inkl. Buchungsanzahl)
+                $bookedMap = []; // datum => count
+                $rowsB = $this->db->fetchAlle(
+                    'SELECT DATE(zeitstempel) AS datum, COUNT(*) AS c
+'
+                    . 'FROM zeitbuchung
+'
+                    . 'WHERE mitarbeiter_id = :mid AND zeitstempel >= :von AND zeitstempel < :bis
+'
+                    . 'GROUP BY DATE(zeitstempel)
+'
+                    . 'ORDER BY datum ASC',
+                    [
+                        'mid' => $monatsfallbackTestMitarbeiterId,
+                        'von' => $start->format('Y-m-d H:i:s'),
+                        'bis' => $bis->format('Y-m-d H:i:s'),
+                    ]
+                );
+                if (is_array($rowsB)) {
+                    foreach ($rowsB as $r) {
+                        if (!is_array($r)) {
+                            continue;
+                        }
+                        $d = (string)($r['datum'] ?? '');
+                        if ($d === '') {
+                            continue;
+                        }
+                        $bookedMap[$d] = (int)($r['c'] ?? 0);
+                    }
+                }
+
+                // 2) Tage mit Tageswerten ermitteln
+                $twSet = [];
+                $rowsTw = $this->db->fetchAlle(
+                    'SELECT datum
+'
+                    . 'FROM tageswerte_mitarbeiter
+'
+                    . 'WHERE mitarbeiter_id = :mid AND datum >= :von AND datum < :bis
+'
+                    . 'ORDER BY datum ASC',
+                    [
+                        'mid' => $monatsfallbackTestMitarbeiterId,
+                        'von' => $start->format('Y-m-d'),
+                        'bis' => $bis->format('Y-m-d'),
+                    ]
+                );
+                if (is_array($rowsTw)) {
+                    foreach ($rowsTw as $r) {
+                        if (!is_array($r)) {
+                            continue;
+                        }
+                        $d = (string)($r['datum'] ?? '');
+                        if ($d === '') {
+                            continue;
+                        }
+                        $twSet[$d] = true;
+                    }
+                }
+
+                $bookedDays = array_keys($bookedMap);
+                $tageswerteDaysCount = count($twSet);
+
+                $missingDays = [];
+                foreach ($bookedDays as $d) {
+                    if (!isset($twSet[$d])) {
+                        $missingDays[] = $d;
+                    }
+                }
+
+                // 3) Monatsreport laden und prüfen, ob Missing-Days per Fallback befüllt sind
+                $rs = ReportService::getInstanz();
+                $monatsdaten = $rs->holeMonatsdatenFuerMitarbeiter($monatsfallbackTestMitarbeiterId, $monatsfallbackTestJahr, $monatsfallbackTestMonat);
+                $tageswerte = is_array($monatsdaten) ? ($monatsdaten['tageswerte'] ?? []) : [];
+                if (!is_array($tageswerte)) {
+                    $tageswerte = [];
+                }
+
+                $index = [];
+                foreach ($tageswerte as $tw) {
+                    if (!is_array($tw)) {
+                        continue;
+                    }
+                    $d = (string)($tw['datum'] ?? '');
+                    if ($d === '') {
+                        continue;
+                    }
+                    $index[$d] = $tw;
+                }
+
+                $notCovered = [];
+                $samples = [];
+
+                foreach ($missingDays as $d) {
+                    $row = $index[$d] ?? null;
+                    $covered = false;
+
+                    $kommen = '';
+                    $gehen = '';
+                    $az = 0.0;
+                    $pz = 0.0;
+
+                    if (is_array($row)) {
+                        $kommen = trim((string)($row['kommen_roh'] ?? ''));
+                        $gehen = trim((string)($row['gehen_roh'] ?? ''));
+                        $az = (float)str_replace(',', '.', (string)($row['arbeitszeit_stunden'] ?? '0'));
+                        $pz = (float)str_replace(',', '.', (string)($row['pausen_stunden'] ?? '0'));
+
+                        $covered = ($kommen !== '' || $gehen !== '' || $az > 0.01 || $pz > 0.01);
+                    }
+
+                    if (!$covered) {
+                        $notCovered[] = $d;
+                    }
+
+                    if (count($samples) < 8) {
+                        $samples[] = [
+                            'datum' => $d,
+                            'buchungen' => (int)($bookedMap[$d] ?? 0),
+                            'kommen_roh' => $kommen,
+                            'gehen_roh' => $gehen,
+                            'arbeitszeit_stunden' => $az,
+                            'pausen_stunden' => $pz,
+                            'covered' => $covered ? 1 : 0,
+                        ];
+                    }
+                }
+
+                $missingCount = count($missingDays);
+                $notCoveredCount = count($notCovered);
+
+                $ok = true;
+                if ($missingCount > 0) {
+                    $ok = ($notCoveredCount === 0);
+                }
+
+                if ($missingCount === 0) {
+                    $monatsfallbackTestHinweis = 'Keine Tage mit Buchungen ohne Tageswerte gefunden – Fallback wird in diesem Monat nicht benötigt.';
+                }
+
+                $monatsfallbackTestErgebnis = [
+                    'ok' => $ok,
+                    'mitarbeiter_id' => $monatsfallbackTestMitarbeiterId,
+                    'jahr' => $monatsfallbackTestJahr,
+                    'monat' => $monatsfallbackTestMonat,
+                    'booked_days_count' => count($bookedDays),
+                    'tageswerte_days_count' => $tageswerteDaysCount,
+                    'missing_days_count' => $missingCount,
+                    'not_covered_count' => $notCoveredCount,
+                    'missing_days_sample' => array_slice($missingDays, 0, 10),
+                    'not_covered_sample' => array_slice($notCovered, 0, 10),
+                    'samples' => $samples,
+                ];
+            } catch (Throwable $e) {
+                $monatsfallbackTestHinweis = 'Monatsreport-Fallback-Check Fehler: ' . $e->getMessage();
+            }
+        }
+
+        return [
+            'mitarbeiter_id' => $monatsfallbackTestMitarbeiterId,
+            'jahr' => $monatsfallbackTestJahr,
+            'monat' => $monatsfallbackTestMonat,
+            'ergebnis' => $monatsfallbackTestErgebnis,
+            'hinweis' => $monatsfallbackTestHinweis,
+        ];
+    }
+
+    /**
+     * Buchungssequenz-Check: folgt auf jedes Kommen ein Gehen?
+     *
+     * @return array{mitarbeiter_id:int, jahr:int, monat:int, ergebnis:?array<string,mixed>, hinweis:?string}
+     */
+    public function pruefeBuchungssequenz(int $buchungssequenzTestMitarbeiterId, int $buchungssequenzTestJahr, int $buchungssequenzTestMonat): array
+    {
+        $buchungssequenzTestErgebnis = null;
+        $buchungssequenzTestHinweis = null;
+
+        if ($buchungssequenzTestMitarbeiterId <= 0) {
+            $buchungssequenzTestHinweis = 'Keine gültige Mitarbeiter-ID für den Sequenz-Check.';
+        } elseif ($buchungssequenzTestMonat < 1 || $buchungssequenzTestMonat > 12) {
+            $buchungssequenzTestHinweis = 'Monat muss 1..12 sein.';
+        } elseif ($buchungssequenzTestJahr < 1970 || $buchungssequenzTestJahr > 2100) {
+            $buchungssequenzTestHinweis = 'Jahr außerhalb des erwarteten Bereichs (1970..2100).';
+        } elseif ($this->db === null) {
+            $buchungssequenzTestHinweis = 'Database::getInstanz() ist nicht verfügbar.';
+        } else {
+            try {
+                $start = new DateTimeImmutable(sprintf('%04d-%02d-01', $buchungssequenzTestJahr, $buchungssequenzTestMonat));
+                $bis = $start->modify('+1 month');
+                $today = (new DateTimeImmutable('today'))->format('Y-m-d');
+
+                $rows = $this->db->fetchAlle(
+                    "SELECT id, typ, zeitstempel
+                     FROM zeitbuchung
+                     WHERE mitarbeiter_id = :mid AND zeitstempel >= :von AND zeitstempel < :bis
+                     ORDER BY zeitstempel ASC, id ASC",
+                    [
+                        'mid' => $buchungssequenzTestMitarbeiterId,
+                        'von' => $start->format('Y-m-d H:i:s'),
+                        'bis' => $bis->format('Y-m-d H:i:s'),
+                    ]
+                );
+
+                $byDay = []; // datum => list
+                if (is_array($rows)) {
+                    foreach ($rows as $r) {
+                        if (!is_array($r)) {
+                            continue;
+                        }
+                        $ts = (string)($r['zeitstempel'] ?? '');
+                        $typ = (string)($r['typ'] ?? '');
+                        if ($ts === '' || ($typ !== 'kommen' && $typ !== 'gehen')) {
+                            continue;
+                        }
+                        $d = substr($ts, 0, 10);
+                        if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $d)) {
+                            continue;
+                        }
+                        $byDay[$d][] = [
+                            'typ' => $typ,
+                            'zeit' => substr($ts, 11, 5),
+                        ];
+                    }
+                }
+
+                if ($byDay === []) {
+                    $buchungssequenzTestHinweis = 'Keine Zeitbuchungen im gewählten Monat gefunden.';
+                }
+
+                $auffaellig = [];
+                $mehrblock = [];
+
+                foreach ($byDay as $d => $list) {
+                    if (!is_array($list) || $list === []) {
+                        continue;
+                    }
+
+                    $types = [];
+                    $times = [];
+                    foreach ($list as $it) {
+                        if (!is_array($it)) {
+                            continue;
+                        }
+                        $types[] = (string)($it['typ'] ?? '');
+                        $times[] = (string)($it['zeit'] ?? '');
+                    }
+
+                    $n = count($types);
+                    if ($n === 0) {
+                        continue;
+                    }
+
+                    $flags = [];
+                    if ($types[0] !== 'kommen') {
+                        $flags[] = 'start!=' . $types[0];
+                    }
+                    if (($n % 2) === 1) {
+                        $flags[] = 'odd';
+                    }
+
+                    // Adjacent duplicates
+                    for ($i = 1; $i < $n; $i++) {
+                        if ($types[$i] === $types[$i - 1]) {
+                            $flags[] = 'doppelt:' . $types[$i];
+                            break;
+                        }
+                    }
+
+                    // Pair scan
+                    $open = false;
+                    $pairs = 0;
+                    $scanAnom = [];
+                    foreach ($types as $t) {
+                        if ($t === 'kommen') {
+                            if ($open) {
+                                $scanAnom[] = 'kommen_ohne_gehen';
+                            }
+                            $open = true;
+                        } elseif ($t === 'gehen') {
+                            if (!$open) {
+                                $scanAnom[] = 'gehen_ohne_kommen';
+                            } else {
+                                $open = false;
+                                $pairs++;
+                            }
+                        }
+                    }
+
+                    if ($open) {
+                        // Offener Block nur als Fehler, wenn nicht "heute"
+                        if ($d !== $today) {
+                            $scanAnom[] = 'offen';
+                        } else {
+                            $flags[] = 'offen(heute)';
+                        }
+                    }
+
+                    if ($scanAnom !== []) {
+                        foreach ($scanAnom as $a) {
+                            if (!in_array($a, $flags, true)) {
+                                $flags[] = $a;
+                            }
+                        }
+                    }
+
+                    $isAuffaellig = ($scanAnom !== [] || ($types[0] !== 'kommen') || (($n % 2) === 1));
+
+                    $seq = implode(' ', array_map(static fn(string $t): string => ($t === 'kommen' ? 'K' : 'G'), $types));
+                    $timeStr = implode(' ', $times);
+
+                    if ($isAuffaellig) {
+                        $auffaellig[] = [
+                            'datum' => $d,
+                            'count' => $n,
+                            'pair_count' => $pairs,
+                            'anomalien' => implode(', ', $flags),
+                            'sequenz' => $seq,
+                            'zeiten' => $timeStr,
+                        ];
+                    } else {
+                        if ($pairs >= 2) {
+                            $mehrblock[] = [
+                                'datum' => $d,
+                                'count' => $n,
+                                'pair_count' => $pairs,
+                                'sequenz' => $seq,
+                                'zeiten' => $timeStr,
+                            ];
+                        }
+                    }
+                }
+
+                $ok = (count($auffaellig) === 0);
+
+                $buchungssequenzTestErgebnis = [
+                    'ok' => $ok,
+                    'mitarbeiter_id' => $buchungssequenzTestMitarbeiterId,
+                    'jahr' => $buchungssequenzTestJahr,
+                    'monat' => $buchungssequenzTestMonat,
+                    'tage_mit_buchungen' => count($byDay),
+                    'tage_auffaellig' => count($auffaellig),
+                    'tage_mehrblock' => count($mehrblock),
+                    'auffaellig_sample' => array_slice($auffaellig, 0, 10),
+                    'mehrblock_sample' => array_slice($mehrblock, 0, 10),
+                ];
+            } catch (Throwable $e) {
+                $buchungssequenzTestHinweis = 'Sequenz-Check Fehler: ' . $e->getMessage();
+            }
+        }
+
+        return [
+            'mitarbeiter_id' => $buchungssequenzTestMitarbeiterId,
+            'jahr' => $buchungssequenzTestJahr,
+            'monat' => $buchungssequenzTestMonat,
+            'ergebnis' => $buchungssequenzTestErgebnis,
+            'hinweis' => $buchungssequenzTestHinweis,
+        ];
+    }
+
+    /**
+     * Feiertag-Seed-Check: sind die bundesweiten Feiertage eines Jahres da?
+     *
+     * @return array{jahr:int, ergebnis:?array<string,mixed>, hinweis:?string}
+     */
+    public function pruefeFeiertagSeed(int $feiertagSeedJahr): array
+    {
+        $feiertagSeedErgebnis = null;
+        $feiertagSeedHinweis = null;
+
+        if (!class_exists('FeiertagService')) {
+            $feiertagSeedHinweis = 'FeiertagService ist nicht verfügbar (Klasse fehlt).';
+        } else {
+            try {
+                $fs = FeiertagService::getInstanz();
+                if (method_exists($fs, 'diagnoseBundesweiteFeiertage')) {
+                    $feiertagSeedErgebnis = $fs->diagnoseBundesweiteFeiertage($feiertagSeedJahr);
+                } else {
+                    $feiertagSeedHinweis = 'diagnoseBundesweiteFeiertage() ist nicht verfügbar (ältere Version).';
+                }
+            } catch (Throwable $e) {
+                $feiertagSeedHinweis = 'Feiertag-Seed-Check fehlgeschlagen: ' . $e->getMessage();
+            }
+        }
+
+        return [
+            'jahr' => $feiertagSeedJahr,
+            'ergebnis' => $feiertagSeedErgebnis,
+            'hinweis' => $feiertagSeedHinweis,
+        ];
+    }
 }

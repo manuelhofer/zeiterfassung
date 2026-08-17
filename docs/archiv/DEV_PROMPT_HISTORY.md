@@ -18,6 +18,88 @@ legacy_zip_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-08-17-18 t-142-restliche-fachpruefungen-in-den-service
+
+### EINGELESEN
+- `controller/SmokeTestController.php`, alle verbliebenen `pruefe…()`-Methoden,
+  vermessen: `pruefeZugriff` 26, `pruefeFeiertagQuick` 119,
+  `pruefeMonatsfallback` 200, `pruefeBuchungssequenz` 200, `pruefeTerminalLogin`
+  281, `pruefePdfQuick` 230, `pruefePdfSynth` 154, `pruefePdfDbMultipage` 310,
+  `pruefeFeiertagSeed` 31 Zeilen – dazu je die Nutzung von `$_POST`,
+  `$this->db` und `$this->auth`.
+- P-2026-08-17-13 – das Muster, nach dem die ersten drei umgezogen sind.
+- `services/FachpruefungService.php` – wo die neuen Methoden anschließen.
+
+### DATEIEN
+- `services/FachpruefungService.php`, `controller/SmokeTestController.php`
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Die vier fachlichen Prüfungen liegen öffentlich in `FachpruefungService`, ihre
+Rümpfe sind gegenüber `HEAD` unverändert bis auf den entfallenen
+`$_POST`-Prolog, und alle sieben Delegationen im Controller sind verdrahtet.
+
+### DONE
+Vier weitere Prüfungen umgezogen: `pruefeFeiertagQuick`,
+`pruefeMonatsfallback`, `pruefeBuchungssequenz`, `pruefeFeiertagSeed`. Zusammen
+mit P-2026-08-17-13 liegen jetzt **sieben** fachliche Prüfungen im Service, und
+`SmokeTestController` ist von 3.600 auf 2.831 Zeilen gefallen.
+
+**Nachgewiesen wie beim ersten Mal:** Zeilenvergleich der vier Rümpfe gegen
+`HEAD` nach Abzug des Prologs – alle vier identisch (119→113, 200→186, 200→186,
+31→26). Der Schnitt wurde nicht geraten, sondern je Methode berechnet: letzte
+`$_POST`-Zeile suchen, dann die erste `if (`-Zeile, die keine
+`$raw`-Übernahme ist. Das war nötig, weil die vier Prologe **nicht** gleich
+aussehen: `pruefeFeiertagQuick` überschreibt seinen `string`-Parameter direkt in
+der `$_POST`-Zeile, `pruefeFeiertagSeed` hat nur einen Parameter, die anderen
+zwei je drei.
+
+**Mit aufgeräumt: 14 tote Zuweisungen.** Die Stubs im Controller trugen weiter
+ihre `$xErgebnis = null; $xHinweis = null;` – nach der Delegation liest sie
+niemand mehr. Das betrifft auch die drei Stubs aus P-2026-08-17-13; sie sind
+dasselbe Konstrukt, von mir in zwei Patches erzeugt, und werden in einem
+aufgeräumt statt in zwei. Dazu die doppelten Leerzeilen, die beim Zusammenfügen
+entstanden waren.
+
+**Was bewusst im Controller bleibt:**
+
+`pruefeZugriff` (26 Zeilen) – das ist Zugriffskontrolle, keine Fachprüfung. Sie
+liest `$this->auth` achtmal und gehört zum Controller.
+
+`pruefePdfQuick`, `pruefePdfSynth`, `pruefePdfDbMultipage` (694 Zeilen zusammen)
+– die prüfen die PDF-Erzeugung, nicht die Rechenkerne. Sie gehören in einen
+eigenen Service, nicht in diesen; `pruefePdfDbMultipage` greift zudem dreimal
+auf `$this->auth` zu, was vorher zu klären ist. Eigener Patch.
+
+`pruefeTerminalLogin` (281 Zeilen) – Terminalthema, ebenfalls ein eigener
+Service. Und es ist der Bereich, der am Gerät nie vollständig durchgeklickt
+wurde; ohne Gerätetest fasse ich ihn nicht an.
+
+T-142 bleibt damit offen, aber der Rest ist umrissen: zwei Vorhaben, PDF und
+Terminal, beide mit demselben Muster machbar.
+
+### TEST
+- `php -l` über beide Dateien: keine Syntaxfehler.
+- Rumpfgleichheit maschinell geprüft, alle vier identisch.
+- Alle sieben Delegationen gezählt: je genau ein
+  `FachpruefungService::getInstanz()->pruefeX(`-Aufruf im Controller.
+- Zwei Stubs mit abweichender Signatur einzeln gegengelesen
+  (`pruefeFeiertagQuick` mit `int`+`string`, `pruefeFeiertagSeed` mit einem
+  Parameter): Prolog unverändert, Übergabe vollständig und in richtiger
+  Reihenfolge.
+- Nach dem Aufräumen erneut `php -l` und die Stubs gegengelesen – kein Stub
+  liest eine Variable, die er nicht mehr setzt.
+
+**Nicht geprüft, weil kein MariaDB läuft:** dass die vier Masken byteweise
+dasselbe HTML liefern. Nachzuholen wie in P-2026-08-17-13 beschrieben, mit `alt`
+= 1bac2d4 und den Formularwerten `feiertag_test_*`, `monatsfallback_test_*`,
+`buchungssequenz_test_*` und `feiertag_seed_jahr`.
+
+### NEXT
+Offen bleiben aus T-142 die PDF-Prüfungen und `pruefeTerminalLogin`, aus T-140
+der erste grüne Lauf gegen `zeit_probe`, und der Gerätetest, sobald das Gerät da
+ist. Alles drei steht im Snapshot.
+
 ## P-2026-08-17-17 pruefskript-faelle-urlaubssalden
 
 ### EINGELESEN
