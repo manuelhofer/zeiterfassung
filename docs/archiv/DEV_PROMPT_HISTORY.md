@@ -18,6 +18,77 @@ legacy_zip_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-08-17-19 snapshot-abschluss-der-sitzung
+
+### EINGELESEN
+- `docs/STATUS_SNAPSHOT.md` ganz.
+- `docs/arbeitsregeln.md`, Abschnitt 9 – was zum Abschluss einer Sitzung zu tun
+  ist: Erledigtes entfernen, keine ableitbaren Zahlen, Links gegenprüfen.
+- Die TEST-Abschnitte der Patches P-2026-08-17-11 bis -18 – welche Prüfungen
+  offen geblieben sind.
+
+### DATEIEN
+- `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Eine neue Sitzung liest unter „Nächster Schritt", dass Code aus dieser Sitzung
+ungeprüft im Branch liegt, und findet die zwei Aufrufe, mit denen die Prüfung
+beginnt.
+
+### DONE
+Neunzehn Patches an einem Tag, davon acht mit Code. Was der Snapshot davon
+tragen muss, ist nicht die Leistung, sondern die **Schuld**: In dieser Sitzung
+gab es kein MariaDB. `php -l` ist gelaufen, statische Kontrollen sind gelaufen,
+Rumpfgleichheit ist maschinell nachgewiesen – aber kein Klicktest und kein
+Vergleich in der Prüfumgebung.
+
+Deshalb steht der „Nächste Schritt" jetzt nicht auf einer neuen Aufgabe, sondern
+auf dem Nachholen. Mit zwei Aufrufen zum Kopieren und der Reihenfolge, in der es
+sich lohnt: erst der erste Lauf des Prüfskripts (48 Fälle, noch nie ausgeführt),
+dann der Klicktest für den Legacy-Admin-Fallback über 19 Dateien – der Patch, bei
+dem ein Fehler am meisten kostet, weil er Rechte betrifft. Und der Satz, der
+fehlen würde, wenn ihn niemand hinschreibt: **Erst danach gehört dieser Stand
+nach `main`.**
+
+Zwei Tasks sind fortgeschrieben statt entfernt, weil sie nicht fertig sind:
+
+**T-140** ist gebaut, aber nie gelaufen. Der Task sagt jetzt genau das und
+verweist für den Rest auf den nächsten Schritt, statt die Aufrufe zweimal zu
+nennen.
+
+**T-142** hat einen Teil erledigt. Der Satz nennt, was heraus ist und was
+bleibt – die PDF-Prüfungen und `pruefeTerminalLogin` –, und dass Letzteres auf
+den Gerätetest wartet. Keine Zeilenzahlen: die driften, und im Verlauf stehen
+sie ohnehin.
+
+**T-141 und T-139 sind aus dem Snapshot entfernt**, nicht abgehakt – erledigt in
+P-2026-08-17-10 und -11, die Begründung steht dort.
+
+Der Kaltstart ist über den Tag von 15.881 auf 17.733 Bytes gewachsen, rund
+12 Prozent. Der größte Teil sind die Tasks und dieser Hinweis; von den
+Regeländerungen ist eine übrig (Abschnitt 5, drei Zeilen) und eine hinzugekommen
+(Abschnitt 0, acht Zeilen). Nach Abschnitt 9 ist das zulässig – aber es ist die
+Obergrenze dessen, was ein Tag kosten darf, und der Hinweis auf die offenen
+Prüfungen verschwindet wieder, sobald sie gelaufen sind.
+
+### TEST
+- Alle drei Links im Snapshot gegengeprüft: `spezifikation_terminal_installation.md`,
+  `spezifikation_fachlogik_pruefskript.md` und
+  `fachregeln/terminal_und_offline.md` existieren.
+- Kaltstart gemessen: 17.733 Bytes über die vier Immer-Dateien; Snapshot 72
+  Zeilen.
+- Snapshot am Stück aus der Sicht einer neuen Sitzung gelesen: Der nächste
+  Schritt ist ohne Rückfrage ausführbar, er nennt die Datenbank, den Aufruf und
+  das erwartete Ergebnis.
+- Gegenprobe auf ableitbare Zahlen im Snapshot: keine Zeilenzahlen, keine
+  Patch-Listen, keine Prozente. Die einzige Zahl ist „48 Fälle" – sie ist die
+  Erwartung des nächsten Laufs und damit ein Sollwert, keine Bestandsangabe.
+
+### NEXT
+Offen bleiben, in dieser Reihenfolge: der erste Lauf des Prüfskripts und der
+Klicktest (beides oben), dann die PDF-Prüfungen aus T-142, dann der Gerätetest,
+sobald das Gerät da ist. T-138 und der Offline-Betrieb sind davon unberührt.
+
 ## P-2026-08-17-18 t-142-restliche-fachpruefungen-in-den-service
 
 ### EINGELESEN

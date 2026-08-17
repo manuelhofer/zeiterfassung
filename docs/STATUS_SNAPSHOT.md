@@ -18,12 +18,18 @@ nichts.
 
 ## Nächster Schritt (konkret)
 
-**T-140, das nachrechnende Prüfskript.** Der Gerätetest wäre der nächste Schritt,
-aber das Gerät fehlt noch rund einen Monat – er steht deshalb unter „Offene
-Tasks". Ohne Gerät ist T-140 die lohnendste Arbeit: Die Rechenkerne sind die
-Stellen, an denen ein Fehler still bleibt – der Klicktest zeigt eine Zahl, aber
-niemand erkennt an 8:36 statt 8:30, dass sie falsch ist, und die Prüfumgebung
-vergleicht zwei Stände, nicht Soll und Ist. Erst spezifizieren, dann bauen.
+**Die Patches vom 17.08. örtlich nachprüfen.** Sie sind in einem Container ohne
+MariaDB entstanden: `php -l` und statische Kontrollen sind gelaufen, **Klicktest
+und Prüfumgebung nicht**. Was zu prüfen ist, steht je Patch im Verlauf unter
+TEST, mit den Aufrufen zum Kopieren. Zwei Dinge zuerst:
+
+1. `ZEIT_DB_NAME=zeit_probe php scripts/dev/pruefe_fachlogik.php` – der erste
+   Lauf überhaupt. Erwartet: 48 Fälle grün. Was dabei abweicht, ist erst ein
+   Befund über die Erwartung, dann einer über den Code.
+2. Der Klicktest für P-2026-08-17-11 (Legacy-Admin-Fallback, 19 Dateien): Fällt
+   eine Admin-Maske für einen Chef zu, liegt die Ursache dort.
+
+Erst danach gehört dieser Stand nach `main`.
 
 ## Offene Bugs
 
@@ -38,12 +44,13 @@ Ein Satz je Task – die Begründung steht im Verlauf, nicht hier.
   und Stufenplan in
   [`spezifikation_terminal_installation.md`](spezifikation_terminal_installation.md),
   Abschnitt 12 und 11.
-- **T-140** Ein Prüfskript, das nachrechnet: feste Eingaben, erwartetes Ergebnis,
-  ein Aufruf auf der Kommandozeile. Spezifiziert in
-  [`spezifikation_fachlogik_pruefskript.md`](spezifikation_fachlogik_pruefskript.md)
-  – vier Patches, je ein Akzeptanzkriterium, dort in Abschnitt 5.
-- **T-142** Die größten Controller und Services aufteilen – je Datei ein
-  eigenes Vorhaben, erst spezifizieren.
+- **T-140** Das nachrechnende Prüfskript ist gebaut
+  ([`spezifikation_fachlogik_pruefskript.md`](spezifikation_fachlogik_pruefskript.md));
+  offen ist allein der erste grüne Lauf gegen `zeit_probe` – siehe „Nächster
+  Schritt".
+- **T-142** Aus dem `SmokeTestController` sind die fachlichen Prüfungen heraus;
+  offen bleiben die drei PDF-Prüfungen und `pruefeTerminalLogin` als je eigenes
+  Vorhaben, letzteres erst nach dem Gerätetest.
 
 **Offline-Betrieb am Terminal** – Befund und Entscheidungen in P-2026-08-16-08,
 die Regeln dazu in
