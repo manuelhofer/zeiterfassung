@@ -18,6 +18,73 @@ legacy_zip_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-08-17-03 arbeitsregeln-testpflicht
+
+### EINGELESEN
+- `docs/arbeitsregeln.md`, Abschnitt 5 – was heute Pflicht ist: `php -l`,
+  Klicktest, DB-Idempotenz, Meldungsfreiheit.
+- `docs/wartungscheckliste.md`, „Technischer Schnellcheck" – der `php -l`-Lauf
+  und der Blick ins Fehlerlog, auf die Abschnitt 5 verweist.
+- `scripts/dev/pruefumgebung.sh`, Kopfkommentar – was die Umgebung leistet und
+  was sie ausdrücklich nicht ist.
+- Mehrere TEST-Abschnitte im Verlauf, u. a. P-2026-08-16-30 und -27, um zu sehen,
+  was tatsächlich geprüft wird.
+
+### DATEIEN
+- `docs/arbeitsregeln.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Abschnitt 5 nennt den Fachlogik-Harness als Pflichtprüfung und die Pflicht, den
+eigenen Akzeptanzfall dort zu hinterlegen, und wächst dabei um höchstens vier
+Zeilen.
+
+### DONE
+Abschnitt 5 prüfte bisher, dass der Code **läuft** – nicht, dass er **rechnet**.
+`php -l` ist Syntax. Der Klicktest ist Handarbeit und findet, was man ihm zeigt.
+Die Prüfumgebung vergleicht zwei Stände gegeneinander und belegt damit „nichts
+hat sich geändert" – die Frage „ist das Ergebnis richtig" stellt sie nicht. Für
+Rundung, Pausenabzug und Salden gab es also keine Prüfung, die ein zweites Mal
+läuft: Die TEST-Abschnitte hier sind sorgfältig, aber Einmalläufe.
+
+Ein Punkt in Abschnitt 5, hinter `php -l` und vor dem Klicktest – dort, wo die
+maschinellen Prüfungen zusammenstehen. Er verlangt zwei Dinge: der Harness muss
+grün sein, und wer Rundung, Pausen oder Salden ändert, hängt seinen
+Akzeptanzfall dort dauerhaft an.
+
+**Warum „Sobald der Fachlogik-Harness aus T-140 steht":** Eine Pflicht, die man
+heute nicht erfüllen kann, ist keine Regel, sondern ein Stolperstein – jede
+Sitzung müsste begründen, warum sie sie verletzt. So formuliert ist der Punkt
+bis T-140 gegenstandslos, und danach greift er ohne einen weiteren Patch. Die
+Regel zeigt auf den Task, nicht umgekehrt.
+
+**Abweichung vom Plan, mit Absicht:** Geplant waren zwei Listenpunkte. Es ist
+einer geworden, weil die zweite Pflicht ohne die erste keinen Sinn hat – ein
+Akzeptanzfall braucht einen Ort, an dem er liegen kann. Vier Zeilen statt sechs,
+Kriterium bleibt erfüllt.
+
+**Was bewusst nicht geändert wurde:** `docs/wartungscheckliste.md`. Sie ist die
+Ausführungsanleitung mit den Befehlen; der Harness bekommt seinen Befehl dort,
+wenn er existiert, und nicht vorher. Zwei Stellen, die denselben Aufruf
+behaupten, wären die Doppelung, die dieses Projekt bekämpft.
+
+### TEST
+- Keine PHP-Datei geändert, `php -l` ist gegenstandslos – geprüft wurde
+  stattdessen der Kaltstart und die Einmaligkeit der Aussage.
+- Kaltstart: `wc -c` über die vier Immer-Dateien 17.165 Bytes, nach
+  P-2026-08-17-02 waren es 16.886 – 279 Bytes.
+- `docs/arbeitsregeln.md` wächst um genau vier Zeilen (8.697 → 8.976 Bytes).
+- `grep -rn "Harness" docs/arbeitsregeln.md docs/STATUS_SNAPSHOT.md CHATSTART.md
+  CLAUDE.md docs/wartungscheckliste.md`: drei Treffer, drei verschiedene
+  Aussagen – die Pflicht in Abschnitt 5, der nächste Schritt im Snapshot, die
+  Aufgabe T-140. Keine davon wiederholt eine andere.
+- Abschnitt 5 am Stück gegengelesen: Der Verweis auf T-140 zielt auf einen Task,
+  der im Snapshot steht.
+
+### NEXT
+P-2026-08-17-04: „Kein hartes Dateilimit" hat kein Gegenstück – deshalb wächst
+`controller/TerminalController.php` auf 4.372 Zeilen, ohne dass dabei je eine
+Regel verletzt wurde. Abschnitt 3 bekommt das Strukturbudget.
+
 ## P-2026-08-17-02 geraetetest-blockiert-naechster-schritt
 
 ### EINGELESEN
