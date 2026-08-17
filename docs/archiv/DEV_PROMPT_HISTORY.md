@@ -18,6 +18,52 @@ legacy_zip_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-08-17-25 fachregel-feiertagsstunden-nicht-gespeichert
+
+### EINGELESEN
+- P-2026-08-17-24 im Verlauf, Abschnitt DONE – der Befund und die zwei Wege.
+- `services/ReportService.php`, Zeilen 2044–2107 – wie der Feiertag für die
+  Anzeige entsteht, samt Vorrang der anderen Kennzeichen und der Herkunft des
+  Stundenwerts (`$tagesSoll`, sonst `FEIERTAG_DEFAULT_STUNDEN`).
+- `docs/fachregeln/zeit_rundung_pausen.md`, Abschnitt 5, die Liste der
+  Tagesfelder.
+
+### DATEIEN
+- `docs/fachregeln/zeit_rundung_pausen.md` (ein Listeneintrag in Abschnitt 5)
+- `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Wer in der Fachregel `feiertag_stunden` nachliest, erfährt dort, dass die Spalte
+nicht geschrieben wird und der Feiertag je Anzeige aus dem Kalender entsteht.
+
+### DONE
+Entscheidung von Manuel auf die Auswahl aus P-2026-08-17-24: **Fachregel
+nachziehen**, keine Speicherung nachbauen. Die Regel beschreibt jetzt, was ist –
+`feiertag_stunden` und `kennzeichen_feiertag` stehen zwar im Schema, werden aber
+von keiner Stelle geschrieben; `ReportService` setzt beides je Anzeige aus dem
+Kalender, mit dem Tagessoll als Stundenwert, und lässt die Feiertagsstunden auf
+0,00, wenn der Tag Arbeitszeit hat. Arzt, Krank und Sonstiges behalten Vorrang.
+
+Damit steht auch im Regelwerk, wofür die Prüfung aus P-2026-08-17-21 gut ist:
+Gefüllte Spalten können nur aus einem Import oder einer Handkorrektur kommen.
+
+Der Snapshot verliert seinen „nächsten Schritt": Der Stand liegt auf `main` und
+ist gepusht – auf ausdrückliche Ansage, `56dc59e..87881c7`, 24 Patches als
+Fast-Forward ohne Merge-Commit.
+
+**Bewusst nicht gemacht:** Kein Code angefasst. Die Frage, ob Feiertagsstunden
+gespeichert *werden sollten*, ist damit nicht beantwortet, sondern
+zurückgestellt – heute reicht die Anzeige, und die Prüfung deckt den Fremddaten-Fall ab.
+
+### TEST
+- Fachregel am Stück gelesen: Der Eintrag steht in derselben Liste wie die
+  übrigen Tagesfelder, die Aussagen zu Vorrang und Stundenwert sind gegen
+  `ReportService` Zeile für Zeile gegengelesen.
+- Kein `php -l` nötig – dieser Patch fasst keine PHP-Datei an.
+
+### NEXT
+Offene Tasks: Gerätetest am Terminal, T-142, Offline-Betrieb (T-138).
+
 ## P-2026-08-17-24 feiertagpruefung-im-bestand-nachgesehen
 
 ### EINGELESEN

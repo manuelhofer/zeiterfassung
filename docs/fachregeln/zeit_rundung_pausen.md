@@ -119,7 +119,14 @@ Korrektur- und Auswertungsfelder:
   - `arzt_stunden`
   - `krank_lfz_stunden` + `kennzeichen_krank_lfz`
   - `krank_kk_stunden` + `kennzeichen_krank_kk`
-  - `feiertag_stunden` + `kennzeichen_feiertag`
+  - `feiertag_stunden` + `kennzeichen_feiertag` – **nicht gespeichert:** keine
+    Stelle der Anwendung schreibt diese zwei Spalten. Der Feiertag entsteht in
+    `ReportService` je Anzeige aus dem Kalender (`feiertag`, bundesweit), mit
+    Tagessoll als Stundenwert; hat der Tag Arbeitszeit, bleiben die
+    Feiertagsstunden auf 0,00. Andere Kennzeichen (Arzt, Krank, Sonstiges)
+    behalten Vorrang. Gefüllte Spalten im Bestand sind also Import- oder
+    Handkorrekturdaten – genau darauf zielt die Feiertag+Arbeitszeit-Prüfung
+    (P-2026-08-17-24).
   - `urlaub_stunden` + `kennzeichen_urlaub` (Betriebsferien zählen als Urlaub,
     i. d. R. 8,00 h/Tag)
   - `kurzarbeit_stunden` + `kennzeichen_kurzarbeit`

@@ -18,15 +18,16 @@ nichts.
 
 ## Nächster Schritt (konkret)
 
-**Diesen Stand nach `main` bringen.** Die Prüfungen, die der Sitzung vom 17.08.
-gefehlt haben, sind nachgeholt – örtlich, gegen MariaDB (P-2026-08-17-22):
-Prüfskript 46 von 46, alle Admin-Masken für einen Chef offen, die umgebauten
-Smoke-Test-Masken byteweise gleich, Serverlogs ohne PHP-Meldung.
+**Keiner offen.** Der Stand vom 17.08. liegt auf `main` und ist gepusht. Die
+Prüfungen, die der Sitzung gefehlt haben, sind nachgeholt – örtlich, gegen
+MariaDB (P-2026-08-17-22): Prüfskript 46 von 46, alle Admin-Masken für einen Chef
+offen, die umgebauten Smoke-Test-Masken byteweise gleich, Serverlogs ohne
+PHP-Meldung. Die Befunde daraus sind als eigene Patches erledigt
+(P-2026-08-17-20, -21 und -23); die Frage nach Feiertagsstunden im Bestand ist
+beantwortet (-24) und die Fachregel dazu nachgezogen (-25).
 
-Drei Befunde daraus sind als eigene Patches erledigt: der Aufruf des Prüfskripts
-konnte nie funktionieren (P-2026-08-17-20), die Feiertag+Arbeitszeit-Prüfung
-konnte nie anschlagen (P-2026-08-17-21), und die Hilfeausgabe der Prüfumgebung
-hing an einer Zeilennummer (P-2026-08-17-23).
+Weiter geht es mit den offenen Tasks unten – oder mit dem, was der Praxis-Test
+hergibt.
 
 ## Offene Bugs
 
@@ -44,11 +45,6 @@ Ein Satz je Task – die Begründung steht im Verlauf, nicht hier.
 - **T-142** Aus dem `SmokeTestController` sind die fachlichen Prüfungen heraus;
   offen bleiben die drei PDF-Prüfungen und `pruefeTerminalLogin` als je eigenes
   Vorhaben, letzteres erst nach dem Gerätetest.
-- **Feiertagsstunden werden nirgends gespeichert** – `feiertag_stunden` und
-  `kennzeichen_feiertag` schreibt keine Stelle der Anwendung; der Report leitet
-  den Feiertag für die Anzeige aus dem Kalender ab, die Fachregel führt beide
-  Spalten aber als gepflegte Tagesfelder. Entscheidung offen: Fachregel nachziehen
-  oder Speicherung nachbauen (gefunden in P-2026-08-17-24).
 
 **Offline-Betrieb am Terminal** – Befund und Entscheidungen in P-2026-08-16-08,
 die Regeln dazu in
