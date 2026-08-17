@@ -14,8 +14,16 @@ declare(strict_types=1);
  *      gleich falsch rechnen - sie kennt kein Soll. Dieses Skript kennt es.
  *
  *  Aufruf:
- *      php scripts/dev/pruefe_fachlogik.php
+ *      scripts/dev/pruefumgebung.sh pruefen
  *
+ *      Nicht aus der Arbeitskopie heraus starten - dort gilt deren eigene
+ *      `config.local.php`, also die Entwicklungsdatenbank mit echten
+ *      Personendaten, und die Sperre unten bricht ab. Welche Datenbank gilt,
+ *      entscheidet die Konfiguration NEBEN diesem Skript: `config/config.php`
+ *      liefert eine vorhandene `config.local.php` zurueck, bevor je ein
+ *      `getenv()` faellt. Eine Umgebungsvariable kann daran nichts aendern.
+ *
+
  *  Rueckgabewert:
  *      0 = alle Faelle OK, 1 = mindestens ein Fall abweichend oder Abbruch.
  *      Damit passt der Lauf spaeter ohne Aenderung in einen Hook.
@@ -30,7 +38,7 @@ declare(strict_types=1);
  *
  *  Umgebung aufbauen:
  *      scripts/dev/pruefumgebung.sh aufbauen
- *      ZEIT_DB_NAME=zeit_probe php scripts/dev/pruefe_fachlogik.php
+ *      scripts/dev/pruefumgebung.sh pruefen
  *
  *  Was der Lauf hinterlaesst:
  *      Die Faelle setzen ihre Voraussetzungen selbst (Rundungsregeln,
@@ -78,12 +86,12 @@ if ($dbName === '' || strncmp($dbName, DB_PRAEFIX, strlen(DB_PRAEFIX)) !== 0) {
         . "Dieses Skript schreibt Rundungsregeln und Probe-Daten und laeuft nur\n"
         . "gegen einen Namen, der mit '%s' beginnt. Es wurde keine Verbindung\n"
         . "aufgebaut und keine Tabelle gelesen.\n\n"
-        . "Umgebung aufbauen:  scripts/dev/pruefumgebung.sh aufbauen\n"
-        . "Dann:               ZEIT_DB_NAME=%s php %s\n",
+        . "Vermutlich wurde aus der Arbeitskopie gestartet - dort gilt deren\n"
+        . "eigene config.local.php. Der Lauf gehoert in die Pruefumgebung:\n\n"
+        . "  scripts/dev/pruefumgebung.sh aufbauen   # einmalig\n"
+        . "  scripts/dev/pruefumgebung.sh pruefen\n",
         $dbName === '' ? '(kein Name konfiguriert)' : $dbName,
-        DB_PRAEFIX,
-        DB_PRAEFIX,
-        'scripts/dev/pruefe_fachlogik.php'
+        DB_PRAEFIX
     ));
     exit(1);
 }

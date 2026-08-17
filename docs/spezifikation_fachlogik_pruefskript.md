@@ -31,7 +31,7 @@ Prüfung hinterlässt. Dieses Skript ist der Ort dafür.
 Ein Aufruf, alle Fälle, eine Zeile Ergebnis:
 
 ```
-$ php scripts/dev/pruefe_fachlogik.php
+$ scripts/dev/pruefumgebung.sh pruefen
 Rundung ................ 9 von 9 OK
 Pausen ................. 5 von 5 OK
 Monatsraster ........... 2 von 2 OK

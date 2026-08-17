@@ -23,9 +23,10 @@ MariaDB entstanden: `php -l` und statische Kontrollen sind gelaufen, **Klicktest
 und Prüfumgebung nicht**. Was zu prüfen ist, steht je Patch im Verlauf unter
 TEST, mit den Aufrufen zum Kopieren. Zwei Dinge zuerst:
 
-1. `ZEIT_DB_NAME=zeit_probe php scripts/dev/pruefe_fachlogik.php` – der erste
-   Lauf überhaupt. Erwartet: 48 Fälle grün. Was dabei abweicht, ist erst ein
-   Befund über die Erwartung, dann einer über den Code.
+1. `scripts/dev/pruefumgebung.sh aufbauen`, dann
+   `scripts/dev/pruefumgebung.sh pruefen` – der erste Lauf überhaupt. Erwartet:
+   46 Fälle grün. Was dabei abweicht, ist erst ein Befund über die Erwartung,
+   dann einer über den Code.
 2. Der Klicktest für P-2026-08-17-11 (Legacy-Admin-Fallback, 19 Dateien): Fällt
    eine Admin-Maske für einen Chef zu, liegt die Ursache dort.
 

@@ -14,6 +14,7 @@
 #      scripts/dev/pruefumgebung.sh aufbauen [<commit>]     # Standard: HEAD
 #      scripts/dev/pruefumgebung.sh spiegeln                # Arbeitsstand neu einspielen
 #      scripts/dev/pruefumgebung.sh daten <datei.sql>       # Probe-Daten einspielen
+#      scripts/dev/pruefumgebung.sh pruefen                 # Fachlogik nachrechnen (T-140)
 #      scripts/dev/pruefumgebung.sh terminal [alt|neu|beide] [--offline]
 #      scripts/dev/pruefumgebung.sh backend  [alt|neu|beide]
 #      scripts/dev/pruefumgebung.sh holen alt|neu [--post 'a=b'] [--token] <pfad>
@@ -61,6 +62,12 @@
 #
 #  Fachliche Probe-Daten bringt jeder Patch selbst mit (`daten <datei.sql>`) -
 #  welche Kanten eine Maske hat, weiss nur der Patch, der sie anfasst.
+#
+#  `pruefen` rechnet die Fachlogik nach (Rundung, Pausen, Salden) statt sie nur
+#  anzuzeigen. Es spiegelt vorher den Arbeitsstand und startet das Skript in der
+#  Kopie - nur dort steht eine Konfiguration, die auf `zeit_probe` zeigt. Aus
+#  der Arbeitskopie heraus laesst es sich nicht starten, und das ist Absicht:
+#  dort gilt die Entwicklungsdatenbank mit echten Personendaten.
 #
 #  Abraeumen ist Pflicht und wird nachgeprueft, nicht geglaubt
 #  (docs/wartungscheckliste.md).
@@ -389,6 +396,49 @@ befehl_daten() {
 }
 
 # ---------------------------------------------------------------------------
+#  pruefen
+# ---------------------------------------------------------------------------
+# Warum das hier steht und nicht in der Anleitung: Das Fachlogik-Pruefskript
+# laeuft nur gegen eine `zeit_probe`-Datenbank, und welche Datenbank gilt,
+# entscheidet die `config.local.php` NEBEN dem Skript - nicht eine
+# Umgebungsvariable. `config/config.php` liefert eine vorhandene
+# `config.local.php` zurueck, bevor je ein `getenv()` faellt, und `Database`
+# liest dieselbe Datei noch einmal selbst. Der frueher dokumentierte Aufruf
+# `ZEIT_DB_NAME=zeit_probe php scripts/dev/pruefe_fachlogik.php` konnte deshalb
+# nie funktionieren: aus der Arbeitskopie heraus gilt immer deren eigene
+# Konfiguration - also die Entwicklungsdatenbank mit echten Personendaten.
+# Gerettet hat das nur die Sperre im Skript selbst.
+#
+# Die einzige Stelle, an der die richtige Konfiguration steht, ist die Kopie
+# `neu` dieser Umgebung. Also laeuft das Skript dort - und wird vorher
+# gespiegelt, damit niemand den Stand von vorhin prueft.
+befehl_pruefen() {
+    [ -d "$BASIS/neu" ] || fehler "Keine Umgebung vorhanden - erst 'aufbauen'."
+
+    local skript="$BASIS/neu/scripts/dev/pruefe_fachlogik.php"
+
+    schritt "Arbeitsstand spiegeln"
+    arbeitsstand_spiegeln
+
+    [ -f "$skript" ] || fehler "Pruefskript nicht gefunden: $skript"
+
+    schritt "Fachlogik-Pruefskript"
+    # OPcache aus: sonst misst der Lauf den Stand von vorhin
+    # (docs/lokale_entwicklungsumgebung.md, Abschnitt 5).
+    php -d opcache.enable=0 -d opcache.enable_cli=0 "$skript" "$@"
+    local ergebnis=$?
+
+    echo
+    if [ "$ergebnis" -eq 0 ]; then
+        gruen "Alle Faelle OK."
+    else
+        rot "Mindestens ein Fall weicht ab - siehe oben."
+    fi
+
+    return "$ergebnis"
+}
+
+# ---------------------------------------------------------------------------
 #  terminal / backend
 # ---------------------------------------------------------------------------
 # Ein gekoppeltes Terminal steht auch in der Datenbank. Ohne diese Zeile zeigt
@@ -660,6 +710,7 @@ case "$befehl" in
     aufbauen)    befehl_aufbauen "$@" ;;
     spiegeln)    befehl_spiegeln "$@" ;;
     daten)       befehl_daten "$@" ;;
+    pruefen)     befehl_pruefen "$@" ;;
     terminal)    befehl_terminal "$@" ;;
     backend)     befehl_backend "$@" ;;
     holen)       befehl_holen "$@" ;;
@@ -669,7 +720,7 @@ case "$befehl" in
     status)      befehl_status "$@" ;;
     abraeumen)   befehl_abraeumen "$@" ;;
     *)
-        sed -n '2,67p' "$0" | sed 's/^#//; s/^ //'
+        sed -n '2,74p' "$0" | sed 's/^#//; s/^ //'
         exit 1
         ;;
 esac

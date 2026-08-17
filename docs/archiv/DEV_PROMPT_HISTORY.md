@@ -18,6 +18,82 @@ legacy_zip_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-08-17-20 pruefskript-aufruf-der-funktioniert
+
+### EINGELESEN
+- `docs/STATUS_SNAPSHOT.md`, „Nächster Schritt" – der dokumentierte Aufruf.
+- `config/config.php` ganz – vor allem die Zeilen 22–26.
+- `core/Start.php`, `konfig()`, und `core/Database.php`, Konstruktor – beide
+  laden `config/config.php`, unabhängig voneinander.
+- `scripts/dev/pruefumgebung.sh`, Kopf und Befehlsverteilung.
+- P-2026-08-17-12 im Verlauf, Abschnitt TEST – wie der Aufruf geprüft wurde.
+
+### DATEIEN
+- `scripts/dev/pruefumgebung.sh` (Unterbefehl `pruefen`, Kopf, Hilfebereich)
+- `scripts/dev/pruefe_fachlogik.php` (Kopfkommentar, Abbruchmeldung)
+- `docs/spezifikation_fachlogik_pruefskript.md` (Zielbild-Aufruf)
+- `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+`scripts/dev/pruefumgebung.sh pruefen` spiegelt den Arbeitsstand und lässt das
+Prüfskript gegen `zeit_probe` laufen, und der Aufruf aus der Arbeitskopie bricht
+weiterhin ab – jetzt mit einem Hinweis auf den Weg, der funktioniert.
+
+### DONE
+Der dokumentierte Aufruf des Prüfskripts konnte nie funktionieren:
+
+```
+ZEIT_DB_NAME=zeit_probe php scripts/dev/pruefe_fachlogik.php
+```
+
+`config/config.php` gibt eine vorhandene `config.local.php` zurück, **bevor**
+`config_env()` überhaupt definiert wird. Auf jedem Rechner mit lokaler
+Konfiguration – also jedem Entwicklungsrechner – zeigt das Skript damit auf
+`zeiterfassung`, die Datenbank mit den echten Personendaten aus dem Serverdump.
+Gerettet hat das allein die Sperre im Skript selbst: Sie greift vor dem
+Verbindungsaufbau, meldet den falschen Datenbanknamen und beendet den Lauf.
+
+Warum es beim Bauen richtig aussah, steht in P-2026-08-17-12: Dort ist der
+Positivfall geprüft worden – in einem Container **ohne** `config.local.php`.
+Genau dort, und nur dort, greift die Umgebungsvariable. Die Prüfung war nicht
+nachlässig, sie lief in einer Umgebung, in der die Falle nicht zuschnappt.
+
+Statt die Konfigurationsladung anzufassen, damit ein Entwicklungsskript sie
+umbiegen kann, geht der Lauf jetzt dorthin, wo die richtige Konfiguration schon
+steht: in die Kopie `neu` der Prüfumgebung. `pruefen` spiegelt vorher, damit
+niemand den Stand von vorhin prüft, schaltet den OPcache ab und reicht den
+Rückgabewert durch.
+
+**Gefundener Fehler im eigenen Entwurf:** Die Hilfeausgabe schneidet den
+Kopfkommentar mit einer fest verdrahteten Zeilennummer heraus
+(`sed -n '2,67p'`). Mein längerer Kopf hätte sie stillschweigend abgeschnitten;
+die Zahl steht jetzt auf 74. Das ist genau die driftende Zahl, vor der
+Abschnitt 9 der Arbeitsregeln warnt – als eigener Punkt notiert, nicht hier
+mitgemacht.
+
+**Bewusst nicht gemacht:** `config/config.php` bleibt unverändert. Eine
+Umgebungsvariable, die eine vorhandene lokale Konfiguration übersteuert, wäre
+eine zweite Konfigurationsquelle – und sie würde ausgerechnet den Schutz
+aufweichen, der hier gerade funktioniert hat.
+
+### TEST
+- `bash -n scripts/dev/pruefumgebung.sh` und
+  `php -l scripts/dev/pruefe_fachlogik.php`: keine Syntaxfehler.
+- `scripts/dev/pruefumgebung.sh pruefen` gelaufen: spiegelt, startet, meldet
+  `45 von 46 OK` und liefert Rückgabewert 1.
+- Gegenprobe `php scripts/dev/pruefe_fachlogik.php` aus der Arbeitskopie: bricht
+  ab, nennt `zeiterfassung` als falsche Datenbank und die zwei Aufrufe, die
+  stimmen. Rückgabewert 1, keine Verbindung aufgebaut.
+- Hilfeausgabe ohne Argument am Stück gelesen: endet auf der Abräumen-Zeile,
+  der neue Unterbefehl steht in der Aufrufliste.
+- **Fallzahl nachgezählt:** 12 + 10 + 11 + 13 = 46, nicht 48. Die 48 im
+  Snapshot war ein Sollwert, den nie jemand gegen die Falldateien gehalten hat;
+  P-2026-08-17-19 hat sie ausdrücklich als einzige zulässige Zahl verteidigt.
+  Korrigiert.
+
+### NEXT
+Der eine abweichende Fall aus `03_fachpruefungen` – eigener Patch.
+
 ## P-2026-08-17-19 snapshot-abschluss-der-sitzung
 
 ### EINGELESEN
