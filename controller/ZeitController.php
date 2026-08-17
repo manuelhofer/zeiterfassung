@@ -49,11 +49,7 @@ class ZeitController
         $angemeldeteId = (int)$angemeldet['id'];
 
         // Legacy-Fallback (bis alle Stellen im Backend konsequent auf Rechte umgestellt sind)
-        $legacyAdmin = (
-            $this->authService->hatRolle('Chef')
-            || $this->authService->hatRolle('Personalbüro')
-            || $this->authService->hatRolle('Personalbuero')
-        );
+        $legacyAdmin = $this->authService->istLegacyAdmin();
 
         $kannEditAll  = $this->authService->hatRecht('ZEITBUCHUNG_EDIT_ALL') || $legacyAdmin;
         $kannEditSelf = $this->authService->hatRecht('ZEITBUCHUNG_EDIT_SELF') || $legacyAdmin;

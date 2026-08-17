@@ -18,6 +18,105 @@ legacy_zip_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-08-17-11 t-139-legacy-admin-an-einer-stelle
+
+### EINGELESEN
+- Alle 25 Fundstellen von `hatRolle('Chef')` einzeln, mit je fünf Zeilen Umfeld.
+- `services/AuthService.php`, `hatRolle()` – die Normalisierung: `mb_strtolower`,
+  sonst nichts.
+- `sql/01_initial_schema.sql`, `INSERT INTO rolle` – welche Rollen geseedet werden.
+- `controller/AuditLogController.php`, `text()` – die Entity-Variante und ihre
+  übrigen Verwendungen.
+- `docs/rechte_prompt.md` nach P-2026-08-17-10 – der Fallback ist dort als
+  „teilweise" beschrieben, also von Anfang an als Übergang gedacht.
+
+### DATEIEN
+- `services/AuthService.php` (neue Methode `istLegacyAdmin()`)
+- 16 Controller, `views/layout/header.php`, `public/maschine_code.php`
+- `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+`grep -rn "hatRolle('Chef')" --include=*.php .` findet danach nur noch eine
+Fundstelle – die Methode `AuthService::istLegacyAdmin()` selbst –, und alle 25
+Aufrufer prüfen dieselben drei Rollennamen.
+
+### DONE
+Der Legacy-Admin-Fallback stand 25-mal in 18 Dateien. Er steht jetzt einmal, in
+`AuthService::istLegacyAdmin()`, und wird 25-mal aufgerufen. 49 Zeilen kommen
+hinzu, 112 fallen weg.
+
+**Der Befund beim Durchsehen war nicht, dass 25 Kopien gleich waren – sondern
+dass sie es nicht sind.** Genau die Bauart, wegen der die Zusammenführung
+beantragt war, hatte den Fehler schon produziert:
+
+- **23 Stellen** prüften `Chef` | `Personalbüro` | `Personalbuero`.
+- **2 Stellen** in `DashboardController` – der Systemstatus-Block (`$darf
+  SystemStatusSehen`) und die Queue-Kachel (`$darfQueueSehen`) – prüften nur
+  `Chef` | `Personalbüro`, **ohne** die ASCII-Schreibweise.
+- **1 Stelle** in `AuditLogController` schrieb den Umlaut als
+  `$this->text('Personalb&uuml;ro')`, also über `html_entity_decode`. Wirkung
+  identisch, nur andere Schreibweise – wahrscheinlich aus der Zeit vor der
+  Umlaut-Regel (T-119).
+
+Dass die zwei Dashboard-Stellen wirklich abweichen und nicht nur anders
+aussehen, hängt an `hatRolle()`: Die Methode normalisiert **nur**
+Groß-/Kleinschreibung (`mb_strtolower`), nicht Umlaute. `Personalbüro` und
+`Personalbuero` sind damit zwei verschiedene Prüfungen. Auf einer Installation,
+deren Rolle ASCII heißt, blieben Systemstatus und Queue-Kachel also verborgen,
+während dieselbe Person überall sonst als Admin galt.
+
+**Das ist eine Verhaltensänderung, und sie ist gewollt.** Manuel hat den
+Dreiklang für alle 25 Stellen entschieden; die Vereinheitlichung ist hier
+zugleich die Korrektur. Die Alternative – die Abweichung erhalten und als
+eigenen Bug notieren – stand zur Wahl und wurde verworfen, weil zwei Fassungen
+derselben Prüfung genau der Zustand sind, der zu diesem Patch geführt hat.
+Betroffen ist nur, wer eine Rolle `Personalbuero` in ASCII angelegt hat; die
+23 anderen Stellen verhalten sich Zeichen für Zeichen wie vorher.
+
+Warum die Methode drei Namen prüft und nicht `rolle.ist_superuser` liest: Die
+Spalte gibt es, und `Chef` hat sie gesetzt – aber ein von Hand angelegtes
+Personalbüro hat sie nicht und verlöre den Zugang. Das wäre eine andere
+Semantik, kein Zusammenführen. Stand als dritte Option zur Wahl und ist nicht
+gewählt worden.
+
+**Was nicht geändert wurde:** die Kommentare „Legacy-Fallback: Rollen (für
+Bestandsinstallationen ohne gepflegte Rechtezuordnung)" über den Prüfungen. Sie
+sagen weiterhin das Warum, das der Methodenname nicht sagt.
+`AuditLogController::text()` bleibt ebenfalls – die Methode wird an zwei
+weiteren Stellen für Meldungstexte gebraucht, sie ist durch diesen Patch nicht
+tot geworden (nachgesehen, nicht vermutet).
+
+### TEST
+- `php -l` über **alle 19** geänderten PHP-Dateien: keine Syntaxfehler.
+- `grep -rn "hatRolle('Chef')\|hatRolle('Personalb" --include=*.php .`: drei
+  Zeilen, alle in `AuthService::istLegacyAdmin()`. Keine Kopie übrig.
+- `grep -rc "istLegacyAdmin"`: 25 Aufrufer in 18 Dateien plus die Definition –
+  die Zahl stimmt mit den 25 ursprünglichen Fundstellen überein.
+- Jede Ersetzung einzeln nachgesehen; die Blockformen unterschieden sich
+  (`if (…)`, `$legacyAdmin = (…)`, angehängtes `|| …` an eine Rechtekette, dazu
+  `$this->auth` statt `$this->authService` im `SmokeTestController` und eine
+  abweichende Namensreihenfolge in `UrlaubJahresuebersichtController`).
+- `$auth` in `views/layout/header.php` und `public/maschine_code.php` ist in
+  beiden Fällen `AuthService::getInstanz()` – die neue Methode ist dort
+  erreichbar.
+- Kontrolle auf Reste: keine verwaisten `$legacyAdmin = false;`-Zeilen vor den
+  neuen Aufrufen.
+
+**Nicht geprüft, weil in dieser Sitzung kein MariaDB läuft:** der Klicktest über
+die Kernabläufe aus `docs/wartungscheckliste.md` und der Vergleich in der
+Prüfumgebung. Beides steht offen und ist von Manuel lokal nachzuholen, **bevor**
+der Stand nach `main` geht. Zu klicken ist gezielt: Menü als Chef (alle
+Menüpunkte da), Dashboard mit Systemstatus-Block und Queue-Kachel, Queue-Seite,
+Konfiguration samt Krankzeitraum/Pausenregeln/Kurzarbeit, Rundungsregeln,
+Maschinen, Betriebsferien, Urlaubskontingente, Audit-Log, Auftragsverwaltung,
+Arbeitsschritt-Katalog, Tagesansicht mit Korrektur, Monatsreport, Smoke-Test
+und `maschine_code.php`. Fällt eine dieser Masken für einen Chef zu, ist die
+Ursache hier.
+
+### NEXT
+T-140 spezifizieren – das nachrechnende Prüfskript, der nächste Schritt im
+Snapshot. Danach T-142.
+
 ## P-2026-08-17-10 t-141-rechte-prompt-ohne-fundstellen
 
 ### EINGELESEN

@@ -40,11 +40,7 @@ class KonfigurationController
         }
 
         // Legacy-Fallback: Rollen (für Bestandsinstallationen ohne gepflegte Rechtezuordnung)
-        if (
-            $this->authService->hatRolle('Chef')
-            || $this->authService->hatRolle('Personalbüro')
-            || $this->authService->hatRolle('Personalbuero')
-        ) {
+        if ($this->authService->istLegacyAdmin()) {
             return true;
         }
 
@@ -77,11 +73,7 @@ class KonfigurationController
             // Fallback unten
         }
 
-        if (
-            $this->authService->hatRolle('Chef')
-            || $this->authService->hatRolle('Personalbüro')
-            || $this->authService->hatRolle('Personalbuero')
-        ) {
+        if ($this->authService->istLegacyAdmin()) {
             return true;
         }
 
@@ -114,11 +106,7 @@ class KonfigurationController
             // Fallback unten
         }
 
-        if (
-            $this->authService->hatRolle('Chef')
-            || $this->authService->hatRolle('Personalbüro')
-            || $this->authService->hatRolle('Personalbuero')
-        ) {
+        if ($this->authService->istLegacyAdmin()) {
             return true;
         }
 

@@ -38,9 +38,6 @@ Ein Satz je Task – die Begründung steht im Verlauf, nicht hier.
   und Stufenplan in
   [`spezifikation_terminal_installation.md`](spezifikation_terminal_installation.md),
   Abschnitt 12 und 11.
-- **T-139** Der Legacy-Admin-Fallback (`hatRolle('Chef')`,
-  `Personalbüro`/`Personalbuero`) ist über Controller und Views kopiert und
-  gehört in eine Methode in `AuthService`.
 - **T-140** Ein Prüfskript, das nachrechnet: feste Eingaben, erwartetes Ergebnis
   („Kommen 07:03, Gehen 16:12, Rundung auf 15 Minuten → 8:30 und 30 min Pause"),
   ein Aufruf auf der Kommandozeile, ohne Composer. Die Prüfungen in

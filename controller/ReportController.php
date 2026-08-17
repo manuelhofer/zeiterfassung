@@ -75,11 +75,7 @@ class ReportController
 
     private function hatStundenkontoVerwaltenRecht(): bool
     {
-        $legacyAdmin = (
-            $this->authService->hatRolle('Chef')
-            || $this->authService->hatRolle('Personalbüro')
-            || $this->authService->hatRolle('Personalbuero')
-        );
+        $legacyAdmin = $this->authService->istLegacyAdmin();
 
         try {
             return $this->authService->hatRecht('STUNDENKONTO_VERWALTEN') || $legacyAdmin;
@@ -480,11 +476,7 @@ class ReportController
         $angemeldet = $this->authService->holeAngemeldetenMitarbeiter();
         $angemeldeteId = (int)($angemeldet['id'] ?? 0);
 
-        $legacyAdmin = (
-            $this->authService->hatRolle('Chef')
-            || $this->authService->hatRolle('Personalbüro')
-            || $this->authService->hatRolle('Personalbuero')
-        );
+        $legacyAdmin = $this->authService->istLegacyAdmin();
 
         $kannEditAll  = ($this->authService->hatRecht('ZEITBUCHUNG_EDIT_ALL')) || $legacyAdmin;
         $kannEditSelf = ($this->authService->hatRecht('ZEITBUCHUNG_EDIT_SELF')) || $legacyAdmin;

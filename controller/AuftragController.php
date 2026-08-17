@@ -1770,33 +1770,21 @@ class AuftragController
      */
     private function darfAuftraegeVerwalten(): bool
     {
-        $legacyAdmin = (
-            $this->authService->hatRolle('Chef')
-            || $this->authService->hatRolle('Personalbüro')
-            || $this->authService->hatRolle('Personalbuero')
-        );
+        $legacyAdmin = $this->authService->istLegacyAdmin();
 
         return $this->authService->hatRecht('AUFTRAEGE_VERWALTEN') || $legacyAdmin;
     }
 
     private function darfAuftragszeitAlleBearbeiten(): bool
     {
-        $legacyAdmin = (
-            $this->authService->hatRolle('Chef')
-            || $this->authService->hatRolle('Personalbüro')
-            || $this->authService->hatRolle('Personalbuero')
-        );
+        $legacyAdmin = $this->authService->istLegacyAdmin();
 
         return $this->authService->hatRecht('ZEITBUCHUNG_EDIT_ALL') || $legacyAdmin;
     }
 
     private function darfAuftragszeitEigeneBearbeiten(): bool
     {
-        $legacyAdmin = (
-            $this->authService->hatRolle('Chef')
-            || $this->authService->hatRolle('Personalbüro')
-            || $this->authService->hatRolle('Personalbuero')
-        );
+        $legacyAdmin = $this->authService->istLegacyAdmin();
 
         return $this->authService->hatRecht('ZEITBUCHUNG_EDIT_SELF') || $legacyAdmin;
     }

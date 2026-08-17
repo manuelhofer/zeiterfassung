@@ -148,6 +148,30 @@ class AuthService
     }
 
     /**
+     * Legacy-Fallback: gilt der Benutzer über seine **Rolle** als Admin?
+     *
+     * Für Bestandsinstallationen, deren Rollen noch keine gepflegte
+     * Rechtezuordnung haben. Immer **zusätzlich** zu `hatRecht()` prüfen, nie
+     * statt dessen – der Fallback erweitert, er ersetzt nicht.
+     *
+     * Warum drei Namen: `hatRolle()` normalisiert nur Groß-/Kleinschreibung,
+     * nicht Umlaute. Ein von Hand angelegtes Personalbüro kann deshalb
+     * `Personalbüro` **oder** `Personalbuero` heißen; geseedet wird keines von
+     * beiden (`sql/01_initial_schema.sql` legt nur `Chef` an). Beide Schreibweisen
+     * zu prüfen ist billiger, als sich auf eine festzulegen, die es nicht gibt.
+     *
+     * Diese Methode ersetzt 25 handkopierte Fassungen derselben Prüfung, von
+     * denen zwei die ASCII-Schreibweise vergessen hatten (T-139,
+     * P-2026-08-17-11). Eine Rechteentscheidung gehört an eine Stelle.
+     */
+    public function istLegacyAdmin(): bool
+    {
+        return $this->hatRolle('Chef')
+            || $this->hatRolle('Personalbüro')
+            || $this->hatRolle('Personalbuero');
+    }
+
+    /**
      * Rollenprüfung.
      *
      * Prüft, ob der aktuell angemeldete Benutzer eine bestimmte Rolle hat.

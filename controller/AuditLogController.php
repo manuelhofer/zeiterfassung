@@ -49,9 +49,7 @@ class AuditLogController
         if (
             $this->authService->hatRecht('KONFIGURATION_VERWALTEN')
             || $this->authService->hatRecht('ROLLEN_RECHTE_VERWALTEN')
-            || $this->authService->hatRolle('Chef')
-            || $this->authService->hatRolle($this->text('Personalb&uuml;ro'))
-            || $this->authService->hatRolle('Personalbuero')
+            || $this->authService->istLegacyAdmin()
         ) {
             return true;
         }

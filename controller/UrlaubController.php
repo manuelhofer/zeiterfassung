@@ -674,10 +674,7 @@ class UrlaubController
      */
     private function ermittleUrlaubGenehmigungsrechte(): array
     {
-        $legacyAdmin = false;
-        $legacyAdmin = $this->authService->hatRolle('Chef')
-            || $this->authService->hatRolle('Personalbüro')
-            || $this->authService->hatRolle('Personalbuero');
+        $legacyAdmin = $this->authService->istLegacyAdmin();
 
         return [
             'darf_alle' => $legacyAdmin || $this->authService->hatRecht('URLAUB_GENEHMIGEN_ALLE'),

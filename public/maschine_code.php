@@ -18,7 +18,7 @@ function maschinenHatZugriff(AuthService $auth): bool
     }
 
     // Legacy-Fallback
-    if ($auth->hatRolle('Chef') || $auth->hatRolle('Personalbüro') || $auth->hatRolle('Personalbuero')) {
+    if ($auth->istLegacyAdmin()) {
         return true;
     }
 

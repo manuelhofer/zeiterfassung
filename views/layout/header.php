@@ -51,12 +51,7 @@ if ($auth->istAngemeldet()) {
     }
 
     // Admin-Rechte für Menüpunkte bestimmen (Rechte-basiert, mit Legacy-Fallback auf Rollen)
-    $hatLegacyAdminRolle = false;
-    $hatLegacyAdminRolle = (
-        $auth->hatRolle('Chef')
-        || $auth->hatRolle('Personalbüro')
-        || $auth->hatRolle('Personalbuero')
-    );
+    $hatLegacyAdminRolle = $auth->istLegacyAdmin();
 
     $hatMitarbeiterAdminRecht      = $auth->hatRecht('MITARBEITER_VERWALTEN') || $hatLegacyAdminRolle;
     $hatAbteilungsAdminRecht       = $auth->hatRecht('ABTEILUNG_VERWALTEN') || $hatLegacyAdminRolle;

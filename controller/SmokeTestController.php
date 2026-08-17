@@ -39,11 +39,7 @@ class SmokeTestController
             return false;
         }
 
-        $hatLegacyAdminRolle = (
-            $this->auth->hatRolle('Chef')
-            || $this->auth->hatRolle('Personalbüro')
-            || $this->auth->hatRolle('Personalbuero')
-        );
+        $hatLegacyAdminRolle = $this->auth->istLegacyAdmin();
 
         // Primär: jedes "Admin-Recht" genügt, weil Smoke-Test ein Diagnose-Tool ist.
         if (

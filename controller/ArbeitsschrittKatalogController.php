@@ -368,11 +368,7 @@ class ArbeitsschrittKatalogController
      */
     private function darfVerwalten(): bool
     {
-        $legacyAdmin = (
-            $this->authService->hatRolle('Chef')
-            || $this->authService->hatRolle('Personalbüro')
-            || $this->authService->hatRolle('Personalbuero')
-        );
+        $legacyAdmin = $this->authService->istLegacyAdmin();
 
         return $this->authService->hatRecht('AUFTRAEGE_VERWALTEN') || $legacyAdmin;
     }

@@ -45,11 +45,7 @@ class DashboardController
         $mitarbeiterName = $name;
 
         // Rechte-/Legacy-Flags für Links im Zeitwarnblock
-        $legacyAdmin = (
-            $this->authService->hatRolle('Chef')
-            || $this->authService->hatRolle('Personalbüro')
-            || $this->authService->hatRolle('Personalbuero')
-        );
+        $legacyAdmin = $this->authService->istLegacyAdmin();
 
         $csrfToken = Csrf::token(self::CSRF_BEREICH);
         $pausenentscheidungFlash = null;
@@ -557,8 +553,7 @@ class DashboardController
         $darfSystemStatusSehen = $this->authService->hatRecht('QUEUE_VERWALTEN')
             || $this->authService->hatRecht('TERMINAL_VERWALTEN')
             || $this->authService->hatRecht('KONFIGURATION_VERWALTEN')
-            || $this->authService->hatRolle('Chef')
-            || $this->authService->hatRolle('Personalbüro');
+            || $this->authService->istLegacyAdmin();
 
         if ($darfSystemStatusSehen) {
             $db = Database::getInstanz();
@@ -1056,8 +1051,7 @@ class DashboardController
         // Optional: Offline-Queue Status-Kachel (nur für Admins)
         $queueKachel = null;
         $darfQueueSehen = $this->authService->hatRecht('QUEUE_VERWALTEN')
-            || $this->authService->hatRolle('Chef')
-            || $this->authService->hatRolle('Personalbüro');
+            || $this->authService->istLegacyAdmin();
 
         if ($darfQueueSehen) {
             try {
