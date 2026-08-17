@@ -18,6 +18,97 @@ legacy_zip_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-08-17-29 t-138-p1-auftrags-sql-loest-rfid-auf
+
+### EINGELESEN
+- `docs/spezifikation_offline_auftraege.md`, Abschnitt 5, P1 – Vorgehen und
+  Fallstricke.
+- `services/AuftragszeitService.php`, `starteAuftrag()` und `stoppeAuftrag()`
+  ganz, dazu `sqlQuote()`/`sqlNullableInt()` und `core/Helper.php`
+  `sqlLiteral()`/`sqlEscape()`.
+- `core/OfflineQueueManager.php`, `speichereInQueue()` – Signatur und was
+  `meta_mitarbeiter_id` bedeutet.
+- Alle Aufrufer beider Methoden (`DashboardController`, `TerminalController`).
+
+### DATEIEN
+- `services/AuftragszeitService.php`
+- `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Ein Auftragsstart mit `mitarbeiterId = 0` und der RFID `CHIP-T138` erzeugt einen
+Queue-Eintrag mit dem Subselect statt einer Zahl, und nach dem Einspielen steht
+in `auftragszeit` eine Zeile auf Mitarbeiter 15.
+
+### DONE
+`starteAuftrag()` und `stoppeAuftrag()` nehmen einen optionalen `?string
+$rfidCode`. Ist er gesetzt und fehlt die Mitarbeiter-ID, setzen die
+Queue-Befehle an den vier betroffenen Stellen denselben Subselect ein, den
+`bucheZeitOfflinePerRfid()` beim Stempeln benutzt:
+
+```sql
+(SELECT id FROM mitarbeiter WHERE rfid_code = '…' AND aktiv = 1 LIMIT 1)
+```
+
+Zwei kleine Helfer tragen das: `mitarbeiterIdSql()` entscheidet zwischen Zahl
+und Subselect, `normalisiereRfid()` trimmt und kappt bei 128 Zeichen – dieselbe
+Grenze wie beim Stempeln.
+
+**Zwei Sperren, damit das nicht nach innen leckt:**
+
+`meta_mitarbeiter_id` bleibt `null` statt `0`. Die Spalte ist ein Vermerk, keine
+Auflösung; eine erfundene 0 wäre schlechter als eine leere Zelle.
+
+**Online gilt der neue Weg nicht.** Hinter dem Offline-Zweig steht in beiden
+Methoden `if ($mitarbeiterId <= 0) return null;`. Ohne diese Sperre hätte das
+Lockern der Eingangsprüfung den Online-Pfad mit ID 0 erreichbar gemacht – der
+RFID-Weg existiert nur für die Queue, deren Befehl die Auflösung erst beim
+Einspielen vornimmt.
+
+**Zwei Befunde aus dem Prüflauf, beide klein, beide nicht behoben:**
+
+Abgefangen hat den unbekannten Chip nicht der Fremdschlüssel aus T-129/T-135,
+sondern `NOT NULL` auf `auftragszeit.mitarbeiter_id` – die Bedingung greift
+zuerst. In der Spezifikation steht der Fremdschlüssel; das ist nicht falsch, nur
+nicht das, was tatsächlich zuschlägt. Hier korrigiert statt dort, weil die
+Spezifikation die Absicht beschreibt und dieser Eintrag den Befund.
+
+Ein unbekannter Chip hinterlässt einen **leeren Auftrag**: `auftrag_ensure` legt
+`T138-FREMD` an, der `auftrag_start` daneben scheitert. Zurück bleibt eine
+Auftragsnummer ohne jede Buchung. Als **B-106** notiert – das gilt genauso für
+den heutigen Online-Weg und ist deshalb kein Fehler dieses Patches.
+
+### TEST
+Prüfumgebung, `alt` = f08f002, Stand `neu` im Terminal-Modus.
+
+1. **Offline geschrieben** (`terminal neu --offline`), `starteAuftrag(0,
+   'T138-AUFTRAG', rfid='CHIP-T138')` und der passende Stopp – beide liefern
+   `0` (Queue-Erfolg). Die vier Queue-Einträge einzeln gelesen: `sql1`, `sql3`
+   und der Stopp-`UPDATE` tragen den Subselect, `meta_mitarbeiter_id` ist
+   überall `NULL`.
+2. **Eingespielt** (`terminal neu`, zwei Seitenaufrufe): alle vier auf
+   `verarbeitet`, keine Fehlernachricht. In `auftragszeit` steht eine Zeile auf
+   **Mitarbeiter 15** mit Start, Ende und `abgeschlossen`; der Auftrag
+   `T138-AUFTRAG` wurde dabei selbst angelegt.
+3. **Gegenprobe unbekannter Chip** (`CHIP-GIBTSNICHT`): Der `auftrag_start` geht
+   auf `fehler` („Column 'mitarbeiter_id' cannot be null"), in `auftragszeit`
+   landet **nichts**, und die Abarbeitung läuft weiter – der nachfolgende
+   Eintrag ist `verarbeitet`. Genau das Verhalten aus P-2026-08-16-10.
+4. **Gegenprobe ohne alles:** `starteAuftrag(0, …, rfid=null)` liefert `NULL`.
+5. **Online unberührt:** `starteAuftrag(15, 'ONLINE-T138')` liefert eine ID,
+   der Stopp dazu greift, und `starteAuftrag(0, …, rfid='CHIP-T138')` liefert
+   online `NULL` – die Sperre wirkt.
+6. Fachlogik-Prüfskript 46 von 46; Dashboard und Smoke-Test byteweise gleich
+   (33.447 / 61.865 Bytes, je 0 abweichende Zeilen); beide Serverlogs ohne
+   PHP-Meldung; `php -l` ohne Befund.
+
+**Nicht geprüft:** der Weg über die Oberfläche – den gibt es erst mit P2. Alles
+oben lief über direkte Aufrufe in der Kopie `neu`. Die Sonde dafür war ein
+Wegwerfskript und ist nicht im Repository; wer P2 baut, prüft ohnehin über den
+Bildschirm.
+
+### NEXT
+P2 aus Abschnitt 5: Der Offline-Scan schaltet die Auftragsknöpfe frei.
+
 ## P-2026-08-17-28 t-138-spezifikation-offline-auftraege
 
 ### EINGELESEN

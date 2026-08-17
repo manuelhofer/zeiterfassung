@@ -61,6 +61,54 @@ class AuftragszeitService
         return (string)max(0, (int)$value);
     }
 
+    /**
+     * Wer ist gemeint – als SQL-Ausdruck für einen Queue-Befehl.
+     *
+     * Offline gibt es am Terminal **keine Anmeldung** (Fachregel Abschnitt 5).
+     * Wer ohne Mitarbeiter-ID, aber mit einer RFID kommt, bekommt deshalb
+     * denselben Subselect, den `bucheZeitOfflinePerRfid()` beim Stempeln
+     * benutzt: Die Zuordnung entsteht erst beim Einspielen.
+     *
+     * Findet der Subselect niemanden, liefert er `NULL` – und der Eintrag
+     * scheitert am Fremdschlüssel (T-129), statt eine Buchung auf einen
+     * Mitarbeiter zu erzeugen, den es nicht gibt. Die Abarbeitung stoppt
+     * dabei nicht (P-2026-08-16-10).
+     */
+    private function mitarbeiterIdSql(int $mitarbeiterId, ?string $rfidCode): string
+    {
+        if ($mitarbeiterId > 0) {
+            return (string)$mitarbeiterId;
+        }
+
+        return '(SELECT id FROM mitarbeiter WHERE rfid_code = '
+            . $this->sqlQuote((string)$rfidCode)
+            . ' AND aktiv = 1 LIMIT 1)';
+    }
+
+    /**
+     * Normalisiert eine RFID für den Queue-Weg; `null`, wenn keine brauchbare da ist.
+     *
+     * Die Längengrenze steht auch in `bucheZeitOfflinePerRfid()` – Leser und
+     * Copy-Paste liefern gelegentlich sehr lange Zeichenketten.
+     */
+    private function normalisiereRfid(?string $rfidCode): ?string
+    {
+        if ($rfidCode === null) {
+            return null;
+        }
+
+        $rfidCode = trim($rfidCode);
+        if ($rfidCode === '') {
+            return null;
+        }
+
+        if (strlen($rfidCode) > 128) {
+            $rfidCode = substr($rfidCode, 0, 128);
+        }
+
+        return $rfidCode;
+    }
+
     private function findeOderErstelleArbeitsschritt(?int $auftragId, ?string $arbeitsschrittCode): ?int
     {
         $auftragId = $auftragId !== null ? (int)$auftragId : 0;
@@ -156,11 +204,16 @@ class AuftragszeitService
      * - Schließt automatisch alle aktuell laufenden Hauptaufträge des Mitarbeiters.
      * - Versucht optional, zu einem bekannten Auftragscode die `auftrag_id` zu laden.
      *
+     * `$rfidCode` ist der Weg ohne Anmeldung: Steht keine Mitarbeiter-ID zur
+     * Verfügung, weil die Hauptdatenbank aus ist, trägt die RFID die Identität
+     * und wird erst beim Einspielen aufgelöst (T-138). Online ist sie ohne
+     * Wirkung – dort gibt es eine ID.
+     *
      * @return int|null ID der neuen Auftragszeit, **0** bei Ablage in der
      *                  Offline-Queue (Erfolg ohne ID), null bei Fehler. Wer auf
      *                  `> 0` prüft, meldet den Offline-Fall fälschlich als Fehler.
      */
-    public function starteAuftrag(int $mitarbeiterId, string $auftragscode, ?int $maschineId = null, ?string $arbeitsschrittCode = null): ?int
+    public function starteAuftrag(int $mitarbeiterId, string $auftragscode, ?int $maschineId = null, ?string $arbeitsschrittCode = null, ?string $rfidCode = null): ?int
     {
         $mitarbeiterId = (int)$mitarbeiterId;
         $auftragscode  = trim($auftragscode);
@@ -169,7 +222,14 @@ class AuftragszeitService
             $arbeitsschrittCode = null;
         }
 
-        if ($mitarbeiterId <= 0 || $auftragscode === '') {
+        $rfidCode = $this->normalisiereRfid($rfidCode);
+
+        if ($auftragscode === '') {
+            return null;
+        }
+
+        // Ohne ID **und** ohne RFID weiß niemand, wer gemeint ist.
+        if ($mitarbeiterId <= 0 && $rfidCode === null) {
             return null;
         }
 
@@ -198,11 +258,20 @@ class AuftragszeitService
         if (Helper::istTerminalInstallation() && $hauptDbOk === false) {
             $zeitStr = $startzeit->format('Y-m-d H:i:s');
 
+            // Wer gemeint ist: die ID, oder – ohne Anmeldung – der Subselect
+            // über die RFID. Einmal berechnet, viermal eingesetzt.
+            $wer = $this->mitarbeiterIdSql($mitarbeiterId, $rfidCode);
+
+            // Was in `meta_mitarbeiter_id` der Queue steht. Ohne Anmeldung
+            // nichts: Die Spalte ist ein Vermerk, keine Auflösung, und eine
+            // erfundene 0 wäre schlechter als eine leere Zelle.
+            $metaMitarbeiterId = $mitarbeiterId > 0 ? $mitarbeiterId : null;
+
             // 1) laufende Hauptaufträge des Mitarbeiters schließen
             $sql1 = 'UPDATE auftragszeit SET '
                 . 'endzeit=' . $this->sqlQuote($zeitStr) . ', '
                 . "status='abgeschlossen' "
-                . 'WHERE mitarbeiter_id=' . (int)$mitarbeiterId
+                . 'WHERE mitarbeiter_id=' . $wer
                 . " AND typ='haupt' AND status='laufend' AND endzeit IS NULL";
 
 
@@ -225,7 +294,7 @@ class AuftragszeitService
 
             // 3) neuen Hauptauftrag anlegen
             $sql3 = 'INSERT INTO auftragszeit (mitarbeiter_id, auftrag_id, arbeitsschritt_id, auftragscode, arbeitsschritt_code, maschine_id, terminal_id, typ, startzeit, kommentar) VALUES ('
-                . (int)$mitarbeiterId . ', '
+                . $wer . ', '
                 . $this->sqlNullableInt($auftragId) . ', '
                 . $sqlSchrittId . ', '
                 . $this->sqlNullableString($auftragscode, 100) . ', '
@@ -238,12 +307,12 @@ class AuftragszeitService
                 . ')';
 
             try {
-                $ok1 = OfflineQueueManager::getInstanz()->speichereInQueue($sql1, $mitarbeiterId, null, 'auftrag_start_close');
-                $ok2 = OfflineQueueManager::getInstanz()->speichereInQueue($sql2, $mitarbeiterId, null, 'auftrag_ensure');
+                $ok1 = OfflineQueueManager::getInstanz()->speichereInQueue($sql1, $metaMitarbeiterId, null, 'auftrag_start_close');
+                $ok2 = OfflineQueueManager::getInstanz()->speichereInQueue($sql2, $metaMitarbeiterId, null, 'auftrag_ensure');
                 if ($sqlSchritt !== null) {
-                    OfflineQueueManager::getInstanz()->speichereInQueue($sqlSchritt, $mitarbeiterId, null, 'auftrag_schritt_ensure');
+                    OfflineQueueManager::getInstanz()->speichereInQueue($sqlSchritt, $metaMitarbeiterId, null, 'auftrag_schritt_ensure');
                 }
-                $ok3 = OfflineQueueManager::getInstanz()->speichereInQueue($sql3, $mitarbeiterId, null, 'auftrag_start');
+                $ok3 = OfflineQueueManager::getInstanz()->speichereInQueue($sql3, $metaMitarbeiterId, null, 'auftrag_start');
 
                 return ($ok1 && $ok2 && $ok3) ? 0 : null;
             } catch (\Throwable $e) {
@@ -251,9 +320,16 @@ class AuftragszeitService
                     'mitarbeiter_id' => $mitarbeiterId,
                     'auftragscode'   => $auftragscode,
                     'exception'      => $e->getMessage(),
-                ], $mitarbeiterId, null, 'auftragszeit_service_offline');
+                ], $metaMitarbeiterId, null, 'auftragszeit_service_offline');
                 return null;
             }
+        }
+
+        // Ab hier läuft es online, und dort führt kein Weg an einer echten ID
+        // vorbei: Der RFID-Weg existiert nur für die Queue, deren Befehl die
+        // Auflösung erst beim Einspielen vornimmt.
+        if ($mitarbeiterId <= 0) {
+            return null;
         }
 
         // Auftrag zu diesem Code aus der Auftragstabelle laden
@@ -343,10 +419,14 @@ class AuftragszeitService
      *
      * @return int|null 1=online erfolgreich, 0=offline in Queue gespeichert, null=Fehler/kein passender Auftrag
      */
-    public function stoppeAuftrag(int $mitarbeiterId, ?int $auftragszeitId = null, ?string $auftragscode = null, string $status = 'abgeschlossen'): ?int
+    public function stoppeAuftrag(int $mitarbeiterId, ?int $auftragszeitId = null, ?string $auftragscode = null, string $status = 'abgeschlossen', ?string $rfidCode = null): ?int
     {
         $mitarbeiterId = (int)$mitarbeiterId;
-        if ($mitarbeiterId <= 0) {
+        $rfidCode = $this->normalisiereRfid($rfidCode);
+
+        // Ohne ID **und** ohne RFID weiß niemand, wer gemeint ist. Zur
+        // Begründung des RFID-Wegs siehe `starteAuftrag()`.
+        if ($mitarbeiterId <= 0 && $rfidCode === null) {
             return null;
         }
 
@@ -380,10 +460,12 @@ class AuftragszeitService
         if (Helper::istTerminalInstallation() && $hauptDbOk === false) {
             $endStr = $zeitpunkt->format('Y-m-d H:i:s');
 
+            $metaMitarbeiterId = $mitarbeiterId > 0 ? $mitarbeiterId : null;
+
             $sql = 'UPDATE auftragszeit SET '
                 . 'endzeit=' . $this->sqlQuote($endStr) . ', '
                 . 'status=' . $this->sqlQuote($status) . ' '
-                . 'WHERE mitarbeiter_id=' . (int)$mitarbeiterId
+                . 'WHERE mitarbeiter_id=' . $this->mitarbeiterIdSql($mitarbeiterId, $rfidCode)
                 . " AND typ='haupt' AND status='laufend' AND endzeit IS NULL";
 
             if ($auftragszeitId !== null && $auftragszeitId > 0) {
@@ -397,7 +479,7 @@ class AuftragszeitService
             try {
                 $ok = OfflineQueueManager::getInstanz()->speichereInQueue(
                     $sql,
-                    $mitarbeiterId,
+                    $metaMitarbeiterId,
                     null,
                     $status === 'abgebrochen' ? 'auftrag_stop_abgebrochen' : 'auftrag_stop'
                 );
@@ -410,11 +492,17 @@ class AuftragszeitService
                     'auftragscode'    => $auftragscodeTrim,
                     'status'          => $status,
                     'exception'       => $e->getMessage(),
-                ], $mitarbeiterId, null, 'auftragszeit_service_offline');
+                ], $metaMitarbeiterId, null, 'auftragszeit_service_offline');
 
                 return null;
             }
         }
+
+        // Ab hier online – siehe die gleichlautende Sperre in `starteAuftrag()`.
+        if ($mitarbeiterId <= 0) {
+            return null;
+        }
+
         // 1. Fall: Es wurde explizit eine Auftragszeit-ID übergeben
         // Schutz: Im Kontext "Hauptauftrag stoppen" darf nur typ='haupt' beendet werden.
         if ($auftragszeitId !== null && $auftragszeitId > 0) {

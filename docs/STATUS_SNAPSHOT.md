@@ -18,15 +18,16 @@ nichts.
 
 ## Nächster Schritt (konkret)
 
-**T-138, Patch 1 von 3:** Die Auftrags-SQL löst den Mitarbeiter über die RFID
-auf, statt die ID als Zahl zu schreiben. Vorgehen, Fallstricke und Prüfung
-stehen in
+**T-138, Patch 2 von 3:** Der Offline-Scan schaltet die Auftragsknöpfe frei.
+Vorgehen, Fallstricke und Prüfung stehen in
 [`spezifikation_offline_auftraege.md`](spezifikation_offline_auftraege.md),
-Abschnitt 5.
+Abschnitt 5. Patch 1 ist erledigt (P-2026-08-17-29).
 
 ## Offene Bugs
 
-Keine bekannten.
+- **B-106** Ein Auftragscode, der beim Buchen scheitert, hinterlässt trotzdem
+  einen leeren Auftrag – `auftrag_ensure` legt ihn an, bevor die Buchung
+  abbricht. Betrifft online wie offline.
 
 ## Offene Tasks
 
