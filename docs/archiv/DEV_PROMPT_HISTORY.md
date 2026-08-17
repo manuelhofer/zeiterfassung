@@ -18,6 +18,85 @@ legacy_zip_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-08-17-14 pruefskript-geruest-und-sperre
+
+### EINGELESEN
+- `docs/spezifikation_fachlogik_pruefskript.md`, Abschnitte 2, 3 und Kriterium 2.
+- `core/Start.php` – `konfig()` liest nur die Datei, `los()` startet zusätzlich
+  eine Session; für ein CLI-Skript ist `konfig()` das Richtige.
+- `config/config.php`, Block `db` – `dbname` kommt aus `ZEIT_DB_NAME`, Standard
+  `zeiterfassung`; alternativ steckt der Name in einem kompletten `dsn`.
+- `core/Database.php`, `erstellePdoAusKonfig()` – dass `dsn` den `dbname`-Zweig
+  überspringt, ist der Grund für die zweite Prüfung im Skript.
+- `scripts/dev/pruefumgebung.sh` – die Namenssperre auf `zeit_probe` als Vorbild.
+
+### DATEIEN
+- `scripts/dev/pruefe_fachlogik.php` (neu, ausführbar)
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Ein Lauf gegen eine Datenbank, deren Name nicht mit `zeit_probe` beginnt, bricht
+ab, ohne eine Tabelle zu lesen oder zu schreiben, und liefert Rückgabewert 1.
+
+### DONE
+Das Gerüst steht: Sperre, Fall-Sammlung, Ausgabeformat, Rückgabewert. Fälle
+bringt es noch keine mit – die kommen in P-2026-08-17-15 und -16.
+
+**Die Sperre läuft vor jedem Datenbankzugriff.** Sie fragt `Start::konfig()`,
+und das liest ausschließlich die Konfigurationsdatei; eine Verbindung entsteht
+erst, wenn jemand `Database::getInstanz()` ruft, und das tut vor der Sperre
+niemand. Der Grund für die Härte steht in `CLAUDE.md`: Die
+Entwicklungsdatenbank enthält echte Personendaten aus einem Serverdump, und
+dieses Skript **schreibt** – es setzt Rundungsregeln und legt Probe-Daten an.
+
+Zwei Wege, auf denen der Datenbankname stehen kann, deshalb zwei Prüfungen:
+`db.dbname`, und – falls leer – der `dbname=`-Teil eines kompletten `db.dsn`.
+`Database::erstellePdoAusKonfig()` bevorzugt den DSN und ignoriert `dbname`
+dann; eine Sperre, die nur `dbname` liest, wäre in genau dem Fall blind, in dem
+jemand einen DSN einträgt.
+
+**Fälle liegen als eigene Dateien in `scripts/dev/faelle/`** und liefern je eine
+aufrufbare Funktion, die eine `Pruefgruppe` bekommt. Grund: Abschnitt 5 der
+Arbeitsregeln verlangt, dass wer Rundung, Pausen oder Salden ändert, seinen Fall
+hier hinterlässt. Das muss billig sein – eine Datei dazulegen, nicht das Gerüst
+anfassen.
+
+**Zwei Dinge beim Selbsttest korrigiert, bevor der Patch fertig war:**
+
+`glob()` liefert je nach Plattform `false` statt einer leeren Liste, wenn das
+Verzeichnis fehlt. `sort(false)` wäre ein Fehler gewesen – jetzt steht ein
+Fallback da.
+
+**Wichtiger:** Der erste Entwurf meldete bei null Fällen „0 von 0 OK" und
+Rückgabewert 0. Das ist genau das stille Grün, gegen das dieses Skript gebaut
+ist – ein leerer Prüflauf, der Erfolg behauptet. Ein Lauf ohne Fälle bricht
+jetzt ab und liefert 1. Solange `faelle/` leer ist, ist das Skript also rot, und
+das ist richtig.
+
+Ein `Pruefgruppe::fehler()` gibt es neben `pruefe()`, damit eine Ausnahme in
+einer Fallgruppe nicht als „keine Abweichung" durchgeht: Sie zählt als
+abweichender Fall und wird mit Klassenname und Meldung ausgegeben.
+
+### TEST
+- `php -l scripts/dev/pruefe_fachlogik.php`: keine Syntaxfehler.
+- **Kriterium 2 belegt, hier und jetzt:** `php scripts/dev/pruefe_fachlogik.php`
+  gegen den Standardnamen `zeiterfassung` bricht mit der erwarteten Meldung ab,
+  Rückgabewert 1. In dieser Sitzung läuft kein MariaDB – dass keine Tabelle
+  gelesen wurde, ist damit zusätzlich dadurch belegt, dass ein Datenbankzugriff
+  überhaupt nicht möglich gewesen wäre und trotzdem keine Ausnahme kam: Die
+  Sperre greift vor dem ersten Zugriff.
+- Positivfall geprüft: `ZEIT_DB_NAME=zeit_probe php …` kommt an der Sperre
+  vorbei und bricht danach an der leeren Fallliste ab (Rückgabewert 1) – der
+  Weg durch die Sperre ist also offen und ohne Verbindung gelaufen.
+- Datei ist ausführbar (`chmod +x`), Shebang gesetzt, `PHP_SAPI`-Prüfung weist
+  einen Aufruf über den Webserver ab.
+
+### NEXT
+P-2026-08-17-15: die Fälle für Rundung und Pausen. Beide Rechenkerne sind
+Singletons, die ihren Zustand beim ersten Aufruf einlesen – die Regeln müssen
+also gesetzt sein, **bevor** `RundungsService::getInstanz()` das erste Mal läuft.
+Das bestimmt den Aufbau der Fall-Dateien.
+
 ## P-2026-08-17-13 fachpruefungen-in-einen-service
 
 ### EINGELESEN
