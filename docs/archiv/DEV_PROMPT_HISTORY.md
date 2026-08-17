@@ -18,6 +18,103 @@ legacy_zip_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-08-17-17 pruefskript-faelle-urlaubssalden
+
+### EINGELESEN
+- `services/UrlaubService.php`, `berechneUrlaubssaldoFuerJahr()` – das
+  Null-Bündel bei ungültiger ID, die Normalisierung des Jahres, die Zählung von
+  `genommen`/`beantragt` nach Status (Zeilen 1195–1210) und die Schlussrechnung
+  `$verbleibend = $anspruch + $uebertrag + $korrektur - $genommen - $beantragt`
+  (Zeile 1448).
+- `sql/01_initial_schema.sql`, Tabellen `urlaubsantrag` (Status-Enum) und
+  `urlaub_kontingent_jahr` (Übertrag, Korrektur).
+- `core/Database.php`, `fetchEine()` und `letzteInsertId()`.
+
+### DATEIEN
+- `scripts/dev/faelle/04_urlaubssalden.php` (neu)
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Ein genehmigter Ein-Tages-Antrag auf einem Arbeitstag erhöht `genommen` um genau
+1,00 und senkt `verbleibend` um genau 1,00; als `offen` zählt derselbe Antrag
+stattdessen auf `beantragt`, als `abgelehnt` auf keines von beiden.
+
+### DONE
+Sechzehn Fälle, und die Bauart ist die Entscheidung, die Manuel getroffen hat:
+**Invarianten statt absoluter Sollwerte.**
+
+Der Grund steht im Dateikopf. Die Methode ist über 500 Zeilen – Monatsanspruch
+aus den Stammdaten, Eintrittsdatum, Rückfall auf einen Konfigurationswert,
+Übertrag, Korrekturen, Betriebsferien als Zwangsurlaub, Feiertage. Eine Zahl wie
+„Anspruch 30,00" wäre aus dem Code hergeleitet und nicht gemessen; weicht sie
+beim ersten Lauf ab, kann niemand unterscheiden, ob der Code oder die Erwartung
+falsch ist. Ein Fall, der das nicht unterscheiden lässt, ist schlechter als kein
+Fall.
+
+Geprüft wird deshalb, was ohne Nachrechnen sicher gilt:
+
+**Die Rechenidentität.** `verbleibend` muss die Summe der fünf anderen Werte
+sein. Bricht sie, ist etwas an der Zusammenrechnung kaputt – unabhängig davon,
+wie hoch der Anspruch ist.
+
+**Das dokumentierte Verhalten bei ungültiger Eingabe.** ID 0 liefert das
+Null-Bündel mit „Mitarbeiter-ID ungültig.", Jahr 1900 wird auf das laufende Jahr
+normalisiert. Beides steht als Zeichenkette bzw. Zweig im Code.
+
+**Freiheit von Nebenwirkungen.** Zwei Läufe mit `autoUebertrag = false` müssen
+dasselbe liefern. `autoUebertrag` ist in **allen** Fällen `false`, und das ist
+kein Detail: Mit `true` schreibt die Methode einen Übertrag fest – ein Prüfskript,
+das dabei Daten anlegt, prüft beim zweiten Lauf etwas anderes als beim ersten.
+
+**Relative Wirkung.** Der interessante Teil. Ein genehmigter Ein-Tages-Antrag
+erhöht `genommen` um 1,00 und senkt `verbleibend` um 1,00, ohne `beantragt` zu
+berühren. Derselbe Antrag als `offen` zählt auf `beantragt` und nicht auf
+`genommen`. Als `abgelehnt` zählt er nirgends. Diese vier Fälle fangen die
+Regression, die wirklich wehtut – ein Antrag, der nicht mehr gezählt wird –, und
+brauchen dafür keine einzige geratene Zahl.
+
+Zwei Werte werden doch absolut geprüft, weil sie unverändert aus dem Kontingent
+kommen und keine Rechnung durchlaufen: Übertrag 5,00 und Korrektur −2,00. Die
+Korrektur ist negativ gewählt, damit die Identität nicht nur aus Summen besteht.
+
+Der Prüftag ist der erste Dienstag im März 2027, **berechnet und nicht
+angenommen** (`while ($tag->format('N') !== '2')`), und ein etwaiger Feiertag an
+diesem Datum wird vorher entfernt. Ein Antrag auf einem Wochenende oder Feiertag
+zählt null Arbeitstage – der Fall hätte dann nichts gemessen und wäre trotzdem
+grün gewesen.
+
+**Nebenbefund, der eine Unsicherheit aus P-2026-08-17-16 verkleinert:** Dort
+steht, der Erkennungsfall hänge daran, wie `ist_stunden` auf
+`arbeitszeit_stunden` abgebildet wird. Beim Lesen von `UrlaubService` und
+`ReportService` ist die Abbildung aufgetaucht – in `UrlaubService` als
+SQL-Alias (`ist_stunden AS arbeitszeit_stunden`), in `ReportService` als
+`'arbeitszeit_stunden' => sprintf('%.2f', $istStd)`. Die Abbildung existiert
+also; die Formulierung in `03_fachpruefungen.php` bleibt trotzdem stehen, weil
+sie weiterhin stimmt: gelesen, nicht ausgeführt. Der Hinweis kostet nichts und
+zeigt beim ersten Lauf in die richtige Richtung.
+
+### TEST
+- `php -l scripts/dev/faelle/04_urlaubssalden.php`: keine Syntaxfehler.
+- Erwarteter Hinweistext gegen `UrlaubService.php` Zeile 911 abgeglichen:
+  identisch, inklusive Umlaut.
+- Signatur geprüft: `berechneUrlaubssaldoFuerJahr(int, int, bool $autoUebertrag = true)`
+  – der dritte Parameter wird in allen Fällen ausdrücklich mit `false` belegt.
+- Die Rechenidentität gegen Zeile 1448 abgeglichen – dieselben fünf Summanden mit
+  denselben Vorzeichen.
+- Spaltenlisten der `INSERT`-Anweisungen gegen `urlaubsantrag` und
+  `urlaub_kontingent_jahr` geprüft; das Status-Enum kennt genau die vier Werte,
+  die die Fälle setzen.
+- Die Dienstagsberechnung gegengeprüft: `2027-03-02` ist ein Dienstag.
+- Löschen vor dem Anlegen in allen vier betroffenen Tabellen, damit zwei Läufe
+  dasselbe Ergebnis liefern.
+
+**Nicht geprüft, weil kein MariaDB läuft:** der Lauf selbst. Damit ist Abschnitt
+4 der Spezifikation vollständig gebaut; erwartet werden dann 48 Fälle.
+
+### NEXT
+T-142, wie gewählt: die restlichen Prüfungen aus `SmokeTestController`
+herauslösen, nach dem Muster von P-2026-08-17-13.
+
 ## P-2026-08-17-16 pruefskript-faelle-fachpruefungen
 
 ### EINGELESEN
