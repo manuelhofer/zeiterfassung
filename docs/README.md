@@ -27,6 +27,7 @@ Hand gepflegt.
 | [`spezifikation_auftrag_barcode_laufkarte.md`](spezifikation_auftrag_barcode_laufkarte.md) | Aufträge, Arbeitsschritte, Katalog, Strichcodes, Laufkarte (umgesetzt) |
 | [`spezifikation_abteilungsrechte.md`](spezifikation_abteilungsrechte.md) | Urlaubsgenehmigung je Abteilung: Zielbild, Grenzen, was beim Aufsetzen einer Installation zu bedenken ist (umgesetzt) |
 | [`spezifikation_terminal_installation.md`](spezifikation_terminal_installation.md) | Terminal per Skript aufsetzen und koppeln. Welche Stufe fertig ist, steht dort im Stufenplan – bewusst nur an dieser einen Stelle |
+| [`spezifikation_fachlogik_pruefskript.md`](spezifikation_fachlogik_pruefskript.md) | Das nachrechnende Prüfskript für Rundung, Pausen, Salden und die Fachprüfungen aus dem Smoke-Test (T-140, noch nicht gebaut) |
 
 ## Installation und Betrieb
 

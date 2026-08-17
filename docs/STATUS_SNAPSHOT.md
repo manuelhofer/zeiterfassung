@@ -38,10 +38,10 @@ Ein Satz je Task – die Begründung steht im Verlauf, nicht hier.
   und Stufenplan in
   [`spezifikation_terminal_installation.md`](spezifikation_terminal_installation.md),
   Abschnitt 12 und 11.
-- **T-140** Ein Prüfskript, das nachrechnet: feste Eingaben, erwartetes Ergebnis
-  („Kommen 07:03, Gehen 16:12, Rundung auf 15 Minuten → 8:30 und 30 min Pause"),
-  ein Aufruf auf der Kommandozeile, ohne Composer. Die Prüfungen in
-  `SmokeTestController` sind der Ausgangspunkt. Erst spezifizieren.
+- **T-140** Ein Prüfskript, das nachrechnet: feste Eingaben, erwartetes Ergebnis,
+  ein Aufruf auf der Kommandozeile. Spezifiziert in
+  [`spezifikation_fachlogik_pruefskript.md`](spezifikation_fachlogik_pruefskript.md)
+  – vier Patches, je ein Akzeptanzkriterium, dort in Abschnitt 5.
 - **T-142** Die größten Controller und Services aufteilen – je Datei ein
   eigenes Vorhaben, erst spezifizieren.
 

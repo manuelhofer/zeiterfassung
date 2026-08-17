@@ -18,6 +18,105 @@ legacy_zip_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-08-17-12 t-140-spezifikation-pruefskript
+
+### EINGELESEN
+- `services/RundungsService.php` ganz – Singleton, Konstruktor lädt die Regeln
+  aus `zeit_rundungsregel`, seedet Defaults wenn leer; die reine Arithmetik
+  (`findePassendeRegel`, `wendeRegelAn`) ist `private`.
+- `services/PausenService.php` – zwei öffentliche Methoden, ebenfalls Singleton.
+- `services/ZeitService.php`, `services/UrlaubService.php` – die Einstiegspunkte
+  brauchen eine `mitarbeiter_id` und lesen die Datenbank.
+- `controller/SmokeTestController.php`, `pruefeMonatsraster()` samt
+  Rückgabebündel, dazu die Signaturen von `pruefeDoppelzaehlung()` und
+  `pruefeFeiertagUndArbeitszeit()` und ihre drei Aufrufstellen in `index()`.
+- `scripts/dev/pruefumgebung.sh`, Kopfkommentar – die Probe-Datenbanken und die
+  Sperre auf den Namenspräfix `zeit_probe`.
+- `docs/arbeitsregeln.md`, Abschnitt 1 („zuerst spezifizieren") und Abschnitt 5.
+
+### DATEIEN
+- `docs/spezifikation_fachlogik_pruefskript.md` (neu)
+- `docs/STATUS_SNAPSHOT.md`, `docs/README.md`,
+  `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Die Spezifikation nennt für jeden der vier Patches genau ein prüfbares
+Kriterium, und T-140 im Snapshot verweist auf sie statt den Inhalt zu
+wiederholen.
+
+### DONE
+Abschnitt 1 verlangt für einen neuen Funktionsbereich erst ein Zielbild. Das
+liegt jetzt vor, und der Befund beim Lesen hat den Zuschnitt bestimmt:
+
+**Kein Rechenkern ist heute ohne Datenbank aufrufbar.** `rundeZeitstempel()` ist
+öffentlich, aber der Singleton zieht im Konstruktor die Regeln aus der Tabelle.
+`berechnePausenMinutenFuerBlock()` genauso. `holeTagesdaten()` und
+`berechneUrlaubssaldoFuerJahr()` brauchen einen Mitarbeiter mit Buchungen. Das
+Beispiel, mit dem T-140 im Snapshot beschrieben war – „Kommen 07:03, Gehen 16:12
+→ 8:30 und 30 min Pause" –, ist deshalb kein einzelner Aufruf, sondern zweimal
+Rundung, einmal Pausenberechnung und eine Differenz.
+
+Damit standen zwei Bauarten zur Wahl, und Manuel hat die erste genommen:
+
+**Gewählt: gegen die Probe-Datenbank.** Das Skript hängt sich an `zeit_probe`,
+seedet seine Fälle selbst und ruft die öffentliche API auf – denselben Weg, den
+das Backend nimmt. Kein Eingriff in Produktionscode. Preis: Es braucht MariaDB
+und läuft damit nicht in jeder Sitzung.
+
+**Verworfen: die reine Arithmetik herauslösen.** Das Skript wäre ohne Datenbank
+gelaufen, in Millisekunden, und ich hätte es hier selbst grün sehen können. Es
+hätte aber genau den Rundungspfad geändert, für den es noch kein Netz gibt –
+Henne-Ei. Die Frage darf neu gestellt werden, sobald das Netz steht; das steht
+als Abschnitt 6 in der Spezifikation, damit der Nächste nicht rätselt, warum der
+naheliegende Weg nicht genommen wurde.
+
+**Der Umfang ist der größte der drei angebotenen:** Rundung, Pausen, Salden
+**und** die drei Fachprüfungen aus dem Smoke-Test. Letztere prüfen längst
+Fachlogik – Doppelzählung bei Betriebsferien, ein Tageswert je Kalendertag,
+Feiertag mit gleichzeitiger Arbeitszeit –, nur an einem Ort, der Login, Browser
+und eine handgetippte Mitarbeiter-ID braucht. Sie mitzunehmen verlangt einen
+Umbau, und der steht als eigener Patch mit eigenem Kriterium in der
+Spezifikation: die drei privaten Methoden wandern rumpfgleich in einen
+`FachpruefungService`, der Controller liest weiter `$_POST` und delegiert, die
+Views bleiben unberührt, weil sich das Rückgabebündel nicht ändert.
+
+Zwei Dinge, die in der Spezifikation ausdrücklich als Abnahmepunkt stehen und
+nicht als Beiwerk:
+
+**Die Sperre auf `zeit_probe`.** Ein Skript, das Rundungsregeln setzt und
+Buchungen anlegt, darf die Entwicklungsdatenbank mit echten Personendaten aus
+dem Serverdump nicht einmal versehentlich erreichen. `pruefumgebung.sh` macht
+das vor; das Kriterium dazu ist, dass ein Lauf gegen einen anderen
+Datenbanknamen abbricht, **ohne** eine Tabelle zu lesen oder zu schreiben.
+
+**Idempotenz.** Zweimal hintereinander gestartet muss dasselbe Ergebnis
+herauskommen – sonst prüft der zweite Lauf die Reste des ersten.
+
+### TEST
+- Keine PHP-Datei geändert oder angelegt, `php -l` gegenstandslos.
+- Jede in der Spezifikation genannte Methode und Datei einzeln nachgesehen:
+  `RundungsService::rundeZeitstempel`,
+  `PausenService::berechnePausenMinutenFuerBlock`,
+  `UrlaubService::berechneUrlaubssaldoFuerJahr`,
+  `ReportService::holeMonatsdatenFuerMitarbeiter`, die drei `pruefe…()`-Methoden
+  im `SmokeTestController` und die drei Views in `views/smoke_test/`.
+- Das Rückgabebündel aus `pruefeMonatsraster()` abgeschrieben und mit
+  `views/smoke_test/monatsraster.php` verglichen – die Behauptung „die Views
+  bleiben unberührt, weil sich das Bündel nicht ändert" ist geprüft und nicht
+  geraten.
+- Die Namenssperre in `pruefumgebung.sh` gegengelesen, damit die Spezifikation
+  denselben Präfix nennt (`zeit_probe`).
+- Snapshot und `docs/README.md` gegengelesen: T-140 verweist auf die
+  Spezifikation, der Inhalt steht nicht zweimal; die neue Datei ist im
+  Verzeichnis eingetragen.
+
+### NEXT
+P-2026-08-17-13: der Umbau aus Abschnitt 4d – die drei Prüfungen wandern
+rumpfgleich in `services/FachpruefungService.php`. Das ist der einzige Patch der
+Kette, dessen Kriterium ohne Datenbank **nicht** belegbar ist (er verlangt einen
+HTML-Vergleich über die Prüfumgebung); er wird gebaut und die Prüfung bleibt
+ausdrücklich offen.
+
 ## P-2026-08-17-11 t-139-legacy-admin-an-einer-stelle
 
 ### EINGELESEN
