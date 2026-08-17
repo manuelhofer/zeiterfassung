@@ -18,10 +18,11 @@ nichts.
 
 ## Nächster Schritt (konkret)
 
-**T-138, Patch 2 von 3:** Der Offline-Scan schaltet die Auftragsknöpfe frei.
-Vorgehen, Fallstricke und Prüfung stehen in
+**T-138, Patch 3 von 3:** Lokale Maschinenliste (`maschine_spiegel`) für die
+Maschinenauswahl beim Auftragsstart. Vorgehen und Prüfung stehen in
 [`spezifikation_offline_auftraege.md`](spezifikation_offline_auftraege.md),
-Abschnitt 5. Patch 1 ist erledigt (P-2026-08-17-29).
+Abschnitt 5. Patch 1 und 2 sind erledigt (P-2026-08-17-29, -30) – Aufträge
+lassen sich offline starten und stoppen.
 
 ## Offene Bugs
 

@@ -2258,6 +2258,91 @@ class TerminalController
     }
 
     /**
+     * Wer bedient das Terminal gerade – angemeldet oder per Offline-Scan?
+     *
+     * Online ist das der angemeldete Mitarbeiter. Offline gibt es **keine
+     * Anmeldung** (Fachregel Abschnitt 5); dort trägt der gescannte Chip die
+     * Identität, und die Mitarbeiter-ID entsteht erst beim Einspielen der
+     * Queue (T-138, P-2026-08-17-29).
+     *
+     * `id = 0` heißt deshalb nicht „unbekannt", sondern „steht noch nicht
+     * fest" – der Aufrufer reicht dann die RFID an den `AuftragszeitService`
+     * durch, statt eine Zahl zu erfinden.
+     *
+     * @param array<string,mixed>|null $mitarbeiter Ergebnis von `holeAngemeldetenTerminalMitarbeiter()`
+     * @return array{id:int, rfid:?string}|null `null`, wenn niemand feststeht
+     */
+    private function holeHandelndenFuerAuftrag(?array $mitarbeiter): ?array
+    {
+        if (is_array($mitarbeiter) && (int)($mitarbeiter['id'] ?? 0) > 0) {
+            return ['id' => (int)$mitarbeiter['id'], 'rfid' => null];
+        }
+
+        // Online führt kein Weg an der Anmeldung vorbei.
+        if ($this->istHauptdatenbankAktiv()) {
+            return null;
+        }
+
+        // Dieselbe Reihenfolge wie im Offline-Zweig von `kommen()`: erst das
+        // Formular, dann der gemerkte Scan.
+        $rfidCode = isset($_POST['rfid_code']) ? trim((string)$_POST['rfid_code']) : '';
+        if ($rfidCode === '' && isset($_SESSION['terminal_offline_rfid_code']) && is_string($_SESSION['terminal_offline_rfid_code'])) {
+            $rfidCode = trim((string)$_SESSION['terminal_offline_rfid_code']);
+        }
+
+        if ($rfidCode === '') {
+            return null;
+        }
+
+        return ['id' => 0, 'rfid' => $rfidCode];
+    }
+
+    /**
+     * Ist der Handelnde heute anwesend – auch ohne Hauptdatenbank?
+     *
+     * Offline gibt es keine Tagesdaten. Die einzige Quelle ist die eigene
+     * Queue: Was hat dieser Chip zuletzt gebucht? `ermittleOfflineHintFuerRfid()`
+     * beantwortet das bereits, bisher nur für einen Anzeigehinweis.
+     *
+     * **Weiß das Gerät nichts, gilt anwesend.** Wer online gestempelt hat und
+     * dann die Verbindung verliert, hat keinen Queue-Eintrag – ihn hier
+     * auszusperren, hieße eine Auftragszeit zu verlieren, weil das Terminal
+     * eine Lücke in seinem eigenen Gedächtnis hat. Dieselbe Haltung wie beim
+     * Spiegel in T-125: erkennen, nicht Türsteherei.
+     *
+     * @param array{id:int, rfid:?string} $handelnder
+     */
+    private function istHandelnderAnwesend(array $handelnder): bool
+    {
+        $rfid = $handelnder['rfid'] ?? null;
+
+        if (!is_string($rfid) || $rfid === '') {
+            return $this->istTerminalMitarbeiterHeuteAnwesend((int)$handelnder['id']);
+        }
+
+        $hint = $this->ermittleOfflineHintFuerRfid($rfid);
+        if (!is_array($hint)) {
+            return true;
+        }
+
+        return ((string)($hint['letzte_typ'] ?? '')) !== 'gehen';
+    }
+
+    /**
+     * Vergisst den offline gescannten Chip.
+     *
+     * Der Kiosk gehört nach jeder Aktion dem Nächsten. `kommen()` und
+     * `gehen()` räumen dieselben drei Schlüssel auf; für Aufträge gilt es
+     * genauso, sonst bucht der Nächste auf den Vorgänger.
+     */
+    private function vergisseOfflineChip(): void
+    {
+        unset($_SESSION['terminal_offline_rfid_code']);
+        unset($_SESSION['terminal_offline_rfid_hint']);
+        unset($_SESSION['terminal_offline_rfid_spiegel']);
+    }
+
+    /**
      * Formular zum Starten eines Auftrags anzeigen.
      *
      * @param string|null $meldung       Erfolgs-/Infomeldung
@@ -2266,7 +2351,8 @@ class TerminalController
     public function auftragStartenForm(?string $meldung = null, ?string $fehlermeldung = null): void
     {
         $mitarbeiter = $this->holeAngemeldetenTerminalMitarbeiter();
-        if ($mitarbeiter === null) {
+        $handelnder  = $this->holeHandelndenFuerAuftrag($mitarbeiter);
+        if ($handelnder === null) {
             $nachricht  = null;
             $fehlerText = 'Bitte zuerst am Terminal anmelden (RFID).';
             require __DIR__ . '/../views/terminal/start.php';
@@ -2274,7 +2360,7 @@ class TerminalController
         }
 
 
-        if (!$this->istTerminalMitarbeiterHeuteAnwesend((int)$mitarbeiter['id'])) {
+        if (!$this->istHandelnderAnwesend($handelnder)) {
             $_SESSION['terminal_flash_fehler'] = 'Bitte zuerst „Kommen“ buchen, bevor ein Auftrag gestartet werden kann.';
             header('Location: terminal.php?aktion=start');
             exit;
@@ -2303,7 +2389,8 @@ class TerminalController
     public function auftragStarten(): void
     {
         $mitarbeiter = $this->holeAngemeldetenTerminalMitarbeiter();
-        if ($mitarbeiter === null) {
+        $handelnder  = $this->holeHandelndenFuerAuftrag($mitarbeiter);
+        if ($handelnder === null) {
             $nachricht  = null;
             $fehlerText = 'Bitte zuerst am Terminal anmelden (RFID).';
             require __DIR__ . '/../views/terminal/start.php';
@@ -2317,14 +2404,14 @@ class TerminalController
         }
 
 
-        
-                if (!$this->istTerminalMitarbeiterHeuteAnwesend((int)$mitarbeiter['id'])) {
+
+                if (!$this->istHandelnderAnwesend($handelnder)) {
                     $_SESSION['terminal_flash_fehler'] = 'Bitte zuerst „Kommen“ buchen, bevor ein Auftrag gestartet werden kann.';
                     header('Location: terminal.php?aktion=start');
                     exit;
                 }
-        
-        $mitarbeiterId = (int)$mitarbeiter['id'];
+
+        $mitarbeiterId = (int)$handelnder['id'];
         $auftragscode  = isset($_POST['auftragscode']) ? trim((string)$_POST['auftragscode']) : '';
         $arbeitsschrittCode = isset($_POST['arbeitsschritt_code']) ? trim((string)$_POST['arbeitsschritt_code']) : '';
         $maschineRaw   = isset($_POST['maschine_id']) ? trim((string)$_POST['maschine_id']) : '';
@@ -2341,7 +2428,7 @@ class TerminalController
             return;
         }
 
-        $neueId = $this->auftragszeitService->starteAuftrag($mitarbeiterId, $auftragscode, $maschineId, $arbeitsschrittCode);
+        $neueId = $this->auftragszeitService->starteAuftrag($mitarbeiterId, $auftragscode, $maschineId, $arbeitsschrittCode, $handelnder['rfid']);
 
         if ($neueId === null) {
             $this->auftragStartenForm(null, 'Auftrag konnte nicht gestartet werden. Bitte erneut versuchen.');
@@ -2384,6 +2471,7 @@ class TerminalController
         // Kiosk-Flow: nach erfolgreichem Start direkt abmelden und wieder zur RFID-Abfrage.
         $_SESSION['terminal_flash_nachricht'] = $meldung;
         $this->loescheTerminalMitarbeiterSession();
+        $this->vergisseOfflineChip();
         header('Location: terminal.php?aktion=start');
         exit;
     }
@@ -2397,7 +2485,8 @@ class TerminalController
     public function auftragStoppenForm(?string $meldung = null, ?string $fehlermeldung = null): void
     {
         $mitarbeiter = $this->holeAngemeldetenTerminalMitarbeiter();
-        if ($mitarbeiter === null) {
+        $handelnder  = $this->holeHandelndenFuerAuftrag($mitarbeiter);
+        if ($handelnder === null) {
             $nachricht  = null;
             $fehlerText = 'Bitte zuerst am Terminal anmelden (RFID).';
             require __DIR__ . '/../views/terminal/start.php';
@@ -2405,7 +2494,7 @@ class TerminalController
         }
 
         // Regel: Auftrags-Stop ist nur sinnvoll, wenn der Mitarbeiter bereits anwesend ist.
-        if (!$this->istTerminalMitarbeiterHeuteAnwesend((int)$mitarbeiter['id'])) {
+        if (!$this->istHandelnderAnwesend($handelnder)) {
             $_SESSION['terminal_flash_fehler'] = 'Bitte zuerst „Kommen“ buchen, bevor ein Auftrag gestoppt werden kann.';
             header('Location: terminal.php?aktion=start');
             exit;
@@ -2438,7 +2527,8 @@ class TerminalController
     public function auftragStoppenQuick(): void
     {
         $mitarbeiter = $this->holeAngemeldetenTerminalMitarbeiter();
-        if ($mitarbeiter === null) {
+        $handelnder  = $this->holeHandelndenFuerAuftrag($mitarbeiter);
+        if ($handelnder === null) {
             $nachricht  = null;
             $fehlerText = 'Bitte zuerst am Terminal anmelden (RFID).';
             require __DIR__ . '/../views/terminal/start.php';
@@ -2452,22 +2542,28 @@ class TerminalController
         }
 
         // Regel: Auftrags-Stop ist nur sinnvoll, wenn der Mitarbeiter bereits anwesend ist.
-        if (!$this->istTerminalMitarbeiterHeuteAnwesend((int)$mitarbeiter['id'])) {
+        if (!$this->istHandelnderAnwesend($handelnder)) {
             $_SESSION['terminal_flash_fehler'] = 'Bitte zuerst „Kommen“ buchen, bevor ein Auftrag gestoppt werden kann.';
             header('Location: terminal.php?aktion=start');
             exit;
         }
 
-        $mitarbeiterId = (int)$mitarbeiter['id'];
+        $mitarbeiterId = (int)$handelnder['id'];
 
         // Default: wir machen nur Zeiterfassung. "Stoppen" setzt endzeit und status=abgeschlossen.
         // (Kein "Abbrechen/Abschließen" im Terminal-Quick-Flow.)
         $status = 'abgeschlossen';
 
         // Best effort: wenn wir lokal wissen, welcher Auftrag läuft, geben wir den Code mit.
+        //
+        // Nicht im Offline-Scan-Weg (T-138): Dort gibt es keine Anmeldung, und
+        // der Merker hängt an der Browsersitzung des Geräts – er kann also vom
+        // Vorgänger stammen. Ein falscher `auftragscode` im `WHERE` würde den
+        // Stopp beim Einspielen ins Leere laufen lassen. Ohne ihn stoppt der
+        // Befehl schlicht den laufenden Hauptauftrag dieser RFID.
         $auftragscode = null;
         try {
-            $last = $_SESSION['terminal_letzter_auftrag'] ?? null;
+            $last = ($handelnder['rfid'] === null) ? ($_SESSION['terminal_letzter_auftrag'] ?? null) : null;
             if (is_array($last)) {
                 $typ = isset($last['typ']) ? (string)$last['typ'] : '';
                 $st  = isset($last['status']) ? (string)$last['status'] : '';
@@ -2482,7 +2578,7 @@ class TerminalController
             $auftragscode = null;
         }
 
-        $res = $this->auftragszeitService->stoppeAuftrag($mitarbeiterId, null, $auftragscode, $status);
+        $res = $this->auftragszeitService->stoppeAuftrag($mitarbeiterId, null, $auftragscode, $status, $handelnder['rfid']);
 
         if ($res === null) {
             // Fallback: falls doch mehrere Aufträge laufen oder keine eindeutige Zuordnung möglich ist.
@@ -2531,6 +2627,7 @@ class TerminalController
         // Kiosk-Flow: nach erfolgreichem Stopp direkt abmelden und wieder zur RFID-Abfrage.
         $_SESSION['terminal_flash_nachricht'] = $meldung;
         $this->loescheTerminalMitarbeiterSession();
+        $this->vergisseOfflineChip();
         header('Location: terminal.php?aktion=start');
         exit;
     }
@@ -2544,7 +2641,8 @@ class TerminalController
     public function auftragStoppen(): void
     {
         $mitarbeiter = $this->holeAngemeldetenTerminalMitarbeiter();
-        if ($mitarbeiter === null) {
+        $handelnder  = $this->holeHandelndenFuerAuftrag($mitarbeiter);
+        if ($handelnder === null) {
             $nachricht  = null;
             $fehlerText = 'Bitte zuerst am Terminal anmelden (RFID).';
             require __DIR__ . '/../views/terminal/start.php';
@@ -2558,13 +2656,13 @@ class TerminalController
         }
 
         // Regel: Auftrags-Stop ist nur sinnvoll, wenn der Mitarbeiter bereits anwesend ist.
-        if (!$this->istTerminalMitarbeiterHeuteAnwesend((int)$mitarbeiter['id'])) {
+        if (!$this->istHandelnderAnwesend($handelnder)) {
             $_SESSION['terminal_flash_fehler'] = 'Bitte zuerst „Kommen“ buchen, bevor ein Auftrag gestoppt werden kann.';
             header('Location: terminal.php?aktion=start');
             exit;
         }
 
-        $mitarbeiterId  = (int)$mitarbeiter['id'];
+        $mitarbeiterId  = (int)$handelnder['id'];
         $auftragszeitId = isset($_POST['auftragszeit_id']) && $_POST['auftragszeit_id'] !== '' ? (int)$_POST['auftragszeit_id'] : null;
         $auftragscode   = isset($_POST['auftragscode']) ? trim((string)$_POST['auftragscode']) : null;
         if ($auftragscode === '') {
@@ -2573,7 +2671,7 @@ class TerminalController
         $status         = isset($_POST['status']) && $_POST['status'] === 'abgebrochen' ? 'abgebrochen' : 'abgeschlossen';
 
         // Hauptauftrag stoppen: Der Service stoppt ausschließlich typ='haupt' (kein zusätzlicher Typ-Parameter nötig).
-        $res = $this->auftragszeitService->stoppeAuftrag($mitarbeiterId, $auftragszeitId, $auftragscode, $status);
+        $res = $this->auftragszeitService->stoppeAuftrag($mitarbeiterId, $auftragszeitId, $auftragscode, $status, $handelnder['rfid']);
 
         if ($res === null) {
             $this->auftragStoppenForm(null, 'Es wurde kein passender laufender Auftrag gefunden oder der Stopp ist fehlgeschlagen.');
@@ -2642,6 +2740,7 @@ class TerminalController
         // Kiosk-Flow: nach erfolgreichem Stopp direkt abmelden und wieder zur RFID-Abfrage.
         $_SESSION['terminal_flash_nachricht'] = $meldung;
         $this->loescheTerminalMitarbeiterSession();
+        $this->vergisseOfflineChip();
         header('Location: terminal.php?aktion=start');
         exit;
     }

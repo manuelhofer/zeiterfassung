@@ -561,7 +561,7 @@ require __DIR__ . '/_layout_top.php';
                 ?>
                 <p class="hinweis">
                     Chip <strong><?php echo htmlspecialchars($offlineRfid, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></strong> erkannt.<br>
-                    Bitte „Kommen“ oder „Gehen“ auswählen.
+                    Bitte eine Aktion auswählen.
                 </p>
 
                 <?php if ($offlineSpiegel === MitarbeiterSpiegel::CHIP_UNBEKANNT): ?>
@@ -659,6 +659,30 @@ require __DIR__ . '/_layout_top.php';
                         <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($csrfToken, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>">
                         <input type="hidden" name="rfid_code" value="<?php echo htmlspecialchars($offlineRfid, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>">
                         <button type="submit" class="primary <?php echo htmlspecialchars($offlineGehenCls, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>">Gehen</button>
+                    </form>
+                </div>
+
+                <?php
+                    // T-138: Aufträge offline. Anders als online stehen hier
+                    // **beide** Knöpfe – ob gerade ein Auftrag läuft, weiß das
+                    // Gerät ohne Hauptdatenbank nicht, und der Sitzungsmerker
+                    // gehört womöglich dem Vorgänger. Ein Stopp ohne laufenden
+                    // Auftrag trifft beim Einspielen keine Zeile; das ist
+                    // harmloser als ein fehlender Knopf.
+                ?>
+                <div class="button-row terminal-offline-auftragsaktionen">
+                    <?php
+                        // Link und nicht Formular: `?aktion=auftrag_starten` per
+                        // GET zeigt die Maske, per POST würde es sofort buchen
+                        // wollen – ohne Auftragscode. Die RFID steht in der
+                        // Sitzung, sie muss nicht mitgeschickt werden.
+                    ?>
+                    <a href="terminal.php?aktion=auftrag_starten" class="button-link">Auftrag starten</a>
+
+                    <form method="post" action="terminal.php?aktion=auftrag_stoppen_quick" class="terminal-button-form">
+                        <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($csrfToken, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>">
+                        <input type="hidden" name="rfid_code" value="<?php echo htmlspecialchars($offlineRfid, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>">
+                        <button type="submit" class="secondary">Auftrag stoppen</button>
                     </form>
                 </div>
 

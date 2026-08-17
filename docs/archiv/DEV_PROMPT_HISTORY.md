@@ -18,6 +18,105 @@ legacy_zip_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-08-17-30 t-138-p2-offline-scan-schaltet-auftraege-frei
+
+### EINGELESEN
+- `docs/spezifikation_offline_auftraege.md`, Abschnitt 5, P2.
+- `controller/TerminalController.php`: die fünf Auftragsmethoden ganz, dazu
+  `holeAngemeldetenTerminalMitarbeiter()`, `istTerminalMitarbeiterHeuteAnwesend()`
+  (535), `ermittleOfflineHintFuerRfid()` (1170), `loescheTerminalMitarbeiterSession()`
+  (1312) und der Offline-Zweig von `kommen()` als Muster.
+- `views/terminal/start.php`, Offline-Block ab Zeile 521, und die
+  Auftragsknöpfe des Online-Blocks ab 1872.
+- `views/terminal/auftrag_starten.php` und `auftrag_stoppen.php` – was sie aus
+  `$mitarbeiter` lesen.
+- `public/terminal.php`, Zeilen 259–281 – welche Route POST und welche GET ist.
+
+### DATEIEN
+- `controller/TerminalController.php`, `views/terminal/start.php`
+- `docs/fachregeln/terminal_und_offline.md`
+- `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Terminal offline, Chip scannen, Auftrag `P2-AUFTRAG` starten – die Queue
+enthält danach `auftrag_ensure` und `auftrag_start`, und der Bildschirm ist
+wieder im Ausgangszustand ohne RFID.
+
+### DONE
+Drei neue Helfer tragen den Umbau, die fünf Auftragsmethoden ändern sich damit
+um je zwei bis drei Zeilen:
+
+`holeHandelndenFuerAuftrag()` liefert `['id' => …, 'rfid' => …]`. Online die
+angemeldete ID, offline `id = 0` plus den gescannten Chip. Das ist der ganze
+Unterschied zwischen den beiden Betriebsarten, an einer Stelle.
+
+`istHandelnderAnwesend()` beantwortet die Anwesenheit auch ohne Hauptdatenbank,
+über `ermittleOfflineHintFuerRfid()` – die Funktion gab es schon, sie lieferte
+bisher nur einen Anzeigehinweis.
+
+`vergisseOfflineChip()` räumt die drei Session-Schlüssel nach Start und Stopp
+weg. Ohne das bucht der Nächste auf den Vorgänger; der Fallstrick stand in der
+Spezifikation und war berechtigt.
+
+**`$mitarbeiter` bleibt offline bewusst `null`.** Die beiden Auftragsmasken
+zeigen ihr Mitarbeiterpanel nur bei `!empty($mitarbeiter)` – offline entfällt
+es damit von selbst. Das ist richtig so: Der Spiegel kennt keine Namen, und ein
+Panel mit „(ID: 0)" wäre schlechter als keins.
+
+**Beide Auftragsknöpfe stehen offline nebeneinander**, anders als online, wo
+`$hatLaufenderHauptauftrag` zwischen ihnen entscheidet. Ohne Hauptdatenbank
+gibt es diese Auskunft nicht, und der Sitzungsmerker hängt am Browser des
+Geräts, nicht am Chip – er kann vom Vorgänger stammen. Ein Stopp ohne
+laufenden Auftrag trifft beim Einspielen keine Zeile.
+
+**Ein Fehler im ersten Entwurf, gefunden beim Lesen der Routen:** Ich hatte
+„Auftrag starten" als POST-Formular gebaut. `?aktion=auftrag_starten` per POST
+ist aber der Buchungsweg, nicht die Maske – der Knopf hätte sofort mit „Bitte
+einen Auftragscode eingeben" geantwortet. Jetzt ein Link, wie im Online-Block.
+
+**Aus demselben Grund korrigiert:** `auftragStoppenQuick()` nimmt den
+Auftragscode aus `terminal_letzter_auftrag` nur noch, wenn **nicht** über RFID
+gehandelt wird. Offline gehört der Merker womöglich dem Vorgänger; ein falscher
+`auftragscode` im `WHERE` hätte den Stopp beim Einspielen ins Leere laufen
+lassen. Ohne ihn stoppt der Befehl den laufenden Hauptauftrag dieser RFID.
+
+**Was bewusst offen bleibt:** Nebenaufträge. `nebenauftragStarten()` und
+`nebenauftragStoppen()` haben ihren Queue-Code, hängen aber weiter an der
+Anmeldung. Sie standen nicht in P2, und der Startbildschirm bietet sie offline
+auch nicht an. In der Fachregel vermerkt, damit die Lücke nicht als Fehler
+gesucht wird.
+
+### TEST
+Prüfumgebung, `alt` = 132d286, `neu` im Terminal-Modus offline. Der ganze
+Ablauf über HTTP, nicht über direkte Aufrufe – anders als bei P1.
+
+1. **Nach dem Scan stehen vier Knöpfe:** Kommen, Gehen, Auftrag starten,
+   Auftrag stoppen (vorher zwei). Der Hinweistext sagt „Bitte eine Aktion
+   auswählen" statt „Kommen oder Gehen".
+2. **Kette am Stück, je mit eigenem Scan:** Kommen 16:14:17 → Maske öffnen
+   (HTTP 200, Formularfelder da) → Start `P2-AUFTRAG` / `SCHRITT-A` → Stopp →
+   Gehen 16:14:29. Jede Aktion meldete „in der Offline-Queue gespeichert".
+3. **Der Chip wird vergessen:** Nach dem Auftragsstart zeigt der
+   Startbildschirm wieder „Bitte RFID-Chip an das Lesegerät halten".
+4. **Eingespielt:** 7 Queue-Einträge, alle `verarbeitet`, keiner auf `fehler`.
+   In `zeitbuchung` Kommen und Gehen auf Mitarbeiter 15; in `auftragszeit` eine
+   Zeile 15 / `P2-AUFTRAG` / `SCHRITT-A` / 16:14:17 → 16:14:29 /
+   `abgeschlossen`; Auftrag und Arbeitsschritt selbst angelegt.
+5. **Anwesenheitsregel, beide Zweige:** `CHIP-P2`, dessen letzte Buchung
+   `gehen` war → „Bitte zuerst Kommen buchen", Maske bleibt zu. `CHIP-NEU`, zu
+   dem es keinen Queue-Eintrag gibt → Maske öffnet. Genau E4.
+6. **Online unverändert:** Dashboard 33.439 Bytes, Smoke-Test 61.045,
+   Terminal-Startseite 1.747 – je 0 abweichende Zeilen gegen `alt`.
+7. Prüfskript 46 von 46; beide Serverlogs ohne PHP-Meldung; `php -l` über
+   Controller und View ohne Befund.
+
+**Nicht geprüft:** die Maske am echten Gerät, mit Scanner und Touch. Alles oben
+lief über `curl` gegen `php -S`. Der Bildschirm selbst ist Sache des
+Gerätetests.
+
+### NEXT
+P3 aus Abschnitt 5: lokale Maschinenliste.
+
 ## P-2026-08-17-29 t-138-p1-auftrags-sql-loest-rfid-auf
 
 ### EINGELESEN

@@ -137,6 +137,29 @@ starten/stoppen.
 **Nicht erlaubt** sind komplexe Übersichten, Urlaubsanträge stellen oder
 verwalten, umfangreiche Auswertungen.
 
+**Nebenaufträge sind offline noch nicht erreichbar** – der Queue-Code dafür
+steht, aber sie hängen weiter an einer Anmeldung (T-138, offen).
+
+### Aufträge offline: ein Scan je Aktion (T-138)
+
+Auch für Aufträge gibt es **keine Anmeldung**. Der Chip schaltet die Knöpfe
+frei und wird nach Start oder Stopp wieder vergessen – wie beim Stempeln. Wer
+zwei Aktionen hintereinander macht, scannt zweimal; dafür gehört das Gerät nie
+noch dem Vorgänger.
+
+Die Mitarbeiter-ID entsteht wie beim Stempeln erst beim Replay, über denselben
+Subselect auf `rfid_code`.
+
+**Anwesend ist, wer nicht zuletzt „gehen" gebucht hat.** Offline gibt es keine
+Tagesdaten; die einzige Quelle ist die eigene Queue. Steht dort nichts zu
+diesem Chip – etwa weil online gestempelt wurde und danach die Verbindung fiel
+–, gilt **anwesend**. Ein Terminal darf niemanden wegen einer Lücke im eigenen
+Gedächtnis aussperren; dieselbe Haltung wie beim Spiegel oben.
+
+Der Startbildschirm zeigt offline **beide** Auftragsknöpfe. Ob gerade einer
+läuft, weiß das Gerät nicht, und der Sitzungsmerker kann vom Vorgänger stammen.
+Ein Stopp ohne laufenden Auftrag trifft beim Einspielen keine Zeile.
+
 ### Offline-Stempeln ohne Mitarbeiter-Identifikation (RFID-only)
 
 Im Offline-Modus gibt es **keine Anmeldung auf einen Mitarbeiter** und **keine
