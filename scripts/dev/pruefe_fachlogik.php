@@ -32,6 +32,14 @@ declare(strict_types=1);
  *      scripts/dev/pruefumgebung.sh aufbauen
  *      ZEIT_DB_NAME=zeit_probe php scripts/dev/pruefe_fachlogik.php
  *
+ *  Was der Lauf hinterlaesst:
+ *      Die Faelle setzen ihre Voraussetzungen selbst (Rundungsregeln,
+ *      Pausenfenster) und raeumen sie NICHT weg - sie loeschen stattdessen vor
+ *      dem Schreiben, damit zwei Laeufe hintereinander dasselbe Ergebnis
+ *      liefern. In der Probe-Datenbank stehen danach also die Regeln des
+ *      Skripts. Wer anschliessend HTML vergleichen will, baut die Umgebung neu
+ *      auf (`pruefumgebung.sh aufbauen`).
+ *
  *  Zielbild und Akzeptanzkriterien:
  *      docs/spezifikation_fachlogik_pruefskript.md
  */

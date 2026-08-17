@@ -18,6 +18,120 @@ legacy_zip_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-08-17-15 pruefskript-faelle-rundung-und-pausen
+
+### EINGELESEN
+- `services/RundungsService.php` vollständig: `rundeZeitstempel()`,
+  `findePassendeRegel()`, `wendeRegelAn()`, `berechneMinutenSeitMitternacht()`,
+  `zeitstringZuMinuten()`.
+- `services/PausenService.php`, Zeilen 60–200:
+  `berechnePausenMinutenUndEntscheidungFuerBlock()`,
+  `istPausenEntscheidungNoetigNaheSchwelle()`,
+  `berechneGesetzlichePauseMinuten()`, `berechneZwangspauseMinuten()`.
+- `modelle/ZeitRundungsregelModel.php` – nur lesend, `ORDER BY prioritaet`.
+- `sql/01_initial_schema.sql`, Tabellen `zeit_rundungsregel` und
+  `pausenfenster`, dazu `config` als Quelle der Pausenschwellen.
+- `services/KonfigurationService.php`, `getInt()` – ohne Zeile in `config`
+  gelten die Standardwerte aus dem Aufruf.
+
+### DATEIEN
+- `scripts/dev/faelle/01_rundung.php` (neu)
+- `scripts/dev/faelle/02_pausen.php` (neu)
+- `scripts/dev/pruefe_fachlogik.php` (Kopfkommentar: was ein Lauf hinterlässt)
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Ein Lauf meldet für jeden Fall aus Abschnitt 4a und 4b der Spezifikation „OK",
+und wenn `einheit_minuten` einer Regel von 15 auf 30 geändert wird, meldet genau
+der betroffene Fall den erwarteten und den bekommenen Wert.
+
+### DONE
+20 Fälle: elf für die Rundung, neun für die Pausen. Beide Dateien setzen ihre
+Voraussetzungen selbst, statt sie vorauszusetzen – ein Fall, der auf dem
+geseedeten Standard aufbaut, wird von jedem Patch mitgerissen, der den Standard
+ändert.
+
+**Der Singleton bestimmt den Aufbau.** `RundungsService` liest die Regeln im
+Konstruktor in einen Cache; ein zweiter Regelsatz im selben Prozess ist damit
+unmöglich. Also erst schreiben, dann `getInstanz()`. Und statt mehrerer Läufe
+für die drei Richtungen bekommt jede Richtung ihren eigenen Zeitbereich:
+`naechstgelegen` in 00:00–07:00 (30 min) und 07:00–12:00 (15 min), `auf` in
+12:00–14:00, `ab` in 14:00–16:00. Ein Regelsatz, alle Richtungen.
+
+Die Fälle, die nicht offensichtlich sind und deshalb überhaupt der Grund für das
+Skript sind:
+
+**06:45 bei 30-Minuten-Einheit → 07:00.** Genau die halbe Einheit. PHPs `round()`
+rundet von der Null weg, also auf. Wer das für „ab" hielte, hätte einen Fehler
+eingebaut, den niemand sieht.
+
+**23:59 → 23:59.** Rechnerisch ergibt die Rundung 24:00; `wendeRegelAn()` klemmt
+auf 1439. Ohne diesen Fall könnte jemand die Klemmung entfernen und der Tag
+kippte um.
+
+**Sekunden zählen nicht.** `berechneMinutenSeitMitternacht()` liest nur `H` und
+`i`, also ist 07:03:59 wie 07:03.
+
+**Genau 6h → keine Pause, aber Entscheidung nötig.** Die gesetzliche Schwelle
+ist strikt größer (`> 6.0`), greift bei exakt sechs Stunden also nicht. Das
+Entscheidungsfenster aus T-081 (`>= 360 && <= 390` Minuten) greift aber – und
+weil das Frühstücksfenster 15 Minuten Zwangspause liefert, ist `auto` 15 und
+`pause_minuten` 0. Ein Skript, das diesen Fall nicht kennt, würde ihn für einen
+Fehler halten.
+
+**Genau 9h → 30 Minuten, nicht 45.** Dieselbe strikte Grenze, eine Stufe höher.
+
+**6h31 → 30 Minuten.** Eine Minute über der Toleranz, und der Abzug greift. Die
+zwei Fälle 6h01 und 6h31 stehen bewusst nebeneinander: Sie zeigen die Kante, an
+der sich das Verhalten ändert.
+
+Die Fall-Dateien liefern je eine Funktion und liegen getrennt in
+`scripts/dev/faelle/`, wie in P-2026-08-17-14 vorgesehen: Wer einen Fall
+ergänzt, legt eine Datei dazu oder eine Zeile hinein und fasst das Gerüst nicht
+an.
+
+**Was ein Lauf hinterlässt, steht jetzt im Kopfkommentar des Skripts.** Die
+Fälle löschen vor dem Schreiben statt hinterher aufzuräumen – so liefern zwei
+Läufe hintereinander dasselbe Ergebnis (Idempotenz aus Abschnitt 3 der
+Spezifikation). Der Preis: In der Probe-Datenbank stehen danach die Regeln des
+Skripts. Wer anschließend HTML vergleichen will, baut die Umgebung neu auf.
+
+### TEST
+- `php -l` über beide Fall-Dateien und das geänderte Skript: keine Syntaxfehler.
+- **Die Sollwerte sind nachgerechnet, nicht geschätzt.** Die gelesenen Formeln
+  (`wendeRegelAn`, `findePassendeRegel`, `zeitstringZuMinuten`, die
+  Pausenschwellen samt Entscheidungsfenster) wurden in einem Wegwerf-Skript
+  außerhalb des Repositorys nachgebaut und alle 19 vergleichbaren Erwartungen
+  dagegen geprüft: **alle stimmen überein**, einschließlich der Randfälle 06:45,
+  23:59, genau 6h und genau 9h. Damit ist belegt, dass die Erwartungen zur
+  gelesenen Rechenvorschrift passen.
+- Lauf ohne Datenbank geprüft: Das Gerüst lädt beide Fall-Dateien, fängt den
+  Verbindungsfehler je Gruppe ab, meldet ihn als abweichenden Fall
+  (`PDOException`, `RuntimeException`) und liefert Rückgabewert 1. Eine fehlende
+  Datenbank ist damit kein grüner Lauf – das war der Zweck von
+  `Pruefgruppe::fehler()`.
+
+**Nicht geprüft, weil kein MariaDB läuft:** das Akzeptanzkriterium selbst – ein
+grüner Lauf gegen `zeit_probe`. Offen bleibt damit die Frage, ob die **echten**
+Services sich so verhalten, wie ihr Code sich liest; die Arithmetik der
+Erwartungen ist geprüft, ihr Zusammenspiel mit Datenbank und Konfiguration nicht.
+Nachzuholen mit:
+
+```
+scripts/dev/pruefumgebung.sh aufbauen
+ZEIT_DB_NAME=zeit_probe php scripts/dev/pruefe_fachlogik.php
+```
+
+Erwartet: `20 von 20 OK`, Rückgabewert 0. Und die Gegenprobe aus dem Kriterium:
+In `01_rundung.php` bei der Regel 07:00–12:00 die `15` auf `30` setzen – dann
+müssen genau die Fälle in diesem Bereich abweichen und ihre Werte nennen, alle
+übrigen grün bleiben.
+
+### NEXT
+P-2026-08-17-16: die Fälle für Urlaubssalden und die drei Fachprüfungen aus
+`FachpruefungService` – Kriterium 4. Dafür braucht es Probe-Daten mit
+Mitarbeiter, Kontingent, Antrag und Feiertag.
+
 ## P-2026-08-17-14 pruefskript-geruest-und-sperre
 
 ### EINGELESEN
