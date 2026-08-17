@@ -44,9 +44,11 @@ Ein Satz je Task – die Begründung steht im Verlauf, nicht hier.
 - **T-142** Aus dem `SmokeTestController` sind die fachlichen Prüfungen heraus;
   offen bleiben die drei PDF-Prüfungen und `pruefeTerminalLogin` als je eigenes
   Vorhaben, letzteres erst nach dem Gerätetest.
-- **Feiertag+Arbeitszeit im Bestand nachsehen** – die Prüfung kann seit
-  P-2026-08-17-21 anschlagen; ob in der Entwicklungsdatenbank aus dem Serverdump
-  Tage mit Ist- **und** Feiertagsstunden stehen, hat noch niemand gefragt.
+- **Feiertagsstunden werden nirgends gespeichert** – `feiertag_stunden` und
+  `kennzeichen_feiertag` schreibt keine Stelle der Anwendung; der Report leitet
+  den Feiertag für die Anzeige aus dem Kalender ab, die Fachregel führt beide
+  Spalten aber als gepflegte Tagesfelder. Entscheidung offen: Fachregel nachziehen
+  oder Speicherung nachbauen (gefunden in P-2026-08-17-24).
 
 **Offline-Betrieb am Terminal** – Befund und Entscheidungen in P-2026-08-16-08,
 die Regeln dazu in

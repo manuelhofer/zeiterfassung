@@ -18,6 +18,80 @@ legacy_zip_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-08-17-24 feiertagpruefung-im-bestand-nachgesehen
+
+### EINGELESEN
+- `docs/STATUS_SNAPSHOT.md`, „Offene Tasks" – die offene Frage.
+- `services/FachpruefungService.php`, `pruefeFeiertagUndArbeitszeit()`, Zeilen
+  300–380 – wie der Konflikt definiert ist.
+- `services/FeiertagService.php`, `istFeiertag()` und
+  `generiereFeiertageFuerJahrWennNoetig()`; `modelle/FeiertagModel.php`,
+  `holeFuerDatum()` – welche Zeilen als Kalenderfeiertag gelten.
+- `sql/01_initial_schema.sql`, `feiertag` und `tageswerte_mitarbeiter`.
+- `grep -rn "feiertag_stunden\|kennzeichen_feiertag"` über den ganzen Code sowie
+  jedes `INSERT`/`UPDATE` auf `tageswerte_mitarbeiter`.
+- `docs/fachregeln/zeit_rundung_pausen.md`, Abschnitt 5.
+
+### DATEIEN
+- `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+  (kein Code – der Patch ist die Antwort auf eine Frage)
+
+### AKZEPTANZKRITERIUM
+Der Snapshot fragt nicht mehr, ob im Bestand Tage mit Ist- **und**
+Feiertagsstunden stehen; die Antwort und der Weg dorthin stehen hier.
+
+### DONE
+**Die Antwort ist Nein – und zwar aus einem Grund, der die Frage überholt.**
+
+Nachgesehen wurde mit einer reinen `SELECT`-Abfrage gegen `zeiterfassung`,
+derselben Bedingung wie die Prüfung (`kennzeichen_feiertag = 1` **oder** ein
+Kalendereintrag mit `bundesland IS NULL`, dazu `ist_stunden > 0,01` **und**
+`feiertag_stunden > 0,01`) und nur Summen als Ausgabe – die Datenbank enthält
+echte Personendaten. `FeiertagService` blieb bewusst außen vor: er legt für ein
+unbekanntes Jahr Feiertage **an**, und eine Nachschau darf nichts schreiben.
+
+Ergebnis: 0 Konflikttage. Dahinter steht nicht Zufall, sondern das Datenmodell.
+In `tageswerte_mitarbeiter` stehen im ganzen Dump **3 Zeilen** – bei
+10.032 Zeitbuchungen über 1,5 Jahre und 13 Mitarbeitern. Die Tabelle füllt sich
+nur, wenn jemand einen Tag korrigiert oder ein Tagesfeld setzt.
+
+**Gefunden dabei:** `feiertag_stunden` und `kennzeichen_feiertag` werden von
+**keiner** Stelle der Anwendung geschrieben. Jede Fundstelle im Code liest sie
+(Report, PDF, Terminal-Monatssumme, Fachprüfung); das einzige `INSERT`, das sie
+setzt, ist die Falldatei der Prüfung selbst
+(`scripts/dev/faelle/03_fachpruefungen.php`). Die Tagesfeld-Masken im
+`ZeitController` pflegen Kurzarbeit, Krank LFZ/KK, Sonstiges und den
+Pause-Override – Feiertag ist nicht dabei. `ReportService` setzt beides für die
+Anzeige im Arbeitsspeicher aus dem Kalender.
+
+Damit ist P-2026-08-17-21 nachträglich noch klarer, als es dort stand: Die
+Prüfung ist keine Kontrolle des eigenen Ablaufs, sondern ein Wächter für
+**fremde** Daten – Import oder Handkorrektur in der Datenbank. Aus dem Betrieb
+der Anwendung heraus kann sie nicht anschlagen.
+
+`docs/fachregeln/zeit_rundung_pausen.md`, Abschnitt 5, führt beide Spalten
+dagegen in einer Liste gepflegter Tagesfelder. Ob dort ein Satz fehlt oder in der
+Anwendung eine Speicherung, ist eine Entscheidung und kein Nebenbei – als eigener
+Task im Snapshot notiert, mit den zwei Wegen.
+
+**Bewusst nicht gemacht:** Kein Code angefasst, keine Fachregel umgeschrieben,
+keine Zeile in der Entwicklungsdatenbank verändert.
+
+### TEST
+- Zwei Abfragen gegen `zeiterfassung`, beide nur lesend, beide nur mit Summen:
+  0 Konflikttage, 0 Zeilen mit `kennzeichen_feiertag = 1`, 0 Zeilen mit
+  `feiertag_stunden > 0,01`; Kalender mit 144 Einträgen von 2014 bis 2030, also
+  kein Loch, das die Feiertagsbedingung leerlaufen lässt.
+- Gegenprobe zum Datenmodell: jedes `INSERT`/`UPDATE` auf
+  `tageswerte_mitarbeiter` in `controller/`, `services/` und `modelle/`
+  aufgeschlagen und die Spaltenlisten gelesen – keine der beiden Spalten kommt
+  darin vor.
+- Nicht geprüft: der Serverbestand. Es gibt keinen; geprüft ist der Dump in der
+  örtlichen Entwicklungsdatenbank.
+
+### NEXT
+Unverändert: dieser Stand nach `main`, auf Ansage.
+
 ## P-2026-08-17-23 hilfeausgabe-ohne-zeilennummer
 
 ### EINGELESEN
