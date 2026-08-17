@@ -59,7 +59,7 @@ $hinweis       = $feiertagArbeitszeitDaten['hinweis'] ?? null;
         <ul style="margin:0;">
             <li>Mitarbeiter-ID: <?php echo (int)($ergebnis['mitarbeiter_id'] ?? 0); ?></li>
             <li>Monat: <?php echo sprintf('%04d-%02d', (int)($ergebnis['jahr'] ?? 0), (int)($ergebnis['monat'] ?? 0)); ?></li>
-            <li>Feiertag-Tage im Report: <?php echo (int)($ergebnis['feiertag_tage'] ?? 0); ?></li>
+            <li>Feiertag-Tage im Monat: <?php echo (int)($ergebnis['feiertag_tage'] ?? 0); ?></li>
             <li>Konflikte: <?php echo (int)($ergebnis['issues_count'] ?? 0); ?></li>
         </ul>
 

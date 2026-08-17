@@ -18,6 +18,86 @@ legacy_zip_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-08-17-21 feiertagpruefung-liest-rohdaten
+
+### EINGELESEN
+- `services/FachpruefungService.php`, `pruefeFeiertagUndArbeitszeit()` ganz.
+- `services/ReportService.php`, Zeilen 2052–2107 – die Feiertagsnormalisierung
+  für die Anzeige, und die Schleife davor (1911–2030), die `arbeitszeit_stunden`
+  aus Arbeitsblöcken überschreibt.
+- `grep -rn "kennzeichen_feiertag" controller services modelle views` – wer die
+  Spalte schreibt.
+- `modelle/TageswerteMitarbeiterModel.php`, `holeAlleFuerMitarbeiterUndMonat()`.
+- `views/smoke_test/feiertag_arbeitszeit.php` – welche Schlüssel die View liest.
+- `scripts/dev/faelle/03_fachpruefungen.php`, Fall 10 samt Kopfkommentar.
+
+### DATEIEN
+- `services/FachpruefungService.php`
+- `views/smoke_test/feiertag_arbeitszeit.php` (eine Beschriftung)
+- `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Ein Tag mit gespeicherten 8,00 Ist- und 8,00 Feiertagsstunden wird als Konflikt
+gemeldet, auch wenn der Report ihn für die Anzeige auf 0,00 normalisiert.
+
+### DONE
+Der erste Lauf des Prüfskripts hat einen Fall rot gemeldet – und dahinter stand
+nicht eine falsche Erwartung, sondern eine Prüfung, die **nie** anschlagen
+konnte:
+
+`ReportService` repariert den Konflikt, bevor ihn jemand sieht. Hat ein
+Kalenderfeiertag Arbeitszeit, setzt er `feiertag_stunden` auf 0,00 – genau die
+Kombination, die `pruefeFeiertagUndArbeitszeit()` sucht. Die Prüfung fragte den
+Report und bekam deshalb immer „kein Konflikt". Der zweite Weg, über das
+gespeicherte `kennzeichen_feiertag`, ist ebenso zu: Die Anwendung schreibt die
+Spalte nirgends auf 1 – sie steht auf dem Schema-Standard 0, und die 1 entsteht
+nur im Arbeitsspeicher für die Anzeige.
+
+Nachgewiesen in zwei getrennten Prozessen gegen `zeit_probe`, weil
+`FeiertagService` seine Antworten im Prozess cacht und ein einziger Lauf beide
+Lagen vermischt: mit Kalendereintrag `ok = true` (Konflikt unsichtbar), ohne
+Kalendereintrag `ok = false`.
+
+Die Prüfung liest jetzt die gespeicherten Tageswerte über
+`TageswerteMitarbeiterModel::holeAlleFuerMitarbeiterUndMonat()` und damit die
+Rohspalte `ist_stunden` statt der Reportspalte `arbeitszeit_stunden`. Als
+Feiertag gilt ein Tag, wenn das gespeicherte Kennzeichen gesetzt ist **oder**
+der Kalender ihn kennt – das Kennzeichen allein wäre nach obigem Befund
+wertlos.
+
+Das ist eine gewollte Verhaltensänderung: Die Fachprüfungs-Maske meldet
+künftig Doppelzählungen, die sie vorher nicht melden konnte. Sie stammen aus
+Import oder Handkorrektur – die Anwendung selbst erzeugt sie nicht.
+
+Der `hinweis` bei einem Monat ohne Feiertage heißt jetzt „im Monat" statt „im
+Monatsreport", und die Beschriftung in der View entsprechend – die Prüfung
+schaut nicht mehr in den Report, und eine Beschriftung, die das Gegenteil
+behauptet, wäre nach dieser Änderung schlicht falsch.
+
+**Bewusst nicht gemacht:** `ReportService` bleibt unberührt. Die Normalisierung
+für die Anzeige ist richtig – 8 Stunden Arbeit und 8 Stunden Feiertagsgeld
+nebeneinander auszuweisen wäre die Doppelzählung, die sie verhindert. Falsch
+war nur, eine Prüfung auf ihr Ergebnis zu setzen.
+
+**Nicht geprüft:** ob in der Entwicklungsdatenbank aus dem Serverdump solche
+Tage tatsächlich stehen. Das ist eine Frage an echte Daten, kein Teil dieses
+Patches – als Task notiert.
+
+### TEST
+- `php -l` über beide geänderten Dateien: keine Syntaxfehler.
+- `scripts/dev/pruefumgebung.sh pruefen`: **46 von 46 OK**, vorher 45 von 46.
+- Zweimal hintereinander gestartet: beide Male 46 von 46 (Kriterium 4 der
+  Spezifikation, Wiederholbarkeit).
+- Über die Maske belegt, nicht nur über das Skript: `?seite=smoke_test` mit
+  gesetztem Konflikt meldet „Feiertag-Tage im Monat: 1, Konflikte: 1" samt
+  Beispielzeile; nach `ist_stunden = 0.00` meldet dieselbe Maske „Konflikte: 0".
+- `scripts/dev/pruefumgebung.sh meldungen`: beide Serverlogs ohne PHP-Meldung.
+- Gegenprobe, dass der alte Weg wirklich weg ist: kein `ReportService` mehr im
+  Rumpf der Methode.
+
+### NEXT
+Snapshot: die offenen Prüfungen aus der Sitzung vom 17.08. sind nachgeholt.
+
 ## P-2026-08-17-20 pruefskript-aufruf-der-funktioniert
 
 ### EINGELESEN

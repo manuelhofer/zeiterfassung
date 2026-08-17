@@ -52,6 +52,12 @@ Ein Satz je Task – die Begründung steht im Verlauf, nicht hier.
 - **T-142** Aus dem `SmokeTestController` sind die fachlichen Prüfungen heraus;
   offen bleiben die drei PDF-Prüfungen und `pruefeTerminalLogin` als je eigenes
   Vorhaben, letzteres erst nach dem Gerätetest.
+- **Feiertag+Arbeitszeit im Bestand nachsehen** – die Prüfung kann seit
+  P-2026-08-17-21 anschlagen; ob in der Entwicklungsdatenbank aus dem Serverdump
+  Tage mit Ist- **und** Feiertagsstunden stehen, hat noch niemand gefragt.
+- **Hilfeausgabe von `pruefumgebung.sh`** schneidet den Kopfkommentar mit einer
+  fest verdrahteten Zeilennummer heraus; sie driftet bei jeder Kopfänderung
+  (aufgefallen in P-2026-08-17-20).
 
 **Offline-Betrieb am Terminal** – Befund und Entscheidungen in P-2026-08-16-08,
 die Regeln dazu in

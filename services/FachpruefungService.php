@@ -279,6 +279,22 @@ class FachpruefungService
     /**
      * Feiertag+Arbeitszeit-Check: Feiertagsstunden neben Arbeitszeit am selben Tag.
      *
+     * Liest die **gespeicherten** Tageswerte, nicht die Reportausgabe. Warum das
+     * der Unterschied zwischen einer Prüfung und einer Attrappe ist:
+     * `ReportService` repariert diesen Konflikt für die Anzeige, bevor ihn
+     * jemand sehen kann – hat ein Kalenderfeiertag Arbeitszeit, setzt er
+     * `feiertag_stunden` auf 0,00 („Bei Arbeitszeit am Feiertag sollen keine
+     * zusätzlichen Feiertagsstunden gezählt werden"). Wer den Report fragt,
+     * bekommt deshalb immer „kein Konflikt" – auch dann, wenn in der Datenbank
+     * acht Ist- neben acht Feiertagsstunden stehen. Die Prüfung lief, ohne je
+     * anschlagen zu können (nachgewiesen beim ersten Lauf des Prüfskripts,
+     * P-2026-08-17-21).
+     *
+     * Als Feiertag gilt ein Tag, wenn das gespeicherte Kennzeichen gesetzt ist
+     * **oder** der Kalender ihn kennt. Das Kennzeichen allein genügt nicht: Die
+     * Anwendung schreibt es nirgends auf 1, sie leitet den Feiertag bei jeder
+     * Anzeige neu aus dem Kalender ab.
+     *
      * @return array{mitarbeiter_id:int, jahr:int, monat:int, ergebnis:?array<string,mixed>, hinweis:?string}
      */
     public function pruefeFeiertagUndArbeitszeit(int $feiertagArbeitszeitTestMitarbeiterId, int $feiertagArbeitszeitTestJahr, int $feiertagArbeitszeitTestMonat): array
@@ -294,8 +310,6 @@ class FachpruefungService
             $feiertagArbeitszeitTestHinweis = 'Jahr außerhalb des erwarteten Bereichs (1970..2100).';
         } elseif ($this->db === null) {
             $feiertagArbeitszeitTestHinweis = 'Database::getInstanz() ist nicht verfügbar.';
-        } elseif (!class_exists('ReportService')) {
-            $feiertagArbeitszeitTestHinweis = 'ReportService ist nicht verfügbar (Klasse fehlt).';
         } else {
             try {
                 $parseFloat = static function ($v): float {
@@ -310,12 +324,14 @@ class FachpruefungService
                     return (float)$s;
                 };
 
-                $rs = ReportService::getInstanz();
-                $monatsdaten = $rs->holeMonatsdatenFuerMitarbeiter($feiertagArbeitszeitTestMitarbeiterId, $feiertagArbeitszeitTestJahr, $feiertagArbeitszeitTestMonat);
-                $tageswerte = is_array($monatsdaten) ? ($monatsdaten['tageswerte'] ?? []) : [];
-                if (!is_array($tageswerte)) {
-                    $tageswerte = [];
-                }
+                $tageswerteModel = new TageswerteMitarbeiterModel();
+                $feiertagService = FeiertagService::getInstanz();
+
+                $tageswerte = $tageswerteModel->holeAlleFuerMitarbeiterUndMonat(
+                    $feiertagArbeitszeitTestMitarbeiterId,
+                    $feiertagArbeitszeitTestJahr,
+                    $feiertagArbeitszeitTestMonat
+                );
 
                 $totalFeiertage = 0;
                 $issues = [];
@@ -329,13 +345,25 @@ class FachpruefungService
                         continue;
                     }
 
-                    $kennFeiertag = (int)($tw['kennzeichen_feiertag'] ?? 0);
-                    if ($kennFeiertag !== 1) {
+                    $istFeiertag = ((int)($tw['kennzeichen_feiertag'] ?? 0) === 1);
+                    if (!$istFeiertag) {
+                        try {
+                            $istFeiertag = $feiertagService->istFeiertag(new DateTimeImmutable($datum), null);
+                        } catch (Throwable $e) {
+                            // Unlesbares Datum ist ein Befund des Monatsraster-Checks,
+                            // nicht dieses hier - der Tag wird uebersprungen.
+                            continue;
+                        }
+                    }
+
+                    if (!$istFeiertag) {
                         continue;
                     }
                     $totalFeiertage++;
 
-                    $arb = $parseFloat($tw['arbeitszeit_stunden'] ?? '0');
+                    // Rohspalte: `ist_stunden`. Die Reportausgabe hiesse
+                    // `arbeitszeit_stunden` - und waere hier wertlos.
+                    $arb = $parseFloat($tw['ist_stunden'] ?? '0');
                     $ft = $parseFloat($tw['feiertag_stunden'] ?? '0');
 
                     if ($arb > 0.01 && $ft > 0.01) {
@@ -351,7 +379,7 @@ class FachpruefungService
                 $ok = true;
                 if ($totalFeiertage <= 0) {
                     $ok = null;
-                    $feiertagArbeitszeitTestHinweis = 'Keine Feiertage im Monatsreport gefunden – Check ist in diesem Monat nicht aussagekräftig.';
+                    $feiertagArbeitszeitTestHinweis = 'Keine Feiertage im Monat gefunden – Check ist in diesem Monat nicht aussagekräftig.';
                 } else {
                     $ok = (count($issues) === 0);
                 }
