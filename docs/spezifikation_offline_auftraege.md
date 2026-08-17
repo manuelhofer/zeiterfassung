@@ -195,10 +195,20 @@ vorheriges Kommen (E4 – muss durchgehen).
 
 ### P3 – Lokale Maschinenliste
 
-**Ziel:** Maschinenauswahl beim Auftragsstart funktioniert offline.
+> **Nachtrag 17.08. – die Prämisse stimmte nicht.** Eine „Maschinenauswahl"
+> gab es am Terminal nie, weder offline noch online: `auftrag_starten.php`
+> hatte ein **Textfeld**, `parseMaschineIdAusScan()` zieht die Zahl per Regex
+> aus dem Scan, und `starteAuftrag()` schreibt sie ungeprüft ins SQL – die
+> Tabelle `maschine` wird im ganzen Terminal-Pfad nicht gelesen. Gewählt wurde
+> bis dahin physisch, über den QR-Aufkleber an der Maschine. Manuel hat den
+> Befund bekommen und entschieden, die Auswahl zu bauen. Umgesetzt in zwei
+> Patches: **P-2026-08-17-31** der Spiegel, **P-2026-08-17-32** die Auswahl.
+
+**Ziel:** Maschinenauswahl beim Auftragsstart – und offline aus dem Spiegel.
 
 **Dateien:** `core/MaschinenSpiegel.php` (neu), `sql/offline_db_schema.sql`,
-`public/terminal.php`, `views/terminal/*`
+`public/terminal.php`, `controller/TerminalController.php`,
+`views/terminal/auftrag_starten.php`
 
 **Vorgehen:** `MitarbeiterSpiegel` kopieren und anpassen – dieselbe Bauart,
 dieselbe Auffrischung im selben Atemzug wie der Queue-Wiederanlauf, dasselbe
@@ -226,6 +236,11 @@ die Liste zeigt dieselben aktiven Maschinen wie online, und die gewählte
 offline Auswahl durchspielen, Queue-Eintrag gegenlesen. Gegenprobe ohne
 Ausweichdatenbank: Die Auswahl muss leer bleiben und der Start trotzdem
 funktionieren (ohne Maschine), nicht abbrechen.
+
+**Die Liste steht neben dem Scanfeld, nicht statt seiner.** Der übliche Weg
+bleibt der QR-Aufkleber; wer ihn ersetzt, nimmt der Werkstatt den schnellsten
+Weg und macht die Maske vom Spiegel abhängig. Das Auswahlfeld trägt deshalb
+kein `name` – abgeschickt wird allein `maschine_id`.
 
 ## 6. Was ausdrücklich nicht dazugehört
 

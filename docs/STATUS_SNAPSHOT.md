@@ -18,13 +18,12 @@ nichts.
 
 ## Nächster Schritt (konkret)
 
-**T-138, Rest von Patch 3:** Die Maschinenauswahl beim Auftragsstart – der
-Controller reicht die Liste durch (online aus `maschine`, offline aus dem
-Spiegel), `views/terminal/auftrag_starten.php` zeigt sie **neben** dem
-Scanfeld, nicht statt seiner. Der Spiegel selbst steht (P-2026-08-17-31), eine
-Auswahl gab es am Terminal bisher nie – Begründung dort im Verlauf. Patch 1 und
-2 sind erledigt (P-2026-08-17-29, -30), Aufträge lassen sich offline starten
-und stoppen.
+**B-106 beheben:** `auftrag_ensure` legt den Auftrag an, bevor die Buchung
+abbricht – ein Auftragscode, der scheitert, hinterlässt einen leeren Auftrag.
+Der Weg ist offen: entweder das Anlegen hinter die Prüfungen ziehen, oder den
+leeren Auftrag beim Scheitern wieder entfernen. T-138 ist damit fertig
+(P-2026-08-17-29 bis -32); Aufträge lassen sich offline starten, stoppen und
+mit Maschine buchen.
 
 ## Offene Bugs
 
@@ -48,12 +47,12 @@ Ein Satz je Task – die Begründung steht im Verlauf, nicht hier.
 **Offline-Betrieb am Terminal** – Befund und Entscheidungen in P-2026-08-16-08,
 die Regeln dazu in
 [`fachregeln/terminal_und_offline.md`](fachregeln/terminal_und_offline.md),
-Abschnitt 5. Die Aufgabenkette daraus ist abgearbeitet; offen bleibt der
-zweite Schritt, für den T-125 die Voraussetzung war:
+Abschnitt 5. Die Aufgabenkette daraus ist abgearbeitet, T-138 als zweiter
+Schritt ebenfalls. Was daraus offen blieb:
 
-- **T-138** Aufträge im Offline-Betrieb – spezifiziert in
-  [`spezifikation_offline_auftraege.md`](spezifikation_offline_auftraege.md),
-  Abschnitt 5: drei Patches in fester Reihenfolge, alle ohne Gerät prüfbar.
+- **Nebenaufträge offline** – der Queue-Code steht, aber sie hängen weiter an
+  einer Anmeldung, und ihr Maschinenfeld hat keine Auswahl. Erst nachziehen,
+  wenn der Praxis-Test zeigt, dass sie am Gerät gebraucht werden.
 - **Jahreswechsel beobachten:** Beim ersten echten Jahreswechsel prüfen, ob die
   festgeschriebenen Urlaubssalden plausibel bleiben (B-080).
 - **Terminal im Browser:** „Gehen" und „Auftrag starten/stoppen" sind am Gerät

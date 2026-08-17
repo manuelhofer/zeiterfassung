@@ -18,6 +18,103 @@ legacy_zip_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-08-17-32 t-138-p3-maschinenauswahl-am-terminal
+
+### EINGELESEN
+- `docs/spezifikation_offline_auftraege.md`, Abschnitt 5, P3, und der eigene
+  Nachtrag aus P-2026-08-17-31.
+- `controller/TerminalController.php`: `auftragStartenForm()`,
+  `istHauptdatenbankAktiv()` (395), `holeHandelndenFuerAuftrag()` (2275).
+- `views/terminal/auftrag_starten.php` ganz, samt der Scanner-Kette im
+  `<script>`-Block.
+- `views/terminal/auftrag_stoppen.php` Zeile 86 und `public/css/terminal.css`
+  Zeile 310 – wie ein Auswahlfeld am Kiosk aussieht (`form.login-form select`
+  ist gestylt, es braucht kein eigenes CSS).
+
+### DATEIEN
+- `controller/TerminalController.php`, `views/terminal/auftrag_starten.php`
+- `docs/spezifikation_offline_auftraege.md`,
+  `docs/fachregeln/terminal_und_offline.md`
+- `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Terminal offline, Auftragsstart – die Auswahl zeigt dieselben drei aktiven
+Maschinen wie online, und die gewählte `maschine_id` steht im Queue-SQL.
+
+### DONE
+`holeMaschinenAuswahl()` beantwortet die Frage „welche Maschinen gibt es" aus
+zwei Quellen in einer Form: online `SELECT id, name FROM maschine WHERE
+aktiv = 1`, offline `MaschinenSpiegel::holeAktiveMaschinen()`. Beide nach Namen
+sortiert – die ID kennt am Gerät niemand auswendig.
+
+**Die Liste steht neben dem Scanfeld, nicht statt seiner.** Der übliche Weg ist
+der QR-Aufkleber an der Maschine, und der funktioniert offline von selbst. Wer
+ihn durch ein Auswahlfeld ersetzt, nimmt der Werkstatt den schnellsten Weg und
+macht die Maske vom Spiegel abhängig. Das Auswahlfeld trägt deshalb **kein**
+`name`: Abgeschickt wird allein `maschine_id` – dasselbe Feld wie bisher,
+derselbe Controller-Code dahinter, und ohne JavaScript bleibt alles, wie es war.
+
+**Beide zeigen dasselbe an.** Ein `change` auf der Liste schreibt die ID ins
+Feld, eine Eingabe im Feld stellt die Liste nach – mit derselben Regel wie
+`parseMaschineIdAusScan()`, also erste Zifferngruppe. Ohne diese Kopplung stünde
+in der Liste „Abkantpresse", während das Feld daneben „3" sagt, und abgeschickt
+wird das Feld.
+
+**Kennt das Gerät keine Maschinen, fehlt der Block ganz** statt leer
+dazustehen. Ein leeres Auswahlfeld auf einem Kiosk lädt zum Tippen ins Nichts
+ein. Der Start läuft dann weiter wie vorher – die ID wird ohnehin nirgends
+geprüft.
+
+**Was bewusst nicht dazugehört:** das Maschinenfeld des **Nebenauftrags**
+(`views/terminal/start.php:1725`). Es steht nicht im Akzeptanzkriterium, und
+Nebenaufträge sind offline gesperrt (P-2026-08-17-30) – der Spiegel hilft ihnen
+also nirgends. Damit haben die beiden Maschinenfelder am Terminal
+vorübergehend verschiedene Bedienung; im Snapshot vermerkt, damit es nicht als
+Fehler gesucht wird.
+
+### TEST
+Prüfumgebung, `alt` = 037ad02, `neu` = Arbeitsstand. Probe-Daten aus dem
+Vorgängerpatch: vier Maschinen, eine davon inaktiv. Alles über HTTP mit
+eigenem Cookie-Glas, nicht über direkte Aufrufe.
+
+1. **Online:** Chip anmelden, „Kommen", erneut anmelden (der Kiosk meldet nach
+   jeder Buchung ab), Maske öffnen → drei Optionen, nach Namen sortiert:
+   Abkantpresse (2), Fraese Süd (3), Saege 1 (1). Die inaktive „Altgeraet"
+   fehlt, der Umlaut steht richtig.
+2. **Offline dieselbe Liste:** `terminal --offline`, Chip scannen, Maske öffnen
+   → Byte für Byte dieselben drei Optionen, diesmal aus dem Spiegel.
+3. **Die Wahl landet in der Queue:** Start `P3-AUFTRAG` / `SCHRITT-A` /
+   Maschine 3 → vier Queue-Einträge, im `auftrag_start` steht
+   `…, 'P3-AUFTRAG', 'SCHRITT-A', 3, 1, 'haupt', …`.
+4. **Und in der Hauptdatenbank:** online zurück, ein Seitenaufruf → alle vier
+   Einträge `verarbeitet`, in `auftragszeit` eine Zeile Mitarbeiter 15 /
+   `P3-AUFTRAG` / `maschine_id = 3`.
+5. **Gegenprobe ohne Spiegel:** Tabelle gelöscht, offline gescannt → **kein**
+   `<select>` im HTML, Scanfeld unverändert da. Start `P3-OHNE-SPIEGEL` ohne
+   Maschine geht durch, im Queue-SQL steht `…, 'SCHRITT-B', NULL, 1, …`.
+6. **Seiten unverändert, wo die Auswahl nichts zu suchen hat:** Dashboard
+   33.447 Bytes, Maschinenverwaltung 27.863, Smoke-Test 61.885,
+   Terminal-Startbildschirm 1.747 – je 0 abweichende Zeilen gegen `alt`.
+7. Prüfskript 46 von 46; beide Serverlogs ohne PHP-Meldung; keine
+   Protokollzeile der Kategorie `maschinen_spiegel`; `php -l` über beide
+   geänderten Dateien ohne Befund.
+
+**Ein Fehler im ersten Entwurf, beim Gegenlesen des HTML gefunden:** Der
+Optionstext stand über drei Zeilen im Template, also kam
+`Abkantpresse                        (2)` heraus. Browser kollabieren das beim
+Rendern, aber sich darauf zu verlassen heißt, die Anzeige einer Regel zu
+überlassen, die man nicht geschrieben hat. Jetzt steht der Text in einem
+Ausdruck zusammen.
+
+**Nicht geprüft:** die Maske am echten Gerät, mit Touch und Scanner – also ob
+das Auswahlfeld mit einem Finger bedienbar ist und ob die Kopplung beim echten
+Scan (der tippt sehr schnell) mitkommt. Beides ist Sache des Gerätetests. Die
+JavaScript-Kopplung selbst lief hier nirgends: `curl` führt kein Skript aus.
+
+### NEXT
+T-138 ist fertig. Nächster Schritt ist B-106 – ein Auftragscode, der beim
+Buchen scheitert, hinterlässt trotzdem einen leeren Auftrag.
+
 ## P-2026-08-17-31 t-138-p3-lokale-maschinenliste
 
 ### EINGELESEN

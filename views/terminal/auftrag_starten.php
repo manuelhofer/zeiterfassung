@@ -6,10 +6,12 @@ declare(strict_types=1);
 /** @var string|null $fehlerText */
 /** @var string|null $csrfToken */
 /** @var int|null $terminalTimeoutSekunden */
+/** @var array<int,array{id:int,name:string}>|null $maschinenAuswahl */
 
 
 $terminalTimeoutSekunden = isset($terminalTimeoutSekunden) ? (int)$terminalTimeoutSekunden : null;
 $csrfToken = isset($csrfToken) && is_string($csrfToken) ? $csrfToken : '';
+$maschinenAuswahl = isset($maschinenAuswahl) && is_array($maschinenAuswahl) ? $maschinenAuswahl : [];
 
 $seitenTitel = 'Terminal – Auftrag starten';
 $seitenUeberschrift = 'Auftrag starten';
@@ -44,6 +46,29 @@ require __DIR__ . '/_layout_top.php';
         <label for="maschine_id">Maschinen-ID (optional, Barcode: id_name möglich)</label>
         <input type="text" id="maschine_id" name="maschine_id" inputmode="numeric" autocomplete="off" placeholder="z.B. 12">
 
+        <?php if ($maschinenAuswahl !== []): ?>
+            <?php
+                // Die Liste steht **neben** dem Scanfeld, nicht statt seiner:
+                // Der übliche Weg ist der QR-Aufkleber an der Maschine, und der
+                // muss weiter funktionieren. Sie trägt deshalb auch kein `name`
+                // – abgeschickt wird allein `maschine_id` oben.
+                //
+                // Kennt das Gerät keine Maschinen (kein Spiegel, keine
+                // Ausweichdatenbank), fehlt der Block ganz. Ein leeres
+                // Auswahlfeld auf einem Kiosk lädt zum Tippen ins Nichts ein.
+            ?>
+            <label for="maschine_auswahl">… oder aus der Liste wählen</label>
+            <select id="maschine_auswahl">
+                <option value="">– keine Maschine –</option>
+                <?php foreach ($maschinenAuswahl as $maschine): ?>
+                    <option value="<?php echo (int)$maschine['id']; ?>"><?php
+                        echo htmlspecialchars((string)$maschine['name'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+                        echo ' (' . (int)$maschine['id'] . ')';
+                    ?></option>
+                <?php endforeach; ?>
+            </select>
+        <?php endif; ?>
+
         <div class="button-row">
             <button type="submit">Auftrag starten</button>
             <a href="terminal.php?aktion=start" class="button-link secondary">Zurück zum Start</a>
@@ -55,6 +80,7 @@ require __DIR__ . '/_layout_top.php';
       const auftrag = document.getElementById('auftragscode');
       const schritt = document.getElementById('arbeitsschritt_code');
       const maschine = document.getElementById('maschine_id');
+      const auswahl = document.getElementById('maschine_auswahl');
 
       // Barcode-Scanner senden meistens ein "Enter" nach dem Scan.
       // Wir springen dann bequem ins nächste Feld.
@@ -89,6 +115,24 @@ require __DIR__ . '/_layout_top.php';
               form.submit();
             }
           }
+        });
+      }
+
+      // Liste und Scanfeld zeigen dasselbe an. Ohne diese Kopplung stünde in
+      // der Liste "Abkantpresse", während das Feld daneben "3" sagt - und
+      // abgeschickt wird das Feld.
+      if (maschine && auswahl) {
+        auswahl.addEventListener('change', () => {
+          maschine.value = auswahl.value;
+        });
+
+        maschine.addEventListener('input', () => {
+          // Dieselbe Regel wie parseMaschineIdAusScan() im Controller:
+          // aus "12", "M12" und "12_Saege" wird 12.
+          const treffer = maschine.value.match(/\d+/);
+          const id = treffer ? treffer[0] : '';
+          const kennt = Array.from(auswahl.options).some((o) => o.value === id);
+          auswahl.value = kennt ? id : '';
         });
       }
     })();

@@ -2343,6 +2343,48 @@ class TerminalController
     }
 
     /**
+     * Die aktiven Maschinen für die Auswahl beim Auftragsstart.
+     *
+     * Zwei Quellen, eine Antwort: online die Tabelle `maschine`, offline der
+     * lokale Spiegel (T-138, P3). Beide liefern dieselbe Form und dieselbe
+     * Sortierung – nach Namen, denn die ID kennt am Gerät niemand auswendig.
+     *
+     * **Eine leere Liste ist kein Fehler.** Ohne Ausweichdatenbank oder ohne
+     * je aufgefrischten Spiegel weiß das Gerät nichts über Maschinen; dann
+     * zeigt die Maske keine Auswahl, und die ID lässt sich weiterhin scannen
+     * oder tippen. Der Auftragsstart darf daran nie scheitern – geprüft wird
+     * die ID ohnehin nirgends.
+     *
+     * @return array<int,array{id:int, name:string}>
+     */
+    private function holeMaschinenAuswahl(): array
+    {
+        if (!$this->istHauptdatenbankAktiv()) {
+            return MaschinenSpiegel::getInstanz()->holeAktiveMaschinen();
+        }
+
+        try {
+            $zeilen = Database::getInstanz()->fetchAlle(
+                'SELECT id, name FROM maschine WHERE aktiv = 1 ORDER BY name ASC, id ASC'
+            );
+        } catch (\Throwable $e) {
+            return [];
+        }
+
+        $liste = [];
+        foreach ($zeilen as $zeile) {
+            $id = (int)($zeile['id'] ?? 0);
+            if ($id <= 0) {
+                continue;
+            }
+
+            $liste[] = ['id' => $id, 'name' => (string)($zeile['name'] ?? '')];
+        }
+
+        return $liste;
+    }
+
+    /**
      * Formular zum Starten eines Auftrags anzeigen.
      *
      * @param string|null $meldung       Erfolgs-/Infomeldung
@@ -2370,6 +2412,7 @@ class TerminalController
         $fehlerText = $fehlermeldung;
         $terminalTimeoutSekunden = $this->holeTerminalTimeoutSekunden('standard');
         $csrfToken = Csrf::token(self::CSRF_BEREICH);
+        $maschinenAuswahl = $this->holeMaschinenAuswahl();
         // Monatsstatus (für Mitarbeiterpanel in Auftrag-Views): Soll Monat / Soll bis heute / IST bis heute.
         $monatsStatus = null;
 

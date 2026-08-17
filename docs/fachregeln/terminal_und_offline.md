@@ -349,6 +349,16 @@ sie ohne Hauptdatenbank nirgends nachschlagen kann.
 - Aufgefrischt wird er wie der Mitarbeiterspiegel: gleiche Stelle, gleiche
   Bedingung, höchstens alle fünf Minuten, ganz oder gar nicht.
 
+**Was am Gerät passiert:** Der Auftragsstart zeigt unter dem Scanfeld eine
+Auswahl der aktiven Maschinen – online aus `maschine`, offline aus dem Spiegel,
+beide nach Namen sortiert. Sie steht **neben** dem Scanfeld, nicht statt seiner:
+Der übliche Weg ist der QR-Aufkleber an der Maschine, und der muss weiter
+funktionieren. Kennt das Gerät keine Maschinen, fehlt die Auswahl ganz und die
+ID lässt sich weiterhin scannen oder tippen.
+
+**Nebenaufträge haben diese Auswahl nicht** – sie sind offline ohnehin gesperrt
+(siehe oben), und ihr Maschinenfeld blieb deshalb, wie es war.
+
 ## 6. Terminal-UI: Layout, Uhr, Texte
 
 - **Bildschirmausnutzung:** ca. **97 %** der verfügbaren Fläche (Breite und
