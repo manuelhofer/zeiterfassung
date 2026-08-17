@@ -1356,7 +1356,7 @@ class SmokeTestController
                     WHERE typ IN ('kommen','gehen')
                       AND zeitstempel >= DATE_SUB(CURDATE(), INTERVAL {$window} MONTH)
                     GROUP BY mitarbeiter_id, YEAR(zeitstempel), MONTH(zeitstempel)
-                    ORDER BY c DESC
+                    ORDER BY c DESC, jahr DESC, monat DESC, mitarbeiter_id ASC
                     LIMIT {$limit}
                 ";
 
@@ -1393,7 +1393,7 @@ class SmokeTestController
                                    AND YEAR(zeitstempel) = :j
                                    AND MONTH(zeitstempel) = :m
                                  GROUP BY DATE(zeitstempel)
-                                 ORDER BY c DESC
+                                 ORDER BY c DESC, d ASC
                                  LIMIT 1"
                             );
                             $stmt2->execute(['mid' => $mid, 'j' => $jahr, 'm' => $monat]);

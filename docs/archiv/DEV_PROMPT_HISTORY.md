@@ -18,6 +18,66 @@ legacy_zip_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-08-17-27 b-105-multipage-check-mit-tie-break
+
+### EINGELESEN
+- P-2026-08-17-26 im Verlauf, Abschnitt DONE – der Befund und wie er entstanden
+  ist.
+- `services/PdfPruefungService.php` und `controller/SmokeTestController.php`,
+  alle `ORDER BY` (neun Fundstellen) – welche davon dasselbe Muster haben.
+
+### DATEIEN
+- `services/PdfPruefungService.php`, `controller/SmokeTestController.php`
+- `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Bei 31 Tagen mit je gleich vielen Buchungen zeigt der Multipage-Check in fünf
+Aufrufen hintereinander dasselbe Datum als „max. Buchungen an einem Tag", statt
+wie bisher ein wechselndes.
+
+### DONE
+Vier `ORDER BY c DESC` ohne Tie-Break bekommen einen. Es sind vier und nicht
+eine, weil alle vier denselben Abschnitt der Maske speisen: Wer nur die eine
+Fundstelle repariert, die aufgefallen ist, hat die Maske noch immer nicht
+reproduzierbar – das eine sichtbare Ergebnis entsteht erst aus allen vieren.
+
+- Kandidatensuche (Service) und Kandidatenliste (Controller):
+  `ORDER BY c DESC, jahr DESC, monat DESC, mitarbeiter_id ASC`
+- Spitzentag-Abfrage, je einmal in beiden Dateien:
+  `ORDER BY c DESC, d ASC`
+
+**Eine Entscheidung steckt darin, die nicht zwingend war:** Bei Gleichstand
+gewinnt jetzt der **neuere** Monat, nicht irgendeiner. Der Check ist dazu da,
+„schnell einen echten Datensatz für den Browser-Test" zu finden – dafür ist der
+jüngere Monat der nützlichere. Genügt Reproduzierbarkeit allein, wäre
+`jahr ASC, monat ASC` genauso richtig; das ist eine Zeile.
+
+### TEST
+- `php -l` über beide geänderten Dateien: ohne Befund.
+- **Der Fehler zuerst reproduziert, dann die Behebung belegt.** Dafür 186
+  Buchungen in `zeit_probe` gesät, jeder Julitag 2026 mit genau sechs – also
+  Gleichstand über 31 Tage. Die Tagesabfrage in ihrer alten Form lieferte in
+  sechs Läufen vier verschiedene Daten (`07-04`, `07-08`, `07-08`, `07-16`,
+  `07-12`, `07-04`), mit Tie-Break sechsmal `2026-07-01`.
+- **In der Maske selbst**, alter Stand gegen Arbeitsstand, je fünf Aufrufe: alt
+  drei verschiedene Daten (`07-04`, `07-16`, `07-16`, `07-04`, `07-12`), neu
+  fünfmal `2026-08-01`. Die Kandidatenliste dazu über die Prüfsumme der ganzen
+  Antwort: alt drei verschiedene in drei Läufen, neu dreimal dieselbe.
+- **Nicht reproduziert, und das gehört gesagt:** Die Kandidatensuche selbst war
+  in sechs Läufen zufällig stabil – bei nur zwei Gruppen (Juli und August 2026
+  mit je 186 Buchungen) gab MariaDB immer dieselbe zurück. Belegt ist dort also
+  nur, dass der Tie-Break die Auswahl **festlegt** (durchgehend August statt
+  Juli), nicht dass sie vorher gewackelt hätte. Der Grund für die Änderung ist
+  trotzdem derselbe: garantierte statt zufälliger Stabilität.
+- Fachlogik-Prüfskript: 46 von 46 OK.
+- `pruefumgebung.sh meldungen`: beide Serverlogs ohne PHP-Meldung.
+- Kein Byte-Vergleich gegen `f2cae28` – die Ausgabe **soll** sich hier
+  unterscheiden. Das ist der Unterschied zu -26, wo Gleichheit der Nachweis war.
+
+### NEXT
+Offene Tasks: Gerätetest am Terminal, T-142 (nur noch `pruefeTerminalLogin`,
+nach dem Gerätetest), Offline-Betrieb (T-138).
+
 ## P-2026-08-17-26 pdf-pruefungen-in-einen-service
 
 ### EINGELESEN

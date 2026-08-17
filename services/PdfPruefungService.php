@@ -508,7 +508,7 @@ class PdfPruefungService
                         WHERE typ IN ('kommen','gehen')
                           AND zeitstempel >= DATE_SUB(CURDATE(), INTERVAL {$window} MONTH)
                         GROUP BY mitarbeiter_id, YEAR(zeitstempel), MONTH(zeitstempel)
-                        ORDER BY c DESC
+                        ORDER BY c DESC, jahr DESC, monat DESC, mitarbeiter_id ASC
                         LIMIT 1
                     ";
 
@@ -533,7 +533,7 @@ class PdfPruefungService
                     $maxDayDatum = '';
                     try {
                         $stmt2 = $pdo->prepare(
-                            "SELECT DATE(zeitstempel) AS d, COUNT(*) AS c\n                                 FROM zeitbuchung\n                                 WHERE mitarbeiter_id = :mid\n                                   AND typ IN ('kommen','gehen')\n                                   AND YEAR(zeitstempel) = :j\n                                   AND MONTH(zeitstempel) = :m\n                                 GROUP BY DATE(zeitstempel)\n                                 ORDER BY c DESC\n                                 LIMIT 1"
+                            "SELECT DATE(zeitstempel) AS d, COUNT(*) AS c\n                                 FROM zeitbuchung\n                                 WHERE mitarbeiter_id = :mid\n                                   AND typ IN ('kommen','gehen')\n                                   AND YEAR(zeitstempel) = :j\n                                   AND MONTH(zeitstempel) = :m\n                                 GROUP BY DATE(zeitstempel)\n                                 ORDER BY c DESC, d ASC\n                                 LIMIT 1"
                         );
                         $stmt2->execute(['mid' => $mid, 'j' => $jahr, 'm' => $monat]);
                         $row2 = $stmt2->fetch(PDO::FETCH_ASSOC);

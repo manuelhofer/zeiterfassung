@@ -18,14 +18,16 @@ nichts.
 
 ## Nächster Schritt (konkret)
 
-**B-105 beheben** – beim Umzug der PDF-Prüfungen (P-2026-08-17-26) gefunden,
-Behebung als eigener Patch.
+**Keiner offen.** Die PDF-Prüfungen liegen in `PdfPruefungService`
+(P-2026-08-17-26), der dabei gefundene B-105 ist behoben (-27). Von T-142 bleibt
+nur `pruefeTerminalLogin`, und das wartet auf den Gerätetest.
+
+Weiter geht es mit den offenen Tasks unten – oder mit dem, was der Praxis-Test
+hergibt.
 
 ## Offene Bugs
 
-- **B-105** Der Multipage-Check zeigt „max. Buchungen an einem Tag" mit einem
-  Datum, das bei Gleichstand von Aufruf zu Aufruf wechselt – die Abfrage
-  sortiert nur nach `COUNT(*) DESC LIMIT 1`, ohne Tie-Break.
+Keine bekannten.
 
 ## Offene Tasks
 
