@@ -18,6 +18,103 @@ legacy_zip_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-08-17-33 b-106-offline-kein-auftrag-ohne-mitarbeiter
+
+### EINGELESEN
+- `docs/STATUS_SNAPSHOT.md` – B-106 als nächster Schritt, mit beiden offenen
+  Wegen.
+- `services/AuftragszeitService.php`, Offline-Zweig von `starteAuftrag()`
+  (`sql1` bis `sql3`) und `mitarbeiterIdSql()`.
+- `controller/TerminalController.php`, `starteNebenauftrag()` (3232) – der
+  Offline-Zweig mit demselben `auftrag_ensure`.
+- `core/OfflineQueueManager.php`, `verarbeiteOffeneEintraege()` (157) – jeder
+  Eintrag einzeln, `ORDER BY erstellt_am, id`, ein Fehler übersprungen.
+- `sql/01_initial_schema.sql`, `auftrag`, `auftrag_arbeitsschritt`,
+  `auftragszeit` – welche Bedingung tatsächlich zuschlägt.
+- P-2026-08-17-29, Abschnitt DONE – der Befund, aus dem B-106 entstand.
+
+### DATEIEN
+- `services/AuftragszeitService.php`, `controller/TerminalController.php`
+- `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Ein Auftragsstart offline mit einem Chip, den es nicht gibt, hinterlässt nach
+dem Einspielen **nichts** in `auftrag` und `auftrag_arbeitsschritt` – nur
+`auftrag_start` steht auf `fehler`.
+
+### DONE
+Manuel hat den Weg gewählt: Anlegen an die Buchung koppeln, nicht hinterher
+aufräumen. Aus dem `VALUES` im `auftrag_ensure` wird deshalb ein `SELECT` über
+die Tabelle, an der die Buchung daneben hängt:
+
+```sql
+INSERT INTO auftrag (auftragsnummer, aktiv)
+SELECT 'B106-FREMD', 1 FROM mitarbeiter
+ WHERE rfid_code = 'CHIP-GIBTSNICHT' AND aktiv = 1 LIMIT 1
+    ON DUPLICATE KEY UPDATE auftragsnummer = auftragsnummer
+```
+
+Findet das `SELECT` niemanden, entsteht kein Auftrag – und der `auftrag_start`
+daneben wäre ohnehin gescheitert. Der Auftrag entsteht also genau dann, wenn
+auch gebucht wird.
+
+**Die Bedingung muss genau die der Buchung sein**, nicht die strengere.
+`mitarbeiterBedingungSql()` spiegelt deshalb `mitarbeiterIdSql()`: Über die RFID
+zählt `aktiv = 1` mit, weil der Subselect sonst NULL liefert; über die
+Mitarbeiter-ID zählt es **nicht**, weil dort nur der Fremdschlüssel fragt und
+der den Status nicht kennt. Eine strengere Bedingung hätte den umgekehrten
+Fehler erzeugt: eine Buchung, deren Auftrag in der Liste fehlt.
+
+**Der Arbeitsschritt musste mit.** Er hängt über einen Subselect am Auftrag von
+oben. Bleibt der aus, wäre `auftrag_id` NULL geworden und der Eintrag auf
+`fehler` gegangen – aus einer Leiche wäre eine Fehlermeldung geworden, aus einem
+Fehler zwei. Auch er ist jetzt ein `INSERT … SELECT` und trifft dann keine
+Zeile. Belegt: Eintrag 7 im Prüflauf steht auf `verarbeitet`, nicht auf
+`fehler`.
+
+**Nebenaufträge gleich mit.** `starteNebenauftrag()` hat dasselbe
+`auftrag_ensure`, dort immer mit Mitarbeiter-ID. Sie bleiben im Praxis-Test
+unbenutzt (Snapshot), aber B-106 ist ein Fehler des Musters, nicht einer
+einzelnen Maske – eine der beiden Stellen ungefixt zu lassen, hieße den Fehler
+stehen zu lassen und ihn beim nächsten Lesen erneut zu finden.
+
+**Online ist offen und bleibt es in diesem Patch.** Dort legt `starteAuftrag()`
+den Auftrag an, bevor `erstelleAuftragszeit()` überhaupt versucht wird; der Weg
+dahin ist eine Transaktion um beides, nicht ein zweites `SELECT`. Das ist ein
+eigenes Thema mit eigenem Akzeptanzkriterium und kommt als eigener Patch – B-106
+bleibt bis dahin offen, mit auf online eingeengtem Wortlaut.
+
+### TEST
+Prüfumgebung, `alt` = 1275a5c, `neu` = Arbeitsstand, Mitarbeiter 15 mit
+`rfid_code = 'CHIP-B106'`. Gestartet wurde über eine Wegwerf-Sonde direkt am
+Service (nicht im Repository); der Weg über den Bildschirm ist derselbe Aufruf.
+
+1. **Offline geschrieben** (`terminal neu --offline`): zwei Starts, einmal mit
+   `CHIP-B106`, einmal mit `CHIP-GIBTSNICHT`, je mit Arbeitsschritt `fraesen`.
+   Acht Queue-Einträge, beide `auftrag_ensure` mit `SELECT … FROM mitarbeiter`.
+2. **Eingespielt** (`terminal neu`, zwei Seitenaufrufe): Einträge 1–7 auf
+   `verarbeitet`, Eintrag 8 (`auftrag_start`, unbekannter Chip) auf `fehler`
+   mit „Column 'mitarbeiter_id' cannot be null". In `auftrag` steht **nur**
+   `B106-BEKANNT`, in `auftrag_arbeitsschritt` nur dessen `fraesen`, in
+   `auftragszeit` eine Zeile auf Mitarbeiter 15.
+3. **Gegenprobe am alten Stand** (`terminal alt --offline`, Codes
+   `ALT-BEKANNT`/`ALT-FREMD`, danach eingespielt): Dort bleiben `ALT-FREMD` in
+   `auftrag` **und** dessen `fraesen` in `auftrag_arbeitsschritt` stehen, ohne
+   jede Buchung – B-106, wie beschrieben, und zusätzlich der Arbeitsschritt,
+   der im Bugtext bisher nicht stand.
+4. Fachlogik-Prüfskript 46 von 46; `?seite=smoke_test` und `?seite=dashboard`
+   byteweise gleich (62.999 / 33.447 Bytes, je 0 abweichende Zeilen); beide
+   Serverlogs ohne PHP-Meldung; `php -l` ohne Befund.
+
+**Nicht geprüft:** der Nebenauftrag offline – er hängt weiter an einer
+Anmeldung, die es offline nicht gibt (Snapshot), und ist am Gerät nicht
+erreichbar. Geändert ist dort nur dasselbe SQL-Muster, gelesen und mit dem
+geprüften Zweig verglichen, nicht ausgeführt.
+
+### NEXT
+B-106 online: Anlegen und Buchen in eine Transaktion, in `starteAuftrag()` und
+`starteNebenauftrag()`.
+
 ## P-2026-08-17-32 t-138-p3-maschinenauswahl-am-terminal
 
 ### EINGELESEN

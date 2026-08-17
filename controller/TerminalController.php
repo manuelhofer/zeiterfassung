@@ -3246,19 +3246,25 @@ class TerminalController
         // Offline: nur in Queue schreiben
         if (!$this->istHauptdatenbankAktiv()) {
             // Auftrag (Minimaldatensatz) sicherstellen, damit die Buchung später auflösbar ist
-            // (analog Hauptauftrag-Start in AuftragszeitService).
-            $sqlEnsureAuftrag = 'INSERT INTO auftrag (auftragsnummer, aktiv) VALUES ('
-                . $this->sqlString($auftragscode) . ', 1) '
+            // (analog Hauptauftrag-Start in AuftragszeitService) – und nur, wenn
+            // es den Mitarbeiter noch gibt, an dem der Fremdschlüssel der
+            // Buchung hängt. Sonst bleibt eine Auftragsnummer ohne jede Buchung
+            // zurück (B-106). Begründung der Bedingung: dort, `mitarbeiterBedingungSql()`.
+            $sqlEnsureAuftrag = 'INSERT INTO auftrag (auftragsnummer, aktiv) '
+                . 'SELECT ' . $this->sqlString($auftragscode) . ', 1 '
+                . 'FROM mitarbeiter WHERE id = ' . $this->sqlInt($mitarbeiterId) . ' LIMIT 1 '
                 . 'ON DUPLICATE KEY UPDATE auftragsnummer = auftragsnummer';
 
             $sqlSchritt = null;
             $sqlSchrittId = 'NULL';
             if ($arbeitsschrittCode !== null) {
                 $auftragIdSql = '(SELECT id FROM auftrag WHERE auftragsnummer = ' . $this->sqlString($auftragscode) . ' LIMIT 1)';
-                $sqlSchritt = 'INSERT INTO auftrag_arbeitsschritt (auftrag_id, arbeitsschritt_code, aktiv) VALUES ('
-                    . $auftragIdSql . ', '
-                    . $this->sqlString($arbeitsschrittCode) . ', 1)
-                    ON DUPLICATE KEY UPDATE arbeitsschritt_code = arbeitsschritt_code';
+                // Hängt am Auftrag von oben: Bleibt der aus, bliebe hier
+                // `auftrag_id` NULL und der Eintrag ginge auf Fehler.
+                $sqlSchritt = 'INSERT INTO auftrag_arbeitsschritt (auftrag_id, arbeitsschritt_code, aktiv) '
+                    . 'SELECT id, ' . $this->sqlString($arbeitsschrittCode) . ', 1 '
+                    . 'FROM auftrag WHERE auftragsnummer = ' . $this->sqlString($auftragscode) . ' LIMIT 1 '
+                    . 'ON DUPLICATE KEY UPDATE arbeitsschritt_code = arbeitsschritt_code';
                 $sqlSchrittId = '(SELECT id FROM auftrag_arbeitsschritt WHERE auftrag_id = ' . $auftragIdSql
                     . ' AND arbeitsschritt_code = ' . $this->sqlString($arbeitsschrittCode) . ' LIMIT 1)';
             }

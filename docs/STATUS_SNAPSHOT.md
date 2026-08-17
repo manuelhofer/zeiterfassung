@@ -18,18 +18,17 @@ nichts.
 
 ## Nächster Schritt (konkret)
 
-**B-106 beheben:** `auftrag_ensure` legt den Auftrag an, bevor die Buchung
-abbricht – ein Auftragscode, der scheitert, hinterlässt einen leeren Auftrag.
-Der Weg ist offen: entweder das Anlegen hinter die Prüfungen ziehen, oder den
-leeren Auftrag beim Scheitern wieder entfernen. T-138 ist damit fertig
-(P-2026-08-17-29 bis -32); Aufträge lassen sich offline starten, stoppen und
-mit Maschine buchen.
+**B-106 online beheben:** Offline ist der Fehler weg (P-2026-08-17-33) –
+online legt `starteAuftrag()` den Auftrag weiterhin an, bevor
+`erstelleAuftragszeit()` überhaupt versucht wird. Der gewählte Weg ist derselbe
+wie offline (Anlegen an die Buchung koppeln), hier über eine Transaktion um
+beides, in `starteAuftrag()` und `starteNebenauftrag()`.
 
 ## Offene Bugs
 
-- **B-106** Ein Auftragscode, der beim Buchen scheitert, hinterlässt trotzdem
-  einen leeren Auftrag – `auftrag_ensure` legt ihn an, bevor die Buchung
-  abbricht. Betrifft online wie offline.
+- **B-106** Online hinterlässt ein Auftragscode, dessen Buchung scheitert,
+  trotzdem einen leeren Auftrag – er wird angelegt, bevor die Buchung versucht
+  wird. Offline behoben.
 
 ## Offene Tasks
 

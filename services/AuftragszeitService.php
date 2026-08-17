@@ -86,6 +86,29 @@ class AuftragszeitService
     }
 
     /**
+     * Gibt es den, für den gebucht wird? – als `WHERE`-Bedingung auf `mitarbeiter`.
+     *
+     * Sie muss **genau** die Bedingung sein, unter der die Buchung daneben
+     * gelingt, nicht eine strengere und nicht eine weichere: Ein Auftrag, der
+     * entsteht, obwohl die Buchung scheitert, bleibt als leere Auftragsnummer
+     * zurück (B-106) – einer, der ausbleibt, obwohl gebucht wird, fehlt später
+     * in der Auftragsliste.
+     *
+     * Über die RFID zählt `aktiv = 1` deshalb mit: Der Subselect aus
+     * `mitarbeiterIdSql()` liefert sonst NULL, und der Eintrag scheitert. Über
+     * die ID zählt es **nicht** – dort fragt nur der Fremdschlüssel, und der
+     * kennt bloß die Zeile, nicht ihren Status.
+     */
+    private function mitarbeiterBedingungSql(int $mitarbeiterId, ?string $rfidCode): string
+    {
+        if ($mitarbeiterId > 0) {
+            return 'id = ' . $mitarbeiterId;
+        }
+
+        return 'rfid_code = ' . $this->sqlQuote((string)$rfidCode) . ' AND aktiv = 1';
+    }
+
+    /**
      * Normalisiert eine RFID für den Queue-Weg; `null`, wenn keine brauchbare da ist.
      *
      * Die Längengrenze steht auch in `bucheZeitOfflinePerRfid()` – Leser und
@@ -275,19 +298,29 @@ class AuftragszeitService
                 . " AND typ='haupt' AND status='laufend' AND endzeit IS NULL";
 
 
-            // 2) Auftrag (Minimaldatensatz) sicherstellen, damit die Buchung später auflösbar ist
-            $sql2 = 'INSERT INTO auftrag (auftragsnummer, aktiv) VALUES ('
-                . $this->sqlNullableString($auftragscode, 100) . ', 1)
-                ON DUPLICATE KEY UPDATE auftragsnummer = auftragsnummer';
+            // 2) Auftrag (Minimaldatensatz) sicherstellen, damit die Buchung
+            //    später auflösbar ist – aber nur, wenn es den Mitarbeiter gibt,
+            //    für den gebucht wird. Ein unbekannter Chip hinterließ sonst
+            //    eine Auftragsnummer ohne jede Buchung: Dieses `INSERT` gelang,
+            //    das `auftrag_start` daneben scheiterte (B-106). Das `SELECT`
+            //    liefert in dem Fall keine Zeile, und es wird nichts angelegt.
+            $sql2 = 'INSERT INTO auftrag (auftragsnummer, aktiv) '
+                . 'SELECT ' . $this->sqlNullableString($auftragscode, 100) . ', 1 '
+                . 'FROM mitarbeiter WHERE ' . $this->mitarbeiterBedingungSql($mitarbeiterId, $rfidCode) . ' LIMIT 1 '
+                . 'ON DUPLICATE KEY UPDATE auftragsnummer = auftragsnummer';
 
             $sqlSchritt = null;
             $sqlSchrittId = 'NULL';
             if ($arbeitsschrittCode !== null) {
                 $auftragIdSql = '(SELECT id FROM auftrag WHERE auftragsnummer = ' . $this->sqlNullableString($auftragscode, 100) . ' LIMIT 1)';
-                $sqlSchritt = 'INSERT INTO auftrag_arbeitsschritt (auftrag_id, arbeitsschritt_code, aktiv) VALUES ('
-                    . $auftragIdSql . ', '
-                    . $this->sqlNullableString($arbeitsschrittCode, 100) . ', 1)
-                    ON DUPLICATE KEY UPDATE arbeitsschritt_code = arbeitsschritt_code';
+                // Der Arbeitsschritt hängt am Auftrag von oben: Bleibt der aus,
+                // bliebe hier `auftrag_id` NULL und der Eintrag ginge auf Fehler
+                // – aus einer Leiche wäre eine Fehlermeldung geworden. Das
+                // `SELECT` findet dann ebenfalls nichts.
+                $sqlSchritt = 'INSERT INTO auftrag_arbeitsschritt (auftrag_id, arbeitsschritt_code, aktiv) '
+                    . 'SELECT id, ' . $this->sqlNullableString($arbeitsschrittCode, 100) . ', 1 '
+                    . 'FROM auftrag WHERE auftragsnummer = ' . $this->sqlNullableString($auftragscode, 100) . ' LIMIT 1 '
+                    . 'ON DUPLICATE KEY UPDATE arbeitsschritt_code = arbeitsschritt_code';
                 $sqlSchrittId = '(SELECT id FROM auftrag_arbeitsschritt WHERE auftrag_id = ' . $auftragIdSql
                     . ' AND arbeitsschritt_code = ' . $this->sqlNullableString($arbeitsschrittCode, 100) . ' LIMIT 1)';
             }
