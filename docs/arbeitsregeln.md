@@ -54,6 +54,10 @@ Ziel: verhindern, dass bereits Erledigtes ein zweites Mal gebaut wird.
 - Es gibt **kein hartes Dateilimit**. Aber: Wenn ein Patch auffällig viele
   Dateien anfasst, ist das ein Warnsignal – dann prüfen, ob zwei Themen
   vermischt werden, und aufteilen.
+- **Die Länge einer Datei ist ein eigenes Maß.** Neue Fachlogik geht nicht in
+  eine Datei jenseits von rund 1.500 Zeilen, ohne dass entweder vorher
+  aufgeteilt wird (eigener Patch, T-142) oder im Verlauf steht, warum es diesmal
+  richtig ist, sie weiter wachsen zu lassen.
 
 ## 4. Ergebnis ist ein Commit
 

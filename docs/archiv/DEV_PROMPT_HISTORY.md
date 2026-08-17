@@ -18,6 +18,81 @@ legacy_zip_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-08-17-04 arbeitsregeln-strukturbudget
+
+### EINGELESEN
+- `docs/arbeitsregeln.md`, Abschnitt 3 – der Zuschnitt einer Änderung, samt
+  „kein hartes Dateilimit" und „keine Refactors nebenbei".
+- Abschnitt 0 derselben Datei – was mit einer Regel passiert, die im Weg steht.
+- Die Zeilenzahlen der Dateien jenseits 1.500 Zeilen, gemessen über
+  `find … -exec wc -l`.
+- `docs/STATUS_SNAPSHOT.md`, T-142 – damit die Regel auf einen Task zeigt, der
+  existiert.
+
+### DATEIEN
+- `docs/arbeitsregeln.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Abschnitt 3 verlangt bei einer Datei jenseits rund 1.500 Zeilen entweder eine
+Aufteilung als eigenen Patch oder eine Begründung im Verlauf, und das bestehende
+„kein hartes Dateilimit" steht unverändert daneben.
+
+### DONE
+„Keine Refactors nebenbei" ist richtig und bleibt. Sie hat nur keinen
+Gegendruck: `controller/TerminalController.php` ist auf 4.372 Zeilen und 58
+Methoden gewachsen, `controller/SmokeTestController.php` auf 3.604 – und dabei
+wurde nie eine Regel verletzt. Jeder einzelne Patch war korrekt zugeschnitten;
+die Struktur stand in keiner Task, weil kein Patch für sie zuständig war.
+
+Ein Punkt in Abschnitt 3: Neue Fachlogik geht nicht in eine Datei jenseits rund
+1.500 Zeilen, ohne vorherige Aufteilung (eigener Patch, T-142) oder eine
+Begründung im Verlauf.
+
+**Fehler im eigenen Entwurf, beim Lesen gefunden:** Der Plan zu diesem Patch
+behauptete, „kein hartes Dateilimit" sei das Gegenstück zu einer Längenregel und
+brauche nur eine Ergänzung. Das ist falsch – dieser Satz zählt **Dateien pro
+Patch**, nicht **Zeilen pro Datei**. Zwei verschiedene Maße. Deshalb steht die
+Längenregel als eigener Punkt daneben und tut nicht so, als schränke sie den
+alten ein; der bleibt Wort für Wort, wie er war.
+
+**Warum 1.500 und nicht 2.000:** Bei 1.500 liegen heute 11 Dateien darüber, bei
+2.000 nur 4. Die niedrigere Grenze trifft damit auch die Dateien, die gerade
+erst zu groß werden – `controller/ZeitController.php` (1.876),
+`services/UrlaubService.php` (1.861), `controller/AuftragController.php` (1.852)
+–, und genau dort ist Aufteilen noch billig. Bei 2.000 wäre die Regel eine
+Bestätigung des Zustands: Sie würde nur bei den vier Dateien greifen, bei denen
+Aufteilen schon ein eigenes Vorhaben ist.
+
+Der Preis ist ehrlich zu benennen: **Die Regel kostet ab jetzt bei vielen
+Fachlogik-Patches einen Satz im Verlaufseintrag.** Das ist gewollt – der Satz
+ist das Signal. Wenn sich zeigt, dass er zur Floskel wird, ist die Grenze
+falsch, und dann gehört sie nach Abschnitt 0 geändert, nicht umgangen.
+
+**Was der Punkt nicht tut:** Er verbietet nichts und blockiert keinen Patch. Er
+verlangt eine Entscheidung, die sichtbar ist. Ein hartes Verbot hätte die Folge,
+dass jemand Fachlogik an die falsche Stelle schreibt, nur um unter der Grenze zu
+bleiben – schlimmer als eine lange Datei.
+
+### TEST
+- Keine PHP-Datei geändert, `php -l` gegenstandslos.
+- `docs/arbeitsregeln.md` wächst um genau vier Zeilen (8.976 → 9.253 Bytes);
+  Kaltstart über die vier Immer-Dateien 17.442 Bytes, vorher 17.165.
+- Der alte Punkt steht unverändert: `git diff` zeigt vier Zeilen Zuwachs und
+  keine Änderung an den drei Zeilen davor.
+- `grep -rn "1.500\|1500" docs/*.md CHATSTART.md CLAUDE.md`: ein Treffer. Die
+  Grenze steht an genau einer Stelle.
+- Der Verweis auf T-142 geprüft – der Task steht im Snapshot.
+- Gegenprobe zur Wirkung: `find controller services views modelle core public
+  -name "*.php" -exec wc -l {} +` – 11 Dateien liegen über der Grenze, die
+  Regel greift also ab dem nächsten Patch an einer dieser Dateien.
+
+### NEXT
+Der Kaltstart ist über die vier Patches von 15.881 auf 17.442 Bytes gewachsen
+(+1.561, rund 10 %). Das ist der Preis dafür, dass die Bewertung nicht im Chat
+geblieben ist; er ist nach Abschnitt 9 zulässig, aber er sollte nicht zur
+Gewohnheit werden. Als nächstes steht T-140 an – der Task, auf den die neue
+Pflichtprüfung wartet.
+
 ## P-2026-08-17-03 arbeitsregeln-testpflicht
 
 ### EINGELESEN
