@@ -18,19 +18,14 @@ nichts.
 
 ## Nächster Schritt (konkret)
 
-**Die Patches vom 17.08. örtlich nachprüfen.** Sie sind in einem Container ohne
-MariaDB entstanden: `php -l` und statische Kontrollen sind gelaufen, **Klicktest
-und Prüfumgebung nicht**. Was zu prüfen ist, steht je Patch im Verlauf unter
-TEST, mit den Aufrufen zum Kopieren. Zwei Dinge zuerst:
+**Diesen Stand nach `main` bringen.** Die Prüfungen, die der Sitzung vom 17.08.
+gefehlt haben, sind nachgeholt – örtlich, gegen MariaDB (P-2026-08-17-22):
+Prüfskript 46 von 46, alle Admin-Masken für einen Chef offen, die umgebauten
+Smoke-Test-Masken byteweise gleich, Serverlogs ohne PHP-Meldung.
 
-1. `scripts/dev/pruefumgebung.sh aufbauen`, dann
-   `scripts/dev/pruefumgebung.sh pruefen` – der erste Lauf überhaupt. Erwartet:
-   46 Fälle grün. Was dabei abweicht, ist erst ein Befund über die Erwartung,
-   dann einer über den Code.
-2. Der Klicktest für P-2026-08-17-11 (Legacy-Admin-Fallback, 19 Dateien): Fällt
-   eine Admin-Maske für einen Chef zu, liegt die Ursache dort.
-
-Erst danach gehört dieser Stand nach `main`.
+Zwei Befunde daraus sind als eigene Patches erledigt: der Aufruf des Prüfskripts
+konnte nie funktionieren (P-2026-08-17-20), und die Feiertag+Arbeitszeit-Prüfung
+konnte nie anschlagen (P-2026-08-17-21).
 
 ## Offene Bugs
 
@@ -45,10 +40,6 @@ Ein Satz je Task – die Begründung steht im Verlauf, nicht hier.
   und Stufenplan in
   [`spezifikation_terminal_installation.md`](spezifikation_terminal_installation.md),
   Abschnitt 12 und 11.
-- **T-140** Das nachrechnende Prüfskript ist gebaut
-  ([`spezifikation_fachlogik_pruefskript.md`](spezifikation_fachlogik_pruefskript.md));
-  offen ist allein der erste grüne Lauf gegen `zeit_probe` – siehe „Nächster
-  Schritt".
 - **T-142** Aus dem `SmokeTestController` sind die fachlichen Prüfungen heraus;
   offen bleiben die drei PDF-Prüfungen und `pruefeTerminalLogin` als je eigenes
   Vorhaben, letzteres erst nach dem Gerätetest.

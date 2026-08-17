@@ -18,6 +18,67 @@ legacy_zip_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-08-17-22 nachgeholte-pruefungen-der-sitzung
+
+### EINGELESEN
+- `docs/STATUS_SNAPSHOT.md`, „Nächster Schritt" und „Offene Tasks".
+- Die TEST-Abschnitte von P-2026-08-17-11, -13 und -18 – welche Prüfungen dort
+  ausdrücklich offen geblieben sind und mit welchen Formularwerten.
+- `docs/wartungscheckliste.md` – welche Kernabläufe zu klicken sind.
+
+### DATEIEN
+- `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Der Snapshot verlangt keine Nachprüfung mehr, die gelaufen ist, und nennt als
+nächsten Schritt den Weg nach `main`.
+
+### DONE
+Die Sitzung vom 17.08. ist in einem Container ohne MariaDB entstanden und hat
+ihre Prüfschuld selbst notiert. Sie ist jetzt beglichen – nichts davon ist Code
+dieses Patches, alles ist Ergebnis:
+
+**T-140, erster Lauf.** 46 von 46. Der Weg dahin hat zwei Patches gekostet, weil
+der erste Lauf zwei Dinge aufgedeckt hat, die kein `php -l` finden konnte: einen
+Aufruf, der nie funktionieren konnte (-20), und eine Prüfung, die nie anschlagen
+konnte (-21). Genau dafür war das Skript gedacht.
+
+**P-2026-08-17-11, Legacy-Admin.** 23 Masken als Chef **und** Personalbüro
+abgerufen: alle HTTP 200, keine Ablehnung, kein Rücksprung auf die Anmeldung.
+`maschine_code.php` kommt durch beide Rechte-Gates – die 400er-Antwort dahinter
+ist die fehlende Maschinen-ID, nicht ein verweigerter Zugriff. Der Patch mit dem
+größten Risiko der Sitzung hat keins realisiert.
+
+**P-2026-08-17-13 und -18, Umbau in den Service.** Kriterium 1 der Spezifikation
+belegt: Alle sechs umgebauten Masken liefern byteweise dasselbe HTML wie vor dem
+Umbau. Die einzige Abweichung ist eine Zeile in `feiertag_arbeitszeit` –
+„Feiertag-Tage im Report" gegen „im Monat" –, und das ist die gewollte Änderung
+aus -21, nicht ein Rest des Umbaus.
+
+T-140 ist aus den Tasks **entfernt**: Das Skript ist gebaut, gelaufen und grün.
+
+**Was diese Prüfung nicht abdeckt:** Sie lief gegen `zeit_probe` – eine
+Datenbank mit einem erfundenen Prüfbenutzer und den Zeilen, die das Prüfskript
+selbst anlegt. Über echte Bestände sagt sie nichts; der Gerätetest am Terminal
+bleibt ebenso offen wie vorher.
+
+### TEST
+- `scripts/dev/pruefumgebung.sh pruefen`: 46 von 46, zweimal hintereinander
+  dasselbe Ergebnis.
+- 23 Backend-Masken über `holen neu` abgerufen und je auf „keine Berechtigung",
+  „Zugriff verweigert" und die Anmeldemaske durchsucht: keiner der drei Treffer.
+- `vergleichen --token --post …` für `monatsraster`, `doppelzaehlung`,
+  `feiertag_arbeitszeit`, `feiertag_quick`, `monatsfallback` und
+  `buchungssequenz` gegen `alt` = 15704cd: fünf gleich, einer mit genau der
+  erwarteten Zeile Unterschied (Diff gegengelesen, nicht nur der Rückgabewert).
+- `scripts/dev/pruefumgebung.sh meldungen`: beide Serverlogs ohne PHP-Meldung.
+- `scripts/dev/pruefumgebung.sh abraeumen` mit Nachprüfung: kein Port, kein
+  Server, keine `zeit_probe`-Datenbank; `zeiterfassung` und
+  `zeiterfassung_offline` unberührt.
+
+### NEXT
+Push nach `main` – auf Ansage.
+
 ## P-2026-08-17-21 feiertagpruefung-liest-rohdaten
 
 ### EINGELESEN
