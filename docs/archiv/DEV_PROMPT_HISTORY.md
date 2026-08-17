@@ -18,6 +18,75 @@ legacy_zip_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-08-17-09 entscheidungen-als-auswahl
+
+### EINGELESEN
+- `docs/arbeitsregeln.md`, Abschnitt 0 – „Was am Ablauf stört … wird
+  angesprochen, nicht ausgehalten", samt der schon dort stehenden „Vorgabe, die
+  keiner gestellt hat".
+- P-2026-08-17-05 und -06 – die zwei Rücknahmen, aus denen die Regel folgt.
+- `CLAUDE.md` und `CHATSTART.md` – geprüft, ob die Regel dort besser stünde.
+
+### DATEIEN
+- `docs/arbeitsregeln.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Abschnitt 0 verlangt, dass eine zu treffende Entscheidung als Frage mit Optionen,
+Erklärung und Empfehlung gestellt wird, und benennt ausdrücklich, dass die
+Freigabe eines Vorhabens keine Zustimmung zu einer darin mitgelaufenen Vorgabe
+ist.
+
+### DONE
+Manuel hat die Regel bestellt, nachdem zweimal dasselbe passiert war: Eine
+Zeilengrenze (P-2026-08-17-04) und ein Aktivierungszeitpunkt
+(P-2026-08-17-03) sind als Fließtext in einem Plan gelandet, und die Freigabe des
+Plans wurde als Zustimmung zu beidem behandelt. Beide mussten zurückgenommen
+werden.
+
+Der Absatz steht in Abschnitt 0 und nicht in `CLAUDE.md`: Er gilt für **jedes**
+Werkzeug, nicht nur für Claude Code – und `CLAUDE.md` verweist ohnehin auf
+`CHATSTART.md`, damit keine zweite, driftende Fassung entsteht. Er steht auch
+nicht in `CHATSTART.md`: Dort stehen bewusst nur die vier Regeln, deren
+Verletzung nicht mehr zu reparieren ist, und eine fünfte hätte diesen Zuschnitt
+verwässert. Ein nicht gestellter Vorschlag ist reparierbar – das zeigen die zwei
+Rücknahmen.
+
+Drei Dinge, die der Absatz ausdrücklich sagt, weil ohne sie genau das passiert,
+was passiert ist:
+
+**Was eine Entscheidung ist:** eine Zahl, eine Grenze, ein Umfang, der Wortlaut
+einer Regel, die Reihenfolge zweier Wege. Nicht die Wahl zwischen zwei
+Formulierungen desselben Satzes – das wäre Rückfragen um des Fragens willen.
+
+**Mit Erklärung und Empfehlung.** Eine Option ohne die Folge, die sie hat, ist
+keine Wahl, sondern ein Ratespiel. Und wer die Alternativen kennt, hat auch eine
+Meinung – die gehört dazu, sonst schiebt das Werkzeug die Arbeit zurück, die es
+tun soll.
+
+**Die Freigabe eines Vorhabens ist keine Zustimmung zur Vorgabe darin.** Das ist
+der eigentliche Satz. Ohne ihn kann jede Setzung als „war doch im Plan"
+gerechtfertigt werden.
+
+Nicht in den Absatz aufgenommen: eine Ausnahme für „offensichtliche" Fälle. Was
+offensichtlich ist, entscheidet sonst der, der auch die Vorgabe erfindet.
+
+### TEST
+- `docs/arbeitsregeln.md` wächst um acht Zeilen (8.943 → 9.469 Bytes); Kaltstart
+  17.852 Bytes.
+- `grep -rn "Optionen\|Auswahl"` über die Kaltstart-Dateien: zwei Treffer, beide
+  im neuen Absatz – die Aussage steht an genau einer Stelle.
+- Abschnitt 0 am Stück gegengelesen: Der neue Absatz schließt an „eine Vorgabe,
+  die keiner gestellt hat" an und wiederholt sie nicht; der alte Text ist
+  unverändert.
+- Der Verweis auf P-2026-08-17-05 geprüft – der Eintrag existiert und enthält die
+  Begründung, auf die verwiesen wird.
+
+### NEXT
+Die offenen Tasks am Stück, in dieser Reihenfolge: T-141 (Doku, ohne Datenbank
+belegbar), dann T-140 spezifizieren, dann die Code-Patches T-139 und T-142. In
+dieser Sitzung gibt es kein MariaDB – was nur mit Datenbank prüfbar ist, wird als
+solches benannt.
+
 ## P-2026-08-17-08 fachlogik-nachrechnen-pflicht
 
 ### EINGELESEN

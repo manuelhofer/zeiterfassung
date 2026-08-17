@@ -19,6 +19,14 @@ stört – ein Schritt, der jedes Mal Zeit kostet, eine Datei am falschen Ort,
 eine Doku, die niemand mehr liest, eine Vorgabe, die keiner gestellt hat –,
 wird **angesprochen**, nicht ausgehalten.
 
+**Entscheidungen kommen als Auswahl.** Was zu entscheiden ist – eine Zahl, eine
+Grenze, ein Umfang, der Wortlaut einer Regel, die Reihenfolge zweier Wege –,
+wird als Frage mit **Optionen** gestellt, je mit einem Satz dazu, was die Option
+bedeutet und was sie kostet, und mit einer Empfehlung. Nicht als Fließtext in
+einem Plan, nicht als Mitteilung mit „widersprich, wenn es falsch ist". Die
+Freigabe eines Vorhabens ist **keine** Zustimmung zu einer Vorgabe, die darin
+mitgelaufen ist (warum nicht: P-2026-08-17-05).
+
 ## 1. Wann überhaupt gearbeitet wird
 
 Ob gerade gearbeitet wird, entscheidet der **Projektstatus** in
