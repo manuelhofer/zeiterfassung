@@ -18,6 +18,59 @@ legacy_zip_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-08-17-23 hilfeausgabe-ohne-zeilennummer
+
+### EINGELESEN
+- `docs/STATUS_SNAPSHOT.md`, „Offene Tasks" – der notierte Punkt.
+- P-2026-08-17-20 im Verlauf, Abschnitt DONE – wie der Befund entstanden ist.
+- `scripts/dev/pruefumgebung.sh`, Kopfkommentar und Befehlsverteilung.
+- `grep -rn "sed -n '" scripts/` – ob es eine zweite Stelle derselben Art gibt.
+
+### DATEIEN
+- `scripts/dev/pruefumgebung.sh` (Hilfebereich, Befehlsverteilung)
+- `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Der Aufruf ohne Befehl gibt byteweise denselben Kopfkommentar aus wie bisher, und
+nach zwei zusätzlichen Kopfzeilen stehen auch diese in der Hilfe, ohne dass im
+Skript eine Zahl geändert wird.
+
+### DONE
+Die Hilfe war der Kopfkommentar, ausgeschnitten mit `sed -n '2,74p'`. Die 74 war
+schon einmal eine 67 und ist in P-2026-08-17-20 mitgewachsen – auffallen konnte
+das nur, weil derselbe Patch den Kopf verlängert hat. Wer als Nächster einen
+Absatz einfügt, verliert das Ende der Hilfe stillschweigend, und niemand liest
+eine Hilfe daraufhin nach.
+
+Jetzt entscheidet die erste Zeile ohne `#`, wo der Kopf endet: ein `awk`
+überspringt die Shebang-Zeile, gibt jede Kommentarzeile ohne ihr `#` aus und
+bricht bei der ersten anderen Zeile ab. Das ist dieselbe Grenze, die ein Mensch
+sieht, und sie steht nicht zweimal im Skript.
+
+Der Weg über eine berechnete Endzeile (`awk`, dann weiter mit `sed -n "2,$ende p"`)
+wäre möglich gewesen, hätte aber wieder zwei Stellen gehabt, die zueinander
+passen müssen. Eine reicht.
+
+**Bewusst nicht gemacht:** Nur diese eine Stelle ist angefasst. Die übrigen
+`sed -n`-Aufrufe in `scripts/` arbeiten über Muster statt über Zeilennummern und
+haben das Problem nicht – nachgesehen, nicht vermutet.
+
+### TEST
+- `bash -n scripts/dev/pruefumgebung.sh`: kein Syntaxfehler.
+- Aufruf ohne Befehl gegen die Ausgabe des alten Standes gehalten
+  (`git show HEAD:… | sed -n '2,74p' | sed 's/^#//; s/^ //'`): `cmp` gleich,
+  4148 Bytes, 73 Zeilen, Rückgabewert weiterhin 1.
+- Drifttest an einer Kopie im Zwischenablage-Verzeichnis: zwei Zeilen in die
+  Aufrufliste eingefügt, Hilfe hat 75 Zeilen, enthält die neue Zeile und endet
+  weiter auf der Trennlinie. Gegenprobe mit `sed -n '2,74p'` auf derselben
+  Kopie: 73 Zeilen, Ende mitten im Satz „… nicht geglaubt" – genau der Verlust,
+  um den es ging.
+- Nicht geprüft: die übrigen Unterbefehle. Sie sind nicht angefasst, und die
+  Prüfumgebung dafür hochzuziehen prüft nichts an diesem Patch.
+
+### NEXT
+Unverändert: dieser Stand nach `main`, auf Ansage.
+
 ## P-2026-08-17-22 nachgeholte-pruefungen-der-sitzung
 
 ### EINGELESEN

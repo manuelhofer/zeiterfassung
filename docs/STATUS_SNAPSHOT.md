@@ -23,9 +23,10 @@ gefehlt haben, sind nachgeholt – örtlich, gegen MariaDB (P-2026-08-17-22):
 Prüfskript 46 von 46, alle Admin-Masken für einen Chef offen, die umgebauten
 Smoke-Test-Masken byteweise gleich, Serverlogs ohne PHP-Meldung.
 
-Zwei Befunde daraus sind als eigene Patches erledigt: der Aufruf des Prüfskripts
-konnte nie funktionieren (P-2026-08-17-20), und die Feiertag+Arbeitszeit-Prüfung
-konnte nie anschlagen (P-2026-08-17-21).
+Drei Befunde daraus sind als eigene Patches erledigt: der Aufruf des Prüfskripts
+konnte nie funktionieren (P-2026-08-17-20), die Feiertag+Arbeitszeit-Prüfung
+konnte nie anschlagen (P-2026-08-17-21), und die Hilfeausgabe der Prüfumgebung
+hing an einer Zeilennummer (P-2026-08-17-23).
 
 ## Offene Bugs
 
@@ -46,9 +47,6 @@ Ein Satz je Task – die Begründung steht im Verlauf, nicht hier.
 - **Feiertag+Arbeitszeit im Bestand nachsehen** – die Prüfung kann seit
   P-2026-08-17-21 anschlagen; ob in der Entwicklungsdatenbank aus dem Serverdump
   Tage mit Ist- **und** Feiertagsstunden stehen, hat noch niemand gefragt.
-- **Hilfeausgabe von `pruefumgebung.sh`** schneidet den Kopfkommentar mit einer
-  fest verdrahteten Zeilennummer heraus; sie driftet bei jeder Kopfänderung
-  (aufgefallen in P-2026-08-17-20).
 
 **Offline-Betrieb am Terminal** – Befund und Entscheidungen in P-2026-08-16-08,
 die Regeln dazu in

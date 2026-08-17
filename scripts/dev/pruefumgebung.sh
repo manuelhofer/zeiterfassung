@@ -703,6 +703,19 @@ befehl_abraeumen() {
 }
 
 # ---------------------------------------------------------------------------
+#  Hilfe
+# ---------------------------------------------------------------------------
+#  Der Kopfkommentar IST die Hilfe. Wo er endet, entscheidet die erste Zeile
+#  ohne '#' - nicht eine Zeilennummer im Skript. Die driftet bei jeder
+#  Kopfaenderung mit und schneidet die Hilfe stillschweigend ab: erst stand
+#  '2,67p' da, ein laengerer Kopf machte '2,74p' daraus (P-2026-08-17-20).
+hilfe_ausgeben() {
+    awk 'NR == 1 { next }
+         /^#/    { sub(/^#/, ""); sub(/^ /, ""); print; next }
+                 { exit }' "$0"
+}
+
+# ---------------------------------------------------------------------------
 befehl="${1:-}"
 [ $# -gt 0 ] && shift
 
@@ -720,7 +733,7 @@ case "$befehl" in
     status)      befehl_status "$@" ;;
     abraeumen)   befehl_abraeumen "$@" ;;
     *)
-        sed -n '2,74p' "$0" | sed 's/^#//; s/^ //'
+        hilfe_ausgeben
         exit 1
         ;;
 esac
