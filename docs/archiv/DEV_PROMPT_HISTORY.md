@@ -18,6 +18,95 @@ legacy_zip_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-08-17-13 fachpruefungen-in-einen-service
+
+### EINGELESEN
+- `controller/SmokeTestController.php`, die drei Methoden `pruefeMonatsraster()`,
+  `pruefeDoppelzaehlung()`, `pruefeFeiertagUndArbeitszeit()` vollständig, dazu
+  ihre Aufrufstellen in `index()`.
+- Dieselben Methoden auf ihre Abhängigkeiten abgeklopft: `$this->db` kommt nur
+  als `=== null`-Wächter vor, `Database::` nur im Hinweistext, gerechnet wird
+  über `ReportService`. Kein Zugriff auf `$this->auth`.
+- `core/Autoloader.php` – `services/` ist abgedeckt, eine neue Klasse dort lädt
+  von selbst.
+- `docs/spezifikation_fachlogik_pruefskript.md`, Abschnitt 4d und Kriterium 1.
+
+### DATEIEN
+- `services/FachpruefungService.php` (neu)
+- `controller/SmokeTestController.php`
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Die drei Prüfungen liegen öffentlich in `FachpruefungService`, ihre Rümpfe sind
+gegenüber `HEAD` unverändert bis auf den entfallenen `$_POST`-Prolog, und der
+Controller liefert dasselbe Rückgabebündel wie zuvor.
+
+### DONE
+Die drei Prüfungen rechnen Fachlogik nach – ein Tageswert je Kalendertag, keine
+Doppelzählung bei Betriebsferien und Kurzarbeit-Volltag, kein Feiertag mit
+gleichzeitiger Arbeitszeit. Erreichbar waren sie nur über eine Maske mit Login
+und handgetippter Mitarbeiter-ID. Jetzt stehen sie in einem Service, den zwei
+Aufrufer nutzen können: die Maske wie bisher, und ab P-2026-08-17-14 das
+Prüfskript auf der Kommandozeile.
+
+**Der Schnitt liegt genau am `$_POST`-Prolog.** Alle drei Methoden hatten
+denselben Aufbau: zwei Variablen auf `null`, dann dreizehn Zeilen Formularwerte
+einlesen, dann die Prüfung. Das Einlesen ist Sache des Aufrufers – es bleibt im
+Controller. Alles danach ist die Prüfung und ist umgezogen, Zeile für Zeile.
+
+**Nachgewiesen, nicht behauptet:** Ein Zeilenvergleich der drei Rümpfe gegen
+`HEAD` – nach Entfernen des Prologs und Tausch von `private` auf `public` – ist
+für alle drei identisch. 106 → 92, 136 → 122, 111 → 97 Zeilen; die Differenz ist
+jeweils genau der Prolog.
+
+Warum der Service seinen eigenen `?Database $db` im Konstruktor holt, mit
+`try`/`catch` auf `null`: Weil die Prüfungen genau das erwarten. Eine fehlende
+Datenbank ist für sie kein Abbruch, sondern ein Befund, den sie als `hinweis`
+melden („Database::getInstanz() ist nicht verfügbar."). Der Controller macht es
+seit T-069 genauso; die Bauart ist übernommen und nicht neu erfunden.
+
+Warum die Views unberührt bleiben: Das Rückgabebündel ist unverändert –
+`mitarbeiter_id`, `jahr`, `monat`, `ergebnis`, `hinweis`. Ich habe es gegen
+`views/smoke_test/monatsraster.php` gehalten, das genau diese fünf Schlüssel
+liest. Keine Datei in `views/` ist angefasst.
+
+**Nebeneffekt, der zu T-142 gehört:** `SmokeTestController` fällt von 3.600 auf
+3.322 Zeilen. Das war nicht das Ziel dieses Patches und ist auch kein Argument
+für ihn – es fällt an.
+
+**Fehler im eigenen Vorgehen:** Der Commit war zuerst ohne diesen Eintrag
+abgeschickt. Abschnitt 4 verlangt ihn im **selben** Commit; da nichts gepusht
+war, ist der Commit ergänzt worden statt einen Nachtrag anzuhängen.
+
+### TEST
+- `php -l services/FachpruefungService.php` und
+  `php -l controller/SmokeTestController.php`: keine Syntaxfehler.
+- Rumpfgleichheit maschinell geprüft (Zeilenvergleich gegen
+  `HEAD:controller/SmokeTestController.php`): alle drei identisch.
+- Die drei öffentlichen Signaturen im Service kontrolliert – dieselben
+  Parameternamen und derselben Reihenfolge wie vorher, Rückgabetyp `array`.
+- Delegation im Controller gegengelesen: Prolog unverändert, danach ein Aufruf
+  mit den drei (ggf. durch `$_POST` überschriebenen) Werten.
+- Das Rückgabebündel gegen `views/smoke_test/monatsraster.php` abgeglichen.
+- Autoloader-Pfad geprüft: `services/FachpruefungService.php` liegt in einem der
+  vier Suchverzeichnisse.
+
+**Nicht geprüft, weil kein MariaDB läuft:** das eigentliche Kriterium 1 der
+Spezifikation – dass `views/smoke_test/monatsraster.php`, `doppelzaehlung.php`
+und `feiertag_arbeitszeit.php` über `pruefumgebung.sh vergleichen` byteweise
+dasselbe HTML liefern. Nachzuholen mit `alt` = 15704cd:
+
+```
+scripts/dev/pruefumgebung.sh aufbauen 15704cd
+scripts/dev/pruefumgebung.sh vergleichen --token --post 'monatsraster_test_run=1&monatsraster_test_mitarbeiter_id=1&monatsraster_test_jahr=2026&monatsraster_test_monat=1' '?seite=smoke_test'
+```
+Für die anderen zwei Prüfungen dieselbe Zeile mit `doppelzaehlung_test_*` bzw.
+`feiertag_arbeitszeit_test_*`.
+
+### NEXT
+P-2026-08-17-14: das Prüfskript selbst – Grundgerüst mit der Sperre auf
+`zeit_probe` (Kriterium 2), dann die Fälle.
+
 ## P-2026-08-17-12 t-140-spezifikation-pruefskript
 
 ### EINGELESEN
