@@ -381,6 +381,12 @@ class AuftragszeitService
             ], $mitarbeiterId, null, 'auftragszeit_service');
         }
 
+        // Ab hier wird geschrieben, und Anlegen und Buchen gehören zusammen:
+        // Ohne diese Klammer bliebe ein Auftrag stehen, dessen Buchung daneben
+        // scheitert (B-106). Warum sie eine fremde Transaktion in Ruhe lässt,
+        // steht bei `Database::transaktionStarten()`.
+        $eigeneTransaktion = Database::getInstanz()->transaktionStarten();
+
         // Falls nicht vorhanden: Minimaldatensatz anlegen (idempotent)
         if ($auftragId === null) {
             try {
@@ -406,6 +412,9 @@ class AuftragszeitService
 
         $arbeitsschrittId = $this->findeOderErstelleArbeitsschritt($auftragId, $arbeitsschrittCode);
 
+        $neueId  = null;
+        $fehler  = '';
+
         try {
             // Vor dem Start alle laufenden Hauptaufträge des Mitarbeiters beenden
             $this->auftragszeitModel->beendeLaufendeHauptauftraege($mitarbeiterId, $startzeit);
@@ -423,18 +432,43 @@ class AuftragszeitService
                 $startzeit,
                 null           // Kommentar
             );
-
-            return $neueId;
         } catch (\Throwable $e) {
+            $neueId = null;
+            $fehler = $e->getMessage();
+        }
+
+        // Am Rückgabewert, nicht an einer Exception: `erstelleAuftragszeit()`
+        // fängt selbst und liefert `null`. Wer hier auf einen `catch` wartet,
+        // committet den leeren Auftrag.
+        if ($neueId === null) {
+            Database::getInstanz()->transaktionZuruecknehmen($eigeneTransaktion);
+
+            // Erst nach dem Rollback protokollieren: Der Logger schreibt über
+            // dieselbe Verbindung, und das Zurückrollen nähme die Meldung des
+            // Models gleich mit – der Fehler wäre spurlos.
             Logger::error('Fehler beim Starten einer Auftragszeit (Service)', [
                 'mitarbeiter_id' => $mitarbeiterId,
                 'auftragscode'   => $auftragscode,
                 'maschine_id'    => $maschineId,
-                'exception'      => $e->getMessage(),
+                'exception'      => $fehler,
             ], $mitarbeiterId, null, 'auftragszeit_service');
 
             return null;
         }
+
+        if (!Database::getInstanz()->transaktionAbschliessen($eigeneTransaktion)) {
+            // Ohne Commit steht nichts in der Datenbank – dann ist der Start
+            // auch keiner, sonst meldet der Bildschirm einen Auftrag, den es
+            // nicht gibt.
+            Logger::error('Auftragszeit konnte nicht festgeschrieben werden (Service)', [
+                'mitarbeiter_id' => $mitarbeiterId,
+                'auftragscode'   => $auftragscode,
+            ], $mitarbeiterId, null, 'auftragszeit_service');
+
+            return null;
+        }
+
+        return $neueId;
     }
 
     /**

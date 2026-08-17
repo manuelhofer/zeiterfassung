@@ -232,6 +232,80 @@ class Database
     }
 
     /**
+     * Öffnet eine Transaktion – aber nur, wenn nicht schon eine läuft.
+     *
+     * Wozu die Unterscheidung: Ein Aufrufer kann selbst eine Klammer offen
+     * haben (der Smoke-Test im Dashboard schreibt so und rollt anschließend
+     * alles zurück). Ein `beginTransaction()` darin wirft, ein Commit darin
+     * würde ihm sein Zurückrollen wegnehmen. Wer diese Klammer nicht geöffnet
+     * hat, schließt sie auch nicht.
+     *
+     * @return bool true = hier geöffnet und hier zu schließen; false = sie
+     *              gehört jemand anderem oder kam nicht zustande.
+     */
+    public function transaktionStarten(): bool
+    {
+        try {
+            $pdo = $this->getVerbindung();
+            if ($pdo->inTransaction()) {
+                return false;
+            }
+
+            return $pdo->beginTransaction();
+        } catch (\Throwable $e) {
+            // Ohne Klammer weiterarbeiten ist besser als gar nicht schreiben.
+            return false;
+        }
+    }
+
+    /**
+     * Schließt die eigene Klammer; eine fremde bleibt unberührt.
+     *
+     * @param bool $eigene Rückgabewert von `transaktionStarten()`
+     *
+     * @return bool false, wenn das Commit scheiterte – dann ist nichts
+     *              geschrieben, und der Aufrufer darf keinen Erfolg melden.
+     */
+    public function transaktionAbschliessen(bool $eigene): bool
+    {
+        if (!$eigene) {
+            return true;
+        }
+
+        try {
+            $pdo = $this->getVerbindung();
+            if (!$pdo->inTransaction()) {
+                return true;
+            }
+
+            return $pdo->commit();
+        } catch (\Throwable $e) {
+            return false;
+        }
+    }
+
+    /**
+     * Nimmt die eigene Klammer zurück; eine fremde bleibt unberührt.
+     *
+     * @param bool $eigene Rückgabewert von `transaktionStarten()`
+     */
+    public function transaktionZuruecknehmen(bool $eigene): void
+    {
+        if (!$eigene) {
+            return;
+        }
+
+        try {
+            $pdo = $this->getVerbindung();
+            if ($pdo->inTransaction()) {
+                $pdo->rollBack();
+            }
+        } catch (\Throwable $e) {
+            // Soft-fail: Mehr als zurückrollen ist hier nicht zu tun.
+        }
+    }
+
+    /**
      * Erstellt eine PDO-Verbindung aus einer DB-Konfiguration.
      *
      * Erwartet Keys: dsn ODER host/dbname/charset, sowie user/pass.

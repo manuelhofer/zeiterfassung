@@ -18,17 +18,14 @@ nichts.
 
 ## Nächster Schritt (konkret)
 
-**B-106 online beheben:** Offline ist der Fehler weg (P-2026-08-17-33) –
-online legt `starteAuftrag()` den Auftrag weiterhin an, bevor
-`erstelleAuftragszeit()` überhaupt versucht wird. Der gewählte Weg ist derselbe
-wie offline (Anlegen an die Buchung koppeln), hier über eine Transaktion um
-beides, in `starteAuftrag()` und `starteNebenauftrag()`.
+**Kein offener Bug – der nächste Schritt ist eine Entscheidung, keine
+Fehlersuche.** B-106 ist erledigt (P-2026-08-17-33 offline, -34 online). Ohne
+Gerät machbar ist der Durchklick der Terminal-Abläufe im Browser (siehe unten);
+alles andere wartet auf den Gerätetest oder auf einen Auftrag.
 
 ## Offene Bugs
 
-- **B-106** Online hinterlässt ein Auftragscode, dessen Buchung scheitert,
-  trotzdem einen leeren Auftrag – er wird angelegt, bevor die Buchung versucht
-  wird. Offline behoben.
+Keine.
 
 ## Offene Tasks
 

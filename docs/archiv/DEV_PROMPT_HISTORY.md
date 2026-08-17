@@ -18,6 +18,103 @@ legacy_zip_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-08-17-34 b-106-online-anlegen-und-buchen-in-einer-klammer
+
+### EINGELESEN
+- `services/AuftragszeitService.php`, Online-Zweig von `starteAuftrag()` ab
+  „Auftrag zu diesem Code aus der Auftragstabelle laden".
+- `modelle/AuftragszeitModel.php`, `erstelleAuftragszeit()` (215) – wer dort
+  den Fehler fängt.
+- `controller/DashboardController.php` (1011–1037) – der Smoke-Test, der
+  `starteAuftrag()` in einer **eigenen** Transaktion ruft und zurückrollt.
+- `controller/TerminalController.php`, `starteNebenauftrag()`, Online-Zweig.
+- `core/Database.php`, `getVerbindung()` – eine PDO-Instanz für alle.
+
+### DATEIEN
+- `core/Database.php`, `services/AuftragszeitService.php`,
+  `controller/TerminalController.php`
+- `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Ein Auftragsstart online auf einen Mitarbeiter, den es nicht gibt, hinterlässt
+in `auftrag` **nichts** – und der Fehler steht trotzdem im `system_log`.
+
+### DONE
+Online gibt es kein `SELECT`, an das sich das Anlegen hängen ließe: Der Auftrag
+muss vor der Buchung stehen, weil die Buchung seine ID braucht. Also eine
+Transaktion um beides. `Database` bekommt dafür drei Methoden –
+`transaktionStarten()`, `transaktionAbschliessen()`, `transaktionZuruecknehmen()`
+–, weil zwei Aufrufer sie brauchen und dieselbe Klammer nicht zweimal in zwei
+Klassen kopiert gehört.
+
+**Die Klammer muss eine fremde in Ruhe lassen.** Der Smoke-Test des Dashboards
+(`smoke=2`, „DB Write (Rollback)") ruft `starteAuftrag()` **innerhalb** seiner
+eigenen Transaktion und rollt am Ende alles zurück. Ein `beginTransaction()`
+darin hätte geworfen, ein `commit()` darin hätte ihm sein Zurückrollen
+weggenommen – er hätte seine Probebuchungen in die Datenbank geschrieben.
+`transaktionStarten()` liefert deshalb `false`, wenn schon eine läuft, und wer
+`false` bekommt, fasst weder Commit noch Rollback an.
+
+**Zwei Fallen, beide beim Bauen aufgefallen:**
+
+`erstelleAuftragszeit()` **wirft nicht**. Das Model fängt selbst, protokolliert
+und gibt `null` zurück. Der vorhandene `try/catch` im Service lief deshalb bei
+einer gescheiterten Buchung nie an – wer sein Commit dorthin gelegt hätte,
+hätte den leeren Auftrag festgeschrieben und nichts gemerkt. Entschieden wird
+jetzt am Rückgabewert; der `catch` bleibt für das, was am Model vorbeikommt.
+
+**Der Logger schreibt in dieselbe Verbindung.** Die Fehlermeldung des Models
+entsteht *innerhalb* der Klammer und wird vom Rollback mitgenommen: Ohne
+Gegenmaßnahme wäre ein gescheiterter Start spurlos gewesen – schlechter als der
+Fehler, der behoben wird. Der Service protokolliert deshalb **nach** dem
+Rollback noch einmal selbst. Im Prüflauf ist beides zu sehen: `system_log`
+springt von 1201 auf 1203, die 1202 ist die zurückgerollte Meldung des Models.
+
+**Eine Nebenwirkung, die dazugehört.** Das Beenden der laufenden Hauptaufträge
+liegt zwischen Anlegen und Buchen und damit in derselben Klammer. Scheitert der
+Start, bleibt der bisherige Auftrag jetzt **laufend** – vorher wurde er
+geschlossen, und der Mitarbeiter stand ohne jeden laufenden Auftrag da. Das ist
+dieselbe Aussage wie B-106, nur an der zweiten Tabelle: Ein Start, der nicht
+stattgefunden hat, hinterlässt nichts.
+
+**Scheitert das Commit**, liefern beide Aufrufer `null` statt einer ID. Ein
+Bildschirm, der „Auftrag gestartet" meldet, während nichts geschrieben wurde,
+wäre die schlimmere Antwort.
+
+### TEST
+Prüfumgebung neu aufgebaut, `alt` = e8a9db4 (offline behoben, online noch
+nicht), `neu` = Arbeitsstand, beide Backend, dieselbe Probe-Datenbank.
+Wegwerf-Sonden, nicht im Repository; `starteNebenauftrag()` ist privat und wurde
+per Reflection gerufen – der Kiosk-Weg davor (RFID, CSRF) ist nicht Teil dieses
+Patches.
+
+1. **Hauptauftrag, Mitarbeiter 99999 (gibt es nicht):** `neu` liefert `NULL`,
+   und `auftrag` bleibt leer. `alt` liefert ebenfalls `NULL`, hinterlässt aber
+   `ALT-FREMD` in `auftrag` – B-106, wie beschrieben.
+2. **Gegenprobe Erfolg:** `starteAuftrag(15, 'NEU-OK')` liefert eine ID, Auftrag
+   und `auftragszeit` stehen – die Klammer schreibt fest, sie verschluckt nicht.
+3. **Nebenauftrag, dieselben zwei Fälle:** `neu` hinterlässt nach dem Fehlschlag
+   nichts, `alt` hinterlässt `ALT-NEBEN-FREMD`.
+4. **Fremde Transaktion:** `?seite=dashboard&smoke=2` auf `neu` meldet „DB Write
+   (Rollback) OK" mit `Astart=13`; danach steht **kein** `SMOKE-…` in `auftrag`
+   und keine `SMOKETEST`-Zeitbuchung – der Rollback des Aufrufers wirkt weiter.
+5. **Laufender Auftrag bei gescheitertem Start** (Auftragscode mit 150 Zeichen,
+   also länger als `varchar(100)`): Auf `neu` bleibt `NEU-LAUF` **laufend**, auf
+   `alt` steht derselbe Auftrag danach auf `abgeschlossen` mit Endzeit.
+6. **Protokoll:** Auf `neu` steht der Fehler als `error` in `system_log`
+   (`auftragszeit_service`), die ID davor fehlt – siehe oben.
+7. Fachlogik-Prüfskript 46 von 46; `?seite=dashboard`, `?seite=smoke_test` und
+   `?seite=auftraege` byteweise gleich (33.214 / 56.912 / 0 Bytes, je 0
+   abweichende Zeilen); beide Serverlogs ohne PHP-Meldung; `php -l` ohne Befund.
+
+**Nicht geprüft:** der Weg über den Bildschirm – Auftragsstart am Terminal und
+im Backend sind nicht durchgeklickt worden, gerufen wurden Service und Methode
+direkt. Der Durchklick am Terminal steht ohnehin offen (Snapshot).
+
+### NEXT
+Kein offener Bug mehr. Der nächste Schritt kommt aus dem Praxis-Test oder als
+Auftrag; ohne Gerät machbar ist der Durchklick der Terminal-Abläufe im Browser.
+
 ## P-2026-08-17-33 b-106-offline-kein-auftrag-ohne-mitarbeiter
 
 ### EINGELESEN

@@ -3311,6 +3311,10 @@ class TerminalController
             $auftragId = null;
         }
 
+        // Ab hier wird geschrieben: Anlegen und Buchen in eine Klammer, sonst
+        // bleibt ein Auftrag stehen, dessen Buchung daneben scheitert (B-106).
+        $eigeneTransaktion = Database::getInstanz()->transaktionStarten();
+
         // Falls nicht vorhanden: Minimaldatensatz anlegen (idempotent)
         if ($auftragId === null) {
             try {
@@ -3333,6 +3337,9 @@ class TerminalController
 
         $arbeitsschrittId = $this->findeOderErstelleArbeitsschritt($auftragId, $arbeitsschrittCode);
 
+        $neueId = null;
+        $fehler = '';
+
         try {
             $auftragszeitModel = new AuftragszeitModel();
             $neueId = $auftragszeitModel->erstelleAuftragszeit(
@@ -3347,17 +3354,34 @@ class TerminalController
                 $jetzt,
                 null
             );
-
-            return $neueId;
         } catch (Throwable $e) {
+            $neueId = null;
+            $fehler = $e->getMessage();
+        }
+
+        // Am Rückgabewert, nicht an einer Exception – Begründung in
+        // `AuftragszeitService::starteAuftrag()`, dieselbe Stelle.
+        if ($neueId === null) {
+            Database::getInstanz()->transaktionZuruecknehmen($eigeneTransaktion);
+
             Logger::error('Terminal: Nebenauftrag konnte nicht gestartet werden', [
                 'mitarbeiter_id' => $mitarbeiterId,
                 'auftragscode'   => $auftragscode,
                 'maschine_id'    => $maschineId,
-                'exception'      => $e->getMessage(),
+                'exception'      => $fehler,
             ], $mitarbeiterId, null, 'terminal_nebenauftrag');
             return null;
         }
+
+        if (!Database::getInstanz()->transaktionAbschliessen($eigeneTransaktion)) {
+            Logger::error('Terminal: Nebenauftrag konnte nicht festgeschrieben werden', [
+                'mitarbeiter_id' => $mitarbeiterId,
+                'auftragscode'   => $auftragscode,
+            ], $mitarbeiterId, null, 'terminal_nebenauftrag');
+            return null;
+        }
+
+        return $neueId;
     }
 
     /**
