@@ -204,6 +204,10 @@ try {
     // selbst, ob überhaupt etwas zu tun ist – meistens nicht.
     MitarbeiterSpiegel::getInstanz()->aktualisiereWennFaellig();
 
+    // Lokale Maschinenliste auffrischen (T-138, P3). Gleiche Bedingung,
+    // gleiche Stelle, gleiche Begründung wie eine Zeile darüber.
+    MaschinenSpiegel::getInstanz()->aktualisiereWennFaellig();
+
     $zustand = QueueService::getInstanz()->holeZustand();
 
     $queueStatus = [

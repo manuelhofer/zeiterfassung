@@ -18,6 +18,104 @@ legacy_zip_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-08-17-31 t-138-p3-lokale-maschinenliste
+
+### EINGELESEN
+- `docs/spezifikation_offline_auftraege.md`, Abschnitt 5, P3.
+- `core/MitarbeiterSpiegel.php` ganz – die Bauart, die P3 kopieren soll.
+- `sql/offline_db_schema.sql`, `public/terminal.php` Zeilen 186–220 – wo der
+  Spiegel angelegt und aufgefrischt wird.
+- `sql/01_initial_schema.sql`, Tabelle `maschine` – welche Spalten es gibt und
+  ob `auftragszeit.maschine_id` einen Fremdschlüssel hat (nein, nur Index).
+- `services/TerminalDbBenutzerService.php` und `scripts/terminal/install_terminal.sh`
+  Zeile 479 – reichen die Rechte für Lesen und Schreiben (ja).
+- `controller/TerminalController.php` `parseMaschineIdAusScan()` (124) und
+  `views/terminal/auftrag_starten.php` – **um zu prüfen, was P3 eigentlich
+  bedient.**
+
+### DATEIEN
+- `core/MaschinenSpiegel.php` (neu)
+- `sql/offline_db_schema.sql`, `public/terminal.php`
+- `docs/fachregeln/terminal_und_offline.md`
+- `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Ein Terminal-Aufruf bei erreichbarer Hauptdatenbank füllt `maschine_spiegel` in
+der Ausweichdatenbank mit denselben vier Probe-Maschinen wie `maschine` – Name
+inklusive, `beschreibung` und `code_bild_pfad` nicht.
+
+### DONE
+Das Terminal führt neben der Liste der Berechtigten eine zweite, ebenso kleine
+Liste: `maschine_spiegel` mit `maschine_id`, `name`, `aktiv`. Gleiche Bauart wie
+`MitarbeiterSpiegel`, gleiche Auffrischung an derselben Stelle in
+`public/terminal.php`, gleiche fünf Minuten, gleiche Transaktion.
+
+**Der Name steht drin, anders als beim Mitarbeiterspiegel.** Eine Maschinenliste
+ohne Namen ist unbedienbar, und ein Maschinenname ist kein Personendatum. Die
+Begründung steht in der Fachregel, damit sie beim nächsten Spiegel nicht neu
+erfunden wird.
+
+**Der Spiegel speichert auch inaktive Maschinen**, gefiltert wird erst beim
+Lesen (`holeAktiveMaschinen()`, `WHERE aktiv = 1`). Das ist dieselbe Aufteilung
+wie beim Mitarbeiterspiegel: Der Spiegel bildet ab, die Frage entscheidet der
+Aufrufer. Sortiert wird nach Namen, nicht nach ID – die ID kennt am Gerät
+niemand auswendig.
+
+**Kein Spiegel heißt leere Liste, nicht Abbruch.** Fehlt die Ausweichdatenbank
+oder die Tabelle, liefert `holeAktiveMaschinen()` `[]`. Der Auftragsstart muss
+damit weiterlaufen, dann eben ohne Maschine – die ID wird nirgends gegen die
+Tabelle `maschine` geprüft, es gibt auch keinen Fremdschlüssel darauf.
+
+### Gefundener Fehler – in der Spezifikation, nicht im Code
+**P3 beschreibt eine Maschinenauswahl, die es nicht gibt.** Vor der Arbeit
+nachgesehen, und zwar in dieser Reihenfolge: `views/terminal/auftrag_starten.php`
+hat ein **Textfeld** „Maschinen-ID (optional, Barcode: `id_name` möglich)", keine
+Liste; `parseMaschineIdAusScan()` zieht die Zahl per Regex aus dem Scan und
+fragt keine Datenbank; `starteAuftrag()` schreibt sie über `sqlNullableInt()`
+direkt ins SQL, ungeprüft. Im gesamten Terminal-Pfad wird `maschine` **nie**
+gelesen. Die „Auswahl" ist heute der QR-Aufkleber an der Maschine
+(`MaschineQrCodeService`) – und der funktioniert offline von selbst.
+
+Ein Spiegel allein hätte also Daten gespiegelt, die niemand liest. Manuel hat
+den Befund bekommen und entschieden: **trotzdem bauen**, samt der Auswahl, die
+P3 voraussetzt. Sie kommt als eigener Patch (siehe NEXT) – DB plus Core in
+einem Patch, Controller plus Oberfläche im nächsten, weil beides getrennt
+prüfbar ist und ein Patch über vier Schichten genau das Warnsignal aus
+Arbeitsregel 3 wäre.
+
+### TEST
+Prüfumgebung, `alt` = 037ad02, `neu` = Arbeitsstand. Probe-Daten: vier
+Maschinen, davon eine inaktiv, Namen absichtlich nicht in ID-Reihenfolge und
+einer mit Umlaut („Fraese Süd").
+
+1. **Der Spiegel entsteht:** Terminal online, ein Seitenaufruf → vier Zeilen,
+   Spaltenliste exakt `maschine_id, name, aktiv, aktualisiert_am`. Der Umlaut
+   kommt unverändert an.
+2. **Auffrischung:** zweiter Aufruf zwei Sekunden später → `aktualisiert_am`
+   unverändert. Stand künstlich auf gestern gesetzt → nächster Aufruf frischt
+   auf (17:00:08 → 17:00:28).
+3. **Tabelle legt sich selbst an:** `DROP TABLE maschine_spiegel`, dann ein
+   Terminal-Aufruf → vier Zeilen. Anlegen und Füllen im selben Request.
+4. **Backend legt keinen an:** Tabelle gelöscht, dann nur Backend-Aufrufe
+   (Dashboard, Maschinenverwaltung) → weder in der Ausweichdatenbank noch in
+   der Hauptdatenbank eine Tabelle `maschine_spiegel`.
+5. **Seiten unverändert:** Dashboard 33.214 Bytes, Maschinenverwaltung 27.863,
+   Smoke-Test 56.912, Terminal-Startbildschirm 1.747 – je 0 abweichende Zeilen
+   gegen `alt`.
+6. Prüfskript 46 von 46; beide Serverlogs ohne PHP-Meldung; keine
+   Protokollzeile der Kategorie `maschinen_spiegel`; `php -l` über beide
+   geänderten PHP-Dateien ohne Befund.
+
+**Nicht geprüft:** `holeAktiveMaschinen()` – der Spiegel wird bisher von
+niemandem gelesen. Das holt der nächste Patch nach, der die Auswahl baut; ihn
+hier vorwegzunehmen hieße, eine Methode ohne Aufrufer zu testen.
+
+### NEXT
+Die Maschinenauswahl am Terminal: Controller reicht die Liste durch (online aus
+`maschine`, offline aus dem Spiegel), `auftrag_starten.php` zeigt sie **neben**
+dem Scanfeld – nicht statt seiner, sonst ist der QR-Aufkleber an der Maschine
+tot.
+
 ## P-2026-08-17-30 t-138-p2-offline-scan-schaltet-auftraege-frei
 
 ### EINGELESEN

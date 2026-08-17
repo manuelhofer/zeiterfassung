@@ -31,6 +31,29 @@ CREATE TABLE IF NOT EXISTS mitarbeiter_spiegel (
   KEY idx_mitarbeiter_spiegel_rfid (rfid_code)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- --------------------------------------------------------------------------
+-- Lokale Maschinenliste (T-138, P3)
+-- --------------------------------------------------------------------------
+-- Die Maschine gehoert beim Auftragsstart zur Buchung. Ohne Hauptdatenbank
+-- kann das Geraet sie nirgends nachschlagen, also liegt die Liste daneben.
+--
+-- Der Name steht hier, anders als beim Mitarbeiterspiegel: Eine Maschinenliste
+-- ohne Namen ist unbedienbar, und ein Maschinenname ist kein Personendatum.
+-- `beschreibung` und `code_bild_pfad` bleiben draussen.
+--
+-- Auch dieser Spiegel ist KEINE Tuersteherin: Fehlt er oder ist er leer,
+-- bleibt die Auswahl leer und der Auftrag startet trotzdem - dann ohne
+-- Maschine. Die ID laesst sich weiterhin scannen oder tippen.
+--
+-- Hinweis: Die Anwendung legt die Tabelle bei Bedarf selbst an.
+CREATE TABLE IF NOT EXISTS maschine_spiegel (
+  maschine_id BIGINT UNSIGNED NOT NULL,
+  name VARCHAR(150) NOT NULL,
+  aktiv TINYINT(1) NOT NULL DEFAULT 1,
+  aktualisiert_am DATETIME NOT NULL,
+  PRIMARY KEY (maschine_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 CREATE TABLE IF NOT EXISTS db_injektionsqueue (
   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
   status VARCHAR(20) NOT NULL DEFAULT 'offen',

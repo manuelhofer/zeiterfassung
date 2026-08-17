@@ -18,11 +18,13 @@ nichts.
 
 ## Nächster Schritt (konkret)
 
-**T-138, Patch 3 von 3:** Lokale Maschinenliste (`maschine_spiegel`) für die
-Maschinenauswahl beim Auftragsstart. Vorgehen und Prüfung stehen in
-[`spezifikation_offline_auftraege.md`](spezifikation_offline_auftraege.md),
-Abschnitt 5. Patch 1 und 2 sind erledigt (P-2026-08-17-29, -30) – Aufträge
-lassen sich offline starten und stoppen.
+**T-138, Rest von Patch 3:** Die Maschinenauswahl beim Auftragsstart – der
+Controller reicht die Liste durch (online aus `maschine`, offline aus dem
+Spiegel), `views/terminal/auftrag_starten.php` zeigt sie **neben** dem
+Scanfeld, nicht statt seiner. Der Spiegel selbst steht (P-2026-08-17-31), eine
+Auswahl gab es am Terminal bisher nie – Begründung dort im Verlauf. Patch 1 und
+2 sind erledigt (P-2026-08-17-29, -30), Aufträge lassen sich offline starten
+und stoppen.
 
 ## Offene Bugs
 

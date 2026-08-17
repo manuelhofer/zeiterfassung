@@ -332,10 +332,22 @@ Minuten und nur, solange die Hauptdatenbank erreichbar ist – dieselbe
 Bedingung wie beim Wiederanlauf der Queue. Geschrieben wird ganz oder gar
 nicht: Ein halb gefüllter Spiegel meldete Chips als unbekannt, die es gibt.
 
-Der zweite Schritt ist damit möglich – **Anmeldung und Aufträge im
-Offline-Betrieb**. Der braucht zusätzlich eine Anwesenheitslogik ohne
-Hauptdatenbank und, wenn beim Auftragsstart eine Maschine gewählt wird, auch
-eine lokale Maschinenliste. Das ist ein eigenes Vorhaben, kein Anhängsel.
+### Lokale Maschinenliste (T-138)
+
+Dieselbe Bauart, zweiter Gegenstand: `maschine_spiegel` hält die Maschinen
+daneben, weil die Maschine beim Auftragsstart zur Buchung gehört und das Gerät
+sie ohne Hauptdatenbank nirgends nachschlagen kann.
+
+- **Nur** `maschine_id`, `name`, `aktiv`. Der **Name steht hier**, anders als
+  beim Mitarbeiterspiegel: Eine Maschinenliste ohne Namen ist unbedienbar, und
+  ein Maschinenname ist kein Personendatum. `beschreibung` und
+  `code_bild_pfad` bleiben draußen.
+- Auch er ist **keine Türsteherin**: Fehlt der Spiegel oder ist er leer, bleibt
+  die Auswahl leer und der Auftrag startet **trotzdem** – dann ohne Maschine.
+  Die ID lässt sich weiterhin scannen oder tippen, denn sie wird nirgends
+  gegen die Tabelle `maschine` geprüft.
+- Aufgefrischt wird er wie der Mitarbeiterspiegel: gleiche Stelle, gleiche
+  Bedingung, höchstens alle fünf Minuten, ganz oder gar nicht.
 
 ## 6. Terminal-UI: Layout, Uhr, Texte
 
