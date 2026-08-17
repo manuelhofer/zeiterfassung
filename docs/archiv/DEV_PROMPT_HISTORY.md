@@ -18,6 +18,107 @@ legacy_zip_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-08-17-10 t-141-rechte-prompt-ohne-fundstellen
+
+### EINGELESEN
+- `docs/rechte_prompt.md` ganz – 347 Zeilen, sechs Kapitel.
+- `sql/01_initial_schema.sql`, Zeilen 459–490 – die 30 Rechte samt Spalte `aktiv`.
+- `modelle/RolleModel.php`, `holeAlleRechte()`, und seine zwei Aufrufer in
+  `RollenAdminController` und `MitarbeiterAdminController`.
+- P-2026-08-16-29 (T-137) – warum Zuweisungen zu inaktiven Rechten das Speichern
+  überleben.
+- `CHATSTART.md`, Abschnitt 4 – der `grep`, der Fundstellen beantwortet.
+
+### DATEIEN
+- `docs/rechte_prompt.md`, `docs/STATUS_SNAPSHOT.md`,
+  `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+`grep -c ":[0-9]\+\`" docs/rechte_prompt.md` liefert 0, und jede im Dokument
+genannte Datei, Methode und Migration existiert im Repository.
+
+### DONE
+**Zuerst die Korrektur einer falschen Behauptung aus der Bewertung:** Ich hatte
+geschrieben, das Dokument trage „eine Merge-Roadmap, die nicht gekommen ist".
+Das ist falsch. Die Roadmap in Kapitel 5 ist **abgearbeitet** – Phase 1a, 1b, 2,
+3a und 3b stehen als DONE, und Phase 1b habe ich im Code nachgeprüft:
+`RolleModel::holeAlleRechte(bool $nurAktive = false)` wird von beiden Masken mit
+`true` aufgerufen, inaktive Rechte erscheinen nicht mehr. T-141 stand also aus
+einem Grund im Snapshot, der nicht stimmte.
+
+Was tatsächlich veraltet war, ist schlimmer als ein Datum:
+
+**66 Verweise auf `datei.php:zeile`, die überwiegend ins Leere zeigten.**
+Stichprobe: `views/layout/header.php:66` war als Prüfpunkt von
+`ABTEILUNG_VERWALTEN` eingetragen, dort steht die Feiertags-Prüfung;
+`DashboardController.php:79` ist `} else {`; `MaschineAdminController.php:38` ist
+eine schließende Klammer. Von zehn geprüften Verweisen stimmte einer. Ein
+falscher Verweis ist schlechter als keiner: Er behauptet Genauigkeit und schickt
+den Leser an die falsche Stelle.
+
+**Zwei Kapitel behaupteten das Gegenteil der Wirklichkeit.** Kapitel 1a hieß
+„Warum sind Rechte in ‚Rolle bearbeiten' doppelt?" und antwortete „Die Rollen-UI
+listet alle aktiven Datensätze – deshalb siehst du beides". Kapitel 3 sagte, die
+Legacy-Codes führten „zu doppelten Einträgen". Beides hat Phase 1b behoben; die
+Kapitel wurden nie nachgezogen. Sie heißen jetzt „Warum stehen Legacy-Rechte
+noch in der Datenbank?" und sagen, was gilt: Soft-Delete über `aktiv = 0`,
+ausgeblendet in beiden Masken.
+
+**Kapitel 6 war die Quelle der Drift.** Schritt 3 verlangte, jedes neue Recht
+hier samt „wo geprüft" einzutragen – also genau die 66 Verweise zu erzeugen.
+Jetzt verlangt er den Zweck und das, was bewusst **ohne** das Recht erreichbar
+bleibt, und sagt ausdrücklich: keine Fundstellen.
+
+An ihre Stelle tritt oben der zweistufige `grep`. Zweistufig, weil einstufig
+nicht reicht: `grep -rn "AUFTRAEGE_VERWALTEN"` findet die Stelle, an der
+`AuftragController::darfAuftraegeVerwalten()` das Recht prüft – aber keinen der
+Aufrufer dieser Methode. Wer die Prüfpunkte sucht, braucht den zweiten Lauf auf
+den Methodennamen. Das steht jetzt da, mit Beispiel.
+
+**Was bewusst geblieben ist:** die Kapitel, die der Code nicht beantwortet – was
+absichtlich **nicht** geschützt ist. Laufkarte und Auftragsliste ohne
+Verwaltungsrecht, der Kopplungs-Endpunkt ohne Anmeldung samt seiner drei
+Absicherungen, das Konfigurationsrecht als Ersatz für die drei Unterseiten,
+`REPORTS_ANSEHEN_ALLE` als Fallback. Das sind Entscheidungen, keine Fundstellen,
+und sie stehen nirgendwo sonst.
+
+**Was ebenfalls weg ist: die Zeile „Stand: 2026-01-17".** Wann das Dokument
+zuletzt stimmte, sagt `git log -- docs/rechte_prompt.md`; ein handgepflegtes
+Datum ist nach Abschnitt 9 genau die ableitbare Angabe, die driftet – und dieses
+hier hat sieben Monate lang eine Aktualität behauptet, die es nicht gab.
+
+Das Dokument ist von 347 auf 242 Zeilen gekürzt, ohne dass eine
+Entscheidung verloren gegangen ist.
+
+### TEST
+- `grep -c ":[0-9]\+\`" docs/rechte_prompt.md`: 0 (vorher 66).
+- `grep -n "^Stand:"`: keine Fundstelle.
+- Umfang 347 → 242 Zeilen.
+- Alle genannten Dateien existieren: `sql/01_initial_schema.sql`,
+  `sql/02_migration_recht_auftraege_verwalten.sql`,
+  `docs/spezifikation_abteilungsrechte.md`,
+  `controller/TerminalKopplungController.php`.
+- Alle genannten Methoden existieren, einzeln nachgesehen:
+  `AuftragController::darfAuftraegeVerwalten`,
+  `ArbeitsschrittKatalogController::darfVerwalten`,
+  `TerminalAdminController::kopplung`, `RolleModel::holeAlleRechte`,
+  `AuftragszeitService::starteAuftrag`, und der Hinweistext zu
+  `STUNDENKONTO_VERWALTEN` in `views/mitarbeiter/formular.php`.
+- Die Spalte „Im Code geprüft" über **alle 30** Codes nachgezählt: Die fünf mit
+  NEIN (`ZEIT_EDIT_SELF`, `ZEIT_EDIT_ALLE`, `REPORT_MONAT_ALLE`,
+  `ZEITBUCHUNG_EDITIEREN_SELF`, `ZEITBUCHUNG_EDITIEREN_ALLE`) haben null
+  Fundstellen in PHP, die übrigen 25 mindestens eine. Die Tabelle stimmt.
+- Der zweistufige `grep` selbst ausprobiert: erster Lauf fünf Treffer für
+  `AUFTRAEGE_VERWALTEN`, davon zwei Kapselungspunkte; zweiter Lauf auf
+  `darfAuftraegeVerwalten` liefert die Aufrufer.
+- Keine PHP-Datei geändert, `php -l` gegenstandslos.
+
+### NEXT
+T-141 ist aus dem Snapshot entfernt. Als nächstes T-140 spezifizieren, dann die
+Code-Patches T-139 und T-142. Manuel hat entschieden: Code wird in dieser
+Sitzung gebaut, obwohl kein MariaDB verfügbar ist – Klicktest und Prüfumgebung
+werden je Patch ausdrücklich als offen benannt und von ihm lokal nachgeholt.
+
 ## P-2026-08-17-09 entscheidungen-als-auswahl
 
 ### EINGELESEN
