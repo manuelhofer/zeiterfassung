@@ -18,6 +18,72 @@ legacy_zip_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-08-17-08 fachlogik-nachrechnen-pflicht
+
+### EINGELESEN
+- `docs/arbeitsregeln.md`, Abschnitt 5 – die vier Pflichtprüfungen, wieder im
+  Stand vom 16. August nach P-2026-08-17-06.
+- P-2026-08-17-03 und -06 – der erste Wortlaut und der Grund seiner Rücknahme.
+- `docs/STATUS_SNAPSHOT.md`, T-140 nach P-2026-08-17-07 – worauf die Regel zeigt.
+
+### DATEIEN
+- `docs/arbeitsregeln.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Abschnitt 5 verlangt bei einer Änderung an Rundung, Pausen oder Salden eine
+wiederholbare Prüfung, die Regel ist ohne bestehendes Prüfskript erfüllbar, und
+sie enthält keine Klausel, die erst in Zukunft wirksam wird.
+
+### DONE
+Manuel hat die Regel zurückgeholt, nachdem geklärt war, was ein Prüfskript ist
+und wofür es gut ist. Sie steht wieder in Abschnitt 5, aber anders formuliert –
+die zwei Fehler des ersten Wortlauts sind weg:
+
+**Keine Aktivierungsklausel.** Der erste Wortlaut hieß „Sobald der Harness aus
+T-140 steht" und wäre damit eine Regel gewesen, die zu einem unbestimmten
+späteren Zeitpunkt von selbst scharf wird. Der neue Satz gilt ab sofort, weil er
+den Fall mitliefert, in dem es das Skript noch nicht gibt: **Dann ist der eigene
+Fall sein erster.** Damit entfällt auch die Henne-Ei-Frage – T-140 muss nicht
+fertig sein, damit die Regel Sinn hat; die erste Änderung an einer Rundungsregel
+legt das Skript an, mit einem Fall darin.
+
+**Kein Fachjargon.** „Harness" ist raus, hier wie im Snapshot (P-2026-08-17-07).
+Es steht „nachrechnender Fall" und „wiederholbare Prüfung" – beides erklärt sich
+beim Lesen.
+
+Der Umfang „Rundung, Pausen oder Salden" ist derselbe wie im ersten Wortlauf,
+diesmal aber ausdrücklich benannt und bestätigt und nicht in einem Plan
+mitgelaufen. Er meint die Stellen, an denen ein falsches Ergebnis niemandem
+auffällt: 8:36 statt 8:30 sieht im Browser richtig aus.
+
+**Zum Zickzack in diesem Verlauf** – die Regel kam in P-2026-08-17-03, ging in
+-06 und kommt hier zurück. Das ist kein Hin und Her um seiner selbst willen: Der
+erste Versuch hat sie festgelegt, ohne zu fragen, die Rücknahme hat den Zustand
+wiederhergestellt, und dazwischen ist geklärt worden, was das Skript überhaupt
+tut und ob es im Produktivbetrieb noch gebraucht wird (Antwort: dann erst
+richtig, weil geändert wird, wenn Zahlen bereits zählen). Drei Einträge sind der
+Preis dafür, dass die Regel jetzt eine Entscheidung ist und keine Setzung.
+
+### TEST
+- `docs/arbeitsregeln.md` wächst um drei Zeilen (8.697 → 8.943 Bytes); Kaltstart
+  17.326 Bytes.
+- Abschnitt 5 am Stück gegengelesen: fünf Punkte, die vier alten unverändert und
+  in alter Reihenfolge, der neue an zweiter Stelle bei den maschinellen
+  Prüfungen.
+- `grep -rn "T-140" docs/arbeitsregeln.md docs/STATUS_SNAPSHOT.md`: vier Treffer,
+  jeder mit eigener Aufgabe – Pflicht in Abschnitt 5, nächster Schritt, Begründung
+  dazu, Task selbst. Keine Wiederholung derselben Aussage.
+- Gegenprobe auf Erfüllbarkeit heute: Das Skript gibt es nicht; die Regel
+  verlangt in diesem Fall, es mit dem eigenen Fall anzulegen. Kein Patch wird
+  dadurch blockiert.
+- `grep -rn "Harness"` über die Kaltstart-Dateien: keine Fundstelle.
+
+### NEXT
+T-140 bleibt der nächste Schritt und ist jetzt kleiner, als er aussah: Der erste
+Fall entsteht bei der nächsten Änderung an einer Rundungsregel, die Erwartungen
+für Doppelzählung, Monatsraster und Feiertag+Arbeitszeit liegen schon in
+`SmokeTestController` und müssen nur herausgelöst werden.
+
 ## P-2026-08-17-07 t-140-ohne-fachjargon
 
 ### EINGELESEN

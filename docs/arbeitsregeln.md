@@ -78,6 +78,9 @@ Ziel: verhindern, dass bereits Erledigtes ein zweites Mal gebaut wird.
 ## 5. Nach der Änderung: Pflichtprüfung
 
 - `php -l` über **alle** geänderten PHP-Dateien.
+- Wer Rundung, Pausen oder Salden ändert, hinterlässt einen nachrechnenden Fall
+  als **wiederholbare** Prüfung – ein Klicktest zeigt eine Zahl, er prüft sie
+  nicht. Steht das Prüfskript aus T-140 noch nicht, ist sein erster Fall dieser.
 - Die betroffenen Kernabläufe aus `docs/wartungscheckliste.md` durchklicken.
 - Bei DB-Änderungen: Neuinstallation aus `sql/01_initial_schema.sql` muss
   weiterhin funktionieren, und die Migration muss zweimal hintereinander
