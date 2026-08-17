@@ -18,6 +18,105 @@ legacy_zip_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-08-17-26 pdf-pruefungen-in-einen-service
+
+### EINGELESEN
+- P-2026-08-17-18 im Verlauf, Abschnitt DONE – das Muster der sieben bereits
+  umgezogenen Prüfungen und der dort offen gelassene Punkt: die drei
+  `$this->auth`-Zugriffe in `pruefePdfDbMultipage` sind vorher zu klären.
+- `controller/SmokeTestController.php`, die drei PDF-Methoden samt Aufrufstellen
+  in `index()` (Zeilen 2724, 2734, 2754), dazu je die Nutzung von `$_POST`,
+  `$_GET`, `$this->db`, `$this->auth` und `Csrf`.
+- `core/Csrf.php`, `istGueltig()`, und `services/AuthService.php`, `hatRecht()`
+  und `holeAngemeldeteMitarbeiterId()` – ob sie Nebenwirkungen haben.
+- `services/FachpruefungService.php`, Kopf und Konstruktor – woran der neue
+  Service sich anlehnt.
+
+### DATEIEN
+- `services/PdfPruefungService.php` (neu), `controller/SmokeTestController.php`
+- `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Die drei PDF-Prüfungen liegen öffentlich in `PdfPruefungService`, ihre Rümpfe
+sind gegenüber `HEAD` unverändert bis auf den entfallenen `$_POST`-Prolog und
+den Sitzungszustand, und die Smoke-Test-Maske liefert für alle drei Prüfungen
+byteweise dasselbe HTML wie vorher.
+
+### DONE
+Drei Prüfungen umgezogen: `pruefePdfQuick`, `pruefePdfSynth`,
+`pruefePdfDbMultipage`. `SmokeTestController` ist von 2.831 auf 2.201 Zeilen
+gefallen, der neue Service hat 741.
+
+**Warum ein zweiter Service und nicht `FachpruefungService`:** Der prüft die
+Rechenkerne – Raster, Doppelzählung, Salden. Diese drei prüfen die Ausgabe,
+also `PDFService` und, beim Multipage-Check, das gerenderte HTML der
+Monatsübersicht. Zwei Themen, zwei Dateien.
+
+**Der offene Punkt aus -18 ist so gelöst:** Was der Rumpf vom Aufrufer braucht,
+kommt als Parameter herein und trägt dort weiter denselben Namen wie vorher die
+lokale Variable – `$csrfGueltig`, `$kannViewAll`, `$angemeldeteIdFuerHtml`, dazu
+`$midSel`/`$jahrSel`/`$monatSel` für die Auswahl von Hand. Damit bleibt der
+Service frei von `Csrf`, `AuthService` und `$_POST` und ist von der
+Kommandozeile aus aufrufbar; im Rumpf ändert sich genau **eine** Zeile
+(`Csrf::istGueltig(self::CSRF_BEREICH)` → `$csrfGueltig`). Die Alternative wäre
+gewesen, die CSRF-Prüfung im Controller vorzuschalten – dann hätte er die
+Fensterbegrenzung und die Rückgabeform des Fehlerfalls nachbauen müssen, also
+mehr Code an zwei Stellen statt einer Zeile an einer.
+
+**Bewusst in Kauf genommen:** `hatRecht()` und `holeAngemeldeteMitarbeiterId()`
+laufen jetzt bei jedem Aufruf, nicht erst tief im Rumpf nach der
+PDF-Erzeugung – auch dann, wenn das CSRF-Token ungültig ist oder kein Kandidat
+gefunden wird. Beide sind nachgelesen und rein lesend, `Csrf::istGueltig()`
+ebenfalls; am Ergebnis ändert das nichts, nur an der Zahl der Aufrufe.
+
+**Was bewusst im Controller bleibt:** `sucheMultipageKandidaten` (243 Zeilen).
+Das ist die Kandidatenliste der Maske, keine Prüfung – sie liefert kein
+`ergebnis`/`hinweis`-Bündel, sondern eine Tabelle, und sie liest `$_POST` nicht
+nur im Prolog. Eigenes Thema, wenn es je gebraucht wird.
+
+**Gefundener Fehler, nicht von diesem Patch verursacht:** Die Abfrage nach den
+„max. Buchungen an einem Tag" in `pruefePdfDbMultipage` sortiert nur nach
+`COUNT(*) DESC LIMIT 1`. Bei Gleichstand – und der ist der Normalfall, wenn
+mehrere Tage gleich viele Buchungen haben – gibt MariaDB eine beliebige Zeile
+zurück: dieselbe Abfrage lieferte dreimal hintereinander `2026-07-08`,
+`2026-07-04`, `2026-07-04`. Der Smoke-Test zeigt damit ein Datum, das bei jedem
+Aufruf ein anderes sein kann. Als **B-105** notiert, Behebung als eigener Patch
+gleich danach.
+
+### TEST
+- `php -l` über beide geänderten PHP-Dateien: ohne Befund.
+- **Rumpfvergleich gegen `HEAD`**, maschinell statt nach Augenmaß: die drei
+  Rümpfe aus `git show HEAD:controller/SmokeTestController.php` gegen die des
+  Service diffen. `pruefePdfQuick` 227→220 (7 weg, 0 neu), `pruefePdfSynth`
+  151→141 (10 weg, 0 neu), `pruefePdfDbMultipage` 307→287 (21 weg, 1 neu). Alle
+  entfallenen Zeilen einzeln durchgesehen – nur `$_POST`-Prolog, Auswahlwerte,
+  der `$kannViewAll`-Block und `$angemeldeteIdFuerHtml`; die eine neue Zeile ist
+  der Tausch der CSRF-Zeile.
+- **Prüfumgebung, alt = `f2cae28` gegen den Arbeitsstand, byteweise gleich** in
+  sieben Läufen: Maske ohne POST (56.912 Bytes), Synth-Check (57.837),
+  Quick-Check leerer Monat (57.771) und mit Daten (57.844), Multipage automatisch
+  (58.558), Multipage mit Auswahl von Hand (58.559), Kandidatenliste (59.843).
+  Dazu der CSRF-Fehlerfall – derselbe POST **ohne** `--token` (57.077) – der
+  eine andere Byte-Zahl hat als der Lauf mit Token und damit belegt, dass beide
+  Zweige wirklich verschieden laufen.
+- **Der tiefe Pfad ist wirklich gelaufen**, nicht nur der Abbruch: Dafür 188
+  Kommen/Gehen-Buchungen in `zeit_probe` gesät (Juli 2026, drei Blöcke am Tag).
+  Der Multipage-Check fand den Kandidaten selbst, erzeugte ein PDF von 29.960
+  Bytes über 3 Seiten und meldete den HTML-Render-Check als **OK** mit 107
+  `<tr>` – das ist genau der Zweig, der über `$kannViewAll` und
+  `$angemeldeteIdFuerHtml` läuft.
+- `pruefePdfSynth` zusätzlich direkt auf der Kommandozeile aufgerufen, ohne
+  Sitzung und ohne Datenbank: `ok=true`, 26.151 Bytes, 3/3 Seiten. Der Service
+  ist damit nachweislich ohne Browser benutzbar – der Zweck der Übung.
+- Fachlogik-Prüfskript: 46 von 46 OK.
+- `pruefumgebung.sh meldungen`: beide Serverlogs ohne PHP-Meldung.
+- Nicht geprüft: `sendePdfInline` und `erzeugePdfSynthMultipage` (die
+  Download-Wege der Maske) – dieser Patch fasst sie nicht an.
+
+### NEXT
+B-105 beheben. Von T-142 bleibt dann nur `pruefeTerminalLogin`, und das wartet
+auf den Gerätetest.
+
 ## P-2026-08-17-25 fachregel-feiertagsstunden-nicht-gespeichert
 
 ### EINGELESEN

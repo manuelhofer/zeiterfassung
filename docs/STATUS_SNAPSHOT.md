@@ -18,20 +18,14 @@ nichts.
 
 ## Nächster Schritt (konkret)
 
-**Keiner offen.** Der Stand vom 17.08. liegt auf `main` und ist gepusht. Die
-Prüfungen, die der Sitzung gefehlt haben, sind nachgeholt – örtlich, gegen
-MariaDB (P-2026-08-17-22): Prüfskript 46 von 46, alle Admin-Masken für einen Chef
-offen, die umgebauten Smoke-Test-Masken byteweise gleich, Serverlogs ohne
-PHP-Meldung. Die Befunde daraus sind als eigene Patches erledigt
-(P-2026-08-17-20, -21 und -23); die Frage nach Feiertagsstunden im Bestand ist
-beantwortet (-24) und die Fachregel dazu nachgezogen (-25).
-
-Weiter geht es mit den offenen Tasks unten – oder mit dem, was der Praxis-Test
-hergibt.
+**B-105 beheben** – beim Umzug der PDF-Prüfungen (P-2026-08-17-26) gefunden,
+Behebung als eigener Patch.
 
 ## Offene Bugs
 
-Keine bekannten.
+- **B-105** Der Multipage-Check zeigt „max. Buchungen an einem Tag" mit einem
+  Datum, das bei Gleichstand von Aufruf zu Aufruf wechselt – die Abfrage
+  sortiert nur nach `COUNT(*) DESC LIMIT 1`, ohne Tie-Break.
 
 ## Offene Tasks
 
@@ -42,9 +36,9 @@ Ein Satz je Task – die Begründung steht im Verlauf, nicht hier.
   und Stufenplan in
   [`spezifikation_terminal_installation.md`](spezifikation_terminal_installation.md),
   Abschnitt 12 und 11.
-- **T-142** Aus dem `SmokeTestController` sind die fachlichen Prüfungen heraus;
-  offen bleiben die drei PDF-Prüfungen und `pruefeTerminalLogin` als je eigenes
-  Vorhaben, letzteres erst nach dem Gerätetest.
+- **T-142** Aus dem `SmokeTestController` sind die fachlichen und die
+  PDF-Prüfungen heraus; offen bleibt `pruefeTerminalLogin`, und das erst nach
+  dem Gerätetest.
 
 **Offline-Betrieb am Terminal** – Befund und Entscheidungen in P-2026-08-16-08,
 die Regeln dazu in
