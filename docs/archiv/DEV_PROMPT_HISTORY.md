@@ -18,6 +18,63 @@ legacy_zip_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-08-17-06 testpflicht-zurueckgenommen
+
+### EINGELESEN
+- `docs/arbeitsregeln.md`, Abschnitt 5 – der Punkt aus P-2026-08-17-03.
+- P-2026-08-17-05 – derselbe Fehler, eine Runde vorher, samt Begründung.
+- `docs/STATUS_SNAPSHOT.md`, T-140 – was von der Sache übrig bleibt.
+
+### DATEIEN
+- `docs/arbeitsregeln.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Abschnitt 5 nennt keinen Harness mehr und ist byteweise wieder der Stand von vor
+P-2026-08-17-03; die vier alten Pflichtprüfungen stehen unverändert.
+
+### DONE
+Manuel hat die Regel streichen lassen, mit der Begründung, dass sie nichts nützt
+– und für den heutigen Stand ist das richtig: Sie verpflichtete zu einem
+Prüfskript, das es nicht gibt. Eine Pflicht ohne Gegenstand ist keine Regel,
+sondern eine Ankündigung, und Ankündigungen gehören nicht in eine Datei, die vor
+jeder Änderung gelesen wird.
+
+Derselbe Fehler wie bei der Zeilengrenze in P-2026-08-17-05, deshalb dieselbe
+Konsequenz: Ich hatte entschieden, dass die Regel sich später von selbst
+aktiviert – ohne dass in dem Moment jemand gefragt wird –, und auch der Umfang
+(„Rundung, Pausen oder Salden") war meine Wahl, nicht die von Manuel. Beides
+stand im Plan als Fließtext, nicht als Entscheidung mit Alternativen.
+
+Damit sind **beide** Regeländerungen dieser Runde zurückgenommen.
+`docs/arbeitsregeln.md` ist byteweise wieder der Stand vom 16. August; von den
+sechs Patches heute bleiben die vier Snapshot-Einträge und dieser Verlauf.
+
+**Was ausdrücklich nicht zurückgenommen ist: der Befund.** Es gibt keine
+automatisierte Prüfung, die nachrechnet. Der Klicktest zeigt eine Zahl, aber
+niemand erkennt an 8:36 statt 8:30, dass sie falsch ist; die Prüfumgebung
+vergleicht zwei Stände und ist zufrieden, wenn beide gleich falsch rechnen –
+sie kennt kein Soll. Das steht als **T-140** im Snapshot und bleibt dort. Ob
+daraus je eine Pflicht in Abschnitt 5 wird, entscheidet Manuel, wenn das Skript
+existiert und er sieht, was es kann. Nicht vorher, und nicht das Werkzeug.
+
+### TEST
+- `git diff --quiet 9979a20 -- docs/arbeitsregeln.md`: byteweise identisch mit
+  dem Stand vor P-2026-08-17-03 (8.697 Bytes).
+- `grep -rn "Harness" docs/arbeitsregeln.md CHATSTART.md CLAUDE.md`: keine
+  Fundstelle. Im Snapshot bleiben zwei – der nächste Schritt und T-140.
+- Kaltstart 16.886 Bytes, wieder der Stand nach P-2026-08-17-02; von den
+  +1.561 Bytes der Regeländerungen ist nichts übrig, der Zuwachs sind allein die
+  Tasks (+1.005 gegenüber 15.881 vor der Runde).
+- Abschnitt 5 am Stück gegengelesen: `php -l`, Klicktest, DB-Idempotenz,
+  Meldungsfreiheit – vier Punkte, unverändert, in alter Reihenfolge.
+
+### NEXT
+Aufgefallen und **nicht** mitgemacht: T-140 steht als „Fachlogik-Harness" im
+Snapshot, und Manuel musste fragen, was das ist. Ein Task, den man nicht ohne
+Rückfrage versteht, ist schlecht formuliert – ein Satz mit einem konkreten
+Beispiel („Kommen 07:03, Gehen 16:12 → erwartet 8:30") würde das lösen. Eigener
+Patch, und nur auf Ansage.
+
 ## P-2026-08-17-05 strukturbudget-zurueckgenommen
 
 ### EINGELESEN

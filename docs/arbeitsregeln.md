@@ -78,10 +78,6 @@ Ziel: verhindern, dass bereits Erledigtes ein zweites Mal gebaut wird.
 ## 5. Nach der Änderung: Pflichtprüfung
 
 - `php -l` über **alle** geänderten PHP-Dateien.
-- Sobald der Fachlogik-Harness aus T-140 steht: er muss grün sein, und wer
-  Rundung, Pausen oder Salden ändert, hängt den Fall aus seinem
-  Akzeptanzkriterium dort als **dauerhafte** Prüfung an – der TEST-Abschnitt im
-  Verlauf belegt einen Lauf, er wiederholt ihn nicht.
 - Die betroffenen Kernabläufe aus `docs/wartungscheckliste.md` durchklicken.
 - Bei DB-Änderungen: Neuinstallation aus `sql/01_initial_schema.sql` muss
   weiterhin funktionieren, und die Migration muss zweimal hintereinander
