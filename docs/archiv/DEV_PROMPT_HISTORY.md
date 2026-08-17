@@ -18,6 +18,72 @@ legacy_zip_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-08-17-05 strukturbudget-zurueckgenommen
+
+### EINGELESEN
+- `docs/arbeitsregeln.md`, Abschnitt 3 – der Punkt aus P-2026-08-17-04.
+- Abschnitt 0 derselben Datei – eine Regel wird als eigener Patch mit Begründung
+  geändert, und genau das passiert hier.
+- P-2026-08-17-04, Abschnitt „Warum 1.500 und nicht 2.000" – die Begründung, die
+  sich als Erfindung erweist.
+
+### DATEIEN
+- `docs/arbeitsregeln.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Abschnitt 3 enthält keine Zeilengrenze mehr und ist byteweise wieder der Stand
+von vor P-2026-08-17-04; `grep -rn "1.500\|1500"` über die Kaltstart-Dateien
+findet nichts.
+
+### DONE
+Manuel hat gefragt, woher die Grenze von 1.500 Zeilen kommt, und sie streichen
+lassen. Die Antwort auf die Frage ist der Grund für diesen Patch: **Sie kommt
+von nirgendwo.**
+
+Es gibt im Projekt keine Messung, keinen früheren Patch und keine Fachregel, aus
+der sich 1.500 ableiten ließe. Ich habe eine runde Zahl gewählt, weil eine
+Längenregel ohne Zahl nicht greift, und die Begründung danach gebaut: Bei 1.500
+liegen 11 Dateien darüber, bei 2.000 nur 4, also nimm die niedrigere. Das ist
+eine Rechnung, die jede Zahl stützt, für die man sie aufstellt – sie erklärt
+nicht, warum bei 1.500 etwas anderes gilt als bei 1.400 oder 1.700.
+
+**Der eigentliche Fehler war nicht die Zahl, sondern ihr Weg in eine verbindliche
+Regel.** Sie stand im Plan mitten im Fließtext, nicht als Entscheidung mit
+Alternativen. Freigegeben wurde der Plan – gewählt wurde die Zahl nie. Eine
+Vorgabe, die niemand gestellt hat, ist genau das, was Abschnitt 0 „nicht
+aushalten, sondern ansprechen" nennt; hier hat sie das Werkzeug selbst erfunden
+und dem Projekt untergeschoben.
+
+Der Punkt ist ersatzlos weg, nicht durch eine kleinere Zahl ersetzt. Ohne Zahl
+wäre die Regel eine Wiederholung von „Was auffällt, wird notiert" aus demselben
+Abschnitt – und eine doppelte Aussage ist nach `docs/README.md` selbst ein
+Fehler.
+
+**Was bleibt:** T-142 im Snapshot („Die größten Controller und Services
+aufteilen"). Der Befund, dass `controller/TerminalController.php` auf 4.372
+Zeilen gewachsen ist, stimmt weiter und steht als Task. Nur die Regel, die
+daraus eine Pflicht für jeden künftigen Patch gemacht hätte, ist zurückgenommen.
+
+P-2026-08-17-04 bleibt als Eintrag stehen – der Verlauf wird nicht gelöscht. Wer
+ihn liest, muss diesen hier daneben lesen.
+
+### TEST
+- `git diff` gegen den Stand vor P-2026-08-17-04: `docs/arbeitsregeln.md` ist mit
+  8.976 Bytes byteweise identisch, Abschnitt 3 steht wieder wie zuvor.
+- `grep -rn "1.500\|1500" docs/arbeitsregeln.md docs/STATUS_SNAPSHOT.md
+  CHATSTART.md CLAUDE.md`: keine Fundstelle.
+- Kaltstart 17.165 Bytes, vorher 17.442 – die 277 Bytes der Regel sind weg.
+- Abschnitt 3 am Stück gegengelesen: „kein hartes Dateilimit" und „keine
+  Refactors nebenbei" stehen unverändert, kein Verweis zeigt ins Leere (der
+  gestrichene Punkt war die einzige Stelle, die T-142 aus den Regeln heraus
+  nannte).
+
+### NEXT
+Offen ist die zweite Entscheidung aus derselben Runde, die Manuel ebenfalls nicht
+zur Wahl bekommen hat: die Testpflicht in Abschnitt 5 gilt „sobald der
+Fachlogik-Harness aus T-140 steht". Sie wartet auf seine Ansage – bestehen
+lassen, anders formulieren oder ebenfalls streichen.
+
 ## P-2026-08-17-04 arbeitsregeln-strukturbudget
 
 ### EINGELESEN
