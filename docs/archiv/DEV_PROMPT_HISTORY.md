@@ -18,6 +18,86 @@ legacy_zip_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-08-17-16 pruefskript-faelle-fachpruefungen
+
+### EINGELESEN
+- `services/FachpruefungService.php`, alle drei Methoden – vor allem die
+  Hinweistexte der Eingabeprüfung und die `ok`-Semantik von
+  `pruefeFeiertagUndArbeitszeit()`.
+- `sql/01_initial_schema.sql`, Tabellen `mitarbeiter`, `feiertag` und
+  `tageswerte_mitarbeiter` – welche Spalten `NOT NULL` sind und wie der
+  Feiertagskonflikt überhaupt entstehen kann.
+- `core/Database.php`, `letzteInsertId()`.
+- `scripts/dev/pruefumgebung.sh` – der Prüfbenutzer `probe`, den die Umgebung
+  selbst anlegt.
+
+### DATEIEN
+- `scripts/dev/faelle/03_fachpruefungen.php` (neu)
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Ein Feiertag mit Arbeitszeit **und** Feiertagsstunden wird von
+`pruefeFeiertagUndArbeitszeit()` als `ok = false` gemeldet, derselbe Monat ohne
+Arbeitszeit als `ok = true`.
+
+### DONE
+Zwölf Fälle, und die Datei sagt selbst, welche davon wie sicher sind – das ist
+hier wichtiger als die Zahl.
+
+**Neun Fälle Eingabeprüfung.** Ungültige Mitarbeiter-ID, Monat 13, Monat 0, Jahr
+1900, Jahr 2200, dazu die Zusicherung, dass bei ungültiger Eingabe `ergebnis`
+`null` bleibt und dass das Bündel die drei Eingabewerte unverändert zurückgibt –
+darauf verlassen sich die Views. Diese Fälle hängen an nichts als dem Code der
+Prüfungen; die erwarteten Zeichenketten sind gegen den Service abgeglichen, Wort
+für Wort, inklusive Umlaute.
+
+**Ein Fall, der belegt, dass die Prüfung erkennt und nicht nur läuft.** Ein
+eigener Probe-Mitarbeiter (`PRUEF-T140`), ein erfundener Feiertag am 15.06.2026
+und ein Tageswert mit acht Stunden Arbeitszeit **und** acht Stunden
+Feiertagsstunden. Erwartet: `ok = false`. Danach wird die Arbeitszeit auf 0
+gesetzt und derselbe Monat muss `ok = true` liefern. Ohne dieses Paar wüsste
+niemand, ob die Prüfung überhaupt anspringt.
+
+Die `ok`-Semantik ist aus dem Code hergeleitet und im Dateikopf notiert, weil sie
+dreiwertig ist und das überrascht: `null` heißt „keine Feiertage im Monat, Aussage
+nicht möglich", nicht „in Ordnung". Ein Fall, der `true` erwartet, wo `null`
+richtig wäre, hätte falschen Alarm erzeugt.
+
+**Was an diesem Fall unsicher ist, und das steht auch in der Datei:** Er hängt
+daran, wie `ReportService::holeMonatsdatenFuerMitarbeiter()` die Spalte
+`ist_stunden` auf das Feld `arbeitszeit_stunden` abbildet, das die Prüfung liest.
+Ich habe die Abbildung gelesen, aber nie ausgeführt. Weicht der Fall beim ersten
+Lauf ab, ist die Abbildung der erste Ort zum Nachsehen – nicht die Prüfung und
+nicht der Sollwert. Das gehört in die Datei, nicht in den Kopf des Nächsten.
+
+**Was in diesem Patch fehlt: die Urlaubssalden (Abschnitt 4c).** Bewusst, nicht
+vergessen. `berechneUrlaubssaldoFuerJahr()` ist über 500 Zeilen mit
+Monatsanspruch, Eintrittsdatum, Konfigurations-Rückfall, Übertrag und
+Korrekturen – und mit `autoUebertrag = true` **schreibt** die Methode. Absolute
+Sollwerte dafür ohne einen einzigen Lauf herzuleiten würde Zahlen erzeugen, die
+beim ersten Lauf abweichen, ohne dass jemand unterscheiden könnte, ob der Code
+oder die Erwartung falsch ist. Das ist schlechter als kein Fall. Wie diese Fälle
+zugeschnitten werden, ist eine Entscheidung und geht als Auswahl an Manuel
+(Abschnitt 0).
+
+### TEST
+- `php -l scripts/dev/faelle/03_fachpruefungen.php`: keine Syntaxfehler.
+- Alle neun erwarteten Hinweistexte gegen `services/FachpruefungService.php`
+  abgeglichen (Zeilen 64–68, 162–166, 290–294): identisch.
+- `Database::letzteInsertId()` existiert und liefert `string` – der `(int)`-Cast
+  im Fall ist deshalb da und nicht zufällig.
+- Spaltenlisten der drei `INSERT`-Anweisungen gegen das Schema geprüft: alle
+  `NOT NULL`-Spalten ohne Standardwert sind belegt.
+- Löschen-vor-Schreiben in allen drei Fällen vorhanden (Mitarbeiter, Feiertag,
+  Tageswert), damit zwei Läufe dasselbe Ergebnis liefern.
+
+**Nicht geprüft, weil kein MariaDB läuft:** das Akzeptanzkriterium selbst. Der
+Lauf ist derselbe wie in P-2026-08-17-15; erwartet werden dann 32 Fälle statt 20.
+
+### NEXT
+Die Urlaubssalden aus Abschnitt 4c der Spezifikation – offen, bis Manuel den
+Zuschnitt gewählt hat. Danach T-142.
+
 ## P-2026-08-17-15 pruefskript-faelle-rundung-und-pausen
 
 ### EINGELESEN
