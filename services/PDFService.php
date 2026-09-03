@@ -574,6 +574,9 @@ class PDFService
         // Header + Datenzeilen (Mehrfach-Kommen/Gehen: je Arbeitsblock eine Zeile)
         $rows = [];
         $zellMarkierungen = [];
+        // Je Zeile: '' (Werktag), 'sa' oder 'so' - Grundlage für die dezente
+        // Hinterlegung der Wochenendzeilen im Tabellenraster.
+        $zeilenWochenende = [];
         $rows[] = [
             'Tag / KW',
             'Kürzel',
@@ -593,6 +596,7 @@ class PDFService
         ];
         // Kopfzeile nie farblich markieren
         $zellMarkierungen[] = array_fill(0, 15, false);
+        $zeilenWochenende[] = '';
 
         // Summen für Block unten (Ist wird blockweise addiert, passend zur sichtbaren IST-Spalte)
         $sumIst = 0.0;
@@ -612,6 +616,14 @@ class PDFService
 
             $kw = $dt->format('W');
             $wd = $this->wochentagKurzDe($ymd);
+
+            $isoWochentag = (int)$dt->format('N');
+            $wochenendeCode = '';
+            if ($isoWochentag === 6) {
+                $wochenendeCode = 'sa';
+            } elseif ($isoWochentag === 7) {
+                $wochenendeCode = 'so';
+            }
 
             $tagKw = $day . ' ' . $wd . ' / ' . $kw;
 
@@ -943,12 +955,14 @@ class PDFService
                 }
 
                 $zellMarkierungen[] = $zellenManuell;
+                $zeilenWochenende[] = $wochenendeCode;
             }
         }
 
         // Abschluss-Zeile wie in der Vorlage ("/")
         $rows[] = ['/', '', '', '', '', '', '', '', '', '', '', '', '', '', ''];
         $zellMarkierungen[] = array_fill(0, 15, false);
+        $zeilenWochenende[] = '';
 
         // Sollstunden
         $soll = 0.0;
@@ -1132,14 +1146,17 @@ class PDFService
 
         $dataRows = array_slice($rows, 1);
         $dataManuell = array_slice($zellMarkierungen, 1);
+        $dataWochenende = array_slice($zeilenWochenende, 1);
 
         $dataRowsCount = count($dataRows);
         $chunks = [];
         $chunksManuell = [];
+        $chunksWochenende = [];
 
         if ($dataRowsCount <= $dataRowsPerPage) {
             $chunks = [$dataRows];
             $chunksManuell = [$dataManuell];
+            $chunksWochenende = [$dataWochenende];
         } else {
             $restNachLetzter = $dataRowsCount - $dataRowsPerPage;
             $seitenVorher = (int)ceil($restNachLetzter / $dataRowsPerPageOhneSummary);
@@ -1148,16 +1165,19 @@ class PDFService
             for ($i = 0; $i < $seitenVorher; $i++) {
                 $chunks[] = array_slice($dataRows, $offset, $dataRowsPerPageOhneSummary);
                 $chunksManuell[] = array_slice($dataManuell, $offset, $dataRowsPerPageOhneSummary);
+                $chunksWochenende[] = array_slice($dataWochenende, $offset, $dataRowsPerPageOhneSummary);
                 $offset += $dataRowsPerPageOhneSummary;
             }
 
             $chunks[] = array_slice($dataRows, $offset);
             $chunksManuell[] = array_slice($dataManuell, $offset);
+            $chunksWochenende[] = array_slice($dataWochenende, $offset);
         }
 
         if ($chunks === []) {
             $chunks = [[]];
             $chunksManuell = [[]];
+            $chunksWochenende = [[]];
         }
 
         $seitenGesamt = count($chunks);
@@ -1166,6 +1186,7 @@ class PDFService
         for ($p = 0; $p < $seitenGesamt; $p++) {
             $pageRows = array_merge([$rows[0]], $chunks[$p]);
             $pageManuell = array_merge([array_fill(0, 15, false)], $chunksManuell[$p] ?? []);
+            $pageWochenende = array_merge([''], $chunksWochenende[$p] ?? []);
 
             $istLetzteSeite = ($p === ($seitenGesamt - 1));
 
@@ -1175,6 +1196,39 @@ class PDFService
             // --- PDF Content Stream ---
             $c = "q\n";
             $c .= "0 0 0 RG\n0 0 0 rg\n0.6 w\n";
+
+            // Hintergrund: Samstage und Sonntage dezent hinterlegen - jeweils die
+            // ganze Zeile, damit auch Tage mit mehreren Arbeitsblöcken durchgehend
+            // eingefärbt sind. Muss vor den Rot-Markierungen laufen, damit eine
+            // manuell geänderte Zelle am Wochenende weiterhin rot bleibt.
+            $rectsSa = '';
+            $rectsSo = '';
+            for ($r = 1; $r < $rowCount; $r++) {
+                $wochenendeCodeZeile = (string)($pageWochenende[$r] ?? '');
+                if ($wochenendeCodeZeile === '') {
+                    continue;
+                }
+                $yBottom = $tableTopY - (($r + 1) * $rowH);
+                $rect = $this->pdfRectFill($tableX, $yBottom, $tableRightX - $tableX, $rowH);
+                if ($wochenendeCodeZeile === 'sa') {
+                    $rectsSa .= $rect;
+                } else {
+                    $rectsSo .= $rect;
+                }
+            }
+            if ($rectsSa !== '' || $rectsSo !== '') {
+                if ($rectsSa !== '') {
+                    // Samstag: helles Blaugrau
+                    $c .= "0.90 0.93 0.97 rg\n";
+                    $c .= $rectsSa;
+                }
+                if ($rectsSo !== '') {
+                    // Sonntag: helles Sandbeige
+                    $c .= "0.97 0.94 0.86 rg\n";
+                    $c .= $rectsSo;
+                }
+                $c .= "0 0 0 rg\n0 0 0 RG\n";
+            }
 
             // Hintergrund: Manuell geänderte Zellen rot hinterlegen
             // (muss vor Gitterlinien erfolgen, damit Linien darüber sichtbar bleiben)

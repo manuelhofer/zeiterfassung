@@ -18,6 +18,71 @@ legacy_zip_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-03-01 pdf-wochenende-dezent-hinterlegt
+
+### EINGELESEN
+- `services/PDFService.php`, `baueArbeitszeitlistePdf()` – Zeilenaufbau im
+  Tagesloop (`$rows`/`$zellMarkierungen`), Seitenaufteilung (`$chunks…`) und
+  der Zeichenblock je Seite mit der Rot-Hinterlegung manuell geänderter Zellen.
+- `docs/fachregeln/auswertung_und_pdf.md`, Abschnitt 3 (Markierung manuell
+  veränderter Daten) – wegen der Farbkollision mit Rot.
+
+### DATEIEN
+- `services/PDFService.php`
+- `docs/fachregeln/auswertung_und_pdf.md`
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Im Monats-PDF für September 2026 ist die Zeile „5 Sa / 36" durchgehend hellblau
+und die Zeile „6 So / 36" durchgehend hellbeige hinterlegt, Werktagszeilen
+bleiben weiß.
+
+### DONE
+Samstag und Sonntag bekommen im Tabellenraster je einen eigenen, dezenten
+Hintergrund – Samstag helles Blaugrau (`0.90 0.93 0.97`), Sonntag helles
+Sandbeige (`0.97 0.94 0.86`). Gefüllt wird die **ganze** Zeile über alle 15
+Spalten, damit ein Wochenendtag mit mehreren Arbeitsblöcken nicht halb
+eingefärbt dasteht.
+
+Dafür läuft neben `$rows` und `$zellMarkierungen` ein drittes Parallel-Array
+`$zeilenWochenende` mit (`''`, `'sa'`, `'so'`), das die Seitenaufteilung
+genauso mitschneidet wie die beiden anderen. Der Wochentag steht im Tagesloop
+ohnehin schon als `$dt` zur Verfügung; er lässt sich beim Zeichnen aber nicht
+mehr aus der Zeile ablesen, weil dort nur noch der fertige Text `„5 Sa / 36"`
+steht und Folgezeilen eines Tages die Spalte leer lassen.
+
+**Reihenfolge ist hier die eigentliche Arbeit:** Die Wochenendflächen werden
+**vor** den roten Zellen gezeichnet. Andersherum hätte das Wochenende die
+Markierung „manuell geändert" überdeckt – und die ist fachlich wichtig, die
+Hinterlegung nur Lesehilfe. Rot bleibt deshalb weiterhin die einzige Farbe mit
+Bedeutung; deswegen ist Sonntag auch **nicht** rötlich geworden, obwohl das
+optisch nahegelegen hätte.
+
+**Bewusst nicht gemacht:** Feiertage bleiben unhinterlegt (nicht beauftragt,
+und sie stehen bereits als Stundenwert in der Spalte „Feiertag"). Die
+HTML-Monatsübersicht bleibt unverändert – dort gibt es bisher gar keine
+Wochenendmarkierung, das wäre ein eigenes Thema. `docs/STATUS_SNAPSHOT.md` ist
+unverändert geblieben: kein neuer Bug, keine neue oder erledigte Task.
+
+### TEST
+- `php -l services/PDFService.php` – fehlerfrei.
+- Zwei PDFs über `erzeugeMonatsPdfAusDaten()` (September 2026) erzeugt und mit
+  `pdftoppm` als Bild geprüft:
+  - einseitig, wenige Buchungen: 5./12./19./26. blau, 6./13./20./27. beige,
+    alle übrigen Zeilen weiß, Summenblock unberührt.
+  - zweiseitig, 20 Tage mit je zwei Arbeitsblöcken: beide Zeilen eines
+    Wochenendtages sind eingefärbt, die Zuordnung stimmt auch auf Seite 2
+    (26 Sa / 27 So) – die Seitenaufteilung schneidet das neue Array also
+    korrekt mit. Eine manuell geänderte Kommen-Zeit am Samstag bleibt rot
+    sichtbar.
+- Nicht gelaufen: `scripts/dev/pruefe_fachlogik.php` – braucht die
+  Prüfumgebung (`zeit_probe…`), und der Patch rührt keine Berechnung an.
+
+### NEXT
+- Offen bleibt die Farbwahl selbst: Blaugrau/Sandbeige ist ein Vorschlag, keine
+  Vorgabe. Andere Paarung ist ein Einzeiler an derselben Stelle.
+
+
 ## P-2026-08-17-34 b-106-online-anlegen-und-buchen-in-einer-klammer
 
 ### EINGELESEN

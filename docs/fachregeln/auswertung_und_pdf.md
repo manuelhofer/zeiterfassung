@@ -77,6 +77,16 @@ Im PDF muss sichtbar sein, wo von Hand eingegriffen wurde:
 - `Ko.Korr` und `Ge.Korr` werden nie direkt von Hand geändert, sondern nur
   über Rundung und Rohdaten beeinflusst.
 
+### Wochenendzeilen
+
+Samstag- und Sonntagszeilen sind dezent hinterlegt – Samstag helles Blaugrau,
+Sonntag helles Sandbeige, jeweils über die ganze Zeilenbreite und bei
+Mehrfach-Blöcken über alle Zeilen des Tages (P-2026-09-03-01).
+
+Das ist reine Lesehilfe. **Rot bleibt die einzige Farbe mit Bedeutung**: Die
+Wochenendfläche wird deshalb zuerst gezeichnet und die Rot-Markierung darüber,
+und keine der beiden Wochenendfarben ist rötlich.
+
 ## 4. Abgrenzungen, die immer wieder falsch laufen
 
 - **Kurzarbeit zählt nicht als IST.** Sie reduziert das Soll (B-038).
