@@ -18,6 +18,49 @@ legacy_zip_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-04-02 portal-kennung-statt-personalnummer
+
+### ANLASS
+Gefunden beim Entwurf der Tabellen, einen Patch nach der Spezifikation: Sie
+liess den Mitarbeiter sich mit **Personalnummer + Code** anmelden. Im Bestand
+hat die Personalnummer aber **ein** Mitarbeiter von dreizehn
+(`SELECT SUM(personalnummer IS NOT NULL AND personalnummer <> '')`). Nach der
+alten Fassung haetten zwoelf Menschen eine Personalnummer bekommen muessen, die
+niemand braucht - nur damit die Anmeldung einen Namen hat.
+
+### EINGELESEN
+- `sql/01_initial_schema.sql`, Tabelle `mitarbeiter` (`personalnummer` ist
+  `NULL`-faehig und eindeutig, `benutzername` ebenso).
+- Der Bestand selbst, aggregiert: 13 Mitarbeiter, 1 Personalnummer,
+  8 Benutzernamen, 7 Passwoerter.
+
+### DATEIEN
+- `docs/spezifikation_mitarbeiterportal.md`, Abschnitte 7, 8.1, 10, 11
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Ein Mitarbeiter ohne Personalnummer kann freigeschaltet werden und bekommt eine
+Kennung, mit der er sich anmelden kann.
+
+### DONE
+Die Anmeldung haengt jetzt an einer **Portal-Kennung**
+(`mitarbeiter.portal_kennung`, eindeutig, ASCII, klein). Die Zeiterfassung
+schlaegt sie bei der Freischaltung vor - Personalnummer, wenn es eine gibt,
+sonst `vorname.nachname`, sonst `m<id>` - und sie ist in der Maske aenderbar.
+Gedruckt wird sie zusammen mit dem Aktivierungscode auf denselben Zettel.
+
+Die Spezifikation ist in beiden Repositorys geaendert und wieder byteweise
+gleich. Warum ueberhaupt ein eigener Patch dafuer: Der Vertrag steht in zwei
+Repositorys, und zwei Fassungen, die auch nur einen Commit lang verschieden
+sind, sind genau der Fehler, gegen den die Kopfzeile der Datei geschrieben ist.
+
+### TEST
+`diff` beider Fassungen - identisch. Kein Programm geaendert.
+
+### NEXT
+Tabellen und Recht, zuerst auf der Homepage (Migration 72).
+
+
 ## P-2026-09-04-01 mitarbeiterportal-spezifiziert
 
 ### ANLASS

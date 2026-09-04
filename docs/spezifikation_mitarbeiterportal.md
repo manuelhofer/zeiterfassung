@@ -183,7 +183,7 @@ Stundenlöhne, RFID-Codes, E-Mail-Adressen, Auftragszeiten, andere Mitarbeiter.
 
 | Teil | Inhalt |
 | --- | --- |
-| `mitarbeiter` | Fremd-ID, Anzeigename, Personalnummer, aktiv, Aktivierungscode als Hash mit Frist |
+| `mitarbeiter` | Fremd-ID, Anzeigename, Portal-Kennung, aktiv, Aktivierungscode als Hash mit Frist |
 | `urlaub` | je Mitarbeiter: Jahr, Übertrag, Jahresanspruch, verbraucht, übrig |
 | `antraege` | je Mitarbeiter: eigene Anträge mit Zeitraum, Tagen, Status, Kommentar |
 | `stunden` | je Mitarbeiter: Saldo Über-/Minusstunden, Rest-Sollstunden des Monats |
@@ -210,9 +210,18 @@ kaum jemand ansieht.
 
 Ein Mitarbeiter bekommt aus der Zeiterfassung einen **Aktivierungscode** –
 zwölf Zeichen, ausdruckbar, **14 Tage** gültig, einmalig. Im Portal gibt er
-**Personalnummer + Code** ein und setzt sich dann selbst ein Passwort
-(mindestens zehn Zeichen). Ab da meldet er sich mit **Personalnummer +
-Passwort** an.
+**Kennung + Code** ein und setzt sich dann selbst ein Passwort (mindestens zehn
+Zeichen). Ab da meldet er sich mit **Kennung + Passwort** an.
+
+**Die Kennung ist nicht die Personalnummer.** Sie wäre der naheliegende
+Anmeldename, aber im Bestand hat sie **genau ein** Mitarbeiter von dreizehn –
+die Anmeldung daran aufzuhängen hieße, zwölf Personalnummern zu erfinden, nur
+damit sich jemand anmelden kann. Stattdessen vergibt die Zeiterfassung bei der
+Freischaltung eine **Portal-Kennung** (`mitarbeiter.portal_kennung`, eindeutig,
+ASCII, klein geschrieben). Sie wird vorgeschlagen – Personalnummer, wenn es
+eine gibt, sonst `vorname.nachname`, sonst `m<id>` – und lässt sich in der
+Maske ändern. Der Mitarbeiter bekommt sie zusammen mit dem Aktivierungscode auf
+denselben Zettel gedruckt.
 
 **Warum nicht das Passwort aus der Zeiterfassung spiegeln:** Dann läge der Hash
 des Firmenzugangs auf einem öffentlichen Server. Das Portal-Passwort gilt nur
@@ -277,7 +286,7 @@ bedienbar, und die Anmeldung überlebt das Schließen des Fensters.
 
 ## 10. Was auf dem öffentlichen Server liegt – und was das bedeutet
 
-Auf dem vServer liegen dauerhaft: Name, Personalnummer, Portal-Passwort-Hash,
+Auf dem vServer liegen dauerhaft: Name, Portal-Kennung, Portal-Passwort-Hash,
 Urlaubszahlen, Stundensalden und Tageslisten der **freigeschalteten**
 Mitarbeiter, dazu angeforderte PDFs für sieben Tage. Das ist echter
 Personenbezug auf einem Rechner im Internet, und das gehört in die
@@ -302,9 +311,10 @@ läuft:
 1. Homepage: Kopplungscode erzeugen.
 2. Zeiterfassung: Adresse und Code eintragen, koppeln – beide Seiten zeigen
    „verbunden".
-3. Zeiterfassung: einen Mitarbeiter freischalten, Aktivierungscode drucken.
+3. Zeiterfassung: einen Mitarbeiter freischalten, Kennung und Aktivierungscode
+   drucken.
 4. Abgleich läuft – der Mitarbeiter steht auf der Homepage.
-5. Portal: mit Personalnummer und Code aktivieren, Passwort setzen, anmelden.
+5. Portal: mit Kennung und Code aktivieren, Passwort setzen, anmelden.
 6. Portal: Resturlaub und Stundensaldo stimmen mit dem Backend überein.
 7. Portal: Urlaub beantragen – Zustand `wartet`.
 8. Nach dem nächsten Abgleich: Der Antrag steht in der Zeiterfassung unter
