@@ -48,7 +48,8 @@ Ein Satz je Task – die Begründung steht im Verlauf, nicht hier.
   und Stufenplan in
   [`spezifikation_terminal_installation.md`](spezifikation_terminal_installation.md),
   Abschnitt 12 und 11.
-- **T-170 Mitarbeiterportal** – Kopplung, Abgleich, Freischaltung und
+- **T-170 Mitarbeiterportal** – Tabellen und Recht stehen (P-2026-09-04-04),
+  offen sind Kopplung, Abgleich, Freischaltung und
   Aktivierungscodes auf dieser Seite; der Bereich `/mitarbeiter` auf der
   Homepage ist das Gegenstück im anderen Repository. Umfang und Abnahme:
   [`spezifikation_mitarbeiterportal.md`](spezifikation_mitarbeiterportal.md).

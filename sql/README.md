@@ -35,6 +35,11 @@ gebraucht - Neuinstallationen bekommen alles über `01_initial_schema.sql`.
   ein Stromausfall dazwischen keine doppelte Buchung mehr erzeugt (T-128,
   Patch P-2026-08-16-25). Fehlt die Migration, arbeitet die Queue weiter wie
   bisher und schreibt einen Fehler ins Protokoll.
+- `12_migration_mitarbeiterportal.sql`: legt `portal_verbindung` und
+  `portal_eingang` an, ergänzt `mitarbeiter` um sechs Portal-Spalten samt
+  eindeutigem Index auf `portal_kennung` und richtet das Recht
+  `PORTAL_VERWALTEN` ein (T-170, Patch P-2026-09-04-04). Ohne die Migration
+  gibt es kein Mitarbeiterportal; alles andere läuft unverändert weiter.
 - `09_migration_zeitbuchung_fk_mitarbeiter.sql`: legt den Fremdschlüssel
   `zeitbuchung.mitarbeiter_id` -> `mitarbeiter.id` an, damit ein unbekannter
   RFID-Chip keine Buchung auf einen Mitarbeiter erzeugen kann, den es nicht

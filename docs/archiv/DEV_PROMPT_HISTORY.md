@@ -18,6 +18,94 @@ legacy_zip_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-04-04 portal-tabellen-und-recht
+
+### ANLASS
+T-170, erster Bauschritt auf dieser Seite. Die Homepage steht bereit und
+wartet auf einen Anruf; hier fehlt noch alles, womit man anrufen koennte.
+
+### EINGELESEN
+- `sql/05_migration_terminal_kopplung.sql` und
+  `sql/07_migration_urlaub_uebertrag_festschreiben.sql` - Aufbau und Ton einer
+  Migrationsdatei, idempotente Spaltenanlage.
+- `sql/01_initial_schema.sql`: Tabelle `mitarbeiter`, die Rechteliste
+  (hoechste ID war 30), `rolle` (`Chef` ist Superuser) und `rolle_hat_recht`.
+- `docs/spezifikation_mitarbeiterportal.md`, Abschnitte 4 bis 6.
+
+### DATEIEN
+- neu `sql/12_migration_mitarbeiterportal.sql`
+- `sql/01_initial_schema.sql`
+- `sql/README.md`
+- `docs/STATUS_SNAPSHOT.md`
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Migration 12 laeuft zweimal hintereinander fehlerfrei, eine Neuinstallation aus
+dem Initialschema bringt dieselben zwei Tabellen und sechs Spalten mit, und in
+beiden Faellen steht `PORTAL_VERWALTEN` in `recht`.
+
+### DONE
+Zwei Tabellen und sechs Spalten.
+
+**`portal_verbindung`** haelt Adresse, Kennung und Schluessel der Homepage.
+Der Schluessel steht dort im **Klartext**, und das ist eine Entscheidung, keine
+Nachlaessigkeit: Wer unterschreiben will, muss den Schluessel haben. Er liegt
+damit genauso sicher wie die Datenbank - und in der stehen ohnehin alle
+Personendaten. Ihn zusaetzlich zu verschluesseln hiesse, den Schluessel des
+Schluessels danebenzulegen.
+
+**`portal_eingang`** ist der Doppelschutz und der Grund, warum ein
+abgebrochener Anruf keinen zweiten Urlaubsantrag erzeugt. Jeder Auftrag der
+Homepage traegt eine fortlaufende Nummer; `(portal_id, fremd_id)` ist hier
+eindeutig. Geschrieben wird die Eingangszeile **vor** dem Fachdatensatz, in
+derselben Transaktion. Bricht es davor ab, kommt der Auftrag wieder; bricht es
+danach ab, kommt er auch wieder - und wird als Doppel erkannt.
+
+**Sechs Spalten an `mitarbeiter`:** `portal_aktiv` (die Freischaltung),
+`portal_kennung` (der Anmeldename, eindeutig aber NULL-faehig - die meisten
+haben keinen, und in MariaDB sind NULL-Werte in einem eindeutigen Index
+verschieden), `portal_aktivierung_hash` und `portal_aktivierung_bis` (der
+Code, wie ueberall nur als Hash), sowie `portal_aktiviert_am` und
+`portal_letzte_anmeldung_am` - die beiden Zeitstempel, die von der Homepage
+zurueckkommen (P-2026-09-04-03).
+
+**Das Recht ist eigenstaendig**, nicht an `TERMINAL_VERWALTEN` gehaengt: Wer
+ein Terminal koppelt, stellt ein Geraet in die Halle. Wer das Portal verwaltet,
+entscheidet, welche Personendaten das Haus verlassen und auf einem
+oeffentlichen Server liegen. Andere Frage, kleinerer Kreis.
+
+Die Zuordnung zu `Chef` steht ausdruecklich in der Migration, obwohl die Rolle
+Superuser ist. Grund: Wird der Superuser-Haken eines Tages entfernt - genau das
+passiert, wenn jemand Rechte feiner schneiden will -, faellt sonst still die
+Portalverwaltung weg.
+
+### TEST
+- Migration 12 **zweimal hintereinander** gegen die Entwicklungsdatenbank,
+  beide Laeufe ohne Ausgabe und ohne Fehler. Danach: sechs Portal-Spalten, zwei
+  Portal-Tabellen, das Recht, die Chef-Zuordnung.
+- **Neuinstallation:** frische Datenbank, nur `sql/01_initial_schema.sql` - 37
+  Tabellen, 6 Portal-Spalten, 2 Portal-Tabellen, Recht 31 vorhanden,
+  Chef-Zuordnung da, eindeutiger Index auf `portal_kennung` angelegt.
+- Auf **diese** Neuinstallation danach Migration 12 obendrauf: laeuft folgenlos
+  durch. Damit ist auch der Fall abgedeckt, dass jemand nach einer
+  Neuinstallation die Migrationen der Reihe nach nachtraegt.
+- Datenbank danach wieder geloescht.
+
+### GEFUNDEN / KORRIGIERT
+- Der erste Entwurf legte die Spalten ueber eine Stored Procedure mit
+  `DELIMITER` an. Das laeuft nur ueber den Kommandozeilenclient - `DELIMITER`
+  ist ein Client-Befehl und kein Serverbefehl, ueber PDO waere die Migration
+  gescheitert. Ersetzt durch `ALTER TABLE ... ADD COLUMN IF NOT EXISTS`, das
+  MariaDB seit 10.0 kann: kuerzer, lesbarer und ueber jeden Weg lauffaehig.
+- Ebenfalls im ersten Entwurf: `SELECT ... WHERE NOT EXISTS` ohne `FROM`. In
+  MariaDB braucht ein `SELECT` mit `WHERE` eine Quelle; jetzt steht `FROM DUAL`
+  davor.
+
+### NEXT
+Der Dienst, der die Kopplung ausloest, und die Verwaltungsmaske
+`?seite=portal_admin`.
+
+
 ## P-2026-09-04-03 portal-anmeldezustand-fliesst-zurueck
 
 ### ANLASS

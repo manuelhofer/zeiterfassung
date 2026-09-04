@@ -295,10 +295,17 @@ CREATE TABLE `mitarbeiter` (
   `rfid_code` varchar(64) DEFAULT NULL,
   `aktiv` tinyint(1) NOT NULL DEFAULT 1,
   `ist_login_berechtigt` tinyint(1) NOT NULL DEFAULT 1,
+  `portal_aktiv` tinyint(1) NOT NULL DEFAULT 0 COMMENT 'Darf das Mitarbeiterportal benutzen. 0 = steht dort gar nicht.',
+  `portal_kennung` varchar(60) DEFAULT NULL COMMENT 'Anmeldename im Portal. NULL = noch keine vergeben.',
+  `portal_aktivierung_hash` char(64) DEFAULT NULL COMMENT 'SHA-256 des Aktivierungscodes, nie der Code selbst',
+  `portal_aktivierung_bis` datetime DEFAULT NULL COMMENT 'Frist des Aktivierungscodes',
+  `portal_aktiviert_am` datetime DEFAULT NULL COMMENT 'Von der Homepage zurueckgemeldet: wann das Portal-Passwort gesetzt wurde',
+  `portal_letzte_anmeldung_am` datetime DEFAULT NULL COMMENT 'Von der Homepage zurueckgemeldet: letzte Anmeldung im Portal',
   `erstellt_am` datetime NOT NULL DEFAULT current_timestamp(),
   `geaendert_am` datetime NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
   PRIMARY KEY (`id`),
   UNIQUE KEY `uniq_mitarbeiter_benutzername` (`benutzername`),
+  UNIQUE KEY `uniq_mitarbeiter_portal_kennung` (`portal_kennung`),
   UNIQUE KEY `uniq_mitarbeiter_email` (`email`),
   UNIQUE KEY `uniq_mitarbeiter_rfid` (`rfid_code`),
   UNIQUE KEY `uniq_mitarbeiter_personalnummer` (`personalnummer`),
@@ -486,7 +493,8 @@ INSERT INTO `recht` (`id`, `code`, `name`, `beschreibung`, `aktiv`, `erstellt_am
 (27, 'KURZARBEIT_VERWALTEN', 'Kurzarbeit verwalten', 'Darf Kurzarbeit planen und Zeiträume pflegen.', 1, '2026-01-03 09:17:30', '2026-01-03 09:17:30'),
 (28, 'DASHBOARD_ZEITWARNUNGEN_SEHEN', 'Dashboard: Zeitwarnungen sehen', 'Darf den Dashboard-Warnblock für unplausible/unvollständige Kommen/Gehen-Stempel sehen.', 1, '2026-01-07 08:36:06', '2026-01-07 08:36:06'),
 (29, 'STUNDENKONTO_VERWALTEN', 'Stundenkonto verwalten', 'Darf Stundenkonto-Korrekturen und Verteilungen im Backend erfassen.', 1, '2026-01-17 16:49:40', '2026-01-17 16:49:40'),
-(30, 'AUFTRAEGE_VERWALTEN', 'Aufträge verwalten', 'Darf Aufträge und deren Arbeitsschritte im Backend anlegen, bearbeiten und deaktivieren. Ansehen der Aufträge und Drucken der Laufkarte bleibt ohne dieses Recht möglich.', 1, '2026-08-08 07:00:00', '2026-08-08 07:00:00');
+(30, 'AUFTRAEGE_VERWALTEN', 'Aufträge verwalten', 'Darf Aufträge und deren Arbeitsschritte im Backend anlegen, bearbeiten und deaktivieren. Ansehen der Aufträge und Drucken der Laufkarte bleibt ohne dieses Recht möglich.', 1, '2026-08-08 07:00:00', '2026-08-08 07:00:00'),
+(31, 'PORTAL_VERWALTEN', 'Mitarbeiterportal verwalten', 'Darf die Homepage als Mitarbeiterportal koppeln, Mitarbeiter dafür freischalten und Aktivierungscodes erzeugen.', 1, '2026-09-04 07:00:00', '2026-09-04 07:00:00');
 
 -- --------------------------------------------------------
 -- Tabellenstruktur für Tabelle `rolle`
@@ -551,7 +559,8 @@ INSERT INTO `rolle_hat_recht` (`rolle_id`, `recht_id`, `erstellt_am`) VALUES
 (1, 27, '2026-01-04 06:40:56'),
 (1, 28, '2026-01-07 08:36:06'),
 (1, 29, '2026-01-17 16:49:40'),
-(1, 30, '2026-08-08 07:00:00');
+(1, 30, '2026-08-08 07:00:00'),
+(1, 31, '2026-09-04 07:00:00');
 
 -- --------------------------------------------------------
 -- Tabellenstruktur für Tabelle `sonstiges_grund`
@@ -798,5 +807,50 @@ CREATE TABLE `zeit_rundungsregel` (
   `geaendert_am` datetime NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+-- Mitarbeiterportal (T-170). Inhaltlich identisch mit Migration 12; die
+-- Begruendung zu jeder Spalte steht dort und in
+-- docs/spezifikation_mitarbeiterportal.md.
+--
+-- Der Satz, der beide Tabellen erklaert: Diese Installation ruft bei der
+-- Homepage an, nie umgekehrt. `portal_verbindung` sagt wohin und womit
+-- unterschrieben wird, `portal_eingang` verhindert, dass ein abgebrochener
+-- Anruf einen Urlaubsantrag zweimal anlegt.
+-- --------------------------------------------------------
+CREATE TABLE IF NOT EXISTS `portal_verbindung` (
+  `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `basis_url` varchar(255) NOT NULL COMMENT 'z. B. https://wernig.com - ohne Pfad',
+  `portal_id` varchar(64) NOT NULL COMMENT 'von der Homepage bei der Kopplung vergeben',
+  `schluessel` varchar(128) NOT NULL COMMENT 'Klartext; wird zum Unterschreiben gebraucht',
+  `aktiv` tinyint(1) NOT NULL DEFAULT 1,
+  `gekoppelt_am` datetime NOT NULL DEFAULT current_timestamp(),
+  `entkoppelt_am` datetime DEFAULT NULL,
+  `letzter_lauf_am` datetime DEFAULT NULL,
+  `letzter_lauf_ok` tinyint(1) DEFAULT NULL COMMENT 'NULL = noch kein Lauf',
+  `letzter_fehler` text DEFAULT NULL COMMENT 'Klartext des letzten Fehlschlags, fuer die Maske',
+  `letzte_dauer_ms` int(10) UNSIGNED DEFAULT NULL,
+  `erstellt_am` datetime NOT NULL DEFAULT current_timestamp(),
+  `geaendert_am` datetime NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uniq_portal_verbindung_portal` (`portal_id`),
+  KEY `idx_portal_verbindung_aktiv` (`aktiv`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `portal_eingang` (
+  `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `portal_id` varchar(64) NOT NULL,
+  `fremd_id` bigint(20) UNSIGNED NOT NULL COMMENT 'portal_ausgang.id auf der Homepage',
+  `art` varchar(30) NOT NULL,
+  `mitarbeiter_id` bigint(20) UNSIGNED DEFAULT NULL,
+  `ergebnis` varchar(20) NOT NULL DEFAULT 'angenommen' COMMENT 'angenommen | abgelehnt',
+  `hinweis` text DEFAULT NULL COMMENT 'Klartext fuer den Mitarbeiter, wenn abgelehnt',
+  `urlaubsantrag_id` bigint(20) UNSIGNED DEFAULT NULL,
+  `verarbeitet_am` datetime NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uniq_portal_eingang` (`portal_id`, `fremd_id`),
+  KEY `idx_portal_eingang_zeit` (`verarbeitet_am`),
+  KEY `idx_portal_eingang_mitarbeiter` (`mitarbeiter_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 SET FOREIGN_KEY_CHECKS = 1;
