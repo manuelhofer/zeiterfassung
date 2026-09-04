@@ -160,6 +160,23 @@ Der Spiegel darf **teilweise** kommen: Was nicht im Aufruf steht, bleibt
 unverändert stehen. Nur so lässt sich der Monatsteil seltener schicken als der
 Urlaubsteil.
 
+**Die Antwort auf `melden` fließt zurück**, und zwar der einzige Teil, den nur
+die Homepage weiß:
+
+```json
+{"ok":true,"stand":"2026-09-04 08:15:04","zustand":[
+  {"mitarbeiter":7,"aktiviert_am":"2026-09-01 19:22:10","letzte_anmeldung_am":"2026-09-04 06:41:03"}
+]}
+```
+
+Ob ein Mitarbeiter seinen Aktivierungscode je eingelöst hat und wann er zuletzt
+im Portal war, entsteht **dort** – die Zeiterfassung kann es nicht wissen, weil
+sie die Anmeldung nicht sieht. Sie braucht es trotzdem: Wer in der
+Freischaltungsmaske sitzt und einen Aktivierungscode nachdrucken will, muss
+erkennen können, dass der erste nie benutzt wurde. Deshalb ist das die
+**einzige** Auskunft, die entgegen der Hauptrichtung läuft – und sie ist
+bewusst winzig: zwei Zeitstempel je Mitarbeiter, keine Zahlen, keine Inhalte.
+
 ## 6. Genau einmal ausführen
 
 Ein Auftrag darf nicht zweimal zu einem Urlaubsantrag werden. Deshalb:

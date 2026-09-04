@@ -18,6 +18,46 @@ legacy_zip_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-04-03 portal-anmeldezustand-fliesst-zurueck
+
+### ANLASS
+Gefunden beim Entwurf der Tabellen fuer die Zeiterfassungsseite. Die
+Freischaltungsmaske soll zeigen, ob ein Mitarbeiter seinen Aktivierungscode je
+eingeloest hat - sonst druckt jemand einen zweiten Code fuer jemanden, der
+laengst angemeldet ist, und weiss bei einem dritten immer noch nicht, warum
+nichts passiert. Diese Auskunft entsteht aber auf der Homepage: Die
+Zeiterfassung sieht die Anmeldung nicht.
+
+### EINGELESEN
+- `docs/spezifikation_mitarbeiterportal.md`, Abschnitte 5.2 und 8.1.
+
+### DATEIEN
+- `docs/spezifikation_mitarbeiterportal.md`, Abschnitt 5.2
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Nach einem Abgleich weiss die Zeiterfassung zu jedem freigeschalteten
+Mitarbeiter, ob und wann er sich im Portal aktiviert und zuletzt angemeldet hat.
+
+### DONE
+Die Antwort auf `melden` traegt jetzt ein Feld `zustand`: je Mitarbeiter zwei
+Zeitstempel, `aktiviert_am` und `letzte_anmeldung_am`.
+
+**Das ist die einzige Auskunft, die entgegen der Hauptrichtung laeuft**, und
+deshalb ist sie im Vertrag ausdruecklich als solche benannt und bewusst winzig
+gehalten: zwei Zeitstempel, keine Zahlen, keine Inhalte, kein Passwort, kein
+Hash. Sie ist auch keine Ausnahme von der Regel »die Homepage ruft nie an« -
+sie ist die **Antwort** auf einen Anruf der Zeiterfassung, nicht ein eigener.
+
+### TEST
+`diff` beider Fassungen - identisch. Kein Programm geaendert.
+
+### NEXT
+Migration 12 auf dieser Seite: `portal_verbindung`, `portal_eingang` und die
+Portal-Spalten an `mitarbeiter`, darunter die beiden Zeitstempel aus dieser
+Rueckmeldung.
+
+
 ## P-2026-09-04-02 portal-kennung-statt-personalnummer
 
 ### ANLASS
