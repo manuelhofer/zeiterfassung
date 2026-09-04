@@ -48,9 +48,10 @@ Ein Satz je Task – die Begründung steht im Verlauf, nicht hier.
   und Stufenplan in
   [`spezifikation_terminal_installation.md`](spezifikation_terminal_installation.md),
   Abschnitt 12 und 11.
-- **T-170 Mitarbeiterportal** – Tabellen und Recht stehen (P-2026-09-04-04),
-  offen sind Kopplung, Abgleich, Freischaltung und
-  Aktivierungscodes auf dieser Seite; der Bereich `/mitarbeiter` auf der
+- **T-170 Mitarbeiterportal** – auf dieser Seite ist die Kette fertig:
+  Tabellen und Recht (P-2026-09-04-04), Kopplung (-05), Freischaltung und
+  Aktivierungscodes (-06), Abgleich mit Zeitplanskript (-07). Offen bleibt das
+  Monats-PDF auf Anforderung; der Bereich `/mitarbeiter` auf der
   Homepage ist das Gegenstück im anderen Repository. Umfang und Abnahme:
   [`spezifikation_mitarbeiterportal.md`](spezifikation_mitarbeiterportal.md).
 - **T-142** Aus dem `SmokeTestController` sind die fachlichen und die

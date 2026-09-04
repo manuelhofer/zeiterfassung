@@ -92,6 +92,7 @@ class PortalAdminController
             'koppeln'      => $this->koppeln(),
             'probe'        => $this->probe(),
             'entkoppeln'   => $this->entkoppeln(),
+            'abgleich'     => $this->abgleich(),
             'freischalten' => $this->freischalten(),
             'sperren'      => $this->sperren(),
             'code'         => $this->aktivierungscode(),
@@ -134,6 +135,26 @@ class PortalAdminController
             . '»Verbindung trennen« drückt. Solange können sich Mitarbeiter dort weiter '
             . 'anmelden und sehen alte Zahlen mit einem Hinweis, wie alt sie sind.'
         );
+    }
+
+    /**
+     * Abgleich von Hand anstossen.
+     *
+     * Im Normalfall macht das der Zeitplandienst alle zwei Minuten. Dieser
+     * Knopf ist fuer zwei Faelle da: gleich nach dem Freischalten, damit
+     * jemand nicht zwei Minuten auf seinen Zugang wartet - und zur
+     * Fehlersuche, weil er im Gegensatz zum Zeitplan seine Zeilen anzeigt.
+     */
+    private function abgleich(): void
+    {
+        $ergebnis = (new PortalSyncService())->laufen('hand');
+
+        if ($ergebnis['ok']) {
+            $this->flashOk('Abgleich durchgelaufen in ' . $ergebnis['dauer_ms'] . ' ms: '
+                . implode(' | ', $ergebnis['zeilen']));
+            return;
+        }
+        $this->flashErr('Der Abgleich ist gescheitert: ' . $ergebnis['fehler']);
     }
 
     private function freischalten(): void

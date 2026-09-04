@@ -18,6 +18,115 @@ legacy_zip_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-04-07 portal-abgleich
+
+### ANLASS
+T-170, vierter Bauschritt und der eigentliche: Verbindung, Freischaltung und
+Codes stehen - aber es ist noch kein einziges Byte geflossen.
+
+### EINGELESEN
+- `controller/TerminalController.php`, `urlaubBeantragenSpeichern()` und
+  `urlaubStornieren()` - die vollstaendige Pruefkette eines Antrags.
+- `controller/UrlaubController.php`, Zeile 522 ff. - die Null-Tage-Regel
+  (B-075) im Wortlaut.
+- `services/UrlaubService.php`: `findeUeberlappendenAktivenUrlaub()`,
+  `berechneTageGesamtAlsArbeitstageString()`, `istNegativerResturlaubGeblockt()`,
+  `pruefeNegativenResturlaubBeiNeuemAntrag()`, `berechneUrlaubssaldoFuerJahr()`
+  (Rueckgabefelder), `holeAntraegeFuerMitarbeiter()`.
+- `services/ReportService.php`, `holeMonatsdatenFuerMitarbeiter()` - Aufbau der
+  Tageswerte, insbesondere `kommen_korr`/`gehen_korr`.
+- `services/StundenkontoService.php`, `holeSaldoMinutenBisVormonat()`.
+- `core/Database.php` (Transaktionen), `services/KonfigurationService.php`.
+
+### DATEIEN
+- neu `services/PortalSyncService.php`, `scripts/portal_sync.php`
+- `controller/PortalAdminController.php`, `views/portal_admin/index.php`
+- `docs/installationsanleitung.md` (neuer Abschnitt 8)
+- `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Ein Urlaubsantrag, der auf der Website im Briefkasten liegt, steht nach einem
+Lauf von `scripts/portal_sync.php` als Antrag in `urlaubsantrag` - und ein
+zweiter Lauf mit demselben Auftrag legt ihn **nicht** noch einmal an.
+
+### DONE
+Ein Lauf ist immer derselbe Dreischritt: `abholen`, verarbeiten, `melden`.
+
+**Die Pruefung ist dieselbe wie am Terminal**, und das ist die wichtigste
+Entscheidung dieses Patches. Ein Antrag aus dem Portal ist kein Sonderfall,
+sondern ein Urlaubsantrag. Waeren die Regeln hier andere, gaebe es zwei
+Wahrheiten darueber, was zulaessig ist - und die Portalvariante waere die, die
+niemand pflegt. Also dieselben Methoden des `UrlaubService`: Ueberlappung,
+Arbeitstage, Null-Tage-Regel (B-075), negativer Resturlaub.
+
+**Der Doppelschutz ist das eigentliche Handwerk.** Die Eingangszeile wird
+**vor** dem Urlaubsantrag geschrieben, beides in einer Transaktion. Bricht es
+davor ab, kommt der Auftrag wieder; bricht es danach ab, kommt er auch wieder -
+und wird am eindeutigen Schluessel `(portal_id, fremd_id)` als Doppel erkannt
+und nur noch einmal rueckgemeldet. Scheitert das Schreiben, wird die
+Transaktion zurueckgenommen und **keine** Eingangszeile hinterlassen: Der
+Auftrag soll wiederkommen, denn vielleicht war es nur ein Aussetzer.
+
+**Die Zeile `mitarbeiter_id = :mid` im Storno-UPDATE ist kein Beiwerk.** Sie
+ist die Stelle, an der verhindert wird, dass ein Auftrag von der Website einen
+fremden Antrag storniert - ohne sie waere eine uebernommene Website ein
+Werkzeug, um Urlaub anderer Leute zu loeschen.
+
+**Der Spiegel enthaelt nur, was das Portal anzeigt.** Kein Geburtsdatum, kein
+Lohn, kein RFID-Code, keine E-Mail-Adresse, nichts zu nicht freigeschalteten
+Mitarbeitern. Beim Stundensaldo werden **keine neuen Zahlen erfunden**: `saldo`
+ist derselbe Wert, den das Terminal »Stundenkonto« nennt (Saldo bis
+einschliesslich Vormonat), `rest_soll_monat` ist Soll minus Ist des laufenden
+Monats aus dem `ReportService`.
+
+**Monatslisten gehen nur alle zehn Minuten mit.** Sie sind der groesste Teil
+des Spiegels - dreizehn Mitarbeiter mal zwei Monate mal dreissig Tage - und
+aendern sich hoechstens beim Stempeln. Der Zeitpunkt steht in
+`config:portal_monate_zuletzt`, also ohne neue Tabelle. Gezeigt werden die
+**korrigierten** Zeiten (`kommen_korr`), nicht die rohen: dieselben, die im
+Monats-PDF stehen. Zwei verschiedene Kommen-Zeiten fuer denselben Tag waeren
+der sicherste Weg zu einer Nachfrage.
+
+`scripts/portal_sync.php` fuer den Zeitplan, mit **Sperrdatei**: Ohne sie
+koennten sich zwei Laeufe ueberholen, wenn einer laenger braucht als der Takt.
+Dazu ein Knopf »Jetzt abgleichen« in der Maske - fuer den Moment gleich nach
+dem Freischalten und fuer die Fehlersuche, weil er im Gegensatz zum Zeitplan
+seine Zeilen anzeigt.
+
+### TEST
+Gegen die laufende Homepage (Testserver auf `127.0.0.1:8771`), beide Seiten
+frisch gekoppelt, ein Testmitarbeiter freigeschaltet:
+
+- **Erster Lauf, leerer Briefkasten:** 1 Mitarbeiter, 2 Jahresstaende,
+  1 Stundensaldo, 2 Monatslisten, 20 Abwesenheiten - 44 ms.
+- **Vier Auftraege eingelegt**, alle vier mit dem erwarteten Ergebnis:
+  - sauberer Antrag 02.-06.11. → angenommen, `urlaubsantrag` Nr. 15 mit
+    5,00 Tagen, Status offen;
+  - reines Wochenende → abgelehnt mit der B-075-Meldung;
+  - Bis vor Von → abgelehnt;
+  - unbekannte Art `kaffee_kochen` → abgelehnt mit Klartext.
+  Der Briefkasten stand danach auf `erledigt` bzw. `fehlgeschlagen`, der
+  Hinweis im Wortlaut daneben.
+- **Doppelschutz:** Auftrag 1 auf der Website von Hand auf `abgeholt`
+  zurueckgesetzt, als waere die Antwort nie angekommen. Zweiter Lauf: Auftrag
+  kommt wieder, wird als angenommen zurueckgemeldet - und es gibt weiterhin
+  **genau einen** Urlaubsantrag fuer den 02.11.
+- **Storno:** eigener offener Antrag → storniert. Fremder offener Antrag
+  (Nr. 14, gehoert einem anderen Mitarbeiter) → abgelehnt, und sein Status ist
+  danach unveraendert `offen`.
+- `php -l` auf alle neuen und geaenderten Dateien.
+
+### NICHT ERREICHT
+- `monat_pdf` wird noch abgewiesen (»Diese Art kennt die Zeiterfassung
+  nicht«) - das PDF ist der naechste Patch.
+- Der Testmitarbeiter und sein stornierter Antrag bleiben vorerst in der
+  Entwicklungsdatenbank; sie werden entfernt, wenn die Kette steht.
+
+### NEXT
+Der Mitarbeiterbereich auf der Homepage - ohne ihn kann niemand etwas in den
+Briefkasten legen ausser einem Testskript.
+
+
 ## P-2026-09-04-06 portal-freischaltung-und-aktivierungscodes
 
 ### ANLASS

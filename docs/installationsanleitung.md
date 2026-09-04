@@ -156,3 +156,32 @@ Für RFID/Offline-Setup siehe zusätzlich:
 
 - `docs/rfid_reader_setup.md`
 - `docs/terminal/rfid-ws_rollout.md`
+
+## 8) Mitarbeiterportal (optional)
+
+Nur nötig, wenn Mitarbeiter ihren Urlaub über die WERNIG-Homepage beantragen
+sollen. Die Kopplung selbst geschieht im Backend unter **Mitarbeiterportal**;
+hier steht nur, was auf dem Server einzurichten ist.
+
+**Ein Eintrag im Zeitplan, mehr nicht.** Der Abgleich ist ein
+Kommandozeilenskript, keine Adresse – diese Installation ist die **anrufende**
+Seite, es gibt niemanden von außen, der etwas aufrufen könnte:
+
+```bash
+*/2 * * * *  php /pfad/zur/zeiterfassung/scripts/portal_sync.php >/dev/null
+```
+
+Zwei Minuten sind die Vorgabe und keine Vorschrift: Sie entscheiden nur, wie
+lange ein Antrag im Briefkasten der Website liegt, bevor er hier ankommt. Das
+Skript sperrt sich selbst gegen Überschneidung, ein zu enger Takt kann also
+nichts kaputtmachen.
+
+**Was der Server dafür können muss:** ausgehende HTTPS-Verbindungen zur
+Website. Eingehend wird nichts gebraucht, kein Port, keine Portweiterleitung,
+keine feste Adresse – genau darum ist der Aufbau so herum gebaut
+([Mitarbeiterportal](spezifikation_mitarbeiterportal.md), Abschnitt 2).
+
+Läuft der Zeitplan nicht, passiert nichts Schlimmes: Anträge sammeln sich auf
+der Website, das Portal schreibt seinen Mitarbeitern sichtbar dazu, wie alt
+seine Zahlen sind, und der nächste Lauf holt alles nach. In der Maske
+**Mitarbeiterportal** steht, wann zuletzt abgeglichen wurde.

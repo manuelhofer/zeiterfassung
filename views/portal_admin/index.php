@@ -190,6 +190,11 @@ $artText = [
         <p style="margin-top:1rem;">
             <form method="post" action="?seite=portal_admin" style="display:inline;">
                 <?php echo Csrf::feld($csrfBereich); ?>
+                <input type="hidden" name="aktion" value="abgleich">
+                <button type="submit">Jetzt abgleichen</button>
+            </form>
+            <form method="post" action="?seite=portal_admin" style="display:inline;margin-left:0.5rem;">
+                <?php echo Csrf::feld($csrfBereich); ?>
                 <input type="hidden" name="aktion" value="probe">
                 <button type="submit">Verbindung prüfen</button>
             </form>
