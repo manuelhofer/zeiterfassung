@@ -184,6 +184,7 @@ class PortalSyncService
         return match ($art) {
             'urlaub_antrag' => $this->urlaubAntrag($portalId, $fremdId, $art, (int)$mitarbeiter['id'], $daten),
             'urlaub_storno' => $this->urlaubStorno($portalId, $fremdId, $art, (int)$mitarbeiter['id'], $daten),
+            'monat_pdf'     => $this->monatPdf($portalId, $fremdId, $art, $mitarbeiter, $daten),
             default         => $this->festhalten($portalId, $fremdId, $art, (int)$mitarbeiter['id'], 'abgelehnt',
                 'Diese Art von Auftrag kennt die Zeiterfassung nicht: ' . mb_substr($art, 0, 40)),
         };
@@ -329,6 +330,66 @@ class PortalSyncService
         ], $mitarbeiterId, null, 'portal');
 
         return $this->festhalten($portalId, $fremdId, $art, $mitarbeiterId, 'angenommen', '', $antragId);
+    }
+
+    /**
+     * Ein Monats-PDF erzeugen und mitschicken.
+     *
+     * **Auf Anforderung, nicht auf Vorrat** (Vertrag, Abschnitt 7). Dreizehn
+     * Mitarbeiter mal zwoelf Monate waeren 156 PDFs, die alle zwei Minuten neu
+     * entstuenden - fuer Dateien, die kaum jemand ansieht.
+     *
+     * Das PDF ist **dasselbe**, das im Backend unter »Monatsübersicht« aus dem
+     * Drucker kommt: derselbe `PDFService`, dieselben Daten. Eine zweite,
+     * schlankere Fassung fuer das Portal waere eine zweite Wahrheit auf Papier.
+     *
+     * @param array<string,mixed> $mitarbeiter
+     * @param array<string,mixed> $daten
+     */
+    private function monatPdf(string $portalId, int $fremdId, string $art, array $mitarbeiter, array $daten): array
+    {
+        $mitarbeiterId = (int)$mitarbeiter['id'];
+        $jahr  = (int)($daten['jahr'] ?? 0);
+        $monat = (int)($daten['monat'] ?? 0);
+
+        if ($jahr < 2000 || $jahr > 2100 || $monat < 1 || $monat > 12) {
+            return $this->festhalten($portalId, $fremdId, $art, $mitarbeiterId, 'abgelehnt',
+                'Der angeforderte Monat ist nicht lesbar.');
+        }
+
+        // Nicht in die Zukunft: Ein Monat, der noch laeuft, ergibt ein PDF mit
+        // leeren Tagen - der naechste Monat ergaebe eines, das nur aus leeren
+        // Tagen besteht.
+        $jetzt = new DateTimeImmutable('first day of this month');
+        $angefragt = DateTimeImmutable::createFromFormat('Y-n-j', $jahr . '-' . $monat . '-1');
+        if ($angefragt === false || $angefragt > $jetzt) {
+            return $this->festhalten($portalId, $fremdId, $art, $mitarbeiterId, 'abgelehnt',
+                'Für einen Monat, der noch nicht angefangen hat, gibt es keine Übersicht.');
+        }
+
+        try {
+            $pdf = PDFService::getInstanz()->erzeugeMonatsPdfFuerMitarbeiter($mitarbeiterId, $jahr, $monat);
+        } catch (Throwable $fehler) {
+            Logger::error('Portal: Monats-PDF konnte nicht erzeugt werden', [
+                'mitarbeiter_id' => $mitarbeiterId,
+                'jahr'           => $jahr,
+                'monat'          => $monat,
+                'exception'      => $fehler->getMessage(),
+            ], $mitarbeiterId, null, 'portal');
+
+            return $this->festhalten($portalId, $fremdId, $art, $mitarbeiterId, 'abgelehnt',
+                'Die Übersicht ließ sich nicht erzeugen. Bitte im Betrieb Bescheid geben.');
+        }
+
+        $monatsnamen = [1 => 'Januar', 'Februar', 'März', 'April', 'Mai', 'Juni',
+                        'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember'];
+
+        $ergebnis = $this->festhalten($portalId, $fremdId, $art, $mitarbeiterId, 'angenommen', '');
+        $ergebnis['datei']       = base64_encode($pdf);
+        $ergebnis['dateiname']   = sprintf('arbeitszeit-%04d-%02d.pdf', $jahr, $monat);
+        $ergebnis['bezeichnung'] = ($monatsnamen[$monat] ?? (string)$monat) . ' ' . $jahr;
+
+        return $ergebnis;
     }
 
     /**

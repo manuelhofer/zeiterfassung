@@ -18,6 +18,66 @@ legacy_zip_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-04-09 portal-monats-pdf-auf-anforderung
+
+### ANLASS
+T-170, letzter offener Punkt der Kette auf dieser Seite. Der Abgleich wies
+`monat_pdf` bisher mit »Diese Art von Auftrag kennt die Zeiterfassung nicht«
+ab - der Auftrag existierte im Vertrag, aber nicht im Programm.
+
+### EINGELESEN
+- `services/PDFService.php`, `erzeugeMonatsPdfFuerMitarbeiter()`.
+- `controller/ReportController.php`, Zeile 624 - wie das Backend dasselbe PDF
+  erzeugt.
+- `services/PortalSyncService.php` aus P-2026-09-04-07.
+- `docs/spezifikation_mitarbeiterportal.md`, Abschnitt 7 (auf Anforderung,
+  nicht auf Vorrat) und 5.2 (`datei`, `dateiname`, `bezeichnung`).
+
+### DATEIEN
+- `services/PortalSyncService.php`
+- `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Ein `monat_pdf`-Auftrag aus dem Portal erzeugt dasselbe PDF, das im Backend
+unter »Monatsuebersicht« aus dem Drucker kommt, und schickt es in der
+Rueckmeldung mit.
+
+### DONE
+`monat_pdf` ruft **denselben** `PDFService::erzeugeMonatsPdfFuerMitarbeiter()`
+auf wie das Backend. Eine schlankere Fassung eigens fuer das Portal waere eine
+zweite Wahrheit auf Papier - und Papier ist die Fassung, die jemand aufhebt.
+
+Zwei Abweisungen mit Klartext: Ein unlesbarer Monat, und ein Monat, der noch
+nicht angefangen hat. Der zweite Fall ist nicht theoretisch - eine
+Monatsauswahl, die den naechsten Monat anbietet, ergaebe ein PDF, das nur aus
+leeren Tagen besteht, und die Frage »warum ist das leer« landete hier.
+
+Warum auf Anforderung und nicht mit jedem Abgleich: Dreizehn Mitarbeiter mal
+zwoelf Monate sind 156 PDFs. Alle zwei Minuten neu erzeugt waeren das rund
+110.000 PDFs am Tag - fuer Dateien, die kaum jemand ansieht.
+
+### TEST
+Vollstaendiger Durchlauf gegen die laufende Homepage:
+
+- Im Portal »August 2026 als PDF anfordern« gedrueckt.
+- `scripts/portal_sync.php`: »Auftrag 9 (monat_pdf): angenommen«.
+- Auf der Homepage liegt danach `daten/portal/a0f3387744c8df166c02c7e2.pdf`
+  mit 6.319 Bytes, dazu die Zeile in `portal_datei` mit Bezeichnung »August
+  2026«, Dateiname `arbeitszeit-2026-08.pdf` und Frist in sieben Tagen.
+- Ueber `/mitarbeiter/datei?id=1` im Browser geoeffnet: die »Arbeitszeitliste«
+  mit allen fuenfzehn Spalten, den hinterlegten Wochenendzeilen aus
+  P-2026-09-03-01 und dem Summenblock. Also wirklich dasselbe PDF.
+- `php -l services/PortalSyncService.php`.
+
+### NICHT ERREICHT
+Nichts aus diesem Thema. Offen bleibt auf dieser Seite nur das Aufraeumen des
+Testmitarbeiters, wenn die Kette abgenommen ist.
+
+### NEXT
+Auf der Homepage die installierbare Fassung und die Aufraeumarbeiten im
+Zeitplandienst.
+
+
 ## P-2026-09-04-08 keine-zweite-urlaubsrechnung
 
 ### ANLASS

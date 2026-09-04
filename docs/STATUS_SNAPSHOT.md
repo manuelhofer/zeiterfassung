@@ -50,8 +50,8 @@ Ein Satz je Task – die Begründung steht im Verlauf, nicht hier.
   Abschnitt 12 und 11.
 - **T-170 Mitarbeiterportal** – auf dieser Seite ist die Kette fertig:
   Tabellen und Recht (P-2026-09-04-04), Kopplung (-05), Freischaltung und
-  Aktivierungscodes (-06), Abgleich mit Zeitplanskript (-07). Offen bleibt das
-  Monats-PDF auf Anforderung; der Bereich `/mitarbeiter` auf der
+  Aktivierungscodes (-06), Abgleich mit Zeitplanskript (-07), Monats-PDF auf
+  Anforderung (-09). Auf dieser Seite ist damit nichts mehr offen; der Bereich `/mitarbeiter` auf der
   Homepage ist das Gegenstück im anderen Repository. Umfang und Abnahme:
   [`spezifikation_mitarbeiterportal.md`](spezifikation_mitarbeiterportal.md).
 - **T-142** Aus dem `SmokeTestController` sind die fachlichen und die
