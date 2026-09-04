@@ -23,6 +23,7 @@ $hatRundungsregelAdminRecht   = false;
 $hatBetriebsferienAdminRecht  = false;
 $hatQueueAdminRecht           = false;
 $hatTerminalAdminRecht         = false;
+$hatPortalAdminRecht           = false;
 $hatKonfigurationAdminRecht   = false;
 $hatAuditLogAdminRecht        = false;
 $hatKrankzeitraumAdminRecht   = false;
@@ -62,6 +63,10 @@ if ($auth->istAngemeldet()) {
     $hatBetriebsferienAdminRecht   = $auth->hatRecht('BETRIEBSFERIEN_VERWALTEN') || $hatLegacyAdminRolle;
     $hatQueueAdminRecht            = $auth->hatRecht('QUEUE_VERWALTEN') || $hatLegacyAdminRolle;
     $hatTerminalAdminRecht         = $auth->hatRecht('TERMINAL_VERWALTEN') || $hatLegacyAdminRolle;
+    // Kein Rueckfall auf die Legacy-Rolle: Das Recht ist neu, es gibt
+    // keine Installation, die es noch nicht kennt - und wer Personendaten
+    // aus dem Haus laesst, soll ausdruecklich dafuer berechtigt sein.
+    $hatPortalAdminRecht           = $auth->hatRecht('PORTAL_VERWALTEN');
     $hatAuditLogAdminRecht         = $auth->hatRecht('KONFIGURATION_VERWALTEN') || $auth->hatRecht('ROLLEN_RECHTE_VERWALTEN') || $hatLegacyAdminRolle;
 
     // Diese Rechte-Codes sind (noch) nicht überall geseedet – Legacy-Fallback bleibt aktiv.
@@ -144,6 +149,7 @@ $navVerwaltungAktiv = in_array($seite, [
     'queue_admin',
     'terminal_admin',
     'terminal_admin_bearbeiten',
+    'portal_admin',
     'audit_logs',
 ], true);
 
@@ -155,6 +161,7 @@ $hatVerwaltungMenue = $hatMaschineAdminRecht
     || $hatKrankzeitraumAdminRecht
     || $hatQueueAdminRecht
     || $hatTerminalAdminRecht
+    || $hatPortalAdminRecht
     || $hatAuditLogAdminRecht;
 
 $navVerwaltungStartUrl = '?seite=dashboard';
@@ -172,6 +179,8 @@ if ($hatKonfigurationAdminRecht) {
     $navVerwaltungStartUrl = '?seite=queue_admin';
 } elseif ($hatTerminalAdminRecht) {
     $navVerwaltungStartUrl = '?seite=terminal_admin';
+} elseif ($hatPortalAdminRecht) {
+    $navVerwaltungStartUrl = '?seite=portal_admin';
 } elseif ($hatAuditLogAdminRecht) {
     $navVerwaltungStartUrl = '?seite=audit_logs';
 }
@@ -1088,6 +1097,9 @@ if ($hatKonfigurationAdminRecht) {
                 <?php endif; ?>
                 <?php if ($hatTerminalAdminRecht): ?>
                     <a href="?seite=terminal_admin">Terminals</a>
+                <?php endif; ?>
+                <?php if ($hatPortalAdminRecht): ?>
+                    <a href="?seite=portal_admin">Mitarbeiterportal</a>
                 <?php endif; ?>
                 <?php if ($hatAuditLogAdminRecht): ?>
                     <a href="?seite=audit_logs">Logs</a>

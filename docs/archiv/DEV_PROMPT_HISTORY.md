@@ -18,6 +18,102 @@ legacy_zip_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-04-05 portal-handschlag-von-hier-aus
+
+### ANLASS
+T-170, zweiter Bauschritt. Die Tabellen stehen und die Homepage wartet auf
+einen Anruf - es fehlt der Anrufer.
+
+### EINGELESEN
+- `services/TerminalKopplungService.php` (Ablauf einer Kopplung) und
+  `controller/TerminalAdminController.php` (Aufbau einer Verwaltungsmaske,
+  CSRF-Bereich, Flash ueber die Sitzung).
+- `views/terminal_admin/liste.php` (Ton und Aufbau einer Maske,
+  `onsubmit="return confirm(...)"` ist hier erlaubt - anders als auf der
+  Homepage gibt es in diesem Backend keine CSP).
+- `views/layout/header.php`, Zeilen 20-70 und 130-180 (Rechteflags,
+  `navVerwaltungAktiv`, `navVerwaltungStartUrl`) sowie der Menueblock ab 1084.
+- `core/Database.php` (`fetchEine`, `fetchAlle`, `ausfuehren`), `core/Csrf.php`
+  (Bereiche), `core/Logger.php`.
+- `docs/fachregeln/terminal_und_offline.md`, Abschnitt 5 - wegen der Zeitlimits.
+
+### DATEIEN
+- neu `services/PortalVerbindungService.php`
+- neu `controller/PortalAdminController.php`
+- neu `views/portal_admin/index.php`
+- `public/index.php`, `views/layout/header.php`
+- `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Adresse und Kopplungscode der Homepage eintragen, »Koppeln« druecken - danach
+steht in der Maske die Homepage-Adresse, die dort vergebene Kennung und der
+Satz, dass der erste unterschriebene Aufruf angekommen ist.
+
+### DONE
+`PortalVerbindungService` kuemmert sich um **eine** Sache: dass ein Aufruf
+ankommt und richtig unterschrieben ist. Was drinsteht, entscheidet spaeter der
+Abgleich.
+
+**Drei Entscheidungen, die man am Code nicht sofort sieht:**
+
+1. **Zeitlimits, und zwar zwei.** Fuenf Sekunden fuer den Verbindungsaufbau,
+   45 fuer den ganzen Aufruf. Dieselbe Lehre wie am Terminal
+   (P-2026-08-16-08): »Nicht erreichbar« heisst selten »Verbindung abgelehnt« -
+   meistens kommt gar nichts zurueck. Ohne Zeitlimit wartet PHP bis zum Ende
+   der Skriptlaufzeit, und ein Abgleich alle zwei Minuten staut sich auf.
+
+2. **`CURLOPT_FOLLOWLOCATION = false`.** Einer Umleitung zu folgen hiesse, die
+   Unterschrift an eine Adresse zu tragen, die wir nicht gemeint haben. Wer von
+   http auf https umleitet, soll die richtige Adresse eintragen und nicht
+   heimlich umgebogen werden.
+
+3. **Der Fehlertext nennt den Anfang einer Nicht-JSON-Antwort.** Eine
+   HTML-Fehlerseite von einem Reverse Proxy saehe sonst aus wie »die Website
+   hat abgelehnt« - und dann sucht jemand stundenlang am falschen Ende.
+
+Die Kopplung schickt **sofort danach** ein unterschriebenes `hallo`. Eine
+Kopplung, deren zweite Haelfte erst zwei Minuten spaeter beim ersten Abgleich
+scheitert, waere schwer zu deuten.
+
+`entkoppeln()` wirkt nur hier - und die Maske sagt das ausdruecklich: Die
+Homepage erfaehrt nichts davon, weil sie nicht angerufen werden kann. Sie merkt
+es daran, dass niemand mehr anruft; geloescht wird der Spiegel dort, wenn dort
+jemand »Verbindung trennen« drueckt. Wer das nicht weiss, glaubt sonst, mit
+einem Klick seien die Personendaten vom oeffentlichen Server verschwunden.
+
+Die Maske selbst zeigt Adresse, Kennung, letzten Abgleich samt Dauer und
+Fehlertext, die Zahl der freigeschalteten Mitarbeiter und die letzten fuenfzehn
+verarbeiteten Auftraege. Menuepunkt unter *Verwaltung*, Recht
+`PORTAL_VERWALTEN` - **ohne** Rueckfall auf die Rollennamen, anders als bei der
+Terminalverwaltung: Das Recht ist neu, es gibt keine Altinstallation, die es
+nicht kennt.
+
+### TEST
+Gegen die laufende Homepage (PHP-Testserver auf `127.0.0.1:8771`), im Browser
+mit einem eigens angelegten Chef-Konto (danach wieder geloescht):
+
+- Auf der Homepage einen Kopplungscode erzeugt, hier Adresse und Code
+  eingetragen (klein geschrieben) - Ergebnis: »Gekoppelt, und der erste
+  unterschriebene Aufruf kam an.« In der Maske stehen Adresse, Kennung
+  `zt-a00a750fd1f16389`, »Letzter Abgleich: noch keiner« und »Freigeschaltet:
+  niemand« mit dem Hinweis, was das bedeutet.
+- »Verbindung pruefen« - »Die Website antwortet und die Signatur stimmt.«
+- Sechs Fehlerwege direkt am Dienst, alle mit brauchbarem Klartext:
+  Adresse ohne `https://`, Adresse leer, Code leer, Host existiert nicht
+  (»Could not resolve host«), Port ohne Server (»Failed to connect«), falscher
+  Code gegen die echte Website (Antwort der Homepage im Wortlaut).
+- `php -l` auf alle geaenderten und neuen Dateien.
+
+### NICHT ERREICHT
+- Der Abgleich selbst fehlt noch - deshalb steht in der Maske »Letzter
+  Abgleich: noch keiner«, und das ist im Moment richtig so.
+- Die Freischaltung je Mitarbeiter fehlt ebenfalls; die Maske zaehlt sie schon
+  und sagt, wo sie hingehoert.
+
+### NEXT
+Freischaltung und Aktivierungscodes in der Mitarbeiterverwaltung.
+
+
 ## P-2026-09-04-04 portal-tabellen-und-recht
 
 ### ANLASS
