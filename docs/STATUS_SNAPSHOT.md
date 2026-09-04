@@ -48,12 +48,16 @@ Ein Satz je Task – die Begründung steht im Verlauf, nicht hier.
   und Stufenplan in
   [`spezifikation_terminal_installation.md`](spezifikation_terminal_installation.md),
   Abschnitt 12 und 11.
-- **T-170 Mitarbeiterportal** – auf dieser Seite ist die Kette fertig:
-  Tabellen und Recht (P-2026-09-04-04), Kopplung (-05), Freischaltung und
-  Aktivierungscodes (-06), Abgleich mit Zeitplanskript (-07), Monats-PDF auf
-  Anforderung (-09). Auf dieser Seite ist damit nichts mehr offen; der Bereich `/mitarbeiter` auf der
-  Homepage ist das Gegenstück im anderen Repository. Umfang und Abnahme:
-  [`spezifikation_mitarbeiterportal.md`](spezifikation_mitarbeiterportal.md).
+- **T-172 Mitarbeiterportal am echten Gerät** – die Kette läuft im
+  Testaufbau (localhost gegen localhost). Was auf einem Gerät noch niemand
+  gesehen hat: »Zum Startbildschirm hinzufügen« auf Android und iPhone, das
+  Symbol, der Start ohne Adresszeile und die Offline-Seite im Flugmodus. Die
+  Registrierung des Service Workers ließ sich im Prüfbrowser gar nicht
+  auslösen – er lehnt sie auch für gewöhnliche Dateien ab.
+- **T-173 Erster echter Abgleich über das Internet** – bisher lief alles gegen
+  `127.0.0.1`. Zu prüfen sind der Weg über HTTPS mit gültigem Zertifikat und
+  die Uhren beider Server: Weichen sie mehr als 300 Sekunden voneinander ab,
+  weist die Homepage jede Anfrage ab (die Meldung nennt das ausdrücklich).
 - **T-142** Aus dem `SmokeTestController` sind die fachlichen und die
   PDF-Prüfungen heraus; offen bleibt `pruefeTerminalLogin`, und das erst nach
   dem Gerätetest.

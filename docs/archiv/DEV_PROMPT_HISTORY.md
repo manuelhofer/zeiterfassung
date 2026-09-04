@@ -18,6 +18,76 @@ legacy_zip_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-04-10 portal-abnahme-durchgespielt
+
+### ANLASS
+Beide Seiten sind gebaut. Bevor irgendetwas davon als fertig gilt, laeuft die
+Abnahmekette aus Abschnitt 11 der Spezifikation einmal am Stueck - und die
+Testdaten muessen wieder aus der Entwicklungsdatenbank.
+
+### EINGELESEN
+- `docs/spezifikation_mitarbeiterportal.md`, Abschnitt 11 (die elf Schritte).
+- `docs/STATUS_SNAPSHOT.md`, Abschnitte »Naechster Schritt« und »Offene Tasks«.
+
+### DATEIEN
+- `docs/STATUS_SNAPSHOT.md`
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Alle elf Schritte der Abnahmekette laufen ohne Handgriff dazwischen, und danach
+steht in der Entwicklungsdatenbank kein Testmitarbeiter mehr.
+
+### DONE
+Die Kette ist durchgespielt, im Testaufbau localhost gegen localhost:
+
+1. Homepage: Kopplungscode erzeugt.
+2. Hier Adresse und Code eingetragen - »Gekoppelt, und der erste
+   unterschriebene Aufruf kam an.«
+3. Testmitarbeiter freigeschaltet, Kennung `prueflauf.portal`,
+   Aktivierungscode gedruckt.
+4. Abgleich - der Mitarbeiter steht auf der Homepage.
+5. Portal: mit Kennung und Code aktiviert, Passwort gesetzt, angemeldet.
+6. Resturlaub und Stundensaldo stimmen mit den Zahlen dieser Installation
+   ueberein.
+7. Urlaub 08.-12.03.2027 beantragt - Zustand »Wird uebermittelt«.
+8. Nach dem Abgleich: Antrag Nr. 16 hier mit 5,00 Tagen, im Portal »Liegt zur
+   Genehmigung vor«.
+9. Genehmigt mit Kommentar - nach dem naechsten Abgleich steht im Portal
+   »Genehmigt«, der Kommentar daneben, und der Resturlaub 2027 ist von 22,00
+   auf 17,00 gefallen.
+10. **Firmenserver aus** (letzter Kontakt auf 47 Minuten zurueckgesetzt): Das
+    Portal zeigt seine Zahlen weiter, darueber in gelb »Stand von vor 47
+    Minuten. Die Zeiterfassung meldet sich gerade nicht.« - und nimmt einen
+    neuen Antrag trotzdem an. Nach dem naechsten Lauf ist er hier.
+11. **Freischaltung entzogen:** Der naechste Abgleich meldet »keiner mehr
+    freigeschaltet, 1 geloescht«. Auf der Homepage sind danach **alle sieben
+    Portal-Tabellen leer**, und die offene Sitzung endet beim naechsten
+    Seitenaufruf mit »Ihr Zugang zum Mitarbeiterbereich besteht nicht mehr.«
+
+Aufgeraeumt: Testmitarbeiter (id 29), seine drei Urlaubsantraege und die
+Eingangszeilen geloescht. `portal_aktiv = 1` hat danach niemand mehr.
+
+Die Verbindung zu `http://127.0.0.1:8771` bleibt in der
+Entwicklungsdatenbank stehen - sie zeigt auf den lokalen Testserver und ist
+fuer weitere Arbeit nuetzlich. In einer echten Installation gibt es sie erst,
+wenn jemand sie ausdruecklich herstellt.
+
+### TEST
+Der Durchlauf **ist** der Test. Zusaetzlich geprueft: `portal_eingang` hat nach
+dem Loeschen des Mitarbeiters keine verwaisten Zeilen mehr, und
+`SELECT COUNT(*) FROM mitarbeiter WHERE portal_aktiv = 1` ergibt 0.
+
+### GEFUNDEN
+Nichts Neues - alle elf Schritte liefen wie entworfen. Was fehlt, ist kein
+Fehler, sondern ein Nachweis: Es lief alles gegen `127.0.0.1`, also ohne
+HTTPS, ohne echtes Zertifikat und ohne zwei Server mit verschiedenen Uhren.
+Beides steht jetzt als T-172 und T-173 unter den offenen Tasks.
+
+### NEXT
+T-172 (Praxistest am Handy) und T-173 (erster Abgleich ueber das Internet).
+Beide brauchen den Server, nicht den Entwicklungsrechner.
+
+
 ## P-2026-09-04-09 portal-monats-pdf-auf-anforderung
 
 ### ANLASS
