@@ -259,9 +259,19 @@ Kundenkonto. Sitzung: acht Stunden ohne Aktivität, dann Abmeldung.
 - **Übersicht:** Resturlaub (aufgeschlüsselt nach Übertrag und laufendem
   Jahr), Stundensaldo, Rest-Sollstunden des Monats, eigene Anträge mit Status,
   Betriebsferien, Feiertage.
-- **Urlaub beantragen:** Von- und Bis-Datum, Kommentar. Das Portal zeigt vor
-  dem Abschicken an, wie viele Arbeitstage das ungefähr sind – gerechnet wird
-  es aber erst in der Zeiterfassung, und deren Zahl gilt.
+- **Urlaub beantragen:** Von- und Bis-Datum, Kommentar. **Ohne Vorschau, wie
+  viele Arbeitstage das sind.** Eine frühere Fassung dieses Vertrags versprach
+  sie »ungefähr« – das war ein Widerspruch zu Abschnitt 3, und der wiegt
+  schwerer als die Bequemlichkeit: Feiertage, Betriebsferien, halbe Tage am
+  24. und 31.12. und der anteilige Anspruch stecken in der Rechnung der
+  Zeiterfassung. Eine zweite, ungefähre Rechnung auf der Homepage wäre in genau
+  den Fällen falsch, in denen jemand nachrechnet. Das Portal sagt stattdessen,
+  dass die Zahl in Kürze am Antrag steht.
+
+  Was das Portal **doch** prüft, ist keine Rechnung, sondern ein
+  Doppelschutz: Ob im selben Zeitraum schon ein Antrag liegt oder wartet. Das
+  verhindert, dass jemand zweimal auf »Absenden« tippt und zwei Minuten später
+  zwei Anträge hat. Die verbindliche Prüfung bleibt die der Zeiterfassung.
 - **Stornieren:** solange der Antrag `offen` ist.
 - **Monatsübersicht:** Tagesliste des gewählten Monats, dazu der Knopf
   *PDF anfordern*.

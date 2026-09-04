@@ -18,6 +18,45 @@ legacy_zip_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-04-08 keine-zweite-urlaubsrechnung
+
+### ANLASS
+Beim Bau des Antragsformulars auf der Homepage aufgefallen. Abschnitt 8.2 des
+Vertrags versprach dort eine Vorschau der Arbeitstage; Abschnitt 3 desselben
+Vertrags sagt, dass die Homepage nichts rechnet. Zwei Saetze, ein Widerspruch.
+
+### EINGELESEN
+- `docs/spezifikation_mitarbeiterportal.md`, Abschnitte 3 und 8.2.
+- `docs/fachregeln/urlaub_abwesenheit_feiertage.md`, Abschnitte 3 und 5 - was
+  alles in der Zahl steckt: halbe Tage am 24. und 31.12., Betriebsferien,
+  anteiliger Anspruch bei Eintritt.
+
+### DATEIEN
+- `docs/spezifikation_mitarbeiterportal.md`, Abschnitt 8.2
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Der Vertrag enthaelt keine Stelle mehr, an der die Homepage eine Urlaubszahl
+selbst herleitet.
+
+### DONE
+Die Vorschau entfaellt. **Fuer diese Seite ist das die wichtigere Haelfte:**
+Es bleibt bei einer einzigen Stelle, an der Arbeitstage entstehen -
+`UrlaubService::berechneTageGesamtAlsArbeitstageString()`. Eine zweite,
+ungefaehre Rechnung auf einem Server, den niemand pflegt, waere genau in den
+Faellen falsch, in denen jemand nachrechnet - und die Nachfrage landete hier.
+
+Was bleibt, ist keine Rechnung: Die Homepage prueft, ob im selben Zeitraum
+schon ein Antrag liegt oder wartet, damit ein zweiter Fingertipp keinen
+Doppelantrag erzeugt. Verbindlich bleibt die Pruefung im `PortalSyncService`.
+
+### TEST
+`diff` beider Fassungen - identisch. Kein Programm geaendert.
+
+### NEXT
+Auf der Homepage das Antragsformular; hier bleibt alles, wie es ist.
+
+
 ## P-2026-09-04-07 portal-abgleich
 
 ### ANLASS
