@@ -7,8 +7,12 @@ declare(strict_types=1);
  * - $verbindung (array|null)  – Zeile aus `portal_verbindung`, aktiv
  * - $freigegeben (int)        – wie viele Mitarbeiter freigeschaltet sind
  * - $eingang (array)          – die letzten verarbeiteten Aufträge
+ * - $belegschaft (array)      – alle aktiven Mitarbeiter mit ihrem Portal-Zustand
+ * - $vorschlaege (array)      – je Mitarbeiter-ID die vorgeschlagene Kennung
  * - $csrfBereich (string)     – Bereichsname für `Csrf`
  * - optional: $flashOk (string|null), $flashErr (string|null)
+ * - optional: $zettel (array|null) – frisch erzeugter Aktivierungscode; er
+ *   wird genau einmal angezeigt und ist danach nicht mehr abrufbar
  */
 require __DIR__ . '/../layout/header.php';
 
@@ -16,8 +20,11 @@ $csrfBereich = (string)($csrfBereich ?? 'portal_admin');
 $verbindung  = $verbindung ?? null;
 $freigegeben = (int)($freigegeben ?? 0);
 $eingang     = $eingang ?? [];
+$belegschaft = $belegschaft ?? [];
+$vorschlaege = $vorschlaege ?? [];
 $flashOk     = $flashOk ?? null;
 $flashErr    = $flashErr ?? null;
+$zettel      = $zettel ?? null;
 
 $h = static fn($w): string => htmlspecialchars((string)$w, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
 
@@ -48,6 +55,51 @@ $artText = [
     <?php endif; ?>
     <?php if (!empty($flashErr)): ?>
         <div class="fehlermeldung" style="margin:0.5rem 0;"><?php echo $h($flashErr); ?></div>
+    <?php endif; ?>
+
+    <?php if (is_array($zettel)): ?>
+        <?php /* Der Zettel zum Ausdrucken oder Abschreiben. Er steht hier
+                 genau einmal - nachschlagen kann ihn niemand, auch der Chef
+                 nicht. Genau das macht ihn zu einem Nachweis und nicht zu
+                 einer Notiz. */ ?>
+        <div class="info-panel" id="portal-zettel"
+             style="margin:0.75rem 0;max-width:560px;border:2px solid #333;padding:1rem;">
+            <div style="font-weight:bold;font-size:1.1rem;">
+                Zugang zum Mitarbeiterportal – <?php echo $h($zettel['name']); ?>
+            </div>
+            <table style="margin:0.75rem 0;">
+                <tr>
+                    <th style="text-align:left;padding-right:1rem;">Adresse</th>
+                    <td><?php echo $h($zettel['adresse']); ?></td>
+                </tr>
+                <tr>
+                    <th style="text-align:left;padding-right:1rem;">Kennung</th>
+                    <td style="font-family:monospace;font-size:1.15rem;"><?php echo $h($zettel['kennung']); ?></td>
+                </tr>
+                <tr>
+                    <th style="text-align:left;padding-right:1rem;vertical-align:top;">Code</th>
+                    <td style="font-family:monospace;font-size:1.6rem;letter-spacing:0.2rem;">
+                        <?php echo $h(PortalFreigabeService::codeLesbar($zettel['code'])); ?>
+                    </td>
+                </tr>
+                <?php if ($zettel['bis'] !== ''): ?>
+                <tr>
+                    <th style="text-align:left;padding-right:1rem;">Gültig bis</th>
+                    <td><?php echo $h(date('d.m.Y', strtotime((string)$zettel['bis']))); ?></td>
+                </tr>
+                <?php endif; ?>
+            </table>
+            <div><small>
+                Adresse aufrufen, »Zugang einrichten« wählen, Kennung und Code eingeben,
+                eigenes Passwort vergeben. Danach wird der Code nicht mehr gebraucht.
+                Die Leerzeichen im Code sind nur zum Lesen – sie werden nicht mit eingetippt.
+            </small></div>
+            <div style="margin-top:0.75rem;">
+                <button type="button" onclick="window.print();">Drucken</button>
+                <small style="margin-left:0.5rem;"><strong>Der Code steht nur dieses eine Mal
+                hier.</strong> Wer ihn verliert, bekommt einen neuen – der alte gilt dann nicht mehr.</small>
+            </div>
+        </div>
     <?php endif; ?>
 
     <?php if ($verbindung === null): ?>
@@ -125,8 +177,8 @@ $artText = [
                         <?php if ($freigegeben === 0): ?>
                             <strong>niemand.</strong> Solange kein Mitarbeiter
                             freigeschaltet ist, steht auf der Homepage nichts und
-                            niemand kann sich dort anmelden. Die Freischaltung
-                            geschieht je Mitarbeiter in der Mitarbeiterverwaltung.
+                            niemand kann sich dort anmelden – die Liste dafür steht
+                            weiter unten.
                         <?php else: ?>
                             <?php echo $freigegeben; ?> Mitarbeiter
                         <?php endif; ?>
@@ -189,6 +241,95 @@ $artText = [
             </div>
         <?php endif; ?>
 
+    <?php endif; ?>
+
+    <?php if ($verbindung !== null): ?>
+        <h3>Freischaltung</h3>
+        <p>
+            <strong>Diese Liste ist die eigentliche Entscheidung.</strong> Ein
+            freigeschalteter Mitarbeiter steht mit Namen, Urlaubszahlen und
+            Stundensaldo auf einem Server im Internet, ein nicht freigeschalteter
+            mit keinem Byte. Deshalb gibt es hier bewusst kein »alle freischalten«.
+        </p>
+        <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>Mitarbeiter</th>
+                    <th>Kennung</th>
+                    <th>Zugang</th>
+                    <th>Aktionen</th>
+                </tr>
+            </thead>
+            <tbody>
+            <?php foreach ($belegschaft as $m): ?>
+                <?php
+                    $mid       = (int)$m['id'];
+                    $frei      = (int)$m['portal_aktiv'] === 1;
+                    $kennung   = (string)($vorschlaege[$mid] ?? '');
+                    $codeOffen = ($m['portal_aktivierung_hash'] ?? null) !== null
+                                 && $m['portal_aktivierung_bis'] !== null
+                                 && strtotime((string)$m['portal_aktivierung_bis']) > time();
+                    $aktiviert = $m['portal_aktiviert_am'] !== null;
+                ?>
+                <tr>
+                    <td><?php echo $h($m['nachname'] . ', ' . $m['vorname']); ?></td>
+                    <td>
+                        <?php if ($frei): ?>
+                            <code><?php echo $h($m['portal_kennung']); ?></code>
+                        <?php else: ?>
+                            <small>Vorschlag: <code><?php echo $h($kennung); ?></code></small>
+                        <?php endif; ?>
+                    </td>
+                    <td>
+                        <?php if (!$frei): ?>
+                            <small>nicht freigeschaltet</small>
+                        <?php elseif ($aktiviert): ?>
+                            eingerichtet am <?php echo $h(date('d.m.Y', strtotime((string)$m['portal_aktiviert_am']))); ?>
+                            <?php if ($m['portal_letzte_anmeldung_am'] !== null): ?>
+                                <br><small>zuletzt angemeldet
+                                <?php echo $h(date('d.m.Y H:i', strtotime((string)$m['portal_letzte_anmeldung_am']))); ?></small>
+                            <?php endif; ?>
+                        <?php elseif ($codeOffen): ?>
+                            <small>wartet auf die erste Anmeldung,<br>Code gilt bis
+                            <?php echo $h(date('d.m.Y', strtotime((string)$m['portal_aktivierung_bis']))); ?></small>
+                        <?php else: ?>
+                            <strong>kein gültiger Code</strong>
+                        <?php endif; ?>
+                    </td>
+                    <td>
+                        <div class="table-actions">
+                        <?php if (!$frei): ?>
+                            <form method="post" action="?seite=portal_admin" style="display:inline;">
+                                <?php echo Csrf::feld($csrfBereich); ?>
+                                <input type="hidden" name="aktion" value="freischalten">
+                                <input type="hidden" name="mitarbeiter_id" value="<?php echo $mid; ?>">
+                                <input type="text" name="kennung" value="<?php echo $h($kennung); ?>"
+                                       size="14" style="font-family:monospace;" spellcheck="false">
+                                <button type="submit">Freischalten</button>
+                            </form>
+                        <?php else: ?>
+                            <form method="post" action="?seite=portal_admin" style="display:inline;">
+                                <?php echo Csrf::feld($csrfBereich); ?>
+                                <input type="hidden" name="aktion" value="code">
+                                <input type="hidden" name="mitarbeiter_id" value="<?php echo $mid; ?>">
+                                <button type="submit"><?php echo $codeOffen || $aktiviert ? 'Neuer Code' : 'Code erzeugen'; ?></button>
+                            </form>
+                            <form method="post" action="?seite=portal_admin" style="display:inline;"
+                                  onsubmit="return confirm('Freischaltung entziehen? Beim nächsten Abgleich verschwindet der Mitarbeiter samt Konto, Zahlen und Anträgen von der Website.');">
+                                <?php echo Csrf::feld($csrfBereich); ?>
+                                <input type="hidden" name="aktion" value="sperren">
+                                <input type="hidden" name="mitarbeiter_id" value="<?php echo $mid; ?>">
+                                <button type="submit">Entziehen</button>
+                            </form>
+                        <?php endif; ?>
+                        </div>
+                    </td>
+                </tr>
+            <?php endforeach; ?>
+            </tbody>
+        </table>
+        </div>
     <?php endif; ?>
 
     <h3>Was die Homepage von hier bekommt</h3>

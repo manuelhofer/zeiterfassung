@@ -18,6 +18,95 @@ legacy_zip_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-04-06 portal-freischaltung-und-aktivierungscodes
+
+### ANLASS
+T-170, dritter Bauschritt. Die Verbindung steht, aber es gibt niemanden, der
+das Portal benutzen duerfte - und keinen Weg, jemandem einen Zugang zu geben.
+
+### EINGELESEN
+- `sql/01_initial_schema.sql`, Tabelle `mitarbeiter` (`personalnummer` ist bei
+  12 von 13 leer, `benutzername` bei 5).
+- `services/TerminalKopplungService.php` - Codeerzeugung und Hashablage als
+  Vorbild.
+- `controller/PortalAdminController.php` und `views/portal_admin/index.php` aus
+  P-2026-09-04-05.
+- `docs/spezifikation_mitarbeiterportal.md`, Abschnitte 7, 8.1 und 10.
+
+### DATEIEN
+- neu `services/PortalFreigabeService.php`
+- `controller/PortalAdminController.php`
+- `views/portal_admin/index.php`
+- `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Ein Mitarbeiter laesst sich mit einem Klick freischalten - die Kennung steht
+schon im Feld -, und ein zweiter Klick erzeugt einen Aktivierungscode, der
+genau einmal angezeigt wird und nach dem Neuladen weg ist.
+
+### DONE
+**Die Freischaltung ist die eigentliche Entscheidung**, und die Maske sagt das
+auch so: Ein freigeschalteter Mitarbeiter steht mit Namen, Urlaubszahlen und
+Stundensaldo auf einem Server im Internet, ein nicht freigeschalteter mit
+keinem Byte. Deshalb gibt es **kein »alle freischalten«** - die Zeile je Person
+ist die Huerde, und sie soll da sein.
+
+Die Freischaltung steht in der Portalmaske und **nicht** in der
+Mitarbeiterverwaltung. Grund: Sie haengt am Recht `PORTAL_VERWALTEN`, nicht an
+`MITARBEITER_VERWALTEN`. Wer Stammdaten pflegt, muss nicht entscheiden duerfen,
+welche Daten das Haus verlassen. (Der Satz in der Maske, der auf die
+Mitarbeiterverwaltung verwies, ist damit falsch geworden und im selben Patch
+korrigiert.)
+
+**Der Kennungsvorschlag** hat drei Stufen, mit Absicht in dieser Reihenfolge:
+Personalnummer, wenn es eine gibt - sie ist im Haus die uebliche Kennzeichnung.
+Sonst `vorname.nachname`, weil das jeder ohne Nachfrage weiss. Als Letztes
+`m<id>` fuer den Namensvetter und fuer Namen, von denen nach der
+ASCII-Umwandlung nichts uebrig bleibt. Umlaute werden ausgeschrieben (ae, oe,
+ue, ss), Akzente fallen weg: Die Kennung wird auf einem Handy getippt, in einem
+Feld ohne Sonderzeichenhilfe.
+
+**Der Aktivierungscode:** zwoelf Zeichen ohne I, L, O, 0 und 1, in drei
+Vierergruppen zum Vorlesen, 14 Tage gueltig, nur als Hash gespeichert. Deutlich
+laenger als ein Kopplungscode, weil er auch deutlich laenger gilt - 14 Tage
+statt 30 Minuten, und ueber diese Zeit muss er dem Raten allein standhalten.
+Vierzehn Tage, weil ein Zettel im Urlaub liegen bleibt oder erst am Montag
+ankommt; kuerzer waere sicherer und wuerde vor allem Anrufe erzeugen.
+
+Der Zettel zeigt Adresse, Kennung, Code und Frist, dazu einen Drucken-Knopf und
+den Hinweis, dass die Leerzeichen im Code nicht mitgetippt werden. Er steht
+**einmal** da und wandert ueber die Sitzung, nicht ueber die Adresse: Ein Code
+in der URL landet im Browserverlauf und im Zugriffsprotokoll des Servers.
+
+**Entziehen entwertet den Code mit.** Ein halber Entzug waere schlimmer als
+keiner: Sonst bliebe ein gedruckter Zettel gueltig und liesse sich einloesen,
+sobald die Freischaltung je wieder gesetzt wird.
+
+### TEST
+Im Browser, mit einem eigens angelegten Chef-Konto und einem angelegten
+Testmitarbeiter »Prueflauf Portal«:
+
+- Die Liste zeigt alle 14 aktiven Mitarbeiter mit Vorschlag; fuer den
+  Testmitarbeiter `prueflauf.portal`, fuer einen mit Personalnummer deren Wert.
+- Freischalten mit dem Vorschlag: »Freigeschaltet unter der Kennung
+  »prueflauf.portal«.« Danach zeigt die Zeile die Kennung und »kein gueltiger
+  Code«.
+- Code erzeugen: Zettel mit Adresse `http://127.0.0.1:8771/mitarbeiter`,
+  Kennung, Code `SKCC UMS9 F9BF` und »Gueltig bis 18.09.2026«.
+- **Neu geladen: Der Zettel ist weg** - der Code ist nicht mehr abrufbar.
+- `php -l` auf alle drei Dateien.
+
+### NICHT ERREICHT
+- Der Testmitarbeiter bleibt vorerst in der Entwicklungsdatenbank stehen: Der
+  Abgleich im naechsten Patch braucht jemanden, der freigeschaltet ist, und
+  das soll kein echter Mensch sein. Er wird entfernt, sobald die Kette steht.
+- Der Aktivierungscode wirkt erst, wenn der Abgleich ihn zur Homepage traegt.
+  Bis dahin ist er ein Zettel ohne Gegenstelle.
+
+### NEXT
+Der Abgleich: abholen, Antraege anlegen, Spiegel schicken.
+
+
 ## P-2026-09-04-05 portal-handschlag-von-hier-aus
 
 ### ANLASS

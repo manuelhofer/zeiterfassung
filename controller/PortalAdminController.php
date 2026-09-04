@@ -24,16 +24,20 @@ class PortalAdminController
 
     private const FLASH_OK_KEY  = 'portal_admin_flash_ok';
     private const FLASH_ERR_KEY = 'portal_admin_flash_err';
+    /** Der frische Aktivierungscode - steht genau einmal in der Sitzung. */
+    private const FLASH_ZETTEL_KEY = 'portal_admin_flash_zettel';
 
     private AuthService $authService;
     private Database $datenbank;
     private PortalVerbindungService $portal;
+    private PortalFreigabeService $freigabe;
 
     public function __construct()
     {
         $this->authService = AuthService::getInstanz();
         $this->datenbank   = Database::getInstanz();
         $this->portal      = PortalVerbindungService::getInstanz();
+        $this->freigabe    = PortalFreigabeService::getInstanz();
     }
 
     public function index(): void
@@ -51,11 +55,23 @@ class PortalAdminController
 
         $flashOk  = $_SESSION[self::FLASH_OK_KEY]  ?? null;
         $flashErr = $_SESSION[self::FLASH_ERR_KEY] ?? null;
-        unset($_SESSION[self::FLASH_OK_KEY], $_SESSION[self::FLASH_ERR_KEY]);
+        // Der Zettel wird beim Anzeigen verbraucht. Er steht in der Sitzung
+        // und nicht in der Adresse: Ein Code in der URL landet im
+        // Browserverlauf und im Zugriffsprotokoll des Servers.
+        $zettel   = $_SESSION[self::FLASH_ZETTEL_KEY] ?? null;
+        unset($_SESSION[self::FLASH_OK_KEY], $_SESSION[self::FLASH_ERR_KEY],
+              $_SESSION[self::FLASH_ZETTEL_KEY]);
 
         $csrfBereich = self::CSRF_BEREICH;
         $freigegeben = $this->zaehleFreigegebene();
         $eingang     = $this->letzteEingaenge();
+        $belegschaft = $this->portal->istGekoppelt() ? $this->freigabe->liste() : [];
+        $vorschlaege = [];
+        foreach ($belegschaft as $m) {
+            $vorschlaege[(int)$m['id']] = (string)($m['portal_kennung'] ?? '') !== ''
+                ? (string)$m['portal_kennung']
+                : $this->freigabe->vorschlagKennung($m);
+        }
 
         require __DIR__ . '/../views/portal_admin/index.php';
     }
@@ -73,10 +89,13 @@ class PortalAdminController
         $aktion = Helper::leseString($_POST, 'aktion');
 
         match ($aktion) {
-            'koppeln'    => $this->koppeln(),
-            'probe'      => $this->probe(),
-            'entkoppeln' => $this->entkoppeln(),
-            default      => $this->flashErr('Unbekannte Aktion.'),
+            'koppeln'      => $this->koppeln(),
+            'probe'        => $this->probe(),
+            'entkoppeln'   => $this->entkoppeln(),
+            'freischalten' => $this->freischalten(),
+            'sperren'      => $this->sperren(),
+            'code'         => $this->aktivierungscode(),
+            default        => $this->flashErr('Unbekannte Aktion.'),
         };
 
         $this->zurueck();
@@ -115,6 +134,43 @@ class PortalAdminController
             . '»Verbindung trennen« drückt. Solange können sich Mitarbeiter dort weiter '
             . 'anmelden und sehen alte Zahlen mit einem Hinweis, wie alt sie sind.'
         );
+    }
+
+    private function freischalten(): void
+    {
+        $id = (int)(Helper::leseInt($_POST, 'mitarbeiter_id') ?? 0);
+        $ergebnis = $this->freigabe->freischalten($id, Helper::leseString($_POST, 'kennung'));
+        $ergebnis['ok'] ? $this->flashOk($ergebnis['meldung']) : $this->flashErr($ergebnis['meldung']);
+    }
+
+    private function sperren(): void
+    {
+        $id = (int)(Helper::leseInt($_POST, 'mitarbeiter_id') ?? 0);
+        $ergebnis = $this->freigabe->sperren($id);
+        $ergebnis['ok'] ? $this->flashOk($ergebnis['meldung']) : $this->flashErr($ergebnis['meldung']);
+    }
+
+    private function aktivierungscode(): void
+    {
+        $id = (int)(Helper::leseInt($_POST, 'mitarbeiter_id') ?? 0);
+        $ergebnis = $this->freigabe->aktivierungscodeErzeugen($id);
+
+        if (!$ergebnis['ok']) {
+            $this->flashErr($ergebnis['meldung']);
+            return;
+        }
+
+        $mitarbeiter = $this->freigabe->holeMitarbeiter($id);
+        $verbindung  = $this->portal->verbindung();
+
+        $_SESSION[self::FLASH_ZETTEL_KEY] = [
+            'name'    => trim((string)($mitarbeiter['vorname'] ?? '') . ' ' . (string)($mitarbeiter['nachname'] ?? '')),
+            'kennung' => (string)($mitarbeiter['portal_kennung'] ?? ''),
+            'code'    => $ergebnis['code'],
+            'bis'     => (string)($mitarbeiter['portal_aktivierung_bis'] ?? ''),
+            'adresse' => rtrim((string)($verbindung['basis_url'] ?? ''), '/') . '/mitarbeiter',
+        ];
+        $this->flashOk($ergebnis['meldung']);
     }
 
     // -------------------------------------------------------------- Anzeige
