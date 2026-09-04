@@ -57,6 +57,7 @@ Hier stehen nur die vier, bei denen ein Verstoß nicht mehr zu reparieren ist:
 | Mitarbeiter, Abteilungen, Maschinen, Schema | [docs/fachregeln/stammdaten_und_datenbank.md](docs/fachregeln/stammdaten_und_datenbank.md) |
 | Datenbankstruktur (Spalten, Indizes) | `sql/01_initial_schema.sql` – **Source of Truth** |
 | Terminal aufsetzen / installieren | [docs/spezifikation_terminal_installation.md](docs/spezifikation_terminal_installation.md) |
+| Mitarbeiterportal, Kopplung mit der Homepage, Urlaub von zu Hause | [docs/spezifikation_mitarbeiterportal.md](docs/spezifikation_mitarbeiterportal.md) |
 | Lokal ausprobieren | [docs/lokale_entwicklungsumgebung.md](docs/lokale_entwicklungsumgebung.md) |
 | Produktivinstallation | [docs/installationsanleitung.md](docs/installationsanleitung.md) |
 

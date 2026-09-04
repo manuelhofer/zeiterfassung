@@ -18,7 +18,19 @@ nichts.
 
 ## Nächster Schritt (konkret)
 
-**Kein offener Bug – der nächste Schritt ist eine Entscheidung, keine
+**Mitarbeiterportal (beauftragt am 04.09.2026).** Mitarbeiter sollen Urlaub von
+zu Hause oder vom Handy beantragen und ihre Zahlen sehen – über einen Bereich
+`/mitarbeiter` auf der WERNIG-Homepage, die als Briefkasten und Schaufenster
+arbeitet. Die Zeiterfassung ruft dort im Takt an; die Homepage ruft nie an. Der
+Vertrag zwischen beiden Projekten steht in
+[`spezifikation_mitarbeiterportal.md`](spezifikation_mitarbeiterportal.md) und
+ist dort **wortgleich** auch im Homepage-Repository abgelegt. Entschieden am
+04.09.2026: Aktivierungscode mit eigenem Portal-Passwort (nicht der
+Backend-Hash), voller Umfang bis Monatsübersicht und PDF, **Genehmigen bleibt
+in der Zeiterfassung**, auf dem Handy zuerst eine installierbare Webseite (die
+Android-APK kommt später).
+
+**Kein offener Bug – der nächste Schritt daneben ist eine Entscheidung, keine
 Fehlersuche.** B-106 ist erledigt (P-2026-08-17-33 offline, -34 online). Ohne
 Gerät machbar ist der Durchklick der Terminal-Abläufe im Browser (siehe unten);
 alles andere wartet auf den Gerätetest oder auf einen Auftrag.
@@ -36,6 +48,10 @@ Ein Satz je Task – die Begründung steht im Verlauf, nicht hier.
   und Stufenplan in
   [`spezifikation_terminal_installation.md`](spezifikation_terminal_installation.md),
   Abschnitt 12 und 11.
+- **T-170 Mitarbeiterportal** – Kopplung, Abgleich, Freischaltung und
+  Aktivierungscodes auf dieser Seite; der Bereich `/mitarbeiter` auf der
+  Homepage ist das Gegenstück im anderen Repository. Umfang und Abnahme:
+  [`spezifikation_mitarbeiterportal.md`](spezifikation_mitarbeiterportal.md).
 - **T-142** Aus dem `SmokeTestController` sind die fachlichen und die
   PDF-Prüfungen heraus; offen bleibt `pruefeTerminalLogin`, und das erst nach
   dem Gerätetest.

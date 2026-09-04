@@ -18,6 +18,78 @@ legacy_zip_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-04-01 mitarbeiterportal-spezifiziert
+
+### ANLASS
+Auftrag Manuel, 04.09.2026: Mitarbeiter sollen ihren Urlaub von zu Hause am PC
+oder vom Handy aus eintragen können – über die WERNIG-Homepage, die eine feste
+Adresse hat, während die Zeiterfassung im Firmennetz steht und von außen nicht
+erreichbar ist. Beide Systeme sollen sich per Handschlag verbinden und danach
+miteinander sprechen.
+
+### EINGELESEN
+- `docs/fachregeln/terminal_und_offline.md`, Abschnitt 4 (Kopplung statt
+  Zugangsdaten) – das Vorbild für den Handschlag, nur in die andere Richtung.
+- `docs/fachregeln/urlaub_abwesenheit_feiertage.md`, Abschnitte 1 bis 4 – was
+  ein Antrag ist, wie der Saldo entsteht, wer genehmigen darf.
+- `services/TerminalKopplungService.php` (Codeerzeugung, Einlösen, Hashablage)
+  und `controller/TerminalKopplungController.php` (Endpunkt ohne Anmeldung).
+- `sql/01_initial_schema.sql`, Tabellen `mitarbeiter` und `urlaubsantrag`.
+- Im Homepage-Repository: `core/Router.php`, `public/index.php`,
+  `controller/KontoController.php` und `services/KundeAuthService.php` – der
+  vorhandene öffentliche Zugang mit eigener Anmeldung, an dem sich der
+  Mitarbeiterbereich ausrichtet.
+
+### DATEIEN
+- neu `docs/spezifikation_mitarbeiterportal.md`
+- `CHATSTART.md` (Lesekarte)
+- `docs/STATUS_SNAPSHOT.md`
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Wer die Spezifikation liest, kann ohne Rückfrage sagen, welches System bei
+welchem anruft, was auf dem öffentlichen Server liegen darf und was ein
+Mitarbeiter sieht, während der Firmenserver aus ist.
+
+### DONE
+Spezifikation geschrieben, **wortgleich in beiden Repositorys**. Der Kern in
+einem Satz: Die Zeiterfassung ruft an, die Homepage antwortet, die Homepage
+ruft nie an. Daraus folgt alles andere – die Homepage ist Briefkasten
+(Ausgangswarteschlange für Anträge) und Schaufenster (Spiegel der Zahlen), sie
+rechnet nichts selbst, und ein Ausfall des Firmenservers macht sie sichtbar
+alt statt heimlich falsch.
+
+Vier Entscheidungen sind vorher als Auswahl gestellt und von Manuel getroffen
+worden (Arbeitsregeln, Abschnitt 0):
+
+1. **Anmeldung über Aktivierungscode mit eigenem Portal-Passwort**, nicht über
+   den gespiegelten Backend-Hash. Damit verlässt kein Passwort der
+   Zeiterfassung den Firmenserver, und die sechs Mitarbeiter ohne
+   Backend-Passwort brauchen keines.
+2. **Voller Umfang:** Urlaub, Stundensaldo, Monatsübersicht und PDF.
+3. **Genehmigt wird nur in der Zeiterfassung.** Der Datenfluss bleibt einseitig
+   – Anträge hinein, Ergebnisse hinaus. Eine Genehmigung vom öffentlichen
+   Server aus wäre der sicherheitskritische Teil des Ganzen und entfällt.
+4. **Auf dem Handy zuerst eine installierbare Webseite**; die Android-APK ist
+   angekündigt und wird beim Bau schon mitgedacht, aber nicht gebaut.
+
+Zwei Dinge, die in der Spezifikation stehen und leicht übersehen werden: Das
+Monats-PDF entsteht **auf Anforderung** und nicht auf Vorrat (156 PDFs alle zwei
+Minuten wären Unsinn), und der Abgleich ist gegen jeden Abbruch dicht, weil die
+Zeiterfassung die Fremd-ID jedes Auftrags in `portal_eingang` festhält, bevor
+sie den Fachdatensatz schreibt.
+
+### TEST
+Nichts zu prüfen – dieser Patch ändert kein Programm. Geprüft wurde nur, dass
+beide Fassungen der Spezifikation byteweise gleich sind (`diff`), und dass die
+Lesekarte auf die neue Datei zeigt.
+
+### NEXT
+Bau in Schritten, je Repository getrennt: erst die Tabellen und das Recht, dann
+der Handschlag, dann der Abgleich, dann der Mitarbeiterbereich, zuletzt die
+installierbare Webseite. Abnahmekette steht in Abschnitt 11 der Spezifikation.
+
+
 ## P-2026-09-03-01 pdf-wochenende-dezent-hinterlegt
 
 ### EINGELESEN
