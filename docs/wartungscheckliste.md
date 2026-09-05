@@ -182,6 +182,30 @@ stehen – jede `zeit_probe_*` ist ein Rest. Zum Schluss die
 Entwicklungsdatenbank gegenprüfen: Sie darf keinen erfundenen Prüfbenutzer
 enthalten und muss so viele Zeilen haben wie vorher.
 
+### Nach einem eingespielten Server-Dump: die Portalverbindung ansehen
+
+Ein Server-Dump bringt `portal_verbindung` mit – **samt gültigem Schlüssel der
+echten Website**. Ohne Riegel würde dieser Rechner binnen zwei Minuten anfangen,
+dort zu schreiben: den Briefkasten leeren, Anträge als erledigt melden und jeden
+Mitarbeiter löschen, den er nicht kennt.
+
+**Der Riegel greift von selbst** (P-2026-09-05-01): Beim Koppeln merkt sich die
+Verbindung, welche Installation gekoppelt hat – Rechnername und Basis-URL, beides
+außerhalb der Datenbank. Passt es nicht, wird nicht angerufen, und die Maske
+»Mitarbeiterportal« sagt im Klartext, warum.
+
+Trotzdem nachsehen, denn ein Riegel, auf den man sich verlässt, ohne ihn je
+angesehen zu haben, ist eine Vermutung:
+
+```bash
+mariadb -h 127.0.0.1 -u zeiterfassung -pzeiterfassung zeiterfassung -e \
+  "SELECT basis_url, installation, aktiv FROM portal_verbindung WHERE aktiv = 1;"
+```
+
+Steht dort eine fremde Adresse, gehört sie **entkoppelt** – im Backend unter
+»Mitarbeiterportal«, Knopf *Verbindung trennen*. Das wirkt nur hier; die Website
+selbst merkt nichts davon und behält ihre Daten.
+
 ## Bereiche mit besonderer Vorsicht
 
 - `public/index.php` und `public/terminal.php`

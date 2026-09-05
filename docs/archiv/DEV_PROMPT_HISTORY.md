@@ -18,6 +18,110 @@ legacy_zip_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-05-01 kopierte-datenbank-ruft-nicht-an
+
+### ANLASS
+Gefunden beim Durchsehen der offenen Punkte, nicht beim Bauen - und es ist der
+gefaehrlichste Befund des ganzen Vorhabens.
+
+`docs/lokale_entwicklungsumgebung.md`, Abschnitt 6a, beschreibt als **normalen
+Arbeitsweg**, einen Server-Dump in die Entwicklungsdatenbank einzuspielen.
+Sobald das Portal produktiv laeuft, steht in so einem Dump `portal_verbindung`
+mit Adresse und **gueltigem Schluessel** der echten Website. Der
+Entwicklungsrechner faengt dann binnen zwei Minuten an, mit `wernig.com` zu
+reden - und er redet nicht nur, er **schreibt**: leert den Briefkasten, meldet
+echte Urlaubsantraege als erledigt, und weil sein Spiegel nur seine eigenen
+Mitarbeiter kennt, loescht sein erster `melden`-Aufruf jeden Mitarbeiter von
+der Website, den er nicht kennt - samt Konto, Zahlen und wartenden Antraegen.
+
+Niemand haette das bemerkt, bevor es passiert ist.
+
+### EINGELESEN
+- `docs/lokale_entwicklungsumgebung.md`, Abschnitt 6a.
+- `docs/wartungscheckliste.md`, Abschnitt »Wegwerf-Umgebung abraeumen«.
+- `services/PortalVerbindungService.php` (`sende()`, `koppeln()`),
+  `services/PortalSpiegelService.php` auf der Homepage-Seite - um zu pruefen,
+  was ein falscher `melden`-Aufruf dort tatsaechlich anrichtet.
+- `core/Start.php` (`konfig()`), `sql/12_migration_mitarbeiterportal.sql`.
+
+### DATEIEN
+- neu `sql/13_migration_portal_installation.sql`
+- `services/PortalVerbindungService.php`
+- `controller/PortalAdminController.php`, `views/portal_admin/index.php`
+- `sql/01_initial_schema.sql`, `sql/README.md`
+- `docs/wartungscheckliste.md`
+- `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Traegt `portal_verbindung.installation` die Kennung einer anderen Installation,
+geht **kein einziger** Aufruf an die Website hinaus - und in der Maske steht,
+warum.
+
+### DONE
+Beim Koppeln haelt die Verbindung fest, **wer** gekoppelt hat: Rechnername und
+Basis-URL im Klartext. Vor jedem unterschriebenen Aufruf wird verglichen.
+
+**Warum genau diese beiden Angaben:** Beide stehen **ausserhalb** der Datenbank
+- der Rechnername im System, die Basis-URL in `config/config.local.php`, und
+die wandert bewusst nicht mit einem Dump. Genau das macht sie zum
+Unterscheidungsmerkmal. Ein Geheimnis ist es nicht und muss es nicht sein: Der
+Riegel schuetzt nicht vor einem Angreifer - der haette den Schluessel ohnehin -,
+sondern vor einem Versehen. Und Versehen sind hier der wahrscheinliche Fall.
+
+**Der Riegel steht vor dem Aufruf, nicht danach.** Ein `melden` aus einer
+kopierten Datenbank hat drueben schon geloescht, bevor irgendjemand die Antwort
+liest.
+
+**Eine leere Kennung sperrt nicht.** Sie heisst »vor dieser Migration
+gekoppelt«, und dafuer darf niemand ausgesperrt werden; sie fuellt sich beim
+naechsten Koppeln.
+
+**Was der Riegel nicht kann**, und das steht auch so in der Migration: Wer den
+Dump auf einem Rechner mit demselben Namen und derselben Basis-URL einspielt,
+kommt durch. Dafuer braeuchte es ein Geheimnis ausserhalb der Datenbank, und
+das waere ein eigenes Vorhaben. Der haeufige Fall ist abgedeckt.
+
+Die Maske zeigt jetzt »Gekoppelt von« und stellt im Sperrfall einen roten
+Kasten **vor alles andere** - in diesem Zustand laeuft nichts, und der Grund
+waere sonst nirgends sichtbar. Dazu ein neuer Abschnitt in der
+Wartungscheckliste: Nach einem eingespielten Dump wird die Verbindung
+angesehen, nicht vermutet.
+
+### TEST
+- Migration 13 zweimal hintereinander - beide Laeufe ohne Ausgabe.
+- Frisch gekoppelt: Kennung `z3Ro-PC|/zeiterfassung` steht in der Zeile, der
+  Abgleich laeuft normal durch (29 ms).
+- Dann `installation` auf `wernig-server|https://zeit.wernig.local` gesetzt -
+  also genau der Zustand nach einem eingespielten Server-Dump:
+  - `scripts/portal_sync.php` bricht ab, **Rueckgabewert 1**, mit dem
+    vollstaendigen Klartext.
+  - **1 ms statt 29** - und der Beweis dazu: Die Zahl der `POST /portal-api`
+    im Protokoll des Testservers war vorher 4 und nachher 4. Es ging kein
+    einziger Aufruf hinaus, obwohl ein gueltiger Schluessel dastand.
+  - Die Maske zeigt den roten Kasten mit beiden Kennungen.
+- Danach Kennung zurueckgesetzt, Abgleich laeuft wieder (23 ms).
+- `php -l` auf alle geaenderten PHP-Dateien.
+
+### GEFUNDEN UND BEHOBEN
+Im eigenen Patch: Die Meldung enthielt `**Auf einer Kopie: entkoppeln.**` mit
+Sternchen. In der Maske habe ich sie herausgefiltert - aber dieselbe Meldung
+landet auch in `letzter_fehler`, und dort stand sie unformatiert als
+Zeichensalat in der Tabelle. Jetzt steht in der Meldung von vornherein keine
+Auszeichnung: Ein Satz, der an zwei Stellen ausgegeben wird, darf nicht an
+einer davon Markup enthalten.
+
+### NICHT ERREICHT
+Die Homepage hat keine Gegenwehr dieser Art und braucht auch keine: Sie kann
+nicht unterscheiden, ob ein korrekt unterschriebener Aufruf vom Server oder vom
+Entwicklungsrechner kommt - beide haben denselben Schluessel. Der Riegel gehoert
+deshalb auf die anrufende Seite, und nur dorthin.
+
+### NEXT
+Gefunden, aber nicht in diesem Patch behoben (eigenes Thema, siehe
+STATUS_SNAPSHOT): Die Sitzung eines **geloeschten** Mitarbeiters bleibt gueltig
+und behaelt ihre Rechte aus dem Sitzungs-Zwischenspeicher.
+
+
 ## P-2026-09-04-10 portal-abnahme-durchgespielt
 
 ### ANLASS

@@ -9,6 +9,8 @@ declare(strict_types=1);
  * - $eingang (array)          – die letzten verarbeiteten Aufträge
  * - $belegschaft (array)      – alle aktiven Mitarbeiter mit ihrem Portal-Zustand
  * - $vorschlaege (array)      – je Mitarbeiter-ID die vorgeschlagene Kennung
+ * - $herkunft (array)        – ob diese Installation die Verbindung benutzen darf
+ * - $kennung (string)         – wer diese Installation ist
  * - $csrfBereich (string)     – Bereichsname für `Csrf`
  * - optional: $flashOk (string|null), $flashErr (string|null)
  * - optional: $zettel (array|null) – frisch erzeugter Aktivierungscode; er
@@ -25,6 +27,8 @@ $vorschlaege = $vorschlaege ?? [];
 $flashOk     = $flashOk ?? null;
 $flashErr    = $flashErr ?? null;
 $zettel      = $zettel ?? null;
+$herkunft    = $herkunft ?? ['ok' => true, 'meldung' => ''];
+$kennung     = (string)($kennung ?? '');
 
 $h = static fn($w): string => htmlspecialchars((string)$w, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
 
@@ -55,6 +59,21 @@ $artText = [
     <?php endif; ?>
     <?php if (!empty($flashErr)): ?>
         <div class="fehlermeldung" style="margin:0.5rem 0;"><?php echo $h($flashErr); ?></div>
+    <?php endif; ?>
+
+    <?php if (!$herkunft['ok']): ?>
+        <?php /* Der wichtigste Kasten dieser Maske. Er steht vor allem
+                 anderen, weil in diesem Zustand nichts laeuft - und weil der
+                 Grund sonst nirgends sichtbar waere. */ ?>
+        <div class="fehlermeldung" style="margin:0.75rem 0;max-width:760px;">
+            <strong>Diese Datenbank stammt aus einer anderen Installation – es wird nicht abgeglichen.</strong>
+            <p style="margin:0.5rem 0 0;"><?php echo $h($herkunft['meldung']); ?></p>
+            <p style="margin:0.5rem 0 0;"><small>
+                Das ist der Normalfall nach einem eingespielten Server-Dump. Solange dieser
+                Hinweis steht, ruft diese Installation die Website <strong>nicht</strong> an –
+                und kann dort auch nichts löschen.
+            </small></p>
+        </div>
     <?php endif; ?>
 
     <?php if (is_array($zettel)): ?>
@@ -152,6 +171,15 @@ $artText = [
                 <tr>
                     <th style="text-align:left;">Kennung dort</th>
                     <td><code><?php echo $h($verbindung['portal_id']); ?></code></td>
+                </tr>
+                <tr>
+                    <th style="text-align:left;">Gekoppelt von</th>
+                    <td>
+                        <code><?php echo $h($verbindung['installation'] !== '' ? $verbindung['installation'] : '(vor Migration 13)'); ?></code>
+                        <?php if ($herkunft['ok'] && (string)$verbindung['installation'] !== ''): ?>
+                            <br><small>Diese Installation: <code><?php echo $h($kennung); ?></code> – passt.</small>
+                        <?php endif; ?>
+                    </td>
                 </tr>
                 <tr>
                     <th style="text-align:left;">Letzter Abgleich</th>

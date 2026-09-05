@@ -64,6 +64,65 @@ class PortalVerbindungService
         );
     }
 
+    /**
+     * Wer diese Installation ist - Rechnername und Basis-URL im Klartext.
+     *
+     * **Beides steht ausserhalb der Datenbank**: der Rechnername im System,
+     * die Basis-URL in `config/config.local.php`. Genau das macht sie zum
+     * Unterscheidungsmerkmal - eine kopierte Datenbank bringt sie nicht mit.
+     */
+    public function installationsKennung(): string
+    {
+        $konfig = Start::konfig();
+        $basis = trim((string)($konfig['app']['base_url'] ?? ''));
+        return php_uname('n') . '|' . ($basis !== '' ? $basis : '/');
+    }
+
+    /**
+     * Darf diese Installation diese Verbindung benutzen?
+     *
+     * Der Riegel gegen den wahrscheinlichsten Unfall: Ein Server-Dump wird in
+     * die Entwicklungsumgebung eingespielt (so steht es in
+     * `docs/lokale_entwicklungsumgebung.md`, Abschnitt 6a), und der
+     * Entwicklungsrechner faengt an, mit der echten Website zu reden - und
+     * dort zu **schreiben**.
+     *
+     * Eine leere Kennung heisst »vor Migration 13 gekoppelt« und gilt. Wer
+     * damals gekoppelt hat, soll nicht durch eine Migration ausgesperrt
+     * werden; die Kennung fuellt sich beim naechsten Koppeln.
+     *
+     * @return array{ok:bool, meldung:string}
+     */
+    public function installationPasst(?array $verbindung = null): array
+    {
+        $verbindung = $verbindung ?? $this->verbindung();
+        if ($verbindung === null) {
+            return ['ok' => false, 'meldung' => 'Es ist keine Website gekoppelt.'];
+        }
+
+        $gekoppelt = trim((string)($verbindung['installation'] ?? ''));
+        if ($gekoppelt === '') {
+            return ['ok' => true, 'meldung' => ''];
+        }
+
+        $jetzt = $this->installationsKennung();
+        if (hash_equals($gekoppelt, $jetzt)) {
+            return ['ok' => true, 'meldung' => ''];
+        }
+
+        return ['ok' => false, 'meldung' =>
+            'Diese Verbindung wurde von einer anderen Installation hergestellt und wird '
+            . 'deshalb nicht benutzt. Gekoppelt hat »' . $gekoppelt . '«, hier läuft »'
+            . $jetzt . '«. '
+            . 'Das ist der Normalfall, wenn eine Datenbank kopiert wurde – etwa ein '
+            . 'Server-Dump auf dem Entwicklungsrechner. Auf einer Kopie: entkoppeln. '
+            . 'Auf der echten Installation: neu koppeln, dann steht die richtige Kennung drin.'];
+        // Ohne Sternchen: Dieser Satz landet in der Maske UND in
+        // `letzter_fehler`, und dort wird er unformatiert ausgegeben. Eine
+        // Auszeichnung, die nur an einer von zwei Stellen wirkt, ist an der
+        // anderen Zeichensalat.
+    }
+
     public function istGekoppelt(): bool
     {
         return $this->verbindung() !== null;
@@ -113,14 +172,15 @@ class PortalVerbindungService
             'UPDATE portal_verbindung SET aktiv = 0, entkoppelt_am = NOW() WHERE aktiv = 1'
         );
         $this->datenbank->ausfuehren(
-            'INSERT INTO portal_verbindung (basis_url, portal_id, schluessel, aktiv)
-             VALUES (:u, :p, :s, 1)',
-            [':u' => $basis, ':p' => $portalId, ':s' => $schluessel]
+            'INSERT INTO portal_verbindung (basis_url, portal_id, installation, schluessel, aktiv)
+             VALUES (:u, :p, :i, :s, 1)',
+            [':u' => $basis, ':p' => $portalId, ':i' => $this->installationsKennung(), ':s' => $schluessel]
         );
 
         Logger::info('Mitarbeiterportal gekoppelt', [
-            'basis_url' => $basis,
-            'portal_id' => $portalId,
+            'basis_url'    => $basis,
+            'portal_id'    => $portalId,
+            'installation' => $this->installationsKennung(),
         ], null, null, 'portal');
 
         // Gleich nachfassen: Eine Kopplung, deren zweite Haelfte erst beim
@@ -199,6 +259,14 @@ class PortalVerbindungService
         if ($verbindung === null) {
             return ['ok' => false, 'status' => 0, 'daten' => null,
                     'meldung' => 'Es ist keine Website gekoppelt.'];
+        }
+
+        // Der Riegel steht VOR dem Aufruf und nicht danach: Ein `melden` aus
+        // einer kopierten Datenbank hat drueben schon geloescht, bevor
+        // irgendjemand die Antwort liest.
+        $herkunft = $this->installationPasst($verbindung);
+        if (!$herkunft['ok']) {
+            return ['ok' => false, 'status' => 0, 'daten' => null, 'meldung' => $herkunft['meldung']];
         }
 
         $inhalt = array_merge($daten, ['aktion' => $aktion]);

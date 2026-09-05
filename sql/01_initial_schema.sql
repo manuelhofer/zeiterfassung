@@ -822,6 +822,7 @@ CREATE TABLE IF NOT EXISTS `portal_verbindung` (
   `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,
   `basis_url` varchar(255) NOT NULL COMMENT 'z. B. https://wernig.com - ohne Pfad',
   `portal_id` varchar(64) NOT NULL COMMENT 'von der Homepage bei der Kopplung vergeben',
+  `installation` varchar(190) NOT NULL DEFAULT '' COMMENT 'Rechnername und Basis-URL der Installation, die gekoppelt hat. Leer = vor Migration 13 gekoppelt.',
   `schluessel` varchar(128) NOT NULL COMMENT 'Klartext; wird zum Unterschreiben gebraucht',
   `aktiv` tinyint(1) NOT NULL DEFAULT 1,
   `gekoppelt_am` datetime NOT NULL DEFAULT current_timestamp(),

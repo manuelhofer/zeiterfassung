@@ -35,6 +35,11 @@ gebraucht - Neuinstallationen bekommen alles über `01_initial_schema.sql`.
   ein Stromausfall dazwischen keine doppelte Buchung mehr erzeugt (T-128,
   Patch P-2026-08-16-25). Fehlt die Migration, arbeitet die Queue weiter wie
   bisher und schreibt einen Fehler ins Protokoll.
+- `13_migration_portal_installation.sql`: ergänzt `portal_verbindung` um
+  `installation` und verhindert damit, dass eine **kopierte Datenbank** (etwa ein
+  Server-Dump auf dem Entwicklungsrechner) anfängt, mit der echten Website zu
+  reden und dort zu schreiben (P-2026-09-05-01). Ohne die Migration bleibt die
+  Spalte leer, und dann gilt jede Verbindung – wie vorher.
 - `12_migration_mitarbeiterportal.sql`: legt `portal_verbindung` und
   `portal_eingang` an, ergänzt `mitarbeiter` um sechs Portal-Spalten samt
   eindeutigem Index auf `portal_kennung` und richtet das Recht

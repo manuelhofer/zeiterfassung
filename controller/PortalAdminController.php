@@ -63,6 +63,13 @@ class PortalAdminController
               $_SESSION[self::FLASH_ZETTEL_KEY]);
 
         $csrfBereich = self::CSRF_BEREICH;
+        // Stammt diese Datenbank aus einer anderen Installation? Dann laeuft
+        // nichts, und die Maske muss sagen warum - sonst sucht jemand den
+        // Fehler im Netz, obwohl er in einem eingespielten Dump liegt.
+        $herkunft = $verbindung !== null
+            ? $this->portal->installationPasst($verbindung)
+            : ['ok' => true, 'meldung' => ''];
+        $kennung = $this->portal->installationsKennung();
         $freigegeben = $this->zaehleFreigegebene();
         $eingang     = $this->letzteEingaenge();
         $belegschaft = $this->portal->istGekoppelt() ? $this->freigabe->liste() : [];
