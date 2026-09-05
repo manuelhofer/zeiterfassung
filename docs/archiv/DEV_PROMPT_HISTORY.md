@@ -18,6 +18,65 @@ legacy_zip_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-05-03 handbuch-kennt-das-mitarbeiterportal
+
+### ANLASS
+Letzte Luecke aus dem Durchsehen: Das Admin-Handbuch beschreibt jeden Bereich,
+den ein Administrator bedient - nur den neuesten nicht. Wer das Portal
+einrichten soll, faende bisher nur die Spezifikation, und die ist ein Vertrag
+zwischen zwei Programmen, keine Anleitung fuer einen Menschen.
+
+### EINGELESEN
+- `docs/admin_handbuch.md`, Aufbau und Ton, besonders der Abschnitt »Auftraege,
+  Arbeitsschritte und Laufkarte« - er ist die Vorlage: nummerierte Schritte,
+  ein Satz dazu, was passiert, wenn man es **nicht** einrichtet.
+- `views/portal_admin/index.php` - welche Saetze in der Maske tatsaechlich
+  stehen, damit die Tabelle im Handbuch sie im Wortlaut aufgreift.
+- `services/PortalFreigabeService.php` (Fristen: 14 Tage, Kennungsvorschlag).
+
+### DATEIEN
+- `docs/admin_handbuch.md`
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Wer das Portal einrichten soll, kommt mit dem Handbuch allein durch - koppeln,
+freischalten, Code drucken, Zugang wieder nehmen - und findet dort auch, was
+die vier haeufigsten Meldungen der Maske bedeuten.
+
+### DONE
+Neuer Abschnitt »Mitarbeiterportal: Urlaub von zu Hause«, in vier Schritten und
+mit einer Tabelle »Was schiefgehen kann, und woran man es sieht«.
+
+Vier Saetze, die im Handbuch stehen muessen und nicht in der Spezifikation:
+
+- **Es ist optional.** Wer nicht koppelt, merkt vom ganzen Bereich nichts.
+  Derselbe Satz steht ueber dem Auftragsabschnitt, und aus demselben Grund.
+- **Die Richtung**, weil sie erklaert, warum niemand eine Portfreigabe
+  einrichten muss - die haeufigste Rueckfrage bei so etwas.
+- **Freischalten ist die Entscheidung**, nicht das Koppeln. Ein
+  freigeschalteter Mitarbeiter steht mit seinen Zahlen auf einem Server im
+  Internet.
+- **Kein »Passwort vergessen« per Mail** - der Weg ist ein neuer
+  Aktivierungscode aus dieser Maske. Wer das nicht weiss, sucht auf der Website
+  danach.
+
+Die Tabelle greift die Meldungen der Maske im **Wortlaut** auf, damit man sie
+wiederfindet, statt sie zu uebersetzen - einschliesslich »Diese Datenbank
+stammt aus einer anderen Installation« aus P-2026-09-05-01.
+
+### TEST
+Kein Programm geaendert. Nachgeprueft, dass die vier zitierten Meldungen in
+`views/portal_admin/index.php` und `services/PortalVerbindungService.php`
+tatsaechlich so stehen, und dass die Abschnittsgliederung durchlaeuft.
+
+### NICHT ERREICHT
+Nichts offen. Damit ist das Durchsehen der eigenen Arbeit abgeschlossen; was
+noch aussteht (T-172, T-173), braucht ein Geraet oder den Server.
+
+### NEXT
+Nichts.
+
+
 ## P-2026-09-05-02 stillgelegt-heisst-ausgesperrt
 
 ### ANLASS
