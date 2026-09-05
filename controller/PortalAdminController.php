@@ -116,11 +116,32 @@ class PortalAdminController
 
         $ergebnis = $this->portal->koppeln($adresse, $code);
 
-        if ($ergebnis['ok']) {
-            $this->flashOk($ergebnis['meldung']);
+        if (!$ergebnis['ok']) {
+            $this->flashErr($ergebnis['meldung']);
             return;
         }
-        $this->flashErr($ergebnis['meldung']);
+
+        // Direkt einmal abgleichen. Die Kopplung richtet nur die Leitung ein -
+        // ohne einen Lauf kennt die Homepage keinen einzigen Mitarbeiter, und
+        // ein Aktivierungscode wird dort abgelehnt, obwohl er stimmt. Genau
+        // dieser Moment ist der einzige, in dem es niemand vergessen kann.
+        // Der Zeitplan bleibt trotzdem noetig, sonst bleibt es bei diesem Lauf.
+        $abgleich = (new PortalSyncService())->laufen('kopplung');
+
+        if ($abgleich['ok']) {
+            $this->flashOk($ergebnis['meldung'] . ' Erster Abgleich gleich mit '
+                . 'erledigt (' . $abgleich['dauer_ms'] . ' ms): '
+                . implode(' | ', $abgleich['zeilen']));
+            return;
+        }
+
+        // Die Kopplung steht, nur der erste Lauf ging schief. Beides sagen -
+        // sonst sucht man den Fehler bei der Kopplung.
+        $this->flashOk($ergebnis['meldung']);
+        $this->flashErr('Die Kopplung steht, aber der erste Abgleich ist '
+            . 'gescheitert: ' . $abgleich['fehler'] . ' Solange kommt auf der '
+            . 'Homepage kein Mitarbeiter an - mit »Jetzt abgleichen« erneut '
+            . 'versuchen.');
     }
 
     private function probe(): void

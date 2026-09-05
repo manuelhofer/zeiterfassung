@@ -18,6 +18,77 @@ legacy_zip_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-05-05 kopplung-gleicht-sofort-ab
+
+### ANLASS
+Nach geglueckter Kopplung wurde ein Mitarbeiter freigeschaltet, und die
+Anmeldung im Portal scheiterte trotzdem: »Kennung oder Aktivierungscode stimmt
+nicht«. Der Code stimmte. Die Homepage kannte den Mitarbeiter nur nicht - der
+Abgleich war nie gelaufen, weil auf dem Server kein Zeitplan eingerichtet war.
+`portal_mitarbeiter` hatte dort 0 Zeilen.
+
+Die Maske sagt das bereits deutlich (»noch keiner. Die Kopplung steht, aber der
+Abgleich ist nie gelaufen - solange kommt auf der Homepage kein einziger
+Mitarbeiter an«) und bietet »Jetzt abgleichen«. Beides steht aber **unterhalb**
+des Kopplungsformulars, und wer gerade gekoppelt hat, liest oben weiter. Die
+Kopplung meldet Erfolg und fuehlt sich fertig an, obwohl der wichtigste Schritt
+noch aussteht.
+
+### EINGELESEN
+- `controller/PortalAdminController.php`: `koppeln()` und `abgleich()` - die
+  Handaktion ruft bereits `PortalSyncService::laufen('hand')`, derselbe Weg
+  steht also schon.
+- `flashOk()`/`flashErr()`, Zeile 273-281: zwei getrennte Sitzungsschluessel.
+  Beide Meldungen ueberleben nebeneinander, die Maske zeigt sie in getrennten
+  Kaesten (`views/portal_admin/index.php`, Zeile 57-62). Wichtig fuer den Fall,
+  dass die Kopplung steht und nur der erste Lauf scheitert.
+- `services/PortalSyncService.php`, `laufen(string $anlass = 'zeitplan')` -
+  der Anlass ist ein freier String.
+
+### DATEIEN
+- `controller/PortalAdminController.php`
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Nach einer geglueckten Kopplung stehen die freigeschalteten Mitarbeiter ohne
+weiteres Zutun auf der Homepage. Scheitert der erste Lauf, sagt die Maske
+beides: dass die Kopplung steht **und** dass der Abgleich fehlte.
+
+### DONE
+- `koppeln()` ruft nach Erfolg `PortalSyncService::laufen('kopplung')` und
+  haengt das Ergebnis an die Erfolgsmeldung: Dauer und die Zeilen des Laufs.
+- Scheitert der Lauf, bleibt die Erfolgsmeldung der Kopplung stehen und
+  daneben erscheint der Fehler mit dem Hinweis auf »Jetzt abgleichen«. Ohne
+  diese Trennung sucht man den Fehler bei der Kopplung, die in Ordnung ist.
+- Kein neues Recht, kein neuer Endpunkt, keine Systemaenderung - es ist
+  derselbe Aufruf, den der Knopf daneben schon macht.
+
+### TEST
+- `php -l` auf beiden geaenderten Dateien.
+- Nachgelesen, dass `flashOk` und `flashErr` verschiedene Schluessel benutzen
+  und die Maske beide Kaesten rendert - sonst verschluckte der Fehlerfall die
+  Erfolgsmeldung.
+- Der Lauf selbst ist unveraendert und am Server nachgewiesen: von Hand
+  gestartet meldete er »Mitarbeiter: 1 aufgenommen«, danach hatte
+  `portal_mitarbeiter` auf der Homepage 1 Zeile mit hinterlegtem
+  Aktivierungscode (64 Zeichen) und leerem Passwort.
+
+### NICHT ERREICHT
+Der **Zeitplan** bleibt Handarbeit und gehoert dorthin. Ein Backend, das sich
+selbst Cron-Eintraege schreiben kann, ist ein Backend, ueber das jemand
+beliebige Befehle einrichten kann; ausserdem liefe der Auftrag unter dem
+Benutzer des Webservers statt unter dem, dem die Installation gehoert, und die
+Mechanik ist auf jedem System eine andere. Die Installationsanleitung nennt die
+Zeile weiterhin ausdruecklich.
+
+Der neue Weg ist am laufenden Server noch nicht durchgespielt - die Kopplung
+steht bereits, und zum Nachstellen muesste man sie loesen. Beim naechsten
+Koppeln zeigt es sich.
+
+### NEXT
+Nichts.
+
+
 ## P-2026-09-05-04 portal-adresse-behaelt-den-pfad
 
 ### ANLASS
