@@ -139,7 +139,8 @@ class PortalVerbindungService
         if ($basis === null) {
             return ['ok' => false, 'meldung' =>
                 'Die Adresse der Website ist unvollständig. Erwartet wird etwas wie '
-                . 'https://wernig.com – mit https:// davor und ohne Pfad dahinter.'];
+                . 'https://example.org – mit https:// davor. Liegt die Website in '
+                . 'einem Unterverzeichnis, gehört es dazu.'];
         }
 
         $code = trim($code);

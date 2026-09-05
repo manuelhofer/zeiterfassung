@@ -18,6 +18,53 @@ legacy_zip_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-05-08 fehlermeldung-sagte-noch-das-gegenteil
+
+### ANLASS
+Beim Durchsehen der Frage »laesst sich die Kopplung leicht in eine andere
+Homepage einbauen« aufgefallen: `koppeln()` gibt bei unbrauchbarer Adresse
+weiterhin »https://wernig.com - mit https:// davor und **ohne Pfad dahinter**«
+zurueck. P-2026-09-05-04 hat den Hinweistext in der Maske richtiggestellt,
+diese Meldung aber uebersehen - und sie ist genau die, die jemand zu sehen
+bekommt, der sich mit der Adresse schwertut. Sie riet also weiterhin zu dem
+Fehler, der behoben wurde.
+
+### EINGELESEN
+- `services/PortalVerbindungService.php`, `koppeln()` Zeile 136-144.
+- Gegensuche nach »ohne Pfad« im ganzen Baum: ausser dieser Stelle nur ein
+  unbeteiligter Kommentar in `services/BarcodeService.php`.
+
+### DATEIEN
+- `services/PortalVerbindungService.php`
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Keine Meldung und kein Hinweis im Programm raet mehr dazu, den Pfad
+wegzulassen.
+
+### DONE
+- Die Meldung nennt jetzt `https://example.org` statt `https://wernig.com` und
+  sagt ausdruecklich, dass ein Unterverzeichnis dazugehoert. Das Beispiel ist
+  bewusst neutral: Eine Fehlermeldung, die den Namen einer bestimmten Firma
+  nennt, ist auf jeder anderen Installation verwirrend.
+
+### TEST
+`php -l`, und Gegensuche nach »ohne Pfad« im ganzen Baum - nur noch der
+unbeteiligte Treffer im BarcodeService.
+
+### NICHT ERREICHT
+Die Oberflaeche ist an weiteren Stellen auf eine bestimmte Firma gemuenzt
+(»Verbindung zur WERNIG-Homepage«, Platzhalter `https://wernig.com`,
+User-Agent `WERNIG-Zeiterfassung Mitarbeiterportal`). Das ist eine eigene
+Aufgabe, siehe NEXT.
+
+### NEXT
+Wenn die Kopplung fuer andere Installationen taugen soll: Oberflaeche
+entbranden, die JSON-Schluessel des Spiegels in die Spezifikation aufnehmen
+(dort steht bisher nur »siehe Abschnitt 7«), und das Schema der
+Homepage-Tabellen beilegen.
+
+
 ## P-2026-09-05-07 handbuch-kennt-die-beiden-stolpersteine
 
 ### ANLASS
