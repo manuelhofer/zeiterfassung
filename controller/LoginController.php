@@ -107,6 +107,15 @@ class LoginController
      */
     private function zeigeLoginFormular(?string $fehlermeldung = null): void
     {
+        // Wurde die Sitzung von der Nachpruefung beendet, steht der Grund in
+        // der Sitzung und wird hier einmal ausgegeben. Ohne ihn landet jemand
+        // ohne Erklaerung wieder auf der Anmeldemaske und versucht es
+        // dreimal - mit demselben Ergebnis (P-2026-09-05-02).
+        if ($fehlermeldung === null && !empty($_SESSION[AuthService::SESSION_KEY_ABMELDEGRUND])) {
+            $fehlermeldung = (string)$_SESSION[AuthService::SESSION_KEY_ABMELDEGRUND];
+        }
+        unset($_SESSION[AuthService::SESSION_KEY_ABMELDEGRUND]);
+
         $fehlermeldungVariable = $fehlermeldung; // für klare Übergabe
         $fehlermeldung = $fehlermeldungVariable;
         require __DIR__ . '/../views/login/form.php';

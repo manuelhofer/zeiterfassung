@@ -185,6 +185,16 @@ try {
         exit;
     }
 
+    // Und jetzt nachsehen, ob es den Angemeldeten noch gibt. `istAngemeldet()`
+    // sieht nur in die Sitzung; ohne diese Zeile ueberlebt eine offene Sitzung
+    // das Stilllegen und sogar das Loeschen des Mitarbeiters, und entzogene
+    // Rechte greifen nie (P-2026-09-05-02). Die Pruefung ist gedrosselt und
+    // kostet hoechstens eine Abfrage je Minute und Sitzung.
+    if (!in_array($seite, $offeneSeiten, true) && !$auth->sitzungNachpruefen()) {
+        header('Location: ?seite=login');
+        exit;
+    }
+
     switch ($seite) {
         case 'login':
             $controller = new LoginController();

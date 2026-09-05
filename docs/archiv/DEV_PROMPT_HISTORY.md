@@ -18,6 +18,111 @@ legacy_zip_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-05-02 stillgelegt-heisst-ausgesperrt
+
+### ANLASS
+Gefunden beim Pruefen von P-2026-09-05-01, und es hat nichts mit dem Portal zu
+tun. Nach dem Loeschen des Testmitarbeiters stand im Browser weiter
+»Angemeldet als: Gast« - und die Maske `?seite=portal_admin` liess sich
+weiterhin oeffnen, mitsamt dem ganzen Admin-Schnellzugriff.
+
+Nachgesehen: `AuthService::istAngemeldet()` prueft **nur** die
+Sitzungsvariable. Es gibt keine Stelle, an der eine laufende Sitzung je wieder
+gegen die Datenbank gehalten wird. Daraus folgen drei Dinge, und alle drei sind
+falsch herum:
+
+1. Wer einen Mitarbeiter **stilllegt** (`aktiv = 0`), nimmt ihm damit nur die
+   naechste Anmeldung - seine offene Sitzung laeuft weiter. Genau darauf
+   verlaesst sich aber, wer jemandem den Zugang nimmt.
+2. Dasselbe beim **Loeschen** und bei `ist_login_berechtigt = 0`.
+3. Ein **Rechteentzug** greift ueberhaupt nie: `holeAngemeldeteRechteCodes()`
+   legt die Codes in der Sitzung ab und liest sie von dort, solange die
+   Mitarbeiter-ID passt. Bis zur naechsten Anmeldung behaelt jemand Rechte, die
+   ihm genommen wurden.
+
+### EINGELESEN
+- `services/AuthService.php`: `istAngemeldet()` (Zeile 110),
+  `holeAngemeldeteRechteCodes()` (419) mit dem Sitzungs-Zwischenspeicher,
+  `logout()` (473), `setzeSessionFuerMitarbeiter()` (497), `resetRechteCache()`.
+- `public/index.php`, der Zugangsblock ab »Zugang: alles ist geschuetzt«.
+- `controller/LoginController.php`, `zeigeLoginFormular()` und
+  `views/login/form.php` (`$fehlermeldung`).
+- Zum Vergleich, weil es dort richtig ist:
+  `WernigHomepage/services/PortalAuthService.php::sitzungPruefen()` - die
+  Fassung, die ich gestern fuer das Portal gebaut habe, prueft genau das.
+
+### DATEIEN
+- `services/AuthService.php`
+- `public/index.php`
+- `controller/LoginController.php`
+- `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Wird ein Mitarbeiter mit offener Sitzung stillgelegt, landet er beim naechsten
+Seitenaufruf spaetestens nach einer Minute auf der Anmeldemaske - mit einem
+Satz, der sagt, warum.
+
+### DONE
+Neue Methode `sitzungNachpruefen()`, aufgerufen genau einmal je Seitenaufruf in
+`public/index.php`, direkt hinter dem vorhandenen Zugangsblock. Sie prueft
+`aktiv` und `ist_login_berechtigt` und beendet die Sitzung, wenn eines von
+beiden fehlt oder es die Zeile gar nicht mehr gibt.
+
+**Gedrosselt auf 60 Sekunden je Sitzung.** Das Backend macht viele
+Seitenaufrufe; eine Abfrage bei jedem waere Aufwand fuer eine Frage, deren
+Antwort sich fast nie aendert. Sechzig Sekunden sind der Kompromiss aus beiden
+Richtungen - und wer jemanden stilllegt, tut das meistens nicht aus Langeweile,
+also darf es nicht laenger dauern.
+
+**Der Rechte-Zwischenspeicher faellt bei jeder Nachpruefung weg.** Das ist der
+zweite Teil der Behebung und war mir zuerst gar nicht bewusst: Ohne ihn haette
+ein stillgelegter Mitarbeiter zwar keine Sitzung mehr, ein Mitarbeiter mit
+entzogenem **Recht** aber weiterhin seine alten Rechte. Jetzt greift auch das
+innerhalb einer Minute.
+
+**Ein Datenbankausfall meldet niemanden ab.** Faengt die Abfrage eine
+Exception, gilt die Sitzung als gueltig und die Pruefung wird beim naechsten
+Aufruf wiederholt. Dieselbe Haltung wie am Terminal (P-2026-08-16-08): Ein
+Ausfall der Datenbank darf keine Abmeldewelle ausloesen.
+
+**Der Grund steht auf der Anmeldemaske.** Ohne ihn landet jemand ohne Erklaerung
+wieder beim Login und versucht es dreimal - mit demselben Ergebnis. Der Satz
+nennt bewusst nicht, welche der drei Ursachen es war: Das ist eine Auskunft
+ueber die Personalverwaltung, die auf eine Anmeldemaske nicht gehoert.
+
+### TEST
+**Sechs Zustaende ueber ein Skript, direkt am Dienst** - alle wie erwartet:
+
+| Zustand | Ergebnis |
+| --- | --- |
+| aktiv, anmeldeberechtigt | bleibt angemeldet |
+| stillgelegt, aber gerade erst geprueft | bleibt angemeldet (Drossel) |
+| stillgelegt (`aktiv = 0`) | abgemeldet, mit Grund |
+| `ist_login_berechtigt = 0` | abgemeldet |
+| Zeile geloescht | abgemeldet |
+| Rechte-Zwischenspeicher nach der Pruefung | verworfen |
+
+**Dazu der ganze Weg im Browser:** angemeldet, `?seite=portal_admin` geoeffnet
+(»Angemeldet als: Prueflauf Sitzung«), dann in der Datenbank `aktiv = 0`
+gesetzt. Sofort danach ist die Maske noch offen - richtig, die Drossel laeuft.
+Nach Ablauf der Minute fuehrt derselbe Aufruf auf die Anmeldemaske mit dem Satz
+»Ihr Zugang ist nicht mehr gueltig. Bitte im Personalbuero nachfragen.«
+
+`php -l` auf alle drei geaenderten Dateien. Testmitarbeiter danach entfernt.
+
+### NICHT ERREICHT
+- **`public/terminal.php` ist nicht angefasst.** Dort meldet sich niemand mit
+  Benutzername an, die Sitzung gehoert dem Geraet und endet ohnehin per
+  Auto-Logout nach wenigen Minuten. Eine Nachpruefung waere dort eine Abfrage
+  je Tastendruck fuer einen Fall, den der Auto-Logout schon erledigt. Bewusst
+  ausgelassen, nicht vergessen.
+- Der Fund ist aelter als das Portal und haette auch ohne es bestanden. Er
+  steht hier, weil er hier aufgefallen ist.
+
+### NEXT
+Nichts offen aus diesem Thema.
+
+
 ## P-2026-09-05-01 kopierte-datenbank-ruft-nicht-an
 
 ### ANLASS

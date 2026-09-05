@@ -18,17 +18,52 @@ nichts.
 
 ## Nächster Schritt (konkret)
 
-**Mitarbeiterportal (beauftragt am 04.09.2026).** Mitarbeiter sollen Urlaub von
-zu Hause oder vom Handy beantragen und ihre Zahlen sehen – über einen Bereich
-`/mitarbeiter` auf der WERNIG-Homepage, die als Briefkasten und Schaufenster
-arbeitet. Die Zeiterfassung ruft dort im Takt an; die Homepage ruft nie an. Der
-Vertrag zwischen beiden Projekten steht in
-[`spezifikation_mitarbeiterportal.md`](spezifikation_mitarbeiterportal.md) und
-ist dort **wortgleich** auch im Homepage-Repository abgelegt. Entschieden am
-04.09.2026: Aktivierungscode mit eigenem Portal-Passwort (nicht der
-Backend-Hash), voller Umfang bis Monatsübersicht und PDF, **Genehmigen bleibt
-in der Zeiterfassung**, auf dem Handy zuerst eine installierbare Webseite (die
-Android-APK kommt später).
+**Eine stillgelegte Anmeldung ist jetzt wirklich stillgelegt** (05.09.2026,
+P-2026-09-05-02). Gefunden beim Prüfen des Portals, aber älter als dieses:
+Eine offene Sitzung überlebte bisher das Stilllegen **und das Löschen** eines
+Mitarbeiters, weil `istAngemeldet()` nur in die Sitzung sah – und ein
+Rechteentzug griff überhaupt nie, weil die Rechte dort zwischengespeichert
+wurden. Beides ist behoben: Eine laufende Sitzung wird höchstens einmal je
+Minute gegen die Datenbank gehalten, und dabei fällt der Rechte-Zwischenspeicher
+weg. Wer stillgelegt wird, steht spätestens nach einer Minute vor der
+Anmeldemaske – mit einem Satz, der sagt, warum. Ein Ausfall der Datenbank
+meldet dabei niemanden ab.
+
+**Eine kopierte Datenbank ruft nicht bei der echten Website an** (05.09.2026,
+P-2026-09-05-01). Der in
+[`lokale_entwicklungsumgebung.md`](lokale_entwicklungsumgebung.md) beschriebene
+Weg – Server-Dump in die Entwicklungsumgebung – hätte ab dem Produktivgang des
+Portals dazu geführt, dass der Entwicklungsrechner binnen zwei Minuten auf
+`wernig.com` **schreibt**: Anträge als erledigt meldet und jeden Mitarbeiter
+löscht, den er nicht kennt. Die Verbindung merkt sich jetzt beim Koppeln, wer
+gekoppelt hat; passt es nicht, geht kein Aufruf hinaus. Nach einem eingespielten
+Dump gehört trotzdem ein Blick in die Verbindung – siehe
+[Wartungscheckliste](wartungscheckliste.md).
+
+**Das Mitarbeiterportal läuft – im Testaufbau, Ende zu Ende** (04.09.2026,
+T-170 fertig). Ein Mitarbeiter beantragt Urlaub auf der WERNIG-Homepage, zwei
+Minuten später steht der Antrag hier unter »Urlaubsanträge«; wird er genehmigt,
+steht das Ergebnis zwei Minuten später drüben, und der Resturlaub ist um die
+Tage kleiner. Die ganze Abnahmekette aus Abschnitt 11 der
+[`spezifikation_mitarbeiterportal.md`](spezifikation_mitarbeiterportal.md) ist
+durchgespielt, **einschließlich der beiden unangenehmen Fälle**: Bei
+abgeschaltetem Firmenserver zeigt das Portal seine Zahlen mit einem sichtbaren
+Hinweis, wie alt sie sind, und nimmt Anträge weiter entgegen; wird eine
+Freischaltung entzogen, ist der Mitarbeiter beim nächsten Abgleich samt Konto,
+Zahlen und Anträgen von der Website verschwunden und seine Sitzung dort sofort
+beendet.
+
+**Die Richtung ist die ganze Architektur:** Diese Installation ruft an, die
+Homepage antwortet – nie umgekehrt. Sie kennt weder Adresse noch Datenbank
+dieses Servers. Nötig ist dafür genau ein Eintrag im Zeitplan
+([Installationsanleitung](installationsanleitung.md), Abschnitt 8) und ein
+ausgehender HTTPS-Weg; eingehend wird nichts gebraucht, kein Port, keine feste
+Adresse.
+
+Entschieden am 04.09.2026: Aktivierungscode mit eigenem Portal-Passwort (nicht
+der Backend-Hash), voller Umfang bis Monatsübersicht und PDF, **Genehmigen
+bleibt in der Zeiterfassung**, auf dem Handy zuerst eine installierbare
+Webseite (die Android-APK kommt später).
 
 **Kein offener Bug – der nächste Schritt daneben ist eine Entscheidung, keine
 Fehlersuche.** B-106 ist erledigt (P-2026-08-17-33 offline, -34 online). Ohne

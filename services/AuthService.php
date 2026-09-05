@@ -24,6 +24,22 @@ class AuthService
     private const SESSION_KEY_RECHTE_FOR_MITARBEITER = 'auth_rechte_mitarbeiter_id';
 
     // Superuser-Cache in Session (rolle.ist_superuser)
+    /** Wann die Sitzung zuletzt gegen die Datenbank nachgeprueft wurde. */
+    private const SESSION_KEY_GEPRUEFT_AM = 'auth_sitzung_geprueft_am';
+
+    /**
+     * Wie oft eine laufende Sitzung nachgeprueft wird.
+     *
+     * Sechzig Sekunden sind ein Kompromiss aus zwei Richtungen: Haeufiger
+     * waere eine Abfrage je Seitenaufruf, und das Backend macht viele. Seltener
+     * hiesse, dass ein stillgelegter Mitarbeiter noch minutenlang weiterklickt -
+     * und wer jemanden stilllegt, tut das meistens nicht aus Langeweile.
+     */
+    private const NACHPRUEFUNG_SEKUNDEN = 60;
+
+    /** Grund der letzten erzwungenen Abmeldung, fuer die Loginmaske. */
+    public const SESSION_KEY_ABMELDEGRUND = 'auth_abmeldegrund';
+
     private const SESSION_KEY_IST_SUPERUSER = 'auth_ist_superuser';
     private const SESSION_KEY_IST_SUPERUSER_FOR_MITARBEITER = 'auth_ist_superuser_mitarbeiter_id';
 
@@ -112,6 +128,75 @@ class AuthService
         return isset($_SESSION[self::SESSION_KEY_MITARBEITER_ID])
             && is_int($_SESSION[self::SESSION_KEY_MITARBEITER_ID])
             && $_SESSION[self::SESSION_KEY_MITARBEITER_ID] > 0;
+    }
+
+    /**
+     * Prüft eine laufende Sitzung gegen die Datenbank nach.
+     *
+     * WOFÜR: `istAngemeldet()` sieht nur in die Sitzung. Ohne diese Prüfung
+     * überlebt eine offene Sitzung das **Stilllegen** und sogar das **Löschen**
+     * des Mitarbeiters - und weil die Rechte in der Sitzung zwischengespeichert
+     * werden, greift auch ein Rechteentzug nie. Genau darauf verlässt sich
+     * aber, wer jemandem den Zugang nimmt: `mitarbeiter.aktiv = 0` soll heißen,
+     * dass er draußen ist, nicht dass er sich nicht neu anmelden kann.
+     *
+     * **Gedrosselt**, damit sie nichts kostet: höchstens eine Abfrage je
+     * Minute und Sitzung, nicht je Seitenaufruf.
+     *
+     * Nebenwirkung mit Absicht: Bei jeder Nachprüfung fällt der Rechte-Cache
+     * weg. Dadurch wirkt auch ein Rechteentzug innerhalb einer Minute, statt
+     * erst bei der nächsten Anmeldung.
+     *
+     * @return bool false, wenn die Sitzung beendet wurde
+     */
+    public function sitzungNachpruefen(): bool
+    {
+        if (!$this->istAngemeldet()) {
+            return false;
+        }
+
+        $letzte = $_SESSION[self::SESSION_KEY_GEPRUEFT_AM] ?? null;
+        if (is_int($letzte) && (time() - $letzte) < self::NACHPRUEFUNG_SEKUNDEN) {
+            return true;
+        }
+
+        $mitarbeiterId = (int)$_SESSION[self::SESSION_KEY_MITARBEITER_ID];
+
+        try {
+            $zeile = Database::getInstanz()->fetchEine(
+                'SELECT aktiv, ist_login_berechtigt FROM mitarbeiter WHERE id = :id LIMIT 1',
+                ['id' => $mitarbeiterId]
+            );
+        } catch (\Throwable $fehler) {
+            // Die Datenbank ist gerade nicht da. Das ist kein Grund, jemanden
+            // auszusperren - die Prüfung wird beim nächsten Aufruf wiederholt.
+            // Ein Ausfall der Datenbank darf nicht zu einer Abmeldewelle
+            // führen; dieselbe Haltung wie am Terminal (P-2026-08-16-08).
+            return true;
+        }
+
+        $gueltig = is_array($zeile)
+            && (int)($zeile['aktiv'] ?? 0) === 1
+            && (int)($zeile['ist_login_berechtigt'] ?? 0) === 1;
+
+        if (!$gueltig) {
+            Logger::info('Sitzung beendet: Mitarbeiter stillgelegt, gelöscht oder ohne Anmelderecht', [
+                'mitarbeiter_id' => $mitarbeiterId,
+                'gefunden'       => is_array($zeile) ? 'ja' : 'nein',
+            ], $mitarbeiterId, null, 'auth');
+
+            $this->logout();
+            $_SESSION[self::SESSION_KEY_ABMELDEGRUND] =
+                'Ihr Zugang ist nicht mehr gültig. Bitte im Personalbüro nachfragen.';
+            return false;
+        }
+
+        // Bestanden: Zeitpunkt merken und den Rechte-Cache verwerfen, damit
+        // geänderte Rechte spätestens jetzt greifen.
+        $_SESSION[self::SESSION_KEY_GEPRUEFT_AM] = time();
+        $this->resetRechteCache();
+
+        return true;
     }
 
     /**
@@ -483,6 +568,7 @@ class AuthService
         if (isset($_SESSION[self::SESSION_KEY_MITARBEITER_ID])) {
             unset($_SESSION[self::SESSION_KEY_MITARBEITER_ID]);
         }
+        unset($_SESSION[self::SESSION_KEY_GEPRUEFT_AM]);
 
         // Rechte-Cache ebenfalls leeren
         $this->resetRechteCache();
@@ -502,6 +588,9 @@ class AuthService
         }
 
         $_SESSION[self::SESSION_KEY_MITARBEITER_ID] = $mitarbeiterId;
+        // Frisch angemeldet heisst frisch geprueft - der Login hat gerade in
+        // die Datenbank gesehen.
+        $_SESSION[self::SESSION_KEY_GEPRUEFT_AM] = time();
 
         // Rechte-Cache für neuen Login zurücksetzen
         $this->resetRechteCache();
