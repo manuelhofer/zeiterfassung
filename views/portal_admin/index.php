@@ -379,5 +379,37 @@ $artText = [
         freigeschaltet sind. Wird eine Freischaltung entzogen, verschwindet der
         Mitarbeiter beim nächsten Abgleich vollständig von der Homepage.
     </p>
+
+    <h3>Eine andere Website anbinden</h3>
+    <p>
+        Das Portal ist an keine bestimmte Website gebunden. Angekoppelt werden
+        kann jede, die den Endpunkt <code>/portal-api</code> anbietet – die
+        Zeiterfassung fragt beim Koppeln nur nach einer Adresse.
+    </p>
+    <p>
+        Wer das für eine eigene Website bauen will, muss nicht bei null
+        anfangen: Das Paket unten enthält eine <strong>vollständige,
+        lauffähige Gegenseite</strong> zum Kopieren – vier PHP-Dateien ohne
+        Rahmenwerk, das Datenbankschema und eine Anleitung, die vom leeren
+        Verzeichnis bis zum ersten Abgleich führt.
+    </p>
+    <ul class="klein">
+        <li><code>portal-api.php</code> – der Endpunkt, die ganze Gegenseite in einer Datei</li>
+        <li><code>portal-konfig.php</code> – das Einzige, was anzupassen ist</li>
+        <li><code>kopplungscode.php</code> – erzeugt den Code für den Handschlag</li>
+        <li><code>mitarbeiter.php</code> – Beispielseite: anmelden, Zahlen sehen, Urlaub beantragen</li>
+        <li><code>schema.sql</code> – sechs Tabellen</li>
+        <li><code>README.md</code> – Anleitung, Protokoll, Feldnamen, Fallstricke</li>
+    </ul>
+    <p>
+        <a class="button-link" href="?seite=portal_admin&amp;paket=1"
+           download="mitarbeiterportal-beispiel.zip">Beispielpaket herunterladen (ZIP)</a>
+    </p>
+    <p class="klein">
+        Ein Hinweis daraus, der die meiste Zeit spart: Unterschrieben wird mit
+        <code>hash('sha256', $schluessel)</code>, <strong>nicht</strong> mit dem
+        Schlüssel selbst. Beide Seiten rechnen mit diesem Hash – im Klartext
+        liegt der Schlüssel nur hier.
+    </p>
 </section>
 <?php require __DIR__ . '/../layout/footer.php'; ?>

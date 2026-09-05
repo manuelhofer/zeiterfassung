@@ -46,6 +46,13 @@ class PortalAdminController
             return;
         }
 
+        // Das Beispielpaket ist eine Datei, keine Seite - deshalb steht es
+        // vor allem anderen und beendet die Anfrage selbst.
+        if (Helper::leseString($_GET, 'paket') !== '') {
+            $this->beispielpaket();
+            return;
+        }
+
         if (Helper::istPost()) {
             $this->verarbeitePost();
             return;
@@ -107,6 +114,77 @@ class PortalAdminController
         };
 
         $this->zurueck();
+    }
+
+    /**
+     * Schnuert das Beispiel fuer die Gegenseite zusammen und schickt es als
+     * ZIP heraus.
+     *
+     * Warum aus dem Verzeichnis und nicht als fertige Datei im Repository: So
+     * ist der Inhalt lesbar, vergleichbar und veraltet nicht. Ein eingechecktes
+     * ZIP waere eine zweite Wahrheit.
+     */
+    private function beispielpaket(): void
+    {
+        $quelle = dirname(__DIR__) . '/beispiel/portal-homepage';
+
+        if (!class_exists('ZipArchive')) {
+            $this->flashErr('Dieser Server kann keine ZIP-Dateien schnüren – die '
+                . 'PHP-Erweiterung »zip« fehlt. Die Dateien liegen unverpackt '
+                . 'unter beispiel/portal-homepage/ dieser Installation.');
+            $this->zurueck();
+            return;
+        }
+        if (!is_dir($quelle)) {
+            $this->flashErr('Das Beispiel liegt dieser Installation nicht bei '
+                . '(erwartet unter beispiel/portal-homepage/).');
+            $this->zurueck();
+            return;
+        }
+
+        $zieldatei = tempnam(sys_get_temp_dir(), 'portalpaket');
+        if ($zieldatei === false) {
+            $this->flashErr('Es ließ sich keine Zwischendatei anlegen.');
+            $this->zurueck();
+            return;
+        }
+
+        $zip = new \ZipArchive();
+        if ($zip->open($zieldatei, \ZipArchive::OVERWRITE) !== true) {
+            @unlink($zieldatei);
+            $this->flashErr('Das Paket ließ sich nicht öffnen.');
+            $this->zurueck();
+            return;
+        }
+
+        $dateien = scandir($quelle) ?: [];
+        foreach ($dateien as $name) {
+            if ($name === '.' || $name === '..' || !is_file($quelle . '/' . $name)) {
+                continue;
+            }
+            $zip->addFile($quelle . '/' . $name, 'mitarbeiterportal-beispiel/' . $name);
+        }
+        $zip->close();
+
+        $inhalt = file_get_contents($zieldatei);
+        @unlink($zieldatei);
+
+        if ($inhalt === false || $inhalt === '') {
+            $this->flashErr('Das Paket blieb leer.');
+            $this->zurueck();
+            return;
+        }
+
+        Logger::info('Beispielpaket Mitarbeiterportal heruntergeladen', [
+            'bytes' => strlen($inhalt),
+        ], null, null, 'portal');
+
+        header('Content-Type: application/zip');
+        header('Content-Disposition: attachment; filename="mitarbeiterportal-beispiel.zip"');
+        header('Content-Length: ' . strlen($inhalt));
+        header('Cache-Control: no-store');
+        echo $inhalt;
+        exit;
     }
 
     private function koppeln(): void

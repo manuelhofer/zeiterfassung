@@ -18,6 +18,105 @@ legacy_zip_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-05-10 beispielpaket-fuer-fremde-websites
+
+### ANLASS
+Frage aus dem Betrieb: Laesst sich der Handschlag fuer eine **andere** Website
+nutzen? Technisch ja - die Adresse kommt aus der Datenbank, kein Firmenname
+steht in einer Entscheidung. Praktisch fehlte aber alles, was aus einem
+Vertrag eine Umsetzung macht: die Feldnamen des Spiegels standen nur als
+»siehe Abschnitt 7«, das Schema der Gegenseite nirgends, und die einzige
+Umsetzung liegt in einem privaten Repository.
+
+Gewuenscht war ein Paket zum Herunterladen, das ein Mensch nimmt und in seine
+Website einsetzt.
+
+### EINGELESEN
+- `services/PortalVerbindungService.php` (`koppeln`, `sende`, `probe`) und
+  `services/PortalSyncService.php` (Aufbau des Spiegels, Zeile 483-560) - die
+  Feldnamen stammen aus dem Code, nicht aus dem Gedaechtnis.
+- `WernigHomepage/controller/PortalApiController.php` - welche Aktionen es gibt
+  und in welcher Form geantwortet wird.
+- `WernigHomepage/services/PortalAuthService.php` - wie ein Aktivierungscode
+  geprueft wird (Grossschreibung, Trennzeichen weg, `hash_equals`) und warum
+  `aktivierung_hash_verbraucht` noetig ist.
+- `views/layout/header.php` - das Backend-CSS steht dort inline; die Klasse
+  fuer Link-Knoepfe heisst `button-link`.
+
+### DATEIEN
+- `beispiel/portal-homepage/` (6 Dateien, neu)
+- `controller/PortalAdminController.php`, `views/portal_admin/index.php`
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Ein Mensch laedt in der Portal-Maske ein ZIP herunter, folgt der README und
+hat danach eine Website, die sich koppeln laesst - ohne den Quelltext der
+Zeiterfassung zu lesen.
+
+### DONE
+Das Paket, sechs Dateien, kein Rahmenwerk, nur PDO:
+
+| Datei | Inhalt |
+| --- | --- |
+| `portal-api.php` | die ganze Gegenseite: koppeln, hallo, abholen, melden |
+| `portal-konfig.php` | das Einzige zum Anpassen |
+| `kopplungscode.php` | erzeugt den Code; sperrt sich selbst, bis eine Anmeldepruefung eingebaut ist |
+| `mitarbeiter.php` | Beispielseite: einrichten, anmelden, Zahlen, Urlaubsantrag |
+| `schema.sql` | sechs Tabellen |
+| `README.md` | Anleitung, Protokoll, alle Feldnamen, Fallstricke |
+
+- Der Download sitzt in der Portal-Maske unter »Eine andere Website anbinden«.
+  Das ZIP wird beim Abruf aus dem Verzeichnis geschnuert, nicht eingecheckt:
+  Ein eingechecktes Archiv waere eine zweite Wahrheit und veraltete.
+- Der Spiegel liegt im Beispiel als JSON je Teil und Mitarbeiter statt in
+  sieben Tabellen. Er darf wachsen, ohne dass drueben eine Migration noetig
+  wird - die Website zeigt die Zahlen ohnehin nur an.
+- Fehlt die PHP-Erweiterung `zip`, sagt die Maske das und nennt den Pfad zum
+  unverpackten Verzeichnis, statt eine kaputte Datei zu schicken.
+
+### TEST
+Der Endpunkt wurde gegen einen Testkunden geprueft, der die Signatur woertlich
+so bildet wie `PortalVerbindungService::sende()`:
+
+| | |
+| --- | --- |
+| `koppeln` | HTTP 200, portal_id und 64-Zeichen-Schluessel |
+| derselbe Code noch einmal | HTTP 401, verbraucht |
+| `hallo` unterschrieben | HTTP 200 |
+| `hallo` mit falschem Schluessel | HTTP 401 |
+| `melden` mit Mitarbeiter, Urlaub, Stunden | HTTP 200, `zustand` mit einem Eintrag |
+| Urlaubsantrag ueber `mitarbeiter.php` | landet im Briefkasten |
+| `abholen` | liefert ihn genau einmal |
+| `melden` mit Ergebnis | Auftrag erledigt, zweites `abholen` leer |
+| wiederholte Nonce | HTTP 401 |
+| Uhr 10 Minuten daneben | HTTP 401 |
+| Mitarbeiterliste ohne ihn | verschwindet vollstaendig |
+| verbrauchten Code erneut spiegeln | bleibt verbraucht, Passwort ueberlebt |
+
+Erstanmeldung geprueft mit absichtlich schief eingegebenen Werten
+(`Erika.Muster`, `abcd 2345-efgh`) - die Normalisierung greift wie drueben.
+
+**Beim Testen gefunden und behoben:** Das `ON DUPLICATE KEY UPDATE` benutzte
+benannte Platzhalter mehrfach. Mit echten Prepared Statements
+(`EMULATE_PREPARES = false`, so steht es in der Beispielkonfiguration) gibt das
+`SQLSTATE[HY093] Invalid parameter number` - `melden` antwortete mit HTTP 500.
+Jetzt `VALUES(spalte)` im UPDATE-Teil, mit Kommentar. Dieser Fehler waere jedem
+passiert, der das Paket benutzt.
+
+### NICHT ERREICHT
+- Die Oberflaeche der Zeiterfassung nennt weiterhin »WERNIG-Homepage« und
+  `https://wernig.com` als Platzhalter. Fuer eine fremde Installation ist das
+  verwirrend; entbranden ist eine eigene Aufgabe.
+- Das Beispiel deckt `urlaub_antrag` vollstaendig ab; `urlaub_storno` und
+  `monat_pdf` nimmt es entgegen und legt sie ab, hat aber keine Oberflaeche
+  dafuer.
+- Kein Pruefwerkzeug, mit dem ein Implementierer seine eigene Seite gegen den
+  Vertrag klopfen kann. Der Testkunde aus diesem Patch waere die Grundlage.
+
+### NEXT
+Nichts Dringendes.
+
+
 ## P-2026-09-05-09 signaturformel-nennt-den-hash
 
 ### ANLASS
