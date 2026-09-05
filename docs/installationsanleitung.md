@@ -181,7 +181,22 @@ Website. Eingehend wird nichts gebraucht, kein Port, keine Portweiterleitung,
 keine feste Adresse – genau darum ist der Aufbau so herum gebaut
 ([Mitarbeiterportal](spezifikation_mitarbeiterportal.md), Abschnitt 2).
 
-Läuft der Zeitplan nicht, passiert nichts Schlimmes: Anträge sammeln sich auf
-der Website, das Portal schreibt seinen Mitarbeitern sichtbar dazu, wie alt
-seine Zahlen sind, und der nächste Lauf holt alles nach. In der Maske
+**Was passiert, wenn man den Eintrag vergisst?** Zwei Auffangnetze fangen den
+Anfang ab, aber nicht den Betrieb:
+
+- Die **Kopplung** gleicht sofort einmal ab. Die freigeschalteten Mitarbeiter
+  stehen also unmittelbar danach auf der Website.
+- **Nebenher** läuft der Abgleich am Ende einer beliebigen Anfrage mit –
+  höchstens alle zwei Minuten und nur, wenn nicht ohnehin gerade ein Lauf war.
+
+Beides greift jedoch nur, solange jemand arbeitet. Nachts, am Wochenende und in
+den Betriebsferien passiert ohne Zeitplan **gar nichts**: Wer Samstagfrüh
+Urlaub beantragt, dessen Antrag liegt bis Montag. Und wer zwischen Freischalten
+und erstem Abgleich sein Konto einrichten will, bekommt auf der Website
+»Kennung oder Aktivierungscode stimmt nicht« zu lesen, obwohl beides stimmt –
+die Website kennt ihn schlicht noch nicht.
+
+Verzögert sich ein Lauf, geht nichts verloren: Anträge sammeln sich auf der
+Website, das Portal schreibt seinen Mitarbeitern sichtbar dazu, wie alt seine
+Zahlen sind, und der nächste Lauf holt alles nach. In der Maske
 **Mitarbeiterportal** steht, wann zuletzt abgeglichen wurde.

@@ -197,8 +197,32 @@ gültig.
 | »Diese Datenbank stammt aus einer anderen Installation« | Diese Datenbank ist eine **Kopie** – etwa ein Server-Dump auf einem Testrechner. Es wird nichts abgeglichen, und das ist richtig so. Auf einer Kopie: *Verbindung trennen*. |
 | »Freigeschaltet: niemand« | Die Kopplung steht, aber es ist noch niemand freigeschaltet. Auf der Website steht dann nichts. |
 
+**Zwei Fälle, bei denen Ursache und Symptom auf verschiedenen Seiten liegen** –
+darum stehen sie hier eigens:
+
+| Wo es weh tut | Was wirklich los ist |
+| --- | --- |
+| Beim Koppeln: »Die Website hat die Kopplung abgelehnt. Antwort: HTTP 404«, dazu eine Apache-Fehlerseite | Die Adresse zeigt auf die falsche Stelle. Liegt die Website in einem **Unterverzeichnis**, gehört es in die Adresse: `https://example.org/homepage`, nicht `https://example.org`. Die vollständige Adresse aus dem Backend der Website darf man ebenso einsetzen – ein `/portal-api` am Ende wird abgeschnitten. |
+| **Auf der Website** meldet ein Mitarbeiter: »Kennung oder Aktivierungscode stimmt nicht, oder der Code ist abgelaufen« – obwohl beides stimmt | Die Website kennt den Mitarbeiter noch nicht. Zwischen dem Freischalten und diesem Versuch lief **kein Abgleich**. In der Zeiterfassung sieht dann alles richtig aus, deshalb sucht man leicht an der falschen Stelle. *Jetzt abgleichen* drücken – derselbe Zettel funktioniert danach. |
+
 Der Knopf *Jetzt abgleichen* stößt einen Lauf von Hand an und zeigt im
 Gegensatz zum Zeitplan seine Zeilen – der schnellste Weg zur Ursache.
+
+**Drei Wege lösen einen Abgleich aus:**
+
+1. **Der Zeitplan** – der Normalfall, üblicherweise alle zwei Minuten. Er ist
+   der einzige, der auch nachts, am Wochenende und in den Betriebsferien läuft.
+   Einrichtung: [Installationsanleitung](installationsanleitung.md).
+2. **Die Kopplung selbst** gleicht sofort einmal ab. Damit stehen die
+   freigeschalteten Mitarbeiter unmittelbar nach dem Koppeln auf der Website,
+   ohne dass man daran denken muss.
+3. **Nebenher**, am Ende einer beliebigen Anfrage – höchstens alle zwei Minuten
+   und nur, wenn nicht ohnehin gerade ein Lauf war. Das ist ein Auffangnetz für
+   Installationen ohne Zeitplan, **kein Ersatz** dafür: Wird nicht gearbeitet,
+   passiert auch nichts. Wer Samstagfrüh Urlaub beantragt, wartet sonst bis zur
+   ersten Buchung am Montag.
+
+Auf einem Terminal springt nichts davon an – die Kopplung lebt auf dem Backend.
 
 **Wenn der Firmenserver aus ist**, passiert nichts Schlimmes: Anträge sammeln
 sich auf der Website, die Mitarbeiter sehen dort einen sichtbaren Hinweis, wie

@@ -18,6 +18,71 @@ legacy_zip_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-05-07 handbuch-kennt-die-beiden-stolpersteine
+
+### ANLASS
+Die Kopplung im Praxisversuch hat zwei Fehler zutage gefoerdert, deren Ursache
+und Symptom auf **verschiedenen Seiten** liegen - und genau die sind teuer,
+weil man an der falschen Stelle sucht:
+
+1. Beim Koppeln kam »HTTP 404« mit einer Apache-Fehlerseite. Ursache war die
+   Adresse ohne Unterverzeichnis (P-2026-09-05-04).
+2. Ein Mitarbeiter bekam auf der **Website** »Kennung oder Aktivierungscode
+   stimmt nicht«, obwohl der Zettel stimmte. Ursache lag in der
+   **Zeiterfassung**: Der Abgleich war nie gelaufen, die Website kannte ihn
+   nicht (P-2026-09-05-05, -06). Im Backend sah alles richtig aus.
+
+Dazu kam ein Satz in der Installationsanleitung, der nach den Aenderungen nicht
+mehr stimmte: »Laeuft der Zeitplan nicht, passiert nichts Schlimmes.«
+
+### EINGELESEN
+- `docs/admin_handbuch.md`, Abschnitt »Was schiefgehen kann, und woran man es
+  sieht« - die vorhandene Tabelle ist die Vorlage, sie fuehrt aber nur
+  Meldungen der **eigenen** Maske auf.
+- `docs/installationsanleitung.md`, Abschnitt 8 - dort steht der Zeitplan als
+  einziger Weg beschrieben; seit P-2026-09-05-06 gibt es drei.
+
+### DATEIEN
+- `docs/admin_handbuch.md`
+- `docs/installationsanleitung.md`
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Wer eine der beiden Meldungen vor sich hat, findet im Handbuch die Ursache -
+auch wenn sie auf der anderen Seite liegt. Und wer die Installationsanleitung
+liest, weiss, was ohne Zeitplan tatsaechlich passiert.
+
+### DONE
+- Eigene Tabelle »Zwei Faelle, bei denen Ursache und Symptom auf verschiedenen
+  Seiten liegen«. Bewusst getrennt von der ersten Tabelle: Die fuehrt
+  Meldungen der Portal-Maske auf, diese eine Meldung der Website und eine
+  Fehlerseite eines fremden Webservers.
+- Abschnitt »Drei Wege loesen einen Abgleich aus« - Zeitplan, Kopplung,
+  nebenher - mit dem ausdruecklichen Hinweis, dass die letzten beiden den
+  Zeitplan nicht ersetzen, weil sie Arbeit voraussetzen.
+- Installationsanleitung: Der beruhigende Satz ist ersetzt. Er stimmt fuer
+  einen **verzoegerten** Lauf, nicht fuer einen fehlenden Zeitplan - dann
+  passiert nachts und am Wochenende gar nichts, und ein Mitarbeiter, der sein
+  Konto einrichten will, bekommt eine Meldung, die das Gegenteil dessen sagt,
+  was los ist.
+
+### TEST
+Keine Programmaenderung. Nachgeprueft, dass die zitierten Meldungen im Wortlaut
+so vorkommen: »Die Website hat die Kopplung abgelehnt. Antwort: HTTP 404« aus
+`services/PortalVerbindungService.php` und »Kennung oder Aktivierungscode
+stimmt nicht, oder der Code ist abgelaufen beziehungsweise schon benutzt« aus
+der Website. Abschnittsgliederung beider Dokumente laeuft durch.
+
+### NICHT ERREICHT
+Der **Server**, auf dem das laeuft, ist weiterhin nirgends beschrieben - welche
+Anwendung in welchem Verzeichnis liegt, was im Zeitplan steht, wo die
+Sicherungen liegen. Das gehoert nicht in dieses oeffentliche Repository und
+braucht einen eigenen Ort.
+
+### NEXT
+Ort fuer eine Betriebsdokumentation des Servers festlegen.
+
+
 ## P-2026-09-05-06 abgleich-laeuft-auch-ohne-zeitplan
 
 ### ANLASS
