@@ -385,9 +385,18 @@ class PortalVerbindungService
     /**
      * Prueft und normalisiert die eingegebene Adresse.
      *
-     * Rueckgabe ohne Pfad und ohne Schrägstrich am Ende - der Endpunkt wird
-     * angehaengt. Wer versehentlich `https://wernig.com/portal-api` eintraegt,
-     * bekommt sonst `/portal-api/portal-api`.
+     * Rueckgabe ohne Schrägstrich am Ende - der Endpunkt wird angehaengt.
+     *
+     * Der **Pfad bleibt erhalten**. Eine Website muss nicht in der Wurzel einer
+     * Domain liegen; sie kann in einem Unterverzeichnis stehen, etwa
+     * `https://example.org/homepage`. Wer den Pfad hier abschneidet, ruft
+     * anschliessend `https://example.org/portal-api` auf und bekommt 404,
+     * obwohl der Endpunkt unter `/homepage/portal-api` bereitsteht.
+     *
+     * Wer die vollstaendige Endpunktadresse einfuegt - also die, die im Backend
+     * der Website zum Abschreiben danebensteht -, soll trotzdem ankommen:
+     * ein abschliessendes `/portal-api` wird abgeschnitten, sonst entstuende
+     * `/portal-api/portal-api`.
      */
     private function normalisiereBasis(string $eingabe): ?string
     {
@@ -404,10 +413,19 @@ class PortalVerbindungService
         if (!is_array($teile) || ($teile['host'] ?? '') === '') {
             return null;
         }
-        $basis = strtolower($teile['scheme']) . '://' . $teile['host'];
+        // Schema und Host sind unabhaengig von Gross- und Kleinschreibung,
+        // der Pfad nicht - der bleibt, wie er eingegeben wurde.
+        $basis = strtolower($teile['scheme']) . '://' . strtolower($teile['host']);
         if (isset($teile['port'])) {
             $basis .= ':' . (int)$teile['port'];
         }
-        return $basis;
+
+        // Abfrage und Sprungmarke gehoeren nicht zur Adresse.
+        $pfad = rtrim((string)($teile['path'] ?? ''), '/');
+        if ($pfad !== '' && str_ends_with(strtolower($pfad), self::ENDPUNKT)) {
+            $pfad = rtrim(substr($pfad, 0, -strlen(self::ENDPUNKT)), '/');
+        }
+
+        return $basis . $pfad;
     }
 }

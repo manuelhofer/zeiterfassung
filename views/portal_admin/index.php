@@ -140,8 +140,12 @@ $artText = [
                 <label for="basis_url">Adresse der Homepage</label><br>
                 <input type="text" id="basis_url" name="basis_url" style="width:100%;"
                        placeholder="https://wernig.com" spellcheck="false" autocomplete="off">
-                <small>Mit <code>https://</code> davor und ohne Pfad dahinter. Der
-                       Rest wird angehängt.</small>
+                <small>Mit <code>https://</code> davor. Liegt die Website in einem
+                       Unterverzeichnis, gehört es dazu – etwa
+                       <code>https://example.org/homepage</code>. Sie können auch
+                       die vollständige Adresse einsetzen, die im Backend der
+                       Website danebensteht; <code>/portal-api</code> am Ende
+                       wird abgeschnitten.</small>
             </p>
 
             <p>

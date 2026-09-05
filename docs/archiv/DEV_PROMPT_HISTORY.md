@@ -18,6 +18,76 @@ legacy_zip_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-05-04 portal-adresse-behaelt-den-pfad
+
+### ANLASS
+Die Kopplung schlug im Praxisversuch fehl. Die Zeiterfassung meldete »Die
+Website hat die Kopplung abgelehnt. Antwort: HTTP 404«, und im Text stand die
+Apache-Fehlerseite von `project-ronin.de`. Ursache: `normalisiereBasis()` warf
+den **Pfad** der eingegebenen Adresse weg und behielt nur `schema://host`. Steht
+die Website in einem Unterverzeichnis - hier `/wernighomepage` -, ruft die
+Zeiterfassung danach `https://project-ronin.de/portal-api` auf. Dort ist
+nichts. Der Endpunkt liegt unter `/wernighomepage/portal-api`.
+
+Damit war die Unterverzeichnis-Faehigkeit der Website (P-2026-09-04-11) auf
+dieser Seite wieder aufgehoben: Die Homepage kann ueberall liegen, aber
+gekoppelt werden konnte sie nur in der Wurzel einer Domain.
+
+### EINGELESEN
+- `services/PortalVerbindungService.php`: `normalisiereBasis()` und
+  `sendeRoh()` (Zeile 321, `rtrim($basis, '/') . self::ENDPUNKT`) - dort wird
+  die Adresse zusammengesetzt.
+- `views/portal_admin/index.php`, Zeile 143: der Hinweis »ohne Pfad dahinter«
+  beschrieb genau das falsche Verhalten und musste mit.
+- Gegenprobe am laufenden Server: `POST https://project-ronin.de/portal-api`
+  -> 404 (HTML), `POST https://project-ronin.de/wernighomepage/portal-api`
+  -> 400 mit `{"ok":false,"fehler":"Unvollstaendig unterschriebene Anfrage."}`.
+  Der Endpunkt lebt, nur die Adresse war falsch.
+
+### DATEIEN
+- `services/PortalVerbindungService.php`
+- `views/portal_admin/index.php`
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Eine Website in einem Unterverzeichnis laesst sich koppeln. Wer die Adresse
+mit Pfad eintraegt, behaelt ihn; wer die vollstaendige Endpunktadresse aus dem
+Backend der Website einsetzt, kommt ebenfalls an.
+
+### DONE
+- Der Pfad bleibt erhalten. Abfrage (`?...`) und Sprungmarke (`#...`) fallen
+  weg, ein Schrägstrich am Ende ebenso.
+- Ein abschliessendes `/portal-api` wird abgeschnitten. Das ist die Adresse,
+  die im Backend der Website zum Abschreiben danebensteht - wer sie einsetzt,
+  bekaeme sonst `/portal-api/portal-api`.
+- Host wird kleingeschrieben, wie das Schema. Der Pfad **nicht** - Pfade sind
+  auf dem Server gross-/kleinschreibungsempfindlich.
+- Der Hinweis in der Maske sagt jetzt das Richtige und nennt beide Wege.
+
+### TEST
+Zwoelf Faelle gegen `normalisiereBasis()` per Reflection, alle wie erwartet:
+
+| Eingabe | Ergebnis |
+| --- | --- |
+| `https://project-ronin.de/wernighomepage` | unveraendert |
+| `.../wernighomepage/` | Schrägstrich weg |
+| `.../wernighomepage/portal-api` | Endpunkt abgeschnitten |
+| `https://project-ronin.de/portal-api` | `https://project-ronin.de` |
+| `https://wernig.com` | unveraendert |
+| `HTTPS://Wernig.COM/Portal-Api` | `https://wernig.com` |
+| `https://example.org:8443/tief/verschachtelt` | Port und Pfad bleiben |
+| `https://wernig.com/homepage?x=1#oben` | `https://wernig.com/homepage` |
+| `wernig.com`, leer, `ftp://...` | abgelehnt |
+
+### NICHT ERREICHT
+Die Kopplung selbst ist damit noch nicht vollzogen - der Kopplungscode aus dem
+Versuch war zu diesem Zeitpunkt abgelaufen (30 Minuten). Der naechste Versuch
+braucht einen frischen Code.
+
+### NEXT
+Nichts.
+
+
 ## P-2026-09-05-03 handbuch-kennt-das-mitarbeiterportal
 
 ### ANLASS
