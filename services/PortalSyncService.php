@@ -46,6 +46,11 @@ class PortalSyncService
 
     private const SCHLUESSEL_MONATE = 'portal_monate_zuletzt';
 
+    /** Hoechstens so oft laeuft der Abgleich nebenher an einer Anfrage mit. */
+    private const NEBENHER_TAKT_MINUTEN = 2;
+
+    private const SCHLUESSEL_NEBENHER = 'portal_abgleich_zuletzt';
+
     private Database $datenbank;
     private PortalVerbindungService $verbindung;
 
@@ -61,6 +66,30 @@ class PortalSyncService
      * @return array{ok:bool, zeilen:array<int,string>, fehler:string, dauer_ms:int}
      */
     public function laufen(string $anlass = 'zeitplan'): array
+    {
+        // Zwei Laeufe duerfen sich nicht ueberholen. Eine Sperrdatei genuegt
+        // dafuer nicht mehr: Der Zeitplan laeuft als Systembenutzer, die
+        // Ausloesung nebenher im Webserver - die beiden kaemen an die Datei des
+        // jeweils anderen nicht heran, weil sie ihr nicht gehoert. Die
+        // Datenbank teilen sie sich dagegen, also sperrt die.
+        if (!$this->sperreHolen()) {
+            return ['ok' => true, 'dauer_ms' => 0, 'fehler' => '',
+                    'zeilen' => ['Ein Abgleich läuft bereits – dieser Aufruf tut nichts.']];
+        }
+        try {
+            return $this->laufenGesperrt($anlass);
+        } finally {
+            $this->sperreFreigeben();
+        }
+    }
+
+    /**
+     * Der eigentliche Lauf. Nur aus laufen() heraus aufzurufen - die Sperre
+     * haengt dort.
+     *
+     * @return array{ok:bool, zeilen:array<int,string>, fehler:string, dauer_ms:int}
+     */
+    private function laufenGesperrt(string $anlass = 'zeitplan'): array
     {
         $start  = microtime(true);
         $zeilen = [];
@@ -638,6 +667,132 @@ class PortalSyncService
                     ':id' => (int)$z['mitarbeiter'],
                 ]
             );
+        }
+    }
+
+    /**
+     * Namensraum der Sperre. Auf einem Server koennen mehrere Installationen
+     * stehen; die Datenbank unterscheidet sie.
+     */
+    private function sperrName(): string
+    {
+        $zeile = $this->datenbank->fetchEine('SELECT DATABASE() AS d');
+        return 'zeiterfassung_portal_sync:' . (string)($zeile['d'] ?? '?');
+    }
+
+    private function sperreHolen(): bool
+    {
+        try {
+            // 0 Sekunden warten: Wer nicht sofort drankommt, laesst es sein -
+            // der naechste Takt kommt ohnehin gleich.
+            $zeile = $this->datenbank->fetchEine('SELECT GET_LOCK(?, 0) AS s', [$this->sperrName()]);
+            return (int)($zeile['s'] ?? 0) === 1;
+        } catch (\Throwable $e) {
+            // Kann die Datenbank keine Sperre, ist ein Lauf besser als keiner.
+            Logger::warn('Portal-Abgleich: Sperre nicht verfügbar', ['fehler' => $e->getMessage()],
+                         null, null, 'portal');
+            return true;
+        }
+    }
+
+    private function sperreFreigeben(): void
+    {
+        try {
+            $this->datenbank->fetchEine('SELECT RELEASE_LOCK(?) AS s', [$this->sperrName()]);
+        } catch (\Throwable $e) {
+            // Beim Verbindungsende faellt sie ohnehin.
+        }
+    }
+
+    /**
+     * Meldet die Ausloesung nebenher an: Am Ende einer Anfrage - also nach
+     * jeder Buchung, jedem Klick im Backend - laeuft der Abgleich, wenn er
+     * faellig ist.
+     *
+     * Das ist ein **Auffangnetz**, kein Ersatz fuer den Zeitplan. Ohne Zeitplan
+     * passiert in ruhigen Zeiten nichts: Wer Samstagfrueh Urlaub beantragt,
+     * wartet bis zur ersten Buchung am Montag.
+     */
+    public static function nebenherAnmelden(): void
+    {
+        if (PHP_SAPI === 'cli') {
+            return;   // Der Zeitplan ruft direkt auf, der braucht das nicht.
+        }
+        // Auf einem Hallengeraet nicht. Die Kopplung lebt auf dem Backend, und
+        // der Datenbankbenutzer eines Terminals darf `portal_verbindung` gar
+        // nicht lesen - es gaebe alle zwei Minuten einen Protokolleintrag und
+        // sonst nichts.
+        if (Helper::istTerminalInstallation()) {
+            return;
+        }
+        register_shutdown_function([self::class, 'nebenherAusfuehren']);
+    }
+
+    /**
+     * Ist dieser Zeitpunkt juenger als der Takt? Leer und unlesbar zaehlen als
+     * "lange her" - im Zweifel lieber laufen als gar nicht.
+     */
+    private static function zuJung(?string $zeitpunkt): bool
+    {
+        if ($zeitpunkt === null || $zeitpunkt === '') {
+            return false;
+        }
+        $zeit = strtotime($zeitpunkt);
+        if ($zeit === false) {
+            return false;
+        }
+        return (time() - $zeit) < self::NEBENHER_TAKT_MINUTEN * 60;
+    }
+
+    /**
+     * Laeuft nach der Antwort. Darf unter keinen Umstaenden eine Seite
+     * kaputtmachen - deshalb faengt sie alles ab.
+     */
+    public static function nebenherAusfuehren(): void
+    {
+        try {
+            $konfiguration = KonfigurationService::getInstanz();
+
+            // Erste Frage: hat gerade erst eine andere Anfrage einen Lauf
+            // angestossen? Der Stempel steht **vor** dem Lauf (siehe unten).
+            if (self::zuJung($konfiguration->get(self::SCHLUESSEL_NEBENHER))) {
+                return;
+            }
+
+            $dienst = new self();
+            $zeile  = $dienst->verbindung->verbindung();
+            if ($zeile === null) {
+                return;   // keine Website gekoppelt
+            }
+
+            // Zweite Frage: laeuft ohnehin ein Zeitplan? Dann hat der die
+            // Arbeit schon gemacht, und nebenher waere sie doppelt. Das
+            // Auffangnetz greift nur, wenn wirklich niemand sonst laeuft -
+            // egal, wer den letzten Lauf ausgeloest hat.
+            if (self::zuJung($zeile['letzter_lauf_am'] ?? null)) {
+                return;
+            }
+
+            // Vermerk VOR dem Lauf. Sonst starten zwanzig Leute, die um 6:00
+            // gleichzeitig einstempeln, zwanzig Laeufe - die Sperre faengt sie
+            // zwar ab, aber jeder haelt seine Anfrage dafuer auf.
+            $konfiguration->set(self::SCHLUESSEL_NEBENHER, date('Y-m-d H:i:s'));
+
+            // Wo es geht, ist die Antwort vorher beim Besucher. Unter dem
+            // Apache-Modul gibt es das nicht - dort ist die Seite zwar schon
+            // ausgegeben, die Verbindung bleibt aber bis zum Ende offen.
+            if (function_exists('fastcgi_finish_request')) {
+                fastcgi_finish_request();
+            }
+
+            $dienst->laufen('nebenher');
+        } catch (\Throwable $e) {
+            try {
+                Logger::warn('Portal-Abgleich nebenher gescheitert', ['fehler' => $e->getMessage()],
+                             null, null, 'portal');
+            } catch (\Throwable $ignoriert) {
+                // Selbst das Protokoll darf hier nichts mehr umwerfen.
+            }
         }
     }
 

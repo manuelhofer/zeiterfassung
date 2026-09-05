@@ -18,6 +18,109 @@ legacy_zip_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-05-06 abgleich-laeuft-auch-ohne-zeitplan
+
+### ANLASS
+Der Abgleich hing bisher allein am Zeitplan. Wer ihn nicht einrichtet - und das
+ist der Schritt, den man vergisst -, hat eine Kopplung, die steht, und ein
+Portal, in dem sich niemand anmelden kann. Genau so ist es passiert
+(P-2026-09-05-05). Die Frage war: kann nicht jede Buchung, jede Aktion den
+Abgleich mit anstossen?
+
+Kann sie. Als **Auffangnetz**, nicht als Ersatz: Ohne Zeitplan passiert in
+ruhigen Zeiten nichts. Wer Samstagfrueh Urlaub beantragt, wartet bis zur ersten
+Buchung am Montag. Beides zusammen ist die Antwort.
+
+### EINGELESEN
+- `scripts/portal_sync.php`: die Sperre ist eine Datei in `sys_get_temp_dir()`.
+  Das traegt nicht mehr - der Zeitplan laeuft als Systembenutzer, die
+  Ausloesung nebenher im Webserver; der zweite kaeme an die Datei des ersten
+  nicht heran, weil sie ihm nicht gehoert.
+- `services/PortalSyncService.php`, `monateFaellig()` - die vorhandene Drossel
+  ueber `KonfigurationService` ist die Vorlage fuer die neue.
+- `core/Helper.php`, `istTerminalInstallation()` - noetig, um Hallengeraete
+  auszunehmen.
+- `public/index.php` und `public/terminal.php`: beide beginnen mit
+  `$konfig = Start::los();` - der gemeinsame Ort zum Anmelden.
+- Am Server nachgesehen: PHP laeuft dort als **Apache-Modul**, nicht als FPM.
+  `fastcgi_finish_request()` gibt es also nicht ueberall - der Aufruf steht
+  hinter `function_exists()`.
+
+### DATEIEN
+- `services/PortalSyncService.php`
+- `public/index.php`, `public/terminal.php`
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Auf einer Installation ohne Zeitplan laeuft der Abgleich trotzdem - hoechstens
+alle zwei Minuten, ausgeloest von einer beliebigen Anfrage. Keine Seite wird
+dadurch spuerbar langsamer, kein Lauf ueberholt einen anderen, und auf einem
+Terminal springt nichts an.
+
+### DONE
+- **Sperre in der Datenbank statt in einer Datei.** `laufen()` holt
+  `GET_LOCK(zeiterfassung_portal_sync:<datenbank>, 0)` und gibt sie im
+  `finally` wieder frei; der eigentliche Rumpf heisst jetzt `laufenGesperrt()`.
+  Wer nicht sofort drankommt, tut nichts - der naechste Takt kommt gleich. Der
+  Name traegt den Datenbanknamen, weil auf einem Server mehrere Installationen
+  stehen koennen. Kann die Datenbank keine Sperre, laeuft er trotzdem: ein Lauf
+  ist besser als keiner.
+- **`nebenherAnmelden()`** haengt sich per `register_shutdown_function()` ein -
+  das laeuft auch nach `exit`, und der Front-Controller endet in vielen Zweigen
+  mit `exit`.
+- **Drossel in zwei Stufen**, Takt zwei Minuten:
+  1. `portal_abgleich_zuletzt` in der Konfiguration - hat gerade eine andere
+     Anfrage einen Lauf angestossen? Der Stempel steht **vor** dem Lauf, nicht
+     danach: Sonst starten zwanzig Leute, die um 6:00 gleichzeitig
+     einstempeln, zwanzig Laeufe.
+  2. `portal_verbindung.letzter_lauf_am` - laeuft ohnehin ein Zeitplan? Dann
+     hat der die Arbeit schon gemacht. Ohne diese zweite Frage liefe nebenher
+     alle zwei Minuten ein zweiter Lauf neben dem Zeitplan her; die Sperre
+     faenge ihn ab, aber es waere unnoetige Arbeit. Beim Nachmessen am Server
+     aufgefallen und gleich behoben.
+- **Nicht auf Terminals.** Der Datenbankbenutzer eines Hallengeraets darf
+  `portal_verbindung` nicht lesen; es gaebe alle zwei Minuten einen
+  Protokolleintrag und sonst nichts.
+- **Nicht auf der Kommandozeile** - der Zeitplan ruft direkt auf.
+- Alles in `try/catch`: Ein Abgleich darf niemals eine Seite umwerfen. Selbst
+  der Protokolleintrag im Fehlerfall steht noch einmal in `try`.
+
+### TEST
+Am laufenden Server, gegen die bestehende Kopplung:
+
+| Schritt | Ergebnis |
+| --- | --- |
+| Erste Anfrage nach dem Einspielen | HTTP 200 in **0,37 s**, Abgleich lief nebenher (738 ms) |
+| Fuenf Anfragen hintereinander | je ~0,18 s, **ein** Lauf - die Drossel greift |
+| Zeitstempel danach | unveraendert gegenueber dem ersten Lauf |
+| Zeitplan eingetragen, erster Lauf | 19:44:01, 248 ms, Fehlerprotokoll leer |
+| Danach drei Anfragen | je ~0,2 s, Stempel nebenher blieb stehen - es trat hinter den Zeitplan zurueck |
+
+Bemerkenswert: Die Antwort war nach 0,37 s da, obwohl der Lauf 738 ms brauchte.
+Die Seite ist also draussen, bevor er fertig ist - auch ohne
+`fastcgi_finish_request()`.
+
+Dazu auf dem Server der Zeitplan eingetragen, im Stil der vorhandenen
+Eintraege und mit `flock` als zweitem Riegel:
+
+    */2  * * * * flock -n /home/homepage/.lock/zeiterfassung-portal.lock \
+                 php /home/homepage/www/zeiterfassung/scripts/portal_sync.php \
+                 >/dev/null 2>>/home/homepage/.logs/zeiterfassung-portal.cron.log
+
+Die Crontab enthielt bereits vier Eintraege fuer ein anderes Projekt; sie ist
+vorher nach `/home/homepage/crontab_vorher_20260905.txt` gesichert worden.
+
+### NICHT ERREICHT
+Die Ausloesung nebenher haengt an **jeder** Anfrage, auch an einer
+unangemeldeten Anmeldemaske. Ein Fremder kann damit alle zwei Minuten einen
+ausgehenden Anruf anstossen - mehr nicht, der Takt deckelt es. Wer das enger
+haben will, prueft zusaetzlich auf eine angemeldete Sitzung; dann faellt das
+Auffangnetz aber genau dort aus, wo niemand angemeldet ist.
+
+### NEXT
+Nichts.
+
+
 ## P-2026-09-05-05 kopplung-gleicht-sofort-ab
 
 ### ANLASS

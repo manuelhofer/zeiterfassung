@@ -11,6 +11,11 @@ require __DIR__ . '/../core/Autoloader.php';
 
 $konfig = Start::los();
 
+// Auffangnetz fuer den Portal-Abgleich: Am Ende dieser Anfrage laeuft er
+// mit, wenn er faellig ist (hoechstens alle zwei Minuten). Ersetzt den
+// Zeitplan nicht - ohne den passiert in ruhigen Zeiten nichts.
+PortalSyncService::nebenherAnmelden();
+
 $aktion = isset($_GET['aktion']) ? (string)$_GET['aktion'] : 'start';
 
 // ------------------------------------------------------------
