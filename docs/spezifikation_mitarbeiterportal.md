@@ -106,8 +106,16 @@ Jede Anfrage **außer** `koppeln` trägt diese Kopfzeilen:
 | `X-Portal-Signatur` | siehe unten |
 
 ```
-Signatur = hash_hmac('sha256', portal_id . "\n" . zeit . "\n" . nonce . "\n" . koerper, schluessel)
+Signatur = hash_hmac('sha256', portal_id . "\n" . zeit . "\n" . nonce . "\n" . koerper,
+                     hash('sha256', schluessel))
 ```
+
+**Der Schlüssel des HMAC ist der Hash des Schlüssels, nicht der Schlüssel.**
+Die Homepage speichert von ihm ohnehin nur `hash('sha256', schluessel)` – und
+genau dieser gespeicherte Wert wird zum Unterschreiben genommen. Im Klartext
+existiert der Schlüssel nur einmal, in der Zeiterfassung. Wer diese Zeile
+überliest, baut eine Gegenseite, die jede Anfrage mit »Die Signatur stimmt
+nicht« abweist, ohne dass irgendetwas anderes falsch wäre.
 
 Die Homepage weist ab, wenn: die Verbindung fehlt oder inaktiv ist, die Zeit
 mehr als **300 Sekunden** abweicht, die Nonce schon einmal da war, oder die

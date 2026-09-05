@@ -18,6 +18,56 @@ legacy_zip_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-05-09 signaturformel-nennt-den-hash
+
+### ANLASS
+Beim Bau eines Beispiels fuer fremde Websites (P-2026-09-05-10) am Code
+nachgerechnet: Beide Seiten unterschreiben mit `hash('sha256', $schluessel)` -
+die Homepage speichert von ihm ohnehin nur diesen Hash. Der Vertrag schrieb
+aber `schluessel`.
+
+Wer danach baut, bekommt bei **jeder** Anfrage »Die Signatur stimmt nicht«,
+ohne dass sonst irgendetwas falsch waere. Das ist der teuerste Fehler in einer
+Spezifikation: einer, der aussieht wie ein Fehler der anderen Seite.
+
+### EINGELESEN
+- `services/PortalVerbindungService.php`, `sende()`: der Kommentar dort sagt es
+  bereits (»Unterschrieben wird mit sha256(schluessel) ... (Vertrag,
+  Abschnitt 5)«) - im Vertrag stand es nur nicht.
+- `WernigHomepage/services/PortalKopplungService.php`, Zeile 254 und 296:
+  gerechnet wird gegen `schluessel_hash`, und gespeichert wird beim Koppeln
+  `hash('sha256', $schluessel)`.
+
+### DATEIEN
+- `docs/spezifikation_mitarbeiterportal.md`
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+(Dieselbe Aenderung wortgleich in `WernigHomepage/docs/` - die beiden Fassungen
+sind zeichengleich zu halten, das ist der Sinn eines Vertrags.)
+
+### AKZEPTANZKRITERIUM
+Wer die Gegenseite allein nach dem Vertrag baut, bekommt eine gueltige
+Unterschrift.
+
+### DONE
+- Die Formel nennt `hash('sha256', schluessel)` als HMAC-Schluessel.
+- Darunter ein Absatz, warum das so ist und was passiert, wenn man ihn
+  ueberliest. Ein blosses Richtigstellen haette dieselbe Falle nur verschoben.
+- Vorher und nachher geprueft, dass beide Fassungen zeichengleich sind.
+
+### TEST
+Ein Beispielendpunkt, der genau nach dieser Formel rechnet, wurde von einem
+Testkunden angerufen, der die Signatur wie `PortalVerbindungService::sende()`
+bildet: `hallo` HTTP 200, mit falschem Schluessel HTTP 401. Siehe
+P-2026-09-05-10.
+
+### NICHT ERREICHT
+Nichts.
+
+### NEXT
+Nichts.
+
+
 ## P-2026-09-05-08 fehlermeldung-sagte-noch-das-gegenteil
 
 ### ANLASS
