@@ -18,6 +18,48 @@ legacy_zip_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-06-02 auftragslink-ohne-code-sagt-warum
+
+### ANLASS
+Wer eine Auftragsadresse ohne `code` oeffnet - ein altes Lesezeichen, ein Link
+aus einer Mail, eine abfotografierte Laufkarte -, landet wortlos auf der
+Auftragsliste. Keine Meldung, keine Erklaerung. Man sucht den Fehler bei sich.
+
+### EINGELESEN
+- `controller/AuftragController.php`: `detail()` und `laufkarte()` leiten bei
+  leerem `code` ohne Vermerk um.
+- Dieselbe Datei setzt an anderen Stellen bereits `auftrag_flash_fehler`
+  (Zeile 388, 397, 431) - die Mechanik ist da.
+- `views/auftrag/liste.php`, Zeile 40: Die Liste zeigt `$flashFehler` an.
+
+### DATEIEN
+- `controller/AuftragController.php`
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Ein Aufruf ohne Auftrag fuehrt auf die Liste **mit** einer Meldung, die sagt,
+was passiert ist.
+
+### DONE
+- `detail()` und `laufkarte()` setzen vor dem Umleiten
+  `auftrag_flash_fehler`. Die Liste zeigt sie ohne weitere Aenderung an.
+- Bewusst nur diese beiden: Die uebrigen rund zwanzig Umleitungen auf
+  `?seite=auftrag` sind POST-Aktionen mit CSRF, die man nur aus der Anwendung
+  heraus erreicht - und die meisten setzen ohnehin schon eine Meldung.
+
+### TEST
+`php -l`. Die Meldung nutzt denselben Sitzungsschluessel, den die Liste
+bereits ausliest.
+
+### NICHT ERREICHT
+Ein **falscher** Code (statt eines fehlenden) laeuft weiter in die
+Detailansicht und meldet dort "Die Auftragsdetails konnten nicht geladen
+werden." Das ist schon eine Meldung, wenn auch eine unklare.
+
+### NEXT
+Nichts.
+
+
 ## P-2026-09-06-01 terminalleiste-verdeckte-die-tagesuebersicht
 
 ### ANLASS

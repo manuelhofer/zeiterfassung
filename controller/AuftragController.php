@@ -616,6 +616,12 @@ class AuftragController
 
         $code = trim((string)($_GET['code'] ?? ''));
         if ($code === '') {
+            // Wortlos zurueckwerfen ist die schlechteste Antwort: Wer einen
+            // alten Link oeffnet - aus einer Mail, einem Lesezeichen, einer
+            // Laufkarte - landet sonst ohne ein Wort auf der Liste und sucht
+            // den Fehler bei sich.
+            $_SESSION['auftrag_flash_fehler'] =
+                'Der Aufruf enthielt keinen Auftrag. Bitte einen aus der Liste wählen.';
             header('Location: ?seite=auftrag');
             return;
         }
@@ -1218,6 +1224,12 @@ class AuftragController
 
         $code = trim((string)($_GET['code'] ?? ''));
         if ($code === '') {
+            // Wortlos zurueckwerfen ist die schlechteste Antwort: Wer einen
+            // alten Link oeffnet - aus einer Mail, einem Lesezeichen, einer
+            // Laufkarte - landet sonst ohne ein Wort auf der Liste und sucht
+            // den Fehler bei sich.
+            $_SESSION['auftrag_flash_fehler'] =
+                'Der Aufruf enthielt keinen Auftrag. Bitte einen aus der Liste wählen.';
             header('Location: ?seite=auftrag');
             return;
         }
