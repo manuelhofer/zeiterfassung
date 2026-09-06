@@ -252,6 +252,27 @@ pre {
     pointer-events: auto;
 }
 
+/* Die unten angedockten Leisten schweben ueber dem FENSTER, `main` scrollt
+   dagegen in sich. Der grosse `padding-bottom` in `main` schuetzt deshalb nur
+   das Ende des Scrollinhalts - Inhalt, der davor liegt, wird trotzdem
+   verdeckt. Bei 1024x768 und aufgeklappter Tagesuebersicht lagen so die
+   heutigen Buchungen und "Laufende Auftraege" unter der Mitarbeiterleiste.
+   Nachgemessen: `elementFromPoint` traf im Band der Leiste echten Inhalt.
+   
+   `main` kleiner zu machen genuegt allein nicht: `body` ist ein Flex-Container
+   mit `align-items: center`, ein niedrigeres `main` wird nur wieder mittig
+   gesetzt. Beides zusammen wirkt - der Zentrierbereich schrumpft, und `main`
+   endet oberhalb der Leiste. Der Anmeldebildschirm bleibt aussen vor, dort
+   gibt es keine Leisten. */
+body.terminal-wide:not(.terminal-login) {
+    box-sizing: border-box;
+    padding-bottom: 8.8rem;
+}
+
+body.terminal-wide:not(.terminal-login) main {
+    height: calc(97vh - 8.8rem);
+}
+
 .status-box.terminal-systemstatus > summary.status-title,
 .status-box.terminal-mitarbeiterpanel > summary.status-title {
     cursor: pointer;

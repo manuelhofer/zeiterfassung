@@ -18,6 +18,72 @@ legacy_zip_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-06-01 terminalleiste-verdeckte-die-tagesuebersicht
+
+### ANLASS
+Beim Durchsehen der Bedienbarkeit am Terminal gefunden: Bei 1024x768 und
+aufgeklappter "Uebersicht (heute)" liegt die feste Mitarbeiterleiste ueber dem
+Inhalt. Gemessen: Der Inhalt reicht bis y 688, die Leiste beginnt bei y 627 -
+34 Pixel sind zugedeckt, genau dort, wo die heutigen Buchungen und "Laufende
+Auftraege" stehen. `elementFromPoint` traf im Band der Leiste echten Inhalt,
+darunter die Zeile "11:51:11 kommen (terminal, Probe-Terminal)".
+
+Erreichbar war es - `main` scrollt -, aber an einem Touchscreen erwartet das
+niemand.
+
+### EINGELESEN
+- `public/css/terminal.css`: `main` ist 97vh hoch mit `overflow: auto` und
+  `padding-bottom: 11.25rem`; die Leisten haengen mit `position: fixed` am
+  Fenster.
+- Am laufenden Prueffstand gemessen, warum der vorhandene Innenabstand nicht
+  traegt: Er schuetzt nur das **Ende** des Scrollinhalts. Inhalt, der davor
+  liegt, wird trotzdem verdeckt.
+- `body` ist ein Flex-Container mit `align-items: center` - deshalb genuegt es
+  auch nicht, `main` niedriger zu machen: Es wird nur wieder mittig gesetzt
+  (nachgemessen: Hoehe 604, oben 82, unten 686 - immer noch ueber der Leiste).
+
+### DATEIEN
+- `public/css/terminal.css`
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Am Terminal liegt kein Inhalt mehr unter der Mitarbeiterleiste. Der
+Anmeldebildschirm bleibt, wie er ist.
+
+### DONE
+- Der Zentrierbereich schrumpft (`body ... { padding-bottom: 8.8rem }`) **und**
+  `main` wird entsprechend niedriger. Erst beides zusammen wirkt.
+- Beschraenkt auf `body.terminal-wide:not(.terminal-login)`: Auf dem
+  Anmeldebildschirm gibt es keine Leisten, und der Anmeldeknopf soll dort
+  weiterhin den Platz bis unten fuellen.
+
+### TEST
+Am Pruefstand, 1024x768, angemeldet und mit aufgeklappter Tagesuebersicht:
+
+| | vorher | nachher |
+| --- | --- | --- |
+| `main` endet bei | 756 | **616** |
+| Leiste beginnt bei | 627 | 627 |
+| Luft dazwischen | -129 (Ueberlappung) | **12 Pixel** |
+
+Anmeldebildschirm gegengeprueft: `body`-Innenabstand 0, `main` 745 hoch, der
+Anmeldeknopf fuellt wie zuvor.
+
+**Zum Messverfahren:** Der erste Zaehler war unbrauchbar - unterhalb von `main`
+liefert `elementFromPoint` das `body`-Element, dessen `textContent` die ganze
+Seite enthaelt, und zaehlte damit ueberall "verdeckten Inhalt". Belegt wurde
+der Fund deshalb ueber die Geometrie und die Textproben, nicht ueber den
+Zaehler.
+
+### NICHT ERREICHT
+Nur bei 1024x768 geprueft. Auf einem hoeheren Schirm trat es ohnehin nicht auf;
+auf einem niedrigeren duerfte weiterhin gescrollt werden muessen - dann aber
+sichtbar und nicht unter einer Leiste.
+
+### NEXT
+Nichts.
+
+
 ## P-2026-09-05-10 beispielpaket-fuer-fremde-websites
 
 ### ANLASS
