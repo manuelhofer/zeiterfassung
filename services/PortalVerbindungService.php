@@ -2,7 +2,7 @@
 declare(strict_types=1);
 
 /**
- * Die Verbindung zum Mitarbeiterportal auf der WERNIG-Homepage.
+ * Die Verbindung zum Mitarbeiterportal auf der gekoppelten Website.
  *
  * DIESE SEITE RUFT AN. Das ist keine Geschmacksfrage, sondern die Folge der
  * Lage: Diese Installation steht im Firmennetz und hat keine von aussen
@@ -339,7 +339,7 @@ class PortalVerbindungService
             CURLOPT_FOLLOWLOCATION => false,
             CURLOPT_SSL_VERIFYPEER => true,
             CURLOPT_SSL_VERIFYHOST => 2,
-            CURLOPT_USERAGENT      => 'WERNIG-Zeiterfassung Mitarbeiterportal',
+            CURLOPT_USERAGENT      => 'Zeiterfassung Mitarbeiterportal',
         ]);
 
         $roh    = curl_exec($ch);

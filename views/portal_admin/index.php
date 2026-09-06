@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 /**
- * Template: Mitarbeiterportal – Verbindung zur WERNIG-Homepage
+ * Template: Mitarbeiterportal – Verbindung zur gekoppelten Website
  *
  * Erwartet:
  * - $verbindung (array|null)  – Zeile aus `portal_verbindung`, aktiv
@@ -48,9 +48,9 @@ $artText = [
     <p>
         Mitarbeiter können ihren Urlaub von zu Hause oder vom Handy beantragen und
         ihre Zahlen ansehen – über den Bereich <code>/mitarbeiter</code> auf der
-        WERNIG-Homepage. <strong>Diese Installation ruft dort an</strong>, holt neue
+        gekoppelten Website. <strong>Diese Installation ruft dort an</strong>, holt neue
         Anträge ab und schickt den aktuellen Stand hin. Umgekehrt geht nichts: Die
-        Homepage kennt weder die Adresse dieses Servers noch seine Datenbank und
+        Website kennt weder die Adresse dieses Servers noch seine Datenbank und
         kann hier nichts abfragen.
     </p>
 
@@ -139,7 +139,7 @@ $artText = [
             <p>
                 <label for="basis_url">Adresse der Homepage</label><br>
                 <input type="text" id="basis_url" name="basis_url" style="width:100%;"
-                       placeholder="https://wernig.com" spellcheck="false" autocomplete="off">
+                       placeholder="https://example.org" spellcheck="false" autocomplete="off">
                 <small>Mit <code>https://</code> davor. Liegt die Website in einem
                        Unterverzeichnis, gehört es dazu – etwa
                        <code>https://example.org/homepage</code>. Sie können auch

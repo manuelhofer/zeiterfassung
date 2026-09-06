@@ -18,6 +18,50 @@ legacy_zip_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-06-03 portalmaske-nennt-keine-fremde-firma
+
+### ANLASS
+Auf dem Pruefstand - einer Installation, die mit WERNIG nichts zu tun hat -
+stand in der Portal-Maske "auf der WERNIG-Homepage" und als Platzhalter
+`https://wernig.com`. Beim Durchsehen als fremder Betrieb gelesen: verwirrend.
+Die Kopplung ist an keine bestimmte Website gebunden (P-2026-09-05-08,
+P-2026-09-05-10), die Oberflaeche tat aber so.
+
+### EINGELESEN
+- Gegensuche nach "wernig" in `services/`, `controller/`, `core/`, `views/`,
+  `public/`: sechs Fundstellen, davon zwei sichtbar (Einleitungstext,
+  Platzhalter), eine nach aussen (User-Agent), drei in Kommentaren.
+
+### DATEIEN
+- `views/portal_admin/index.php`
+- `services/PortalVerbindungService.php`
+- `public/index.php`
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Kein Firmenname mehr im Programm - weder auf dem Bildschirm noch in einem
+Aufruf nach aussen.
+
+### DONE
+- Einleitung: "auf der gekoppelten Website" statt "auf der WERNIG-Homepage",
+  und "Die Website kennt weder..." statt "Die Homepage kennt weder...".
+- Platzhalter im Adressfeld: `https://example.org`.
+- `CURLOPT_USERAGENT`: `Zeiterfassung Mitarbeiterportal` - die Software darf
+  sich nennen, die Firma gehoert nicht hinein.
+- Die drei Kommentare mitgezogen, damit die naechste Suche sauber ist.
+
+### TEST
+Gegensuche nach "wernig" ueber `services/`, `controller/`, `core/`, `views/`
+und `public/`: **kein Treffer mehr**. `php -l` auf allen drei Programmdateien.
+
+### NICHT ERREICHT
+Die Dokumentation nennt WERNIG weiterhin - dort gehoert es hin, sie beschreibt
+diese Installation. Nur das Programm ist jetzt neutral.
+
+### NEXT
+Nichts.
+
+
 ## P-2026-09-06-02 auftragslink-ohne-code-sagt-warum
 
 ### ANLASS

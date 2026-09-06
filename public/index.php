@@ -541,7 +541,7 @@ try {
             $controller->speichern();
             break;
 
-        // Mitarbeiterportal: Kopplung mit der WERNIG-Homepage. Der Handschlag
+        // Mitarbeiterportal: Kopplung mit der Website. Der Handschlag
         // geht von hier aus - die Homepage kennt diese Adresse nicht und kann
         // sie nicht aufrufen (docs/spezifikation_mitarbeiterportal.md).
         case 'portal_admin':
