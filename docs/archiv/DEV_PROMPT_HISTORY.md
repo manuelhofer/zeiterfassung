@@ -18,6 +18,32 @@ legacy_zip_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-29-01 wartung-ablauf-festgelegt
+
+### EINGELESEN
+CLAUDE.md, CHATSTART.md, Arbeitsregeln, Status-Snapshot, Git-Verlauf,
+Terminal-/Offline- und Rechte-Regeln sowie der mit Manuel besprochene Plan.
+
+### DATEIEN
+- docs/spezifikation_wartung.md
+- docs/STATUS_SNAPSHOT.md
+- docs/archiv/DEV_PROMPT_HISTORY.md
+
+### AKZEPTANZKRITERIUM
+Die Spezifikation hält Backups vor Updates, ein gemeinsames Programmpaket
+für Backend und Terminals sowie `main` als bestätigte Updatequelle fest.
+
+### DONE
+Ablauf und Abnahme festgehalten; direkte Terminalverteilung über konfigurierte
+SSH-Verbindungen als schlanker Einrichtungsweg konkretisiert.
+
+### TEST
+Dokumentationslinks und Übereinstimmung mit dem Auftrag geprüft.
+
+### NEXT
+Sicherungsdienst und Wiederherstellungsprüfung umsetzen.
+
+
 ## P-2026-09-06-03 portalmaske-nennt-keine-fremde-firma
 
 ### ANLASS
