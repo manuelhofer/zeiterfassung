@@ -18,8 +18,13 @@ nichts.
 
 ## Nächster Schritt (konkret)
 
-**Backup und Updates umsetzen** (29.09.2026): ausdrücklich beauftragt;
-Updatequelle `main`, Ablauf in [spezifikation_wartung.md](spezifikation_wartung.md).
+**Backup und Updates auf den Testgeräten einrichten** (30.09.2026):
+Backendoberfläche und CLI-Dienst sind umgesetzt. Vor dem ersten Einsatz
+den gemeinsamen Ausgangsstand auf Backend und Terminals installieren,
+Migration 14, Wartungsrechte, SSH-Verbindungen und Timer nach
+[wartung_betrieb.md](wartung_betrieb.md) einrichten. Danach echten
+Apache-/FPM-Neustart und Wiederherstellung auf separater Hardware abnehmen.
+Noch kein Push und keine Installation auf Geräten durchgeführt.
 
 **Eine stillgelegte Anmeldung ist jetzt wirklich stillgelegt** (05.09.2026,
 P-2026-09-05-02). Gefunden beim Prüfen des Portals, aber älter als dieses:

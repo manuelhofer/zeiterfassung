@@ -57,3 +57,10 @@ als mitgesichert ausgegeben. Ein Wiederherstellungstest ist Teil der Abnahme.
 
 Geräteabnahme und Wiederherstellung auf einem anderen Rechner bleiben eigene
 Prüfschritte; lokale Tests dürfen diese nicht als erledigt ausgeben.
+
+## Umsetzung
+
+Backendmaske, CLI-Dienst, Paketvertrag und wiederholbare Integrationstests sind
+umgesetzt. Einrichtung und Wiederherstellung: [wartung_betrieb.md](wartung_betrieb.md).
+Die Hardwareabnahme einschließlich Apache/FPM bleibt nach der einmaligen
+Einrichtung erforderlich.

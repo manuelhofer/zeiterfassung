@@ -1,0 +1,30 @@
+<?php
+declare(strict_types=1);
+
+// Nicht veröffentlichen. Echte Datei: wartung.local.php (Git ignoriert sie).
+// Separates Deploymentkonto besitzt Code/Status/Backups. Webkonto darf nur
+// Status lesen und Aufträge schreiben; niemals diese Konfiguration oder Code.
+return [
+    'status_pfad' => '/var/lib/zeiterfassung-wartung',
+    'backup_pfad' => '/var/backups/zeiterfassung',
+    'repository' => 'git@github.com:manuelhofer/zeiterfassung.git',
+    'ssh_schluessel' => '/etc/zeiterfassung-wartung/id_ed25519',
+    'ssh_known_hosts' => '/etc/zeiterfassung-wartung/known_hosts',
+    'reserve_bytes' => 536870912,
+    // Bestehende DB-Konfiguration wird ergänzt. Dump benötigt Routinen,
+    // Events, Trigger, LOCK TABLES/RELOAD und SHOW CREATE USER/SHOW GRANTS.
+    // Auf dem Terminal ausschließlich offline konfigurieren, niemals Haupt-DB-Adminzugang verteilen.
+    'db_admin' => [
+        'haupt' => ['user' => 'zeit_wartung', 'pass' => 'LOKAL_EINTRAGEN'],
+        'offline' => ['user' => 'zeit_wartung', 'pass' => 'LOKAL_EINTRAGEN'],
+    ],
+    'zusatz_pfade' => [], // z. B. /etc/apache2/sites-available/zeiterfassung.conf
+    'neustart_befehl' => ['/usr/bin/systemctl', 'restart', 'apache2.service'],
+    'terminals' => [
+        // Schlüssel muss der terminal.id entsprechen. Alle aktiven Geräte angeben.
+        // 1 => ['ssh' => 'zeit-deploy@terminal-1', 'port' => 22,
+        //     'app_pfad' => '/var/www/zeiterfassung',
+        //     'status_pfad' => '/var/lib/zeiterfassung-wartung',
+        //     'backup_pfad' => '/var/backups/zeiterfassung'],
+    ],
+];

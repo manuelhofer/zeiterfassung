@@ -1,0 +1,10 @@
+[Unit]
+Description=Zeiterfassung Wartungsaufträge abholen
+
+[Timer]
+OnBootSec=30s
+OnUnitInactiveSec=5s
+Unit=zeiterfassung-wartung.service
+
+[Install]
+WantedBy=timers.target

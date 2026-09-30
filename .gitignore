@@ -5,6 +5,7 @@ config/config.local.php
 # RFID-Bridge). Legt das Installationsskript an, die Einrichtungsseite liest
 # sie beim Koppeln aus. Gehoert zur Maschine, nicht zum Quellcode.
 config/geraet.local.php
+config/wartung.local.php
 
 # Antwortdatei des Terminal-Installationsskripts (Vorlage:
 # scripts/terminal/terminal.conf.example). Sie beschreibt ein konkretes Geraet

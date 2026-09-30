@@ -18,6 +18,69 @@ legacy_zip_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-30-01 backup-und-main-updates-verteilen
+
+### EINGELESEN
+CLAUDE.md, CHATSTART.md, Arbeitsregeln, Status-Snapshot, Wartungsspezifikation,
+Terminal-/Offline-Dokumentation, Rechte-/CSRF-Einbindung, Bestandsmigrationen
+und vorhandener Kopplungs-Integrationstest; kein vorhandener Komplett-Updater.
+
+### DATEIEN
+- services/WartungDateien.php, WartungSperre.php, WartungBackup.php,
+  WartungPaket.php, WartungDienst.php, WartungAuftrag.php
+- scripts/wartung.php, scripts/wartung/zeiterfassung-wartung.service,
+  scripts/wartung/zeiterfassung-wartung.timer
+- scripts/tests/wartung_integration.py
+- controller/WartungController.php, views/wartung/index.php
+- core/Start.php, public/index.php, views/layout/header.php
+- config/wartung.local.php.example, .gitignore
+- sql/14_migration_wartungsrechte.sql, sql/01_initial_schema.sql,
+  updates/migrationen.json
+- docs/wartung_betrieb.md, docs/spezifikation_wartung.md,
+  docs/STATUS_SNAPSHOT.md, docs/archiv/DEV_PROMPT_HISTORY.md
+
+### AKZEPTANZKRITERIUM
+Ein berechtigter Benutzer kann main prüfen und nach vollständiger Sicherung
+Backend und zwei Terminals auf denselben Commit aktualisieren, wobei lokale
+Konfigurationen und offene Offline-Buchungen erhalten bleiben und Fehler
+keinen Gesamterfolg auslösen.
+
+### DONE
+Gemeinsamer Wartungsablauf als ein Funktionsbereich: eigenständiger Backupknopf,
+Commit-/DB-Prüfung, CLI-Auftragsdienst außerhalb der Webanfrage, vollständige
+Anwendungs-/SQL-/DB-Benutzersicherung, verifizierte SSH-Verteilung, zentrale
+und lokale Migrationen mit Nachbedingungen, Dateiprüfsummen, Konfigurations-
+und Queueschutz. Anfragensperren umfassen Web und Portal-CLI; nach begonnenen
+Installationsfehlern keine automatische Wiederholung oder Freigabe.
+Neue Rechte und CSRF schützen die Backendmaske. Externe Zustands-/Backupordner,
+Einrichtung, Versionsführung und manuelle Wiederherstellung sind dokumentiert.
+
+### TEST
+37 Integrationsprüfungen erfolgreich: eigene MariaDB, eigenes Git-main,
+echte lokale SSH-/SCP-Verbindungen und zwei Terminalkopien; vollständiges
+Update mit Haupt-/Offline-Migrationen, Neuinstallation und Migration 14 zweimal,
+Datei-/SQL-/Benutzer-Wiederherstellung, HTTP-Rechte/CSRF, unveränderte Geräte-
+konfigurationen und Queues, Dumpfehler, Speichermangel, unerreichbares Terminal,
+Prüfsummenfehler, externe Symlinks, lokale Codeänderungen, unbekannte SQL-
+Änderungen, alte Migrationsänderungen, Migrationsfehler nach DDL, 503 auf Backend
+und beiden Terminals sowie Schutz vor Wiederholung nach Fehlschlag.
+Zusatzprüfung: unvollständige Einrichtung sperrt ohne PHP-Warnung.
+PHP-Lint für alle 13 betroffenen PHP-Dateien einschließlich Vorlage erfolgreich;
+git diff --check sauber; HTTP-Logs ohne PHP-Warnungen/Deprecations/Fatalfehler.
+Alle eigenen Testprozesse beendet; ausschließlich synthetische Daten verwendet.
+
+### GRENZEN
+Webserverneustart im Integrationstest durch true ersetzt. Echte Apache-/FPM-
+Neustarts, Geräteinstallation und Wiederherstellung auf anderer Hardware sind
+nicht durchgeführt. Einmalige Einrichtung aller Geräte erforderlich; alte
+Terminals können den Dienst erst nach dieser Erstinstallation ausführen.
+Kein Push, kein PR und kein Rollout auf Benutzergeräte.
+
+### NEXT
+Nach gewünschter Veröffentlichung den zusammengeführten Ausgangsstand auf den
+Testgeräten einrichten und die dokumentierte Geräteabnahme durchführen.
+
+
 ## P-2026-09-29-01 wartung-ablauf-festgelegt
 
 ### EINGELESEN

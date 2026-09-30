@@ -40,6 +40,8 @@ final class Start
             session_start();
         }
 
+        WartungSperre::anfrage();
+
         return $konfig;
     }
 

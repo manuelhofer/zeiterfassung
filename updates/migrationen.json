@@ -1,0 +1,10 @@
+{
+    "protokoll": 1,
+    "migrationen": [
+        {
+            "datei": "sql/14_migration_wartungsrechte.sql",
+            "ziel": "haupt",
+            "pruefung": "SELECT COUNT(*) = 2 FROM recht WHERE code IN ('BACKUP_VERWALTEN', 'UPDATE_VERWALTEN') AND aktiv = 1"
+        }
+    ]
+}

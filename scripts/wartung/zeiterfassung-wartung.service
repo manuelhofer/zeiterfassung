@@ -1,0 +1,12 @@
+[Unit]
+Description=Zeiterfassung Wartungsaufträge
+After=network-online.target mariadb.service
+
+[Service]
+Type=oneshot
+User=zeit-deploy
+Group=www-data
+WorkingDirectory=/var/www/zeiterfassung
+ExecStart=/usr/bin/php /var/www/zeiterfassung/scripts/wartung.php verarbeiten
+TimeoutStartSec=infinity
+UMask=0027
