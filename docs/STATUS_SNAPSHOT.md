@@ -18,12 +18,15 @@ nichts.
 
 ## Nächster Schritt (konkret)
 
-**Backup und Updates auf den Testgeräten einrichten** (30.09.2026):
-Backendoberfläche und CLI-Dienst sind umgesetzt. Vor dem ersten Einsatz
-den gemeinsamen Ausgangsstand auf Backend und Terminals installieren,
-Migration 14, Wartungsrechte, SSH-Verbindungen und Timer nach
-[wartung_betrieb.md](wartung_betrieb.md) einrichten. Danach echten
-Apache-/FPM-Neustart und Wiederherstellung auf separater Hardware abnehmen.
+**Backup und Updates auf den Testgeräten abnehmen** (30.09.2026):
+Bedienung und automatische Vorbereitung sind umgesetzt: Die normale
+Installation richtet Dienst und Sicherungszugriff ein, gekoppelte Terminals
+melden sich selbst über ihren bestehenden DB-Zugang. Keine zusätzliche
+Wartungskonfiguration oder SSH-Einrichtung. Gemeinsamer Backup-/Updateablauf,
+Erststart, Kopplung und Fehleranzeigen sind mit synthetischen Daten geprüft;
+Details in [wartung_betrieb.md](wartung_betrieb.md). Offen: normale Auslieferung
+dieses ersten Stands auf die Geräte, native Paket-/Systemd-Installation,
+Apache-/FPM-Neustart und Wiederherstellung auf separater Hardware.
 Noch kein Push und keine Installation auf Geräten durchgeführt.
 
 **Eine stillgelegte Anmeldung ist jetzt wirklich stillgelegt** (05.09.2026,

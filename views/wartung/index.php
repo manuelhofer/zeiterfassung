@@ -3,57 +3,55 @@ declare(strict_types=1);
 require __DIR__ . '/../layout/header.php';
 $h = static fn($wert): string => htmlspecialchars((string)$wert, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
 ?>
-<section>
+<link rel="stylesheet" href="css/wartung.css">
+<main class="wartung">
     <h1>Backup und Updates</h1>
-    <p>Updatequelle: <strong>main</strong>. Das Backend verteilt denselben Programmstand an alle aktiven Terminals.</p>
-    <?php if ($flash !== ''): ?><p role="status"><?= $h($flash) ?></p><?php endif; ?>
-    <?php if ($version === null): ?>
-        <p>Der Wartungsdienst muss einmal auf dem Backend und den Terminals eingerichtet werden. Die Anleitung steht in <code>docs/wartung_betrieb.md</code>.</p>
-    <?php else: ?>
-        <p>Installiert: <code><?= $h($version['commit']) ?></code></p>
-    <?php endif; ?>
-    <?php if ($wartet): ?><p role="status">Auftrag wartet auf den Wartungsdienst. Diese Seite aktualisiert sich automatisch. Bleibt der Auftrag liegen, bitte den Dienst prüfen.</p><?php endif; ?>
+    <p>Sichere deine Daten oder aktualisiere das Backend und alle gekoppelten Terminals gemeinsam.</p>
+    <?php if ($flash !== ''): ?><p class="wartung-hinweis" role="status"><?= $h($flash) ?></p><?php endif; ?>
+    <?php if (!$bereitschaft['bereit'] && !$belegt): ?><p class="wartung-hinweis" role="status"><?= $h($bereitschaft['text']) ?></p><?php endif; ?>
+    <?php if ($abgelaufen): ?><p class="wartung-hinweis">Der letzte Auftrag wurde nicht rechtzeitig gestartet und ist abgelaufen. Er wird nicht nachträglich ausgeführt. Sobald der Dienst bereit ist, kannst du es erneut versuchen.</p><?php endif; ?>
+    <?php if ($wartet): ?><p role="status">Der Vorgang startet gleich. Du kannst diese Seite schließen; er läuft automatisch weiter.</p><?php endif; ?>
     <?php if ($darfUpdate): ?>
-        <form method="post" action="?seite=wartung">
-            <?= Csrf::feld('wartung') ?><input type="hidden" name="aktion" value="pruefen">
-            <button type="submit" <?= $bereit ? '' : 'disabled' ?>>1. Nach Updates suchen</button>
-        </form>
-    <?php endif; ?>
-    <?php if ($angebot !== null): ?>
-        <h2>Prüfergebnis</h2>
-        <p><?= ($angebot['verfuegbar'] ?? false) ? 'Update verfügbar:' : 'Stand bei der letzten Prüfung:' ?> <code><?= $h($angebot['commit']) ?></code></p>
-        <?php if (empty($angebot['migrationen'])): ?><p>Keine neuen Datenbankmigrationen im geprüften Paket.</p>
-        <?php else: ?>
-            <p>Diese Datenbankänderungen werden nach erfolgreicher Sicherung ausgeführt:</p>
-            <ul><?php foreach ($angebot['migrationen'] as $migration): ?>
-                <li><?= $h($migration['datei']) ?> — <?= $migration['ziel'] === 'haupt' ? 'Hauptdatenbank, einmal zentral' : 'Lokale Offline-Datenbank je Installation' ?></li>
-            <?php endforeach; ?></ul>
-        <?php endif; ?>
-        <?php if ($darfUpdate && ($angebot['verfuegbar'] ?? false) && ($version['commit'] ?? '') === ($angebot['installiert'] ?? '')): ?>
+    <section class="wartung-karte">
+        <h2>Software aktualisieren</h2>
+        <?php if ($angebot !== null && ($angebot['verfuegbar'] ?? false) && ($version['commit'] ?? '') === ($angebot['installiert'] ?? '')): ?>
+            <p><strong>Eine neue Version ist verfügbar.</strong></p>
+            <p><?= empty($angebot['migrationen']) ? 'Die Datenbankstruktur bleibt unverändert.' : 'Die Datenbank wird ebenfalls aktualisiert. Das geschieht automatisch nach der Sicherung.' ?></p>
+            <p>Vorher werden alle Daten gesichert. Buchungen sind währenddessen kurz angehalten.</p>
             <form method="post" action="?seite=wartung">
                 <?= Csrf::feld('wartung') ?><input type="hidden" name="aktion" value="update">
                 <input type="hidden" name="commit" value="<?= $h($angebot['commit']) ?>">
-                <p>Während Backup und Update sind Buchungen angehalten. Alle aktiven Terminals müssen erreichbar sein.</p>
-                <button type="submit" <?= $bereit ? '' : 'disabled' ?>>2. Sichern und Update durchführen</button>
+                <button type="submit" <?= $bereit ? '' : 'disabled' ?>>Jetzt aktualisieren</button>
             </form>
-        <?php endif; ?>
+        <?php elseif ($angebot !== null): ?><p>Deine Installation ist auf dem zuletzt geprüften Stand.</p><?php else: ?><p>Prüfe, ob eine neue Version bereitsteht. Dabei wird noch nichts installiert.</p><?php endif; ?>
+        <form method="post" action="?seite=wartung">
+            <?= Csrf::feld('wartung') ?><input type="hidden" name="aktion" value="pruefen">
+            <button type="submit" <?= $bereit ? '' : 'disabled' ?>>Nach Updates suchen</button>
+        </form>
+        <details><summary>Versionsdetails</summary>
+            <p>Quelle: main · Installiert: <code><?= $h($version['commit'] ?? 'wird vorbereitet') ?></code></p>
+            <?php if ($angebot !== null): ?><p>Angebot: <code><?= $h($angebot['commit']) ?></code></p><?php endif; ?>
+            <ul><?php foreach ($angebot['migrationen'] ?? [] as $migration): ?><li><?= $h($migration['datei']) ?> (<?= $migration['ziel'] === 'haupt' ? 'Hauptdatenbank' : 'Offline-Datenbank' ?>)</li><?php endforeach; ?></ul>
+        </details>
+    </section>
     <?php endif; ?>
     <?php if ($darfBackup): ?>
-        <h2>Unabhängige Sicherung</h2>
-        <p>Sichert die Anwendung, Konfiguration, Uploads und Datenbanken des Backends sowie Dateien und Offline-Daten der Terminals in einem separaten Ordner.</p>
+    <section class="wartung-karte">
+        <h2>Daten sichern</h2>
+        <p>Sichert Programmdateien, Einstellungen und Datenbanken einschließlich der offenen Buchungen auf den Terminals.</p>
         <form method="post" action="?seite=wartung">
             <?= Csrf::feld('wartung') ?><input type="hidden" name="aktion" value="backup">
             <button type="submit" <?= $bereit ? '' : 'disabled' ?>>Backup erstellen</button>
         </form>
+    </section>
     <?php endif; ?>
-    <?php if ($status !== null): ?>
-        <h2>Letzter Auftrag: <?= $h($status['zustand'] ?? '') ?></h2>
-        <?php if (isset($status['backup'])): ?><p>Sicherung: <code><?= $h($status['backup']) ?></code></p><?php endif; ?>
-        <ol><?php foreach ($status['protokoll'] ?? [] as $zeile): ?>
-            <li><time><?= $h($zeile['zeit']) ?></time> — <?= $h($zeile['text']) ?></li>
-        <?php endforeach; ?></ol>
+    <?php if ($geraete !== []): ?>
+    <section class="wartung-karte"><h2>Terminals</h2><ul>
+        <?php foreach ($geraete as $geraet): ?><li><?= $h($geraet['name']) ?> – <?= (int)$geraet['bereit'] ? 'bereit' : 'noch nicht erreichbar' ?></li><?php endforeach; ?>
+    </ul><p>Gekoppelte Terminals werden automatisch berücksichtigt.</p></section>
     <?php endif; ?>
+    <?php if ($status !== null): require __DIR__ . '/status.php'; endif; ?>
     <p><a href="?seite=wartung">Status aktualisieren</a></p>
-</section>
-<?php if ($belegt): ?><script>window.setTimeout(function () { window.location.reload(); }, 5000);</script><?php endif; ?>
+</main>
+<?php if ($belegt || (!$bereitschaft['bereit'] && !$abgelaufen)): ?><script>window.setTimeout(function () { window.location.reload(); }, 5000);</script><?php endif; ?>
 <?php require __DIR__ . '/../layout/footer.php'; ?>

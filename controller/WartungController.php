@@ -32,7 +32,16 @@ final class WartungController
         $status = WartungAuftrag::lesen('status');
         $wartet = $konfig !== null && is_file($konfig['status_pfad'] . '/auftraege/auftrag.json');
         $belegt = $wartet || ($konfig !== null && is_file($konfig['status_pfad'] . '/aktiv.json'));
-        $bereit = $version !== null && !$belegt;
+        $abgelaufen = $wartet && (WartungDateien::json($konfig['status_pfad'] . '/auftraege/auftrag.json')['gueltig_bis'] ?? 0) < time();
+        if ($abgelaufen) { $wartet = false; $belegt = is_file($konfig['status_pfad'] . '/aktiv.json'); }
+        $bereitschaft = WartungAnzeige::bereitschaft($konfig);
+        $bereit = $bereitschaft['bereit'] && !$belegt;
+        $geraete = [];
+        try {
+            $pdo = Database::getInstanz()->getVerbindung();
+            $geraete = $pdo->query("SELECT t.name,UNIX_TIMESTAMP(g.gesehen)>=UNIX_TIMESTAMP()-60 AS bereit FROM terminal t LEFT JOIN wartung_geraet g ON g.terminal_id=t.id AND g.db_benutzer=t.db_benutzer WHERE t.aktiv=1 AND t.modus='terminal' ORDER BY t.name")->fetchAll(PDO::FETCH_ASSOC);
+        } catch (Throwable) { /* Die Bereitschaftsmeldung erklärt eine noch unvollständige Installation. */ }
+
         require __DIR__ . '/../views/wartung/index.php';
     }
 }

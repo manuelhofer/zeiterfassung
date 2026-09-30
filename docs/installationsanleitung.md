@@ -9,119 +9,69 @@ Nur zum Ausprobieren oder Entwickeln auf dem eigenen Rechner? Dann ist
 `docs/lokale_entwicklungsumgebung.md` der schnellere Weg – diese Anleitung hier
 beschreibt die Installation auf einem Server.
 
-## Voraussetzungen
+## 1) Standardinstallation auf Debian oder Raspberry Pi OS
 
-- PHP mit Erweiterungen: `pdo`, `pdo_mysql`, `mbstring`, `json`, `gd`
-  (`gd` wird für QR-Codes und Barcodes gebraucht)
-  - **Mindestversion: PHP 8.2** (Debian 12 / Raspberry Pi OS Bookworm)
-  - Neuere PHP-Versionen werden unterstützt; entwickelt und getestet wird
-    gegen die jeweils aktuelle Version. Details zur Versionsbaseline:
-    `docs/arbeitsregeln.md`, Abschnitt 7.
-- Webserver (Apache oder Nginx)
-- MySQL oder MariaDB (empfohlen: die LTS-Linie von MariaDB)
-- Git (für den Klon)
-
-## 1) Projekt holen
+Die automatische Installation ist für einen eigenen Zeiterfassungsserver mit
+lokaler MariaDB und Apache/PHP-FPM gedacht (PHP mindestens 8.2).
 
 ```bash
-git clone <REPO-URL> zeiterfassung
-cd zeiterfassung
+sudo git clone https://github.com/manuelhofer/zeiterfassung.git /var/www/zeiterfassung
+cd /var/www/zeiterfassung
+sudo bash scripts/installieren.sh
 ```
 
-## 2) Datenbank anlegen
+Das Skript installiert Pakete, richtet Datenbank, zufällige lokale Zugangsdaten,
+Dateirechte und Webserver ein und startet den Wartungsdienst. Vorhandene lokale
+Anwendungskonfiguration wird erhalten. Es ist kein zusätzlicher Befehl für
+Backup oder Updates nötig.
 
-1. Lege eine leere Datenbank `zeiterfassung` an.
-2. Lege einen Datenbank-Benutzer an (oder verwende einen vorhandenen) und
-   erteile die nötigen Rechte.
-3. Importiere das Schema:
+Die Webserver-Konfiguration bedient das Verzeichnis `public/` auf Port 80 und
+ersetzt dabei die Debian-Standardseite. MariaDB nimmt Verbindungen für die
+reguläre Terminal-Kopplung über das LAN an. Der Server ist für das interne
+Betriebsnetz vorgesehen; bestehende Sonderkonfigurationen, Hosting und externe
+Datenbanken sind kein Ziel dieses Installers.
 
-```bash
-mysql -u <USER> -p zeiterfassung < sql/01_initial_schema.sql
-```
+## 2) Erste Anmeldung
 
-Weitere Details zum Schema findest du in `sql/README.md`.
+Serveradresse im Browser öffnen und im vorhandenen Erstinstallationsformular
+den ersten Administrator anlegen. Bei einer bestehenden Installation wie
+gewohnt anmelden. Unter **Verwaltung → Backup und Updates** stehen die Knöpfe
+nach der automatischen Vorbereitung bereit.
 
-## 3) Konfiguration setzen
+## 3) Backend und Terminals aktuell halten
 
-Lege die produktiven Zugangsdaten in `config/config.local.php` ab (nicht
-versioniert). Starte mit der Vorlage:
+**Nach Updates suchen**, danach bei einem Angebot **Jetzt aktualisieren**.
+Die Sicherung und Verteilung an alle aktiven Terminals laufen automatisch.
+Ein eigenständiges Backup ist über **Backup erstellen** möglich.
 
-```bash
-cp config/config.php.example config/config.local.php
-```
+Es gibt keine eigene Wartungskonfiguration und keine zusätzlichen SSH-Zugänge.
+Ablauf, Fehleranzeigen und Wiederherstellung:
+[Backup und Updates](wartung_betrieb.md).
 
-Passe anschließend mindestens die Datenbank-Zugangsdaten sowie `base_url` an.
-Alternativ kannst du die Werte über Umgebungsvariablen setzen (siehe
-`config/config.php`).
+## 4) Bestehende Installation übernehmen
 
-## 4) Dateirechte prüfen
+Den gemeinsamen neuen Programmstand zunächst auf Backend und Terminals
+normal ausliefern. Die jeweiligen Installer bereiten den Dienst selbst vor;
+das Terminal verwendet seine bestehende Kopplung weiter. Migrationen 14/15
+werden automatisch vorbereitet. Ältere fachliche Bestandsmigrationen bis 13
+müssen bereits abgeschlossen sein.
 
-Stelle sicher, dass der Webserver auf das Projektverzeichnis zugreifen darf.
-In der Regel reicht Leserechte für den Code und Schreibrechte für
-`public/uploads/`, falls Uploads genutzt werden.
+## 5) Abweichende Serverkonfiguration
 
-Beispiel (Besitzer/Gruppe anpassen):
+Bei einer eigenen Apache-/Nginx-, externen DB- oder Hostingkonfiguration muss
+die betreuende Person die zugehörigen Systemvoraussetzungen prüfen. Der
+vollautomatische Standardinstaller ist dafür nicht ausgelegt. Der Document-Root
+muss ausschließlich auf `public/` zeigen; Sicherungen und private Wartungsdaten
+liegen außerhalb des Programmordners. PHP-Konfiguration liegt unter
+`config/config.local.php` und gehört nicht ins Repository.
 
-```bash
-sudo chown -R www-data:www-data /pfad/zur/zeiterfassung
-sudo chmod -R u=rwX,g=rX,o= /pfad/zur/zeiterfassung
-sudo chmod -R u=rwX,g=rwX,o= /pfad/zur/zeiterfassung/public/uploads
-```
+## 6) Prüfung
 
-## 5) Webserver konfigurieren
-
-Der Document-Root muss auf `public/` zeigen:
-
-```
-/pfad/zur/zeiterfassung/public
-```
-
-### Apache (vHost-Beispiel)
-
-```apache
-<VirtualHost *:80>
-    ServerName example.org
-    DocumentRoot /pfad/zur/zeiterfassung/public
-
-    <Directory /pfad/zur/zeiterfassung/public>
-        AllowOverride All
-        Require all granted
-    </Directory>
-</VirtualHost>
-```
-
-### Nginx (Server-Block-Beispiel)
-
-```nginx
-server {
-    listen 80;
-    server_name example.org;
-    root /pfad/zur/zeiterfassung/public;
-    index index.php;
-
-    location / {
-        try_files $uri $uri/ /index.php?$query_string;
-    }
-
-    location ~ \.php$ {
-        include fastcgi_params;
-        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
-        fastcgi_pass unix:/run/php/php-fpm.sock;
-    }
-}
-```
-
-## 6) Start & Test
-
-Rufe im Browser die Basis-URL auf (z. B. `https://example.org/zeiterfassung`).
-Wenn die Seite leer bleibt oder Fehler zeigt, prüfe:
-
-- PHP-Fehler-Logs des Webservers
-- Konfiguration in `config/config.local.php`
-- Datenbank-Zugangsdaten
-
-Für wiederholbare technische und manuelle Prüfungen siehe
-`docs/wartungscheckliste.md`.
+Anmeldung, gewöhnliche Terminal-Kopplung und ein gemeinsames Backup prüfen.
+Danach einen Wiederherstellungstest auf separatem Gerät durchführen.
+Weitere Prüfungen: [Wartungscheckliste](wartungscheckliste.md).
+Die Paketinstallation sowie Apache/FPM und Systemd müssen auf einem echten
+Zielgerät abgenommen werden; lokale Anwendungstests ersetzen das nicht.
 
 ## 7) Terminal-Installation (optional)
 

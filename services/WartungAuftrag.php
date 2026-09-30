@@ -17,10 +17,14 @@ final class WartungAuftrag
         if (!in_array($aktion, ['pruefen', 'backup', 'update'], true)) { throw new RuntimeException('Unbekannte Aktion.'); }
         $konfig = WartungSperre::konfig() ?? throw new RuntimeException('Der Wartungsdienst ist noch nicht eingerichtet.');
         $basis = $konfig['status_pfad'];
+        $bereitschaft = WartungAnzeige::bereitschaft($konfig);
+        if (!$bereitschaft['bereit']) { throw new RuntimeException($bereitschaft['text']); }
         if (!is_file($basis . '/version.json')) { throw new RuntimeException('Der Wartungsdienst wurde noch nicht initialisiert.'); }
         $lock = fopen($basis . '/auftraege/eingang.lock', 'r+');
         if (!$lock || !flock($lock, LOCK_EX)) { throw new RuntimeException('Der Wartungsdienst ist nicht erreichbar.'); }
         try {
+            $eingang = $basis . '/auftraege/auftrag.json';
+            if (is_file($eingang) && (WartungDateien::json($eingang)['gueltig_bis'] ?? 0) < time()) { unlink($eingang); }
             if (is_file($basis . '/auftraege/auftrag.json') || is_file($basis . '/aktiv.json') || is_file($basis . '/pause.json')) {
                 throw new RuntimeException('Ein Auftrag wartet, läuft oder benötigt Fehlerbehebung.');
             }
@@ -32,7 +36,7 @@ final class WartungAuftrag
             }
             WartungDateien::schreiben($basis . '/auftraege/auftrag.json', [
                 'aktion' => $aktion, 'commit' => $aktion === 'update' ? $commit : '',
-                'mitarbeiter_id' => $mitarbeiterId, 'angefordert' => date(DATE_ATOM),
+                'mitarbeiter_id' => $mitarbeiterId, 'angefordert' => date(DATE_ATOM), 'gueltig_bis' => time() + 60,
             ], 0660);
         } finally { flock($lock, LOCK_UN); fclose($lock); }
     }

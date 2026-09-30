@@ -8,13 +8,8 @@ final class WartungSperre
 
     public static function konfig(?string $wurzel = null): ?array
     {
-        $pfad = ($wurzel ?? dirname(__DIR__)) . '/config/wartung.local.php';
-        if (!is_file($pfad)) { return null; }
-        $konfig = require $pfad;
-        if (!is_array($konfig) || empty($konfig['status_pfad'])) {
-            throw new RuntimeException('Wartungskonfiguration ist unvollständig.');
-        }
-        return $konfig;
+        $wurzel ??= dirname(__DIR__);
+        return WartungSystem::konfig($wurzel);
     }
 
     public static function anfrage(): void
@@ -44,16 +39,20 @@ final class WartungSperre
         header('Retry-After: 15');
         header('Cache-Control: no-store');
         header('Content-Type: text/html; charset=utf-8');
-        echo '<!doctype html><html lang="de"><meta charset="utf-8"><meta http-equiv="refresh" content="15"><title>Wartung</title><h1>Wartung läuft</h1><p>Bitte kurz warten. Buchungen sind während der Sicherung und Installation angehalten. Diese Seite lädt sich erneut.</p>';
+        $status = is_file($pfad . '/status.json') ? WartungDateien::json($pfad . '/status.json') : null;
+        $unterbrochen = in_array($status['zustand'] ?? '', ['fehlgeschlagen', 'unterbrochen'], true);
+        echo '<!doctype html><html lang="de"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="refresh" content="5"><link rel="stylesheet" href="css/wartung.css"><title>Backup und Updates</title><main class="wartung">';
+        echo $unterbrochen
+            ? '<h1>Wartung unterbrochen</h1><p>Buchungen bleiben zum Schutz der Daten angehalten. Bitte die Betreuung der Installation verständigen.</p>'
+            : '<h1>Wartung läuft</h1><p>Bitte kurz warten. Buchungen sind während der Sicherung und Installation angehalten. Diese Seite lädt sich erneut.</p>';
         if (basename($_SERVER['SCRIPT_NAME'] ?? '') === 'index.php' && ($_GET['seite'] ?? '') === 'wartung'
             && ($_SESSION['wartung_status_bis'] ?? 0) > time()
             && !empty($_SESSION['auth_mitarbeiter_id'])
             && ($_SESSION['wartung_status_mitarbeiter'] ?? null) === $_SESSION['auth_mitarbeiter_id']
-            && is_file($pfad . '/status.json')) {
-            $status = WartungDateien::json($pfad . '/status.json');
-            echo '<pre>' . htmlspecialchars(json_encode($status, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE), ENT_QUOTES, 'UTF-8') . '</pre>';
+            && $status !== null) {
+            require dirname(__DIR__) . '/views/wartung/status.php';
         }
-        echo '</html>';
+        echo '</main></html>';
         exit;
     }
 }

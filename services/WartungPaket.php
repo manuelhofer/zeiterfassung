@@ -8,12 +8,10 @@ final class WartungPaket
 
     public function pruefen(): array
     {
-        $spiegel = $this->konfig['status_pfad'] . '/git';
-        if (!is_dir($spiegel)) {
-            WartungDateien::prozess(['git', 'clone', '--bare', '--', $this->konfig['repository'], $spiegel]);
-        }
-        WartungDateien::prozess(['git', '-C', $spiegel, 'fetch', '--no-tags', 'origin', '+refs/heads/main:refs/heads/main']);
-        $commit = trim(WartungDateien::prozess(['git', '-C', $spiegel, 'rev-parse', 'refs/heads/main']));
+        // Das origin der Installation. Öffentliche Quellen brauchen keine Anmeldung.
+        $spiegel = $this->wurzel;
+        WartungDateien::prozess(['env', 'GIT_TERMINAL_PROMPT=0', 'git', '-C', $spiegel, 'fetch', '--no-tags', 'origin', '+refs/heads/main:refs/remotes/origin/main'], frist: 60);
+        $commit = trim(WartungDateien::prozess(['git', '-C', $spiegel, 'rev-parse', 'refs/remotes/origin/main']));
         $alt = WartungDateien::json($this->konfig['status_pfad'] . '/version.json');
         self::bestandPruefen($this->wurzel, $alt['dateien']);
         if ($commit === $alt['commit']) {

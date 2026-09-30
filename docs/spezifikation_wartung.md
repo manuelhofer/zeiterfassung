@@ -31,10 +31,12 @@ HTTP-Aufrufs. Es läuft höchstens ein Auftrag zugleich. Konfiguration und
 Sicherungen liegen außerhalb des Webroots; Sicherungen auch außerhalb des
 Programmverzeichnisses. Keine automatische Löschung alter Sicherungen.
 
-Die erste Ausführung benötigt eine einmalige Einrichtung des Dienstes und
-seiner Dateirechte. Die Terminalverteilung verwendet administrativ konfigurierte
-SSH-Verbindungen im Betriebsnetz mit Schlüsselanmeldung und Hostprüfung.
-Das Backend überträgt die Pakete; die Terminals benötigen keinen GitHub-Zugang.
+Die normale Installation richtet Dienst und Dateirechte automatisch ein.
+Die Terminalverteilung verwendet den bereits gekoppelten Datenbankzugang.
+Ein lokaler Agent holt ausschließlich die für sein Gerät bestimmten Aufträge
+und Dateiteile ab; das Backend stellt sie bereit. Getrennte, auf den
+angemeldeten DB-Benutzer begrenzte Views schützen Geräteaufträge und Backups.
+Zusätzliche SSH-Zugänge, Gerätelisten oder GitHub-Zugänge am Terminal entfallen.
 Der identische CLI-Code führt lokal die Rolle aus der Konfiguration aus.
 
 Die Sicherung umfasst die Anwendung, ihre Datenbanken und ausdrücklich
@@ -62,5 +64,28 @@ Prüfschritte; lokale Tests dürfen diese nicht als erledigt ausgeben.
 
 Backendmaske, CLI-Dienst, Paketvertrag und wiederholbare Integrationstests sind
 umgesetzt. Einrichtung und Wiederherstellung: [wartung_betrieb.md](wartung_betrieb.md).
-Die Hardwareabnahme einschließlich Apache/FPM bleibt nach der einmaligen
-Einrichtung erforderlich.
+Die Hardwareabnahme einschließlich Apache/FPM und Systemd bleibt nach der
+normalen Installation erforderlich.
+
+## Bedienung ohne zusätzliche Einrichtung (beauftragt 30.09.2026)
+
+Die normale Installation richtet lokale Ordner, Dienst, Sicherungszugriff,
+Versionsbeleg und nötige Migrationen automatisch ein. Auf Terminals läuft der
+Agent schon vor der normalen Kopplung und übernimmt anschließend deren
+vorhandenen Zugang; keine zweite Kopplung und keine Wartungskonfigurationsmaske.
+Bestehende Installationen ohne Agent brauchen einmal die normale Auslieferung
+dieses neuen Installationsstands; die Webanwendung erhält dafür keine freien
+Systemrechte.
+
+Der Benutzer sieht „Backup erstellen“, „Nach Updates suchen“ und bei einem
+Angebot „Jetzt aktualisieren“. Ein gemeinsamer Fortschritt nennt Prüfung,
+Sicherung, Backend und Terminals. Datenbankänderungen werden in Alltagssprache
+angekündigt; Protokolldetails sind eingeklappt. Ein fehlender Dienst wird vor
+Auftragsannahme erkannt; keine unendlich wartenden Aufträge. Die Statusseite
+bleibt während der Wartung ohne DB-Schreibzugriffe verständlich sichtbar.
+
+Abnahme: Eine normale Neuinstallation plus gewöhnliche Terminal-Kopplung
+muss ohne bearbeitete Wartungsdatei, SSH-Einrichtung, zusätzliche Rechtevergabe
+oder eigenen CLI-Initialisierungsschritt ein Backup und ein gemeinsames Update
+aus der Oberfläche ermöglichen. Auch Ausfallmeldungen und der Erststart werden
+getestet, nicht nur ein vorbereiteter laufender Dienst.

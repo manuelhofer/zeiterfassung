@@ -30,6 +30,13 @@ aufsetzt, fährt nicht die ganze Installation noch einmal.
 Alle vier lesen dieselbe Antwortdatei (`terminal.conf`) und sind idempotent:
 Ein zweiter Lauf schadet nicht und repariert einen halbfertigen Stand.
 
+Das Grundsystem installiert auch den lokalen Backup-/Updatedienst automatisch.
+Nach der gewöhnlichen Kopplung erhält das Terminal seine Wartungsaufträge und
+Programmpakete über den bestehenden DB-Zugang vom Backend. Keine zusätzliche
+Wartungsdatei, SSH-Einrichtung oder zweite Kopplung; lokale Offline-Daten werden
+vor jedem Update gesichert. Betrieb und Wiederherstellung stehen in
+[wartung_betrieb.md](wartung_betrieb.md).
+
 Danach startet das Gerät von selbst in die Terminal-Oberfläche, der
 RFID-Leser funktioniert, der Barcode-Scanner liefert saubere Codes, und der
 Touchscreen ist bedienbar. Kein manuelles Nacharbeiten.

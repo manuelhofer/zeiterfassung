@@ -153,7 +153,7 @@ fi
 # solche Skripte nach der naechsten Distribution unwartbar werden.
 case "$FAMILIE" in
     apt)
-        PAKETE="apache2 php-fpm php-cli php-mysql php-mbstring php-gd php-xml mariadb-server git curl ca-certificates"
+        PAKETE="apache2 php-fpm php-cli php-mysql php-mbstring php-gd php-xml php-zip php-curl mariadb-server git curl ca-certificates"
         WEBDIENST="apache2"; WEBBENUTZER="www-data"
         VHOST_DATEI="/etc/apache2/sites-available/zeiterfassung-terminal.conf"
         ;;
@@ -163,12 +163,12 @@ case "$FAMILIE" in
         VHOST_DATEI="/etc/httpd/conf/extra/zeiterfassung-terminal.conf"
         ;;
     dnf)
-        PAKETE="httpd php-fpm php-cli php-mysqlnd php-mbstring php-gd php-xml mariadb-server git curl"
+        PAKETE="httpd php-fpm php-cli php-mysqlnd php-mbstring php-gd php-xml php-zip php-curl mariadb-server git curl"
         WEBDIENST="httpd"; WEBBENUTZER="apache"
         VHOST_DATEI="/etc/httpd/conf.d/zz-zeiterfassung-terminal.conf"
         ;;
     zypper)
-        PAKETE="apache2 php8 php8-fpm php8-cli php8-mysql php8-mbstring php8-gd mariadb git curl"
+        PAKETE="apache2 php8 php8-fpm php8-cli php8-mysql php8-mbstring php8-gd php8-zip php8-curl mariadb git curl"
         WEBDIENST="apache2"; WEBBENUTZER="wwwrun"
         VHOST_DATEI="/etc/apache2/vhosts.d/zeiterfassung-terminal.conf"
         ;;
@@ -575,6 +575,13 @@ if [ -d "$ZIEL_VERZEICHNIS/public/uploads" ]; then
     find "$ZIEL_VERZEICHNIS/public/uploads" -type f -exec chmod 0660 {} +
 fi
 echo "Eigentuemer: root:$WEBBENUTZER, config/ und public/uploads/ gruppenschreibbar."
+
+# Der Agent ist Teil der normalen Installation und wartet automatisch auf
+# die bestehende Kopplung. Keine SSH-Zugänge oder Wartungsdatei abfragen.
+if ! bash "$ZIEL_VERZEICHNIS/scripts/wartung/installieren.sh" "$WEBBENUTZER" "$WEBDIENST" "$PHP_FPM_DIENST"; then
+    echo "FEHLER: Die automatische Vorbereitung von Backup und Updates ist fehlgeschlagen."
+    exit 1
+fi
 
 # SELinux (Fedora/RHEL) verbietet dem Webserver sonst den Zugriff auf /opt und
 # die Verbindung zur Datenbank des Backends - beides faellt erst spaeter auf.

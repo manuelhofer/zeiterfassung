@@ -7,12 +7,13 @@ final class WartungDienst
     private array $app;
     private string $statusPfad;
     private array $status = [];
+    private ?WartungKanal $kanal = null;
     private mixed $dienstSperre = null;
 
-    public function __construct(private string $wurzel, private array $konfig)
+    public function __construct(private string $wurzel, private array $konfig, ?array $app = null)
     {
         $this->wurzel = realpath($wurzel) ?: throw new RuntimeException('Anwendungspfad fehlt.');
-        $this->app = require $this->wurzel . '/config/config.php';
+        $this->app = $app ?? WartungSystem::anwendung($this->wurzel, $konfig);
         foreach (['status_pfad', 'backup_pfad'] as $schluessel) {
             $pfad = $konfig[$schluessel] ?? '';
             $real = realpath($pfad);
@@ -34,6 +35,7 @@ final class WartungDienst
 
     private function exklusiv(): void
     {
+        if (is_resource($this->dienstSperre)) { return; }
         $this->dienstSperre = fopen($this->statusPfad . '/dienst.lock', 'c');
         if (!$this->dienstSperre || !flock($this->dienstSperre, LOCK_EX | LOCK_NB)) { throw new RuntimeException('Ein Wartungsdienst läuft bereits.'); }
     }
@@ -65,6 +67,7 @@ final class WartungDienst
     {
         $this->exklusiv();
         if (!$this->istBackend()) { throw new RuntimeException('Nur das Backend verarbeitet Webaufträge.'); }
+        WartungSystem::lebenszeichen($this->konfig);
         $eingang = fopen($this->statusPfad . '/auftraege/eingang.lock', 'r+');
         if (!$eingang || !flock($eingang, LOCK_EX)) { throw new RuntimeException('Auftragssperre fehlt.'); }
         try {
@@ -78,6 +81,7 @@ final class WartungDienst
             $pfad = $this->statusPfad . '/auftraege/auftrag.json';
             if (!is_file($pfad)) { return; }
             $auftrag = WartungDateien::json($pfad);
+            if (($auftrag['gueltig_bis'] ?? 0) < time()) { unlink($pfad); return; }
             if (!in_array($auftrag['aktion'] ?? '', ['pruefen', 'backup', 'update'], true)) { throw new RuntimeException('Unbekannter Auftrag.'); }
             $id = bin2hex(random_bytes(12));
             $this->status = ['id' => $id, 'aktion' => $auftrag['aktion'], 'mitarbeiter_id' => (int)($auftrag['mitarbeiter_id'] ?? 0), 'gestartet' => date(DATE_ATOM), 'protokoll' => []];
@@ -118,7 +122,7 @@ final class WartungDienst
                     throw new RuntimeException('Terminal ' . $terminal['id'] . ': Identität oder Programmstand passt nicht.');
                 }
             }
-            // Vor jedem Aufruf vormerken: Bei verlorenem SSH-Ergebnis kann die Sperre schon gesetzt sein.
+            // Vor jedem Aufruf vormerken: Bei verlorener Antwort kann die Sperre schon gesetzt sein.
             foreach ($geraete as $terminal) {
                 $pausiert[] = $terminal;
                 $this->remote($terminal, ['aktion' => 'pause', 'id' => $id]);
@@ -132,17 +136,17 @@ final class WartungDienst
             foreach ($geraete as $terminal) {
                 $this->melden('laeuft', 'Sichere Terminal ' . $terminal['id'] . ' einschließlich Offline-Buchungen.');
                 if ($plan !== null) {
-                    $this->kopieren($terminal, $this->statusPfad . '/paket.zip', $terminal['status_pfad'] . '/empfang/' . $id . '.zip');
+                    $this->kanal()->senden($terminal['db_benutzer'], $id, 'paket.zip', $this->statusPfad . '/paket.zip');
                     $planDatei = $this->statusPfad . '/plan.json';
-                    $this->kopieren($terminal, $planDatei, $terminal['status_pfad'] . '/empfang/' . $id . '.json');
-                    $this->remote($terminal, ['aktion' => 'vorbereiten', 'id' => $id, 'sha256' => $plan['paket_sha256']]);
+                    $this->kanal()->senden($terminal['db_benutzer'], $id, 'plan.json', $planDatei);
+                    $this->remote($terminal, ['aktion' => 'vorbereiten', 'id' => $id, 'sha256' => $plan['paket_sha256'], 'plan_sha256' => hash_file('sha256', $planDatei)]);
                 }
                 $beleg = $this->remote($terminal, ['aktion' => 'backup', 'id' => $id]);
                 $ziel = $this->konfig['backup_pfad'] . '/' . $id . '/terminals/' . $terminal['id'];
                 WartungDateien::ordner($ziel);
                 foreach (['manifest.json', ...array_keys($beleg['dateien'])] as $datei) {
                     WartungDateien::relativ($datei);
-                    $this->kopieren($terminal, $ziel . '/' . $datei, $terminal['backup_pfad'] . '/' . $id . '/' . $datei, true);
+                    $this->kanal()->empfangen($terminal['db_benutzer'], $id, $datei, $ziel . '/' . $datei);
                 }
                 WartungBackup::pruefen($ziel);
             }
@@ -167,8 +171,10 @@ final class WartungDienst
             $this->melden('laeuft', 'Alle Prüfungen erfolgreich. Gebe Buchungen wieder frei.');
             foreach ($geraete as $terminal) { $this->remote($terminal, ['aktion' => 'freigeben', 'id' => $id]); }
             $this->freigeben($id);
+            $this->kanal()->aufraeumen();
             $this->melden('erfolgreich', $plan === null ? 'Backend und alle aktiven Terminals vollständig gesichert.' : 'Backend und alle aktiven Terminals sind aktualisiert.');
         } catch (Throwable $e) {
+            WartungDateien::schreiben($this->statusPfad . '/privat/fehler-' . $id . '.json', ['klasse' => get_class($e), 'meldung' => $e->getMessage(), 'ort' => $e->getFile() . ':' . $e->getLine()], 0600);
             $offen = [];
             if (!$veraendert) {
                 foreach ($pausiert as $terminal) {
@@ -178,6 +184,13 @@ final class WartungDienst
                 try { $this->freigeben($id); } catch (Throwable) { $offen[] = 'Backend'; }
             }
             $this->status['gesperrt_pruefen'] = $veraendert || $offen !== [];
+            if ($veraendert) {
+                // Erreichbare Terminals zeigen ebenfalls den Abbruch statt endloses Warten.
+                foreach ($pausiert as $terminal) {
+                    try { $this->remote($terminal, ['aktion' => 'abbruch', 'id' => $id]); }
+                    catch (Throwable) { /* Die vorhandene Sperre bleibt auch ohne Antwort bestehen. */ }
+                }
+            }
             $fehler = $e instanceof PDOException ? 'Datenbankzugriff fehlgeschlagen; Rechte und Schemazustand prüfen.' : $e->getMessage();
             $this->melden('fehlgeschlagen', $fehler . ($veraendert ? ' Installation hat begonnen; Wartungssperren bleiben zur Fehlerbehebung bestehen.' : ($offen ? ' Freigabe unbestätigt: ' . implode(', ', $offen) : ' Keine Installation ausgeführt.')));
         } finally {
@@ -188,6 +201,13 @@ final class WartungDienst
 
     private function melden(string $zustand, string $text): void
     {
+        WartungSystem::lebenszeichen($this->konfig);
+        $schritt = $this->status['schritt'] ?? 1;
+        if (str_starts_with($text, 'Sichere ')) { $schritt = 2; }
+        if (str_starts_with($text, 'Sicherungen geprüft.')) { $schritt = 3; }
+        if (str_starts_with($text, 'Aktualisiere Terminal')) { $schritt = 4; }
+        if (str_starts_with($text, 'Alle Prüfungen') || $zustand === 'erfolgreich') { $schritt = 5; }
+        $this->status['schritt'] = $schritt;
         $this->status['zustand'] = $zustand;
         $this->status['aktualisiert'] = date(DATE_ATOM);
         $this->status['protokoll'][] = ['zeit' => date(DATE_ATOM), 'text' => $text];
@@ -197,51 +217,36 @@ final class WartungDienst
 
     private function istBackend(): bool { return ($this->app['app']['installation_typ'] ?? 'backend') === 'backend'; }
 
+    private function kanal(): WartungKanal
+    {
+        return $this->kanal ??= new WartungKanal(WartungDateien::pdo($this->app['db']), $this->konfig, $this->istBackend());
+    }
+
     private function geraete(): array
     {
         $pdo = WartungDateien::pdo($this->app['db']);
         $geraete = [];
-        foreach ($pdo->query("SELECT id FROM terminal WHERE aktiv = 1 AND modus = 'terminal' ORDER BY id") as $zeile) {
-            $id = (int)$zeile['id'];
-            $terminal = $this->konfig['terminals'][$id] ?? null;
-            if (!is_array($terminal)) { throw new RuntimeException('Aktives Terminal ' . $id . ' hat noch keine Wartungsverbindung.'); }
-            foreach (['app_pfad', 'status_pfad', 'backup_pfad'] as $key) {
-                if (!preg_match('~^/[a-zA-Z0-9_./-]+$~', $terminal[$key] ?? '') || str_contains($terminal[$key], '..')) { throw new RuntimeException('Ungültiger Terminalpfad.'); }
+        foreach ($pdo->query("SELECT t.id,t.name,t.db_benutzer, g.gesehen, UNIX_TIMESTAMP(g.gesehen) >= UNIX_TIMESTAMP()-60 AS bereit FROM terminal t LEFT JOIN wartung_geraet g ON g.terminal_id=t.id AND g.db_benutzer=t.db_benutzer WHERE t.aktiv=1 AND t.modus='terminal' ORDER BY t.id") as $terminal) {
+            if (!(int)$terminal['bereit']) {
+                throw new RuntimeException($terminal['name'] . ' ist noch nicht für Updates erreichbar. Das Gerät bitte einschalten und die Netzwerkverbindung prüfen.');
             }
-            if (!preg_match('/^[a-zA-Z0-9_][a-zA-Z0-9_.-]*@[a-zA-Z0-9][a-zA-Z0-9.-]*$/', $terminal['ssh'] ?? '')) { throw new RuntimeException('Ungültiges SSH-Ziel.'); }
-            $geraete[] = ['id' => $id] + $terminal;
+            $geraete[] = ['id' => (int)$terminal['id'], 'name' => $terminal['name'], 'db_benutzer' => $terminal['db_benutzer']];
         }
         return $geraete;
     }
 
-    private function sshArgumente(array $terminal, bool $scp = false): array
-    {
-        $port = (int)($terminal['port'] ?? 22);
-        if ($port < 1 || $port > 65535) { throw new RuntimeException('Ungültiger SSH-Port.'); }
-        return [$scp ? 'scp' : 'ssh', $scp ? '-P' : '-p', (string)$port, '-i', $this->konfig['ssh_schluessel'],
-            '-o', 'BatchMode=yes', '-o', 'StrictHostKeyChecking=yes', '-o', 'UserKnownHostsFile=' . $this->konfig['ssh_known_hosts'],
-            '-o', 'ConnectTimeout=15', '-o', 'ServerAliveInterval=15', '-o', 'ServerAliveCountMax=3'];
-    }
-
     private function remote(array $terminal, array $anfrage): array
     {
-        $tmp = tempnam($this->statusPfad, 'anfrage-');
-        try {
-            WartungDateien::schreiben($tmp, $anfrage, 0600);
-            $antwort = WartungDateien::prozess([...$this->sshArgumente($terminal), $terminal['ssh'],
-                'php ' . escapeshellarg($terminal['app_pfad'] . '/scripts/wartung.php') . ' geraet'], null, $tmp, null, 900, true);
-            $daten = json_decode($antwort, true, 512, JSON_THROW_ON_ERROR);
-            if (!is_array($daten) || !($daten['ok'] ?? false)) { throw new RuntimeException($daten['fehler'] ?? 'Keine gültige Antwort.'); }
-            return $daten;
-        } catch (Throwable $e) {
-            throw new RuntimeException('Terminal ' . $terminal['id'] . ': ' . $e->getMessage(), 0, $e);
-        } finally { if (is_file($tmp)) { unlink($tmp); } }
+        return $this->kanal()->aufruf($terminal, $anfrage);
     }
 
-    private function kopieren(array $terminal, string $lokal, string $fern, bool $holen = false): void
+    public function agent(): void
     {
-        $ziel = $terminal['ssh'] . ':' . $fern;
-        WartungDateien::prozess([...$this->sshArgumente($terminal, true), '--', ...($holen ? [$ziel, $lokal] : [$lokal, $ziel])]);
+        $this->exklusiv();
+        if ($this->istBackend()) { throw new RuntimeException('Geräteagent ist nur für Terminals vorgesehen.'); }
+        WartungSystem::lebenszeichen($this->konfig);
+        $version = WartungDateien::json($this->statusPfad . '/version.json');
+        $this->kanal()->agent((int)$this->app['terminal']['id'], $version['commit'], fn(array $anfrage): array => $this->geraeteAuftrag($anfrage));
     }
 
     public function geraeteAuftrag(array $anfrage): array
@@ -258,6 +263,7 @@ final class WartungDienst
             'installieren' => $this->installieren($id, WartungDateien::json($this->statusPfad . '/empfang/' . $id . '.json'), $this->statusPfad . '/bereit-' . $id),
             'gesundheit' => $this->gesundheit(),
             'freigeben' => $this->freigeben($id),
+            'abbruch' => $this->abbruch($id),
             default => throw new RuntimeException('Unbekannter Geräteauftrag.'),
         };
     }
@@ -273,6 +279,9 @@ final class WartungDienst
         $datei = $this->statusPfad . '/pause.json';
         if (is_file($datei) && WartungDateien::json($datei)['id'] !== $id) { throw new RuntimeException('Anderer Wartungsauftrag hält das Gerät an.'); }
         WartungDateien::schreiben($datei, ['id' => $id, 'seit' => date(DATE_ATOM)]);
+        if (!$this->istBackend()) {
+            WartungDateien::schreiben($this->statusPfad . '/status.json', ['id' => $id, 'zustand' => 'laeuft']);
+        }
         $sperre = fopen($this->statusPfad . '/anfragen.lock', 'r+');
         if (!$sperre) { throw new RuntimeException('Anfragensperre fehlt.'); }
         $ende = time() + 120;
@@ -302,6 +311,13 @@ final class WartungDienst
     {
         $this->eigenePause($id);
         return ['ok' => true] + (new WartungBackup($this->wurzel, $this->konfig, $this->app))->erstellen($this->konfig['backup_pfad'] . '/' . $id);
+    }
+
+    private function abbruch(string $id): array
+    {
+        $this->eigenePause($id);
+        WartungDateien::schreiben($this->statusPfad . '/status.json', ['id' => $id, 'zustand' => 'fehlgeschlagen', 'gesperrt_pruefen' => true]);
+        return ['ok' => true];
     }
 
     private function vorpruefung(bool $update = true): array

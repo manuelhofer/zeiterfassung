@@ -276,6 +276,15 @@ class TerminalDbBenutzerService
             return null;
         }
 
+        // Bei der normalen Kopplung entsteht zugleich der geräteeigene Wartungskanal.
+        try {
+            WartungKanal::rechte($this->db->getVerbindung(), $benutzer, $host, $terminalId);
+        } catch (\Throwable $e) {
+            $this->entferne($benutzer, $host);
+            $this->protokolliere('error', 'Wartungskanal bei Kopplung nicht anlegbar', ['terminal_id' => $terminalId]);
+            return null;
+        }
+
         $this->protokolliere('info', 'Terminal-Datenbankbenutzer angelegt', [
             'terminal_id' => $terminalId,
             'benutzer'    => $benutzer,

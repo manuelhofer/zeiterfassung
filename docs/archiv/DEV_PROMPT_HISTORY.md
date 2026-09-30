@@ -18,6 +18,87 @@ legacy_zip_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-30-02 wartung-ohne-zusaetzliche-einrichtung
+
+### EINGELESEN
+CLAUDE.md, CHATSTART.md, Arbeitsregeln, Status-Snapshot, Wartungs- und
+Terminalinstallation, vorhandene Kopplung/DB-Rechte, bestehender Updater und
+Prüfskript; die vorherige Umsetzung verlangte noch manuelle Wartungseinrichtung.
+
+### DATEIEN
+- services/WartungSystem.php, WartungKanal.php, WartungAnzeige.php
+- services/WartungDateien.php, WartungDienst.php, WartungPaket.php,
+  WartungAuftrag.php, WartungSperre.php, TerminalDbBenutzerService.php
+- scripts/installieren.sh, scripts/backend_einrichten.php,
+  scripts/wartung/installieren.sh, scripts/wartung_einrichten.php,
+  scripts/wartung_konfig.php, scripts/wartung.php
+- scripts/terminal/install_terminal.sh, scripts/tests/wartung_integration.py
+- controller/WartungController.php, views/wartung/index.php,
+  views/wartung/status.php, public/css/wartung.css
+- sql/15_migration_wartung_kopplung.sql, sql/01_initial_schema.sql,
+  updates/migrationen.json
+- Entfernt: config/wartung.local.php.example und manuelle Systemd-Vorlagen
+- docs/installationsanleitung.md, docs/wartung_betrieb.md,
+  docs/spezifikation_wartung.md, docs/spezifikation_terminal_installation.md,
+  docs/STATUS_SNAPSHOT.md, docs/archiv/DEV_PROMPT_HISTORY.md
+
+### AKZEPTANZKRITERIUM
+Nach normaler Installation und gewöhnlicher Kopplung kann ein berechtigter
+Benutzer ohne zusätzliche Wartungseinstellungen Backend und zwei Terminals
+über die Oberfläche sichern und gemeinsam von main aktualisieren, wobei
+lokale Konfigurationen und offene Offline-Buchungen erhalten bleiben.
+
+### DONE
+Die normale Installation erzeugt Dienst, geschützte externe Ordner,
+Sicherungszugriff, Schlüssel und Versionsbeleg selbst; Migrationen 14/15 und
+vorhandene Terminalrechte werden automatisch vorbereitet. Die normale
+Terminal-Kopplung richtet zugleich den eigenen Wartungskanal ein. Pakete und
+Sicherungen laufen stückweise über die bestehende DB-Verbindung; keine SSH-
+Zugänge oder zusätzliche Geräteliste. Gerätebezogene Views, signierte Aufträge,
+festgehaltene Serveridentität und dauerhafte Ausführungsbelege begrenzen den
+Kanal und verhindern die Wiederholung begonnener Aktionen.
+
+Wenige Knöpfe, verständlicher Fortschritt und eingeklappte technische Details.
+Heartbeat vor Auftragsannahme, begrenzte Startfrist und verständliche
+Abbruchanzeige auch auf erreichbaren Terminals. Ein öffentliches origin wird
+direkt gelesen; die Updateprüfung wartet nicht auf eine Passwortabfrage.
+Anleitungen auf den automatischen Standardweg umgestellt.
+
+Gefundene Fehler im eigenen Entwurf: Unterschiedliche MariaDB-Standard-
+Kollationen verhinderten anfangs die Geräteabfrage; die vier Tabellen haben
+jetzt eine explizite passende Kollation. Privilegiertes Auswerten der für die
+Kopplung webschreibbaren PHP-Konfiguration vermieden: separater Prozess als
+Webbenutzer. Die erste Abbruchanzeige erreichte nur das Backend; ein signierter
+Abbruchauftrag informiert nun auch die erreichbaren Terminals. Ein späterer
+Testlauf änderte die Speicherreserve, während ein Testdienst noch die vorherige
+Konfiguration geladen hatte; der Testadapter startet ihn für diesen Fehlerfall
+jetzt kontrolliert neu. Keine entsprechende Änderung am echten Speichercheck.
+
+### TEST
+39 Integrationsprüfungen erfolgreich mit eigener MariaDB, synthetischen Daten,
+eigenem main, zwei Terminalkopien und echten HTTP-Kopplungs-/Wartungsformularen.
+Enthalten: frische DB-/Konfigurationsanlage, idempotenter Erststart, Migrationen
+14/15 jeweils zweimal, Zugriffstrennung und Signaturablehnung, Backup-/Update-
+Knöpfe, Datei-/SQL-Restore, Prüfsummenfehler, Queue-/Konfigurationserhalt,
+Dienststillstand/abgelaufener Auftrag, fehlendes Gerät, Speicherfehler und
+teilweise ausgeführte DDL mit erhaltener Sperre auf allen Geräten.
+
+PHP-Lint aller 16 geänderten/neuen PHP-Dateien, bash -n für drei Installer,
+Diff-Prüfung und Testlogs ohne PHP-Warnungen/Deprecations. Oberfläche im Browser
+und bei 390 Pixel Breite geprüft: 48 Pixel hohe Knöpfe, kein horizontaler
+Überlauf, verständliche Phasen. Alle Testprozesse beendet.
+
+Systemd wird im Labor durch lokale Taktprozesse, der echte Webserverneustart
+durch true ersetzt. Native Paketinstallation, privilegierte Systemd-Dateirechte,
+Apache/FPM, Hardware und Restore auf einem anderen Rechner wurden nicht als
+abgenommen ausgegeben. Ein vorhandener Stand ohne Agent braucht zuerst die
+normale Auslieferung dieses neuen Stands; die Webanwendung bekommt keine
+Berechtigung, sich selbst Systemrechte zu verschaffen. Kein Push.
+
+### NEXT
+Gemeinsamen Stand regulär auf Testgeräte ausliefern und dort native Installation,
+Dienst-/Webserverneustarts und Wiederherstellung abnehmen.
+
 ## P-2026-09-30-01 backup-und-main-updates-verteilen
 
 ### EINGELESEN
