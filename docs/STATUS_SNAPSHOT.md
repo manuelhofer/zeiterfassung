@@ -22,9 +22,12 @@ nichts.
 die Verwaltung bleibt zu technisch; konkrete Befunde, Prüfgrenzen und
 vorgeschlagene Folgepatches stehen in
 [bedienbarkeitspruefung.md](bedienbarkeitspruefung.md).
-Zuerst empfohlen: mobile Konfigurationstabelle (Rest von B-107), sichtbarer Zugang zu
-Kurzarbeitsplänen (B-108) sowie eindeutige Terminal- und Auftragsstatusangaben;
-weitere Vereinfachungen sind dokumentierte Vorschläge, noch nicht umgesetzt.
+**Vorgabe vom 01.10.2026:** Bedienbarkeit des Backends am normalen PC-Bildschirm
+hat Vorrang; alle bestehenden Funktionen müssen erhalten bleiben.
+Zuerst empfohlen: verständlicher Verwaltungsstart sowie eindeutige Terminal-
+und Auftragsstatusangaben; weitere Vereinfachungen sind dokumentierte Vorschläge.
+Handyoptimierung ist kein aktuelles Ziel. Die halbstündliche automatische
+Fortsetzung wurde auf Wunsch entfernt; weiterarbeiten nur im laufenden Auftrag.
 
 **Backup und Updates auf den Testgeräten abnehmen** (30.09.2026):
 Bedienung und automatische Vorbereitung sind umgesetzt: Die normale
@@ -92,10 +95,8 @@ die Abnahme am tatsächlichen Terminalgerät bleibt offen.
 
 - **B-107 Mobile Konfigurationstabelle** – Die Konfiguration verbreitert
   bei 390 Pixeln die gesamte Seite statt nur einen Tabellenbereich
-  ([Befund UX-02](bedienbarkeitspruefung.md#ux-02--hoch--einige-handyansichten-schieben-die-ganze-seite-seitlich)).
-- **B-108 Kurzarbeitsplanung nicht auffindbar** – Liste und Formular sind
-  vorhanden, aber außerhalb des Moduls nicht verlinkt
-  ([Befund UX-07](bedienbarkeitspruefung.md#ux-07--mittel--kurzarbeitspläne-haben-keinen-sichtbaren-einstieg)).
+  ([Befund UX-02](bedienbarkeitspruefung.md#ux-02--hoch--einige-handyansichten-schieben-die-ganze-seite-seitlich));
+  zurückgestellt, da der normale PC-Bildschirm maßgeblich ist.
 
 ## Offene Tasks
 

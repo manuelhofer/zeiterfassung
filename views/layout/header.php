@@ -28,6 +28,7 @@ $hatWartungRecht = false;
 $hatKonfigurationAdminRecht   = false;
 $hatAuditLogAdminRecht        = false;
 $hatKrankzeitraumAdminRecht   = false;
+$hatKurzarbeitAdminRecht     = false;
 $hatUrlaubKontingentAdminRecht = false;
 $hatUrlaubGenehmigungRecht  = false;
 
@@ -76,6 +77,8 @@ if ($auth->istAngemeldet()) {
     $hatKonfigurationAdminRecht    = $auth->hatRecht('KONFIGURATION_VERWALTEN') || $hatLegacyAdminRolle;
     $hatUrlaubKontingentAdminRecht = $auth->hatRecht('URLAUB_KONTINGENT_VERWALTEN') || $hatLegacyAdminRolle;
     $hatKrankzeitraumAdminRecht   = $auth->hatRecht('KRANKZEITRAUM_VERWALTEN') || $hatKonfigurationAdminRecht || $hatLegacyAdminRolle;
+    // Gleicher Zugang wie in KurzarbeitAdminController::pruefeZugriff().
+    $hatKurzarbeitAdminRecht     = $auth->hatRecht('KURZARBEIT_VERWALTEN') || $hatKonfigurationAdminRecht;
 }
 
     // Recht: Urlaub genehmigen. Der Menüpunkt erscheint auch dann, wenn die
@@ -146,6 +149,8 @@ $navVerwaltungAktiv = in_array($seite, [
     'feiertag_admin',
     'feiertag_admin_bearbeiten',
     'zeit_rundungsregel_admin',
+    'kurzarbeit_admin',
+    'kurzarbeit_admin_bearbeiten',
     'konfiguration_admin',
     'konfiguration_admin_bearbeiten',
     'queue_admin',
@@ -162,6 +167,7 @@ $hatVerwaltungMenue = $hatMaschineAdminRecht
     || $hatRundungsregelAdminRecht
     || $hatKonfigurationAdminRecht
     || $hatKrankzeitraumAdminRecht
+    || $hatKurzarbeitAdminRecht
     || $hatQueueAdminRecht
     || $hatTerminalAdminRecht
     || $hatWartungRecht
@@ -179,6 +185,8 @@ if ($hatKonfigurationAdminRecht) {
     $navVerwaltungStartUrl = '?seite=zeit_rundungsregel_admin';
 } elseif ($hatKrankzeitraumAdminRecht) {
     $navVerwaltungStartUrl = '?seite=konfiguration_admin&tab=krankzeitraum';
+} elseif ($hatKurzarbeitAdminRecht) {
+    $navVerwaltungStartUrl = '?seite=kurzarbeit_admin';
 } elseif ($hatQueueAdminRecht) {
     $navVerwaltungStartUrl = '?seite=queue_admin';
 } elseif ($hatTerminalAdminRecht) {
@@ -1097,6 +1105,9 @@ if ($hatKonfigurationAdminRecht) {
                 <?php endif; ?>
                 <?php if ($hatKrankzeitraumAdminRecht): ?>
                     <a href="?seite=konfiguration_admin&amp;tab=krankzeitraum">Krank (LF/KK)</a>
+                <?php endif; ?>
+                <?php if ($hatKurzarbeitAdminRecht): ?>
+                    <a href="?seite=kurzarbeit_admin">Kurzarbeit planen</a>
                 <?php endif; ?>
                 <?php if ($hatQueueAdminRecht): ?>
                     <a href="?seite=queue_admin">Offline-Queue</a>

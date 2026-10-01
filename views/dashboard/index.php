@@ -258,6 +258,7 @@ $hatAdminSchnellzugriff = (
     || ($hatKonfigurationAdminRecht ?? false)
     || ($hatBetriebsferienAdminRecht ?? false)
     || ($hatUrlaubKontingentAdminRecht ?? false)
+    || ($hatKurzarbeitAdminRecht ?? false)
     || ($hatQueueAdminRecht ?? false)
     || ($hatTerminalAdminRecht ?? false)
 );
@@ -314,6 +315,13 @@ $hatAdminSchnellzugriff = (
                 <div class="admin-card">
                     <strong>Urlaub-Kontingent</strong>
                     <div style="margin-top: 0.45rem;"><a href="?seite=urlaub_kontingent_admin">öffnen</a></div>
+                </div>
+            <?php endif; ?>
+
+            <?php if (($hatKurzarbeitAdminRecht ?? false)): ?>
+                <div class="admin-card">
+                    <strong>Kurzarbeit</strong>
+                    <div style="margin-top: 0.45rem;"><a href="?seite=kurzarbeit_admin">Kurzarbeit planen</a></div>
                 </div>
             <?php endif; ?>
 

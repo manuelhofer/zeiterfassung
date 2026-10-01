@@ -18,6 +18,53 @@ legacy_zip_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-01-03 kurzarbeitsplanung-sichtbar-verlinkt
+
+### EINGELESEN
+CLAUDE.md, CHATSTART.md, Arbeitsregeln, Status-Snapshot, Befund UX-07/B-108,
+Fachregeln Rollen/Rechte und Rechte-Prompt; bestehende Navigation, Dashboard
+und Zugriffsschutz des KurzarbeitAdminController. Duplicate-Check in History
+und Git-Verlauf: bisher keine Verlinkung außerhalb des Kurzarbeitsmoduls.
+
+### DATEIEN
+- views/layout/header.php
+- views/dashboard/index.php
+- docs/STATUS_SNAPSHOT.md
+- docs/archiv/DEV_PROMPT_HISTORY.md
+
+### AKZEPTANZKRITERIUM
+Ein berechtigter Benutzer erreicht am PC über „Verwaltung → Kurzarbeit planen“
+oder die Startseite die vorhandene Planliste samt Formular, während ein
+unberechtigter Mitarbeiter weder den Einstieg noch Zugriff auf das Modul erhält.
+
+### DONE
+B-108 behoben: Kurzarbeitsplanung im Verwaltungsmenü und Admin-Schnellzugriff
+verlinkt, Verwaltung auf Liste und Formular als aktiv markiert; bei ausschließlich
+vorhandenem Kurzarbeitsrecht führt bereits der Verwaltungshauptlink zur Planung.
+Sichtbarkeit entspricht dem bestehenden Controller: Kurzarbeitsrecht oder
+Konfigurationsrecht einschließlich bisherigem Legacy-Adminzugang. Keine Rechte
+neu vergeben, keine Controller-, Formular-, Berechnungs- oder SQL-Änderung.
+PC-Priorität und entfernte Automatik als Benutzervorgaben im Snapshot festgehalten.
+
+### TEST
+PHP-Lint beider geänderten Views und `git diff --check` bestanden. Im Browser
+mit synthetischen Daten beide Einstiege als Chef bis zur Planliste geöffnet,
+Anlegeformular und Rückweg geprüft; aktive Verwaltung bestätigt. Startseite
+bei 1366 × 768 und 1920 × 1080 geprüft, neuer Zugang sichtbar und kein
+seitlicher Seitenüberlauf. Separates Testkonto ohne Rolle: mit ausschließlich
+Kurzarbeitsrecht sichtbarer Schnellzugriff und funktionierender Verwaltungslink;
+mit ausschließlich Konfigurationsrecht ebenfalls Zugang über die Startseite.
+Normaler Mitarbeiter sieht keinen Kurzarbeitslink; Direktaufruf bleibt HTTP 403.
+Temporäre Einzelrechte des künstlichen Testkontos anschließend entfernt.
+Keine PHP-Warnungen, Deprecations oder Fatal Errors im HTTP-Testlog.
+Die vorhandenen Speicher- und Berechnungsabläufe wurden nicht verändert und
+für diesen Navigationspatch nicht erneut vollständig abgenommen.
+
+### NEXT
+Weitere Vereinfachung der PC-Verwaltung gemäß T-174; im Kurzarbeitsmodul steht
+noch der veraltete Hinweis, Tages-Overrides würden erst folgen, obwohl diese
+bereits vorhanden sind. Kein Push und keine Installation auf Geräten.
+
 ## P-2026-10-01-02 monatsuebersicht-mobil-scrollbar
 
 ### EINGELESEN
