@@ -22,7 +22,7 @@ nichts.
 die Verwaltung bleibt zu technisch; konkrete Befunde, Prüfgrenzen und
 vorgeschlagene Folgepatches stehen in
 [bedienbarkeitspruefung.md](bedienbarkeitspruefung.md).
-Zuerst empfohlen: mobile Tabellen (B-107), sichtbarer Zugang zu
+Zuerst empfohlen: mobile Konfigurationstabelle (Rest von B-107), sichtbarer Zugang zu
 Kurzarbeitsplänen (B-108) sowie eindeutige Terminal- und Auftragsstatusangaben;
 weitere Vereinfachungen sind dokumentierte Vorschläge, noch nicht umgesetzt.
 
@@ -90,7 +90,7 @@ die Abnahme am tatsächlichen Terminalgerät bleibt offen.
 
 ## Offene Bugs
 
-- **B-107 Mobile Tabellen** – Monatsübersicht und Konfiguration verbreitern
+- **B-107 Mobile Konfigurationstabelle** – Die Konfiguration verbreitert
   bei 390 Pixeln die gesamte Seite statt nur einen Tabellenbereich
   ([Befund UX-02](bedienbarkeitspruefung.md#ux-02--hoch--einige-handyansichten-schieben-die-ganze-seite-seitlich)).
 - **B-108 Kurzarbeitsplanung nicht auffindbar** – Liste und Formular sind

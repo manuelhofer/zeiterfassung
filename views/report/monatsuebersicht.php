@@ -710,6 +710,7 @@ if (is_array($tageswerte) && $tageswerte !== []) {
         display: flex;
         flex-direction: column;
         gap: 0.22rem;
+        max-width: 100%;
     }
 
     .report-filter-check {
@@ -730,6 +731,7 @@ if (is_array($tageswerte) && $tageswerte !== []) {
         min-width: 2rem;
         padding-left: 0.45rem;
         padding-right: 0.45rem;
+        flex-shrink: 0;
     }
 
     .report-stepper select,
@@ -738,8 +740,25 @@ if (is_array($tageswerte) && $tageswerte !== []) {
     }
 
     .report-mitarbeiter-stepper select {
-        min-width: 13rem;
+        min-width: 0;
         max-width: 20rem;
+        flex: 1 1 auto;
+    }
+
+    .report-scroll-hinweis {
+        display: none;
+    }
+
+    @media screen and (max-width: 900px) {
+        .report-scroll-hinweis {
+            display: block;
+        }
+    }
+
+    @media print {
+        .report-tageswerte {
+            overflow: visible;
+        }
     }
 </style>
 
@@ -1150,6 +1169,8 @@ if (is_array($tageswerte) && $tageswerte !== []) {
     <?php if ($tageswerte === []): ?>
         <p>Für diesen Monat liegen noch keine Tageswerte vor.</p>
     <?php else: ?>
+        <p class="report-scroll-hinweis">Weitere Spalten: Tabelle seitlich verschieben.</p>
+        <div class="table-wrap report-tageswerte" role="region" aria-label="Tageswerte der Monatsübersicht" tabindex="0">
         <table>
             <thead>
             <tr>
@@ -1574,6 +1595,7 @@ if (is_array($tageswerte) && $tageswerte !== []) {
             <?php endforeach; ?>
             </tbody>
         </table>
+        </div>
         <?php if (is_array($monatszusammenfassung)): ?>
             <div class="admin-card" style="margin-top: 12px; max-width: 520px;">
                 <strong>Monatszusammenfassung (wie PDF)</strong>

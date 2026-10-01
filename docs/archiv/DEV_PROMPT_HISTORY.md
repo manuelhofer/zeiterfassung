@@ -18,6 +18,59 @@ legacy_zip_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-01-02 monatsuebersicht-mobil-scrollbar
+
+### EINGELESEN
+CLAUDE.md, CHATSTART.md, Arbeitsregeln, Status-Snapshot, Bedienprüfung B-107,
+Fachregeln Auswertung/PDF, Wartungscheckliste und bestehende Monatsansicht;
+Duplicate-Check in History und Git-Verlauf einschließlich `git log -S'table-wrap'`.
+
+### DATEIEN
+- views/report/monatsuebersicht.php
+- docs/STATUS_SNAPSHOT.md
+- docs/archiv/DEV_PROMPT_HISTORY.md
+
+### AKZEPTANZKRITERIUM
+Bei einer Handybreite von 390 Pixeln bleibt die Monatsübersicht innerhalb der
+Seitenbreite und alle bisherigen Spalten, Werte, Filter, Bearbeitungslinks und
+Exportfunktionen sind über eine seitlich verschiebbare Tagestabelle erreichbar.
+
+### DONE
+Vorhandenen Tabellencontainer für die Tageswerte verwendet, mit kurzem Hinweis
+auf das seitliche Verschieben und beschriftetem, per Tastatur erreichbarem
+Bereich; Mitarbeiterauswahl passt sich der verfügbaren Breite an, Pfeilknöpfe
+bleiben bedienbar. Druckdarstellung erhält keinen begrenzenden Scrollbereich.
+PHP-Logik, Berechnungen, Rechte, Formulare und Exportziele unverändert.
+Keine Einrichtung nötig; B-107 bleibt für die Konfigurationstabelle offen.
+
+### TEST
+Isolierte MariaDB/PHP-Testumgebung mit synthetischen Daten: Vorher/nachher
+sämtliche Tabelleninhalte, Linkziele und Schaltflächen der Chef-Monatsübersicht
+verglichen, jeweils identisch. Bei 390 Pixeln vorher 831 Pixel Seitenbreite;
+danach kein seitlicher Seitenüberlauf bei 320, 390, 768 und 1280 Pixeln.
+Alle elf Chef-Spalten erhalten, Tab-Taste erreicht auch den rechten
+Bearbeitungslink und verschiebt nur den Tabellenbereich; Tagesbearbeitung mit
+korrektem Mitarbeiter und Datum geöffnet. Monatswechsel vor/zurück,
+Mitarbeiterwechsel und Mikro-Buchungsfilter durchgeklickt; PDF-Link übernimmt
+den Filter. PDF heruntergeladen und PDF-Kennung bestätigt, Sammel-ZIP enthält
+drei gültige PDF-Dateien und besteht Integritätsprüfung. Mitarbeiteranmeldung
+und Monatsansicht bei 390 Pixeln geprüft: zehn Spalten, eigener Report und
+PDF-Zugang, keine Verwaltungsaktionen. PHP-Lint und `git diff --check` sauber;
+keine PHP-Warnungen, Deprecations oder Fatal Errors im HTTP-Testlog.
+
+Ein erster Prüfansatz übersah die Mindestbreite der Mitarbeiterauswahl;
+diese wurde ebenfalls begrenzt, damit der Filter auf kleinen Geräten keinen
+eigenen Seitenüberlauf erzeugt. Ein unterbrochener Testserver und eine auf
+den alten Browsertab gebundene Messfunktion verursachten ungültige Messungen;
+nach Neustart und direkter Messung im aktuellen Tab korrekt geprüft.
+Echte Touchhardware und Browserdruck wurden nicht geprüft; PDF-Erzeugung
+bleibt unverändert und wurde wie oben getestet.
+
+### NEXT
+Konfigurationstabelle als verbleibenden Teil von B-107 separat angehen;
+B-108 und die weiteren Bedienvorschläge bleiben offen. Dieser Auftrag umfasst
+nur die Monatsübersicht. Kein Push und keine Installation auf Geräten.
+
 ## P-2026-10-01-01 bedienbarkeitspruefung-dokumentiert
 
 ### EINGELESEN
