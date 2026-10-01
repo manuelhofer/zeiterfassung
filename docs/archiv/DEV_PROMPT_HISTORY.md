@@ -18,6 +18,38 @@ legacy_zip_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-01-04 main-veroeffentlichung-dokumentiert
+
+### EINGELESEN
+CLAUDE.md, CHATSTART.md, Arbeitsregeln, Status-Snapshot und aktuelle
+Git-Historie; ausdrücklicher Benutzerauftrag zur Veröffentlichung.
+
+### DATEIEN
+- docs/STATUS_SNAPSHOT.md
+- docs/archiv/DEV_PROMPT_HISTORY.md
+
+### AKZEPTANZKRITERIUM
+Die bisher lokal vorbereiteten Änderungen bis `785999b` sind zur Veröffentlichung
+auf `main` freigegeben, ohne die noch ausstehende Geräteabnahme als erledigt darzustellen.
+
+### DONE
+Veralteten Hinweis „Noch kein Push“ im aktuellen Snapshot durch die erteilte
+Veröffentlichungsfreigabe ersetzt; Programmcode bleibt unverändert.
+Zur Veröffentlichung gehören Backup/Updates, automatische Wartungseinrichtung,
+Bedienprüfung, Monatsansicht und sichtbarer Zugang zur Kurzarbeitsplanung.
+
+### TEST
+GitHub-`main` frisch abgerufen: unverändert bei `170c22b`, keine konkurrierenden
+Commits; lokale Historie lässt sich ohne Umschreiben vorziehen. Syntaxprüfung
+aller zur Veröffentlichung geänderten Dateien bestanden: 22 PHP-Dateien,
+drei Shellskripte, ein Python-Skript; `git diff --check` bestanden.
+Die Funktionsprüfungen und ihre Grenzen stehen in den jeweiligen Patch-Einträgen.
+
+### NEXT
+Erste Geräteinstallation und Abnahme wie im Snapshot beschrieben; die
+Bereitstellung der Terminal-Erstinstallation durch das Backend ist bisher
+ein besprochener Vorschlag, keine bereits implementierte Funktion.
+
 ## P-2026-10-01-03 kurzarbeitsplanung-sichtbar-verlinkt
 
 ### EINGELESEN

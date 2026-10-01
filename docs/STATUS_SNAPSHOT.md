@@ -38,7 +38,8 @@ Erststart, Kopplung und Fehleranzeigen sind mit synthetischen Daten geprüft;
 Details in [wartung_betrieb.md](wartung_betrieb.md). Offen: normale Auslieferung
 dieses ersten Stands auf die Geräte, native Paket-/Systemd-Installation,
 Apache-/FPM-Neustart und Wiederherstellung auf separater Hardware.
-Noch kein Push und keine Installation auf Geräten durchgeführt.
+Veröffentlichung der Änderungen auf GitHub-`main` am 01.10.2026 ausdrücklich
+freigegeben; keine Installation auf Geräten durchgeführt.
 
 **Eine stillgelegte Anmeldung ist jetzt wirklich stillgelegt** (05.09.2026,
 P-2026-09-05-02). Gefunden beim Prüfen des Portals, aber älter als dieses:
