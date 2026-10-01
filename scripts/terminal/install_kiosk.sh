@@ -620,4 +620,6 @@ echo "  Ob wirklich ein Bild kommt, zeigt sich erst auf echter Hardware oder"
 echo "  in einer VM mit Grafik - ein Container hat keinen Bildschirm."
 echo "=============================================================="
 
+# Der gemeinsame Installer darf nach fehlgeschlagener Pruefung nicht weiterlaufen.
+[ "$ERGEBNIS_FEHLT" -eq 0 ] || exit 1
 exit 0

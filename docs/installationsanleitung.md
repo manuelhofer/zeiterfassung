@@ -75,21 +75,60 @@ Zielgerät abgenommen werden; lokale Anwendungstests ersetzen das nicht.
 
 ## 7) Terminal-Installation (optional)
 
-**Ein Hallenterminal wird nicht nach dieser Anleitung aufgesetzt**, sondern mit
-zwei eigenen Skripten:
+Auf einem **frisch installierten, ausschließlich dafür vorgesehenen Linux-Gerät**
+mit systemd (Zielsystem: Debian / Raspberry Pi OS) diese beiden Befehle ausführen:
 
 ```bash
-sudo ./scripts/terminal/install_terminal.sh    # Grundsystem
-sudo ./scripts/terminal/install_kiosk.sh       # Vollbildbrowser beim Start
-sudo ./scripts/terminal/install_peripherie.sh  # RFID-Leser, Touchscreen
-sudo ./scripts/terminal/selbsttest.sh          # ist das Gerät einsatzbereit?
+curl -fL https://raw.githubusercontent.com/manuelhofer/zeiterfassung/main/scripts/terminal/installieren.sh -o terminal-installieren.sh
+sudo bash terminal-installieren.sh
 ```
 
-Alle vier lesen dieselbe Antwortdatei (`scripts/terminal/terminal.conf`,
-Vorlage daneben) und dürfen mehrfach laufen. Der Selbsttest ändert nichts und
-liefert am Ende eine Liste mit OK/FEHLT – vor dem Verlassen des Geräts.
+Für den Download muss `curl` vorhanden sein (auf Debian bei Bedarf einmal
+`sudo apt-get install curl`). Das Terminal braucht während der Erstinstallation
+Internet für GitHub, Systempakete und bei seriellen Lesern Python-Bibliotheken.
+Linux selbst muss bereits installiert und mit dem Netzwerk verbunden sein.
 
-Das erste richtet Pakete, Code, Webserver und die lokale Ausweichdatenbank ein
+Der Installer holt `main` nach `/opt/zeiterfassung`, richtet Grundsystem,
+lokale Offline-Datenbank, Wartungsdienst, Vollbildbrowser und Peripherie ein,
+prüft die Vorbereitung und startet die Einrichtungsseite. Er ersetzt die
+grafische Anmeldung durch den Kiosk-Autostart. Gefragt wird nur nach Lesertyp,
+Tastaturlayout und Bildschirmdrehung; beim seriellen Leser zusätzlich nach
+Anschluss und Baudrate. Keine Konfigurationsdatei von Hand bearbeiten.
+
+Für **USB-Leser im Tastaturmodus, deutsches Layout und einen ungedrehten
+Bildschirm** geht es ohne Hardwarefragen:
+
+```bash
+sudo bash terminal-installieren.sh --standard
+```
+
+USB bedeutet hier ausdrücklich Tastaturmodus; serielle USB-Leser benötigen die
+Auswahl „serieller Leser“. **RC522 direkt an SPI ist noch nicht unterstützt**;
+der Installer bricht bei dieser Auswahl vor Änderungen an Paketen und Diensten ab.
+
+Bei einem Fehler stoppt der Ablauf. Nach Beheben der Ursache denselben Befehl
+wiederholen: gespeicherte Hardwareauswahl und bereits heruntergeladene Dateien
+werden weiterverwendet. Eine falsche Hardwareauswahl lässt sich vor der Kopplung
+mit `sudo bash terminal-installieren.sh --hardware` korrigieren. Ein eingerichtetes Gerät oder ein fremdes Projekt im
+Zielordner wird abgewiesen. Programmupdates später über das Backend starten.
+Die Antwortdatei liegt geschützt unter
+`/var/lib/zeiterfassung-terminal-installation/terminal.conf`, das Protokoll unter
+`/var/log/zeiterfassung-terminal-setup.log`.
+
+Nach der Kopplung **Bildschirm, Touch und einen echten RFID-/Barcode-Scan**
+prüfen. Der vollständige Selbsttest bleibt verfügbar:
+
+```bash
+sudo bash /opt/zeiterfassung/scripts/terminal/selbsttest.sh /var/lib/zeiterfassung-terminal-installation/terminal.conf
+```
+
+Die bisherigen Einzelwerkzeuge `install_terminal.sh`, `install_kiosk.sh` und
+`install_peripherie.sh` bleiben für gezielte Einrichtung/Reparatur vorhanden;
+sie sind keine Programmupdater. Die technische Vorprüfung des gemeinsamen
+Installers erlaubt lediglich die noch ausstehende Kopplung und den erst danach
+startenden Kiosk; der normale Selbsttest verlangt weiterhin beides.
+
+Das Grundsystem richtet Pakete, Code, Webserver und die lokale Ausweichdatenbank ein
 und legt
 `config/config.local.php` bewusst **nicht** an. Das Gerät startet
 unkonfiguriert, zeigt seine Einrichtungsseite und holt sich Server-Adresse,

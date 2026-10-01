@@ -698,4 +698,6 @@ echo "  und ihn zusammen mit der Server-Adresse auf der Einrichtungsseite"
 echo "  eingeben:  http://localhost/terminal.php"
 echo "=============================================================="
 
+# Der gemeinsame Installer darf nach fehlgeschlagener Pruefung nicht weiterlaufen.
+[ "$ERGEBNIS_FEHLT" -eq 0 ] || exit 1
 exit 0

@@ -1,6 +1,6 @@
 # Spezifikation: Terminal-Installation per Skript
 
-*Version:* v3 (2026-08-09)
+*Version:* v4 (2026-10-01)
 *Status:* alle sechs Stufen gebaut; offen ist der Test auf einem Gerät mit
 Bildschirm und Peripherie. Stand und Einschränkungen je Stufe stehen im
 **Stufenplan (Abschnitt 11)**.
@@ -9,26 +9,38 @@ Bildschirm und Peripherie. Stand und Einschränkungen je Stufe stehen im
 
 ---
 
-## 1. Zielbild
+## 1. Zielbild und gemeinsamer Einstieg (P-2026-10-01-05)
 
-Ein frisch installiertes Linux-Gerät wird mit **vier Befehlen** zum
-einsatzfertigen Hallenterminal:
+Ziel: Auf einem frisch installierten, ausschließlich als Terminal bestimmten
+Linux-Gerät genügt ein von GitHub heruntergeladenes Skript
+`scripts/terminal/installieren.sh`; Internet ist bei der Erstinstallation nötig.
+Der Einstieg holt `main`, führt die vorhandenen Installationsstufen aus und
+startet nach einer technischen Prüfung den Kiosk zur gewöhnlichen Kopplung.
+USB-Tastaturleser, serielle Bridge und kein RFID sind auswählbar; direktes
+RC522/SPI bleibt ohne passenden Treiber ausdrücklich ausgeschlossen.
+Bildschirmdrehung wählt automatisch X11. Eine lokale Antwortdatei muss der
+Benutzer nicht bearbeiten. Bestehende konfigurierte Installationen werden
+abgewiesen; fehlgeschlagene Erstinstallationen können fortgesetzt werden.
 
-```bash
-sudo ./scripts/terminal/install_terminal.sh    # Grundsystem (Abschnitt 5a)
-sudo ./scripts/terminal/install_kiosk.sh       # Kiosk       (Abschnitt 7)
-sudo ./scripts/terminal/install_peripherie.sh  # Peripherie  (Abschnitt 6)
-sudo ./scripts/terminal/selbsttest.sh          # Selbsttest  (Abschnitt 8)
-```
+**Akzeptanzkriterium:** Auf einem frischen Terminal führt ein Aufruf nach der
+Hardwareauswahl bis zur Kopplungsseite, während ein fehlgeschlagener Teilschritt
+den Ablauf mit Fehlerstatus stoppt und eine bestehende Installation unangetastet bleibt.
 
-Getrennt statt in einem Skript, weil die vier Teile Unterschiedliches
-voraussetzen: Das Grundsystem lässt sich im Container prüfen, der Kiosk
-braucht einen Bildschirm, die Peripherie braucht angeschlossene Geräte, und
-der Selbsttest will einen Menschen, der einmal scannt. Wer nur den Kiosk neu
-aufsetzt, fährt nicht die ganze Installation noch einmal.
+Download und Bedienung: [Installationsanleitung, Abschnitt 7](installationsanleitung.md#7-terminal-installation-optional).
+Der gemeinsame Einstieg speichert die Hardwareauswahl root-exklusiv unter
+`/var/lib/zeiterfassung-terminal-installation/terminal.conf`. Er setzt ein
+laufendes systemd voraus, holt beim ersten Lauf Git und den `main`-Stand und
+verwendet bei einem Wiederanlauf die vorhandenen Dateien weiter. Kein `git pull`
+über eine vorhandene Installation. Ein laufender Installer sperrt weitere Aufrufe.
 
-Alle vier lesen dieselbe Antwortdatei (`terminal.conf`) und sind idempotent:
-Ein zweiter Lauf schadet nicht und repariert einen halbfertigen Stand.
+Die bestehenden vier Teilwerkzeuge bleiben für gezielte Arbeiten verfügbar:
+Grundsystem, Kiosk, Peripherie und Selbsttest. Die Installationsstufen liefern
+bei fehlgeschlagenen Ergebnisprüfungen jetzt einen Fehlerstatus. Der neue
+Selbsttestmodus `--vor-kopplung` erlaubt fehlende Kopplung und einen noch nicht
+gestarteten Kiosk, prüft aber weiterhin die lokale Offline-Datenbank und bei
+der seriellen Variante die laufende RFID-Bridge. Die Meldung nennt ausdrücklich
+die noch nötige Kopplung und Geräteprüfung. Erst danach startet der Installer
+den Kiosk-Dienst; echte Bildausgabe und Scans sind damit noch nicht bewiesen.
 
 Das Grundsystem installiert auch den lokalen Backup-/Updatedienst automatisch.
 Nach der gewöhnlichen Kopplung erhält das Terminal seine Wartungsaufträge und
@@ -37,9 +49,9 @@ Wartungsdatei, SSH-Einrichtung oder zweite Kopplung; lokale Offline-Daten werden
 vor jedem Update gesichert. Betrieb und Wiederherstellung stehen in
 [wartung_betrieb.md](wartung_betrieb.md).
 
-Danach startet das Gerät von selbst in die Terminal-Oberfläche, der
-RFID-Leser funktioniert, der Barcode-Scanner liefert saubere Codes, und der
-Touchscreen ist bedienbar. Kein manuelles Nacharbeiten.
+Ziel der Geräteabnahme: Das Gerät startet von selbst in die Terminal-Oberfläche,
+RFID- und Barcode-Leser liefern korrekte Codes und der Touchscreen ist bedienbar.
+Diese Hardwareprüfung steht für den gemeinsamen Einstieg noch aus.
 
 ## 2. Aufteilung: Skript und Kopplung
 

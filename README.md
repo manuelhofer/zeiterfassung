@@ -94,11 +94,11 @@ Einstiegspunkte: Backend `public/index.php` (`?seite=…`), Terminal
 `public/terminal.php` statt der Bedienoberfläche eine Einrichtungsseite: dort
 werden Server-Adresse und ein im Backend erzeugter Kopplungscode eingegeben, und
 das Terminal schreibt seine Konfiguration daraus selbst. Aufgesetzt wird ein
-Gerät mit vier Skripten in `scripts/terminal/`: `install_terminal.sh` (Pakete,
-Code, Webserver, lokale Ausweichdatenbank – aber bewusst **keine**
-Zugangsdaten), `install_kiosk.sh` (Vollbild-Browser beim Start),
-`install_peripherie.sh` (RFID-Leser, Touchscreen-Drehung) und `selbsttest.sh`,
-der am Ende sagt, ob das Gerät einsatzbereit ist.
+frisches Gerät mit **einem Installer**, der von GitHub heruntergeladen und mit
+`sudo bash terminal-installieren.sh` gestartet wird. Er verbindet Grundsystem,
+Vollbildbrowser, Peripherie und technische Vorprüfung; die Einzelwerkzeuge
+bleiben verfügbar. Downloadbefehle und Hardwareauswahl stehen in der
+[Installationsanleitung](docs/installationsanleitung.md#7-terminal-installation-optional).
 Einzelheiten: [Terminal-Installation](docs/spezifikation_terminal_installation.md).
 
 ## Mitarbeiten

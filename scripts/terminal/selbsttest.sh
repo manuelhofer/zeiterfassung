@@ -7,6 +7,8 @@
 #  Aufruf:
 #      sudo ./scripts/terminal/selbsttest.sh [antwortdatei]
 #      sudo ./scripts/terminal/selbsttest.sh --ohne-scan   # nichts abfragen
+#      --vor-kopplung: fehlende Kopplung und noch nicht gestarteten Kiosk zulassen;
+#                     nur fuer die technische Pruefung vor dem ersten Start.
 #
 #  Zweck:
 #      Vor dem Verlassen des Geraets wissen, ob es einsatzbereit ist. Das
@@ -46,11 +48,13 @@ RFID_VARIANTE="usb"
 RFID_WS_URL="ws://127.0.0.1:8765"
 OFFLINE_DB_NAME="zeiterfassung_offline"
 
+VOR_KOPPLUNG="nein"
 OHNE_SCAN="nein"
 ARGUMENTE=()
 for arg in "$@"; do
     case "$arg" in
         --ohne-scan) OHNE_SCAN="ja" ;;
+        --vor-kopplung) VOR_KOPPLUNG="ja" ;;
         *)           ARGUMENTE+=("$arg") ;;
     esac
 done
@@ -138,6 +142,8 @@ GEKOPPELT="nein"
 if [ -f "$KONFIG" ]; then
     GEKOPPELT="ja"
     melde_ok "Geraet ist gekoppelt (config.local.php vorhanden)"
+elif [ "$VOR_KOPPLUNG" = "ja" ]; then
+    melde_frei "Kopplung folgt nach der Installation" "Server-Adresse und Code auf der Einrichtungsseite eingeben."
 else
     melde_fehlt "Geraet ist noch nicht gekoppelt" \
         "Das ist kein Fehler, wenn es gerade erst aufgesetzt wurde: Am Bildschirm erscheint die Einrichtungsseite. Kopplungscode im Backend erzeugen."
@@ -259,6 +265,8 @@ if [ -d /run/systemd/system ]; then
         melde_ok "Kiosk startet automatisch"
         if systemctl is-active zeiterfassung-kiosk.service >/dev/null 2>&1; then
             melde_ok "Kiosk laeuft gerade"
+        elif [ "$VOR_KOPPLUNG" = "ja" ]; then
+            melde_frei "Kiosk wird nach der Installationspruefung gestartet"
         else
             melde_fehlt "Kiosk laeuft nicht" "journalctl -u zeiterfassung-kiosk -n 50"
         fi
@@ -369,7 +377,11 @@ echo "  nicht geprueft: $UEBERSPRUNGEN"
 echo
 
 if [ "$FEHLT" -eq 0 ]; then
-    echo "  Das Geraet ist einsatzbereit."
+    if [ "$VOR_KOPPLUNG" = "ja" ]; then
+        echo "  Technische Vorbereitung geprueft; Kopplung und Geraetetest stehen noch aus."
+    else
+        echo "  Das Geraet ist einsatzbereit."
+    fi
     if [ "$UEBERSPRUNGEN" -gt 0 ]; then
         echo "  ($UEBERSPRUNGEN Punkt(e) wurden nicht geprueft - siehe oben.)"
     fi

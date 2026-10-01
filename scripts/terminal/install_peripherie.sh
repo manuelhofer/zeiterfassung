@@ -654,4 +654,6 @@ echo "Naechster Schritt:  sudo $SKRIPTDIR/selbsttest.sh"
 echo "Protokoll:          $LOGDATEI"
 echo
 
+# Der gemeinsame Installer darf nach fehlgeschlagener Pruefung nicht weiterlaufen.
+[ "$ERGEBNIS_FEHLT" -eq 0 ] || exit 1
 exit 0

@@ -18,6 +18,79 @@ legacy_zip_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-01-05 gemeinsamer-terminal-installer
+
+### EINGELESEN
+CLAUDE.md, CHATSTART.md, Arbeitsregeln, Status-Snapshot, Installationsanleitung,
+Terminal-Installationsspezifikation, Wartungscheckliste, vorhandene Terminal-
+Installationsskripte und Selbsttest. Git-Verlauf und gezielte History-Suche:
+Die Einzelstufen sind vorhanden, ein eigenständig herunterladbarer gemeinsamer
+Einstieg fehlt. Benutzerauftrag: ein Skript von Git holen und auf dem Terminal
+starten; Internet bei der Erstinstallation ist akzeptiert. Veröffentlichung
+im laufenden Auftrag bereits ausdrücklich freigegeben.
+
+### DATEIEN
+- scripts/terminal/installieren.sh
+- scripts/terminal/install_terminal.sh
+- scripts/terminal/install_kiosk.sh
+- scripts/terminal/install_peripherie.sh
+- scripts/terminal/selbsttest.sh
+- scripts/tests/terminal_installer.py
+- README.md
+- docs/installationsanleitung.md
+- docs/spezifikation_terminal_installation.md
+- docs/wartungscheckliste.md
+- docs/STATUS_SNAPSHOT.md
+- docs/archiv/DEV_PROMPT_HISTORY.md
+
+### AKZEPTANZKRITERIUM
+Auf einem frischen Terminal führt ein Aufruf nach der Hardwareauswahl bis zur
+Kopplungsseite, während ein fehlgeschlagener Teilschritt den Ablauf mit Fehlerstatus
+stoppt und eine bestehende Installation unangetastet bleibt.
+
+### DONE
+Zielbild vor Implementierung ergänzt. Neuer Einzeldatei-Einstieg holt die
+bestehende Paketfamilienlogik und Git, klont `main` und führt Grundsystem,
+Kiosk, Peripherie und technische Vorprüfung aus; anschließend Kioskstart.
+Hardwareauswahl für USB-Tastaturleser, serielle Bridge oder kein RFID sowie
+Layout/Drehung; Standardlauf ohne Fragen, Korrektur über `--hardware`.
+Drehung wählt X11, serieller Leser aktiviert kein unnötiges SPI.
+Antworten atomar und root-exklusiv gespeichert; Shell-Eingaben validiert und
+mit printf %q geschrieben. Wiederanlauf nutzt vorhandenen Code, sperrt parallele
+Läufe und überschreibt weder gekoppelte Installationen noch fremde Zielordner.
+Kein Backend-Paketmirror, keine zusätzlichen Kopplungsparameter.
+
+Gefundene Fehler im bisherigen Ablauf: Alle drei Teilinstaller lieferten selbst
+bei fehlgeschlagenen Ergebnisprüfungen Status 0; sie liefern jetzt Status 1.
+Der Selbsttest unterschied nicht zwischen ungekoppeltem Neugerät und fertigem
+Terminal. `--vor-kopplung` erlaubt nur die erwarteten ausstehenden Schritte
+und behauptet ausdrücklich noch keine Einsatzbereitschaft. Normaler Selbsttest
+verlangt weiterhin Kopplung und laufenden Kiosk.
+Eigener Entwurfsfehler vor Abschluss korrigiert: Die zum Speichern der Antworten
+verwendete umask 077 darf nicht in die Systeminstallation weitergereicht werden;
+vor den Installationsstufen gilt wieder 022, im Test mitgeprüft.
+
+### TEST
+18 isolierte Python-/Bash-Prüfungen bestanden: Reihenfolge, sichere Antwortrechte,
+Abbruch jeder Phase, Download-/Git-Ausfall, Wiederanlauf ohne erneuten Download,
+Bestandsschutz einschließlich gekoppeltem Gerät und Symlink, Root-Prüfung,
+fehlende interaktive Eingabe, Hilfe/Fehleingaben, Kioskstartfehler,
+RC522-Abweisung, serielle Auswahl mit Drehung, Hardwarekorrektur ohne Dateiedit,
+Shellcode-Abweisung, Vor-Kopplungsmodus, normale Kopplungspflicht, DB-Fehler
+und Rückgabevertrag der bestehenden Teilinstaller.
+Tests verwenden ausschließlich temporäre Pfade und kontrollierte Attrappen
+für Downloads, Systemdienste, Paketstufen und DB-Antworten; keine echte DB gelesen.
+`bash -n` für alle fünf geänderten Shellskripte und `git diff --check` bestanden.
+Kein PHP geändert. Native Installationsprüfung hier nicht durchgeführt:
+Docker-Daemon für den aktuellen Benutzer nicht zugänglich (permission denied),
+kein angeschlossenes Terminal mit Grafik/Leser. Kein produktives System verändert.
+
+### NEXT
+Auf frischem Debian-/Raspberry-Pi-OS-Testgerät den veröffentlichten Downloadweg,
+Paketinstallation, Kopplung, Autostart nach Neustart, Bildschirm/Touch und echte
+Scans abnehmen. Direktes RC522/SPI bleibt ohne passenden Treiber offen.
+
+
 ## P-2026-10-01-04 main-veroeffentlichung-dokumentiert
 
 ### EINGELESEN

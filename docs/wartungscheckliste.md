@@ -127,6 +127,12 @@ Nach Änderungen am Terminal:
 
 Nach Änderungen an den Installationsskripten (`scripts/terminal/`):
 
+- `python3 scripts/tests/terminal_installer.py` prüft den gemeinsamen Einstieg
+  isoliert ohne echte Paketinstallation, Dienste oder Datenbanken; dazu gehören
+  Fehlerabbruch, Wiederanlauf, Bestandsschutz und der Selbsttest vor der Kopplung.
+- Den gemeinsamen Einstieg zusätzlich auf einem frischen Testgerät/VM mit systemd
+  ausführen, koppeln und Bildausgabe, Touch sowie echte Scans prüfen.
+
 - Debian-12-Container mit systemd starten, die vier Skripte der Reihe nach
   laufen lassen, jedes ein zweites Mal (Idempotenz)
 - `selbsttest.sh --ohne-scan` – der Rückgabewert muss zum Ergebnis passen

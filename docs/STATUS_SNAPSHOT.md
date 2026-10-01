@@ -18,6 +18,14 @@ nichts.
 
 ## Nächster Schritt (konkret)
 
+**Gemeinsamen Terminal-Installer am Gerät abnehmen** (01.10.2026): Ein Download
+und ein Start verbinden Grundsystem, Kiosk, Peripherie und technische Vorprüfung;
+Anleitung in [installationsanleitung.md](installationsanleitung.md#7-terminal-installation-optional).
+Abbruch, Wiederanlauf und Bestandsschutz sind isoliert geprüft; native
+Paketinstallation, Bildausgabe, Touch und echte Scans bleiben offen. USB im
+Tastaturmodus und serielle Leser sind vorgesehen, direktes RC522/SPI braucht
+weiterhin einen passenden Treiber. Internet ist zur Erstinstallation nötig.
+
 **Bedienprüfung abgeschlossen** (01.10.2026): Die Grundabläufe sind nutzbar,
 die Verwaltung bleibt zu technisch; konkrete Befunde, Prüfgrenzen und
 vorgeschlagene Folgepatches stehen in
