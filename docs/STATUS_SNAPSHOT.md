@@ -18,6 +18,14 @@ nichts.
 
 ## Nächster Schritt (konkret)
 
+**Bedienprüfung abgeschlossen** (01.10.2026): Die Grundabläufe sind nutzbar,
+die Verwaltung bleibt zu technisch; konkrete Befunde, Prüfgrenzen und
+vorgeschlagene Folgepatches stehen in
+[bedienbarkeitspruefung.md](bedienbarkeitspruefung.md).
+Zuerst empfohlen: mobile Tabellen (B-107), sichtbarer Zugang zu
+Kurzarbeitsplänen (B-108) sowie eindeutige Terminal- und Auftragsstatusangaben;
+weitere Vereinfachungen sind dokumentierte Vorschläge, noch nicht umgesetzt.
+
 **Backup und Updates auf den Testgeräten abnehmen** (30.09.2026):
 Bedienung und automatische Vorbereitung sind umgesetzt: Die normale
 Installation richtet Dienst und Sicherungszugriff ein, gekoppelte Terminals
@@ -76,19 +84,27 @@ der Backend-Hash), voller Umfang bis Monatsübersicht und PDF, **Genehmigen
 bleibt in der Zeiterfassung**, auf dem Handy zuerst eine installierbare
 Webseite (die Android-APK kommt später).
 
-**Kein offener Bug – der nächste Schritt daneben ist eine Entscheidung, keine
-Fehlersuche.** B-106 ist erledigt (P-2026-08-17-33 offline, -34 online). Ohne
-Gerät machbar ist der Durchklick der Terminal-Abläufe im Browser (siehe unten);
-alles andere wartet auf den Gerätetest oder auf einen Auftrag.
+B-106 ist erledigt (P-2026-08-17-33 offline, -34 online). Kommen, Gehen und
+Auftragsstart/-stopp wurden nun im Browser mit synthetischen Daten geprüft;
+die Abnahme am tatsächlichen Terminalgerät bleibt offen.
 
 ## Offene Bugs
 
-Keine.
+- **B-107 Mobile Tabellen** – Monatsübersicht und Konfiguration verbreitern
+  bei 390 Pixeln die gesamte Seite statt nur einen Tabellenbereich
+  ([Befund UX-02](bedienbarkeitspruefung.md#ux-02--hoch--einige-handyansichten-schieben-die-ganze-seite-seitlich)).
+- **B-108 Kurzarbeitsplanung nicht auffindbar** – Liste und Formular sind
+  vorhanden, aber außerhalb des Moduls nicht verlinkt
+  ([Befund UX-07](bedienbarkeitspruefung.md#ux-07--mittel--kurzarbeitspläne-haben-keinen-sichtbaren-einstieg)).
 
 ## Offene Tasks
 
 Ein Satz je Task – die Begründung steht im Verlauf, nicht hier.
 
+- **T-174 Bedienbarkeit** – Weitere einzeln zugeschnittene Verbesserungen
+  anhand der [Bedienprüfung](bedienbarkeitspruefung.md) festlegen; insbesondere
+  Verwaltungsstart, Urlaubssalden, Terminal-/Auftragsstatus und automatische
+  Vorbereitung des Portal-Zeitplans sind Vorschläge, keine bereits geänderten Fachregeln.
 - **Gerätetest am Terminal** – Kopplung und Skripte sind fertig und im Container
   geprüft, das Gerät ist frühestens ab ca. Mitte September verfügbar; Protokoll
   und Stufenplan in
@@ -119,9 +135,10 @@ Schritt ebenfalls. Was daraus offen blieb:
   wenn der Praxis-Test zeigt, dass sie am Gerät gebraucht werden.
 - **Jahreswechsel beobachten:** Beim ersten echten Jahreswechsel prüfen, ob die
   festgeschriebenen Urlaubssalden plausibel bleiben (B-080).
-- **Terminal im Browser:** „Gehen" und „Auftrag starten/stoppen" sind am Gerät
-  nie durchgeklickt worden; „Kommen" offline samt Wiederanlauf ist es
-  (eingegrenzt in P-2026-08-16-17, offen aus P-2026-08-08-02).
+- **Terminal am Gerät:** Kommen/Gehen und Auftrag starten/stoppen sind online
+  im Browser mit synthetischen Daten geprüft (P-2026-10-01-01); echte
+  Leser-/Touchbedienung bleibt abzunehmen, Offline-Kommen samt Wiederanlauf
+  wurde bereits eingegrenzt in P-2026-08-16-17 geprüft.
 - Praxis-Test: Bugs und Anomalien sammeln, als Micro-Patches beheben.
 - Nur bei Bedarf: Scan-Flow/UX im Auftragsmodul verfeinern, Stop-Detailmaske
   (Fallback) am Terminal vereinfachen.

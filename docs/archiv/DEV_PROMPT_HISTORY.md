@@ -18,6 +18,61 @@ legacy_zip_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-01-01 bedienbarkeitspruefung-dokumentiert
+
+### EINGELESEN
+CLAUDE.md, CHATSTART.md, Arbeitsregeln, Status-Snapshot, gezielte Fachregeln
+und Installations-/Administratorhandbücher; Navigation, Ansichten und
+zugehörige Controller/Services des aktuellen Stands 83290ab.
+Duplicate-Check im Git-Verlauf und gezielt auf bestehende Befunde/IDs.
+
+### DATEIEN
+- docs/bedienbarkeitspruefung.md
+- docs/STATUS_SNAPSHOT.md
+- docs/archiv/DEV_PROMPT_HISTORY.md
+
+### AKZEPTANZKRITERIUM
+Für die Hauptbereiche von Backend und Terminal liegt eine nachvollziehbare
+Bedienprüfung mit konkreten Beobachtungen, priorisierten Verbesserungsvorschlägen
+und ausdrücklich benannten Grenzen der tatsächlich durchgeführten Tests vor.
+
+### DONE
+Projektweite Bedienprüfung mit zwei Benutzerarten und künstlichen Daten
+dokumentiert; Stärken, zwölf Befundgruppen und Vorschläge für einzelne
+Folgepatches festgehalten. B-107 (mobile Tabellen) und B-108 (fehlender
+Menüweg zur Kurzarbeitsplanung) aufgenommen, weitere Vorschläge unter T-174
+verlinkt. Keine Programm-, Rechte- oder Berechnungsänderungen.
+
+### TEST
+Isolierte MariaDB und vier lokale PHP-Instanzen; keine echten Personendaten
+verwendet. Über 30 Backendansichten sowie Terminal/Erststart/Kopplung geöffnet.
+Als normaler Mitarbeiter und Chef angemeldet, ausgewählte Backendseiten bei
+390 Pixeln geprüft. Terminal online: RFID-Testcode → Kommen → erneute
+Anmeldung → Auftrag starten → erneute Anmeldung → Auftrag stoppen → erneute
+Anmeldung → Gehen; Rückmeldungen und Auftrag im Backend bestätigt.
+Urlaub: falscher Zeitraum abgewiesen und Eingaben erhalten, korrigierter
+Fünftagesantrag gespeichert und in der Genehmigungsansicht gefunden.
+Genehmigung am Bestätigungsdialog wegen Browsersteuerungsstörung nicht
+abgeschlossen. Terminal-Urlaubsassistent bis zum dritten Schritt angesehen,
+ohne zusätzlichen Antrag. Keine PHP-Warnungen, Deprecations oder Fatal Errors
+in den HTTP-Testlogs gefunden. Nur Markdown geändert; PHP-Lint oder erneuter
+Wartungsintegrationstest wären dafür nicht aussagekräftig.
+
+Prüfannahmen korrigiert: Die gültige Urlaubsvorschau funktioniert nach ihrer
+verzögerten Navigation; sie wurde nicht als defekt eingestuft. Neue Mitarbeiter
+bekommen nicht alle Rechtefelder gleichzeitig angezeigt. Ein Direktaufruf
+der Auftragsdetails mit falschem Parameter war ein Prüffehler; der tatsächliche
+Link mit Auftragscode funktionierte. Fehlender Wartungsdienst im absichtlich
+unvollständigen Prüflabor ist kein neuer Produktfehler. Eine angeforderte
+kleinere Terminalauflösung wurde im Browser nicht angewendet; bewertet wurde
+nur die tatsächlich beobachtete Auflösung von 1280 × 720.
+
+### NEXT
+B-107/B-108 und die weiteren dokumentierten Bedienhindernisse in getrennten
+Patches bearbeiten; fachliche Bedeutung der Statusaktionen vor Änderungen
+festlegen. Reale Leser-/Touchbedienung, Portal über HTTPS, native Wartungs-
+und Wiederherstellungsabnahme bleiben offen. Kein Push.
+
 ## P-2026-09-30-02 wartung-ohne-zusaetzliche-einrichtung
 
 ### EINGELESEN
