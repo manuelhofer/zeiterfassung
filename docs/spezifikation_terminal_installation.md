@@ -16,8 +16,8 @@ Linux-Gerät genügt ein von GitHub heruntergeladenes Skript
 `scripts/terminal/installieren.sh`; Internet ist bei der Erstinstallation nötig.
 Der Einstieg holt `main`, führt die vorhandenen Installationsstufen aus und
 startet nach einer technischen Prüfung den Kiosk zur gewöhnlichen Kopplung.
-USB-Tastaturleser, serielle Bridge und kein RFID sind auswählbar; direktes
-RC522/SPI bleibt ohne passenden Treiber ausdrücklich ausgeschlossen.
+USB-Tastaturleser, serielle Bridge, direkter RC522/SPI und kein RFID sind auswählbar;
+RC522 wurde in P-2026-10-01-06 ergänzt (Abschnitt 1b).
 Bildschirmdrehung wählt automatisch X11. Eine lokale Antwortdatei muss der
 Benutzer nicht bearbeiten. Bestehende konfigurierte Installationen werden
 abgewiesen; fehlgeschlagene Erstinstallationen können fortgesetzt werden.
@@ -52,6 +52,24 @@ vor jedem Update gesichert. Betrieb und Wiederherstellung stehen in
 Ziel der Geräteabnahme: Das Gerät startet von selbst in die Terminal-Oberfläche,
 RFID- und Barcode-Leser liefern korrekte Codes und der Touchscreen ist bedienbar.
 Diese Hardwareprüfung steht für den gemeinsamen Einstieg noch aus.
+
+## 1b. Direkter RC522 am Linux-SPI (P-2026-10-01-06)
+
+Ziel: Die vorhandene lokale WebSocket-Bridge erhält einen direkten RC522-Leser
+über Linux `spidev`, ohne Abhängigkeit von einem bestimmten GPIO-Python-Paket.
+Die Installation bietet RC522 an, erkennt bekannte Raspberry-Pi-Platinen und
+zeigt vor der Einrichtung die verbindliche Pinbelegung samt 3,3-V-Hinweis.
+RST wird fest auf 3,3 V gelegt, Reset erfolgt per SPI; IRQ bleibt unbeschaltet.
+Andere Linux-Geräte können einen bereits eingerichteten SPI-Anschluss nutzen,
+benötigen aber die Pinzuordnung ihres Herstellers; ohne SPI ist ein geeigneter
+Adapter nötig. Unbekannte Pinnummern werden niemals erfunden.
+SPI-Aktivierung mit notwendigem Neustart wird als Zwischenstand behandelt;
+der erneute Installer-Aufruf übernimmt die gespeicherte Auswahl.
+
+**Akzeptanzkriterium:** Bei Auswahl RC522 zeigt der Installer die passende
+Anschlussbelegung, richtet einen Leser mit überprüfbarem SPI-Zugriff und
+WebSocket-Ausgabe ein und meldet fehlende Hardware oder nötigen Neustart,
+während USB- und serielle Leser ihre bisherige Funktion behalten.
 
 ## 2. Aufteilung: Skript und Kopplung
 
@@ -563,11 +581,13 @@ Braucht keine Treiber; der Leser tippt wie eine Tastatur. Das Skript setzt
 einen Scan-Test an.
 
 ### 6.2 RFID – RC522 über SPI
-SPI aktivieren (Boot-Konfiguration, danach Neustart), Python-Abhängigkeiten
-installieren, `docs/terminal/rfid_ws.py` und `rfid-ws.service` einrichten,
-`rfid_ws.enabled = true` in `config/geraet.local.php` setzen. Die Anleitung dazu liegt bereits in
-`docs/terminal/rfid-ws_rollout.md` – das Skript automatisiert genau diese
-Schritte.
+
+`RFID_VARIANTE="rc522"`, `RFID_GERAET="/dev/spidev0.0"`; der gemeinsame Installer
+fragt keine Dateiedits ab. Die Bridge erhält den direkten Leseweg `rc522.py`
+und die Python-Abhängigkeit `spidev`. Exakte Verdrahtung, Plattformgrenzen,
+UID-Format und Prüfumfang: [RC522-Anschlussplan](terminal/rc522_anschluss.md).
+Ein nötiger SPI-Neustart liefert Status 20 statt Erfolg, hält den Kiosk zurück
+und wird durch erneuten Aufruf mit gespeicherter Auswahl fortgesetzt.
 
 ### 6.3 Barcode-Scanner – der unterschätzte Teil
 Der Scanner braucht **keine Treiber**, er tippt wie eine Tastatur. Genau darin

@@ -23,8 +23,11 @@ und ein Start verbinden Grundsystem, Kiosk, Peripherie und technische Vorprüfun
 Anleitung in [installationsanleitung.md](installationsanleitung.md#7-terminal-installation-optional).
 Abbruch, Wiederanlauf und Bestandsschutz sind isoliert geprüft; native
 Paketinstallation, Bildausgabe, Touch und echte Scans bleiben offen. USB im
-Tastaturmodus und serielle Leser sind vorgesehen, direktes RC522/SPI braucht
-weiterhin einen passenden Treiber. Internet ist zur Erstinstallation nötig.
+Tastaturmodus, serielle Leser und direkter RC522 über Linux-SPI sind umgesetzt;
+[Pinplan und Plattformgrenzen](terminal/rc522_anschluss.md) beachten. Der Installer
+zeigt für bekannte Pi-Modelle die konkreten Pins; andere Platinen benötigen ihren
+Hersteller-Pinplan. RC522-Protokoll und WebSocket sind mit synthetischen Daten
+geprüft, tatsächliche Hardware bleibt abzunehmen. Internet ist zur Erstinstallation nötig.
 
 **Bedienprüfung abgeschlossen** (01.10.2026): Die Grundabläufe sind nutzbar,
 die Verwaltung bleibt zu technisch; konkrete Befunde, Prüfgrenzen und

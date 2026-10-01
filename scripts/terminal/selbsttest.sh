@@ -284,7 +284,7 @@ case "$RFID_VARIANTE" in
     keine)
         melde_frei "Kein RFID an diesem Geraet" "Anmeldung ueber Personalnummer."
         ;;
-    bridge)
+    bridge|rc522)
         if [ -d /run/systemd/system ]; then
             if systemctl is-active rfid-ws.service >/dev/null 2>&1; then
                 melde_ok "RFID-Bridge laeuft"
@@ -293,6 +293,18 @@ case "$RFID_VARIANTE" in
             fi
         else
             melde_frei "RFID-Bridge nicht geprueft" "systemd laeuft hier nicht."
+        fi
+
+        # Die neue Bridge bindet erst nach erfolgreichem Oeffnen des Lesers.
+        # Alte serielle Installationen bleiben beim bisherigen Port-Test.
+        BRIDGE_PY="${RFID_WS_VERZEICHNIS:-/opt/rfid-ws}/rfid_ws.py"
+        BRIDGE_PYTHON="${RFID_WS_VERZEICHNIS:-/opt/rfid-ws}/venv/bin/python"
+        if [ "$RFID_VARIANTE" = rc522 ]; then
+            if "$BRIDGE_PYTHON" "$BRIDGE_PY" --bridge-test; then
+                melde_ok 'RC522-Bridge meldet einen geoeffneten Leser'
+            else
+                melde_fehlt 'RC522-Bridge nicht bereit' 'SPI, Anschlussplan und journalctl -u rfid-ws pruefen.'
+            fi
         fi
 
         # Port pruefen - ohne ss/netstat notfalls mit Bordmitteln.

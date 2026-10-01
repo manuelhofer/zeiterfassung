@@ -103,8 +103,12 @@ sudo bash terminal-installieren.sh --standard
 ```
 
 USB bedeutet hier ausdrücklich Tastaturmodus; serielle USB-Leser benötigen die
-Auswahl „serieller Leser“. **RC522 direkt an SPI ist noch nicht unterstützt**;
-der Installer bricht bei dieser Auswahl vor Änderungen an Paketen und Diensten ab.
+Auswahl „serieller Leser“. Für **RC522 direkt am SPI** Auswahl 4 verwenden.
+`bash terminal-installieren.sh --anschluss` zeigt vorab ohne Änderungen den
+[Anschlussplan mit Pins und Signalnamen](terminal/rc522_anschluss.md).
+Bekannte Pi-Modelle werden erkannt; andere Platinen benötigen ihren Hersteller-
+Pinplan und einen vorhandenen Linux-SPI-Anschluss. Wenn der Installer für SPI
+einen Neustart meldet, danach denselben Befehl erneut starten; die Auswahl bleibt erhalten.
 
 Bei einem Fehler stoppt der Ablauf. Nach Beheben der Ursache denselben Befehl
 wiederholen: gespeicherte Hardwareauswahl und bereits heruntergeladene Dateien

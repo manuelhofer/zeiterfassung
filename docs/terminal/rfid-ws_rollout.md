@@ -2,7 +2,8 @@
 
 > **Der Normalweg ist seit P-2026-08-09-17 das Skript:**
 > `sudo ./scripts/terminal/install_peripherie.sh` mit `RFID_VARIANTE="bridge"`
-> in der Antwortdatei. Es legt Python-Umgebung, Dienstbenutzer, Dienst und
+> in der Antwortdatei (direkter SPI-Leser: `RFID_VARIANTE="rc522"` und
+> `RFID_GERAET="/dev/spidev0.0"`). Es legt Python-Umgebung, Dienstbenutzer, Dienst und
 > Konfiguration an und trägt `rfid_ws.enabled = true` ein.
 >
 > Diese Anleitung ist der **Weg von Hand** – für Fehlersuche und für Geräte, die
@@ -14,6 +15,12 @@
 > kopieren, trägt `SERIAL_PORT` und `BAUD` aus der Antwortdatei ein und startet
 > den Dienst nur, wenn der Anschluss existiert. Die Vorlagen in diesem
 > Verzeichnis bleiben als Ausgangspunkt bestehen.
+
+Für RC522 zuerst den [Anschlussplan](rc522_anschluss.md) lesen oder
+`bash terminal-installieren.sh --anschluss` auf dem Gerät ausführen.
+Die unten stehende manuelle Dienstvorlage startet standardmäßig den seriellen
+Leseweg; für RC522 setzt der Installer Dienstvariablen und installiert `rc522.py`
+sowie `spidev`. Die Bridge bindet erst nach erfolgreichem Öffnen des Lesers.
 
 ## Ziel
 - Ein lokaler Dienst liefert RFID-UIDs per WebSocket an den Browser.

@@ -3,25 +3,72 @@
 # Herunterladen, dann sudo bash installieren.sh (nicht als Pipe ausfuehren).
 set -Eeuo pipefail
 
+anschluss() {
+    MODELL=''
+    if [ -r /proc/device-tree/model ]; then
+        MODELL="$(tr -d '\0' </proc/device-tree/model)"
+    fi
+    PI_STANDARD=nein
+    case "$MODELL" in
+        'Raspberry Pi 1 Model A+'*|'Raspberry Pi 1 Model B+'*|\
+        'Raspberry Pi Model A Plus '*|'Raspberry Pi Model B Plus '*|\
+        'Raspberry Pi 2 Model '*|'Raspberry Pi 3 Model '*|'Raspberry Pi 4 Model '*|\
+        'Raspberry Pi 5 Model '*|'Raspberry Pi Zero '*|'Raspberry Pi Zero W '*|\
+        'Raspberry Pi Zero 2 '*|'Raspberry Pi 400 '*) PI_STANDARD=ja ;;
+    esac
+    echo "RC522-Anschluss - erkannt: ${MODELL:-kein bekanntes Raspberry-Pi-Pinprofil}"
+    echo 'Vor dem Verkabeln herunterfahren, Netzteil abziehen! Nur 3,3 V, niemals 5 V.'
+    echo 'Auf die Beschriftung am RC522 achten, nicht auf die Reihenfolge der Stifte.'
+    if [ "$PI_STANDARD" = ja ]; then
+        cat <<'PINS'
+RC522-Pin       Raspberry Pi: physischer Pin     Signal
+3.3V / VCC      1                               3,3 V
+GND             6                               Masse
+SDA / SS        24                              GPIO8 / SPI0 CE0
+SCK             23                              GPIO11 / SPI0 SCLK
+MOSI            19                              GPIO10 / SPI0 MOSI
+MISO            21                              GPIO9 / SPI0 MISO
+RST             17                              3,3 V (Reset erfolgt per SPI)
+IRQ             nicht anschliessen
+
+Das sind Steckleisten-Pinnummern, keine GPIO-Nummern! Pin 1 anhand der
+Platinenbeschriftung bestimmen. SPI-Anschluss: /dev/spidev0.0.
+SDA bezeichnet hier SPI-Chip-Select, nicht den I2C-SDA-Anschluss.
+PINS
+    else
+        cat <<'PINS'
+RC522 -> vorhandener 3,3-V-SPI-Anschluss laut Hersteller-Pinplan:
+SDA/SS -> CS, SCK -> SCLK, MOSI -> MOSI, MISO -> MISO,
+VCC und RST -> 3,3 V, GND -> Masse, IRQ bleibt frei.
+Fuer diese Platine sind keine physischen Pinnummern hinterlegt.
+Ohne Hersteller-Pinplan nicht verkabeln. Ein PC ohne SPI braucht einen
+geeigneten Adapter; ein gewoehnliches USB-Kabel oder USB-UART reicht nicht.
+Alternativ: Mikrocontroller liest den RC522 und sendet UID-Zeilen seriell.
+PINS
+    fi
+}
+
 hilfe() {
     cat <<'TEXT'
 Zeiterfassung - Terminal installieren
   sudo bash installieren.sh             Hardware einmal auswaehlen
   sudo bash installieren.sh --standard  USB-Tastaturleser, Deutsch, keine Drehung
   sudo bash installieren.sh --hardware  Hardwareauswahl vor der Kopplung korrigieren
+  bash installieren.sh --anschluss      RC522-Verkabelung vorab anzeigen
 
 Nur auf einem dedizierten Terminal ausfuehren: richtet Webserver, Datenbank,
 Vollbildbrowser und Autostart ein und ersetzt die grafische Anmeldung.
 Internet und ein Linux-System mit systemd sind bei der Installation erforderlich.
 Vorhandene konfigurierte Installationen werden nicht angefasst.
 Nach einem Fehler denselben Aufruf wiederholen; die Hardwareauswahl bleibt erhalten.
-Direkte RC522/SPI-Leser brauchen einen eigenen Treiber und werden nicht eingerichtet.
+RC522 direkt: Linux-SPI erforderlich. --anschluss zeigt Belegung und Grenzen.
 TEXT
 }
 STANDARD=nein
 HARDWARE_NEU=nein
 case "${1:-}" in
     --help|-h) hilfe; exit 0 ;;
+    --anschluss) anschluss; exit 0 ;;
     --standard) STANDARD=ja ;;
     --hardware) HARDWARE_NEU=ja ;;
     '') ;;
@@ -95,13 +142,28 @@ else
                frage RFID_GERAET 'Serieller Anschluss (z. B. /dev/ttyUSB0)'
                frage RFID_BAUD 'Baudrate laut Leser-Handbuch' ;;
             3) RFID_VARIANTE=keine ;;
-            4) fehler 'RC522 direkt an SPI wird noch nicht unterstuetzt. Keine Systempakete oder Dienste geaendert.' ;;
+            4) RFID_VARIANTE=rc522
+               RFID_GERAET=/dev/spidev0.0
+               anschluss
+               if [ "$PI_STANDARD" = ja ]; then
+                   SPI_AKTIVIEREN=ja
+               else
+                   frage RFID_GERAET 'Bereits eingerichteter Linux-SPI-Anschluss'
+                   [ -c "$RFID_GERAET" ] || fehler 'Kein nutzbarer SPI-Anschluss. Hersteller-Pinprofil/Adapter wird benoetigt; noch keine Systeminstallation ausgefuehrt.'
+               fi
+               VERKABELT=nein
+               frage VERKABELT 'Bereits im stromlosen Zustand exakt so angeschlossen? (ja/nein)'
+               [ "$VERKABELT" = ja ] || fehler 'Zuerst herunterfahren und stromlos verkabeln. Danach den Installer erneut starten.' ;;
             *) fehler 'Bitte Lesertyp 1, 2, 3 oder 4 waehlen und erneut starten.' ;;
         esac
         frage TASTATURLAYOUT 'Tastaturlayout des Scanners (de oder us)'
         frage BILDSCHIRM_DREHUNG 'Bildschirmdrehung (normal, links, rechts, kopf)'
     fi
     [[ "$RFID_GERAET" =~ ^/dev/[a-zA-Z0-9_./:-]+$ ]] || fehler 'Ungueltiger serieller Anschluss.'
+    if [ "$RFID_VARIANTE" = rc522 ]; then
+        [[ "$RFID_GERAET" =~ ^/dev/spidev[0-9]+\.[0-9]+$ ]] || fehler 'Ungueltiger SPI-Anschluss.'
+        anschluss > "$ZUSTAND/rc522-anschluss.txt"
+    fi
     [[ "$RFID_BAUD" =~ ^[1-9][0-9]{2,6}$ ]] || fehler 'Ungueltige Baudrate.'
     case "$TASTATURLAYOUT" in de|us) ;; *) fehler 'Tastaturlayout muss de oder us sein.' ;; esac
     case "$BILDSCHIRM_DREHUNG" in
@@ -164,7 +226,17 @@ done
 stufe() {
     echo
     echo "$1"
-    if ! bash "$STUFEN/$2" "$ANTWORTDATEI" </dev/null; then
+    local status=0
+    bash "$STUFEN/$2" "$ANTWORTDATEI" </dev/null || status=$?
+    if [ "$status" -eq 20 ]; then
+        # Vor der fertigen Leserpruefung noch keine Kopplungsseite anbieten.
+        systemctl disable --now zeiterfassung-kiosk.service || fehler 'Kiosk konnte fuer den Zwischenstart nicht angehalten werden.'
+        echo 'SPI ist vorbereitet, ein Neustart ist erforderlich.'
+        echo 'Jetzt: sudo reboot'
+        echo 'Danach denselben Installer erneut starten; die Auswahl bleibt gespeichert.'
+        exit 20
+    fi
+    if [ "$status" -ne 0 ]; then
         fehler "$1 fehlgeschlagen. Details oben und in /var/log/zeiterfassung-terminal-setup.log. Danach denselben Installer erneut starten."
     fi
 }

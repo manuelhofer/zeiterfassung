@@ -130,6 +130,12 @@ Nach Änderungen an den Installationsskripten (`scripts/terminal/`):
 - `python3 scripts/tests/terminal_installer.py` prüft den gemeinsamen Einstieg
   isoliert ohne echte Paketinstallation, Dienste oder Datenbanken; dazu gehören
   Fehlerabbruch, Wiederanlauf, Bestandsschutz und der Selbsttest vor der Kopplung.
+- `python3 scripts/tests/rfid_bridge.py` prüft RC522-Frames und den lokalen
+  WebSocket-Weg ohne Hardware/DB; benötigt das Python-Paket `websockets` und
+  Berechtigung zum Öffnen eines lokalen Ports.
+- Am RC522 zusätzlich: Pinplan stromlos umsetzen, SPI-Neustart/Wiederanlauf,
+  echter Scan mit führenden Nullen/langer UID, gehaltene Karte nur einmal,
+  Entfernen/Neuauflegen sowie Neustart nach falsch angeschlossenem Leser.
 - Den gemeinsamen Einstieg zusätzlich auf einem frischen Testgerät/VM mit systemd
   ausführen, koppeln und Bildausgabe, Touch sowie echte Scans prüfen.
 

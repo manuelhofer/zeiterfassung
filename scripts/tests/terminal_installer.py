@@ -30,6 +30,7 @@ class Installer(unittest.TestCase):
         source = source.replace('/opt/zeiterfassung', str(self.target))
         source = source.replace('/var/lib/zeiterfassung-terminal-installation', str(self.state))
         source = source.replace('/run/systemd/system', str(self.base))
+        source = source.replace('/proc/device-tree/model', str(self.base / 'model'))
         self.script = self.base / 'installieren.sh'
         self.script.write_text(source)
         self.fake('id', 'echo "${TEST_UID:-0}"')
@@ -58,6 +59,7 @@ set -eu
 name="$(basename "$0")"
 echo "$name $*" >> "$TEST_CALLS"
 [ "${TEST_FAIL:-}" != "$name" ] || exit 1
+if [ "${TEST_FAIL:-}" = neustart ] && [ "$name" = install_peripherie.sh ]; then exit 20; fi
 . "$1"
 [ "$ZIEL_VERZEICHNIS" = "$TEST_ROOT/opt/zeiterfassung" ]
 [ "$RFID_VARIANTE" != '' ]
@@ -168,12 +170,44 @@ echo "$name $*" >> "$TEST_CALLS"
         self.assertNotEqual(result.returncode, 0)
         self.assertIn('konnte nicht gestartet', result.stdout)
 
-    def test_spi_refused_before_system_changes(self):
-        result = self.run_installer(terminal_input='4\n')
+    def test_unknown_spi_without_interface_refused_before_system_changes(self):
+        result = self.run_installer(terminal_input='4\n/dev/spidev0.0\n')
         self.assertNotEqual(result.returncode, 0)
-        self.assertIn('RC522 direkt an SPI', result.stdout)
+        self.assertIn('Kein nutzbarer SPI-Anschluss', result.stdout)
         self.assertEqual(self.log(), '')
         self.assertFalse(self.target.exists())
+
+    def test_pi_rc522_pin_mapping_and_configuration(self):
+        (self.base / 'model').write_text('Raspberry Pi 5 Model B Rev 1.0\0')
+        result = self.run_installer(terminal_input='4\nja\nde\nnormal\n')
+        self.assertEqual(result.returncode, 0, result.stdout)
+        self.assertIn('GPIO8 / SPI0 CE0', result.stdout)
+        self.assertIn('17                              3,3 V', result.stdout)
+        answers = (self.state / 'terminal.conf').read_text()
+        self.assertIn('RFID_VARIANTE=rc522', answers)
+        self.assertIn('RFID_GERAET=/dev/spidev0.0', answers)
+        self.assertIn('SPI_AKTIVIEREN=ja', answers)
+        self.assertTrue((self.state / 'rc522-anschluss.txt').exists())
+
+    def test_reboot_pause_and_resume(self):
+        (self.base / 'model').write_text('Raspberry Pi 4 Model B Rev 1.5')
+        result = self.run_installer(fail='neustart', terminal_input='4\nja\nde\nnormal\n')
+        self.assertEqual(result.returncode, 20, result.stdout)
+        self.assertIn('sudo reboot', result.stdout)
+        self.assertIn('systemctl disable --now zeiterfassung-kiosk.service', self.log())
+        self.assertNotIn('selbsttest.sh', self.log())
+        self.calls.unlink()
+        self.assertEqual(self.run_installer().returncode, 0)
+        self.assertNotIn('git ', self.log())
+
+    def test_wiring_preview_needs_no_root_and_changes_nothing(self):
+        self.env['TEST_UID'] = '1000'
+        for model in ['Raspberry Pi Zero 2 W Rev 1.0', 'Raspberry Pi Model B Plus Rev 1.2']:
+            (self.base / 'model').write_text(model)
+            result = self.run_installer('--anschluss')
+            self.assertEqual(result.returncode, 0)
+            self.assertIn('GPIO8 / SPI0 CE0', result.stdout)
+            self.assertFalse(self.state.exists())
 
     def test_serial_rotation_and_answers_on_retry(self):
         result = self.run_installer(terminal_input='2\n/dev/serial/by-id/reader-1\n115200\nus\nlinks\n')

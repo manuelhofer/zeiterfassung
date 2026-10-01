@@ -2,7 +2,7 @@
 
 > **Auf einem Hallenterminal macht das seit P-2026-08-09-17 ein Skript:**
 > `scripts/terminal/install_peripherie.sh` (Stufe 5). Es setzt `RFID_VARIANTE`
-> aus der Antwortdatei um – `usb`, `bridge` oder `keine` – und schreibt das
+> aus der Antwortdatei um – `usb`, `bridge`, `rc522` oder `keine` – und schreibt das
 > Ergebnis nach `config/geraet.local.php`. Siehe
 > [Terminal-Installation](spezifikation_terminal_installation.md), Abschnitt 6.
 >
@@ -46,14 +46,15 @@
 
 ### Variante 2: Bridge mit WebSocket (serieller Leser, RC522)
 
-**Zur Bezeichnung:** Das mitgelieferte `docs/terminal/rfid_ws.py` liest einen
-**seriellen Anschluss** (`/dev/ttyUSB0`), nicht direkt den SPI-Bus. Für viele
-RC522-Aufbauten steht ein kleiner Mikrocontroller davor, der die UID seriell
-ausgibt – dafür passt es unverändert. Ein RC522, der **direkt** am SPI des
-Raspberry Pi hängt, braucht ein anderes Leseprogramm; die Bridge, der Dienst
-und die Terminal-Seite bleiben dieselben. `install_peripherie.sh` schaltet SPI
-auf einem Raspberry Pi ein (`dtparam=spi=on`), liefert aber ebenfalls nur das
-serielle Leseprogramm.
+Die Bridge in `docs/terminal/rfid_ws.py` unterstützt zwei Lesewege:
+`bridge` liest serielle UID-Zeilen, `rc522` liest über `rc522.py` direkt am
+Linux-SPI. Die WebSocket-Schnittstelle zur Terminalseite bleibt dieselbe.
+Für den direkten Anschluss führt der gemeinsame Installer durch die Auswahl
+und zeigt die Verdrahtung: [RC522-Anschlussplan](terminal/rc522_anschluss.md).
+Bei RC522 `RFID_GERAET="/dev/spidev0.0"` statt des seriellen Anschlusses verwenden;
+SPI-Gerät und Chip werden geprüft. Ältere Fassungen aktivierten zwar SPI, lieferten
+aber nur den seriellen Leseweg. Diese frühere Lücke ist jetzt im Code ergänzt;
+der Hardwaretest steht weiterhin aus.
 
 1) **Bridge-Dienst installieren**
    - Folge der Anleitung in `docs/terminal/rfid-ws_rollout.md`.

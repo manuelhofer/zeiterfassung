@@ -18,6 +18,91 @@ legacy_zip_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-01-06 rc522-spi-und-anschlussanleitung
+
+### EINGELESEN
+Arbeitsregeln, Status-Snapshot, Fachregeln Terminal/Offline, Terminal-Spezifikation,
+RFID-Setup, sämtliche Dateien unter docs/terminal und zugehörige Installations-
+und Browserdateien; Git-Historie zu docs/terminal und History P-2026-08-09-21.
+Duplicate-Check: Die WebSocket-Bridge ist vorhanden, ihr Leseprogramm war seriell;
+diese Lücke war bereits im August dokumentiert, widersprüchliche Spezifikations-
+abschnitte behaupteten dennoch einen fertigen SPI-Leseweg. Benutzer beauftragt
+den direkten RC522-Weg und eine hardwareabhängige verbindliche Pinanleitung.
+Register, UID-Kaskaden und Pinbelegung gegen NXP-/Raspberry-Pi-Primärquellen geprüft;
+Quellen stehen in docs/terminal/rc522_anschluss.md.
+
+### DATEIEN
+- docs/terminal/rc522.py
+- docs/terminal/rfid_ws.py
+- docs/terminal/rc522_anschluss.md
+- docs/terminal/rfid-ws_rollout.md
+- scripts/terminal/installieren.sh
+- scripts/terminal/install_peripherie.sh
+- scripts/terminal/selbsttest.sh
+- scripts/terminal/terminal.conf.example
+- scripts/tests/rfid_bridge.py
+- scripts/tests/terminal_installer.py
+- docs/installationsanleitung.md
+- docs/rfid_reader_setup.md
+- docs/spezifikation_terminal_installation.md
+- docs/wartungscheckliste.md
+- docs/STATUS_SNAPSHOT.md
+- docs/archiv/DEV_PROMPT_HISTORY.md
+
+### AKZEPTANZKRITERIUM
+Bei Auswahl RC522 zeigt der Installer die passende Anschlussbelegung, richtet
+einen Leser mit überprüfbarem SPI-Zugriff und WebSocket-Ausgabe ein und meldet
+fehlende Hardware oder nötigen Neustart, während USB- und serielle Leser ihre
+bisherige Funktion behalten.
+
+### DONE
+Zielbild vor Implementierung spezifiziert. Direkter Linux-spidev-Leseweg ergänzt,
+ohne plattformspezifische GPIO-Bibliothek: RST fest auf 3,3 V, SoftReset über SPI,
+IRQ frei. Vollständige 4-/7-/10-Byte-UIDs mit BCC-/CRC-Prüfung, begrenzte Wartezeiten,
+keine Kennung bei Kollision/fehlerhaftem Frame. Nur UID lesen, keine Kartendaten ändern.
+RC522-Ausgabe als Hex mit führenden Nullen, Entprellung bis Karte entfernt wurde;
+serielle Zeilen behalten ihr Format. Vorhandenes WebSocket-Protokoll unverändert.
+Die Bridge öffnet zuerst den Leser und beendet sich bei Leseausfall, damit kein
+verwaister Thread einen scheinbar funktionierenden WebSocket zurücklässt.
+
+Installer-Auswahl RC522 mit Modell-/Pinanzeige sowie --anschluss zur Vorabansicht
+ohne root. Bekannte Pi-Modelle nutzen konkrete physische Pins, andere Platinen
+den Herstellerplan und einen schon eingerichteten Linux-SPI-Anschluss. Kein
+Versprechen universeller Hardware-/Betriebssystemunterstützung; ein PC ohne SPI
+benötigt passende Zusatzhardware, deren Firmware nicht hier erfunden wird.
+Bootaktivierung in eigenem [all]-Abschnitt, nötiger Neustart als Status 20;
+Wiederanlauf übernimmt die Auswahl. udev-Regel für den ausgewählten Anschluss,
+Leserprobe unter Dienstbenutzer und zusätzlicher WebSocket-Selbsttest. Hardware-
+wechsel zurück zu USB/kein RFID hält einen zuvor angelegten Bridge-Dienst an.
+
+Eigene Entwurfsfehler vor Abschluss korrigiert: Kiosk war schon vor dem SPI-
+Neustart aktiviert und hätte vor abgeschlossener Leserprüfung zur Kopplung
+auffordern können; beim Zwischenstand wird er jetzt deaktiviert. Ein unter
+[pi4]/[none] vorhandener SPI-Eintrag darf nicht als allgemeine Aktivierung gelten.
+Fehlerhafte/abgeschnittene Kaskaden dürfen keine verkürzte Mitarbeiterkennung liefern.
+
+### TEST
+21 isolierte Installer-/Selbsttestprüfungen bestanden, ergänzt um erkannte Pi-
+Modelle, konkrete Pins, SPI-Auswahl, Neustartstatus und Wiederanlauf ohne Download.
+13 RFID-Prüfungen bestanden: simulierte Register/FIFO, bekannte CRC-Prüfsumme,
+UID-Längen und führende Nullen, fehlerhafte BCC/CRC und Kaskaden, keine Karte,
+Kollision, fehlender/abgezogener Chip, begrenzter Timeout, Entprellung, serielle
+Teilzeilen und unverändertes Format; Bootkonfiguration idempotent und auf passende
+Hardware begrenzt. Echte lokale WebSocket-Verbindung mit synthetischem Leser:
+CONNECTED, UID-Übertragung, keine Wiederholung einer gehaltenen Karte, Verbindung
+schließt bei simuliertem Leserausfall. Lokaler Socket-Test benötigte Ausführung
+außerhalb der Socket-Sandbox und bestand; keine Hardware/DB verwendet.
+Python-Syntax, bash -n der geänderten Shellskripte und git diff --check bestanden.
+Keine PHP-/SQL-Änderung. Keine native Paketinstallation und kein echter RC522-Scan;
+Chip-/GPIO-/Kernel-/Antenne-Abnahme am Gerät bleibt ausdrücklich offen.
+
+### NEXT
+Veröffentlichten Installer auf Testhardware verwenden, stromlos gemäß Pinplan
+verkabeln, SPI-Neustart, realen Scan, Entfernen/Neuauflegen und Kopplung prüfen.
+Weitere konkrete Platinen benötigen verifizierte Hersteller-Pinprofile; vorhandene
+serielle/USB-Wege bleiben dafür verfügbar.
+
+
 ## P-2026-10-01-05 gemeinsamer-terminal-installer
 
 ### EINGELESEN

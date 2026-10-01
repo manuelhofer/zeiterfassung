@@ -72,7 +72,8 @@ exec > >(tee -a "$LOGDATEI") 2>&1
 ZIEL_VERZEICHNIS="/opt/zeiterfassung"
 
 # usb    = Keyboard-Wedge (tippt wie eine Tastatur), keine Bridge
-# bridge = serieller Leser oder RC522 ueber einen lokalen WebSocket-Dienst
+# bridge = serieller Leser ueber einen lokalen WebSocket-Dienst
+# rc522  = direkt am Linux-SPI, RST fest an 3,3 V
 # keine  = kein RFID an diesem Geraet (Anmeldung ueber Personalnummer)
 RFID_VARIANTE="usb"
 
@@ -147,7 +148,7 @@ if [ ! -f "$GERAETE_DATEI" ]; then
 fi
 
 case "$RFID_VARIANTE" in
-    usb|bridge|keine) ;;
+    usb|bridge|rc522|keine) ;;
     *)
         warnung "RFID_VARIANTE='$RFID_VARIANTE' unbekannt - es gilt 'usb'."
         RFID_VARIANTE="usb"
@@ -214,6 +215,13 @@ fi
 schritt "3/6  RFID einrichten"
 # ---------------------------------------------------------------------------
 RFID_WS_AKTIV="false"
+# Bei korrigierter Hardwareauswahl darf der vorherige Bridge-Dienst nicht bleiben.
+if [ "$RFID_VARIANTE" = usb ] || [ "$RFID_VARIANTE" = keine ]; then
+    if [ -d /run/systemd/system ] && systemctl cat rfid-ws.service >/dev/null 2>&1; then
+        systemctl disable --now rfid-ws.service || exit 1
+    fi
+fi
+NEUSTART_NOETIG=nein
 
 case "$RFID_VARIANTE" in
     usb)
@@ -232,27 +240,31 @@ case "$RFID_VARIANTE" in
         RFID_WS_AKTIV="false"
         ;;
 
-    bridge)
-        echo "Serielle Bridge: lokaler Dienst liest den Leser und reicht die"
+    bridge|rc522)
+        echo "Lokale RFID-Bridge: lokaler Dienst liest den Leser und reicht die"
         echo "Kennung per WebSocket an den Browser weiter."
 
-        # --- SPI (nur Raspberry Pi, nur fuer RC522) ------------------------
-        if [ "$SPI_AKTIVIEREN" = "ja" ] || { [ "$SPI_AKTIVIEREN" = "auto" ] && [ "$IST_RASPBERRY" = "ja" ]; }; then
-            BOOTKONFIG=""
-            for kandidat in /boot/firmware/config.txt /boot/config.txt; do
-                [ -f "$kandidat" ] && { BOOTKONFIG="$kandidat"; break; }
-            done
-
-            if [ -n "$BOOTKONFIG" ]; then
-                if grep -qE '^\s*dtparam=spi=on' "$BOOTKONFIG"; then
-                    echo "SPI ist in $BOOTKONFIG bereits eingeschaltet."
-                else
-                    printf '\n# Zeiterfassung Stufe 5: SPI fuer den RC522-Leser\ndtparam=spi=on\n' >> "$BOOTKONFIG"
-                    echo "SPI in $BOOTKONFIG eingeschaltet."
-                    warnung "SPI wirkt erst nach einem Neustart. Danach Stufe 5 erneut laufen lassen."
+        if [ "$RFID_VARIANTE" = rc522 ]; then
+            [[ "$RFID_GERAET" =~ ^/dev/spidev[0-9]+\.[0-9]+$ ]] || {
+                echo 'FEHLER: RC522 braucht einen Anschluss /dev/spidevBUS.CS.'; exit 1;
+            }
+            if [ ! -c "$RFID_GERAET" ]; then
+                if [ "$IST_RASPBERRY" != ja ] || [ "$SPI_AKTIVIEREN" = nein ] || [ "$RFID_GERAET" != /dev/spidev0.0 ]; then
+                    echo "FEHLER: $RFID_GERAET fehlt. SPI laut Hersteller einrichten."
+                    exit 1
                 fi
-            else
-                warnung "Keine Boot-Konfiguration gefunden - SPI muss von Hand eingeschaltet werden."
+                BOOTKONFIG=""
+                for kandidat in /boot/firmware/config.txt /boot/config.txt; do
+                    [ -f "$kandidat" ] && { BOOTKONFIG="$kandidat"; break; }
+                done
+                [ -n "$BOOTKONFIG" ] || { echo 'FEHLER: Raspberry-Pi-Bootkonfiguration fehlt.'; exit 1; }
+                # Eigener [all]-Abschnitt: ein Eintrag unter [pi4] oder [none]
+                # ist auf einem anderen Pi kein Nachweis einer SPI-Aktivierung.
+                if ! grep -q '^# Zeiterfassung RC522 SPI0$' "$BOOTKONFIG"; then
+                    printf '\n[all]\n# Zeiterfassung RC522 SPI0\ndtparam=spi=on\n' >> "$BOOTKONFIG"
+                fi
+                NEUSTART_NOETIG=ja
+                echo 'SPI vorbereitet. Nach diesem Lauf neu starten und Installer wiederholen.'
             fi
         fi
 
@@ -263,13 +275,22 @@ case "$RFID_VARIANTE" in
             dnf)    PAKETE_PYTHON="python3 python3-virtualenv" ;;
             zypper) PAKETE_PYTHON="python3 python3-virtualenv" ;;
         esac
+        if [ "$RFID_VARIANTE" = rc522 ]; then
+            # spidev kann auf der Zielarchitektur aus Quelltext gebaut werden.
+            case "$FAMILIE" in
+                apt) PAKETE_PYTHON="$PAKETE_PYTHON python3-dev gcc" ;;
+                pacman) PAKETE_PYTHON="$PAKETE_PYTHON gcc" ;;
+                dnf) PAKETE_PYTHON="$PAKETE_PYTHON python3-devel gcc" ;;
+                zypper) PAKETE_PYTHON="$PAKETE_PYTHON python3-devel gcc" ;;
+            esac
+        fi
         for paket in $PAKETE_PYTHON; do
             paket_installieren "$paket" || warnung "Paket '$paket' nicht installierbar."
         done
 
         mkdir -p "$RFID_WS_VERZEICHNIS"
 
-        # Dienstbenutzer ohne Anmeldung. Der Dienst braucht nur den seriellen
+        # Dienstbenutzer ohne Anmeldung. Der Dienst braucht nur seinen Leser-
         # Anschluss - er hat mit dem Webserver nichts zu tun und laeuft
         # deshalb bewusst nicht als dessen Benutzer.
         if ! id "$RFID_WS_BENUTZER" >/dev/null 2>&1; then
@@ -282,8 +303,6 @@ case "$RFID_VARIANTE" in
         for gruppe in dialout uucp; do
             getent group "$gruppe" >/dev/null 2>&1 && usermod -aG "$gruppe" "$RFID_WS_BENUTZER" 2>/dev/null
         done
-        # RC522 haengt am SPI, nicht am seriellen Anschluss.
-        getent group spi >/dev/null 2>&1 && usermod -aG spi "$RFID_WS_BENUTZER" 2>/dev/null
 
         # --- Dienstprogramm ------------------------------------------------
         # Die Vorlage liegt im Repository; Anschluss und Baudrate kommen aus
@@ -294,7 +313,10 @@ case "$RFID_VARIANTE" in
         fi
 
         if [ -f "$QUELLE_PY" ]; then
-            cp "$QUELLE_PY" "$RFID_WS_VERZEICHNIS/rfid_ws.py"
+            cp "$QUELLE_PY" "$RFID_WS_VERZEICHNIS/rfid_ws.py" || exit 1
+            if [ "$RFID_VARIANTE" = rc522 ]; then
+                cp "$(dirname "$QUELLE_PY")/rc522.py" "$RFID_WS_VERZEICHNIS/rc522.py" || exit 1
+            fi
             # Anschluss, Baudrate und Port eintragen.
             sed -i \
                 -e "s|^SERIAL_PORT *=.*|SERIAL_PORT = \"$RFID_GERAET\"|" \
@@ -319,6 +341,19 @@ case "$RFID_VARIANTE" in
                 warnung "pyserial/websockets nicht installierbar - ohne Netz geht das nicht."
         fi
 
+        if [ "$RFID_VARIANTE" = rc522 ]; then
+            "$RFID_WS_VERZEICHNIS/venv/bin/pip" install --quiet 'spidev>=3.6,<4' || exit 1
+            # Nur der ausgewaehlte SPI-Anschluss, keine pauschalen GPIO-/root-Rechte.
+            getent group zeiterfassung-spi >/dev/null || groupadd --system zeiterfassung-spi
+            usermod -aG zeiterfassung-spi "$RFID_WS_BENUTZER" || exit 1
+            mkdir -p /etc/udev/rules.d
+            printf 'SUBSYSTEM=="spidev", KERNEL=="%s", GROUP="zeiterfassung-spi", MODE="0660"\n' \
+                "${RFID_GERAET##*/}" > /etc/udev/rules.d/70-zeiterfassung-rc522.rules
+            udevadm control --reload-rules || exit 1
+            udevadm trigger --action=change --subsystem-match=spidev --sysname-match="${RFID_GERAET##*/}" || exit 1
+            udevadm settle || exit 1
+        fi
+
         chown -R "$RFID_WS_BENUTZER":"$RFID_WS_BENUTZER" "$RFID_WS_VERZEICHNIS" 2>/dev/null
 
         # --- Dienst ---------------------------------------------------------
@@ -336,6 +371,9 @@ Type=simple
 User=$RFID_WS_BENUTZER
 Group=$RFID_WS_BENUTZER
 WorkingDirectory=$RFID_WS_VERZEICHNIS
+Environment=RFID_VARIANTE=$RFID_VARIANTE
+Environment=RFID_GERAET=$RFID_GERAET
+Environment=RFID_BAUD=$RFID_BAUD
 ExecStart=$RFID_WS_VERZEICHNIS/venv/bin/python $RFID_WS_VERZEICHNIS/rfid_ws.py
 
 # Ein Leser, der beim Einschalten noch nicht da ist, darf das Geraet nicht
@@ -365,7 +403,15 @@ EOF
             # laeuft der Dienst in eine Neustartschleife, und im Journal steht
             # hundertmal derselbe Fehler.
             if [ -e "$RFID_GERAET" ]; then
-                systemctl restart rfid-ws.service 2>/dev/null || warnung "rfid-ws.service startete nicht."
+                systemctl stop rfid-ws.service 2>/dev/null || true
+                if runuser -u "$RFID_WS_BENUTZER" -- env RFID_VARIANTE="$RFID_VARIANTE" \
+                    RFID_GERAET="$RFID_GERAET" RFID_BAUD="$RFID_BAUD" \
+                    "$RFID_WS_VERZEICHNIS/venv/bin/python" "$RFID_WS_VERZEICHNIS/rfid_ws.py" --pruefen; then
+                    systemctl restart rfid-ws.service || ERGEBNIS_FEHLT=$((ERGEBNIS_FEHLT + 1))
+                else
+                    warnung 'Leserpruefung fehlgeschlagen; Bridge wird nicht gestartet.'
+                    ERGEBNIS_FEHLT=$((ERGEBNIS_FEHLT + 1))
+                fi
             else
                 echo "HINWEIS: $RFID_GERAET ist nicht vorhanden - der Dienst ist"
                 echo "         aktiviert, wird aber erst mit angeschlossenem Leser"
@@ -621,7 +667,7 @@ pruefe "Peripherie-Konfiguration vorhanden" test -f "$PERIPHERIE_KONFIG"
 pruefe "X11-Drehskript ausfuehrbar"         test -x "$PERIPHERIE_X11"
 pruefe "X11-Drehskript fehlerfrei"          bash -n "$PERIPHERIE_X11"
 
-if [ "$RFID_VARIANTE" = "bridge" ]; then
+if [ "$RFID_VARIANTE" = "bridge" ] || [ "$RFID_VARIANTE" = rc522 ]; then
     pruefe "Dienstprogramm vorhanden"    test -f "$RFID_WS_VERZEICHNIS/rfid_ws.py"
     pruefe "Python-Umgebung vorhanden"   test -x "$RFID_WS_VERZEICHNIS/venv/bin/python"
     pruefe "Dienstdatei geschrieben"     test -f "$RFID_DIENST"
@@ -656,4 +702,8 @@ echo
 
 # Der gemeinsame Installer darf nach fehlgeschlagener Pruefung nicht weiterlaufen.
 [ "$ERGEBNIS_FEHLT" -eq 0 ] || exit 1
+if [ "$NEUSTART_NOETIG" = ja ]; then
+    echo 'SPI braucht einen Neustart: sudo reboot; danach denselben Installer wiederholen.'
+    exit 20
+fi
 exit 0

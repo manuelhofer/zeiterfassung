@@ -75,12 +75,14 @@ KIOSK_ANMELDESCHIRM="abschalten"
 # --- Peripherie (install_peripherie.sh, Stufe 5) ---------------------------
 # usb    = Keyboard-Wedge. Der Leser tippt die Kennung wie eine Tastatur.
 #          Keine Treiber, kein Dienst - der Normalfall.
-# bridge = serieller Leser oder RC522: ein lokaler Dienst liest ihn aus und
+# bridge = serieller Leser: ein lokaler Dienst liest ihn aus und
 #          reicht die Kennung per WebSocket an den Browser weiter.
+# rc522  = direkter Linux-SPI-Leser; RFID_GERAET="/dev/spidev0.0" setzen.
+#          Anschlussplan: bash scripts/terminal/installieren.sh --anschluss
 # keine  = kein RFID; angemeldet wird ueber die Personalnummer.
 RFID_VARIANTE="usb"
 
-# Nur bei RFID_VARIANTE="bridge":
+# Bei bridge oder rc522 (Baudrate nur bei bridge):
 RFID_GERAET="/dev/ttyUSB0"
 RFID_BAUD="9600"
 RFID_WS_URL="ws://127.0.0.1:8765"
@@ -88,7 +90,7 @@ RFID_WS_VERZEICHNIS="/opt/rfid-ws"
 RFID_WS_BENUTZER="rfidws"
 
 # SPI wird nur auf einem Raspberry Pi und nur fuer den RC522 gebraucht.
-# auto = einschalten, wenn ein Raspberry Pi erkannt wird.
+# auto = bei rc522 SPI0 einschalten, wenn ein Raspberry Pi erkannt wird.
 SPI_AKTIVIEREN="auto"
 
 # Drehung von Bild und Beruehrung: normal | links | rechts | kopf
