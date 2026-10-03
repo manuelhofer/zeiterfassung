@@ -18,6 +18,13 @@ nichts.
 
 ## Nächster Schritt (konkret)
 
+**Backend-Installation nach dem Debian-Abbruch erneut prüfen** (03.10.2026):
+Der Installer verschiebt Projekte mit für `www-data` gesperrtem Elternordner
+(insbesondere `/root`) automatisch nach `/var/www/zeiterfassung` und erhält die
+vorhandene Konfiguration und Datenbank. Pfadfehler, Umzug, Wiederanlauf und
+belegtes Ziel sind isoliert im Debian-Container geprüft; vollständiger
+Debian-13-Paket-/Apache-/Systemd-Durchlauf am Benutzergerät bleibt offen.
+
 **Gemeinsamen Terminal-Installer am Gerät abnehmen** (01.10.2026): Ein Download
 und ein Start verbinden Grundsystem, Kiosk, Peripherie und technische Vorprüfung;
 Anleitung in [installationsanleitung.md](installationsanleitung.md#7-terminal-installation-optional).

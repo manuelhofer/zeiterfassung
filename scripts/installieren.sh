@@ -2,11 +2,13 @@
 # Normale Backendinstallation auf Debian/Raspberry Pi OS, einschließlich Wartung.
 set -euo pipefail
 [ "$(id -u)" -eq 0 ] || { echo 'Aufruf: sudo bash scripts/installieren.sh'; exit 1; }
-APP="$(cd "$(dirname "$0")/.." && pwd)"
+APP="$(cd "$(dirname "$0")/.." && pwd -P)"
 [[ "$APP" =~ ^/[A-Za-z0-9_./-]+$ ]] || { echo 'Ungeeigneter Installationspfad.' >&2; exit 1; }
 command -v apt-get >/dev/null || { echo 'Dieser Backendinstaller unterstützt Debian und Raspberry Pi OS.' >&2; exit 1; }
 apt-get update
 DEBIAN_FRONTEND=noninteractive apt-get install -y apache2 php-fpm php-cli php-mysql php-mbstring php-gd php-xml php-zip php-curl mariadb-server git curl ca-certificates
+source "$APP/scripts/backend_installationspfad.sh"
+backend_installationspfad
 systemctl enable --now mariadb
 # Die normale Terminal-Kopplung verwendet individuelle DB-Zugaenge ueber das LAN.
 cat > /etc/mysql/mariadb.conf.d/60-zeiterfassung.cnf <<'EOF'

@@ -25,6 +25,18 @@ Dateirechte und Webserver ein und startet den Wartungsdienst. Vorhandene lokale
 Anwendungskonfiguration wird erhalten. Es ist kein zusätzlicher Befehl für
 Backup oder Updates nötig.
 
+Wurde das Repository beispielsweise unter `/root/zeiterfassung` heruntergeladen,
+verschiebt der Installer es automatisch nach `/var/www/zeiterfassung`, weil der
+Webserver `/root` nicht betreten kann. Konfiguration und Git-Verzeichnis bleiben
+erhalten; `/root` wird nicht freigegeben. Ein bereits belegtes Ziel wird nicht
+überschrieben. Danach für weitere Git-Befehle den neuen Projektordner verwenden.
+
+Ist eine ältere Installation mit `runuser: fehlgeschlagen (Exit 1)` unter `/root`
+abgebrochen, im bisherigen Projektordner `git pull --ff-only` und nochmals
+`bash scripts/installieren.sh` als root ausführen. Die bereits angelegte lokale
+Konfiguration und Datenbank werden weiterverwendet; sie müssen nicht gelöscht
+werden. Der Installer führt den nötigen Umzug selbst aus.
+
 Die Webserver-Konfiguration bedient das Verzeichnis `public/` auf Port 80 und
 ersetzt dabei die Debian-Standardseite. MariaDB nimmt Verbindungen für die
 reguläre Terminal-Kopplung über das LAN an. Der Server ist für das interne

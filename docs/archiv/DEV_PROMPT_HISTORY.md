@@ -18,6 +18,48 @@ legacy_zip_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-03-01 backend-installation-aus-root
+
+### EINGELESEN
+CLAUDE.md, CHATSTART.md, Arbeitsregeln, Status-Snapshot, Installationsanleitung,
+Backend-/Wartungsinstaller und WartungSystem/WartungDateien; Git-Verlauf zu
+runuser geprüft. Benutzerfoto zeigt Abbruch bei der Wartungsvorbereitung und
+root-Prompt im Home-Verzeichnis; der Installer berücksichtigte gesperrte
+Elternverzeichnisse bisher nicht.
+
+### DATEIEN
+- scripts/installieren.sh
+- scripts/backend_installationspfad.sh
+- scripts/tests/backend_installationspfad.sh
+- docs/installationsanleitung.md
+- docs/STATUS_SNAPSHOT.md
+- docs/archiv/DEV_PROMPT_HISTORY.md
+
+### AKZEPTANZKRITERIUM
+Eine Backend-Installation aus `/root/zeiterfassung` verschiebt den Programmordner ohne Rückfrage nach `/var/www/zeiterfassung`, erhält die lokale Konfiguration und überschreibt kein bereits vorhandenes Ziel.
+
+### DONE
+Vor der Datenbankeinrichtung prüft der Installer den Elternpfad tatsächlich als
+www-data und verschiebt bei fehlendem Zugriff das gesamte Repository; alle
+weiteren Schritte verwenden den neuen Pfad. Erreichbare Pfade bleiben erhalten,
+symbolische Startpfade werden aufgelöst. Kein Öffnen von /root und kein Lesen
+webbeschreibbarer PHP-Konfiguration als root für die Wartung. Wiederanlauf nach
+dem gemeldeten Abbruch verwendet die bereits angelegte Konfiguration/DB weiter.
+Der zuvor angelegte, abgebrochene Testcontainer wurde entfernt; anschließende
+Tests binden nur Testskripte ein und verwenden synthetische Konfiguration.
+
+### TEST
+Bash-Syntaxprüfung und git diff --check erfolgreich. Vier isolierte Prüfungen
+im vorhandenen Debian-Testimage: erreichbarer Pfad, reproduzierter gesperrter
+Elternpfad mit Konfigurations-/Rechteerhalt beim Umzug, Wiederanlauf und
+Konflikt ohne Überschreiben. Kein Zugriff auf die reale Entwicklungsdatenbank.
+Nicht geprüft: vollständige Debian-13-Paketinstallation und anschließend
+Apache/FPM/Systemd samt Datenbank am Benutzergerät; kein Gerätezugriff vorhanden.
+
+### NEXT
+Installer auf dem Debian-Testgerät erneut ausführen und Backend-Anmeldung sowie
+Backup prüfen; neue Git-Befehle anschließend im Zielordner ausführen.
+
 ## P-2026-10-01-06 rc522-spi-und-anschlussanleitung
 
 ### EINGELESEN
