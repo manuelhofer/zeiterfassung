@@ -85,6 +85,11 @@ try {
     Gut 'Konfiguration und Signaturschluessel bleiben erhalten' ((Get-FileHash "$App/config/config.local.php").Hash -eq $KonfigHash -and (Get-FileHash "$Basis/privat/signatur.key").Hash -eq $Schluessel)
     $Gesund = PHP '$d=new WartungDienst($argv[1],WartungSystem::konfig($argv[1],true));echo json_encode($d->gesundheit());' | ConvertFrom-Json
     Gut 'Neuer Code und Datenbank bestehen Gesundheitspruefung' $Gesund.ok
+    $Datei = [IO.File]::Open("$App/updates/windows-test.txt",'Open','Read','ReadWrite,Delete')
+    try {
+        $Freigegeben = PHP 'WartungPlattform::dateisperrenPruefen($argv[1],["updates/windows-test.txt"]);echo "ja";'
+        Gut 'Lesender Zugriff mit Austauschfreigabe verhindert kein Update' ($Freigegeben -eq 'ja')
+    } finally { $Datei.Dispose() }
     $Datei = [IO.File]::Open("$App/updates/windows-test.txt",'Open','ReadWrite','None')
     try {
         $Abgewiesen = PHP 'try{WartungPlattform::dateisperrenPruefen($argv[1],["updates/windows-test.txt"]);echo "nein";}catch(RuntimeException $e){echo "ja";}'
@@ -97,7 +102,7 @@ try {
 } catch {
     Write-Host $_.Exception.Message
     if (Test-Path variable:script:Basis) {
-        if (Test-Path "$Basis/status.json") { Get-Content -LiteralPath "$Basis/status.json" -Raw }
+        if (Test-Path "$Basis/status.json") { Get-Content -LiteralPath "$Basis/status.json" -Raw -Encoding UTF8 }
     }
     if (Test-Path 'C:/xampp/apache/logs/error.log') { Get-Content 'C:/xampp/apache/logs/error.log' -Tail 30 }
     exit 1

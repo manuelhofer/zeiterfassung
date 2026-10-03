@@ -70,6 +70,7 @@ final class WartungPlattform
         // Prüfung vor SQL; ein späterer Zugriffskonflikt wird weiterhin als Fehler behandelt.
         $liste = tempnam(sys_get_temp_dir(), 'zeit-lock-');
         if ($liste === false) { throw new RuntimeException('Dateiprüfung nicht vorbereitbar.'); }
+        $problem = '';
         try {
             $pfade = [];
             foreach ($dateien as $pfad) {
@@ -77,10 +78,14 @@ final class WartungPlattform
                 if (is_file($wurzel . '/' . $pfad)) { $pfade[] = $wurzel . '/' . $pfad; }
             }
             WartungDateien::schreiben($liste, $pfade, 0600);
-            WartungDateien::prozess(['powershell.exe', '-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'Bypass',
-                '-File', $wurzel . '/scripts/windows/dateisperren.ps1', '-Liste', $liste], frist: 60);
+            $antwort = json_decode(WartungDateien::prozess(['powershell.exe', '-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'Bypass',
+                '-File', $wurzel . '/scripts/windows/dateisperren.ps1', '-Liste', $liste], frist: 60, jsonFehler: true), true, 512, JSON_THROW_ON_ERROR);
+            if (($antwort['ok'] ?? false) !== true) {
+                $problem = ($antwort['datei'] ?? '') === '' ? '' : ' (' . basename(WartungPlattform::pfad($antwort['datei'])) . ')';
+                throw new RuntimeException('Dateiaustausch nicht freigegeben.');
+            }
         } catch (Throwable $e) {
-            throw new RuntimeException('Programmdateien sind geöffnet oder nicht ersetzbar. Bitte Editoren und andere Dateizugriffe schließen.', 0, $e);
+            throw new RuntimeException('Programmdateien sind geöffnet oder nicht ersetzbar' . $problem . '. Bitte Editoren und andere Dateizugriffe schließen.', 0, $e);
         } finally { unlink($liste); }
     }
 }

@@ -30,7 +30,8 @@ aktiviert eine PHP-Erweiterung nur, wenn nicht bereits ihr DLL-Alias aktiv ist.
 Auch Windows-versteckte Git-Dateien werden bei der Rechtevergabe berücksichtigt.
 Die Pfadumstellung erhält Apache-Präfixe wie den SSL-Cache-Anbieter `shmcb:`.
 Native Installation, Zugriffsschutz, Apache, ZIP-/SQL-Restore und 20 portable
-Windows-Prüfungen bestehen; ein Fehler beim Update wird noch untersucht.
+Windows-Prüfungen bestehen; die Windows-Dateiprüfung testet gezielt
+Austauschfreigabe statt unnötiger exklusiver Lese-/Schreibsperre.
 
 **Backend-Installation nach dem Debian-Abbruch erneut prüfen** (03.10.2026):
 Der Installer verschiebt Projekte mit für `www-data` gesperrtem Elternordner

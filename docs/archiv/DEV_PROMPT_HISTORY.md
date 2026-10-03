@@ -18,6 +18,26 @@ legacy_zip_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-03-08 windows-dateipruefung-fuer-austausch
+
+### EINGELESEN
+Wartungsstatus des nativen Laufs 37147545573 und Windows-Dateifreigaben.
+### DATEIEN
+scripts/windows/dateisperren.ps1, services/WartungPlattform.php,
+scripts/tests/wartung_windows.ps1, docs/STATUS_SNAPSHOT.md, dieser Verlauf.
+### AKZEPTANZKRITERIUM
+Ein lesender Windows-Dateizugriff mit Delete-Freigabe blockiert die Updatevorprüfung nicht, ein exklusiver Zugriff wird weiterhin abgewiesen.
+### DONE
+Der eigene Entwurf prüfte unnötig exklusive ReadWrite-Freigabe; jetzt wird der
+für Ersetzen erforderliche DELETE-Zugriff mit allen Sharing-Flags geprüft.
+Strukturierte Antwort nennt beim Fehler den betroffenen Dateinamen; Teststatus
+wird ausdrücklich als UTF-8 gelesen. Native Positiv-/Negativfälle ergänzt.
+### TEST
+PHP-Lint und PowerShell-Syntax erfolgreich; vorheriger nativer Lauf scheiterte
+an der Datei-Vorprüfung, Windows-Wiederholung folgt.
+### NEXT
+Vollständigen Windows-Updateablauf und Dateifreigaben nativ abnehmen.
+
 ## P-2026-10-03-07 windows-abnahme-zeigt-wartungsfehler
 
 ### EINGELESEN
