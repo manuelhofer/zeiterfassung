@@ -24,6 +24,8 @@ automatischer XAMPP-Installer und bestehende Linux-Terminals; Zielbild in
 [spezifikation_wartung_windows.md](spezifikation_wartung_windows.md).
 Linux-Integration einschließlich ZIP-Backend/tar-Terminals ist geprüft;
 native Windows-Abnahme erfolgt im wegwerfbaren GitHub-Runner.
+Der erste native Lauf hat laufwerksrelative Pfade im portablen XAMPP entdeckt;
+der Installer setzt PHP-/Apache-/MariaDB-Pfade vor dem Start absolut.
 
 **Backend-Installation nach dem Debian-Abbruch erneut prüfen** (03.10.2026):
 Der Installer verschiebt Projekte mit für `www-data` gesperrtem Elternordner

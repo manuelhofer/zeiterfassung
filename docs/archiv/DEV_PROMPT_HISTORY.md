@@ -18,6 +18,24 @@ legacy_zip_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-03-03 xampp-pfade-ohne-startlaufwerk
+
+### EINGELESEN
+Nativer GitHub-Windows-Lauf 37146600729, Installer und XAMPP-Download.
+### DATEIEN
+scripts/windows/installieren.ps1, docs/STATUS_SNAPSHOT.md, dieser Verlauf.
+### AKZEPTANZKRITERIUM
+Ein portables XAMPP unter C:\xampp startet PHP auch dann korrekt, wenn der Installer von Laufwerk D: aufgerufen wird.
+### DONE
+Erster nativer Lauf scheiterte an XAMPPs /xampp-Pfaden: PHP suchte Erweiterungen
+und browscap.ini auf dem Startlaufwerk D:. Installer setzt die mitgelieferten
+PHP-/Apache-/MariaDB-Pfade vor dem ersten PHP-Aufruf auf den erkannten absoluten
+XAMPP-Pfad und erhält die ursprünglichen Konfigurationsdateien als Sicherung.
+### TEST
+PowerShell-Syntaxprüfung erfolgreich; nativer Wiederholungslauf folgt.
+### NEXT
+Weitere native Windows-Prüfung bis Backup, Restore und Update fortsetzen.
+
 ## P-2026-10-03-02 wartung-windows-xampp
 
 ### EINGELESEN

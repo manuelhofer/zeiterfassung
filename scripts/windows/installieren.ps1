@@ -86,6 +86,17 @@ try {
         throw 'Git fuer alle Benutzer unter Program Files installieren; ein benutzerbeschreibbares Git ist ungeeignet.'
     }
     $PhpIni = Join-Path $Xampp 'php/php.ini'
+    # Portable XAMPP-Pakete enthalten laufwerksrelative /xampp-Pfade. Diese
+    # duerfen weder vom Startordner noch vom Laufwerk des Windows-Diensts abhaengen.
+    $XamppUnix = $Xampp -replace '\\','/'
+    $Konfigurationen = @($PhpIni,(Join-Path $Xampp 'mysql/bin/my.ini'))
+    $Konfigurationen += @(Get-ChildItem -LiteralPath (Join-Path $Xampp 'apache/conf') -Filter '*.conf' -Recurse | ForEach-Object { $_.FullName })
+    foreach ($Datei in $Konfigurationen) {
+        $Inhalt = Get-Content -LiteralPath $Datei -Raw
+        $Inhalt = [regex]::Replace($Inhalt, '(?i)(?:[A-Z]:)?[\\/]+xampp[\\/]', { param($Treffer) $XamppUnix + '/' })
+        if (-not (Test-Path "$Datei.vor-zeiterfassung")) { Copy-Item -LiteralPath $Datei -Destination "$Datei.vor-zeiterfassung" }
+        TextSchreiben $Datei $Inhalt
+    }
     $Ini = Get-Content -LiteralPath $PhpIni -Raw
     foreach ($Erweiterung in @('zip','pdo_mysql','mbstring','gd','curl','openssl')) {
         $Ini = $Ini -replace ('(?m)^\s*;\s*(extension\s*=\s*(php_)?' + $Erweiterung + '(\.dll)?\s*)$'), '$1'
