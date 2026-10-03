@@ -18,6 +18,23 @@ legacy_zip_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-03-06 xampp-pfade-erhalten-apache-cachepraefix
+
+### EINGELESEN
+Nativer Windows-Lauf 37147086160 und Apache-SSL-Konfigurationsprüfung.
+### DATEIEN
+scripts/windows/installieren.ps1, docs/STATUS_SNAPSHOT.md, dieser Verlauf.
+### AKZEPTANZKRITERIUM
+Die Umstellung von shmcb:/xampp/apache/logs auf absolute Pfade erhält den Anbieter shmcb: und ersetzt ausschließlich den Dateipfad.
+### DONE
+Im eigenen Pfadregex wurde das b: aus shmcb: irrtümlich als Laufwerk erkannt;
+ein Laufwerkspräfix darf jetzt nicht Teil eines vorangehenden Wortes sein.
+### TEST
+Native Apache-Syntaxprüfung zeigte den Fehler; synthetische Fälle für SSL-
+Cache-Präfix, echten Laufwerksbuchstaben und portable Pfade lokal geprüft.
+### NEXT
+Native Windows-Abnahme fortsetzen.
+
 ## P-2026-10-03-05 windows-git-rechte-fuer-versteckte-dateien
 
 ### EINGELESEN

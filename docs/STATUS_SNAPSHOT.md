@@ -28,6 +28,7 @@ Der erste native Lauf hat laufwerksrelative Pfade im portablen XAMPP entdeckt;
 der Installer setzt PHP-/Apache-/MariaDB-Pfade vor dem Start absolut und
 aktiviert eine PHP-Erweiterung nur, wenn nicht bereits ihr DLL-Alias aktiv ist.
 Auch Windows-versteckte Git-Dateien werden bei der Rechtevergabe berücksichtigt.
+Die Pfadumstellung erhält Apache-Präfixe wie den SSL-Cache-Anbieter `shmcb:`.
 
 **Backend-Installation nach dem Debian-Abbruch erneut prüfen** (03.10.2026):
 Der Installer verschiebt Projekte mit für `www-data` gesperrtem Elternordner

@@ -93,7 +93,7 @@ try {
     $Konfigurationen += @(Get-ChildItem -LiteralPath (Join-Path $Xampp 'apache/conf') -Filter '*.conf' -Recurse | ForEach-Object { $_.FullName })
     foreach ($Datei in $Konfigurationen) {
         $Inhalt = Get-Content -LiteralPath $Datei -Raw
-        $Inhalt = [regex]::Replace($Inhalt, '(?i)(?:[A-Z]:)?[\\/]+xampp[\\/]', { param($Treffer) $XamppUnix + '/' })
+        $Inhalt = [regex]::Replace($Inhalt, '(?i)(?<![A-Z0-9])(?:[A-Z]:)?[\\/]+xampp[\\/]', { param($Treffer) $XamppUnix + '/' })
         if (-not (Test-Path "$Datei.vor-zeiterfassung")) { Copy-Item -LiteralPath $Datei -Destination "$Datei.vor-zeiterfassung" }
         TextSchreiben $Datei $Inhalt
     }
