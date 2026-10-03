@@ -99,7 +99,11 @@ try {
     }
     $Ini = Get-Content -LiteralPath $PhpIni -Raw
     foreach ($Erweiterung in @('zip','pdo_mysql','mbstring','gd','curl','openssl')) {
-        $Ini = $Ini -replace ('(?m)^\s*;\s*(extension\s*=\s*(php_)?' + $Erweiterung + '(\.dll)?\s*)$'), '$1'
+        $Aktiv = '(?im)^[ \t]*extension[ \t]*=[ \t]*(php_)?' + $Erweiterung + '(\.dll)?[ \t]*\r?$'
+        if ($Ini -notmatch $Aktiv) {
+            $Kommentar = [regex]::new('(?im)^[ \t]*;[ \t]*(extension[ \t]*=[ \t]*(php_)?' + $Erweiterung + '(\.dll)?[ \t]*\r?)$')
+            $Ini = $Kommentar.Replace($Ini, '$1', 1)
+        }
     }
     TextSchreiben $PhpIni $Ini
     Programm $Php @("$App/scripts/windows/installation_pruefen.php")
@@ -112,8 +116,8 @@ try {
         Set-Location -LiteralPath $App
         Write-Host "Projekt nach $App verschoben; nur public/ wird ausgeliefert."
     }
-    $Basis = (& $Php "$App/scripts/windows/installation_pruefen.php" 'status-pfad' $App).Trim()
-    if ($LASTEXITCODE -ne 0 -or -not $Basis) { throw 'Wartungsordner konnte nicht bestimmt werden.' }
+    $Basis = (& $Php "$App/scripts/windows/installation_pruefen.php" 'status-pfad' $App | Out-String).Trim()
+    if ($LASTEXITCODE -ne 0 -or $Basis -notmatch '^[a-zA-Z]:/[^\r\n]+/\.zeit-wartung-[a-f0-9]{16}$') { throw 'Wartungsordner konnte nicht bestimmt werden. PHP muss ohne Startwarnungen laufen.' }
     if ((Test-Path "$Basis/aktiv.json") -or (Test-Path "$Basis/pause.json")) { throw 'Wartung laeuft oder ist unterbrochen. Installer erst nach abgeschlossener Wartung ausfuehren.' }
     if (-not (Test-Path "$Basis/version.json")) {
         # Git-Archive und Terminalpakete muessen dieselben Bytes enthalten (kein CRLF-Umbau).

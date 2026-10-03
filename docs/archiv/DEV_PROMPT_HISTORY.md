@@ -18,6 +18,24 @@ legacy_zip_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-03-04 xampp-erweiterungen-ohne-doppelstart
+
+### EINGELESEN
+Nativer Windows-Lauf 37146787095 und XAMPP-PHP-INI-Behandlung.
+### DATEIEN
+scripts/windows/installieren.ps1, docs/STATUS_SNAPSHOT.md, dieser Verlauf.
+### AKZEPTANZKRITERIUM
+Bei bereits aktivem extension=php_openssl.dll aktiviert der Installer keinen zweiten OpenSSL-Eintrag und erhält einen eindeutigen Wartungspfad ohne PHP-Startwarnung.
+### DONE
+Berücksichtigt Erweiterungsnamen und DLL-Aliase vor dem Aktivieren; bei Bedarf
+wird nur die erste passende Kommentarzeile aktiviert. Pfadausgabe wird als
+einzelner vollständiger Windows-Statuspfad geprüft, statt Warnungstext zu verwenden.
+### TEST
+Native Diagnose zeigte doppelte OpenSSL-Aktivierung; PowerShell-Syntax und
+synthetische Alias-/Kommentarfälle lokal geprüft. Weiterer nativer Lauf folgt.
+### NEXT
+Windows-Installer und vollständigen Wartungsablauf weiter nativ prüfen.
+
 ## P-2026-10-03-03 xampp-pfade-ohne-startlaufwerk
 
 ### EINGELESEN
