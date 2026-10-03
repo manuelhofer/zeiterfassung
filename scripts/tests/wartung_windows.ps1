@@ -62,6 +62,51 @@ try {
     if ($LASTEXITCODE) { throw 'Portable Windows-Pruefung fehlgeschlagen.' }
     $Antwort = Invoke-WebRequest 'http://localhost/' -UseBasicParsing
     Gut 'Backend ist ueber Apache erreichbar' ($Antwort.StatusCode -eq 200)
+    # Importierte Views mit normalem Backendzugang reparieren, nicht als root.
+    $Sichten = PHP @'
+$k=WartungSystem::konfig($argv[1],true);
+$c=require $argv[1]."/config/config.local.php";
+$admin=WartungDateien::pdo($k["db_admin"]["haupt"]);
+$backend=WartungDateien::pdo($c["db"]);
+$definer=$backend->query("SELECT CURRENT_USER()")->fetchColumn();
+$admin->exec("CREATE USER 'term_ci1'@'localhost' IDENTIFIED BY 'fixture';CREATE USER 'term_ci2'@'localhost' IDENTIFIED BY 'fixture';");
+$migration=file_get_contents($argv[1]."/sql/15_migration_wartung_kopplung.sql");
+$r=[];
+try {
+    foreach (["root","fehlt","ohne_rechte"] as $fall) {
+        if ($fall==="ohne_rechte") { $admin->exec("CREATE USER 'wartung_ci_alt'@'localhost' IDENTIFIED BY 'fixture'"); }
+        $sql=$fall==="root" ? $migration : str_replace("ALGORITHM=MERGE SQL SECURITY DEFINER VIEW","ALGORITHM=MERGE DEFINER='wartung_ci_alt'@'localhost' SQL SECURITY DEFINER VIEW",$migration);
+        $admin->exec($sql);
+        $unbrauchbar=false;
+        try { $backend->query("SELECT * FROM wartung_mein_geraet"); }
+        catch (PDOException $e) { $unbrauchbar=true; }
+        WartungKanal::rechte($backend,"term_ci1","localhost",991);
+        $stmt=$backend->prepare("SELECT COUNT(*) FROM information_schema.views WHERE table_schema=DATABASE() AND table_name LIKE 'wartung_mein_%' AND definer=? AND security_type='DEFINER' AND check_option='CASCADED'");
+        $stmt->execute([$definer]);
+        $r[$fall]=($unbrauchbar===($fall!=="root")) && (int)$stmt->fetchColumn()===4;
+    }
+    WartungKanal::rechte($backend,"term_ci2","localhost",992);
+    $terminal=$c["db"];$terminal["user"]="term_ci1";$terminal["pass"]="fixture";
+    $p=WartungDateien::pdo($terminal);
+    $r["isolation"]=$p->query("SELECT terminal_id FROM wartung_mein_geraet")->fetchAll(PDO::FETCH_COLUMN)===[991];
+    try { $p->query("SELECT * FROM wartung_geraet");$r["isolation"]=false; } catch (PDOException $e) {}
+    $r["upload"]=true;
+    foreach ([["term_ci2","zurueck"],["term_ci1","hin"]] as [$user,$richtung]) {
+        try {
+            $s=$p->prepare("INSERT INTO wartung_mein_upload(db_benutzer,auftrag,richtung,datei,nummer,inhalt) VALUES(?,?,?,?,?,?)");
+            $s->execute([$user,str_repeat("b",24),$richtung,"probe",0,"x"]);$r["upload"]=false;
+        } catch (PDOException $e) {}
+    }
+} finally {
+    $admin->exec("DELETE FROM wartung_geraet WHERE terminal_id IN (991,992);DROP USER IF EXISTS 'term_ci1'@'localhost','term_ci2'@'localhost','wartung_ci_alt'@'localhost';");
+}
+echo json_encode($r,JSON_THROW_ON_ERROR);
+'@ | ConvertFrom-Json
+    Gut 'Gueltiger root-Definer kann ohne SUPER durch Backend ersetzt werden' $Sichten.root
+    Gut 'Windows repariert fehlenden Definer vor Terminal-Grants' $Sichten.fehlt
+    Gut 'Windows repariert Definer ohne Tabellenrechte vor Terminal-Grants' $Sichten.ohne_rechte
+    Gut 'Erneute Kopplung erhaelt eingeschraenkte Rechte des ersten Terminals' $Sichten.isolation
+    Gut 'Uploadview sperrt fremde Benutzer und falsche Richtung' $Sichten.upload
     $Backup = Auftrag 'backup'
     Gut 'Backupknopf-Auftrag wird ausgefuehrt' ($Backup.zustand -eq 'erfolgreich')
     $Manifest = Get-Content "$($Backup.backup)/manifest.json" -Raw | ConvertFrom-Json

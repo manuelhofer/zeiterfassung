@@ -18,6 +18,53 @@ legacy_zip_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-03-15 wartungsviews-bei-terminal-kopplung-reparieren
+
+### EINGELESEN
+Benutzerprotokoll zur fehlgeschlagenen Kopplung und SHOW GRANTS, CHATSTART,
+Arbeitsregeln, Snapshot, Terminal-/Offline-Fachregeln, Kopplungs-/DB-Benutzer-
+Services, Wartungskanal, Schema und Migration 15, Betriebsanleitung und
+isolierte Linux-/Windows-Prüfung; History-/Git-Duplicate-Check und offizielle
+MariaDB-Dokumentation zu CREATE/ALTER VIEW und Definer-Rechten.
+### DATEIEN
+services/WartungKanal.php, services/TerminalDbBenutzerService.php,
+services/TerminalKopplungService.php, scripts/tests/wartung_integration.py,
+scripts/tests/wartung_windows.ps1, docs/wartung_betrieb.md,
+docs/STATUS_SNAPSHOT.md, dieser Verlauf.
+### AKZEPTANZKRITERIUM
+Nach einem Import mit fehlendem oder unberechtigtem Definer der vier Wartungsviews koppelt sich ein Terminal über das normale Formular ohne zusätzliche Einrichtung und bereits gekoppelte Terminals behalten ihren auf eigene Daten begrenzten Wartungszugang.
+### DONE
+Der eigene Wartungsentwurf übernahm alte View-Definer nach Datenbankimporten;
+GRANT UPDATE auf solche Views scheitert trotz ausreichender Backendrechte.
+Vor der Rechtevergabe werden die vier vorhandenen Views per CREATE OR REPLACE
+mit DEFINER=CURRENT_USER an den aktuellen Zugang und die aktuelle Datenbank
+gebunden. USER()-Gerätefilter, Richtung, CHECK OPTION und bestehende Grants
+bleiben erhalten. Keine Tabellen-/Spaltenänderung oder neue DB-Anmeldung.
+Ein gültiger root-Definer ist zulässig; ein abweichender Name allein beweist
+den Fehler nicht. Für weitere Ursachen ergänzt das Fehlerlog SQLSTATE,
+DB-Fehlernummer und Fehlerklasse ohne SQL-/Passworttext; unvollständige
+Terminalzugänge werden weiterhin entfernt. Die frühere Erfolgsmeldung
+bestätigte nur den eingelösten Code und heißt jetzt entsprechend.
+### TEST
+Fehler vor Änderung in privater MariaDB mit normalen Backendrechten
+reproduziert: fehlender Definer führt zu SQLSTATE 28000/1045, vorhandener
+Definer ohne Tabellenrechte zu HY000/1356; gültiger root-Definer funktioniert.
+Die Original-Rechtefunktion besteht nach Änderung alle drei Fälle.
+PHP 8.5.11/MariaDB 12.3.3: 48 Integrationsprüfungen erfolgreich, darunter
+Kopplungsformular beider Definer-Fehlerfälle, Idempotenz/Bestandsschutz,
+View-Isolation/Upload-Richtung, provozierter Rechtefehler 42000/1142 mit
+Zugangsbereinigung, vollständiges Backup/Update beider Terminals und Erhalt
+offener Offline-Buchungen; alle eigenen Prozesse beendet. Zusätzlich 11
+portable Prüfungen, Lint aller drei PHP-Services und des eingebetteten
+Windows-PHP-Probes, Python-Syntax und git diff --check erfolgreich; keine
+PHP-Warnungen/Deprecations in den Integrationslogs. Native XAMPP-Prüfung um
+fünf Definer-/Rechtefälle ergänzt, deren Ausführung folgt nach Veröffentlichung.
+Keine reale Entwicklungsdatenbank oder Benutzergeräte angefasst.
+### NEXT
+Native Windows-Prüfung kontrollieren, Definer-Ausgabe des Benutzergeräts
+auswerten und Kopplung mit neuem Code wiederholen; Reparatur eines alten
+Softwarestands über die bestehende Migration 15 ist dokumentiert.
+
 ## P-2026-10-03-14 rc522-dienstbenutzer-in-system-spi-gruppe
 
 ### EINGELESEN

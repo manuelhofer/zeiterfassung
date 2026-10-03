@@ -188,7 +188,7 @@ class TerminalKopplungService
                 return null;
             }
 
-            $this->protokolliere('info', 'Terminal erfolgreich gekoppelt', [
+            $this->protokolliere('info', 'Terminal-Kopplungscode eingelöst', [
                 'terminal_id' => $terminalId,
                 'host'        => $host,
             ]);

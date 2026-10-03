@@ -281,7 +281,13 @@ class TerminalDbBenutzerService
             WartungKanal::rechte($this->db->getVerbindung(), $benutzer, $host, $terminalId);
         } catch (\Throwable $e) {
             $this->entferne($benutzer, $host);
-            $this->protokolliere('error', 'Wartungskanal bei Kopplung nicht anlegbar', ['terminal_id' => $terminalId]);
+            $daten = ['terminal_id' => $terminalId, 'fehlerklasse' => get_class($e)];
+            if ($e instanceof \PDOException) {
+                // Diagnose ohne SQL-Text oder Zugangsdaten aus der Fehlermeldung.
+                $daten['sqlstate'] = (string)($e->errorInfo[0] ?? $e->getCode());
+                $daten['db_fehlernummer'] = (int)($e->errorInfo[1] ?? 0);
+            }
+            $this->protokolliere('error', 'Wartungskanal bei Kopplung nicht anlegbar', $daten);
             return null;
         }
 

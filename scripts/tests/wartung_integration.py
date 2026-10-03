@@ -114,6 +114,14 @@ try:
  run(['php',LAB/'backend/scripts/wartung_einrichten.php',pwd.getpwuid(os.getuid()).pw_name,'apache2'])
  check('Wiederholte Einrichtung erhält Schlüssel und installierten Versionsstand',keyvorher==(state()/'privat/signatur.key').read_bytes() and versionvorher==(state()/'version.json').read_bytes())
  check('Ungekoppelte Terminals benötigen keine Wartungskonfiguration',not (state('terminal1')/'version.json').exists() and all(not (LAB/a/'config/wartung.local.php').exists() for a in STATES))
+ # Echte DB-Fehler müssen diagnostizierbar sein, ohne einen halbfertigen
+ # Gerätezugang zurückzulassen oder SQL/Passwörter ins Fehlerlog zu schreiben.
+ sql("REVOKE CREATE VIEW ON wartung_haupt.* FROM 'wartung_app'@'localhost';")
+ try:
+  fehler=json.loads(php("$s=TerminalDbBenutzerService::getInstanz();$r=$s->legeAnOderErsetze(1,'Halle 1');$p=Database::getInstanz()->getVerbindung();$l=$p->query(\"SELECT daten FROM system_log WHERE nachricht='Wartungskanal bei Kopplung nicht anlegbar' ORDER BY id DESC LIMIT 1\")->fetchColumn();echo json_encode(['abgebrochen'=>$r===null,'daten'=>json_decode($l,true),'benutzer'=>$s->benutzernameFuer(1,'Halle 1')]);"))
+ finally:sql("GRANT CREATE VIEW ON wartung_haupt.* TO 'wartung_app'@'localhost' WITH GRANT OPTION;")
+ check('Fehlende View-Rechte protokollieren SQLSTATE und DB-Fehlernummer ohne Zugangsdaten',fehler['abgebrochen'] and fehler['daten']=={'terminal_id':1,'fehlerklasse':'PDOException','sqlstate':'42000','db_fehlernummer':1142})
+ check('Wartungskanalfehler entfernt den unvollständigen Gerätezugang',sql("SELECT COUNT(*) FROM mysql.user WHERE user='"+fehler['benutzer']+"'").strip()=='0')
  # Scheduler ersetzt nur Systemd im Labor und lädt bei jedem Takt frischen PHP-Code.
  (LAB/'takt.py').write_text('''import subprocess,sys,time,signal
 running=True
@@ -133,6 +141,13 @@ while running:
  time.sleep(.5)
  # Kopplung durch dasselbe Formular wie am echten Gerät.
  for i in (1,2):
+  # Importierte Wartungsviews: erst fehlender, dann vorhandener Definer ohne
+  # Tabellenrechte. Die normale Kopplung muss beide Fälle selbst reparieren.
+  if i==2:sql("CREATE USER 'kopplung_alt'@'localhost' IDENTIFIED BY 'fixture';")
+  migration=(SRC/'sql/15_migration_wartung_kopplung.sql').read_text()
+  sql(migration.replace('ALGORITHM=MERGE SQL SECURITY DEFINER VIEW',"ALGORITHM=MERGE DEFINER='kopplung_alt'@'localhost' SQL SECURITY DEFINER VIEW"),'wartung_haupt')
+  kaputt=php("$c=require 'config/config.local.php';try{WartungDateien::pdo($c['db'])->query('SELECT * FROM wartung_mein_geraet');echo 'nein';}catch(PDOException $e){echo 'ja';}")
+  check('Alter Definer '+('fehlt' if i==1 else 'hat keine Tabellenrechte')+' vor Kopplung tatsächlich unbrauchbar',kaputt=='ja')
   app='terminal'+str(i)
   code=php(f'echo TerminalKopplungService::getInstanz()->erzeugeCode({i});').strip()
   opener=urllib.request.build_opener(urllib.request.HTTPCookieProcessor(http.cookiejar.CookieJar()))
@@ -140,12 +155,15 @@ while running:
   csrf=re.search(r'name="csrf_token"[^>]*value="([^"]+)"',page).group(1)
   _,page=request('/terminal.php',{'serveradresse':URLS['backend'],'kopplungscode':code,'csrf_token':csrf},opener,app)
   check(f'Terminal {i} koppelt sich über das normale Formular', (LAB/app/'config/config.local.php').exists())
+  check(f'Kopplung {i} bindet alle vier Wartungsviews an aktuellen Backendbenutzer',sql("SELECT COUNT(*) FROM information_schema.views WHERE table_schema='wartung_haupt' AND table_name LIKE 'wartung_mein_%' AND definer='wartung_app@localhost' AND security_type='DEFINER' AND check_option='CASCADED'",'wartung_haupt').strip()=='4')
   waitfor(lambda:(state(app)/'version.json').exists())
  waitfor(lambda:sql('SELECT COUNT(*) FROM wartung_geraet WHERE gesehen IS NOT NULL','wartung_haupt').strip()=='2')
  check('Beide Terminals melden sich ohne SSH oder zusätzliche Geräteliste automatisch bereit',True)
  # Rechte auf Wartungsviews müssen auf den eigenen DB-Benutzer begrenzt sein.
  visibility=json.loads(php("$c=require 'config/config.local.php';$p=WartungDateien::pdo($c['db']);$r=['ids'=>$p->query('SELECT terminal_id FROM wartung_mein_geraet')->fetchAll(PDO::FETCH_COLUMN)];foreach(['SELECT * FROM wartung_geraet','UPDATE wartung_mein_befehl SET anfrage=anfrage','SELECT passwort_hash FROM mitarbeiter LIMIT 0'] as $s){try{$p->exec($s);$r['verboten'][]=false;}catch(Throwable $e){$r['verboten'][]=true;}}echo json_encode($r);",'terminal1'))
  check('Terminal sieht nur sich selbst und kann keine Befehle oder Passwortdaten ändern',visibility['ids']==[1] and all(visibility['verboten']))
+ upload=json.loads(php("$c=require 'config/config.local.php';$p=WartungDateien::pdo($c['db']);$r=[];foreach([[\"fremd\",\"zurueck\"],[$c['db']['user'],\"hin\"]] as [$u,$richtung]){try{$s=$p->prepare('INSERT INTO wartung_mein_upload(db_benutzer,auftrag,richtung,datei,nummer,inhalt) VALUES(?,?,?,?,?,?)');$s->execute([$u,str_repeat('b',24),$richtung,'probe',0,'x']);$r[]=false;}catch(PDOException $e){$r[]=true;}}echo json_encode($r);",'terminal1'))
+ check('Reparierte Uploadview weist fremden Benutzer und falsche Richtung ab',all(upload))
  # UI als berechtigter Mitarbeiter.
  sid='wartungauto123456789012';run(['php','-r',f"session_save_path('{LAB}/sessions');session_id('{sid}');session_start();$_SESSION['auth_mitarbeiter_id']=123;session_write_close();"])
  browser=urllib.request.build_opener();browser.addheaders=[('Cookie','PHPSESSID='+sid)]

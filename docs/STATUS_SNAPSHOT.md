@@ -18,6 +18,15 @@ nichts.
 
 ## Nächster Schritt (konkret)
 
+**Terminal-Kopplung nach Datenbankimport am Gerät wiederholen** (03.10.2026):
+Fehlende/unberechtigte Definer der Wartungsviews sind als Kopplungsfehler
+isoliert reproduziert; die Kopplung bindet diese Views jetzt automatisch an
+den aktuellen Backendzugang und erhält die eingeschränkten Gerätezugriffe.
+SQLSTATE/DB-Fehlernummer ergänzen das Fehlerlog; eine erfolgreiche Codeprüfung
+meldet keinen verfrühten Kopplungserfolg mehr. Die Definer-Ausgabe vom
+Benutzergerät fehlt noch; Anleitung für einen alten Softwarestand und neuen
+Kopplungscode in [wartung_betrieb.md](wartung_betrieb.md#kopplung-nach-einem-datenbankimport).
+
 **Windows/XAMPP am Benutzergerät abnehmen** (03.10.2026): Gemeinsame Backup-/
 Updateknöpfe und automatischer Windows-Installer sind umgesetzt; native
 Installation, geschützte ZIP-/SQL-Sicherung und Wiederherstellung, Update mit

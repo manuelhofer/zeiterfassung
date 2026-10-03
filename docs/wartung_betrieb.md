@@ -87,6 +87,40 @@ und bereits bearbeitete Aufträge. Die Serveridentität wird bei der ersten
 Verbindung über den vorhandenen Kopplungskanal gespeichert. Ein abweichender
 Schlüssel stoppt die Wartung und wird nicht still übernommen.
 
+### Kopplung nach einem Datenbankimport
+
+Die vier `wartung_mein_*`-Views können aus einem fremden Dump einen fehlenden
+oder unberechtigten `DEFINER` übernehmen. Dann scheitert die Vergabe der
+Wartungsrechte trotz korrekter Rechte des Backendbenutzers. Die normale
+Kopplung erstellt diese vier Views vor der Rechtevergabe mit dem aktuellen
+Backendzugang und den Tabellen der aktuellen Datenbank neu. Bestehende
+Terminalrechte bleiben erhalten; die Filter auf den angemeldeten Terminal-
+benutzer und die Übertragungsrichtung bleiben wirksam. Keine zusätzlichen
+DB-Rechte, Zugänge oder Einrichtungsschritte erforderlich.
+
+Ein gültiger `root`-Definer ist ebenfalls zulässig; allein ein anderer Name
+beweist keinen Fehler. Zur Diagnose auf dem Debian-Backend:
+
+```bash
+sudo mariadb "$DB" -e "SELECT TABLE_NAME, DEFINER, SECURITY_TYPE FROM information_schema.VIEWS WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME LIKE 'wartung_mein_%';"
+```
+
+Auf einem älteren Softwarestand kann die vorhandene Migration die Views
+neu erstellen, wenn tatsächlich ein ungültiger Definer vorliegt (`$DB` ist
+der Name der Backenddatenbank):
+
+```bash
+sudo mariadb "$DB" < /var/www/zeiterfassung/sql/15_migration_wartung_kopplung.sql
+```
+
+Die Migration entfernt keine Buchungen; sie erstellt fehlende Wartungstabellen
+und ersetzt die vier Views. Anschließend im Backend einen neuen Kopplungscode
+erzeugen und am Terminal eingeben. Ein bereits eingelöster Code bleibt
+verbraucht, auch wenn die anschließende Rechtevergabe gescheitert ist.
+Der Logeintrag „Terminal-Kopplungscode eingelöst“ bestätigt deshalb nur die
+Codeprüfung. Bei Fehlern am Wartungskanal protokolliert das Backend zusätzlich
+SQLSTATE und DB-Fehlernummer, ohne SQL-Text oder Passwörter auszugeben.
+
 ## Sicherungs- und Updateumfang
 
 Gesichert werden alle Anwendungsdateien einschließlich `.git`, lokaler
@@ -194,6 +228,8 @@ Datenträger. Ein lesbarer Dump ersetzt keinen Wiederherstellungstest.
 `python3 scripts/tests/wartung_integration.py` startet eine private MariaDB,
 eigene Git- und HTTP-Testinstanzen mit synthetischen Daten. Geprüft werden die
 automatische Vorbereitung, normale Terminal-Kopplung im Browserformular,
+Reparatur importierter Wartungsviews mit fehlendem/unberechtigtem Definer,
+Fehlerdiagnose und Bereinigung unvollständiger DB-Zugänge,
 Gerätetrennung/Signaturen, die sichtbaren Knöpfe, vollständiges Update mit zwei
 Terminals, Datei-/SQL-Restore, abgelaufene Aufträge sowie Ausfallfälle.
 Alle eigenen Prozesse werden beendet; `ergebnis.json` bleibt im Testordner.
@@ -208,7 +244,9 @@ Prozessargumente, Pfade, ZIP/Rücklesen und Paketprüfung. Unter Windows prüft
 dieselbe Datei zusätzlich reservierte Namen und Schreibweisenkollisionen.
 `.github/workflows/windows-wartung.yml` prüft den nativen Installer, Aufgaben,
 NTFS-Rechte, Backup-/SQL-Restore, Update und Apache-Neustart auf einem
-wegwerfbaren Windows-Runner. `scripts/tests/wartung_windows.ps1` verweigert die
+wegwerfbaren Windows-Runner sowie die View-Reparatur mit einem normalen
+Backendzugang und die weiterhin eingeschränkten Terminalrechte.
+`scripts/tests/wartung_windows.ps1` verweigert die
 Ausführung außerhalb dieser isolierten GitHub-Actions-Umgebung.
 Native Prüfergebnisse und verbleibende Geräteabnahme stehen in
 [spezifikation_wartung_windows.md](spezifikation_wartung_windows.md#prüfergebnis-vom-03102026).

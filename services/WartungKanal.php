@@ -13,6 +13,20 @@ final class WartungKanal
         if (!preg_match('/^[a-zA-Z0-9_]+$/', $db) || !preg_match('/^[a-z0-9_]{1,80}$/', $benutzer) || $terminalId < 1) {
             throw new RuntimeException('Ungültige Gerätezuordnung.');
         }
+        // Ein importierter Dump kann einen fehlenden Definer oder die alte DB
+        // referenzieren. Vor den Geräte-Grants auf den aktuellen Backendzugang
+        // und diese Datenbank binden; bestehende View-Grants bleiben erhalten.
+        foreach ([
+            'wartung_mein_geraet' => ['wartung_geraet', ''],
+            'wartung_mein_befehl' => ['wartung_befehl', ''],
+            'wartung_mein_download' => ['wartung_dateiteil', " AND richtung = 'hin'"],
+            'wartung_mein_upload' => ['wartung_dateiteil', " AND richtung = 'zurueck'"],
+        ] as $view => [$tabelle, $richtung]) {
+            // USER() bleibt der Terminalclient; CURRENT_USER im Filter würde
+            // stattdessen den Definer verwenden und die Gerätezuordnung brechen.
+            $pdo->exec("CREATE OR REPLACE ALGORITHM=MERGE DEFINER=CURRENT_USER SQL SECURITY DEFINER VIEW `$db`.`$view` AS "
+                . "SELECT * FROM `$db`.`$tabelle` WHERE db_benutzer = SUBSTRING_INDEX(USER(), '@', 1)$richtung WITH CASCADED CHECK OPTION");
+        }
         $ziel = $pdo->quote($benutzer) . '@' . $pdo->quote($host);
         foreach (['wartung_system', 'wartung_mein_geraet', 'wartung_mein_befehl', 'wartung_mein_download', 'wartung_mein_upload'] as $view) {
             $pdo->exec("GRANT SELECT ON `$db`.`$view` TO $ziel");
