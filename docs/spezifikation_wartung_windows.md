@@ -36,9 +36,9 @@ auf separatem Gerät; keine automatische DDL-Rücknahme.
 
 ## Prüfergebnis vom 03.10.2026
 
-[Native Windows-Abnahme](https://github.com/manuelhofer/zeiterfassung/actions/runs/37148692919):
+[Native Windows-Abnahme](https://github.com/manuelhofer/zeiterfassung/actions/runs/37151164192):
 Windows Server 2022, Windows PowerShell 5.1 und frisches XAMPP 8.2.12 mit PHP
-8.2.12; 17 Ablaufprüfungen und 20 portable Prüfungen erfolgreich. Tatsächlich
+8.2.12; 22 Ablaufprüfungen und 20 portable Prüfungen erfolgreich. Tatsächlich
 ausgeführt: Installer, NTFS-/Aufgaben-/Apache-Konfiguration, Webaufruf,
 ZIP-/SQL-Sicherung und getrennte Wiederherstellung, Update mit neuer SQL-
 Migration, eigener Skriptaustausch, Apache-Neustart und Installer-Wiederholung
@@ -46,10 +46,18 @@ unter Erhalt von Konfiguration, Schlüssel und Version. Eine vorhandene
 Dateisperre verhindert SQL und wird ohne dauerhafte Buchungssperre gemeldet;
 nach dem Schließen gelingt dasselbe Update.
 
-Linux mit PHP 8.5: 41 Integrationsprüfungen mit privater Testdatenbank und zwei
+Auch die Reparatur importierter Wartungsviews mit fehlendem oder
+unberechtigtem Definer ist mit dem normalen Backendzugang geprüft; ein
+gültiger root-Definer kann ohne SUPER-Recht ersetzt werden. Wiederholte
+Kopplung erhält die Grants des ersten Terminals, eigene Gerätezeilen bleiben
+sichtbar und fremde Uploads/falsche Übertragungsrichtungen sind gesperrt.
+
+Linux mit PHP 8.5: 48 Integrationsprüfungen mit privater Testdatenbank und zwei
 normal gekoppelten Testterminals sowie 11 portable Prüfungen erfolgreich.
 ZIP am Backend und tar an den Terminals verwenden denselben Transport;
 Update, Migrationen, offene Offline-Queues und DDL-Fehlerfälle bleiben geprüft.
+Auch die View-Reparatur über das normale Kopplungsformular sowie sichere
+Fehlerdiagnose und Bereinigung unvollständiger Zugänge sind geprüft.
 Testprozesse beendet, keine echten Mitarbeiterdaten verwendet.
 
 Der Windows-Test läuft auf einer isolierten, anschließend verworfenen VM;

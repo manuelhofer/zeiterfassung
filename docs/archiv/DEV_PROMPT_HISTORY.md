@@ -18,6 +18,33 @@ legacy_zip_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-03-16 wartungsview-reparatur-nativ-geprueft
+
+### EINGELESEN
+Erfolgreiches natives Windows-Protokoll 37151164192 für d81ad27,
+Linux-Prüfergebnis 20261003-b, Windows-Spezifikation und Snapshot.
+### DATEIEN
+docs/spezifikation_wartung_windows.md, docs/STATUS_SNAPSHOT.md, dieser Verlauf.
+### AKZEPTANZKRITERIUM
+Die Dokumentation belegt die automatische Wartungsview-Reparatur mit normalen Backendrechten unter Linux und Windows/XAMPP und benennt die noch offene Kopplung am Benutzergerät.
+### DONE
+Die Korrektur ist auf main veröffentlicht und auch auf nativem XAMPP geprüft;
+keine weitere Implementierungsänderung nach der Abnahme nötig. Die
+Geräteursache bleibt bis zur angefragten Definer-Ausgabe unbestätigt und
+die erneute Kopplung mit frischem Code steht am Benutzergerät aus.
+### TEST
+Windows Server 2022/XAMPP 8.2.12/PHP 8.2.12: 22 native und 20 portable
+Prüfungen erfolgreich, darunter Ersatz eines gültigen root-Definers ohne
+SUPER, Reparatur eines fehlenden/unberechtigten Definers mit gewöhnlichem
+Backendkonto, Bestandsschutz und Gerätetrennung nach erneuter Kopplung,
+Upload-Richtung sowie sämtliche bisherigen Backup-/Restore-/Updatefälle.
+Keine PHP-Warnungen/Deprecations im nativen Protokoll. Linux: 48 Integrations-
+und 11 portable Fälle erfolgreich; eigene Prozesse beendet, ausschließlich
+synthetische Daten. git diff --check und Dokumentationslinks geprüft.
+### NEXT
+Am Debian-Testbackend gegebenenfalls Migration 15 für importierte Views
+ausführen und Terminal mit neuem Code koppeln; Ausgabe und Gerätestand prüfen.
+
 ## P-2026-10-03-15 wartungsviews-bei-terminal-kopplung-reparieren
 
 ### EINGELESEN

@@ -22,6 +22,7 @@ nichts.
 Fehlende/unberechtigte Definer der Wartungsviews sind als Kopplungsfehler
 isoliert reproduziert; die Kopplung bindet diese Views jetzt automatisch an
 den aktuellen Backendzugang und erhält die eingeschränkten Gerätezugriffe.
+Mit normalem Backendzugang unter Linux und nativem Windows/XAMPP geprüft.
 SQLSTATE/DB-Fehlernummer ergänzen das Fehlerlog; eine erfolgreiche Codeprüfung
 meldet keinen verfrühten Kopplungserfolg mehr. Die Definer-Ausgabe vom
 Benutzergerät fehlt noch; Anleitung für einen alten Softwarestand und neuen
