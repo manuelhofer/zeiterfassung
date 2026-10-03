@@ -18,6 +18,39 @@ legacy_zip_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-03-14 rc522-dienstbenutzer-in-system-spi-gruppe
+
+### EINGELESEN
+Benutzerprotokoll vom Raspberry-Pi-OS-Trixie-Gerät, CHATSTART, Arbeitsregeln,
+Snapshot, Terminal-Spezifikation, RC522-Anschlussplan, Installationsskript und
+Prüfskripte; Git-/History-Duplicate-Check zu SPI-Gruppen. Offizielle Raspberry-
+Pi-OS-udev-Regeln setzen spidev über 99-com.rules auf Gruppe spi.
+### DATEIEN
+scripts/terminal/install_peripherie.sh, scripts/tests/rc522_berechtigung.sh,
+docs/terminal/rc522_anschluss.md, docs/wartungscheckliste.md,
+docs/STATUS_SNAPSHOT.md, dieser Verlauf.
+### AKZEPTANZKRITERIUM
+Beim RC522-Setup kann der Dienstbenutzer rfidws ein Gerät mit Gruppe spi und Modus 0660 nach der automatischen Gruppenvergabe auch bei erneutem Installer-Aufruf lesen und schreiben.
+### DONE
+Der eigene RC522-Entwurf berücksichtigte nur zeiterfassung-spi; spätere
+Raspberry-Pi-OS-Regeln können diese Geräte wieder spi zuordnen. Die vorhandene
+Systemgruppe wird nun automatisch ergänzt, ohne bestehende Mitgliedschaften
+zu ersetzen; die bisherige Anschlussgruppe/udev-Regel bleibt für andere Systeme.
+Vorprüfung unter dem Dienstbenutzer und anschließender Dienstneustart übernehmen
+die neuen Gruppen ohne weiteren Rechnerneustart. Keine Änderung am Leserprotokoll.
+### TEST
+Bash-Syntax und git diff --check erfolgreich. Isolierter Debian-12-Container
+ohne Netzwerk: fehlende Berechtigung an synthetischem Zeichengerät reproduziert,
+Original-Gruppenvergabe aus dem Installer ausgeführt, Lesen/Schreiben als
+rfidws erfolgreich, Wiederholung erhält dialout, System ohne spi bleibt über
+zeiterfassung-spi funktionsfähig. Container automatisch entfernt. 21 Installer-
+und 13 RFID-/WebSocket-Prüfungen erfolgreich; Socket-Fall musste außerhalb der
+Netzwerksandbox wiederholt werden. Keine Benutzergruppen des Arbeitsplatz-
+rechners verändert; echter RC522-Scan bleibt am Benutzergerät zu prüfen.
+### NEXT
+Korrektur auf das Testterminal holen, Peripheriestufe mit gespeicherter
+Antwortdatei erneut starten und echte Karte am Terminal prüfen.
+
 ## P-2026-10-03-13 windows-xampp-abnahme-dokumentiert
 
 ### EINGELESEN

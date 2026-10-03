@@ -133,6 +133,9 @@ Nach Änderungen an den Installationsskripten (`scripts/terminal/`):
 - `python3 scripts/tests/rfid_bridge.py` prüft RC522-Frames und den lokalen
   WebSocket-Weg ohne Hardware/DB; benötigt das Python-Paket `websockets` und
   Berechtigung zum Öffnen eines lokalen Ports.
+- `bash scripts/tests/rc522_berechtigung.sh` ausschließlich im wegwerfbaren
+  Debian-Container als root ausführen: prüft echten Gerätezugriff als Dienst-
+  benutzer vor/nach SPI-Gruppenvergabe, Wiederholung und System ohne `spi`.
 - Am RC522 zusätzlich: Pinplan stromlos umsetzen, SPI-Neustart/Wiederanlauf,
   echter Scan mit führenden Nullen/langer UID, gehaltene Karte nur einmal,
   Entfernen/Neuauflegen sowie Neustart nach falsch angeschlossenem Leser.

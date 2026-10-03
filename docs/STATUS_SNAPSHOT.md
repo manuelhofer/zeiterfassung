@@ -42,7 +42,10 @@ Paketinstallation, Bildausgabe, Touch und echte Scans bleiben offen. USB im
 Tastaturmodus, serielle Leser und direkter RC522 über Linux-SPI sind umgesetzt;
 [Pinplan und Plattformgrenzen](terminal/rc522_anschluss.md) beachten. Der Installer
 zeigt für bekannte Pi-Modelle die konkreten Pins; andere Platinen benötigen ihren
-Hersteller-Pinplan. RC522-Protokoll und WebSocket sind mit synthetischen Daten
+Hersteller-Pinplan. Der vom Gerät gemeldete RC522-Zugriffsfehler wird durch
+automatische Mitgliedschaft des Dienstbenutzers in der vorhandenen `spi`-Gruppe
+behoben; Gruppenvergabe und Wiederanlauf sind isoliert geprüft, echter Scan folgt.
+RC522-Protokoll und WebSocket sind mit synthetischen Daten
 geprüft, tatsächliche Hardware bleibt abzunehmen. Internet ist zur Erstinstallation nötig.
 
 **Bedienprüfung abgeschlossen** (01.10.2026): Die Grundabläufe sind nutzbar,

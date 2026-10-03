@@ -343,7 +343,12 @@ case "$RFID_VARIANTE" in
 
         if [ "$RFID_VARIANTE" = rc522 ]; then
             "$RFID_WS_VERZEICHNIS/venv/bin/pip" install --quiet 'spidev>=3.6,<4' || exit 1
-            # Nur der ausgewaehlte SPI-Anschluss, keine pauschalen GPIO-/root-Rechte.
+            # Raspberry Pi OS setzt die Geraetegruppe ueber eigene udev-Regeln
+            # auf spi, auch nach unserer anschlussbezogenen Regel.
+            if getent group spi >/dev/null 2>&1; then
+                usermod -aG spi "$RFID_WS_BENUTZER" || exit 1
+            fi
+            # Eigene Anschlussgruppe fuer Systeme ohne die vorhandene SPI-Gruppe.
             getent group zeiterfassung-spi >/dev/null || groupadd --system zeiterfassung-spi
             usermod -aG zeiterfassung-spi "$RFID_WS_BENUTZER" || exit 1
             mkdir -p /etc/udev/rules.d

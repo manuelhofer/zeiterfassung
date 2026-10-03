@@ -78,8 +78,13 @@ sudo reboot
 sudo bash terminal-installieren.sh
 ```
 
-Die Auswahl bleibt gespeichert. Der Dienstbenutzer erhält Zugriff auf genau den
-gewählten SPI-Anschluss. Vor dem Dienststart wird der Leser unter diesem Benutzer
+Die Auswahl bleibt gespeichert. Der Dienstbenutzer erhält Zugriff über die
+Anschlussgruppe `zeiterfassung-spi`. Ist die Systemgruppe `spi` vorhanden, nimmt
+der Installer ihn zusätzlich dort auf: Raspberry Pi OS kann die Geräte mit
+seinen eigenen udev-Regeln dieser Gruppe zuordnen. Diese Systemgruppe erlaubt
+Zugriff auf ihre SPI-Geräte; GPIO- oder root-Rechte werden nicht benötigt.
+Grundlage: [SPI-Geräteregeln von Raspberry Pi OS](https://github.com/RPi-Distro/raspberrypi-sys-mods/blob/pios/trixie/usr/lib/udev/rules.d/99-com.rules).
+Vor dem Dienststart wird der Leser unter diesem Benutzer
 geöffnet und sein Chipregister geprüft. Ein abgezogener oder falsch verdrahteter
 Leser darf nicht bloß einen lauschenden Port hinterlassen; die Bridge beendet sich
 bei einem Leseausfall und systemd versucht einen Neustart.
