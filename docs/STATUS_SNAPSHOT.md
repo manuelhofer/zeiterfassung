@@ -35,6 +35,8 @@ Austauschfreigabe statt unnötiger exklusiver Lese-/Schreibsperre.
 Der Windows-Dienst lädt seine CLI-Skripte per `require`, damit der laufende
 Updater und sein Takt beim Austausch ihres eigenen Quelltexts keine Sperre halten.
 Skriptargumente werden nach dem PHP-Optionentrenner übergeben.
+Bereits offene Dateien werden während der Vorbereitung erkannt, damit ein
+Abbruch vor SQL die Buchungssperre automatisch aufhebt und erneut versucht werden kann.
 
 **Backend-Installation nach dem Debian-Abbruch erneut prüfen** (03.10.2026):
 Der Installer verschiebt Projekte mit für `www-data` gesperrtem Elternordner

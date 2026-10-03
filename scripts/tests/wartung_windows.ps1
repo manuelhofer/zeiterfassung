@@ -80,6 +80,15 @@ try {
     $Commit = (& git.exe '-C' $Origin 'rev-parse' 'HEAD').Trim()
     $Probe = Auftrag 'pruefen'
     Gut 'Windows erkennt Update und DB-Migration' ($Probe.zustand -eq 'erfolgreich' -and (Lesen 'angebot.json').migrationen.Count -eq 1)
+    # Lesen bleibt erlaubt (Hash/Backup), Ersetzen dagegen nicht: Das muss
+    # vor SQL abbrechen und darf keinen Administrator zur Freigabe erfordern.
+    $Datei = [IO.File]::Open("$App/public/index.php",'Open','Read','Read')
+    try {
+        $Blockiert = Auftrag 'update' $Commit
+        Gut 'Offene Datei verhindert Update ohne dauerhafte Wartungssperre' ($Blockiert.zustand -eq 'fehlgeschlagen' -and -not $Blockiert.gesperrt_pruefen -and -not (Test-Path "$Basis/pause.json") -and -not (Test-Path "$Basis/aktiv.json"))
+        $NichtMigriert = PHP '$c=WartungSystem::konfig($argv[1],true);echo WartungDateien::pdo($c["db_admin"]["haupt"])->query("SELECT COUNT(*) FROM information_schema.tables WHERE table_schema=DATABASE() AND table_name=0x77617274756e675f77696e646f77735f70726f6265")->fetchColumn();'
+        Gut 'Blockiertes Update hat noch keine SQL-Migration ausgefuehrt' ($NichtMigriert -eq '0')
+    } finally { $Datei.Dispose() }
     $Update = Auftrag 'update' $Commit
     Gut 'Windows installiert nach Sicherung und startet Apache neu' ($Update.zustand -eq 'erfolgreich' -and (Lesen 'version.json').commit -eq $Commit)
     Gut 'Konfiguration und Signaturschluessel bleiben erhalten' ((Get-FileHash "$App/config/config.local.php").Hash -eq $KonfigHash -and (Get-FileHash "$Basis/privat/signatur.key").Hash -eq $Schluessel)

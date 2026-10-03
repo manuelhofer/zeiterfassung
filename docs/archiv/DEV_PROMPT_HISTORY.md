@@ -18,6 +18,27 @@ legacy_zip_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-03-11 windows-dateikonflikt-ohne-dauersperre
+
+### EINGELESEN
+Vorbereitungs-/Abbruchablauf, Windows-Dateiprüfung und native Update-Abnahme.
+### DATEIEN
+services/WartungDienst.php, scripts/tests/wartung_windows.ps1,
+docs/STATUS_SNAPSHOT.md, dieser Verlauf.
+### AKZEPTANZKRITERIUM
+Eine vor dem Windows-Update geöffnete Datei verhindert SQL-Änderungen, gibt Buchungen wieder frei und erlaubt nach dem Schließen einen erneuten Updateversuch.
+### DONE
+Der eigene Entwurf prüfte Sperren erst nach dem dauerhaften Installationsriegel;
+die zusätzliche Prüfung in der Vorbereitung behandelt vorhandene Konflikte
+vor Änderungsbeginn. Späte Konflikte halten weiterhin die vorsichtige Sperre.
+Native Abnahme hält eine Datei lesbar, aber ohne Austauschfreigabe offen,
+prüft Abbruch ohne SQL/Sperre und wiederholt danach dasselbe Update.
+### TEST
+PHP-Lint und PowerShell-Syntaxprüfung erfolgreich; native Fehlerfall-/Erfolgs-
+Abnahme und Linux-Integrationsprüfung folgen.
+### NEXT
+Abbruch/Wiederanlauf und vollständiges Update auf beiden Plattformen prüfen.
+
 ## P-2026-10-03-10 windows-cli-trennt-skriptargumente
 
 ### EINGELESEN

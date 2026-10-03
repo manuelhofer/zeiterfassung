@@ -361,6 +361,9 @@ final class WartungDienst
         foreach (array_keys($plan['dateien']) as $pfad) {
             if (str_ends_with($pfad, '.php')) { WartungDateien::prozess([PHP_BINARY, '-l', $bereit . '/' . $pfad]); }
         }
+        // Ein schon offener Editor darf vor Änderungsbeginn abbrechen: Danach
+        // können Buchungen automatisch freigegeben und das Update erneut versucht werden.
+        WartungPlattform::dateisperrenPruefen($this->wurzel, array_keys($plan['dateien'] + $alt['dateien']));
         return ['ok' => true];
     }
 
