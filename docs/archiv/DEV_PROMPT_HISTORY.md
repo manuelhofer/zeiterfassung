@@ -18,6 +18,35 @@ legacy_zip_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-03-13 windows-xampp-abnahme-dokumentiert
+
+### EINGELESEN
+Native Läufe 37148613374/37148692919, Linux-Prüfergebnis 20261003-d,
+Windows-Spezifikation, Installationsanleitung und Wartungsbetrieb.
+### DATEIEN
+docs/spezifikation_wartung_windows.md, docs/wartung_betrieb.md,
+docs/STATUS_SNAPSHOT.md, dieser Verlauf.
+### AKZEPTANZKRITERIUM
+Die Dokumentation nennt die tatsächlich bestandenen Windows-/Linux-Abläufe, erklärt den einfachen Wiederanlauf bei Dateisperren und grenzt die offene Geräteabnahme ab.
+### DONE
+Windows-Implementierung und native Abnahme abgeschlossen, vorübergehende
+Fehlerchronologie aus dem Snapshot entfernt. Keine zusätzliche Wartungs-
+Einrichtung, gleiches Backend-/Terminalpaket und bestehende Linux-Funktion
+erhalten. Veröffentlichung auf main ist durch den früheren Benutzerauftrag
+freigegeben; die Installation auf Benutzergeräten wurde nicht durchgeführt.
+### TEST
+Windows Server 2022/XAMPP 8.2.12/PHP 8.2.12: 17 native Ablauf- und 20 portable
+Prüfungen erfolgreich, einschließlich Abbruch vor SQL ohne Dauersperre und
+erneutem Update. Linux/PHP 8.5: 41 Integrations- und 11 portable Prüfungen,
+alle eigenen Testprozesse beendet. Lint aller geänderten PHP-Dateien,
+PowerShell-Syntaxprüfung aller neuen Skripte und git diff --check erfolgreich.
+Keine PHP-Warnungen/Deprecations im nativen Erfolgslog. Checkout-Laufzeit wird
+im veröffentlichten Workflow nochmals geprüft; physische Geräte und deren
+Neustart/LAN/Leser sind keine bereits bestätigte Abnahme.
+### NEXT
+Veröffentlichten Windows-Workflow kontrollieren; Benutzergerät gemäß Anleitung
+installieren und echte Windows-/Linux-Terminalkopplung am Gerät abnehmen.
+
 ## P-2026-10-03-12 windows-test-ohne-veraltete-node-laufzeit
 
 ### EINGELESEN

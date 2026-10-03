@@ -18,26 +18,14 @@ nichts.
 
 ## Nächster Schritt (konkret)
 
-**Windows/XAMPP-Wartung erweitern und nativ abnehmen** (03.10.2026):
-Ausdrücklich beauftragt: gemeinsamer Backup-/Updateablauf für Linux und Windows,
-automatischer XAMPP-Installer und bestehende Linux-Terminals; Zielbild in
-[spezifikation_wartung_windows.md](spezifikation_wartung_windows.md).
-Linux-Integration einschließlich ZIP-Backend/tar-Terminals ist geprüft;
-native Windows-Abnahme erfolgt im wegwerfbaren GitHub-Runner.
-Der erste native Lauf hat laufwerksrelative Pfade im portablen XAMPP entdeckt;
-der Installer setzt PHP-/Apache-/MariaDB-Pfade vor dem Start absolut und
-aktiviert eine PHP-Erweiterung nur, wenn nicht bereits ihr DLL-Alias aktiv ist.
-Auch Windows-versteckte Git-Dateien werden bei der Rechtevergabe berücksichtigt.
-Die Pfadumstellung erhält Apache-Präfixe wie den SSL-Cache-Anbieter `shmcb:`.
-Native Installation, Zugriffsschutz, Apache, ZIP-/SQL-Restore und 20 portable
-Windows-Prüfungen bestehen; die Windows-Dateiprüfung testet gezielt
-Austauschfreigabe statt unnötiger exklusiver Lese-/Schreibsperre.
-Der Windows-Dienst lädt seine CLI-Skripte per `require`, damit der laufende
-Updater und sein Takt beim Austausch ihres eigenen Quelltexts keine Sperre halten.
-Skriptargumente werden nach dem PHP-Optionentrenner übergeben.
-Bereits offene Dateien werden während der Vorbereitung erkannt, damit ein
-Abbruch vor SQL die Buchungssperre automatisch aufhebt und erneut versucht werden kann.
-Der Windows-Test verwendet Checkout mit aktuellem Node-24-Laufzeitsystem.
+**Windows/XAMPP am Benutzergerät abnehmen** (03.10.2026): Gemeinsame Backup-/
+Updateknöpfe und automatischer Windows-Installer sind umgesetzt; native
+Installation, geschützte ZIP-/SQL-Sicherung und Wiederherstellung, Update mit
+Migration, Apache-Neustart, Dateikonflikt/Wiederanlauf und Wiederinstallation
+sind auf Windows Server 2022 mit XAMPP 8.2.12 geprüft. Linux einschließlich
+ZIP-Backend/tar-Terminals und offener Offline-Queues bleibt geprüft. Offen:
+Benutzergerät nach Neustart und echte LAN-Kopplung Windows-Backend/Linux-Terminal;
+Prüfbelege und Grenzen in [spezifikation_wartung_windows.md](spezifikation_wartung_windows.md).
 
 **Backend-Installation nach dem Debian-Abbruch erneut prüfen** (03.10.2026):
 Der Installer verschiebt Projekte mit für `www-data` gesperrtem Elternordner

@@ -34,11 +34,32 @@ Windows-Sicherungen verwenden ZIP mit Pfadzuordnung im Manifest; SQL und
 Prüfsummen bleiben identisch. Wiederherstellung erfolgt weiterhin kontrolliert
 auf separatem Gerät; keine automatische DDL-Rücknahme.
 
-Portable Tests und Linux-Integration sind lokal möglich. NTFS, Aufgabenplanung
-und echter XAMPP-Neustart müssen zusätzlich auf einem Windows-Testsystem
-abgenommen werden; eine Simulation allein bestätigt diese Teile nicht.
+## Prüfergebnis vom 03.10.2026
+
+[Native Windows-Abnahme](https://github.com/manuelhofer/zeiterfassung/actions/runs/37148692919):
+Windows Server 2022, Windows PowerShell 5.1 und frisches XAMPP 8.2.12 mit PHP
+8.2.12; 17 Ablaufprüfungen und 20 portable Prüfungen erfolgreich. Tatsächlich
+ausgeführt: Installer, NTFS-/Aufgaben-/Apache-Konfiguration, Webaufruf,
+ZIP-/SQL-Sicherung und getrennte Wiederherstellung, Update mit neuer SQL-
+Migration, eigener Skriptaustausch, Apache-Neustart und Installer-Wiederholung
+unter Erhalt von Konfiguration, Schlüssel und Version. Eine vorhandene
+Dateisperre verhindert SQL und wird ohne dauerhafte Buchungssperre gemeldet;
+nach dem Schließen gelingt dasselbe Update.
+
+Linux mit PHP 8.5: 41 Integrationsprüfungen mit privater Testdatenbank und zwei
+normal gekoppelten Testterminals sowie 11 portable Prüfungen erfolgreich.
+ZIP am Backend und tar an den Terminals verwenden denselben Transport;
+Update, Migrationen, offene Offline-Queues und DDL-Fehlerfälle bleiben geprüft.
+Testprozesse beendet, keine echten Mitarbeiterdaten verwendet.
+
+Der Windows-Test läuft auf einer isolierten, anschließend verworfenen VM;
+auf dem Benutzergerät wurde nichts installiert. Kaltstart des Benutzergeräts,
+echte LAN-Verbindung Windows-Backend/Linux-Terminal sowie RFID-/Touch-Hardware
+bleiben Geräteabnahme. Windows-Terminalinstallation ist nicht Teil dieser
+Backend-Erweiterung.
 
 Primärquellen: [PHP-Prozessaufrufe](https://www.php.net/manual/en/function.proc-open.php),
 [Apache unter Windows](https://httpd.apache.org/docs/2.4/en/platform/windows.html),
 [Aufgabenidentitäten](https://learn.microsoft.com/en-us/powershell/module/scheduledtasks/new-scheduledtaskprincipal),
+[Windows-Dateifreigaben](https://learn.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-createfilew),
 [XAMPP Windows](https://www.apachefriends.org/faq_windows.html).

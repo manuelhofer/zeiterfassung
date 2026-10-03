@@ -101,6 +101,11 @@ Dateien und leere Ordner sind enthalten. Verknüpfungen werden bei einer
 Windows-Sicherung mit einer Fehlermeldung abgewiesen. Linux behält
 `dateien.tar.gz`; der gemeinsame Transport kann beide Formate zusammen sichern.
 
+Unter Windows verhindert eine schon geöffnete Datei ohne Austauschfreigabe
+das Update vor SQL-Änderungen. Buchungen werden dann wieder freigegeben;
+die gemeldete Datei schließen und das Update erneut starten. Entsteht ein
+Konflikt erst nach Änderungsbeginn, gelten die Wiederherstellungsregeln unten.
+
 Zuerst wird das Backend gesichert. Danach verteilt es dasselbe geprüfte Paket
 an alle aktiven Terminals und sichert auch deren Daten vor der Installation.
 Prüfsummen und lesbare Archive werden kontrolliert. Die Hauptdatenbank wird
@@ -205,3 +210,5 @@ dieselbe Datei zusätzlich reservierte Namen und Schreibweisenkollisionen.
 NTFS-Rechte, Backup-/SQL-Restore, Update und Apache-Neustart auf einem
 wegwerfbaren Windows-Runner. `scripts/tests/wartung_windows.ps1` verweigert die
 Ausführung außerhalb dieser isolierten GitHub-Actions-Umgebung.
+Native Prüfergebnisse und verbleibende Geräteabnahme stehen in
+[spezifikation_wartung_windows.md](spezifikation_wartung_windows.md#prüfergebnis-vom-03102026).
