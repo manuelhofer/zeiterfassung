@@ -96,6 +96,9 @@ try {
     Write-Host "Ergebnis: $Tests native Windows-Pruefungen erfolgreich."
 } catch {
     Write-Host $_.Exception.Message
+    if (Test-Path variable:script:Basis) {
+        if (Test-Path "$Basis/status.json") { Get-Content -LiteralPath "$Basis/status.json" -Raw }
+    }
     if (Test-Path 'C:/xampp/apache/logs/error.log') { Get-Content 'C:/xampp/apache/logs/error.log' -Tail 30 }
     exit 1
 } finally {

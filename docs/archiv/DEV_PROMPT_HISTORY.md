@@ -18,6 +18,23 @@ legacy_zip_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-03-07 windows-abnahme-zeigt-wartungsfehler
+
+### EINGELESEN
+Nativer Windows-Lauf 37147256145 und Testdiagnose.
+### DATEIEN
+scripts/tests/wartung_windows.ps1, docs/STATUS_SNAPSHOT.md, dieser Verlauf.
+### AKZEPTANZKRITERIUM
+Wenn die native Windows-Abnahme scheitert, zeigt ihr Testlog den öffentlichen Wartungsstatus zur gezielten Fehleranalyse.
+### DONE
+Testdiagnose ergänzt, ohne private Konfiguration oder DB-Dumps auszugeben.
+### TEST
+Native Installation, LocalService-Apache, Schutz privater Daten, 20 portable
+Windows-Prüfungen, Webaufruf, Backup, Datei-/SQL-Restore und Updateprüfung mit
+DB-Migration erfolgreich; Update selbst scheitert noch. Weiterer Lauf folgt.
+### NEXT
+Konkreten Updatefehler anhand des Status beheben.
+
 ## P-2026-10-03-06 xampp-pfade-erhalten-apache-cachepraefix
 
 ### EINGELESEN
