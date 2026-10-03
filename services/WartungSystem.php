@@ -6,7 +6,8 @@ final class WartungSystem
 {
     public static function pfad(string $wurzel): string
     {
-        $wurzel = realpath($wurzel) ?: $wurzel;
+        $wurzel = WartungPlattform::pfad(realpath($wurzel) ?: $wurzel);
+        if (WartungPlattform::windows()) { $wurzel = strtolower($wurzel); }
         return dirname($wurzel) . '/.zeit-wartung-' . substr(hash('sha256', $wurzel), 0, 16);
     }
 
@@ -15,12 +16,16 @@ final class WartungSystem
         $basis = self::pfad($wurzel);
         if (!is_file($basis . '/system.json')) { return null; }
         $konfig = WartungDateien::json($basis . '/system.json');
-        if ($privat) { $konfig = array_replace($konfig, WartungDateien::json($basis . '/privat/datenbank.json')); }
+        if ($privat) {
+            $konfig = array_replace($konfig, WartungDateien::json($basis . '/privat/datenbank.json'));
+            WartungPlattform::programme($konfig['programme'] ?? []);
+        }
         return $konfig;
     }
 
     public static function anwendung(string $wurzel, array $konfig): array
     {
+        if (WartungPlattform::windows()) { return WartungPlattform::anwendung($wurzel, $konfig); }
         // config/ ist während der normalen Terminal-Kopplung webschreibbar.
         // Deshalb PHP-Konfiguration NIE als privilegierter Wartungsprozess auswerten.
         if (function_exists('posix_geteuid') && posix_geteuid() === 0) {
@@ -43,6 +48,10 @@ final class WartungSystem
             return $db;
         }
         $name = $teile['dbname'] ?? $db['dbname'] ?? '';
+        if (WartungPlattform::windows()) {
+            return ['host' => '127.0.0.1', 'port' => $teile['port'] ?? $db['port'] ?? 3306,
+                'dbname' => $name, 'user' => 'root', 'pass' => ''];
+        }
         $socket = $teile['unix_socket'] ?? ini_get('pdo_mysql.default_socket');
         return ['dsn' => 'mysql:unix_socket=' . $socket . ';dbname=' . $name . ';charset=utf8mb4', 'user' => 'root', 'pass' => ''];
     }
@@ -67,6 +76,16 @@ final class WartungSystem
             'web_benutzer' => $webBenutzer, 'transport' => 'datenbank', 'reserve_bytes' => 536870912,
             'neustart_befehl' => ['systemctl', 'restart', ...$neustartDienste],
             'zusatz_pfade' => [$basis . '/system.json', $basis . '/privat']];
+        if (WartungPlattform::windows()) {
+            $windows = WartungDateien::json($basis . '/privat/windows.json');
+            if (isset($windows['openssl_conf'])) { putenv('OPENSSL_CONF=' . $windows['openssl_conf']); }
+            $konfig['programme'] = $windows['programme'];
+            $konfig['archiv_format'] = 'zip';
+            $konfig['konfig_aufgabe'] = $windows['konfig_aufgabe'];
+            $konfig['neustart_befehl'] = [$windows['programme']['powershell.exe'], '-NoProfile', '-NonInteractive',
+                '-ExecutionPolicy', 'Bypass', '-File', $wurzel . '/scripts/windows/apache_neustart.ps1', '-Dienst', $windows['apache_dienst']];
+            WartungPlattform::programme($konfig['programme']);
+        }
         $app = self::anwendung($wurzel, $konfig);
         $terminal = ($app['app']['installation_typ'] ?? '') === 'terminal'
             || (!is_file($wurzel . '/config/config.local.php') && is_file($wurzel . '/config/geraet.local.php'));

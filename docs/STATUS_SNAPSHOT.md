@@ -18,6 +18,13 @@ nichts.
 
 ## Nächster Schritt (konkret)
 
+**Windows/XAMPP-Wartung erweitern und nativ abnehmen** (03.10.2026):
+Ausdrücklich beauftragt: gemeinsamer Backup-/Updateablauf für Linux und Windows,
+automatischer XAMPP-Installer und bestehende Linux-Terminals; Zielbild in
+[spezifikation_wartung_windows.md](spezifikation_wartung_windows.md).
+Linux-Integration einschließlich ZIP-Backend/tar-Terminals ist geprüft;
+native Windows-Abnahme erfolgt im wegwerfbaren GitHub-Runner.
+
 **Backend-Installation nach dem Debian-Abbruch erneut prüfen** (03.10.2026):
 Der Installer verschiebt Projekte mit für `www-data` gesperrtem Elternordner
 (insbesondere `/root`) automatisch nach `/var/www/zeiterfassung` und erhält die

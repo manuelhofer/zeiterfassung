@@ -10,7 +10,7 @@ final class WartungPaket
     {
         // Das origin der Installation. Öffentliche Quellen brauchen keine Anmeldung.
         $spiegel = $this->wurzel;
-        WartungDateien::prozess(['env', 'GIT_TERMINAL_PROMPT=0', 'git', '-C', $spiegel, 'fetch', '--no-tags', 'origin', '+refs/heads/main:refs/remotes/origin/main'], frist: 60);
+        WartungDateien::prozess(['git', '-C', $spiegel, 'fetch', '--no-tags', 'origin', '+refs/heads/main:refs/remotes/origin/main'], frist: 60, umgebung: ['GIT_TERMINAL_PROMPT' => '0', 'GCM_INTERACTIVE' => 'never']);
         $commit = trim(WartungDateien::prozess(['git', '-C', $spiegel, 'rev-parse', 'refs/remotes/origin/main']));
         $alt = WartungDateien::json($this->konfig['status_pfad'] . '/version.json');
         self::bestandPruefen($this->wurzel, $alt['dateien']);
@@ -73,6 +73,7 @@ final class WartungPaket
         $zip = new ZipArchive();
         if ($zip->open($pfad) !== true) { throw new RuntimeException('Paket ist kein lesbares ZIP.'); }
         $dateien = [];
+        $namen = [];
         $bytes = 0;
         try {
             for ($i = 0; $i < $zip->numFiles; $i++) {
@@ -83,6 +84,9 @@ final class WartungPaket
                 $modus = ($attribute >> 16) & 0170000;
                 if ($modus !== 0 && !in_array($modus, [0100000, 0040000], true)) { throw new RuntimeException('Links/Sonderdateien sind in Updates nicht erlaubt.'); }
                 if (str_ends_with($name, '/')) { continue; }
+                $kennung = WartungPlattform::windows() ? strtolower($name) : $name;
+                if (isset($namen[$kennung])) { throw new RuntimeException('Mehrdeutiger Paketpfad.'); }
+                $namen[$kennung] = true;
                 if (WartungDateien::geschuetzt($name) || isset($dateien[$name])) { throw new RuntimeException('Geschützter oder doppelter Paketpfad: ' . $name); }
                 $bytes += $info['size'];
                 if ($bytes > 1024 * 1024 * 1024 || $info['size'] > 64 * 1024 * 1024) { throw new RuntimeException('Paket überschreitet die Größenbegrenzung.'); }

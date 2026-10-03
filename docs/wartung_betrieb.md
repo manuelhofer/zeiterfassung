@@ -33,9 +33,12 @@ zugehörigen Backendbackup. Es wird nichts automatisch gelöscht.
 ## Normale Installation und erster Einsatz
 
 Der unterstützte automatische Weg ist eine native Installation auf einem
-Debian-/Raspberry-Pi-OS-Gerät mit lokaler MariaDB, Apache und PHP-FPM ab PHP 8.2:
+Debian-/Raspberry-Pi-OS-Gerät mit lokaler MariaDB, Apache und PHP-FPM ab PHP 8.2
+oder ein Windows-Backend mit XAMPP und Git für Windows:
 
 - Backend: `sudo bash scripts/installieren.sh`
+- Windows-Backend: PowerShell als Administrator,
+  `powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\windows\installieren.ps1`
 - Terminal: der bisherige `scripts/terminal/install_terminal.sh`, danach die
   normale Kopplung mit Serveradresse und Kopplungscode.
 
@@ -62,11 +65,20 @@ Neben dem Programmordner entstehen `.zeit-wartung-<Kennung>` für Status und
 `.zeit-wartung-<Kennung>-sicherungen` für Backups. Sie liegen außerhalb der
 Anwendung und des Webroots. Der Pfad ergibt sich aus dem Installationspfad.
 Der gleichnamige Systemd-Dienst mit Timer läuft auf Backend und Terminals.
+Unter Windows übernehmen zwei Aufgaben der Windows-Aufgabenplanung den
+Wartungsprozess und die eingeschränkte Konfigurationsauswertung. Sie starten
+beziehungsweise arbeiten ohne angemeldeten Benutzer; der Wartungsprozess
+prüft alle zwei Sekunden auf Aufträge. Apache und MariaDB sind Windows-Dienste.
 
 Der Dienst besitzt die Rechte zum Sichern, Ersetzen und Neustarten. Webprozesse
 bekommen nur den begrenzten Auftragseingang. Lokale PHP-Konfiguration wird vom
 Dienst als Webbenutzer gelesen, nicht mit Systemrechten ausgewertet. Private
 Datenbankzugänge und Signaturschlüssel liegen in einem geschützten Unterordner.
+Unter Windows läuft Apache als LocalService und die Wartung als SYSTEM.
+SYSTEM startet zur Konfigurationsauswertung nur die feste LocalService-Aufgabe
+und liest deren JSON-Antwort. NTFS-Rechte schützen Code, private Daten und
+Sicherungen; nur Konfiguration, Uploads und Auftragseingang sind gezielt
+beschreibbar. Die Installer dürfen während laufender Wartung nicht ausgeführt werden.
 
 Die Terminalverteilung verwendet die schon vorhandene zentrale DB-Verbindung.
 Jeder Terminalbenutzer sieht nur seine eigenen Aufträge und Dateiteile. Das
@@ -83,6 +95,11 @@ DB-Benutzer/Grants und private Wartungsdaten. Am Terminal kommt die lokale
 Offline-Datenbank einschließlich offener Queue und Mitarbeiterspiegel dazu.
 Es ist eine Anwendungssicherung, kein vollständiges Betriebssystemabbild.
 Externe Symlinkziele werden nicht stillschweigend als mitgesichert ausgegeben.
+Windows verwendet `dateien.zip`; `archiv_pfade` im Manifest ordnet die Ordner
+`pfad-0`, `pfad-1` usw. den ursprünglichen Pfaden zu. Auch `.git`, unversionierte
+Dateien und leere Ordner sind enthalten. Verknüpfungen werden bei einer
+Windows-Sicherung mit einer Fehlermeldung abgewiesen. Linux behält
+`dateien.tar.gz`; der gemeinsame Transport kann beide Formate zusammen sichern.
 
 Zuerst wird das Backend gesichert. Danach verteilt es dasselbe geprüfte Paket
 an alle aktiven Terminals und sichert auch deren Daten vor der Installation.
@@ -98,6 +115,9 @@ Installation deshalb keine nachträglichen `git pull`/`reset` ausführen.
 
 Nach Syntax-, Datenbank- und Versionsprüfung werden Webserver und PHP-FPM neu
 gestartet. Erst nach gemeinsamem Erfolg werden Buchungen freigegeben.
+Unter Windows wird Apache neu gestartet; PHP ist dort ein Apache-Modul.
+Exklusive Dateisperren werden vor SQL geprüft. Ein später auftretender
+Dateikonflikt hält die Wartung an und wird nicht als Erfolg ausgegeben.
 Transportdaten werden anschließend aus der DB entfernt, Sicherungen bleiben.
 Unabhängige Fremdskripte mit direktem DB-Schreibzugriff sind vor Wartung
 anzuhalten. Die Lesesperre des Dumps kann andere DBs desselben Servers kurz
@@ -133,9 +153,14 @@ sichtbaren unterbrochenen Auftrag.
 1. Timer und Dienst auf **allen Geräten** stoppen. Auftrags-ID, `status.json`,
    `lauf-<ID>.json`, `installation-<ID>.json` und Sicherungspfad festhalten.
    Private Fehlerdetails liegen unter `privat/fehler-<ID>.json` am Backend.
+   Auf Windows die Aufgabe `Zeiterfassung-Wartung-<Kennung>` deaktivieren und
+   beenden; Apache während der Datei-Wiederherstellung stoppen.
 2. `manifest.json` und SHA-256-Prüfsummen mit `WartungBackup::pruefen()` über PHP
    CLI kontrollieren. Archive zuerst in einen leeren separaten Ordner
    entpacken. Sie enthalten die ursprünglichen Pfade ohne führenden `/`.
+   Bei Windows-ZIP die Zuordnung `archiv_pfade` verwenden und die Dateien
+   anschließend an ihre ursprünglichen Orte zurückbringen; Dateirechte werden
+   durch den Installer wiederhergestellt, nicht durch das ZIP-Archiv.
 3. SQL in neue, leere Wiederherstellungsdatenbanken importieren und prüfen.
    Die `*-benutzer.sql` enthalten Zugangshashes und Grants: nur auf einem
    separaten Server kontrolliert einspielen, keine bestehenden Konten blind
@@ -172,3 +197,11 @@ Systemd-Takte werden im Labor durch lokale Prozesse, Webserver-Neustarts durch
 `true` ersetzt. Native Paketinstallation, Systemd-Dateirechte, Apache/FPM,
 echte Hardware und Wiederherstellung auf anderer Hardware bleiben Teil der
 Geräteabnahme. Der Labortest allein bestätigt diese Schritte nicht.
+
+`php scripts/tests/wartung_plattform.php` prüft ohne DB und Dienste
+Prozessargumente, Pfade, ZIP/Rücklesen und Paketprüfung. Unter Windows prüft
+dieselbe Datei zusätzlich reservierte Namen und Schreibweisenkollisionen.
+`.github/workflows/windows-wartung.yml` prüft den nativen Installer, Aufgaben,
+NTFS-Rechte, Backup-/SQL-Restore, Update und Apache-Neustart auf einem
+wegwerfbaren Windows-Runner. `scripts/tests/wartung_windows.ps1` verweigert die
+Ausführung außerhalb dieser isolierten GitHub-Actions-Umgebung.

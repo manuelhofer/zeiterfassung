@@ -9,4 +9,10 @@ if (!is_file($wurzel . '/config/config.local.php') && is_file($wurzel . '/config
     $app['app']['installation_typ'] = 'terminal';
     $app['offline_db'] = $geraet['offline_db'] ?? ['enabled' => false];
 }
-echo json_encode($app, JSON_THROW_ON_ERROR);
+if (($argv[1] ?? '') === '--windows-json' && PHP_OS_FAMILY === 'Windows') {
+    require $wurzel . '/core/Autoloader.php';
+    // Fester externer Pfad, keine vom Webauftrag vorgegebenen Ausgabepfade.
+    WartungDateien::schreiben(WartungSystem::pfad($wurzel) . '/anwendung/config.json', $app, 0600);
+} else {
+    echo json_encode($app, JSON_THROW_ON_ERROR);
+}

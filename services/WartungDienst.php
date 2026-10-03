@@ -12,21 +12,23 @@ final class WartungDienst
 
     public function __construct(private string $wurzel, private array $konfig, ?array $app = null)
     {
-        $this->wurzel = realpath($wurzel) ?: throw new RuntimeException('Anwendungspfad fehlt.');
+        $this->wurzel = WartungPlattform::pfad(realpath($wurzel) ?: throw new RuntimeException('Anwendungspfad fehlt.'));
         $this->app = $app ?? WartungSystem::anwendung($this->wurzel, $konfig);
         foreach (['status_pfad', 'backup_pfad'] as $schluessel) {
             $pfad = $konfig[$schluessel] ?? '';
             $real = realpath($pfad);
-            if ($real === false || $pfad !== $real || $real === $this->wurzel || str_starts_with($real, $this->wurzel . '/') || $real === '/') {
+            if ($real === false || WartungPlattform::vergleich($pfad) !== WartungPlattform::vergleich($real)
+                || WartungPlattform::innerhalb($real, $this->wurzel) || preg_match('~^([a-zA-Z]:)?[/\\\\]$~', $real)) {
                 throw new RuntimeException($schluessel . ' muss als echter, separater Ordner außerhalb der Anwendung existieren.');
             }
         }
-        if ($konfig['status_pfad'] === $konfig['backup_pfad'] || str_starts_with($konfig['backup_pfad'], $konfig['status_pfad'] . '/')
-            || str_starts_with($konfig['status_pfad'], $konfig['backup_pfad'] . '/')) {
+        if (WartungPlattform::innerhalb($konfig['backup_pfad'], $konfig['status_pfad'])
+            || WartungPlattform::innerhalb($konfig['status_pfad'], $konfig['backup_pfad'])) {
             throw new RuntimeException('Status- und Sicherungsordner müssen getrennt sein.');
         }
         foreach ($konfig['zusatz_pfade'] ?? [] as $pfad) {
-            if (realpath($pfad) !== $pfad || $pfad === '/' || str_starts_with($konfig['backup_pfad'] . '/', rtrim($pfad, '/') . '/')) {
+            if (realpath($pfad) === false || WartungPlattform::vergleich(realpath($pfad)) !== WartungPlattform::vergleich($pfad)
+                || preg_match('~^([a-zA-Z]:)?[/\\\\]$~', $pfad) || WartungPlattform::innerhalb($konfig['backup_pfad'], $pfad)) {
                 throw new RuntimeException('Zusatzpfad fehlt oder enthält das Sicherungsziel.');
             }
         }
@@ -328,7 +330,7 @@ final class WartungDienst
             $this->datenbankPruefen($version['migrationen']);
             if (empty($this->konfig['neustart_befehl']) || !is_array($this->konfig['neustart_befehl'])) { throw new RuntimeException('Befehl zum Neuladen des Webservers fehlt.'); }
         }
-        $bedarf = (int)explode("\t", WartungDateien::prozess(['du', '-sk', '--', $this->wurzel]))[0] * 1024 * 3;
+        $bedarf = WartungPlattform::bytes($this->wurzel) * 3;
         foreach ((new WartungBackup($this->wurzel, $this->konfig, $this->app))->datenbanken() as $db) {
             $pdo = WartungDateien::pdo($db);
             $bedarf += (int)$pdo->query('SELECT COALESCE(SUM(data_length + index_length), 0) FROM information_schema.tables WHERE table_schema = DATABASE()')->fetchColumn() * 3;
@@ -369,6 +371,8 @@ final class WartungDienst
         if (is_file($this->statusPfad . '/installation-' . $id . '.json')) { throw new RuntimeException('Installation wurde bereits begonnen; keine automatische Wiederholung von SQL.'); }
         WartungDateien::schreiben($this->statusPfad . '/installation-' . $id . '.json', ['commit' => $plan['commit'], 'begonnen' => date(DATE_ATOM)]);
         WartungPaket::bestandPruefen($bereit, $plan['dateien']);
+        $alt = WartungDateien::json($this->statusPfad . '/version.json');
+        WartungPlattform::dateisperrenPruefen($this->wurzel, array_keys($plan['dateien'] + $alt['dateien']));
         $dbs = (new WartungBackup($this->wurzel, $this->konfig, $this->app))->datenbanken();
         foreach ($plan['migrationen'] as $migration) {
             if (!isset($dbs[$migration['ziel']])) { continue; }

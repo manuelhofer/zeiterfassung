@@ -13,7 +13,7 @@ final class WartungBackup
         $pfade = [$this->wurzel, ...($this->konfig['zusatz_pfade'] ?? []), $this->konfig['status_pfad'] . '/version.json'];
         $pfade = array_values(array_filter($pfade, static fn($p) => file_exists($p)));
         foreach ($pfade as $pfad) {
-            if (!str_starts_with($pfad, '/') || str_contains($pfad, "\n")) { throw new RuntimeException('Ungültiger Sicherungspfad.'); }
+            if (!WartungPlattform::absolut($pfad) || str_contains($pfad, "\n")) { throw new RuntimeException('Ungültiger Sicherungspfad.'); }
             $iterator = is_dir($pfad) ? new RecursiveIteratorIterator(new RecursiveDirectoryIterator($pfad, FilesystemIterator::SKIP_DOTS)) : [$pfad];
             foreach ($iterator as $datei) {
                 $name = (string)$datei;
@@ -21,13 +21,19 @@ final class WartungBackup
                 $real = realpath($name);
                 $erfasst = false;
                 foreach ($pfade as $basis) {
-                    if ($real !== false && ($real === $basis || str_starts_with($real, rtrim($basis, '/') . '/'))) { $erfasst = true; }
+                    if ($real !== false && WartungPlattform::innerhalb($real, $basis)) { $erfasst = true; }
                 }
                 if (!$erfasst) { throw new RuntimeException('Nicht mitgesichertes Linkziel: ' . $name . '. Zusatzpfad konfigurieren.'); }
             }
         }
-        WartungDateien::prozess(['tar', '--create', '--gzip', '--file=' . $ziel . '/dateien.tar.gz', '--', ...$pfade]);
-        WartungDateien::prozess(['tar', '--list', '--gzip', '--file=' . $ziel . '/dateien.tar.gz']);
+        $zip = ($this->konfig['archiv_format'] ?? (WartungPlattform::windows() ? 'zip' : 'tar')) === 'zip';
+        $zuordnung = [];
+        if ($zip) {
+            $zuordnung = WartungArchiv::zip($ziel . '/dateien.zip', $pfade);
+        } else {
+            WartungDateien::prozess(['tar', '--create', '--gzip', '--file=' . $ziel . '/dateien.tar.gz', '--', ...$pfade]);
+            WartungDateien::prozess(['tar', '--list', '--gzip', '--file=' . $ziel . '/dateien.tar.gz']);
+        }
         $dbs = $this->datenbanken();
         foreach ($dbs as $rolle => $db) {
             $pdo = WartungDateien::pdo($db);
@@ -61,7 +67,8 @@ final class WartungBackup
             $dateien[basename($datei)] = ['bytes' => filesize($datei), 'sha256' => hash_file('sha256', $datei)];
         }
         $manifest = ['erstellt' => date(DATE_ATOM), 'rolle' => $this->app['app']['installation_typ'] ?? 'backend',
-            'terminal_id' => $this->app['terminal']['id'] ?? null, 'pfade' => $pfade, 'dateien' => $dateien];
+            'terminal_id' => $this->app['terminal']['id'] ?? null, 'pfade' => $pfade, 'dateien' => $dateien,
+            'archiv_format' => $zip ? 'zip' : 'tar', 'archiv_pfade' => $zuordnung];
         WartungDateien::schreiben($ziel . '/manifest.json', $manifest, 0600);
         self::pruefen($ziel);
         return $manifest;
@@ -77,6 +84,7 @@ final class WartungBackup
                 throw new RuntimeException('Sicherungsprüfung fehlgeschlagen: ' . $name);
             }
         }
+        if (($manifest['archiv_format'] ?? '') === 'zip') { WartungArchiv::pruefen($ziel . '/dateien.zip'); }
     }
 
     public function datenbanken(): array

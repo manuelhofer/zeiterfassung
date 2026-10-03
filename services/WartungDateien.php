@@ -45,25 +45,40 @@ final class WartungDateien
             || preg_match('~(^|/)(\.{1,2}|\.git)(/|$)~', $pfad)) {
             throw new RuntimeException('Unzulässiger Paketpfad.');
         }
+        if (WartungPlattform::windows()) {
+            foreach (explode('/', $pfad) as $teil) {
+                if (preg_match('/[<>:"|?*\x00-\x1f]/', $teil) || preg_match('/[. ]$/', $teil)
+                    || strtolower($teil) === '.git' || preg_match('/^(con|prn|aux|nul|com[1-9]|lpt[1-9])(?:\.|$)/i', $teil)) {
+                    throw new RuntimeException('Paketpfad ist unter Windows nicht zulässig.');
+                }
+            }
+        }
     }
 
     public static function geschuetzt(string $pfad): bool
     {
+        if (WartungPlattform::windows()) { $pfad = strtolower($pfad); }
         return in_array($pfad, ['config/config.local.php', 'config/geraet.local.php', 'config/wartung.local.php', 'scripts/terminal/terminal.conf'], true)
             || str_starts_with($pfad, 'public/uploads/') && !str_ends_with($pfad, '/.gitkeep');
     }
 
     /** Stderr geht nicht in die Oberfläche: DB-/SSH-Programme können Geheimnisse ausgeben. */
-    public static function prozess(array $argumente, ?string $verzeichnis = null, ?string $eingabe = null, ?string $ausgabe = null, int $frist = 900, bool $jsonFehler = false): string
+    public static function prozess(array $argumente, ?string $verzeichnis = null, ?string $eingabe = null, ?string $ausgabe = null, int $frist = 900, bool $jsonFehler = false, ?array $umgebung = null): string
     {
+        if (WartungPlattform::windows() && $argumente[0] === 'git' && ($argumente[1] ?? '') === '-C') {
+            // Repository ist durch den Installer administrativ geschuetzt; SYSTEM hat eine andere SID als der Installer.
+            $argumente = [$argumente[0], '-c', 'safe.directory=' . WartungPlattform::pfad($argumente[2]), ...array_slice($argumente, 1)];
+        }
+        $argumente[0] = WartungPlattform::programm($argumente[0]);
         $fehler = tmpfile();
         $resultat = tmpfile();
         if ($fehler === false || $resultat === false) {
             throw new RuntimeException('Temporäre Prozessdatei nicht anlegbar.');
         }
         $pipes = [];
-        $prozess = proc_open($argumente, [0 => ['file', $eingabe ?? '/dev/null', 'r'],
-            1 => $ausgabe === null ? $resultat : ['file', $ausgabe, 'w'], 2 => $fehler], $pipes, $verzeichnis);
+        $prozess = proc_open($argumente, [0 => ['file', $eingabe ?? (WartungPlattform::windows() ? 'NUL' : '/dev/null'), 'r'],
+            1 => $ausgabe === null ? $resultat : ['file', $ausgabe, 'w'], 2 => $fehler], $pipes, $verzeichnis,
+            $umgebung === null ? null : array_replace(getenv(), $umgebung), ['bypass_shell' => true]);
         if (!is_resource($prozess)) {
             throw new RuntimeException('Wartungsprogramm konnte nicht gestartet werden.');
         }
@@ -94,7 +109,7 @@ final class WartungDateien
 
     public static function pdo(array $db): PDO
     {
-        $dsn = $db['dsn'] ?? ('mysql:host=' . ($db['host'] ?? 'localhost') . ';dbname=' . ($db['dbname'] ?? '') . ';charset=utf8mb4');
+        $dsn = $db['dsn'] ?? ('mysql:host=' . ($db['host'] ?? 'localhost') . (isset($db['port']) ? ';port=' . (int)$db['port'] : '') . ';dbname=' . ($db['dbname'] ?? '') . ';charset=utf8mb4');
         return new PDO($dsn, $db['user'] ?? '', $db['pass'] ?? '', [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
             PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC, PDO::ATTR_EMULATE_PREPARES => false, PDO::ATTR_TIMEOUT => 3]);
     }
@@ -103,6 +118,7 @@ final class WartungDateien
     public static function mysql(array $db, callable $aktion): mixed
     {
         $werte = ['user' => $db['user'] ?? '', 'password' => $db['pass'] ?? '', 'host' => $db['host'] ?? 'localhost'];
+        if (isset($db['port'])) { $werte['port'] = (int)$db['port']; }
         $name = $db['dbname'] ?? '';
         if (isset($db['dsn'])) {
             if (!str_starts_with($db['dsn'], 'mysql:')) {

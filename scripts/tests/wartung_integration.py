@@ -5,7 +5,7 @@ werden im Test durch lokale Prozesse bzw. true ersetzt. Keine Wartungsdatei
 wird vom Benutzer angelegt. Aufruf: python3 scripts/tests/wartung_integration.py
 """
 import hashlib, http.cookiejar, json, os, pwd, re, shutil, signal, socket
-import subprocess, sys, tempfile, time, urllib.request, urllib.parse, urllib.error
+import subprocess, sys, tempfile, time, urllib.request, urllib.parse, urllib.error, zipfile
 from pathlib import Path
 SRC=Path(__file__).resolve().parents[2]
 LAB=Path(sys.argv[1]).resolve() if len(sys.argv)>1 else Path(tempfile.mkdtemp(prefix='zeit-auto-'))
@@ -176,6 +176,14 @@ while running:
  try:php('WartungBackup::pruefen('+repr(str(LAB/'beschaedigt'))+');')
  except RuntimeError:rejected=True
  check('Beschädigte Sicherung wird nicht als gültig angenommen',rejected)
+ # Windows-Archivformat am Backend, bestehende Linux-Terminalarchive bleiben tar.
+ systemchange('backend',archiv_format='zip')
+ zipresult=job('backup');zipbackup=Path(zipresult['backup']);zipmanifest=json.loads((zipbackup/'manifest.json').read_text())
+ check('ZIP-Backend und tar-Terminals verwenden denselben Backupablauf',zipresult['zustand']=='erfolgreich' and (zipbackup/'dateien.zip').exists() and (zipbackup/'terminals/1/dateien.tar.gz').exists())
+ with zipfile.ZipFile(zipbackup/'dateien.zip') as z:
+  z.extractall(LAB/'zip-restore')
+ zipwurzel=next(k for k,v in zipmanifest['archiv_pfade'].items() if v==str(LAB/'backend'))
+ check('ZIP-Restore erhält lokale Konfiguration, Uploads und Git',(LAB/'zip-restore'/zipwurzel/'config/config.local.php').read_bytes()==(LAB/'backend/config/config.local.php').read_bytes() and (LAB/'zip-restore'/zipwurzel/'public/uploads/lokal.txt').read_text()=='backend lokal' and (LAB/'zip-restore'/zipwurzel/'.git/HEAD').exists())
  # Dienst wirklich anhalten: abgelaufener Heartbeat lehnt neue Aufträge ab.
  stopagent('backend');heartbeat=read('dienst.json');heartbeat['zeit']=0;(state()/'dienst.json').write_text(json.dumps(heartbeat))
  blocked=False

@@ -18,6 +18,58 @@ legacy_zip_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-03-02 wartung-windows-xampp
+
+### EINGELESEN
+CHATSTART.md, Arbeitsregeln, Snapshot, Installationsanleitung, Wartungsbetrieb,
+Wartungscheckliste, sämtliche Wartungsdienste/CLI-Installer und Integrationstest;
+Git-Verlauf und Windows-Begriffe auf vorhandene Umsetzung geprüft.
+Benutzer beauftragt ausdrücklich Linux und Windows/XAMPP mit denselben
+Backup-/Updateknöpfen. Neue Plattform zuerst spezifiziert. Prozessaufrufe,
+Aufgabenidentitäten und Apache-Dienste gegen PHP-/Microsoft-/Apache-
+Primärdokumentation geprüft (Quellen in der Spezifikation).
+
+### DATEIEN
+- services/WartungPlattform.php, WartungArchiv.php, WartungDateien.php
+- services/WartungSystem.php, WartungPaket.php, WartungBackup.php, WartungDienst.php
+- scripts/backend_einrichten.php, wartung_konfig.php, wartung_windows.php
+- scripts/windows/installieren.ps1, installation_pruefen.php
+- scripts/windows/konfig_start.ps1, apache_neustart.ps1, dateisperren.ps1
+- scripts/tests/wartung_plattform.php, wartung_integration.py, wartung_windows.ps1
+- .github/workflows/windows-wartung.yml
+- docs/spezifikation_wartung_windows.md, installationsanleitung.md, wartung_betrieb.md
+- docs/STATUS_SNAPSHOT.md, docs/archiv/DEV_PROMPT_HISTORY.md
+
+### AKZEPTANZKRITERIUM
+Ein Windows/XAMPP-Backend wird einmalig per Installer vorbereitet und verwendet danach denselben Backup-/Updateablauf mit geschützten Sicherungen und Linux-Terminals, während der bestehende Linux-Ablauf erhalten bleibt.
+
+### DONE
+Plattformgrenzen für Prozesse/Pfade, Windows-Programmpfade und leere Eingabe,
+shellfreie Git-Umgebung und Größenprüfung umgesetzt. Windows sichert ZIP mit
+Pfadzuordnung/Integritätsprüfung, Linux behält tar; SQL, Migrationen, Signaturen
+und Terminaltransport bleiben gemeinsam. Windows-Namen, Streams und Kollisionen
+werden abgewiesen. Installer schützt NTFS-Code/private Daten, konfiguriert
+Apache als LocalService, SYSTEM-Wartung und separate LocalService-
+Konfigurationsauswertung mit JSON-Übergabe; kein Auswerten webbeschreibbaren
+PHP-Codes als SYSTEM. Neustart, Datei-Sperrprüfung, LAN-Firewallregeln und
+Wiederinstallation/CRLF-Behandlung ergänzt. Eigenes XAMPP auf NTFS, PHP ab 8.2,
+lokaler Standard-DB-Zugang und maschinenweit installiertes Git sind Voraussetzungen.
+
+### TEST
+Alle geänderten/neuen PHP-Dateien syntaktisch geprüft; PowerShell-Parser prüft
+Installer und Hilfsskripte. Elf portable Linux-Prüfungen bestanden; bestehende
+39 Integrationstests sowie ergänzte ZIP-Backend-/tar-Terminal-Sicherung und
+ZIP-Restore bestanden, Testprozesse beendet. Ausschließlich private MariaDB
+mit synthetischen Daten. Ein Versuch mit vorhandenem Wine/Windows-PHP konnte
+wegen fehlender kompatibler VC-Laufzeit nicht starten; temporäres Profil und
+Download entfernt, Wine nicht installiert/verändert. Native Windows-Abnahme
+ist als geschützter, wegwerfbarer GitHub-Windows-Runner vorbereitet; tatsächliches
+Ergebnis folgt gesondert. Windows/Linux mit echten Geräten noch nicht abgenommen.
+
+### NEXT
+Nativen Windows-Runner ausführen, gefundene Plattformfehler beheben und Ergebnis
+dokumentieren; anschließend Installation am Benutzergerät prüfen.
+
 ## P-2026-10-03-01 backend-installation-aus-root
 
 ### EINGELESEN

@@ -43,6 +43,43 @@ reguläre Terminal-Kopplung über das LAN an. Der Server ist für das interne
 Betriebsnetz vorgesehen; bestehende Sonderkonfigurationen, Hosting und externe
 Datenbanken sind kein Ziel dieses Installers.
 
+### Windows mit XAMPP
+
+Auf einem eigenen Windows-Backend **XAMPP mit PHP mindestens 8.2** unter
+`C:\xampp` und **Git für Windows für alle Benutzer** installieren. Andere
+Laufwerke sind möglich, XAMPP muss direkt unter dem Laufwerk liegen.
+PowerShell **als Administrator** öffnen und ausführen:
+
+```powershell
+git -c core.autocrlf=false clone https://github.com/manuelhofer/zeiterfassung.git C:\xampp\zeiterfassung
+cd C:\xampp\zeiterfassung
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\windows\installieren.ps1
+```
+
+Danach `http://localhost/` oder die Server-IP im Browser öffnen. Die normale
+Erstanmeldung und die Backup-/Updateknöpfe sind dieselben wie unter Linux.
+Der Installer erkennt XAMPP, aktiviert PHP-Erweiterungen, erstellt Datenbank
+und Zugangsdaten und richtet Apache, MariaDB und die Windows-Aufgabenplanung
+für den automatischen Start ohne Benutzeranmeldung ein. Eine separat
+auszufüllende Wartungskonfiguration ist nicht erforderlich.
+
+Apache und MySQL zuvor im XAMPP-Control-Panel stoppen, falls sie dort bereits
+ohne Windows-Dienst laufen. Danach übernehmen Windows-Dienste den Start.
+Der Installer ist für einen eigenen Zeiterfassungsserver mit den normalen
+XAMPP-DB-Einstellungen (lokale MariaDB, Port 3306, ursprünglicher root-Zugang)
+gedacht; eine gemeinsam für andere Websites genutzte oder besonders angepasste
+XAMPP-Installation ist kein automatischer Standardfall. NTFS ist erforderlich.
+Der Installer erlaubt Apache und MariaDB in der Windows-Firewall für das
+lokale Subnetz in privaten beziehungsweise Domänennetzen. Das Betriebsnetz
+muss deshalb in Windows als privat oder Domänennetz geführt werden.
+
+Vorhandene Konfiguration, Datenbank, Schlüssel und Versionsstand werden bei
+einer Wiederholung erhalten. Liegt das Projekt in einem anderen Ordner, zieht
+es automatisch nach `<XAMPP>\zeiterfassung` um; ein belegtes Ziel wird nicht
+überschrieben. Ausgeliefert wird ausschließlich `public/`. Der Installer
+schützt Programmcode und private Sicherungen mit NTFS-Rechten und betreibt
+Apache als LocalService. Zusätzliche kostenpflichtige Programme sind nicht nötig.
+
 ## 2) Erste Anmeldung
 
 Serveradresse im Browser öffnen und im vorhandenen Erstinstallationsformular

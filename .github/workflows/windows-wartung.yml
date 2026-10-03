@@ -1,0 +1,38 @@
+name: Windows XAMPP Wartung
+on:
+  workflow_dispatch:
+  push:
+    branches: [main, codex/windows-xampp]
+    paths:
+      - '.github/workflows/windows-wartung.yml'
+      - 'scripts/windows/**'
+      - 'scripts/wartung*'
+      - 'scripts/backend_einrichten.php'
+      - 'scripts/tests/wartung*'
+      - 'services/Wartung*'
+permissions:
+  contents: read
+jobs:
+  xampp:
+    runs-on: windows-2022
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - name: XAMPP in der wegwerfbaren Windows-Umgebung vorbereiten
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $url = 'https://downloads.sourceforge.net/project/xampp/XAMPP%20Windows/8.2.12/xampp-portable-windows-x64-8.2.12-0-VS16.7z'
+          curl.exe -fL --retry 3 $url -o "$env:RUNNER_TEMP/xampp.7z"
+          if ($LASTEXITCODE) { throw 'XAMPP-Download fehlgeschlagen' }
+          & 'C:/Program Files/7-Zip/7z.exe' x "$env:RUNNER_TEMP/xampp.7z" '-oC:/' -y | Out-Null
+          if ($LASTEXITCODE) { throw 'XAMPP-Archiv nicht entpackbar' }
+          if (Get-Service W3SVC -ErrorAction SilentlyContinue) { Stop-Service W3SVC -Force }
+      - name: Native Installation, Backup, Restore und Update
+        shell: powershell
+        run: |
+          & "$env:GITHUB_WORKSPACE/scripts/tests/wartung_windows.ps1"
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }

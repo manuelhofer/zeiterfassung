@@ -4,7 +4,11 @@ if (PHP_SAPI !== 'cli') { http_response_code(404); exit; }
 require dirname(__DIR__) . '/core/Autoloader.php';
 $wurzel = dirname(__DIR__);
 if (is_file($wurzel . '/config/config.local.php')) { echo "Vorhandene Backendkonfiguration bleibt erhalten.\n"; exit; }
-$admin = ['dsn' => 'mysql:unix_socket=' . ini_get('pdo_mysql.default_socket') . ';charset=utf8mb4', 'user' => 'root', 'pass' => ''];
+$admin = ['dsn' => (WartungPlattform::windows() ? 'mysql:host=127.0.0.1;port=3306' : 'mysql:unix_socket=' . ini_get('pdo_mysql.default_socket')) . ';charset=utf8mb4', 'user' => 'root', 'pass' => ''];
+if (WartungPlattform::windows()) {
+    $windows = WartungDateien::json(WartungSystem::pfad($wurzel) . '/privat/windows.json');
+    WartungPlattform::programme($windows['programme']);
+}
 $pdo = WartungDateien::pdo($admin);
 $name = 'zeit_' . substr(hash('sha256', $wurzel), 0, 12);
 $stmt = $pdo->prepare('SELECT COUNT(*) FROM information_schema.schemata WHERE schema_name=?');
@@ -24,5 +28,5 @@ $konfig = ['app' => ['installation_typ' => 'backend', 'name' => 'Zeiterfassung',
 $pfad = $wurzel . '/config/config.local.php';
 if (file_put_contents($pfad, "<?php\nreturn " . var_export($konfig, true) . ";\n", LOCK_EX) === false) { throw new RuntimeException('Backendkonfiguration konnte nicht gespeichert werden.'); }
 chmod($pfad, 0640);
-if (!chgrp($pfad, $argv[1] ?? 'www-data')) { throw new RuntimeException('Webgruppe für die Backendkonfiguration konnte nicht gesetzt werden.'); }
+if (!WartungPlattform::windows() && !chgrp($pfad, $argv[1] ?? 'www-data')) { throw new RuntimeException('Webgruppe für die Backendkonfiguration konnte nicht gesetzt werden.'); }
 echo "Backenddatenbank und lokale Konfiguration angelegt.\n";
