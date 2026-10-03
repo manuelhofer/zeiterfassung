@@ -18,6 +18,25 @@ legacy_zip_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-03-12 windows-test-ohne-veraltete-node-laufzeit
+
+### EINGELESEN
+Erfolgreicher nativer Lauf 37148692919, seine Checkout-Warnung und offizielle
+actions/checkout-Dokumentation zur Node-24-Version.
+### DATEIEN
+.github/workflows/windows-wartung.yml, docs/STATUS_SNAPSHOT.md, dieser Verlauf.
+### AKZEPTANZKRITERIUM
+Der native Windows-Test lädt das Repository ohne Warnung zur veralteten Node-20-Laufzeit.
+### DONE
+Die neu eingeführte Abnahme verwendete noch Checkout v4; auf v5 mit Node 24
+umgestellt, eingeschränkte Leserechte und persist-credentials=false erhalten.
+### TEST
+Vorheriger nativer Lauf: alle 17 Ablauf- und 20 portablen Windows-Prüfungen
+erfolgreich, zusätzlich 41 Linux-Integrationsprüfungen und 11 portable Fälle;
+der Workflow wird nach Veröffentlichung mit v5 nochmals ausgeführt.
+### NEXT
+Prüfergebnis dokumentieren und veröffentlichten Workflow kontrollieren.
+
 ## P-2026-10-03-11 windows-dateikonflikt-ohne-dauersperre
 
 ### EINGELESEN

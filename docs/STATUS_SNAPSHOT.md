@@ -37,6 +37,7 @@ Updater und sein Takt beim Austausch ihres eigenen Quelltexts keine Sperre halte
 Skriptargumente werden nach dem PHP-Optionentrenner übergeben.
 Bereits offene Dateien werden während der Vorbereitung erkannt, damit ein
 Abbruch vor SQL die Buchungssperre automatisch aufhebt und erneut versucht werden kann.
+Der Windows-Test verwendet Checkout mit aktuellem Node-24-Laufzeitsystem.
 
 **Backend-Installation nach dem Debian-Abbruch erneut prüfen** (03.10.2026):
 Der Installer verschiebt Projekte mit für `www-data` gesperrtem Elternordner
