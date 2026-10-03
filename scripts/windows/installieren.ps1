@@ -11,7 +11,7 @@ function TextSchreiben([string]$Pfad, [string]$Text) {
     [IO.File]::WriteAllText($Pfad, $Text, [Text.UTF8Encoding]::new($false))
 }
 function Rechte([string]$Pfad, [string]$Webrecht = '') {
-    $Ordner = (Get-Item -LiteralPath $Pfad).PSIsContainer
+    $Ordner = (Get-Item -LiteralPath $Pfad -Force).PSIsContainer
     if ($Ordner) { $Acl = [Security.AccessControl.DirectorySecurity]::new() }
     else { $Acl = [Security.AccessControl.FileSecurity]::new() }
     $Acl.SetAccessRuleProtection($true, $false)

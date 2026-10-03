@@ -18,6 +18,22 @@ legacy_zip_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-03-05 windows-git-rechte-fuer-versteckte-dateien
+
+### EINGELESEN
+Nativer Lauf 37146953447 und rekursive NTFS-Rechtevergabe.
+### DATEIEN
+scripts/windows/installieren.ps1, docs/STATUS_SNAPSHOT.md, dieser Verlauf.
+### AKZEPTANZKRITERIUM
+Die Rechtevergabe erfasst auch das von Git für Windows als versteckt markierte .git-Verzeichnis ohne Abbruch.
+### DONE
+Get-ChildItem verwendete bereits Force, Get-Item für die anschließende
+Rechtevergabe noch nicht; beide Zugriffe berücksichtigen nun versteckte Dateien.
+### TEST
+PowerShell-Syntaxprüfung erfolgreich; Fehler aus nativem Windows-Lauf reproduziert.
+### NEXT
+Native Installation bis zum vollständigen Wartungsablauf fortsetzen.
+
 ## P-2026-10-03-04 xampp-erweiterungen-ohne-doppelstart
 
 ### EINGELESEN
