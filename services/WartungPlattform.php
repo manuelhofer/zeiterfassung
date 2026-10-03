@@ -27,6 +27,14 @@ final class WartungPlattform
     {
         return self::$programme[$name] ?? $name;
     }
+    public static function phpSkript(string $datei, array $argumente = []): array
+    {
+        // Windows hält das CLI-Hauptskript offen. require schließt die Quelldatei
+        // nach dem Laden, damit sich der laufende Updater selbst ersetzen kann.
+        return self::windows()
+            ? [PHP_BINARY, '-r', "require base64_decode('" . base64_encode($datei) . "');", ...$argumente]
+            : [PHP_BINARY, $datei, ...$argumente];
+    }
     public static function bytes(string $pfad): int
     {
         $bytes = 0;

@@ -32,6 +32,8 @@ Die Pfadumstellung erhält Apache-Präfixe wie den SSL-Cache-Anbieter `shmcb:`.
 Native Installation, Zugriffsschutz, Apache, ZIP-/SQL-Restore und 20 portable
 Windows-Prüfungen bestehen; die Windows-Dateiprüfung testet gezielt
 Austauschfreigabe statt unnötiger exklusiver Lese-/Schreibsperre.
+Der Windows-Dienst lädt seine CLI-Skripte per `require`, damit der laufende
+Updater und sein Takt beim Austausch ihres eigenen Quelltexts keine Sperre halten.
 
 **Backend-Installation nach dem Debian-Abbruch erneut prüfen** (03.10.2026):
 Der Installer verschiebt Projekte mit für `www-data` gesperrtem Elternordner

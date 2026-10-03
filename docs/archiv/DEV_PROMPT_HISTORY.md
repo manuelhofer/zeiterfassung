@@ -18,6 +18,26 @@ legacy_zip_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-03-09 windows-updater-gibt-eigenen-quelltext-frei
+
+### EINGELESEN
+Nativer Windows-Lauf 37147938894, CLI-Start und PHP-8.2-Skriptausführung.
+### DATEIEN
+services/WartungPlattform.php, scripts/wartung_windows.php,
+scripts/windows/installieren.ps1, docs/STATUS_SNAPSHOT.md, dieser Verlauf.
+### AKZEPTANZKRITERIUM
+Ein Windows-Update kann scripts/wartung.php und den dauerhaft laufenden Takt durch die neue Version ersetzen.
+### DONE
+Der native Test entdeckte die offene CLI-Hauptdatei beim Austausch des eigenen
+Updaters; Windows-Aufgaben und Wartungskinder laden den geschützten Skriptpfad
+jetzt per require, sodass der Quelldateizugriff vor der Ausführung endet.
+Base64 schützt die Pfadübergabe vor Zeichenproblemen; Linux behält seinen Start.
+### TEST
+PHP-Lint, portable Linux-Prüfung und PowerShell-Syntaxprüfung erfolgreich;
+vollständiger nativer Update-/Neustart-/Wiederinstallationslauf folgt.
+### NEXT
+Windows-Abnahme bis zum erfolgreichen Abschluss fortsetzen.
+
 ## P-2026-10-03-08 windows-dateipruefung-fuer-austausch
 
 ### EINGELESEN
