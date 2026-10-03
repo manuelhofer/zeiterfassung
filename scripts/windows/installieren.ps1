@@ -37,7 +37,7 @@ function Aufgabe([string]$Name, [string]$Skript, [string]$Zusatz, [string]$Ident
     # require gibt den Skript-Dateizugriff vor der Ausfuehrung frei; auch der
     # dauerhaft laufende Takt darf seinen eigenen Quelltext aktualisieren.
     $Skript64 = [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($Skript))
-    $Aktion = New-ScheduledTaskAction -Execute $script:Php -Argument ('-r "require base64_decode(''' + $Skript64 + ''');"' + $Zusatz) -WorkingDirectory $script:App
+    $Aktion = New-ScheduledTaskAction -Execute $script:Php -Argument ('-r "require base64_decode(''' + $Skript64 + ''');" --' + $Zusatz) -WorkingDirectory $script:App
     $Principal = New-ScheduledTaskPrincipal -UserId $Identitaet -LogonType ServiceAccount
     $Settings = New-ScheduledTaskSettingsSet -MultipleInstances IgnoreNew -ExecutionTimeLimit ([TimeSpan]::Zero) `
         -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -StartWhenAvailable -RestartCount 3 -RestartInterval (New-TimeSpan -Minutes 1)

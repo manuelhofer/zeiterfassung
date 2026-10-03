@@ -18,6 +18,24 @@ legacy_zip_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-03-10 windows-cli-trennt-skriptargumente
+
+### EINGELESEN
+Nativer Lauf 37148441482, PHP-CLI-Argumente und Konfigurationsaufgabe.
+### DATEIEN
+services/WartungPlattform.php, scripts/windows/installieren.ps1,
+docs/STATUS_SNAPSHOT.md, dieser Verlauf.
+### AKZEPTANZKRITERIUM
+Die per require gestartete Konfigurationsaufgabe erhält --windows-json als Skriptargument und liefert ihre JSON-Antwort.
+### DONE
+Beim neuen -r-Start fehlte der Optionentrenner; PHP behandelte --windows-json
+als eigene unbekannte Option. Beide Windows-Startwege verwenden nun --.
+### TEST
+Fehler und korrekte argv-Übergabe lokal mit PHP nachgewiesen; PHP-Lint und
+PowerShell-Syntaxprüfung erfolgreich. Native Wiederholung folgt.
+### NEXT
+Konfigurationsstart und vollständiges Windows-Update nativ abnehmen.
+
 ## P-2026-10-03-09 windows-updater-gibt-eigenen-quelltext-frei
 
 ### EINGELESEN
