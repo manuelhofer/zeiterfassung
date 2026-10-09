@@ -18,6 +18,37 @@ legacy_zip_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-09-03 urlaubseintrag-vor-antragsliste
+
+### EINGELESEN
+Benutzerauftrag: im Backend zuerst bequem Urlaub für Mitarbeiter eintragen,
+vor der Liste der Mitarbeiterurlaube; CLAUDE/CHATSTART, Arbeitsregeln,
+Snapshot, Urlaubsfachregeln, Wartungscheckliste, Urlaubsverwaltungs-Template
+und Controller, History-/Git-Duplicate-Check.
+### DATEIEN
+views/urlaub/verwaltung.php, docs/STATUS_SNAPSHOT.md, dieser Verlauf.
+### AKZEPTANZKRITERIUM
+In der Backend-Urlaubsverwaltung steht „Urlaub direkt eintragen“ direkt unter Überschrift und Meldungen vor Filtern und Mitarbeiterurlauben, sodass auch bei langer Liste zuerst Urlaub eingetragen werden kann.
+### DONE
+Vorhandenen Formularblock unverändert von unterhalb der Antragsliste nach
+oben verschoben. Mitarbeiterauswahl samt Filter-Vorauswahl, Von/Bis, sonstiger
+Grund, Pflichtbegründung, Bestätigung, CSRF-Schutz und gespeicherte Filter
+bleiben erhalten; Berechtigungen, Controller, Speicherung und Salden unverändert.
+Kein weiterer Umbau und keine neuen Abhängigkeiten.
+### TEST
+php -l und git diff --check erfolgreich. Alte und neue Originalvorlage mit
+Original-Header/Footer und synthetischer Chef-Anmeldung ohne Datenbank oder
+Projektkonfiguration gerendert: 30 Anträge, gefilterter Mitarbeiter und leere
+Liste, jeweils ohne PHP-Warnungen/Deprecations. In allen drei Fällen stehen
+Eingabeformular und Speichern vor Filtern/Liste; gerenderter Formularinhalt
+einschließlich CSRF/Filterdaten und die restliche Seite sind bis auf Leerraum
+identisch. Die ergänzende PC-Browserprüfung konnte nicht ausgeführt werden:
+Browserinventar leer, in-app-Browser nicht verfügbar. Keine Testsuite für
+diese reine Verschiebung hinzugefügt; keine echten Mitarbeiterdaten benutzt.
+### NEXT
+Auf dem bereits freigegebenen main veröffentlichen und nach Geräteupdate
+die Urlaubsverwaltung am Benutzer-PC öffnen.
+
 ## P-2026-10-09-02 backendzeit-nativ-geprueft
 
 ### EINGELESEN

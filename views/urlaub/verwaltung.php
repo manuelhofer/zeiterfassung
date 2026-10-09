@@ -171,6 +171,81 @@ $statusLabel = static function (string $status): string {
     <?php endif; ?>
 
     <div class="urlaub-admin-card">
+        <h3 style="margin-top:0;">Urlaub direkt eintragen</h3>
+        <form method="post" action="?seite=urlaub_verwaltung">
+            <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($csrfToken, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>">
+            <input type="hidden" name="aktion" value="direkt_eintragen">
+            <input type="hidden" name="filter_mitarbeiter_id" value="<?php echo (int)$filterMitarbeiterId; ?>">
+            <input type="hidden" name="filter_status" value="<?php echo htmlspecialchars($filterStatus, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>">
+            <input type="hidden" name="filter_jahr" value="<?php echo (int)$filterJahr; ?>">
+
+            <div style="display:flex;gap:0.75rem;flex-wrap:wrap;align-items:flex-end;">
+                <div>
+                    <label for="urlaub_neu_mitarbeiter_id"><strong>Mitarbeiter</strong></label><br>
+                    <select id="urlaub_neu_mitarbeiter_id" name="urlaub_neu_mitarbeiter_id" required>
+                        <option value="">-- bitte wählen --</option>
+                        <?php foreach ($mitarbeiterListe as $m): ?>
+                            <?php $mid = (int)($m['id'] ?? 0); ?>
+                            <?php if ($mid > 0): ?>
+                                <option value="<?php echo (int)$mid; ?>"<?php echo $filterMitarbeiterId === $mid ? ' selected' : ''; ?>>
+                                    <?php echo htmlspecialchars($mitarbeiterName($m), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>
+                                </option>
+                            <?php endif; ?>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+
+                <div>
+                    <label for="urlaub_neu_von_datum"><strong>Von</strong></label><br>
+                    <input id="urlaub_neu_von_datum" name="urlaub_neu_von_datum" type="date" value="<?php echo htmlspecialchars($heute, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>" required>
+                </div>
+
+                <div>
+                    <label for="urlaub_neu_bis_datum"><strong>Bis</strong></label><br>
+                    <input id="urlaub_neu_bis_datum" name="urlaub_neu_bis_datum" type="date" value="<?php echo htmlspecialchars($heute, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>" required>
+                </div>
+
+                <div>
+                    <label for="urlaub_neu_sonstiges_grund_id"><strong>Sonstiger Grund</strong> (optional)</label><br>
+                    <select id="urlaub_neu_sonstiges_grund_id" name="urlaub_neu_sonstiges_grund_id"<?php echo $sonstigesGruende === [] ? ' disabled' : ''; ?>>
+                        <?php if ($sonstigesGruende === []): ?>
+                            <option value="0">Keine aktiven Gr&uuml;nde</option>
+                        <?php else: ?>
+                            <option value="0">-- kein sonstiger Grund --</option>
+                            <?php foreach ($sonstigesGruende as $grund): ?>
+                                <?php
+                                $grundId = (int)($grund['id'] ?? 0);
+                                $grundCode = trim((string)($grund['code'] ?? ''));
+                                $grundTitel = trim((string)($grund['titel'] ?? ''));
+                                $grundLabel = $grundTitel !== '' ? $grundTitel : ('Grund #' . $grundId);
+                                if ($grundCode !== '') {
+                                    $grundLabel = $grundCode . ' - ' . $grundLabel;
+                                }
+                                ?>
+                                <?php if ($grundId > 0): ?>
+                                    <option value="<?php echo (int)$grundId; ?>">
+                                        <?php echo htmlspecialchars($grundLabel, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>
+                                    </option>
+                                <?php endif; ?>
+                            <?php endforeach; ?>
+                        <?php endif; ?>
+                    </select>
+                </div>
+
+                <div style="min-width:260px;flex:1;">
+                    <label for="urlaub_neu_begruendung"><strong>Begründung</strong> (Pflicht)</label><br>
+                    <input id="urlaub_neu_begruendung" name="urlaub_neu_begruendung" type="text" maxlength="2000" placeholder="z. B. mündlich mitgeteilt" required style="width:100%;">
+                </div>
+
+                <button type="submit" onclick="return confirm('Urlaub direkt als genehmigt eintragen?');">Genehmigten Urlaub eintragen</button>
+            </div>
+
+            <p class="muted" style="margin-bottom:0;">
+                Der Eintrag wird sofort als genehmigter Urlaub gespeichert und erscheint danach normal in Saldo, Jahresübersicht und Verwaltung.
+            </p>
+        </form>
+    </div>
+    <div class="urlaub-admin-card">
         <form method="get" action="">
             <input type="hidden" name="seite" value="urlaub_verwaltung">
 
@@ -372,81 +447,6 @@ $statusLabel = static function (string $status): string {
         </div>
     <?php endif; ?>
 
-    <div class="urlaub-admin-card">
-        <h3 style="margin-top:0;">Urlaub direkt eintragen</h3>
-        <form method="post" action="?seite=urlaub_verwaltung">
-            <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($csrfToken, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>">
-            <input type="hidden" name="aktion" value="direkt_eintragen">
-            <input type="hidden" name="filter_mitarbeiter_id" value="<?php echo (int)$filterMitarbeiterId; ?>">
-            <input type="hidden" name="filter_status" value="<?php echo htmlspecialchars($filterStatus, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>">
-            <input type="hidden" name="filter_jahr" value="<?php echo (int)$filterJahr; ?>">
-
-            <div style="display:flex;gap:0.75rem;flex-wrap:wrap;align-items:flex-end;">
-                <div>
-                    <label for="urlaub_neu_mitarbeiter_id"><strong>Mitarbeiter</strong></label><br>
-                    <select id="urlaub_neu_mitarbeiter_id" name="urlaub_neu_mitarbeiter_id" required>
-                        <option value="">-- bitte wählen --</option>
-                        <?php foreach ($mitarbeiterListe as $m): ?>
-                            <?php $mid = (int)($m['id'] ?? 0); ?>
-                            <?php if ($mid > 0): ?>
-                                <option value="<?php echo (int)$mid; ?>"<?php echo $filterMitarbeiterId === $mid ? ' selected' : ''; ?>>
-                                    <?php echo htmlspecialchars($mitarbeiterName($m), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>
-                                </option>
-                            <?php endif; ?>
-                        <?php endforeach; ?>
-                    </select>
-                </div>
-
-                <div>
-                    <label for="urlaub_neu_von_datum"><strong>Von</strong></label><br>
-                    <input id="urlaub_neu_von_datum" name="urlaub_neu_von_datum" type="date" value="<?php echo htmlspecialchars($heute, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>" required>
-                </div>
-
-                <div>
-                    <label for="urlaub_neu_bis_datum"><strong>Bis</strong></label><br>
-                    <input id="urlaub_neu_bis_datum" name="urlaub_neu_bis_datum" type="date" value="<?php echo htmlspecialchars($heute, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>" required>
-                </div>
-
-                <div>
-                    <label for="urlaub_neu_sonstiges_grund_id"><strong>Sonstiger Grund</strong> (optional)</label><br>
-                    <select id="urlaub_neu_sonstiges_grund_id" name="urlaub_neu_sonstiges_grund_id"<?php echo $sonstigesGruende === [] ? ' disabled' : ''; ?>>
-                        <?php if ($sonstigesGruende === []): ?>
-                            <option value="0">Keine aktiven Gr&uuml;nde</option>
-                        <?php else: ?>
-                            <option value="0">-- kein sonstiger Grund --</option>
-                            <?php foreach ($sonstigesGruende as $grund): ?>
-                                <?php
-                                $grundId = (int)($grund['id'] ?? 0);
-                                $grundCode = trim((string)($grund['code'] ?? ''));
-                                $grundTitel = trim((string)($grund['titel'] ?? ''));
-                                $grundLabel = $grundTitel !== '' ? $grundTitel : ('Grund #' . $grundId);
-                                if ($grundCode !== '') {
-                                    $grundLabel = $grundCode . ' - ' . $grundLabel;
-                                }
-                                ?>
-                                <?php if ($grundId > 0): ?>
-                                    <option value="<?php echo (int)$grundId; ?>">
-                                        <?php echo htmlspecialchars($grundLabel, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>
-                                    </option>
-                                <?php endif; ?>
-                            <?php endforeach; ?>
-                        <?php endif; ?>
-                    </select>
-                </div>
-
-                <div style="min-width:260px;flex:1;">
-                    <label for="urlaub_neu_begruendung"><strong>Begründung</strong> (Pflicht)</label><br>
-                    <input id="urlaub_neu_begruendung" name="urlaub_neu_begruendung" type="text" maxlength="2000" placeholder="z. B. mündlich mitgeteilt" required style="width:100%;">
-                </div>
-
-                <button type="submit" onclick="return confirm('Urlaub direkt als genehmigt eintragen?');">Genehmigten Urlaub eintragen</button>
-            </div>
-
-            <p class="muted" style="margin-bottom:0;">
-                Der Eintrag wird sofort als genehmigter Urlaub gespeichert und erscheint danach normal in Saldo, Jahresübersicht und Verwaltung.
-            </p>
-        </form>
-    </div>
 </section>
 
 <?php require __DIR__ . '/../layout/footer.php'; ?>

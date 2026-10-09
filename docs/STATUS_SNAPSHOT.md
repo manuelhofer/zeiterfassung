@@ -82,6 +82,9 @@ Zuerst empfohlen: verständlicher Verwaltungsstart sowie eindeutige Terminal-
 und Auftragsstatusangaben; weitere Vereinfachungen sind dokumentierte Vorschläge.
 Handyoptimierung ist kein aktuelles Ziel. Die halbstündliche automatische
 Fortsetzung wurde auf Wunsch entfernt; weiterarbeiten nur im laufenden Auftrag.
+Am Benutzer-PC nach dem Update die Urlaubsverwaltung öffnen: „Urlaub direkt
+eintragen“ steht jetzt vor Filtern und Antragsliste; die Darstellung am echten
+Bildschirm bleibt abzunehmen, Formular und übrige Seite sind isoliert geprüft.
 
 **Backup und Updates auf den Testgeräten abnehmen** (30.09.2026):
 Bedienung und automatische Vorbereitung sind umgesetzt: Die normale
