@@ -10,6 +10,14 @@ on:
       - 'scripts/backend_einrichten.php'
       - 'scripts/tests/wartung*'
       - 'services/Wartung*'
+      - 'core/TerminalZeit.php'
+      - 'controller/TerminalController.php'
+      - 'services/ZeitService.php'
+      - 'services/AuftragszeitService.php'
+      - 'public/terminal.php'
+      - 'public/js/terminal-autologout.js'
+      - 'views/terminal/_autologout.php'
+      - 'scripts/tests/terminal*'
 permissions:
   contents: read
 jobs:

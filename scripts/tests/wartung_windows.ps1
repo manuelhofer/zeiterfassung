@@ -58,6 +58,10 @@ try {
     Gut 'Private Daten sind fuer LocalService gesperrt' (-not @($PrivatAcl.Access | Where-Object { $_.IdentityReference.Translate([Security.Principal.SecurityIdentifier]).Value -eq 'S-1-5-19' }).Count)
     $Apache = Get-CimInstance Win32_Service | Where-Object { $_.Name -like 'ZeitApache-*' }
     Gut 'Apache laeuft mit eingeschraenkter Identitaet' ($Apache.StartName -eq 'NT AUTHORITY\LocalService')
+    & $Php "$App/scripts/tests/terminal_zeit.php"
+    if ($LASTEXITCODE) { throw 'Zeitquellen-Pruefung fehlgeschlagen.' }
+    & node.exe "$App/scripts/tests/terminal_uhr.js"
+    if ($LASTEXITCODE) { throw 'Browser-Uhr-Pruefung fehlgeschlagen.' }
     & $Php "$App/scripts/tests/wartung_plattform.php"
     if ($LASTEXITCODE) { throw 'Portable Windows-Pruefung fehlgeschlagen.' }
     $Antwort = Invoke-WebRequest 'http://localhost/' -UseBasicParsing

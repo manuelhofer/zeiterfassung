@@ -155,7 +155,7 @@ class ZeitService
         }
 
         if ($zeitpunkt === null) {
-            $zeitpunkt = new \DateTimeImmutable('now');
+            $zeitpunkt = TerminalZeit::jetzt();
         }
 
         // WICHTIG (Projektentscheidung):

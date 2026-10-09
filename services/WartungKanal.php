@@ -41,7 +41,7 @@ final class WartungKanal
     public function aufruf(array $terminal, array $anfrage): array
     {
         $id = bin2hex(random_bytes(16));
-        $text = json_encode(['rpc' => $id, 'terminal_id' => (int)$terminal['id'], 'bis' => time() + 3600, 'anfrage' => $anfrage], JSON_THROW_ON_ERROR);
+        $text = json_encode(['rpc' => $id, 'terminal_id' => (int)$terminal['id'], 'bis' => TerminalZeit::serverEpoche($this->pdo) + 3600, 'anfrage' => $anfrage], JSON_THROW_ON_ERROR);
         $secret = file_get_contents($this->konfig['status_pfad'] . '/privat/signatur.key');
         if ($secret === false) { throw new RuntimeException('Der Update-Dienst ist nicht vollständig bereit.'); }
         if (!openssl_sign($text, $signatur, $secret, OPENSSL_ALGO_SHA256)) { throw new RuntimeException('Updateauftrag konnte nicht signiert werden.'); }
@@ -145,7 +145,7 @@ final class WartungKanal
             $signatur = base64_decode($befehl['signatur'], true);
             if ($signatur === false || openssl_verify($befehl['anfrage'], $signatur, $public, OPENSSL_ALGO_SHA256) !== 1) { throw new RuntimeException('Die Geräteanfrage ist nicht vom Update-Dienst signiert.'); }
             $nachricht = json_decode($befehl['anfrage'], true, 512, JSON_THROW_ON_ERROR);
-            if ($nachricht['rpc'] !== $id || $nachricht['terminal_id'] !== $terminalId || $nachricht['bis'] < time()) { throw new RuntimeException('Abgelaufene oder falsch zugeordnete Geräteanfrage.'); }
+            if ($nachricht['rpc'] !== $id || $nachricht['terminal_id'] !== $terminalId || $nachricht['bis'] < TerminalZeit::serverEpoche($this->pdo)) { throw new RuntimeException('Abgelaufene oder falsch zugeordnete Geräteanfrage.'); }
             if (is_file($beleg)) {
                 $antwort = WartungDateien::json($beleg)['antwort'] ?? ['ok' => false, 'fehler' => 'Geräteauftrag wurde unterbrochen. Keine automatische Wiederholung.'];
             } else {

@@ -256,7 +256,7 @@ class AuftragszeitService
             return null;
         }
 
-        $startzeit = new \DateTimeImmutable('now');
+        $startzeit = TerminalZeit::jetzt();
         $auftragId = null;
 
         // ------------------------------------------------------------
@@ -501,7 +501,7 @@ class AuftragszeitService
             $status = 'abgeschlossen';
         }
 
-        $zeitpunkt = new \DateTimeImmutable('now');
+        $zeitpunkt = TerminalZeit::jetzt();
 
         // ------------------------------------------------------------
         // Offline-Queue (Terminal):

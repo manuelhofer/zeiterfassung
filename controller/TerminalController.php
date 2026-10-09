@@ -95,18 +95,18 @@ class TerminalController
         }
 
         // Nur innerhalb desselben Kalendertags duplizieren (sonst z. B. Nachtschicht-Probleme).
-        $heute = (new \DateTimeImmutable('today'))->format('Y-m-d');
+        $heute = (TerminalZeit::heute())->format('Y-m-d');
         if ($lastDatum !== '' && $lastDatum !== $heute) {
             return null;
         }
 
         if (is_int($lastTs)) {
-            if ((time() - $lastTs) >= 0 && (time() - $lastTs) < $fensterSekunden) {
+            if ((TerminalZeit::jetzt()->getTimestamp() - $lastTs) >= 0 && (TerminalZeit::jetzt()->getTimestamp() - $lastTs) < $fensterSekunden) {
                 return ($lastZeit !== '' ? $lastZeit : null);
             }
         } elseif (is_string($lastTs) && ctype_digit($lastTs)) {
             $lastInt = (int)$lastTs;
-            if ((time() - $lastInt) >= 0 && (time() - $lastInt) < $fensterSekunden) {
+            if ((TerminalZeit::jetzt()->getTimestamp() - $lastInt) >= 0 && (TerminalZeit::jetzt()->getTimestamp() - $lastInt) < $fensterSekunden) {
                 return ($lastZeit !== '' ? $lastZeit : null);
             }
         }
@@ -162,7 +162,7 @@ class TerminalController
 
         $_SESSION['terminal_last_buchung'] = [
             'typ' => $typ,
-            'ts' => time(),
+            'ts' => TerminalZeit::jetzt()->getTimestamp(),
             'uhrzeit' => $zeitpunkt->format('H:i:s'),
             'datum' => $zeitpunkt->format('Y-m-d'),
             'mitarbeiter_id' => $mitarbeiterId,
@@ -273,7 +273,7 @@ class TerminalController
      */
     private function holeHeutigeZeitUebersicht(int $mitarbeiterId, bool $zeigeMicroBuchungen = false): array
     {
-        $heute = new DateTimeImmutable('today');
+        $heute = TerminalZeit::heute();
 
         try {
             $daten = $this->zeitService->holeTagesdaten($mitarbeiterId, $heute);
@@ -522,7 +522,7 @@ class TerminalController
     private function setzeTerminalAnwesenheitStatus(bool $istAnwesend): void
     {
         $_SESSION['terminal_anwesend'] = $istAnwesend ? 1 : 0;
-        $_SESSION['terminal_anwesend_zeit'] = (new DateTimeImmutable('now'))->format('Y-m-d H:i:s');
+        $_SESSION['terminal_anwesend_zeit'] = (TerminalZeit::jetzt())->format('Y-m-d H:i:s');
     }
 
     /**
@@ -551,7 +551,7 @@ class TerminalController
         }
 
         try {
-            $heute = new DateTimeImmutable('today');
+            $heute = TerminalZeit::heute();
             $daten = $this->zeitService->holeTagesdaten($mitarbeiterId, $heute);
 
             $buchungen = [];
@@ -595,7 +595,7 @@ class TerminalController
     private function berechneIstStundenHeuteBisJetzt(int $mitarbeiterId, \DateTimeImmutable $now): float
     {
         try {
-            $heute = new DateTimeImmutable('today');
+            $heute = TerminalZeit::heute();
             $daten = $this->zeitService->holeTagesdaten($mitarbeiterId, $heute);
             $buchungen = [];
             if (is_array($daten) && isset($daten['buchungen']) && is_array($daten['buchungen'])) {
@@ -675,7 +675,7 @@ class TerminalController
             return null;
         }
 
-        $now = new DateTimeImmutable('now');
+        $now = TerminalZeit::jetzt();
         $jahrInput = ($jahr !== null) ? $jahr : (int)$now->format('Y');
         $monatInput = ($monat !== null) ? $monat : (int)$now->format('n');
 
@@ -1638,7 +1638,7 @@ class TerminalController
                     }
 
                     $_SESSION['terminal_debug_queue_report'] = [
-                        'zeit' => (new DateTimeImmutable('now'))->format('Y-m-d H:i:s'),
+                        'zeit' => (TerminalZeit::jetzt())->format('Y-m-d H:i:s'),
                         'before_offen' => $beforeOffen,
                         'before_fehler' => $beforeFehler,
                         'after_offen' => $afterOffen,
@@ -1887,7 +1887,7 @@ class TerminalController
                         if (!is_array($mitarbeiter) || !isset($mitarbeiter['id'])) {
                             if ($rfidCode !== '' && $loginFehler === null) {
                                 $_SESSION['terminal_last_unknown_rfid'] = $rfidCode;
-                                $_SESSION['terminal_last_unknown_rfid_ts'] = (new DateTimeImmutable('now'))->format('Y-m-d H:i:s');
+                                $_SESSION['terminal_last_unknown_rfid_ts'] = (TerminalZeit::jetzt())->format('Y-m-d H:i:s');
                             }
                             $fehlerText = $loginFehler !== null ? $loginFehler : 'Mitarbeiter nicht gefunden oder inaktiv.';
                         } else {
@@ -2096,7 +2096,7 @@ class TerminalController
             }
         } elseif (is_array($mitarbeiter) && isset($mitarbeiter['id']) && !$hauptdbAktiv) {
             // Offline-Fall: Komplexe Übersichten sind gesperrt (`docs/fachregeln/terminal_und_offline.md`).
-            $heuteDatum = (new DateTimeImmutable('today'))->format('Y-m-d');
+            $heuteDatum = (TerminalZeit::heute())->format('Y-m-d');
             $heuteFehler = 'Hauptdatenbank offline – Übersicht ist nur online verfügbar.';
         }
         // Monatsstatus (T-092): SOLL Monat / SOLL bis heute / IST bis heute (+ Live-Heute).
@@ -2108,7 +2108,7 @@ class TerminalController
             $filterMonat = null;
 
             if ($zeigeArbeitszeitUebersichtSeite) {
-                $jetzt = new DateTimeImmutable('now');
+                $jetzt = TerminalZeit::jetzt();
                 $filterJahr = isset($_GET['jahr']) ? (int)$_GET['jahr'] : (int)$jetzt->format('Y');
                 $filterMonat = isset($_GET['monat']) ? (int)$_GET['monat'] : (int)$jetzt->format('n');
 
@@ -2179,7 +2179,7 @@ class TerminalController
         if (is_array($mitarbeiter) && isset($mitarbeiter['id']) && $hauptdbAktiv) {
             try {
                 $stundenkontoService = StundenkontoService::getInstanz();
-                $now = new DateTimeImmutable('now', new DateTimeZone('Europe/Berlin'));
+                $now = TerminalZeit::jetzt()->setTimezone(new DateTimeZone('Europe/Berlin'));
                 $jahr = (int)$now->format('Y');
                 $monat = (int)$now->format('n');
 
@@ -2209,7 +2209,7 @@ class TerminalController
         if (is_array($mitarbeiter) && isset($mitarbeiter['id']) && $hauptdbAktiv) {
             try {
                 $stundenkontoService = StundenkontoService::getInstanz();
-                $now = new DateTimeImmutable('now', new DateTimeZone('Europe/Berlin'));
+                $now = TerminalZeit::jetzt()->setTimezone(new DateTimeZone('Europe/Berlin'));
                 $jahr = (int)$now->format('Y');
                 $monat = (int)$now->format('n');
 
@@ -2232,7 +2232,7 @@ class TerminalController
             }
         }
         // Urlaubssaldo (aktuelles Jahr) – nur online sinnvoll.
-        $urlaubJahr = (int)(new DateTimeImmutable('now'))->format('Y');
+        $urlaubJahr = (int)(TerminalZeit::jetzt())->format('Y');
         $urlaubSaldo = null;
         $urlaubSaldoFehler = null;
         $urlaubVorschau = null;
@@ -2488,7 +2488,7 @@ class TerminalController
                     'status'          => 'laufend',
                     'typ'             => 'haupt',
                     'auftragszeit_id' => (int)$neueId,
-                    'zeit'            => (new \DateTimeImmutable('now'))->format('Y-m-d H:i:s'),
+                    'zeit'            => (TerminalZeit::jetzt())->format('Y-m-d H:i:s'),
                 ];
 
                 // Wenn ein neuer Hauptauftrag startet, werden laufende Nebenaufträge automatisch abgeschlossen.
@@ -2497,7 +2497,7 @@ class TerminalController
                 $ln = $_SESSION['terminal_letzter_nebenauftrag'] ?? null;
                 if (is_array($ln)) {
                     $ln['status'] = 'abgeschlossen';
-                    $ln['zeit'] = (new \DateTimeImmutable('now'))->format('Y-m-d H:i:s');
+                    $ln['zeit'] = (TerminalZeit::jetzt())->format('Y-m-d H:i:s');
                     $_SESSION['terminal_letzter_nebenauftrag'] = $ln;
                 }
             }
@@ -2655,7 +2655,7 @@ class TerminalController
                         'status'          => $status,
                         'typ'             => 'haupt',
                         'auftragszeit_id' => $lastId,
-                        'zeit'            => (new \DateTimeImmutable('now'))->format('Y-m-d H:i:s'),
+                        'zeit'            => (TerminalZeit::jetzt())->format('Y-m-d H:i:s'),
                     ];
                 }
             }
@@ -2764,7 +2764,7 @@ class TerminalController
                         'status'          => $status,
                         'typ'             => 'haupt',
                         'auftragszeit_id' => $auftragszeitId !== null ? (int)$auftragszeitId : (is_int($lastId) ? $lastId : 0),
-                        'zeit'            => (new \DateTimeImmutable('now'))->format('Y-m-d H:i:s'),
+                        'zeit'            => (TerminalZeit::jetzt())->format('Y-m-d H:i:s'),
                     ];
                 }
             }
@@ -3005,7 +3005,7 @@ class TerminalController
                     'status'             => 'laufend',
                     'typ'                => 'neben',
                     'auftragszeit_id'    => (int)$res,
-                    'zeit'               => (new \DateTimeImmutable('now'))->format('Y-m-d H:i:s'),
+                    'zeit'               => (TerminalZeit::jetzt())->format('Y-m-d H:i:s'),
                 ];
             }
         } catch (\Throwable $e) {
@@ -3155,7 +3155,7 @@ class TerminalController
                 // Letzten Nebenauftrag als beendet markieren (Info)
                 if (isset($_SESSION['terminal_letzter_nebenauftrag']) && is_array($_SESSION['terminal_letzter_nebenauftrag'])) {
                     $_SESSION['terminal_letzter_nebenauftrag']['status'] = $status;
-                    $_SESSION['terminal_letzter_nebenauftrag']['endzeit'] = (new \DateTimeImmutable('now'))->format('Y-m-d H:i:s');
+                    $_SESSION['terminal_letzter_nebenauftrag']['endzeit'] = (TerminalZeit::jetzt())->format('Y-m-d H:i:s');
                 }
             }
         } catch (\Throwable $e) {
@@ -3241,7 +3241,7 @@ class TerminalController
             return null;
         }
 
-        $jetzt = new DateTimeImmutable('now');
+        $jetzt = TerminalZeit::jetzt();
 
         // Offline: nur in Queue schreiben
         if (!$this->istHauptdatenbankAktiv()) {
@@ -3402,7 +3402,7 @@ class TerminalController
         }
 
         $status = in_array($status, ['abgeschlossen', 'abgebrochen', 'pausiert'], true) ? $status : 'abgeschlossen';
-        $jetzt = new DateTimeImmutable('now');
+        $jetzt = TerminalZeit::jetzt();
 
         // Offline: nur in Queue schreiben
         if (!$this->istHauptdatenbankAktiv()) {
@@ -3607,7 +3607,7 @@ class TerminalController
         // Urlaub-Box auf der Startseite (nur Anzeige) – laden wir nur online.
         $urlaubSaldo = null;
         $urlaubSaldoFehler = null;
-        $urlaubJahr = (int)(new DateTimeImmutable('now'))->format('Y');
+        $urlaubJahr = (int)(TerminalZeit::jetzt())->format('Y');
         try {
             $urlaubService = UrlaubService::getInstanz();
             $urlaubSaldo = $urlaubService->berechneUrlaubssaldoFuerJahr($mitarbeiterId, $urlaubJahr);
@@ -3802,7 +3802,7 @@ class TerminalController
 
 
         // Urlaubssaldo (aktuelles Jahr) + Vorschau (verfügbar / nach Antrag).
-$urlaubJahr = (int)(new DateTimeImmutable('now'))->format('Y');
+$urlaubJahr = (int)(TerminalZeit::jetzt())->format('Y');
 
 // Betriebsferien (Anzeige in "Urlaub Übersicht")
 $betriebsferienListe = [];
@@ -4224,7 +4224,7 @@ $urlaubSaldo = null;
                     exit;
                 }
 
-                $zeitpunkt = new DateTimeImmutable('now');
+                $zeitpunkt = TerminalZeit::jetzt();
 
                 // T-069: De-Bounce gegen Doppelbuchungen.
                 $dupZeit = $this->pruefeTerminalDoppelteBuchung('kommen', 5, null, $rfidCode);
@@ -4270,7 +4270,7 @@ $urlaubSaldo = null;
         $nachricht  = null;
         $fehlerText = null;
 
-        $zeitpunkt = new DateTimeImmutable('now');
+        $zeitpunkt = TerminalZeit::jetzt();
 
         // T-069: De-Bounce gegen Doppelbuchungen (Doppelklick/Scan).
         $dupZeit = $this->pruefeTerminalDoppelteBuchung('kommen', 5, (int)$mitarbeiter['id'], null);
@@ -4410,7 +4410,7 @@ $urlaubSaldo = null;
                     exit;
                 }
 
-                $zeitpunkt = new DateTimeImmutable('now');
+                $zeitpunkt = TerminalZeit::jetzt();
 
                 // T-069: De-Bounce gegen Doppelbuchungen.
                 $dupZeit = $this->pruefeTerminalDoppelteBuchung('gehen', 5, null, $rfidCode);
@@ -4458,7 +4458,7 @@ $urlaubSaldo = null;
         $nachricht  = null;
         $fehlerText = null;
 
-        $zeitpunkt = new DateTimeImmutable('now');
+        $zeitpunkt = TerminalZeit::jetzt();
 
         // T-069: De-Bounce gegen Doppelbuchungen (Doppelklick/Scan).
         $dupZeit = $this->pruefeTerminalDoppelteBuchung('gehen', 5, (int)$mitarbeiter['id'], null);

@@ -18,6 +18,70 @@ legacy_zip_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-09-01 terminalzeit-direkt-vom-backend
+
+### EINGELESEN
+Benutzerauftrag: fehlender Kommen-Eintrag unter „Heutige Zeiten“, abweichende
+Terminaluhr und Datum/Uhrzeit direkt vom Backend holen; CLAUDE/CHATSTART,
+Arbeitsregeln, Snapshot, Zeit-/Terminal-Fachregeln, Controller/Services,
+Browseruhr, DB-/Kopplungs- und Wartungskanal; History-/Git-Duplicate-Check.
+### DATEIEN
+core/TerminalZeit.php, controller/TerminalController.php,
+services/ZeitService.php, services/AuftragszeitService.php,
+services/WartungKanal.php, public/terminal.php,
+public/js/terminal-autologout.js, views/terminal/_autologout.php, .gitignore,
+scripts/tests/terminal_zeit.php, scripts/tests/terminal_uhr.js,
+scripts/tests/terminal_buchung.py, scripts/tests/terminal_zeit_vorladung.c,
+scripts/tests/wartung_windows.ps1, .github/workflows/windows-wartung.yml,
+docs/spezifikation_terminal_zeitabgleich.md,
+docs/fachregeln/terminal_und_offline.md, docs/wartung_betrieb.md,
+docs/STATUS_SNAPSHOT.md, dieser Verlauf.
+### AKZEPTANZKRITERIUM
+Bei zwei Tagen falscher lokaler Terminalzeit verwendet ein neues Kommen automatisch das Backenddatum, erscheint unter „Heutige Zeiten“ und bleibt während einer Netzunterbrechung mit korrekter Nachtragung nutzbar, ohne alte Buchungen zu verändern.
+### DONE
+Die bisherige Anzeige verwendete die Browseruhr, Buchungen und „heute“ die
+lokale PHP-Uhr; ein bestätigter Stempel konnte deshalb auf einem anderen Tag
+landen. TerminalZeit liest nun einmal je Anfrage die UTC-Epoche der zentralen
+DB über den vorhandenen Gerätezugang und stellt sie in der Anwendungszeitzone
+dar. Datumsauswahl, Anwesenheit, Kommen/Gehen und Auftragszeiten verwenden
+dieselbe Quelle; Backendaktionen und ausdrücklich übergebene Zeitstempel
+bleiben unverändert. Die sekündliche Headeruhr aktualisiert ihre Referenz alle
+15 Sekunden über einen reinen Zeit-Endpoint; keine Buchung, Queue-Verarbeitung
+oder Benutzeraktivität. Auto-Logout verwendet eine monotone Dauer und springt
+bei lokaler Uhrkorrektur nicht. Auch signierte Wartungsfristen werden zentral
+erzeugt und geprüft, ohne Signatur-/Identitäts-/Ablaufprüfung abzuschwächen.
+Während desselben Linux-Systemstarts läuft der letzte Abgleich bei Netzausfall
+monoton weiter; Cache ist an Backend/Terminal und Systemstart gebunden, atomar
+und ohne Zugangsdaten. Wartungspause und Dateisperre schützen Backups vor
+parallel laufenden Cache-Schreibvorgängen; Cachefehler beschädigen keine
+Buchungsantwort. Im eigenen Erstentwurf vorgesehene Systemuhr-/NTP-Eingriffe
+wurden vor Veröffentlichung gemäß Benutzerpräzisierung entfernt: keine neue
+Einrichtung, Systemrechte, Dienste oder Internetverbindung für den Zeitbezug.
+Grenze: Neustart ohne Backendkontakt fällt auf die lokale Uhr zurück;
+Ausschaltdauer kann ohne Zeitquelle nicht rekonstruiert werden. Alte falsch
+datierte Roh-/Queuebuchungen werden ausdrücklich nicht automatisch korrigiert;
+der konkrete Stempel am Benutzergerät wurde nicht ausgelesen.
+### TEST
+Privater PHP-8.5.11-/MariaDB-12.3.3-Aufbau mit synthetischen Daten und falscher
+Uhr ausschließlich im Terminal-PHP-Prozess: alter Stand 2bab763 bestätigt
+„Kommen gebucht“ bei zwei Tagen falschem Datum, aktuelle Backend-Tagesansicht
+bleibt leer (21 Prüfungen); Korrektur besteht 32 Prüfungen inklusive echter
+Kommen/Gehen-Formulare, „Heutige Zeiten“, reiner Uhrabfrage, Wartungspause,
+Offline-Kommen/Einmal-Nachtragung, unveränderter Rohdaten und gültiger/
+abgelaufener signierter Aufträge bei zwei Tagen vorgehender Agentuhr.
+Zusätzlich 17 PHP-Zeitprüfungen (Sommer-/Winterzeit, Cache-/Schreibfehler,
+Backend unverändert), 9 Browser-Uhr-/Auto-Logout-Prüfungen und 48 vollständige
+Backup-/Restore-/Updateprüfungen mit zwei Terminals, Linux-ZIP/tar und offenen
+Offline-Queues. 11 portable Wartungs-, 21 Installer- und 13 RFID-/WebSocket-
+Prüfungen ebenfalls erfolgreich. Eigene Laborprozesse beendet, keine
+PHP-Warnungen/Deprecations in HTTP-Protokollen; echte Systemuhr, Dienste,
+Personaldaten und lokale Projektkonfiguration unberührt. Syntaxprüfungen und
+git diff --check erfolgreich. Native Windows/XAMPP-Prüfung ist erweitert und
+steht nach Veröffentlichung noch aus; echte Leser-/Geräteabnahme ebenfalls.
+### NEXT
+Nativen Windows-Lauf prüfen, danach auf freigegebenem main veröffentlichen;
+am Benutzergerät aktualisieren, Kommen/Gehen prüfen und alten Stempel suchen.
+
 ## P-2026-10-03-16 wartungsview-reparatur-nativ-geprueft
 
 ### EINGELESEN

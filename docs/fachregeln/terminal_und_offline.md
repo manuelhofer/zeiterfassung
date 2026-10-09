@@ -363,8 +363,14 @@ ID lässt sich weiterhin scannen oder tippen.
 
 - **Bildschirmausnutzung:** ca. **97 %** der verfügbaren Fläche (Breite und
   Höhe), minimale Außenränder, responsiv über den Viewport.
-- **Laufende Uhr** im Header, synchron zur Systemzeit: Start-Sync beim Laden,
-  dann sekündlich; optional periodische Resyncs.
+- **Laufende Uhr** im Header: Datum und Uhrzeit kommen über die bestehende
+  Verbindung vom Backend, beim Laden und danach alle 15 Sekunden; die Anzeige
+  läuft sekündlich weiter. Neue Buchungen und „heute“ verwenden dieselbe
+  Zeitquelle in der Anwendungszeitzone (Europe/Berlin). Eine falsche lokale
+  Browser-/Terminaluhr ist online unerheblich. Offline läuft der letzte Abgleich
+  während desselben Systemstarts weiter; Neustart ohne Serverkontakt fällt auf
+  die lokale Uhr zurück. Bestehende Buchungen werden nicht verändert.
+  Details: [Zeitabgleich](../spezifikation_terminal_zeitabgleich.md).
 - **Datum/Zeitformat überall in der UI:** `HH:MM:SS DD-MM-YYYY`
   (Beispiel `12:04:10 05-01-2026`).
 - **Keine doppelte Zeitanzeige:** Es bleibt **nur** die Uhr im Header. Weitere

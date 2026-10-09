@@ -11,6 +11,14 @@ require __DIR__ . '/../core/Autoloader.php';
 
 $konfig = Start::los();
 
+// Nur die Uhr auffrischen: keine Queue, Stammdaten oder Benutzeraktivität verändern.
+if (($_GET['aktion'] ?? '') === 'zeit') {
+    header('Content-Type: application/json; charset=utf-8');
+    header('Cache-Control: no-store, private');
+    echo json_encode(TerminalZeit::anzeige(), JSON_THROW_ON_ERROR);
+    exit;
+}
+
 // Auffangnetz fuer den Portal-Abgleich: Am Ende dieser Anfrage laeuft er
 // mit, wenn er faellig ist (hoechstens alle zwei Minuten). Ersetzt den
 // Zeitplan nicht - ohne den passiert in ruhigen Zeiten nichts.
@@ -53,7 +61,7 @@ try {
 // Aufruf: terminal.php?aktion=health
 if ($aktion === 'health') {
     $health = [
-        'zeit' => date('c'),
+        'zeit' => TerminalZeit::jetzt()->format(DateTimeInterface::ATOM),
         'terminal_angemeldet' => false,
         'terminal_mitarbeiter_id' => null,
         'hauptdb_verfuegbar' => null,
@@ -159,7 +167,7 @@ if (isset($_SESSION['terminal_mitarbeiter_id'])) {
     }
 }
 
-$jetztTs = time();
+$jetztTs = TerminalZeit::jetzt()->getTimestamp();
 $letzteAktivitaetTs = $_SESSION['terminal_last_activity_ts'] ?? null;
 
 if ($terminalIstAngemeldet && $aktion !== 'logout' && $letzteAktivitaetTs !== null) {
@@ -216,7 +224,7 @@ try {
     $zustand = QueueService::getInstanz()->holeZustand();
 
     $queueStatus = [
-        'zeit'               => date('Y-m-d H:i:s'),
+        'zeit'               => TerminalZeit::jetzt()->format('Y-m-d H:i:s'),
         'hauptdb_verfuegbar' => $zustand['hauptdb_verfuegbar'],
         'offen'              => $zustand['offen'],
         'fehler'             => $zustand['fehler'],

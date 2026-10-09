@@ -18,15 +18,29 @@ nichts.
 
 ## Nächster Schritt (konkret)
 
-**Terminal-Kopplung nach Datenbankimport am Gerät wiederholen** (03.10.2026):
+**Direkte Backendzeit am Terminal abnehmen** (09.10.2026): Anzeige, Datum,
+neue Kommen-/Gehen-/Auftragszeiten und Tagesauswahl verwenden nach Kopplung
+automatisch die zentrale Zeit über den bestehenden DB-Zugang; die Anzeige
+gleicht sich alle 15 Sekunden ab. Falsches lokales Datum als Ursache eines
+unter „Heutige Zeiten“ fehlenden Kommen-Stempels ist im privaten Labor
+reproduziert und behoben; Linux, Offline-Nachtragung und Wartungsabläufe
+sind geprüft, native Windows-Prüfung folgt. Am Benutzergerät die neue Version
+installieren und Kommen prüfen; eine alte falsch datierte Buchung gezielt
+suchen und gegebenenfalls manuell korrigieren, nicht automatisch umdatieren.
+Grenze: Neustart ohne erreichbares Backend benötigt eine korrekte lokale Uhr;
+[Zeitabgleich](spezifikation_terminal_zeitabgleich.md).
+
+**Automatische Terminal-Kopplung am Gerät abnehmen** (03.10.2026):
 Fehlende/unberechtigte Definer der Wartungsviews sind als Kopplungsfehler
 isoliert reproduziert; die Kopplung bindet diese Views jetzt automatisch an
 den aktuellen Backendzugang und erhält die eingeschränkten Gerätezugriffe.
 Mit normalem Backendzugang unter Linux und nativem Windows/XAMPP geprüft.
 SQLSTATE/DB-Fehlernummer ergänzen das Fehlerlog; eine erfolgreiche Codeprüfung
-meldet keinen verfrühten Kopplungserfolg mehr. Die Definer-Ausgabe vom
-Benutzergerät fehlt noch; Anleitung für einen alten Softwarestand und neuen
-Kopplungscode in [wartung_betrieb.md](wartung_betrieb.md#kopplung-nach-einem-datenbankimport).
+meldet keinen verfrühten Kopplungserfolg mehr. Der Benutzer bestätigt die
+Reparatur durch Migration 15 auch nach frischer Installation beider Geräte;
+die automatische Reparatur ohne manuelle SQL-Schritte bleibt dort abzunehmen.
+Anleitung für einen alten Softwarestand und neuen Kopplungscode in
+[wartung_betrieb.md](wartung_betrieb.md#kopplung-nach-einem-datenbankimport).
 
 **Windows/XAMPP am Benutzergerät abnehmen** (03.10.2026): Gemeinsame Backup-/
 Updateknöpfe und automatischer Windows-Installer sind umgesetzt; native

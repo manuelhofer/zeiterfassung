@@ -32,10 +32,14 @@ if ($autologoutAktiv) {
 }
 
 $scriptRelPfad = 'js/terminal-autologout.js';
+$uhr = TerminalZeit::anzeige();
 $scriptAttribute = [
     'data-autologout-enabled' => $autologoutAktiv ? '1' : '0',
     'data-timeout-sekunden' => (int)$timeoutSekunden,
     'data-logout-url' => $autologoutAktiv ? 'terminal.php?aktion=logout' : '',
+    'data-zeit-epoche' => $uhr['epoche'],
+    'data-zeitzone' => $uhr['zeitzone'],
+    'data-zeit-url' => 'terminal.php?aktion=zeit',
 ];
 require __DIR__ . '/_script.php';
 
@@ -136,4 +140,3 @@ if ($healthIntervalSekunden !== 0) {
     ];
     require __DIR__ . '/_script.php';
 }
-

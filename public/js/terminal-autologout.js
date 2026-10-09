@@ -50,37 +50,79 @@
         : '';
 
     // ------------------------------------------------------------
-    // Live-Uhr (T-077) – laeuft auch auf dem Login-Screen
+    // Live-Uhr: Serverzeit und Anwendungszeitzone, unabhängig von der Browseruhr.
     // ------------------------------------------------------------
 
     const uhrEl = document.getElementById('terminal-uhr');
 
-    const pad2 = (n) => String(n).padStart(2, '0');
-    const formatZeit = (d) => {
-        // Deutschland: HH:MM:SS DD-MM-YYYY
-        return (
-            pad2(d.getHours()) + ':' + pad2(d.getMinutes()) + ':' + pad2(d.getSeconds()) +
-            ' ' +
-            pad2(d.getDate()) + '-' + pad2(d.getMonth() + 1) + '-' + d.getFullYear()
-        );
+    let uhrEpoche = Number(ds.zeitEpoche) * 1000;
+    let uhrMonoton = performance.now();
+    let uhrAktiv = true;
+    let uhrFormatiert;
+    let uhrAbfrage = null;
+    let uhrAbfrageTimeout = null;
+    const zeitUrl = ds.zeitUrl || 'terminal.php?aktion=zeit';
+    const formatierer = (zeitzone) => new Intl.DateTimeFormat('de-DE', {
+        timeZone: zeitzone, year: 'numeric', month: '2-digit', day: '2-digit',
+        hour: '2-digit', minute: '2-digit', second: '2-digit', hourCycle: 'h23'
+    });
+    try { uhrFormatiert = formatierer(ds.zeitzone || 'Europe/Berlin'); }
+    catch (e) { uhrFormatiert = formatierer('Europe/Berlin'); }
+    const uhrMillisekunden = () => uhrEpoche + Math.max(0, performance.now() - uhrMonoton);
+    const formatZeit = (ms) => {
+        const teile = {};
+        for (const teil of uhrFormatiert.formatToParts(new Date(ms))) {
+            teile[teil.type] = teil.value;
+        }
+        return `${teile.hour}:${teile.minute}:${teile.second} ${teile.day}-${teile.month}-${teile.year}`;
     };
 
     const updateUhr = () => {
-        if (!uhrEl) return;
-        uhrEl.textContent = formatZeit(new Date());
+        if (!uhrEl || !Number.isFinite(uhrEpoche)) return;
+        uhrEl.textContent = formatZeit(uhrMillisekunden());
     };
 
     let clockTimer = null;
     let clockInterval = null;
+    let clockSyncInterval = null;
+
+    const gleicheUhrAb = async () => {
+        if (!uhrEl || !uhrAktiv || uhrAbfrage) return;
+        const abfrage = new AbortController();
+        uhrAbfrage = abfrage;
+        uhrAbfrageTimeout = setTimeout(() => abfrage.abort(), 4000);
+        try {
+            const antwort = await fetch(zeitUrl, {
+                cache: 'no-store', credentials: 'same-origin', signal: abfrage.signal
+            });
+            if (!antwort.ok) return;
+            const zeit = await antwort.json();
+            if (!uhrAktiv || !Number.isInteger(zeit.epoche) || zeit.epoche < 1577836800
+                || zeit.epoche >= 4102444800 || typeof zeit.zeitzone !== 'string') return;
+            const neu = formatierer(zeit.zeitzone);
+            uhrEpoche = zeit.epoche * 1000;
+            uhrMonoton = performance.now();
+            uhrFormatiert = neu;
+            updateUhr();
+        } catch (e) {
+            // Bei einer Unterbrechung läuft die zuletzt bestätigte Uhr weiter.
+        } finally {
+            clearTimeout(uhrAbfrageTimeout);
+            uhrAbfrageTimeout = null;
+            uhrAbfrage = null;
+        }
+    };
 
     const startClock = () => {
         updateUhr();
         // Auf Sekundenkante ausrichten, damit die Anzeige sauber "tickt".
-        const msToNextSecond = 1000 - (Date.now() % 1000);
+        const msToNextSecond = Number.isFinite(uhrEpoche) ? 1000 - (uhrMillisekunden() % 1000) : 1000;
         clockTimer = setTimeout(() => {
             updateUhr();
             clockInterval = setInterval(updateUhr, 1000);
         }, msToNextSecond);
+        clockSyncInterval = setInterval(gleicheUhrAb, 15000);
+        if (!Number.isFinite(uhrEpoche)) gleicheUhrAb();
     };
 
     // ------------------------------------------------------------
@@ -89,7 +131,7 @@
 
     let timer = null;
     let countdownInterval = null;
-    let deadlineMs = Date.now() + (timeoutSek * 1000);
+    let deadlineMs = performance.now() + (timeoutSek * 1000);
 
     const logoutForm = document.getElementById('logout-form');
 
@@ -113,7 +155,7 @@
 
     const tick = () => {
         if (!autologoutEnabled || !badge) return;
-        const rest = Math.max(0, Math.ceil((deadlineMs - Date.now()) / 1000));
+        const rest = Math.max(0, Math.ceil((deadlineMs - performance.now()) / 1000));
         badge.textContent = 'Auto-Logout in ' + rest + 's';
     };
 
@@ -138,7 +180,7 @@
 
     const reset = () => {
         if (!autologoutEnabled) return;
-        deadlineMs = Date.now() + (timeoutSek * 1000);
+        deadlineMs = performance.now() + (timeoutSek * 1000);
         tick();
         schedule();
     };
@@ -292,10 +334,11 @@
         }
     };
 
-    const onWindowFocus = () => setTimeout(focusScanInput, 0);
+    const onWindowFocus = () => { setTimeout(focusScanInput, 0); gleicheUhrAb(); };
     const onVisibility = () => {
         if (!document.hidden) {
             setTimeout(focusScanInput, 0);
+            gleicheUhrAb();
         }
     };
 
@@ -465,10 +508,14 @@
 
     window[KEY] = {
         cleanup: () => {
+            uhrAktiv = false;
+            if (uhrAbfrage) uhrAbfrage.abort();
+            if (uhrAbfrageTimeout) clearTimeout(uhrAbfrageTimeout);
             if (timer) clearTimeout(timer);
             if (countdownInterval) clearInterval(countdownInterval);
             if (clockTimer) clearTimeout(clockTimer);
             if (clockInterval) clearInterval(clockInterval);
+            if (clockSyncInterval) clearInterval(clockSyncInterval);
             ['click', 'touchstart'].forEach((evt) => {
                 document.removeEventListener(evt, onPointerEvent);
             });

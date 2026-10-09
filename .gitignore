@@ -6,6 +6,9 @@ config/config.local.php
 # sie beim Koppeln aus. Gehoert zur Maschine, nicht zum Quellcode.
 config/geraet.local.php
 config/wartung.local.php
+config/terminalzeit.local.json
+config/terminalzeit.local.json.lock
+config/.terminalzeit-*
 
 # Antwortdatei des Terminal-Installationsskripts (Vorlage:
 # scripts/terminal/terminal.conf.example). Sie beschreibt ein konkretes Geraet

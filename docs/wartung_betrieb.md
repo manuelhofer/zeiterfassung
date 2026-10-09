@@ -87,6 +87,16 @@ und bereits bearbeitete Aufträge. Die Serveridentität wird bei der ersten
 Verbindung über den vorhandenen Kopplungskanal gespeichert. Ein abweichender
 Schlüssel stoppt die Wartung und wird nicht still übernommen.
 
+Datum und Uhrzeit des Terminals kommen ebenfalls über diese bestehende
+Verbindung vom Backend. Anzeige und neue Buchungen verwenden die zentrale
+Zeit; die Uhr gleicht sich alle 15 Sekunden ab. Ablaufzeiten signierter
+Wartungsaufträge nutzen dieselbe Quelle. Dafür ist keine weitere Einrichtung
+nötig. Bei einer Netzunterbrechung läuft der letzte Zeitabgleich während
+desselben Systemstarts weiter; nach Neustart ohne Backendkontakt bleibt nur
+die lokale Uhr. Die Betriebssystemuhr und bereits gespeicherte Buchungen
+werden nicht umgestellt. Details und Prüfweg:
+[Terminal-Zeitabgleich](spezifikation_terminal_zeitabgleich.md).
+
 ### Kopplung nach einem Datenbankimport
 
 Die vier `wartung_mein_*`-Views können aus einem fremden Dump einen fehlenden
