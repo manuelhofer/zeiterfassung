@@ -18,6 +18,38 @@ legacy_zip_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-09-02 backendzeit-nativ-geprueft
+
+### EINGELESEN
+Erfolgreicher nativer Windows-Lauf 37913941723 für 49bb694,
+Linux-Ergebnisse 20261009-endstand/alterstand und Wartung 20261009-final,
+Zeitabgleich-Spezifikation und Snapshot.
+### DATEIEN
+docs/spezifikation_terminal_zeitabgleich.md, docs/STATUS_SNAPSHOT.md,
+dieser Verlauf.
+### AKZEPTANZKRITERIUM
+Die Dokumentation belegt den direkten Backendzeitbezug mit bestandenen Linux- und nativen Windows/XAMPP-Prüfungen und benennt die Grenzen beim ersten Update sowie beim Offline-Neustart.
+### DONE
+Native Abnahme erfolgreich, keine weitere Codeänderung nötig; Snapshot und
+Prüfbeleg aktualisiert. Beim ersten Rollout kann ein alter Terminaldienst mit
+über einer Stunde vorgehender lokaler Uhr gültige Updateaufträge noch als
+abgelaufen ablehnen; direkte Softwareübernahme oder lokale Uhrkorrektur ist
+in diesem Sonderfall nötig. Der neue Dienst prüft die Frist zentral.
+Keine Behauptung über den konkreten fehlenden Stempel oder eine bereits
+durchgeführte Geräteinstallation; Rohdaten bleiben unverändert.
+### TEST
+Windows Server 2022/XAMPP 8.2.12/PHP 8.2.12: 10 PHP-Zeit-, 9 Browser-Uhr-,
+20 portable und 22 native Wartungsprüfungen bestanden, inklusive Installation,
+eingeschränkter Apache-Identität, Kopplungsrechten, ZIP-/SQL-Backup und Restore,
+Update mit Migration/Apache-Neustart, Dateikonflikt und Wiederinstallation;
+keine PHP-Warnungen/Deprecations im Protokoll. Linux-Endstand: 32 Buchungs-
+und Wartungskanalprüfungen, 21 Fälle zur alten Fehlerreproduktion,
+17 PHP-Zeit-/9 Browser-Uhrprüfungen, 48 Wartungsfälle erfolgreich und alle
+eigenen Laborprozesse beendet. Dokumentationslinks und git diff --check geprüft.
+### NEXT
+Auf dem ausdrücklich freigegebenen main veröffentlichen; Benutzergeräte
+aktualisieren und Kommen/Gehen sowie den bisherigen Stempel gezielt prüfen.
+
 ## P-2026-10-09-01 terminalzeit-direkt-vom-backend
 
 ### EINGELESEN

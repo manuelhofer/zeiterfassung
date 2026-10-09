@@ -24,7 +24,7 @@ automatisch die zentrale Zeit über den bestehenden DB-Zugang; die Anzeige
 gleicht sich alle 15 Sekunden ab. Falsches lokales Datum als Ursache eines
 unter „Heutige Zeiten“ fehlenden Kommen-Stempels ist im privaten Labor
 reproduziert und behoben; Linux, Offline-Nachtragung und Wartungsabläufe
-sind geprüft, native Windows-Prüfung folgt. Am Benutzergerät die neue Version
+sowie natives Windows/XAMPP sind geprüft. Am Benutzergerät die neue Version
 installieren und Kommen prüfen; eine alte falsch datierte Buchung gezielt
 suchen und gegebenenfalls manuell korrigieren, nicht automatisch umdatieren.
 Grenze: Neustart ohne erreichbares Backend benötigt eine korrekte lokale Uhr;
